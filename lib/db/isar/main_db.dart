@@ -63,7 +63,6 @@ class MainDB {
         StackThemeSchema,
         ContactEntrySchema,
         OrdinalSchema,
-        LelantusCoinSchema,
         WalletInfoSchema,
         TransactionV2Schema,
         SparkCoinSchema,
@@ -93,13 +92,16 @@ class MainDB {
   Future<void> updateWalletInfo(WalletInfo walletInfo) async {
     try {
       await isar.writeTxn(() async {
-        final info = await isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletInfo.walletId)
-            .findFirst();
+        final info =
+            await isar.walletInfo
+                .where()
+                .walletIdEqualTo(walletInfo.walletId)
+                .findFirst();
         if (info == null) {
-          throw Exception("updateWalletInfo() called with new WalletInfo."
-              " Use putWalletInfo()");
+          throw Exception(
+            "updateWalletInfo() called with new WalletInfo."
+            " Use putWalletInfo()",
+          );
         }
 
         await isar.walletInfo.deleteByWalletId(walletInfo.walletId);
@@ -174,8 +176,7 @@ class MainDB {
   // addresses
   QueryBuilder<Address, Address, QAfterWhereClause> getAddresses(
     String walletId,
-  ) =>
-      isar.addresses.where().walletIdEqualTo(walletId);
+  ) => isar.addresses.where().walletIdEqualTo(walletId);
 
   Future<int> putAddress(Address address) async {
     try {
@@ -202,8 +203,10 @@ class MainDB {
       final List<int> ids = [];
       await isar.writeTxn(() async {
         for (final address in addresses) {
-          final storedAddress = await isar.addresses
-              .getByValueWalletId(address.value, address.walletId);
+          final storedAddress = await isar.addresses.getByValueWalletId(
+            address.value,
+            address.walletId,
+          );
 
           int id;
           if (storedAddress == null) {
@@ -253,8 +256,7 @@ class MainDB {
   // transactions
   QueryBuilder<Transaction, Transaction, QAfterWhereClause> getTransactions(
     String walletId,
-  ) =>
-      isar.transactions.where().walletIdEqualTo(walletId);
+  ) => isar.transactions.where().walletIdEqualTo(walletId);
 
   Future<int> putTransaction(Transaction transaction) async {
     try {
@@ -294,20 +296,19 @@ class MainDB {
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> getUTXOsByAddress(
     String walletId,
     String address,
-  ) =>
-      isar.utxos
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .addressEqualTo(address);
+  ) => isar.utxos
+      .where()
+      .walletIdEqualTo(walletId)
+      .filter()
+      .addressEqualTo(address);
 
   Future<void> putUTXO(UTXO utxo) => isar.writeTxn(() async {
-        await isar.utxos.put(utxo);
-      });
+    await isar.utxos.put(utxo);
+  });
 
   Future<void> putUTXOs(List<UTXO> utxos) => isar.writeTxn(() async {
-        await isar.utxos.putAll(utxos);
-      });
+    await isar.utxos.putAll(utxos);
+  });
 
   Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
     bool newUTXO = false;
@@ -315,10 +316,11 @@ class MainDB {
       final set = utxos.toSet();
       for (final utxo in utxos) {
         // check if utxo exists in db and update accordingly
-        final storedUtxo = await isar.utxos
-            .where()
-            .txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout)
-            .findFirst();
+        final storedUtxo =
+            await isar.utxos
+                .where()
+                .txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout)
+                .findFirst();
 
         if (storedUtxo != null) {
           // update
@@ -344,17 +346,14 @@ class MainDB {
     return newUTXO;
   }
 
-  Stream<UTXO?> watchUTXO({
-    required Id id,
-    bool fireImmediately = false,
-  }) {
+  Stream<UTXO?> watchUTXO({required Id id, bool fireImmediately = false}) {
     return isar.utxos.watchObject(id, fireImmediately: fireImmediately);
   }
 
   // transaction notes
   QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
-      getTransactionNotes(String walletId) =>
-          isar.transactionNotes.where().walletIdEqualTo(walletId);
+  getTransactionNotes(String walletId) =>
+      isar.transactionNotes.where().walletIdEqualTo(walletId);
 
   Future<void> putTransactionNote(TransactionNote transactionNote) =>
       isar.writeTxn(() async {
@@ -370,25 +369,23 @@ class MainDB {
     String walletId,
     String txid,
   ) async {
-    return isar.transactionNotes.getByTxidWalletId(
-      txid,
-      walletId,
-    );
+    return isar.transactionNotes.getByTxidWalletId(txid, walletId);
   }
 
   Stream<TransactionNote?> watchTransactionNote({
     required Id id,
     bool fireImmediately = false,
   }) {
-    return isar.transactionNotes
-        .watchObject(id, fireImmediately: fireImmediately);
+    return isar.transactionNotes.watchObject(
+      id,
+      fireImmediately: fireImmediately,
+    );
   }
 
   // address labels
   QueryBuilder<AddressLabel, AddressLabel, QAfterWhereClause> getAddressLabels(
     String walletId,
-  ) =>
-      isar.addressLabels.where().walletIdEqualTo(walletId);
+  ) => isar.addressLabels.where().walletIdEqualTo(walletId);
 
   Future<int> putAddressLabel(AddressLabel addressLabel) =>
       isar.writeTxn(() async {
@@ -396,8 +393,8 @@ class MainDB {
       });
 
   int putAddressLabelSync(AddressLabel addressLabel) => isar.writeTxnSync(() {
-        return isar.addressLabels.putSync(addressLabel);
-      });
+    return isar.addressLabels.putSync(addressLabel);
+  });
 
   Future<void> putAddressLabels(List<AddressLabel> addressLabels) =>
       isar.writeTxn(() async {
@@ -453,58 +450,43 @@ class MainDB {
 
       // transactions
       for (int i = 0; i < transactionCount; i += paginateLimit) {
-        final txnIds = await getTransactions(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final txnIds =
+            await getTransactions(
+              walletId,
+            ).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.transactions.deleteAll(txnIds);
       }
 
       // transactions V2
       for (int i = 0; i < transactionCountV2; i += paginateLimit) {
-        final txnIds = await isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final txnIds =
+            await isar.transactionV2s
+                .where()
+                .walletIdEqualTo(walletId)
+                .offset(i)
+                .limit(paginateLimit)
+                .idProperty()
+                .findAll();
         await isar.transactionV2s.deleteAll(txnIds);
       }
 
       // addresses
       for (int i = 0; i < addressCount; i += paginateLimit) {
-        final addressIds = await getAddresses(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final addressIds =
+            await getAddresses(
+              walletId,
+            ).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.addresses.deleteAll(addressIds);
       }
 
       // utxos
       for (int i = 0; i < utxoCount; i += paginateLimit) {
-        final utxoIds = await getUTXOs(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final utxoIds =
+            await getUTXOs(
+              walletId,
+            ).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.utxos.deleteAll(utxoIds);
       }
-
-      // lelantusCoins
-      await isar.lelantusCoins.where().walletIdEqualTo(walletId).deleteAll();
-      //   for (int i = 0; i < lelantusCoinCount; i += paginateLimit) {
-      //     final lelantusCoinIds = await isar.lelantusCoins
-      //         .where()
-      //         .walletIdEqualTo(walletId)
-      //         .offset(i)
-      //         .limit(paginateLimit)
-      //         .idProperty()
-      //         .findAll();
-      //     await isar.lelantusCoins.deleteAll(lelantusCoinIds);
-      //   }
 
       // spark coins
       await isar.sparkCoins
@@ -519,11 +501,10 @@ class MainDB {
     await isar.writeTxn(() async {
       const paginateLimit = 50;
       for (int i = 0; i < addressLabelCount; i += paginateLimit) {
-        final labelIds = await getAddressLabels(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final labelIds =
+            await getAddressLabels(
+              walletId,
+            ).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.addressLabels.deleteAll(labelIds);
       }
     });
@@ -534,11 +515,10 @@ class MainDB {
     await isar.writeTxn(() async {
       const paginateLimit = 50;
       for (int i = 0; i < noteCount; i += paginateLimit) {
-        final labelIds = await getTransactionNotes(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final labelIds =
+            await getTransactionNotes(
+              walletId,
+            ).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.transactionNotes.deleteAll(labelIds);
       }
     });
@@ -591,10 +571,11 @@ class MainDB {
       final List<int> ids = [];
       await isar.writeTxn(() async {
         for (final tx in transactions) {
-          final storedTx = await isar.transactionV2s
-              .where()
-              .txidWalletIdEqualTo(tx.txid, tx.walletId)
-              .findFirst();
+          final storedTx =
+              await isar.transactionV2s
+                  .where()
+                  .txidWalletIdEqualTo(tx.txid, tx.walletId)
+                  .findFirst();
 
           Id id;
           if (storedTx == null) {
@@ -630,22 +611,11 @@ class MainDB {
       isar.ethContracts.where().addressEqualTo(contractAddress).findFirstSync();
 
   Future<int> putEthContract(EthContract contract) => isar.writeTxn(() async {
-        return await isar.ethContracts.put(contract);
-      });
+    return await isar.ethContracts.put(contract);
+  });
 
   Future<void> putEthContracts(List<EthContract> contracts) =>
       isar.writeTxn(() async {
         await isar.ethContracts.putAll(contracts);
       });
-
-  // ========== Lelantus =======================================================
-
-  Future<int?> getHighestUsedMintIndex({required String walletId}) async {
-    return await isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .sortByMintIndexDesc()
-        .mintIndexProperty()
-        .findFirst();
-  }
 }

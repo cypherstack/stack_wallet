@@ -63,7 +63,6 @@ scripts/**/build
 /lib/external_api_keys.dart
 
 libepic_cash_wallet.dll
-libmobileliblelantus.dll
 libtor_ffi.dll
 flutter_libsparkmobile.dll
 secp256k1.dll
@@ -112,3 +111,4 @@ scripts/linux/build/libsecret/subprojects/gi-docgen/.meson-subproject-wrap-hash.
 crypto_plugins/cs_monero/built_outputs
 crypto_plugins/cs_monero/build
 crypto_plugins/*.diff
+/devtools_options.yaml

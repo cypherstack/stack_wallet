@@ -28,10 +28,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 
 class FiatSelectionView extends StatefulWidget {
-  const FiatSelectionView({
-    super.key,
-    required this.fiats,
-  });
+  const FiatSelectionView({super.key, required this.fiats});
 
   final List<Fiat> fiats;
 
@@ -122,11 +119,11 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                 style: STextStyles.pageTitleH2(context),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: child,
               ),
-              child: child,
             ),
           ),
         );
@@ -135,10 +132,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
         children: [
-          if (!isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
+          if (!isDesktop) const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -168,39 +162,33 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                     height: 16,
                   ),
                 ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _searchController.text = "";
-                                  });
-                                  filter("");
-                                },
-                              ),
-                            ],
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      _searchController.text = "";
+                                    });
+                                    filter("");
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : null,
+                        )
+                        : null,
               ),
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
-          Text(
-            "All currencies",
-            style: STextStyles.smallMed12(context),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 10),
+          Text("All currencies", style: STextStyles.smallMed12(context)),
+          const SizedBox(height: 12),
           Flexible(
             child: SingleChildScrollView(
               child: RoundedWhiteContainer(
@@ -212,95 +200,92 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                   },
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
-                    ..._fiats.map(
-                      (e) {
-                        return TableRow(
-                          children: [
-                            TableCell(
-                              verticalAlignment:
-                                  TableCellVerticalAlignment.fill,
-                              child: GestureDetector(
-                                onTap: () => Navigator.of(context).pop(e),
-                                child: Container(
-                                  color: Colors.transparent,
-                                  padding: const EdgeInsets.only(left: 12),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(7.5),
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .currencyListItemBG,
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          format.simpleCurrencySymbol(
-                                            e.ticker.toUpperCase(),
-                                          ),
-                                          style: STextStyles.subtitle(context)
-                                              .apply(
-                                            fontSizeFactor: (1 /
-                                                format
-                                                    .simpleCurrencySymbol(
-                                                      e.ticker.toUpperCase(),
-                                                    )
-                                                    .length * // Couldn't get pow() working here
-                                                format
-                                                    .simpleCurrencySymbol(
-                                                      e.ticker.toUpperCase(),
-                                                    )
-                                                    .length),
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
+                    ..._fiats.map((e) {
+                      return TableRow(
+                        children: [
+                          TableCell(
+                            verticalAlignment: TableCellVerticalAlignment.fill,
+                            child: GestureDetector(
                               onTap: () => Navigator.of(context).pop(e),
                               child: Container(
                                 color: Colors.transparent,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        e.name,
-                                        style:
-                                            STextStyles.largeMedium14(context),
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(7.5),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .currencyListItemBG,
+                                        borderRadius: BorderRadius.circular(4),
                                       ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        e.ticker.toUpperCase(),
-                                        style: STextStyles.smallMed12(context)
-                                            .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
+                                      child: Text(
+                                        format.simpleCurrencySymbol(
+                                          e.ticker.toUpperCase(),
                                         ),
+                                        style: STextStyles.subtitle(
+                                          context,
+                                        ).apply(
+                                          fontSizeFactor:
+                                              (1 /
+                                                  format
+                                                      .simpleCurrencySymbol(
+                                                        e.ticker.toUpperCase(),
+                                                      )
+                                                      .length * // Couldn't get pow() working here
+                                                  format
+                                                      .simpleCurrencySymbol(
+                                                        e.ticker.toUpperCase(),
+                                                      )
+                                                      .length),
+                                        ),
+                                        textAlign: TextAlign.center,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(e),
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      e.name,
+                                      style: STextStyles.largeMedium14(context),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      e.ticker.toUpperCase(),
+                                      style: STextStyles.smallMed12(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                 ),
 

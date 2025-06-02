@@ -56,10 +56,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
 
   late final CachedEthTokenBalance cachedBalance;
 
-  Future<bool> _loadTokenWallet(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  Future<bool> _loadTokenWallet(BuildContext context, WidgetRef ref) async {
     try {
       await ref.read(pCurrentTokenWallet)!.init();
       return true;
@@ -67,20 +64,21 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
       await showDialog<void>(
         barrierDismissible: false,
         context: context,
-        builder: (context) => BasicDialog(
-          title: "Failed to load token data",
-          desktopHeight: double.infinity,
-          desktopWidth: 450,
-          rightButton: PrimaryButton(
-            label: "OK",
-            onPressed: () {
-              Navigator.of(context).pop();
-              if (!isDesktop) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ),
+        builder:
+            (context) => BasicDialog(
+              title: "Failed to load token data",
+              desktopHeight: double.infinity,
+              desktopWidth: 450,
+              rightButton: PrimaryButton(
+                label: "OK",
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (!isDesktop) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ),
       );
       return false;
     }
@@ -90,11 +88,14 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     final old = ref.read(tokenServiceStateProvider);
     // exit previous if there is one
     unawaited(old?.exit());
-    ref.read(tokenServiceStateProvider.state).state = Wallet.loadTokenWallet(
-      ethWallet:
-          ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet,
-      contract: widget.token,
-    ) as EthTokenWallet;
+    ref.read(tokenServiceStateProvider.state).state =
+        Wallet.loadTokenWallet(
+              ethWallet:
+                  ref.read(pWallets).getWallet(widget.walletId)
+                      as EthereumWallet,
+              contract: widget.token,
+            )
+            as EthTokenWallet;
 
     final success = await showLoading<bool>(
       whileFuture: _loadTokenWallet(context, ref),
@@ -138,17 +139,29 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
 
   @override
   Widget build(BuildContext context) {
+    String? priceString;
+    if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
+      priceString = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (s) =>
+              s.getTokenPrice(widget.token.address)?.value.toStringAsFixed(2),
+        ),
+      );
+    }
+
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
         key: Key("walletListItemButtonKey_${widget.token.symbol}"),
-        padding: isDesktop
-            ? const EdgeInsets.symmetric(horizontal: 28, vertical: 24)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+        padding:
+            isDesktop
+                ? const EdgeInsets.symmetric(horizontal: 28, vertical: 24)
+                : const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(Constants.size.circularBorderRadius),
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
         ),
         onPressed: _onPressed,
         child: Row(
@@ -157,9 +170,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
               contractAddress: widget.token.address,
               size: isDesktop ? 32 : 28,
             ),
-            SizedBox(
-              width: isDesktop ? 12 : 10,
-            ),
+            SizedBox(width: isDesktop ? 12 : 10),
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
@@ -170,14 +181,17 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                         children: [
                           Text(
                             widget.token.name,
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(context)
-                                    .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  )
-                                : STextStyles.titleBold12(context),
+                            style:
+                                isDesktop
+                                    ? STextStyles.desktopTextExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.textDark,
+                                    )
+                                    : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
                           Text(
@@ -190,62 +204,52 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                                 .format(
                                   ref
                                       .watch(
-                                        pTokenBalance(
-                                          (
-                                            walletId: widget.walletId,
-                                            contractAddress:
-                                                widget.token.address
-                                          ),
-                                        ),
+                                        pTokenBalance((
+                                          walletId: widget.walletId,
+                                          contractAddress: widget.token.address,
+                                        )),
                                       )
                                       .total,
                                   ethContract: widget.token,
                                 ),
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(context)
-                                    .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  )
-                                : STextStyles.itemSubtitle(context),
+                            style:
+                                isDesktop
+                                    ? STextStyles.desktopTextExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.textDark,
+                                    )
+                                    : STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           Text(
                             widget.token.symbol,
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  )
-                                : STextStyles.itemSubtitle(context),
+                            style:
+                                isDesktop
+                                    ? STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    )
+                                    : STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
-                          Text(
-                            "${ref.watch(
-                              priceAnd24hChangeNotifierProvider.select(
-                                (value) => value
-                                    .getTokenPrice(widget.token.address)
-                                    .item1
-                                    .toStringAsFixed(2),
-                              ),
-                            )} "
-                            "${ref.watch(
-                              prefsChangeNotifierProvider.select(
-                                (value) => value.currency,
-                              ),
-                            )}",
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  )
-                                : STextStyles.itemSubtitle(context),
-                          ),
+                          if (priceString != null)
+                            Text(
+                              "$priceString "
+                              "${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                              style:
+                                  isDesktop
+                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                        context,
+                                      )
+                                      : STextStyles.itemSubtitle(context),
+                            ),
                         ],
                       ),
                     ],

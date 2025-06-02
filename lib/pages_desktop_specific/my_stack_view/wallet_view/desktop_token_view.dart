@@ -12,13 +12,10 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import '../../../pages/token_view/sub_widgets/token_summary.dart';
 import '../../../pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
-import 'sub_widgets/desktop_wallet_features.dart';
-import 'sub_widgets/desktop_wallet_summary.dart';
-import 'sub_widgets/my_wallet.dart';
 import '../../../providers/providers.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../themes/stack_colors.dart';
@@ -26,20 +23,20 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/icon_widgets/eth_token_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
+import 'sub_widgets/desktop_wallet_features.dart';
+import 'sub_widgets/desktop_wallet_summary.dart';
+import 'sub_widgets/my_wallet.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopTokenView extends ConsumerStatefulWidget {
-  const DesktopTokenView({
-    super.key,
-    required this.walletId,
-    this.eventBus,
-  });
+  const DesktopTokenView({super.key, required this.walletId, this.eventBus});
 
   static const String routeName = "/desktopTokenView";
 
@@ -57,9 +54,10 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
 
   @override
   void initState() {
-    initialSyncStatus = ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
-        ? WalletSyncStatus.syncing
-        : WalletSyncStatus.synced;
+    initialSyncStatus =
+        ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
+            ? WalletSyncStatus.syncing
+            : WalletSyncStatus.synced;
     super.initState();
   }
 
@@ -79,32 +77,26 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
           flex: 3,
           child: Row(
             children: [
-              const SizedBox(
-                width: 32,
-              ),
+              const SizedBox(width: 32),
               SecondaryButton(
-                padding: const EdgeInsets.only(
-                  left: 12,
-                  right: 18,
-                ),
+                padding: const EdgeInsets.only(left: 12, right: 18),
                 buttonHeight: ButtonHeight.s,
                 label: ref.watch(pWalletName(widget.walletId)),
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: () {
                   ref.refresh(feeSheetSessionCacheProvider);
                   Navigator.of(context).pop();
                 },
               ),
-              const SizedBox(
-                width: 15,
-              ),
+              const SizedBox(width: 15),
             ],
           ),
         ),
@@ -120,9 +112,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                 ),
                 size: 32,
               ),
-              const SizedBox(
-                width: 12,
-              ),
+              const SizedBox(width: 12),
               Text(
                 ref.watch(
                   pCurrentTokenWallet.select(
@@ -131,11 +121,11 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                 ),
                 style: STextStyles.desktopH3(context),
               ),
-              const SizedBox(
-                width: 12,
-              ),
+              const SizedBox(width: 12),
               CoinTickerTag(
-                walletId: widget.walletId,
+                ticker: ref.watch(
+                  pWalletCoin(widget.walletId).select((s) => s.ticker),
+                ),
               ),
             ],
           ),
@@ -159,30 +149,25 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                     ),
                     size: 40,
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  const SizedBox(width: 10),
                   DesktopWalletSummary(
                     walletId: widget.walletId,
                     isToken: true,
-                    initialSyncStatus: ref
-                            .watch(pWallets)
-                            .getWallet(widget.walletId)
-                            .refreshMutex
-                            .isLocked
-                        ? WalletSyncStatus.syncing
-                        : WalletSyncStatus.synced,
+                    initialSyncStatus:
+                        ref
+                                .watch(pWallets)
+                                .getWallet(widget.walletId)
+                                .refreshMutex
+                                .isLocked
+                            ? WalletSyncStatus.syncing
+                            : WalletSyncStatus.synced,
                   ),
                   const Spacer(),
-                  DesktopWalletFeatures(
-                    walletId: widget.walletId,
-                  ),
+                  DesktopWalletFeatures(walletId: widget.walletId),
                 ],
               ),
             ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             Row(
               children: [
                 SizedBox(
@@ -190,26 +175,27 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                   child: Text(
                     "My wallet",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveSearchIconLeft,
+                      color:
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveSearchIconLeft,
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         "Recent transactions",
-                        style:
-                            STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveSearchIconLeft,
+                        style: STextStyles.desktopTextExtraSmall(
+                          context,
+                        ).copyWith(
+                          color:
+                              Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
                         ),
                       ),
                       CustomTextButton(
@@ -233,9 +219,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 14,
-            ),
+            const SizedBox(height: 14),
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,13 +235,9 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: TokenTransactionsList(
-                      walletId: widget.walletId,
-                    ),
+                    child: TokenTransactionsList(walletId: widget.walletId),
                   ),
                 ],
               ),

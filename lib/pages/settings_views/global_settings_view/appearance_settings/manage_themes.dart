@@ -13,9 +13,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../models/isar/stack_theme.dart';
-import 'sub_widgets/install_theme_from_file_dialog.dart';
-import 'sub_widgets/stack_theme_card.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -30,7 +30,8 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
+import 'sub_widgets/install_theme_from_file_dialog.dart';
+import 'sub_widgets/stack_theme_card.dart';
 
 class ManageThemesView extends ConsumerStatefulWidget {
   const ManageThemesView({super.key});
@@ -66,117 +67,117 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !Util.isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Add more themes",
-              style: STextStyles.navBarTitle(context),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 2),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    icon: SvgPicture.asset(
-                      Assets.svg.circlePlusFilled,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
-                      height: 20,
-                      width: 20,
-                    ),
-                    onPressed: _onInstallPressed,
-                  ),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-              ),
-            ],
-          ),
-          body: _showThemes
-              ? Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                          child: IntrinsicHeight(
-                            child: child,
-                          ),
+                title: Text(
+                  "Add more themes",
+                  style: STextStyles.navBarTitle(context),
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 2),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        icon: SvgPicture.asset(
+                          Assets.svg.circlePlusFilled,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.topNavIconPrimary,
+                          height: 20,
+                          width: 20,
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SecondaryButton(
-                        label: "Install theme file",
                         onPressed: _onInstallPressed,
                       ),
                     ),
-                  ],
-                )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          RoundedWhiteContainer(
-                            child: Text(
-                              "You are using Incognito Mode. Please press the"
-                              " button below to load available themes from our server"
-                              " or install a theme file manually from your device.",
-                              style: STextStyles.smallMed12(context),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          PrimaryButton(
-                            label: "Load themes",
-                            onPressed: () {
-                              setState(() {
-                                _showThemes = true;
-                                future = ref.watch(pThemeService).fetchThemes;
-                              });
-                            },
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          SecondaryButton(
-                            label: "Install theme file",
-                            onPressed: _onInstallPressed,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Expanded(
-                            child: IncognitoInstalledThemes(
-                              cardWidth:
-                                  (MediaQuery.of(context).size.width - 48) / 2,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
-                ),
-        ),
-      ),
+                ],
+              ),
+              body: SafeArea(
+                child:
+                    _showThemes
+                        ? Column(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: IntrinsicHeight(child: child),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: SecondaryButton(
+                                label: "Install theme file",
+                                onPressed: _onInstallPressed,
+                              ),
+                            ),
+                          ],
+                        )
+                        : SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  RoundedWhiteContainer(
+                                    child: Text(
+                                      "You are using Incognito Mode. Please press the"
+                                      " button below to load available themes from our server"
+                                      " or install a theme file manually from your device.",
+                                      style: STextStyles.smallMed12(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  PrimaryButton(
+                                    label: "Load themes",
+                                    onPressed: () {
+                                      setState(() {
+                                        _showThemes = true;
+                                        future =
+                                            ref
+                                                .watch(pThemeService)
+                                                .fetchThemes;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SecondaryButton(
+                                    label: "Install theme file",
+                                    onPressed: _onInstallPressed,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Expanded(
+                                    child: IncognitoInstalledThemes(
+                                      cardWidth:
+                                          (MediaQuery.of(context).size.width -
+                                              48) /
+                                          2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+              ),
+            ),
+          ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -191,17 +192,17 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                 return Wrap(
                   spacing: 16,
                   runSpacing: 16,
-                  children: snapshot.data!
-                      .map(
-                        (e) => SizedBox(
-                          key: Key("ManageThemesView_card_${e.id}_key"),
-                          width: (MediaQuery.of(context).size.width - 48) / 2,
-                          child: StackThemeCard(
-                            data: e,
-                          ),
-                        ),
-                      )
-                      .toList(),
+                  children:
+                      snapshot.data!
+                          .map(
+                            (e) => SizedBox(
+                              key: Key("ManageThemesView_card_${e.id}_key"),
+                              width:
+                                  (MediaQuery.of(context).size.width - 48) / 2,
+                              child: StackThemeCard(data: e),
+                            ),
+                          )
+                          .toList(),
                 );
               } else {
                 return Center(
@@ -219,10 +220,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
 }
 
 class IncognitoInstalledThemes extends ConsumerStatefulWidget {
-  const IncognitoInstalledThemes({
-    super.key,
-    required this.cardWidth,
-  });
+  const IncognitoInstalledThemes({super.key, required this.cardWidth});
 
   final double cardWidth;
 
@@ -238,28 +236,33 @@ class _IncognitoInstalledThemesState
   List<Tuple3<String, String, int?>> installedThemeIdNames = [];
 
   void _updateInstalledList() {
-    installedThemeIdNames = ref
-        .read(pThemeService)
-        .installedThemes
-        .where((e) => e.themeId != "light" && e.themeId != "dark")
-        .map((e) => Tuple3(e.themeId, e.name, e.version))
-        .toList();
+    installedThemeIdNames =
+        ref
+            .read(pThemeService)
+            .installedThemes
+            .where((e) => e.themeId != "light" && e.themeId != "dark")
+            .map((e) => Tuple3(e.themeId, e.name, e.version))
+            .toList();
   }
 
   @override
   void initState() {
     _updateInstalledList();
 
-    _subscription =
-        ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            _updateInstalledList();
-          });
+    _subscription = ref
+        .read(mainDBProvider)
+        .isar
+        .stackThemes
+        .watchLazy()
+        .listen((_) {
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {
+                _updateInstalledList();
+              });
+            });
+          }
         });
-      }
-    });
 
     super.initState();
   }
@@ -275,24 +278,25 @@ class _IncognitoInstalledThemesState
     return Wrap(
       spacing: 16,
       runSpacing: 16,
-      children: installedThemeIdNames
-          .map(
-            (e) => SizedBox(
-              key: Key("IncognitoInstalledThemes_card_${e.item1}_key"),
-              width: widget.cardWidth,
-              child: StackThemeCard(
-                data: StackThemeMetaData(
-                  name: e.item2,
-                  id: e.item1,
-                  version: e.item3 ?? 1,
-                  sha256: "",
-                  size: "",
-                  previewImageUrl: "",
+      children:
+          installedThemeIdNames
+              .map(
+                (e) => SizedBox(
+                  key: Key("IncognitoInstalledThemes_card_${e.item1}_key"),
+                  width: widget.cardWidth,
+                  child: StackThemeCard(
+                    data: StackThemeMetaData(
+                      name: e.item2,
+                      id: e.item1,
+                      version: e.item3 ?? 1,
+                      sha256: "",
+                      size: "",
+                      previewImageUrl: "",
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          )
-          .toList(),
+              )
+              .toList(),
     );
   }
 }

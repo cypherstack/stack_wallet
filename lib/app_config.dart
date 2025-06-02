@@ -3,11 +3,7 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
-enum AppFeature {
-  themeSelection,
-  buy,
-  swap;
-}
+enum AppFeature { themeSelection, buy, swap }
 
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;
@@ -27,7 +23,8 @@ abstract class AppConfig {
 
   static List<CryptoCurrency> get coins => _supportedCoins;
 
-  static ({String from, String to}) get swapDefaults => _swapDefaults;
+  static ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
+  get swapDefaults => _swapDefaults;
 
   static bool get isSingleCoinApp => coins.length == 1;
 
@@ -75,7 +72,13 @@ abstract class AppConfig {
   /// Fuzzy logic. Use with caution!!
   @Deprecated("dangerous")
   static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
-    final name = prettyName.replaceAll(" ", "").toLowerCase();
+    // trocador hack
+    const hackSplitter = " (Mainnet";
+    final name =
+        prettyName.contains(hackSplitter)
+            ? prettyName.split(hackSplitter).first.toLowerCase()
+            : prettyName.replaceAll(" ", "").toLowerCase();
+
     try {
       return coins.firstWhere(
         (e) => e.identifier.toLowerCase() == name || e.prettyName == prettyName,

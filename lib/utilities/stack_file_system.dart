@@ -10,8 +10,8 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../app_config.dart';
 import 'prefs.dart';
@@ -40,14 +40,17 @@ abstract class StackFileSystem {
     if (Util.isArmLinux) {
       appDirectory = await getApplicationDocumentsDirectory();
       appDirectory = Directory(
-        "${appDirectory.path}/.${AppConfig.appDefaultDataDirName}",
+        path.join(appDirectory.path, ".${AppConfig.appDefaultDataDirName}"),
       );
     } else if (Platform.isLinux) {
       if (_overrideDesktopDirPath != null) {
         appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
         appDirectory = Directory(
-          "${Platform.environment['HOME']}/.${AppConfig.appDefaultDataDirName}",
+          path.join(
+            Platform.environment['HOME']!,
+            ".${AppConfig.appDefaultDataDirName}",
+          ),
         );
       }
     } else if (Platform.isWindows) {
@@ -62,7 +65,7 @@ abstract class StackFileSystem {
       } else {
         appDirectory = await getLibraryDirectory();
         appDirectory = Directory(
-          "${appDirectory.path}/${AppConfig.appDefaultDataDirName}",
+          path.join(appDirectory.path, AppConfig.appDefaultDataDirName),
         );
       }
     } else if (Platform.isIOS) {
@@ -86,7 +89,20 @@ abstract class StackFileSystem {
   static Future<Directory> applicationIsarDirectory() async {
     final root = await applicationRootDirectory();
     if (_createSubDirs) {
-      final dir = Directory("${root.path}/isar");
+      final dir = Directory(path.join(root.path, "isar"));
+      if (!dir.existsSync()) {
+        await dir.create();
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
+  static Future<Directory> applicationDriftDirectory() async {
+    final root = await applicationRootDirectory();
+    if (_createSubDirs) {
+      final dir = Directory(path.join(root.path, "drift"));
       if (!dir.existsSync()) {
         await dir.create();
       }
@@ -113,7 +129,7 @@ abstract class StackFileSystem {
   static Future<Directory> applicationTorDirectory() async {
     final root = await applicationRootDirectory();
     if (_createSubDirs) {
-      final dir = Directory("${root.path}/tor");
+      final dir = Directory(path.join(root.path, "tor"));
       if (!dir.existsSync()) {
         await dir.create();
       }
@@ -126,7 +142,7 @@ abstract class StackFileSystem {
   static Future<Directory> applicationFiroCacheSQLiteDirectory() async {
     final root = await applicationRootDirectory();
     if (_createSubDirs) {
-      final dir = Directory("${root.path}/sqlite/firo_cache");
+      final dir = Directory(path.join(root.path, "sqlite", "firo_cache"));
       if (!dir.existsSync()) {
         await dir.create(recursive: true);
       }
@@ -139,7 +155,7 @@ abstract class StackFileSystem {
   static Future<Directory> applicationHiveDirectory() async {
     final root = await applicationRootDirectory();
     if (_createSubDirs) {
-      final dir = Directory("${root.path}/hive");
+      final dir = Directory(path.join(root.path, "hive"));
       if (!dir.existsSync()) {
         await dir.create();
       }
@@ -151,7 +167,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationXelisDirectory() async {
     final root = await applicationRootDirectory();
-    final dir = Directory("${root.path}${Platform.pathSeparator}xelis");
+    final dir = Directory(path.join(root.path, "xelis"));
     if (!dir.existsSync()) {
       await dir.create();
     }
@@ -160,7 +176,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationXelisTableDirectory() async {
     final xelis = await applicationXelisDirectory();
-    final dir = Directory("${xelis.path}${Platform.pathSeparator}table");
+    final dir = Directory(path.join(xelis.path, "table"));
     if (!dir.existsSync()) {
       await dir.create();
     }
@@ -170,7 +186,7 @@ abstract class StackFileSystem {
   static Future<void> initThemesDir() async {
     final root = await applicationRootDirectory();
 
-    final dir = Directory("${root.path}/themes");
+    final dir = Directory(path.join(root.path, "themes"));
     if (!dir.existsSync()) {
       await dir.create();
     }
@@ -193,13 +209,16 @@ abstract class StackFileSystem {
     final Directory logsDir;
 
     if (Platform.isIOS) {
-      logsDir = Directory("${appDocsDir.path}/logs");
+      logsDir = Directory(path.join(appDocsDir.path, "logs"));
     } else if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
       // TODO check this is correct for macos
-      logsDir = Directory("${appDocsDir.path}/$logsDirName");
+      logsDir = Directory(path.join(appDocsDir.path, logsDirName));
     } else if (Platform.isAndroid) {
-      await Permission.storage.request();
-      logsDir = Directory("/storage/emulated/0/Documents/$logsDirName");
+      // final dir = await wtfAndroidDocumentsPath();
+      // final logsDirPath = path.join(dir.path, logsDirName);
+      // logsDir = Directory(logsDirPath);
+
+      logsDir = Directory(path.join(appDocsDir.path, "logs"));
     } else {
       throw Exception("Unsupported Platform");
     }
@@ -209,5 +228,19 @@ abstract class StackFileSystem {
     }
 
     return logsDir;
+  }
+
+  static Future<Directory> wtfAndroidDocumentsPath() async {
+    const base = "/storage/emulated/";
+    final rootDir = await applicationRootDirectory();
+    final parts = rootDir.path.replaceFirst("/data/user/", "").split("/");
+    if (parts.isNotEmpty) {
+      final id = int.tryParse(parts.first);
+
+      if (id != null) {
+        return Directory(path.join(base, id.toString(), "Documents"));
+      }
+    }
+    throw Exception("Unsupported Android flavor");
   }
 }

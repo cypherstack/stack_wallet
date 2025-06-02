@@ -36,17 +36,18 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
+    final allAddresses =
+        await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .not()
+            .group(
+              (q) => q
+                  .typeEqualTo(AddressType.nonWallet)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.nonWallet),
+            )
+            .findAll();
     return allAddresses;
   }
 
@@ -59,30 +60,34 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) => e.value)
-        .toSet();
-    final Set<String> changeAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.change)
-        .map((e) => e.value)
-        .toSet();
+    final Set<String> receivingAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.receiving)
+            .map((e) => e.value)
+            .toSet();
+    final Set<String> changeAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.change)
+            .map((e) => e.value)
+            .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
     // Fetch history from ElectrumX.
-    final List<Map<String, dynamic>> allTxHashes =
-        await fetchHistory(allAddressesSet);
+    final List<Map<String, dynamic>> allTxHashes = await fetchHistory(
+      allAddressesSet,
+    );
 
     // Only parse new txs (not in db yet).
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
-      final storedTx = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-          .findFirst();
+      final storedTx =
+          await mainDB.isar.transactionV2s
+              .where()
+              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+              .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -95,8 +100,9 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         );
 
         // Only tx to list once.
-        if (allTransactions
-                .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+        if (allTransactions.indexWhere(
+              (e) => e["txid"] == tx["txid"] as String,
+            ) ==
             -1) {
           tx["height"] = txHash["height"];
           allTransactions.add(tx);
@@ -246,7 +252,8 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
-        timestamp: txData["blocktime"] as int? ??
+        timestamp:
+            txData["blocktime"] as int? ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),
@@ -263,7 +270,7 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<({String? blockedReason, bool blocked, String? utxoLabel})>
-      checkBlockUTXO(
+  checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
@@ -296,18 +303,22 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   }
 
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     return Amount(
       rawValue: BigInt.from(
         ((181 * inputCount) + (34 * outputCount) + 10) *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
 
   @override
-  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+  int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
+    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
   }
 }

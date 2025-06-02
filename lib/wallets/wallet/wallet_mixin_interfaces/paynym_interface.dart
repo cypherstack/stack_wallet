@@ -457,7 +457,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   }
 
   Future<TxData> prepareNotificationTx({
-    required int selectedTxFeeRate,
+    required BigInt selectedTxFeeRate,
     required String targetPaymentCodeString,
     int additionalOutputs = 0,
     List<UTXO>? utxos,

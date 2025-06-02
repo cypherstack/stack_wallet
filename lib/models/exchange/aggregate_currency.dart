@@ -8,12 +8,14 @@
  *
  */
 
-import '../isar/exchange_cache/currency.dart';
-import '../isar/exchange_cache/pair.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../services/exchange/trocador/trocador_exchange.dart';
+import '../isar/exchange_cache/currency.dart';
+import '../isar/exchange_cache/pair.dart';
+
 class AggregateCurrency {
-  final Map<String, Currency?> _map = {};
+  final Map<String, Currency> _map = {};
 
   AggregateCurrency({
     required List<Tuple2<String, Currency>> exchangeCurrencyPairs,
@@ -29,23 +31,50 @@ class AggregateCurrency {
     return _map[exchangeName];
   }
 
-  String get ticker => _map.values.first!.ticker;
+  String? networkFor(String exchangeName) => forExchange(exchangeName)?.network;
 
-  String get name => _map.values.first!.name;
+  String get ticker => _map.values.first.ticker;
 
-  String get image => _map.values.first!.image;
+  String get name {
+    if (_map.values.length > 2) {
+      return _map.values
+          .firstWhere((e) => e.exchangeName != TrocadorExchange.exchangeName)
+          .name;
+    }
 
-  SupportedRateType get rateType => _map.values.first!.rateType;
+    // trocador hack
+    return _map.values.first.name.split(" (Mainnet").first;
+  }
 
-  bool get isStackCoin => _map.values.first!.isStackCoin;
+  String get image => _map.values.first.image;
+
+  SupportedRateType get rateType => _map.values.first.rateType;
+
+  bool get isStackCoin => _map.values.first.isStackCoin;
+
+  String get fuzzyNet => _map.values.first.getFuzzyNet();
 
   @override
   String toString() {
     String str = "AggregateCurrency: {";
     for (final key in _map.keys) {
-      str += " $key: ${_map[key]},";
+      str += "\n $key: ${_map[key]},";
     }
-    str += " }";
+    str += "\n}";
     return str;
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AggregateCurrency &&
+        other.ticker == ticker &&
+        other._map.isNotEmpty &&
+        other._map.length == _map.length &&
+        other._map.values.first.getFuzzyNet() ==
+            _map.values.first.getFuzzyNet();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(ticker, _map.values.first.getFuzzyNet(), _map.length);
 }

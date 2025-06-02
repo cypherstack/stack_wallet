@@ -79,188 +79,193 @@ class _StartupPreferencesViewState
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(4.0),
-                                child: RawMaterialButton(
-                                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      Constants.size.circularBorderRadius,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          RoundedWhiteContainer(
+                            padding: const EdgeInsets.all(0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: RawMaterialButton(
+                                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
                                     ),
-                                  ),
-                                  onPressed: () {
-                                    ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .gotoWalletOnStartup = false;
-                                  },
-                                  child: Container(
-                                    color: Colors.transparent,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: Radio(
-                                              activeColor: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .radioButtonIconEnabled,
-                                              value: false,
-                                              groupValue: ref.watch(
-                                                prefsChangeNotifierProvider
-                                                    .select(
-                                                  (value) =>
-                                                      value.gotoWalletOnStartup,
+                                    onPressed: () {
+                                      ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .gotoWalletOnStartup = false;
+                                    },
+                                    child: Container(
+                                      color: Colors.transparent,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: Radio(
+                                                activeColor:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .radioButtonIconEnabled,
+                                                value: false,
+                                                groupValue: ref.watch(
+                                                  prefsChangeNotifierProvider
+                                                      .select(
+                                                        (value) =>
+                                                            value
+                                                                .gotoWalletOnStartup,
+                                                      ),
                                                 ),
+                                                onChanged: (value) {
+                                                  if (value is bool) {
+                                                    ref
+                                                        .read(
+                                                          prefsChangeNotifierProvider,
+                                                        )
+                                                        .gotoWalletOnStartup = value;
+                                                  }
+                                                },
                                               ),
-                                              onChanged: (value) {
-                                                if (value is bool) {
-                                                  ref
-                                                          .read(
-                                                            prefsChangeNotifierProvider,
-                                                          )
-                                                          .gotoWalletOnStartup =
-                                                      value;
-                                                }
-                                              },
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            width: 12,
-                                          ),
-                                          Flexible(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "Home screen",
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                    context,
+                                            const SizedBox(width: 12),
+                                            Flexible(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Home screen",
+                                                    style:
+                                                        STextStyles.titleBold12(
+                                                          context,
+                                                        ),
+                                                    textAlign: TextAlign.left,
                                                   ),
-                                                  textAlign: TextAlign.left,
-                                                ),
-                                                Text(
-                                                  "${AppConfig.appName} home screen",
-                                                  style:
-                                                      STextStyles.itemSubtitle(
-                                                    context,
+                                                  Text(
+                                                    "${AppConfig.appName} home screen",
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                    textAlign: TextAlign.left,
                                                   ),
-                                                  textAlign: TextAlign.left,
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: RawMaterialButton(
-                                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      Constants.size.circularBorderRadius,
+                                Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: RawMaterialButton(
+                                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
                                     ),
-                                  ),
-                                  onPressed: () {
-                                    ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .gotoWalletOnStartup = true;
-                                  },
-                                  child: Container(
-                                    color: Colors.transparent,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: Radio(
-                                              activeColor: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .radioButtonIconEnabled,
-                                              value: true,
-                                              groupValue: ref.watch(
-                                                prefsChangeNotifierProvider
-                                                    .select(
-                                                  (value) =>
-                                                      value.gotoWalletOnStartup,
+                                    onPressed: () {
+                                      ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .gotoWalletOnStartup = true;
+                                    },
+                                    child: Container(
+                                      color: Colors.transparent,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: Radio(
+                                                activeColor:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .radioButtonIconEnabled,
+                                                value: true,
+                                                groupValue: ref.watch(
+                                                  prefsChangeNotifierProvider
+                                                      .select(
+                                                        (value) =>
+                                                            value
+                                                                .gotoWalletOnStartup,
+                                                      ),
                                                 ),
+                                                onChanged: (value) {
+                                                  if (value is bool) {
+                                                    ref
+                                                        .read(
+                                                          prefsChangeNotifierProvider,
+                                                        )
+                                                        .gotoWalletOnStartup = value;
+                                                  }
+                                                },
                                               ),
-                                              onChanged: (value) {
-                                                if (value is bool) {
-                                                  ref
-                                                          .read(
-                                                            prefsChangeNotifierProvider,
-                                                          )
-                                                          .gotoWalletOnStartup =
-                                                      value;
-                                                }
-                                              },
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            width: 12,
-                                          ),
-                                          Flexible(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "Specific wallet",
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                    context,
+                                            const SizedBox(width: 12),
+                                            Flexible(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Specific wallet",
+                                                    style:
+                                                        STextStyles.titleBold12(
+                                                          context,
+                                                        ),
+                                                    textAlign: TextAlign.left,
                                                   ),
-                                                  textAlign: TextAlign.left,
-                                                ),
-                                                (safe &&
-                                                        ref.watch(
-                                                              prefsChangeNotifierProvider
-                                                                  .select(
-                                                                (value) => value
-                                                                    .startupWalletId,
-                                                              ),
-                                                            ) !=
-                                                            null)
-                                                    ? Padding(
+                                                  (safe &&
+                                                          ref.watch(
+                                                                prefsChangeNotifierProvider
+                                                                    .select(
+                                                                      (value) =>
+                                                                          value
+                                                                              .startupWalletId,
+                                                                    ),
+                                                              ) !=
+                                                              null)
+                                                      ? Padding(
                                                         padding:
-                                                            const EdgeInsets
-                                                                .only(top: 12),
+                                                            const EdgeInsets.only(
+                                                              top: 12,
+                                                            ),
                                                         child: Row(
                                                           children: [
                                                             SvgPicture.file(
@@ -270,9 +275,10 @@ class _StartupPreferencesViewState
                                                                     ref.watch(
                                                                       pWalletCoin(
                                                                         ref.watch(
-                                                                          prefsChangeNotifierProvider
-                                                                              .select(
-                                                                            (value) =>
+                                                                          prefsChangeNotifierProvider.select(
+                                                                            (
+                                                                              value,
+                                                                            ) =>
                                                                                 value.startupWalletId!,
                                                                           ),
                                                                         ),
@@ -291,115 +297,116 @@ class _StartupPreferencesViewState
                                                                   ref.watch(
                                                                     prefsChangeNotifierProvider
                                                                         .select(
-                                                                      (value) =>
-                                                                          value
-                                                                              .startupWalletId!,
-                                                                    ),
+                                                                          (
+                                                                            value,
+                                                                          ) =>
+                                                                              value.startupWalletId!,
+                                                                        ),
                                                                   ),
                                                                 ),
                                                               ),
-                                                              style: STextStyles
-                                                                  .itemSubtitle(
-                                                                context,
-                                                              ),
+                                                              style:
+                                                                  STextStyles.itemSubtitle(
+                                                                    context,
+                                                                  ),
                                                             ),
                                                           ],
                                                         ),
                                                       )
-                                                    : Text(
+                                                      : Text(
                                                         "Select a specific wallet to load into on startup",
-                                                        style: STextStyles
-                                                            .itemSubtitle(
-                                                          context,
-                                                        ),
+                                                        style:
+                                                            STextStyles.itemSubtitle(
+                                                              context,
+                                                            ),
                                                         textAlign:
                                                             TextAlign.left,
                                                       ),
-                                              ],
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (!ref.watch(
+                                  prefsChangeNotifierProvider.select(
+                                    (value) => value.gotoWalletOnStartup,
+                                  ),
+                                ))
+                                  const SizedBox(height: 12),
+                                if (ref.watch(
+                                  prefsChangeNotifierProvider.select(
+                                    (value) => value.gotoWalletOnStartup,
+                                  ),
+                                ))
+                                  Container(
+                                    color: Colors.transparent,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 12.0,
+                                        right: 12,
+                                        bottom: 12,
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(
+                                            width: 12 + 20,
+                                            height: 12,
+                                          ),
+                                          Flexible(
+                                            child: RawMaterialButton(
+                                              // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                                              materialTapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      Constants
+                                                          .size
+                                                          .circularBorderRadius,
+                                                    ),
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(context).pushNamed(
+                                                  StartupWalletSelectionView
+                                                      .routeName,
+                                                );
+                                              },
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Select wallet...",
+                                                    style: STextStyles.link2(
+                                                      context,
+                                                    ),
+                                                    textAlign: TextAlign.left,
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              if (!ref.watch(
-                                prefsChangeNotifierProvider.select(
-                                  (value) => value.gotoWalletOnStartup,
-                                ),
-                              ))
-                                const SizedBox(
-                                  height: 12,
-                                ),
-                              if (ref.watch(
-                                prefsChangeNotifierProvider.select(
-                                  (value) => value.gotoWalletOnStartup,
-                                ),
-                              ))
-                                Container(
-                                  color: Colors.transparent,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 12.0,
-                                      right: 12,
-                                      bottom: 12,
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(
-                                          width: 12 + 20,
-                                          height: 12,
-                                        ),
-                                        Flexible(
-                                          child: RawMaterialButton(
-                                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                            materialTapTargetSize:
-                                                MaterialTapTargetSize
-                                                    .shrinkWrap,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                Constants
-                                                    .size.circularBorderRadius,
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              Navigator.of(context).pushNamed(
-                                                StartupWalletSelectionView
-                                                    .routeName,
-                                              );
-                                            },
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "Select wallet...",
-                                                  style: STextStyles.link2(
-                                                    context,
-                                                  ),
-                                                  textAlign: TextAlign.left,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

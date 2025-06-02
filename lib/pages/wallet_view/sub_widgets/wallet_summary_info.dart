@@ -11,6 +11,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -52,9 +53,7 @@ class WalletSummaryInfo extends ConsumerWidget {
       useSafeArea: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => WalletBalanceToggleSheet(walletId: walletId),
     );
@@ -64,9 +63,6 @@ class WalletSummaryInfo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
-    final externalCalls = ref.watch(
-      prefsChangeNotifierProvider.select((value) => value.externalCalls),
-    );
     final coin = ref.watch(pWalletCoin(walletId));
     final balance = ref.watch(pWalletBalance(walletId));
 
@@ -74,14 +70,27 @@ class WalletSummaryInfo extends ConsumerWidget {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    final baseCurrency = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    final baseCurrency = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.currency),
+    );
+
+    ({double change24h, Decimal value})? price;
+    if (ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    )) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) => value.getPrice(coin),
+        ),
+      );
+    }
 
     final priceTuple = ref.watch(
       priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
     );
 
-    final _showAvailable = ref.watch(walletBalanceToggleStateProvider) ==
+    final _showAvailable =
+        ref.watch(walletBalanceToggleStateProvider) ==
         WalletBalanceToggleState.available;
 
     final Amount balanceToShow;
@@ -100,11 +109,6 @@ class WalletSummaryInfo extends ConsumerWidget {
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
-        case FiroType.lelantus:
-          final balance = ref.watch(pWalletBalanceSecondary(walletId));
-          balanceToShow = _showAvailable ? balance.spendable : balance.total;
-          break;
-
         case FiroType.public:
           final balance = ref.watch(pWalletBalance(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
@@ -119,23 +123,23 @@ class WalletSummaryInfo extends ConsumerWidget {
     List<int>? imageBytes;
 
     if (coin is Banano) {
-      imageBytes = (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
-          .getMonkeyImageBytes();
+      imageBytes =
+          (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
+              .getMonkeyImageBytes();
     }
 
     return ConditionalParent(
       condition: imageBytes != null,
-      builder: (child) => Stack(
-        children: [
-          Positioned.fill(
-            left: 150.0,
-            child: SvgPicture.memory(
-              Uint8List.fromList(imageBytes!),
-            ),
+      builder:
+          (child) => Stack(
+            children: [
+              Positioned.fill(
+                left: 150.0,
+                child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
+              ),
+              child,
+            ],
           ),
-          child,
-        ],
-      ),
       child: Row(
         children: [
           Expanded(
@@ -164,20 +168,20 @@ class WalletSummaryInfo extends ConsumerWidget {
                       Text(
                         title,
                         style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFavoriteCard,
                         ),
                       ),
                       if (!toggleBalance) ...[
-                        const SizedBox(
-                          width: 4,
-                        ),
+                        const SizedBox(width: 4),
                         SvgPicture.asset(
                           Assets.svg.chevronDown,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFavoriteCard,
                           width: 8,
                           height: 4,
                         ),
@@ -207,23 +211,21 @@ class WalletSummaryInfo extends ConsumerWidget {
                     ref.watch(pAmountFormatter(coin)).format(balanceToShow),
                     style: STextStyles.pageTitleH1(context).copyWith(
                       fontSize: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFavoriteCard,
                     ),
                   ),
                 ),
-                if (externalCalls)
+                if (price != null)
                   Text(
-                    "${(priceTuple.item1 * balanceToShow.decimal).toAmount(
-                          fractionDigits: 2,
-                        ).fiatString(
-                          locale: locale,
-                        )} $baseCurrency",
+                    "${(price.value * balanceToShow.decimal).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.subtitle500(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFavoriteCard,
                     ),
                   ),
               ],
@@ -232,9 +234,7 @@ class WalletSummaryInfo extends ConsumerWidget {
           Column(
             children: [
               SvgPicture.file(
-                File(
-                  ref.watch(coinIconProvider(coin)),
-                ),
+                File(ref.watch(coinIconProvider(coin))),
                 width: 24,
                 height: 24,
               ),

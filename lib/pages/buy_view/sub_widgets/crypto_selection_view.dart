@@ -32,10 +32,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 
 class CryptoSelectionView extends ConsumerStatefulWidget {
-  const CryptoSelectionView({
-    super.key,
-    required this.coins,
-  });
+  const CryptoSelectionView({super.key, required this.coins});
 
   final List<Crypto> coins;
 
@@ -122,11 +119,11 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                 style: STextStyles.pageTitleH2(context),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: child,
               ),
-              child: child,
             ),
           ),
         );
@@ -135,10 +132,7 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
         children: [
-          if (!isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
+          if (!isDesktop) const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -168,39 +162,33 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                     height: 16,
                   ),
                 ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _searchController.text = "";
-                                  });
-                                  filter("");
-                                },
-                              ),
-                            ],
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      _searchController.text = "";
+                                    });
+                                    filter("");
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : null,
+                        )
+                        : null,
               ),
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
-          Text(
-            "All coins",
-            style: STextStyles.smallMed12(context),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 10),
+          Text("All coins", style: STextStyles.smallMed12(context)),
+          const SizedBox(height: 12),
           Flexible(
             child: RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
@@ -226,9 +214,7 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                                 ticker: _coins[index].ticker,
                               ),
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,16 +223,16 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                                     _coins[index].name,
                                     style: STextStyles.largeMedium14(context),
                                   ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
+                                  const SizedBox(height: 2),
                                   Text(
                                     _coins[index].ticker.toUpperCase(),
-                                    style: STextStyles.smallMed12(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
+                                    style: STextStyles.smallMed12(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
                                     ),
                                   ),
                                 ],
@@ -297,9 +283,7 @@ class CoinIconForTicker extends ConsumerWidget {
     try {
       final coin = AppConfig.getCryptoCurrencyForTicker(ticker)!;
       return SvgPicture.file(
-        File(
-          ref.watch(coinIconProvider(coin)),
-        ),
+        File(ref.watch(coinIconProvider(coin))),
         width: size,
         height: size,
       );

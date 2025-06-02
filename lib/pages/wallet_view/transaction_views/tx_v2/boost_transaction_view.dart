@@ -23,6 +23,7 @@ import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../widgets/background.dart';
@@ -37,10 +38,7 @@ import '../../../../widgets/stack_dialog.dart';
 import '../../../send_view/confirm_transaction_view.dart';
 
 class BoostTransactionView extends ConsumerStatefulWidget {
-  const BoostTransactionView({
-    super.key,
-    required this.transaction,
-  });
+  const BoostTransactionView({super.key, required this.transaction});
 
   static const String routeName = "/boostTransaction";
 
@@ -73,10 +71,11 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
       if (_newRate <= rate) {
         await showDialog<void>(
           context: context,
-          builder: (_) => const StackOkDialog(
-            title: "Error",
-            message: "New fee rate must be greater than the current rate.",
-          ),
+          builder:
+              (_) => const StackOkDialog(
+                title: "Error",
+                message: "New fee rate must be greater than the current rate.",
+              ),
         );
         return;
       }
@@ -99,11 +98,12 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
       if (txData == null && mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "RBF send error",
-            message: ex?.toString() ?? "Unknown error found",
-            maxWidth: 600,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "RBF send error",
+                message: ex?.toString() ?? "Unknown error found",
+                maxWidth: 600,
+              ),
         );
         return;
       } else {
@@ -112,17 +112,18 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
           unawaited(
             showDialog(
               context: context,
-              builder: (context) => DesktopDialog(
-                maxHeight: MediaQuery.of(context).size.height - 64,
-                maxWidth: 580,
-                child: ConfirmTransactionView(
-                  txData: txData!,
-                  walletId: walletId,
-                  onSuccess: () {},
-                  // isPaynymTransaction: isPaynymSend, TODO ?
-                  routeOnSuccessName: DesktopHomeView.routeName,
-                ),
-              ),
+              builder:
+                  (context) => DesktopDialog(
+                    maxHeight: MediaQuery.of(context).size.height - 64,
+                    maxWidth: 580,
+                    child: ConfirmTransactionView(
+                      txData: txData!,
+                      walletId: walletId,
+                      onSuccess: () {},
+                      // isPaynymTransaction: isPaynymSend, TODO ?
+                      routeOnSuccessName: DesktopHomeView.routeName,
+                    ),
+                  ),
             ),
           );
         } else if (mounted) {
@@ -130,12 +131,13 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                builder: (_) => ConfirmTransactionView(
-                  txData: txData!,
-                  walletId: walletId,
-                  // isPaynymTransaction: isPaynymSend, TODO ?
-                  onSuccess: () {},
-                ),
+                builder:
+                    (_) => ConfirmTransactionView(
+                      txData: txData!,
+                      walletId: walletId,
+                      // isPaynymTransaction: isPaynymSend, TODO ?
+                      onSuccess: () {},
+                    ),
                 settings: const RouteSettings(
                   name: ConfirmTransactionView.routeName,
                 ),
@@ -159,6 +161,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
     );
     amount = _transaction.getAmountSentFromThisWallet(
       fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
+      subtractFee: ref.read(pWalletCoin(walletId)) is! Ethereum,
     );
     rate = (fee.raw ~/ BigInt.from(_transaction.vSize!)).toInt();
     _newRate = rate + 1;
@@ -169,61 +172,56 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
-    final String feeString = ref.watch(pAmountFormatter(coin)).format(
-          fee,
-        );
-    final String amountString = ref.watch(pAmountFormatter(coin)).format(
-          amount,
-        );
+    final String feeString = ref.watch(pAmountFormatter(coin)).format(fee);
+    final String amountString = ref
+        .watch(pAmountFormatter(coin))
+        .format(amount);
     final String feeRateString = "$rate sats/vByte";
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: AppBarBackButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Boost transaction",
-              style: STextStyles.navBarTitle(context),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                title: Text(
+                  "Boost transaction",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(child: child),
             ),
           ),
-          body: child,
-        ),
-      ),
       child: Padding(
-        padding: isDesktop
-            ? const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              )
-            : const EdgeInsets.all(12),
+        padding:
+            isDesktop
+                ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
+                : const EdgeInsets.all(12),
         child: ConditionalParent(
           condition: isDesktop,
           builder: (child) {
             return Column(
               children: [
                 RoundedWhiteContainer(
-                  borderColor: isDesktop
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .backgroundAppBar
-                      : null,
+                  borderColor:
+                      isDesktop
+                          ? Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar
+                          : null,
                   padding: const EdgeInsets.all(0),
                   child: child,
                 ),
-                const SizedBox(
-                  height: 32,
-                ),
+                const SizedBox(height: 32),
                 PrimaryButton(
                   buttonHeight: ButtonHeight.l,
                   label: "Preview send",
@@ -238,10 +236,11 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
             children: [
               ConditionalParent(
                 condition: isDesktop,
-                builder: (child) => RoundedWhiteContainer(
-                  padding: EdgeInsets.zero,
-                  child: child,
-                ),
+                builder:
+                    (child) => RoundedWhiteContainer(
+                      padding: EdgeInsets.zero,
+                      child: child,
+                    ),
                 child: Column(
                   children: [
                     DetailItem(
@@ -277,15 +276,9 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                 ),
               ),
               if (!isDesktop) const Spacer(),
+              if (!isDesktop) const SizedBox(height: 16),
               if (!isDesktop)
-                const SizedBox(
-                  height: 16,
-                ),
-              if (!isDesktop)
-                PrimaryButton(
-                  label: "Preview send",
-                  onPressed: _previewTxn,
-                ),
+                PrimaryButton(label: "Preview send", onPressed: _previewTxn),
             ],
           ),
         ),
@@ -305,9 +298,7 @@ class _Divider extends StatelessWidget {
         color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       );
     } else {
-      return const SizedBox(
-        height: 12,
-      );
+      return const SizedBox(height: 12);
     }
   }
 }

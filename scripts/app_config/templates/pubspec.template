@@ -24,9 +24,6 @@ dependencies:
   mutex: ^3.0.0
   web_socket_channel: ^2.4.0
 
-  lelantus:
-    path: ./crypto_plugins/flutter_liblelantus
-
   frostdart:
     path: ./crypto_plugins/frostdart
 
@@ -36,7 +33,9 @@ dependencies:
       ref: v0.1.1
 
   flutter_libsparkmobile:
-    path: ../flutter_libsparkmobile
+    git:
+      url: https://github.com/cypherstack/flutter_libsparkmobile.git
+      ref: 4ed4a61249c7861d480365b9ba6133360187eba6
 
   # cs_monero compat (unpublished)
   compat:
@@ -76,7 +75,7 @@ dependencies:
   # Utility plugins
   http: ^0.13.0
   local_auth: ^2.3.0
-  permission_handler: ^11.0.0
+  permission_handler: ^12.0.0+1
   flutter_local_notifications: ^17.2.2
   rxdart: ^0.27.3
   zxcvbn: ^1.0.0
@@ -111,7 +110,7 @@ dependencies:
   flutter_secure_storage: ^8.0.0
   hive: ^2.0.5
   hive_flutter: ^1.1.0
-  path_provider: ^2.0.15
+  path_provider: ^2.1.5
 
   # UI/Component plugins
   flutter_native_splash: ^2.2.4
@@ -186,8 +185,8 @@ dependencies:
       ref: dea799c20bc917f72b18c916ca96bc99fb1bd1c5
       path: packages/solana
   calendar_date_picker2: ^1.0.2
-  sqlite3: 2.4.3
-  sqlite3_flutter_libs: 0.5.22
+  sqlite3: 2.4.5
+  sqlite3_flutter_libs: 0.5.24
 #  camera_linux: ^0.0.8
   camera_linux:
     git:
@@ -203,7 +202,7 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
-  cs_monero: 1.0.0-pre.2
+  cs_monero: 1.0.0-pre.3
   cs_monero_flutter_libs: 1.0.0-pre.0
   monero_rpc: ^2.0.0
   digest_auth: ^1.0.1
@@ -216,6 +215,11 @@ dependencies:
     git:
       url: https://github.com/Cyrix126/namecoin_dart
       ref: 819b21164ef93cc0889049d4a8a1be2d0cc36a1b
+  drift: ^2.22.1
+  drift_flutter: ^0.2.3
+  path: ^1.9.1
+  cs_salvium: ^1.2.0
+  cs_salvium_flutter_libs: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -236,6 +240,7 @@ dev_dependencies:
   isar_generator:
     version: 3.1.8
     hosted: https://pub.isar-community.dev/
+  drift_dev: ^2.22.1
 
 flutter_native_splash:
   image: assets/icon/splash.png

@@ -31,26 +31,28 @@ class EthTxDTO {
     required this.hasToken,
     required this.gasCost,
     required this.gasUsed,
+    required this.nonce,
   });
 
   factory EthTxDTO.fromMap(Map<String, dynamic> map) => EthTxDTO(
-        hash: map['hash'] as String,
-        blockHash: map['blockHash'] as String,
-        blockNumber: map['blockNumber'] as int,
-        transactionIndex: map['transactionIndex'] as int,
-        timestamp: map['timestamp'] as int,
-        from: map['from'] as String,
-        to: map['to'] as String,
-        value: _amountFromJsonNum(map['value'])!,
-        gas: _amountFromJsonNum(map['gas'])!,
-        gasPrice: _amountFromJsonNum(map['gasPrice'])!,
-        maxFeePerGas: _amountFromJsonNum(map['maxFeePerGas']),
-        maxPriorityFeePerGas: _amountFromJsonNum(map['maxPriorityFeePerGas']),
-        isError: map['isError'] as bool? ?? false,
-        hasToken: map['hasToken'] as bool? ?? false,
-        gasCost: _amountFromJsonNum(map['gasCost'])!,
-        gasUsed: _amountFromJsonNum(map['gasUsed'])!,
-      );
+    hash: map['hash'] as String,
+    blockHash: map['blockHash'] as String,
+    blockNumber: map['blockNumber'] as int,
+    transactionIndex: map['transactionIndex'] as int,
+    timestamp: map['timestamp'] as int,
+    from: map['from'] as String,
+    to: map['to'] as String,
+    value: _amountFromJsonNum(map['value'])!,
+    gas: _amountFromJsonNum(map['gas'])!,
+    gasPrice: _amountFromJsonNum(map['gasPrice'])!,
+    maxFeePerGas: _amountFromJsonNum(map['maxFeePerGas']),
+    maxPriorityFeePerGas: _amountFromJsonNum(map['maxPriorityFeePerGas']),
+    isError: map['isError'] as bool? ?? false,
+    hasToken: map['hasToken'] as bool? ?? false,
+    gasCost: _amountFromJsonNum(map['gasCost'])!,
+    gasUsed: _amountFromJsonNum(map['gasUsed'])!,
+    nonce: map['nonce'] as int?,
+  );
 
   final String hash;
   final String blockHash;
@@ -68,6 +70,7 @@ class EthTxDTO {
   final bool hasToken;
   final Amount gasCost;
   final Amount gasUsed;
+  final int? nonce;
 
   static Amount? _amountFromJsonNum(dynamic json) {
     if (json == null) {
@@ -97,25 +100,26 @@ class EthTxDTO {
     String? compressedTx,
     Amount? gasCost,
     Amount? gasUsed,
-  }) =>
-      EthTxDTO(
-        hash: hash ?? this.hash,
-        blockHash: blockHash ?? this.blockHash,
-        blockNumber: blockNumber ?? this.blockNumber,
-        transactionIndex: transactionIndex ?? this.transactionIndex,
-        timestamp: timestamp ?? this.timestamp,
-        from: from ?? this.from,
-        to: to ?? this.to,
-        value: value ?? this.value,
-        gas: gas ?? this.gas,
-        gasPrice: gasPrice ?? this.gasPrice,
-        maxFeePerGas: maxFeePerGas ?? this.maxFeePerGas,
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? this.maxPriorityFeePerGas,
-        isError: isError ?? this.isError,
-        hasToken: hasToken ?? this.hasToken,
-        gasCost: gasCost ?? this.gasCost,
-        gasUsed: gasUsed ?? this.gasUsed,
-      );
+    int? nonce,
+  }) => EthTxDTO(
+    hash: hash ?? this.hash,
+    blockHash: blockHash ?? this.blockHash,
+    blockNumber: blockNumber ?? this.blockNumber,
+    transactionIndex: transactionIndex ?? this.transactionIndex,
+    timestamp: timestamp ?? this.timestamp,
+    from: from ?? this.from,
+    to: to ?? this.to,
+    value: value ?? this.value,
+    gas: gas ?? this.gas,
+    gasPrice: gasPrice ?? this.gasPrice,
+    maxFeePerGas: maxFeePerGas ?? this.maxFeePerGas,
+    maxPriorityFeePerGas: maxPriorityFeePerGas ?? this.maxPriorityFeePerGas,
+    isError: isError ?? this.isError,
+    hasToken: hasToken ?? this.hasToken,
+    gasCost: gasCost ?? this.gasCost,
+    gasUsed: gasUsed ?? this.gasUsed,
+    nonce: nonce ?? this.nonce,
+  );
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
@@ -135,6 +139,7 @@ class EthTxDTO {
     map['hasToken'] = hasToken;
     map['gasCost'] = gasCost.toString();
     map['gasUsed'] = gasUsed.toString();
+    map['nonce'] = nonce;
     return map;
   }
 

@@ -12,20 +12,6 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
-### Flutter
-Install Flutter 3.29.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.29.2` tag, and add its `flutter/bin` folder to your PATH as in
-```sh
-FLUTTER_DIR="$HOME/development/flutter"
-git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
-cd "$FLUTTER_DIR"
-git checkout 3.29.2
-echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
-source "$HOME/.profile"
-flutter precache
-```
-
-Run `flutter doctor` in a terminal to confirm its installation.
-
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
 ```
@@ -58,7 +44,7 @@ sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-con
 
 For Ubuntu 20.04,
 ```
-sudo apt-get install valac
+sudo apt-get install valac python3-pip
 pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
@@ -88,6 +74,20 @@ Linux desktop specific dependencies:
 sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
 pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
+
+### Flutter
+Install Flutter 3.29.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.29.2` tag, and add its `flutter/bin` folder to your PATH as in
+```sh
+FLUTTER_DIR="$HOME/development/flutter"
+git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+cd "$FLUTTER_DIR"
+git checkout 3.29.2
+echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
+source "$HOME/.profile"
+flutter precache
+```
+
+Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Clone the repository and initialize submodules
 After installing the prerequisites listed above, download the code and init the submodules
@@ -283,7 +283,6 @@ The WSL2 host may optionally be navigated to the `stack_wallet` repository on th
 If the DLLs were built on the WSL filesystem instead of on Windows, copy the resulting `dll`s to their respective positions on the Windows host:
 
 - `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
-- `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
 
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 

@@ -70,10 +70,12 @@ class _ExchangeProviderOptionsState
 
   @override
   Widget build(BuildContext context) {
-    final sendCurrency =
-        ref.watch(efCurrencyPairProvider.select((value) => value.send));
-    final receivingCurrency =
-        ref.watch(efCurrencyPairProvider.select((value) => value.receive));
+    final sendCurrency = ref.watch(
+      efCurrencyPairProvider.select((value) => value.send),
+    );
+    final receivingCurrency = ref.watch(
+      efCurrencyPairProvider.select((value) => value.receive),
+    );
 
     final showChangeNow = exchangeSupported(
       exchangeName: ChangeNowExchange.exchangeName,
@@ -98,9 +100,10 @@ class _ExchangeProviderOptionsState
 
     return RoundedWhiteContainer(
       padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),
-      borderColor: isDesktop
-          ? Theme.of(context).extension<StackColors>()!.background
-          : null,
+      borderColor:
+          isDesktop
+              ? Theme.of(context).extension<StackColors>()!.background
+              : null,
       child: Column(
         children: [
           if (showChangeNow)
@@ -112,13 +115,10 @@ class _ExchangeProviderOptionsState
           if (showChangeNow && showMajesticBank)
             isDesktop
                 ? Container(
-                    height: 1,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                  )
-                : const SizedBox(
-                    height: 16,
-                  ),
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                )
+                : const SizedBox(height: 16),
           if (showMajesticBank)
             ExchangeOption(
               exchange: MajesticBankExchange.instance,
@@ -128,13 +128,10 @@ class _ExchangeProviderOptionsState
           if ((showChangeNow || showMajesticBank) && showTrocador)
             isDesktop
                 ? Container(
-                    height: 1,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                  )
-                : const SizedBox(
-                    height: 16,
-                  ),
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                )
+                : const SizedBox(height: 16),
           if (showTrocador)
             ExchangeOption(
               fixedRate: widget.fixedRate,
@@ -145,13 +142,10 @@ class _ExchangeProviderOptionsState
               showNanswap)
             isDesktop
                 ? Container(
-                    height: 1,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                  )
-                : const SizedBox(
-                    height: 16,
-                  ),
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                )
+                : const SizedBox(height: 16),
           if (showNanswap)
             ExchangeOption(
               fixedRate: widget.fixedRate,

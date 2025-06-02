@@ -11,6 +11,8 @@ PODS:
     - ReachabilitySwift
   - cs_monero_flutter_libs_ios (0.0.1):
     - Flutter
+  - cs_salvium_flutter_libs_ios (0.0.1):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - devicelocale (0.0.1):
@@ -65,8 +67,6 @@ PODS:
     - Flutter
   - isar_flutter_libs (1.0.0):
     - Flutter
-  - lelantus (0.0.1):
-    - Flutter
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -87,6 +87,8 @@ PODS:
   - "sqlite3 (3.46.0+1)":
     - "sqlite3/common (= 3.46.0+1)"
   - "sqlite3/common (3.46.0+1)"
+  - "sqlite3/dbstatvtab (3.46.0+1)":
+    - sqlite3/common
   - "sqlite3/fts5 (3.46.0+1)":
     - sqlite3/common
   - "sqlite3/perf-threadsafe (3.46.0+1)":
@@ -95,7 +97,8 @@ PODS:
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
-    - sqlite3 (~> 3.46.0)
+    - "sqlite3 (~> 3.46.0+1)"
+    - sqlite3/dbstatvtab
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -117,6 +120,7 @@ DEPENDENCIES:
   - coinlib_flutter (from `.symlinks/plugins/coinlib_flutter/darwin`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - cs_monero_flutter_libs_ios (from `.symlinks/plugins/cs_monero_flutter_libs_ios/ios`)
+  - cs_salvium_flutter_libs_ios (from `.symlinks/plugins/cs_salvium_flutter_libs_ios/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -129,7 +133,6 @@ DEPENDENCIES:
   - frostdart (from `.symlinks/plugins/frostdart/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - isar_flutter_libs (from `.symlinks/plugins/isar_flutter_libs/ios`)
-  - lelantus (from `.symlinks/plugins/lelantus/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -162,6 +165,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   cs_monero_flutter_libs_ios:
     :path: ".symlinks/plugins/cs_monero_flutter_libs_ios/ios"
+  cs_salvium_flutter_libs_ios:
+    :path: ".symlinks/plugins/cs_salvium_flutter_libs_ios/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   devicelocale:
@@ -186,8 +191,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
   isar_flutter_libs:
     :path: ".symlinks/plugins/isar_flutter_libs/ios"
-  lelantus:
-    :path: ".symlinks/plugins/lelantus/ios"
   local_auth_darwin:
     :path: ".symlinks/plugins/local_auth_darwin/darwin"
   package_info_plus:
@@ -216,6 +219,7 @@ SPEC CHECKSUMS:
   coinlib_flutter: 9275e8255ef67d3da33beb6e117d09ced4f46eb5
   connectivity_plus: 07c49e96d7fc92bc9920617b83238c4d178b446a
   cs_monero_flutter_libs_ios: fd353631682247f72a36493ff060d4328d6f720d
+  cs_salvium_flutter_libs_ios: f9d6ce540cb34d8cb8641822cf02fa0695a8d405
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   devicelocale: 35ba84dc7f45f527c3001535d8c8d104edd5d926
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
@@ -230,7 +234,6 @@ SPEC CHECKSUMS:
   frostdart: 4c72b69ccac2f13ede744107db046a125acce597
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   isar_flutter_libs: fdf730ca925d05687f36d7f1d355e482529ed097
-  lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
@@ -240,13 +243,14 @@ SPEC CHECKSUMS:
   SDWebImage: 72f86271a6f3139cc7e4a89220946489d4b9a866
   share_plus: c3fef564749587fc939ef86ffb283ceac0baf9f5
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
-  sqlite3_flutter_libs: 0d611efdf6d1c9297d5ab03dab21b75aeebdae31
+  sqlite3_flutter_libs: c00457ebd31e59fa6bb830380ddba24d44fbcd3b
   stack_wallet_backup: 5b8563aba5d8ffbf2ce1944331ff7294a0ec7c03
   SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780
   tor_ffi_plugin: d80e291b649379c8176e1be739e49be007d4ef93
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
-  wakelock_plus: 78ec7c5b202cab7761af8e2b2b3d0671be6c4ae1
+  wakelock_plus: 373cfe59b235a6dd5837d0fb88791d2f13a90d56
+  xelis_flutter: a6a1ee1f1e47f5aeb42dc4a5889358b79d8d90fc
 
 PODFILE CHECKSUM: 57c8aed26fba39d3ec9424816221f294a07c58eb
 

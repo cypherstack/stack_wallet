@@ -1,4 +1,5 @@
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -7,6 +8,7 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../isar/models/spark_coin.dart';
 import 'name_op_state.dart';
 
@@ -14,7 +16,7 @@ typedef TxRecipient = ({String address, Amount amount, bool isChange});
 
 class TxData {
   final FeeRateType? feeRateType;
-  final int? feeRateAmount;
+  final BigInt? feeRateAmount;
   final int? satsPerVByte;
 
   final Amount? fee;
@@ -43,36 +45,32 @@ class TxData {
   // paynym specific
   final PaynymAccountLite? paynymAccountLite;
 
-  // eth token specific
+  // eth & token specific
+  final EthEIP1559Fee? ethEIP1559Fee;
   final web3dart.Transaction? web3dartTransaction;
   final int? nonce;
   final BigInt? chainId;
-  final BigInt? feeInWei;
-
   // wownero and monero specific
   final lib_monero.PendingTransaction? pendingTransaction;
 
-  // firo lelantus specific
-  final int? jMintValue;
-  final List<int>? spendCoinIndexes;
-  final int? height;
-  final TransactionType? txType;
-  final TransactionSubType? txSubType;
-  final List<Map<String, dynamic>>? mintsMapLelantus;
+  // salvium
+  final lib_salvium.PendingTransaction? pendingSalviumTransaction;
 
   // tezos specific
   final tezart.OperationsList? tezosOperationsList;
 
   // firo spark specific
-  final List<
-      ({
-        String address,
-        Amount amount,
-        String memo,
-        bool isChange,
-      })>? sparkRecipients;
+  final List<({String address, Amount amount, String memo, bool isChange})>?
+  sparkRecipients;
   final List<TxData>? sparkMints;
   final List<SparkCoin>? usedSparkCoins;
+  final ({
+    String additionalInfo,
+    String name,
+    Address sparkAddress,
+    int validBlocks,
+  })?
+  sparkNameInfo;
 
   // xelis specific
   final String? otherData;
@@ -103,17 +101,12 @@ class TxData {
     this.frostMSConfig,
     this.frostSigners,
     this.paynymAccountLite,
+    this.ethEIP1559Fee,
     this.web3dartTransaction,
     this.nonce,
     this.chainId,
-    this.feeInWei,
     this.pendingTransaction,
-    this.jMintValue,
-    this.spendCoinIndexes,
-    this.height,
-    this.txType,
-    this.txSubType,
-    this.mintsMapLelantus,
+    this.pendingSalviumTransaction,
     this.tezosOperationsList,
     this.sparkRecipients,
     this.otherData,
@@ -122,6 +115,7 @@ class TxData {
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
+    this.sparkNameInfo,
   });
 
   Amount? get amount {
@@ -135,6 +129,14 @@ class TxData {
         if (pendingTransaction!.amount + fee!.raw == sum.raw) {
           return Amount(
             rawValue: pendingTransaction!.amount,
+            fractionDigits: recipients!.first.amount.fractionDigits,
+          );
+        }
+      }
+      if (pendingSalviumTransaction?.amount != null && fee != null) {
+        if (pendingSalviumTransaction!.amount + fee!.raw == sum.raw) {
+          return Amount(
+            rawValue: pendingSalviumTransaction!.amount,
             fractionDigits: recipients!.first.amount.fractionDigits,
           );
         }
@@ -175,6 +177,14 @@ class TxData {
             );
           }
         }
+        if (pendingSalviumTransaction?.amount != null && fee != null) {
+          if (pendingSalviumTransaction!.amount + fee!.raw == sum.raw) {
+            return Amount(
+              rawValue: pendingSalviumTransaction!.amount,
+              fractionDigits: recipients!.first.amount.fractionDigits,
+            );
+          }
+        }
 
         return sum;
       }
@@ -201,13 +211,14 @@ class TxData {
     }
   }
 
-  int? get estimatedSatsPerVByte => fee != null && vSize != null
-      ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
-      : null;
+  int? get estimatedSatsPerVByte =>
+      fee != null && vSize != null
+          ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
+          : null;
 
   TxData copyWith({
     FeeRateType? feeRateType,
-    int? feeRateAmount,
+    BigInt? feeRateAmount,
     int? satsPerVByte,
     Amount? fee,
     int? vSize,
@@ -225,11 +236,12 @@ class TxData {
     List<String>? frostSigners,
     String? changeAddress,
     PaynymAccountLite? paynymAccountLite,
+    EthEIP1559Fee? ethEIP1559Fee,
     web3dart.Transaction? web3dartTransaction,
     int? nonce,
     BigInt? chainId,
-    BigInt? feeInWei,
     lib_monero.PendingTransaction? pendingTransaction,
+    lib_salvium.PendingTransaction? pendingSalviumTransaction,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,
@@ -237,19 +249,20 @@ class TxData {
     TransactionSubType? txSubType,
     List<Map<String, dynamic>>? mintsMapLelantus,
     tezart.OperationsList? tezosOperationsList,
-    List<
-            ({
-              String address,
-              Amount amount,
-              String memo,
-              bool isChange,
-            })>?
-        sparkRecipients,
+    List<({String address, Amount amount, String memo, bool isChange})>?
+    sparkRecipients,
     List<TxData>? sparkMints,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
     NameOpState? opNameState,
+    ({
+      String additionalInfo,
+      String name,
+      Address sparkAddress,
+      int validBlocks,
+    })?
+    sparkNameInfo,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -271,17 +284,13 @@ class TxData {
       frostSigners: frostSigners ?? this.frostSigners,
       changeAddress: changeAddress ?? this.changeAddress,
       paynymAccountLite: paynymAccountLite ?? this.paynymAccountLite,
+      ethEIP1559Fee: ethEIP1559Fee ?? this.ethEIP1559Fee,
       web3dartTransaction: web3dartTransaction ?? this.web3dartTransaction,
       nonce: nonce ?? this.nonce,
       chainId: chainId ?? this.chainId,
-      feeInWei: feeInWei ?? this.feeInWei,
       pendingTransaction: pendingTransaction ?? this.pendingTransaction,
-      jMintValue: jMintValue ?? this.jMintValue,
-      spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
-      height: height ?? this.height,
-      txType: txType ?? this.txType,
-      txSubType: txSubType ?? this.txSubType,
-      mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
+      pendingSalviumTransaction:
+          pendingSalviumTransaction ?? this.pendingSalviumTransaction,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
@@ -290,11 +299,13 @@ class TxData {
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
+      sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
     );
   }
 
   @override
-  String toString() => 'TxData{'
+  String toString() =>
+      'TxData{'
       'feeRateType: $feeRateType, '
       'feeRateAmount: $feeRateAmount, '
       'satsPerVByte: $satsPerVByte, '
@@ -312,17 +323,12 @@ class TxData {
       'frostSigners: $frostSigners, '
       'changeAddress: $changeAddress, '
       'paynymAccountLite: $paynymAccountLite, '
+      'ethEIP1559Fee: $ethEIP1559Fee, '
       'web3dartTransaction: $web3dartTransaction, '
       'nonce: $nonce, '
       'chainId: $chainId, '
-      'feeInWei: $feeInWei, '
       'pendingTransaction: $pendingTransaction, '
-      'jMintValue: $jMintValue, '
-      'spendCoinIndexes: $spendCoinIndexes, '
-      'height: $height, '
-      'txType: $txType, '
-      'txSubType: $txSubType, '
-      'mintsMapLelantus: $mintsMapLelantus, '
+      'pendingSalviumTransaction: $pendingSalviumTransaction, '
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
@@ -331,5 +337,6 @@ class TxData {
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
+      'sparkNameInfo: $sparkNameInfo, '
       '}';
 }

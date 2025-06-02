@@ -10,6 +10,7 @@
 
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -23,7 +24,6 @@ import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -38,14 +38,13 @@ class DesktopPaynymSendDialog extends ConsumerStatefulWidget {
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.accountLite,
   });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
   final PaynymAccountLite? accountLite;
 
   @override
@@ -62,6 +61,15 @@ class _DesktopPaynymSendDialogState
     );
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
+
+    Decimal? price;
+    if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) => value.getPrice(coin)?.value,
+        ),
+      );
+    }
 
     return DesktopDialog(
       maxHeight: double.infinity,
@@ -90,15 +98,11 @@ class _DesktopPaynymSendDialogState
               child: Row(
                 children: [
                   SvgPicture.file(
-                    File(
-                      ref.watch(coinIconProvider(coin)),
-                    ),
+                    File(ref.watch(coinIconProvider(coin))),
                     width: 36,
                     height: 36,
                   ),
-                  const SizedBox(
-                    width: 12,
-                  ),
+                  const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -108,15 +112,14 @@ class _DesktopPaynymSendDialogState
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       Text(
                         "Available balance",
                         style: STextStyles.baseXS(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle1,
                         ),
                       ),
                     ],
@@ -128,7 +131,9 @@ class _DesktopPaynymSendDialogState
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          ref.watch(pAmountFormatter(coin)).format(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
                                 ref
                                     .watch(pWalletBalance(widget.walletId))
                                     .spendable,
@@ -136,28 +141,18 @@ class _DesktopPaynymSendDialogState
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.right,
                         ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        Text(
-                          "${(ref.watch(pWalletBalance(widget.walletId)).spendable.decimal * ref.watch(
-                                    priceAnd24hChangeNotifierProvider.select(
-                                      (value) => value.getPrice(coin).item1,
-                                    ),
-                                  )).toAmount(fractionDigits: 2).fiatString(
-                                locale: locale,
-                              )} ${ref.watch(
-                            prefsChangeNotifierProvider.select(
-                              (value) => value.currency,
+                        if (price != null) const SizedBox(height: 2),
+                        if (price != null)
+                          Text(
+                            "${(ref.watch(pWalletBalance(widget.walletId)).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                            style: STextStyles.baseXS(context).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
                             ),
-                          )}",
-                          style: STextStyles.baseXS(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
+                            textAlign: TextAlign.right,
                           ),
-                          textAlign: TextAlign.right,
-                        ),
                       ],
                     ),
                   ),
@@ -165,15 +160,9 @@ class _DesktopPaynymSendDialogState
               ),
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 32,
-              right: 32,
-              bottom: 32,
-            ),
+            padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
             child: DesktopSend(
               walletId: widget.walletId,
               accountLite: widget.accountLite,

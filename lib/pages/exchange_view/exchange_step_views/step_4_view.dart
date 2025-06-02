@@ -86,8 +86,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<void> _updateStatus() async {
-    final statusResponse =
-        await ref.read(efExchangeProvider).updateTrade(model.trade!);
+    final statusResponse = await ref
+        .read(efExchangeProvider)
+        .updateTrade(model.trade!);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;
@@ -149,46 +150,34 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            Constants.size.circularBorderRadius * 3,
-          ),
+          top: Radius.circular(Constants.size.circularBorderRadius * 3),
         ),
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
               Text(
                 "Select Firo balance",
                 style: STextStyles.pageTitleH2(context),
               ),
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
               SecondaryButton(
                 label:
                     "${ref.watch(pAmountFormatter(coin)).format(balancePrivate.spendable)} (private)",
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: 16),
               SecondaryButton(
                 label:
                     "${ref.watch(pAmountFormatter(coin)).format(balancePublic.spendable)} (public)",
                 onPressed: () => Navigator.of(context).pop(true),
               ),
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
             ],
           ),
         );
@@ -237,55 +226,39 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         ),
       );
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
 
       if (wallet is FiroWallet && !firoPublicSend) {
         txDataFuture = wallet.prepareSendSpark(
           txData: TxData(
-            recipients: [
-              (
-                address: address,
-                amount: amount,
-                isChange: false,
-              ),
-            ],
-            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+            recipients: [(address: address, amount: amount, isChange: false)],
+            note:
+                "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
         );
       } else {
-        final memo = wallet.info.coin is Stellar
-            ? model.trade!.payInExtraId.isNotEmpty
-                ? model.trade!.payInExtraId
-                : null
-            : null;
+        final memo =
+            wallet.info.coin is Stellar
+                ? model.trade!.payInExtraId.isNotEmpty
+                    ? model.trade!.payInExtraId
+                    : null
+                : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [
-              (
-                address: address,
-                amount: amount,
-                isChange: false,
-              ),
-            ],
+            recipients: [(address: address, amount: amount, isChange: false)],
             memo: memo,
             feeRateType: FeeRateType.average,
-            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+            note:
+                "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
         );
       }
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       final txData = results.first as TxData;
 
@@ -301,13 +274,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                builder: (_) => ConfirmChangeNowSendView(
-                  txData: txData,
-                  walletId: tuple.item1,
-                  routeOnSuccessName: HomeView.routeName,
-                  trade: model.trade!,
-                  shouldSendPublicFiroFunds: firoPublicSend,
-                ),
+                builder:
+                    (_) => ConfirmChangeNowSendView(
+                      txData: txData,
+                      walletId: tuple.item1,
+                      routeOnSuccessName: HomeView.routeName,
+                      trade: model.trade!,
+                      shouldSendPublicFiroFunds: firoPublicSend,
+                    ),
                 settings: const RouteSettings(
                   name: ConfirmChangeNowSendView.routeName,
                 ),
@@ -338,9 +312,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonTextSecondary,
                     ),
                   ),
                   onPressed: () {
@@ -357,8 +332,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isWalletCoin =
-        _isWalletCoinAndHasWallet(model.trade!.payInCurrency, ref);
+    final bool isWalletCoin = _isWalletCoinAndHasWallet(
+      model.trade!.payInCurrency,
+      ref,
+    );
     return WillPopScope(
       onWillPop: () async {
         await _close();
@@ -379,214 +356,80 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   Assets.svg.x,
                   width: 24,
                   height: 24,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: _close,
               ),
             ),
-            title: Text(
-              "Swap",
-              style: STextStyles.navBarTitle(context),
-            ),
+            title: Text("Swap", style: STextStyles.navBarTitle(context)),
           ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              final width = MediaQuery.of(context).size.width - 32;
-              return Padding(
-                padding: const EdgeInsets.all(12),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            StepRow(
-                              count: 4,
-                              current: 3,
-                              width: width,
-                            ),
-                            const SizedBox(
-                              height: 14,
-                            ),
-                            Text(
-                              "Send ${model.sendTicker.toUpperCase()} to the address below",
-                              style: STextStyles.pageTitleH1(context),
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Text(
-                              "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
-                              style: STextStyles.itemSubtitle(context),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            RoundedContainer(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .warningBackground,
-                              child: RichText(
-                                text: TextSpan(
-                                  text:
-                                      "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
-                                  style: STextStyles.label700(context).copyWith(
-                                    color: Theme.of(context)
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = MediaQuery.of(context).size.width - 32;
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              StepRow(count: 4, current: 3, width: width),
+                              const SizedBox(height: 14),
+                              Text(
+                                "Send ${model.sendTicker.toUpperCase()} to the address below",
+                                style: STextStyles.pageTitleH1(context),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
+                                style: STextStyles.itemSubtitle(context),
+                              ),
+                              const SizedBox(height: 12),
+                              RoundedContainer(
+                                color:
+                                    Theme.of(context)
                                         .extension<StackColors>()!
-                                        .warningForeground,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
-                                      style:
-                                          STextStyles.label(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .warningForeground,
-                                      ),
+                                        .warningBackground,
+                                child: RichText(
+                                  text: TextSpan(
+                                    text:
+                                        "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
+                                    style: STextStyles.label700(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .warningForeground,
                                     ),
-                                  ],
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
+                                        style: STextStyles.label(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .warningForeground,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            RoundedWhiteContainer(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Amount",
-                                        style:
-                                            STextStyles.itemSubtitle(context),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () async {
-                                          final data = ClipboardData(
-                                            text: model.sendAmount.toString(),
-                                          );
-                                          await clipboard.setData(data);
-                                          if (context.mounted) {
-                                            unawaited(
-                                              showFloatingFlushBar(
-                                                type: FlushBarType.info,
-                                                message: "Copied to clipboard",
-                                                context: context,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              Assets.svg.copy,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .infoItemIcons,
-                                              width: 10,
-                                            ),
-                                            const SizedBox(
-                                              width: 4,
-                                            ),
-                                            Text(
-                                              "Copy",
-                                              style: STextStyles.link2(context),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
-                                  Text(
-                                    "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
-                                    style: STextStyles.itemSubtitle12(context),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            RoundedWhiteContainer(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Send ${model.sendTicker.toUpperCase()} to this address",
-                                        style:
-                                            STextStyles.itemSubtitle(context),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () async {
-                                          final data = ClipboardData(
-                                            text: model.trade!.payInAddress,
-                                          );
-                                          await clipboard.setData(data);
-                                          if (context.mounted) {
-                                            unawaited(
-                                              showFloatingFlushBar(
-                                                type: FlushBarType.info,
-                                                message: "Copied to clipboard",
-                                                context: context,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              Assets.svg.copy,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .infoItemIcons,
-                                              width: 10,
-                                            ),
-                                            const SizedBox(
-                                              width: 4,
-                                            ),
-                                            Text(
-                                              "Copy",
-                                              style: STextStyles.link2(context),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
-                                  Text(
-                                    model.trade!.payInAddress,
-                                    style: STextStyles.itemSubtitle12(context),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            if (model.trade!.payInExtraId.isNotEmpty)
+                              const SizedBox(height: 8),
                               RoundedWhiteContainer(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,14 +439,15 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          "Memo",
-                                          style:
-                                              STextStyles.itemSubtitle(context),
+                                          "Amount",
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
                                         ),
                                         GestureDetector(
                                           onTap: () async {
                                             final data = ClipboardData(
-                                              text: model.trade!.payInExtraId,
+                                              text: model.sendAmount.toString(),
                                             );
                                             await clipboard.setData(data);
                                             if (context.mounted) {
@@ -621,288 +465,433 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             children: [
                                               SvgPicture.asset(
                                                 Assets.svg.copy,
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .infoItemIcons,
+                                                color:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .infoItemIcons,
                                                 width: 10,
                                               ),
-                                              const SizedBox(
-                                                width: 4,
-                                              ),
+                                              const SizedBox(width: 4),
                                               Text(
                                                 "Copy",
-                                                style:
-                                                    STextStyles.link2(context),
+                                                style: STextStyles.link2(
+                                                  context,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
+                                    const SizedBox(height: 4),
                                     Text(
-                                      model.trade!.payInExtraId,
-                                      style:
-                                          STextStyles.itemSubtitle12(context),
+                                      "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                            if (model.trade!.payInExtraId.isNotEmpty)
-                              const SizedBox(
-                                height: 6,
-                              ),
-                            RoundedWhiteContainer(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    "Trade ID",
-                                    style: STextStyles.itemSubtitle(context),
-                                  ),
-                                  const Spacer(),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        model.trade!.tradeId,
-                                        style:
-                                            STextStyles.itemSubtitle12(context),
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      GestureDetector(
-                                        onTap: () async {
-                                          final data = ClipboardData(
-                                            text: model.trade!.tradeId,
-                                          );
-                                          await clipboard.setData(data);
-                                          if (context.mounted) {
-                                            unawaited(
-                                              showFloatingFlushBar(
-                                                type: FlushBarType.info,
-                                                message: "Copied to clipboard",
-                                                context: context,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: SvgPicture.asset(
-                                          Assets.svg.copy,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .infoItemIcons,
-                                          width: 12,
+                              const SizedBox(height: 8),
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Send ${model.sendTicker.toUpperCase()} to this address",
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            RoundedWhiteContainer(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Status",
-                                    style: STextStyles.itemSubtitle(context),
-                                  ),
-                                  Text(
-                                    _statusString,
-                                    style: STextStyles.itemSubtitle(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .colorForStatus(_statusString),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Spacer(),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                showDialog<dynamic>(
-                                  context: context,
-                                  barrierDismissible: true,
-                                  builder: (_) {
-                                    return StackDialogBase(
-                                      child: Column(
-                                        children: [
-                                          const SizedBox(
-                                            height: 8,
-                                          ),
-                                          Center(
-                                            child: Text(
-                                              "Send ${model.sendTicker} to this address",
-                                              style: STextStyles.pageTitleH2(
-                                                context,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            height: 24,
-                                          ),
-                                          Center(
-                                            child: QR(
-                                              // TODO: grab coin uri scheme from somewhere
-                                              // data: "${coin.uriScheme}:$receivingAddress",
-                                              data: model.trade!.payInAddress,
-                                              size: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  2,
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            height: 24,
-                                          ),
-                                          Row(
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final data = ClipboardData(
+                                              text: model.trade!.payInAddress,
+                                            );
+                                            await clipboard.setData(data);
+                                            if (context.mounted) {
+                                              unawaited(
+                                                showFloatingFlushBar(
+                                                  type: FlushBarType.info,
+                                                  message:
+                                                      "Copied to clipboard",
+                                                  context: context,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Row(
                                             children: [
-                                              const Spacer(),
-                                              Expanded(
-                                                child: TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  style: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .getSecondaryEnabledButtonStyle(
-                                                        context,
-                                                      ),
-                                                  child: Text(
-                                                    "Cancel",
-                                                    style: STextStyles.button(
-                                                      context,
-                                                    ).copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                              StackColors>()!
-                                                          .buttonTextSecondary,
-                                                    ),
-                                                  ),
+                                              SvgPicture.asset(
+                                                Assets.svg.copy,
+                                                color:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .infoItemIcons,
+                                                width: 10,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "Copy",
+                                                style: STextStyles.link2(
+                                                  context,
                                                 ),
                                               ),
                                             ],
                                           ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      model.trade!.payInAddress,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              if (model.trade!.payInExtraId.isNotEmpty)
+                                RoundedWhiteContainer(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Memo",
+                                            style: STextStyles.itemSubtitle(
+                                              context,
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () async {
+                                              final data = ClipboardData(
+                                                text: model.trade!.payInExtraId,
+                                              );
+                                              await clipboard.setData(data);
+                                              if (context.mounted) {
+                                                unawaited(
+                                                  showFloatingFlushBar(
+                                                    type: FlushBarType.info,
+                                                    message:
+                                                        "Copied to clipboard",
+                                                    context: context,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: Row(
+                                              children: [
+                                                SvgPicture.asset(
+                                                  Assets.svg.copy,
+                                                  color:
+                                                      Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .infoItemIcons,
+                                                  width: 10,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  "Copy",
+                                                  style: STextStyles.link2(
+                                                    context,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        model.trade!.payInExtraId,
+                                        style: STextStyles.itemSubtitle12(
+                                          context,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (model.trade!.payInExtraId.isNotEmpty)
+                                const SizedBox(height: 6),
+                              RoundedWhiteContainer(
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      "Trade ID",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    const Spacer(),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          model.trade!.tradeId,
+                                          style: STextStyles.itemSubtitle12(
+                                            context,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final data = ClipboardData(
+                                              text: model.trade!.tradeId,
+                                            );
+                                            await clipboard.setData(data);
+                                            if (context.mounted) {
+                                              unawaited(
+                                                showFloatingFlushBar(
+                                                  type: FlushBarType.info,
+                                                  message:
+                                                      "Copied to clipboard",
+                                                  context: context,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: SvgPicture.asset(
+                                            Assets.svg.copy,
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .infoItemIcons,
+                                            width: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              RoundedWhiteContainer(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Status",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    Text(
+                                      _statusString,
+                                      style: STextStyles.itemSubtitle(
+                                        context,
+                                      ).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .colorForStatus(_statusString),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: () {
+                                  showDialog<dynamic>(
+                                    context: context,
+                                    barrierDismissible: true,
+                                    builder: (_) {
+                                      return StackDialogBase(
+                                        child: Column(
+                                          children: [
+                                            const SizedBox(height: 8),
+                                            Center(
+                                              child: Text(
+                                                "Send ${model.sendTicker} to this address",
+                                                style: STextStyles.pageTitleH2(
+                                                  context,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 24),
+                                            Center(
+                                              child: QR(
+                                                // TODO: grab coin uri scheme from somewhere
+                                                // data: "${coin.uriScheme}:$receivingAddress",
+                                                data: model.trade!.payInAddress,
+                                                size:
+                                                    MediaQuery.of(
+                                                      context,
+                                                    ).size.width /
+                                                    2,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 24),
+                                            Row(
+                                              children: [
+                                                const Spacer(),
+                                                Expanded(
+                                                  child: TextButton(
+                                                    onPressed:
+                                                        () =>
+                                                            Navigator.of(
+                                                              context,
+                                                            ).pop(),
+                                                    style: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .getSecondaryEnabledButtonStyle(
+                                                          context,
+                                                        ),
+                                                    child: Text(
+                                                      "Cancel",
+                                                      style: STextStyles.button(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .extension<
+                                                                  StackColors
+                                                                >()!
+                                                                .buttonTextSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonStyle(context),
+                                child: Text(
+                                  "Show QR Code",
+                                  style: STextStyles.button(context),
+                                ),
+                              ),
+                              if (isWalletCoin) const SizedBox(height: 12),
+                              if (isWalletCoin)
+                                Builder(
+                                  builder: (context) {
+                                    String buttonTitle =
+                                        "Send from ${AppConfig.appName}";
+
+                                    final tuple =
+                                        ref
+                                            .read(
+                                              exchangeSendFromWalletIdStateProvider
+                                                  .state,
+                                            )
+                                            .state;
+                                    if (tuple != null &&
+                                        model.sendTicker.toLowerCase() ==
+                                            tuple.item2.ticker.toLowerCase()) {
+                                      final walletName =
+                                          ref
+                                              .read(pWallets)
+                                              .getWallet(tuple.item1)
+                                              .info
+                                              .name;
+                                      buttonTitle = "Send from $walletName";
+                                    }
+
+                                    return TextButton(
+                                      onPressed:
+                                          tuple != null &&
+                                                  model.sendTicker
+                                                          .toLowerCase() ==
+                                                      tuple.item2.ticker
+                                                          .toLowerCase()
+                                              ? () async {
+                                                await _confirmSend(tuple);
+                                              }
+                                              : () {
+                                                Navigator.of(context).push(
+                                                  RouteGenerator.getRoute(
+                                                    shouldUseMaterialRoute:
+                                                        RouteGenerator
+                                                            .useMaterialPageRoute,
+                                                    builder: (
+                                                      BuildContext context,
+                                                    ) {
+                                                      final coin = AppConfig
+                                                          .coins
+                                                          .firstWhere(
+                                                            (e) =>
+                                                                e.ticker
+                                                                    .toLowerCase() ==
+                                                                model
+                                                                    .trade!
+                                                                    .payInCurrency
+                                                                    .toLowerCase(),
+                                                          );
+
+                                                      return SendFromView(
+                                                        coin: coin,
+                                                        amount: model.sendAmount
+                                                            .toAmount(
+                                                              fractionDigits:
+                                                                  coin.fractionDigits,
+                                                            ),
+                                                        address:
+                                                            model
+                                                                .trade!
+                                                                .payInAddress,
+                                                        trade: model.trade!,
+                                                      );
+                                                    },
+                                                    settings:
+                                                        const RouteSettings(
+                                                          name:
+                                                              SendFromView
+                                                                  .routeName,
+                                                        ),
+                                                  ),
+                                                );
+                                              },
+                                      style: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getSecondaryEnabledButtonStyle(
+                                            context,
+                                          ),
+                                      child: Text(
+                                        buttonTitle,
+                                        style: STextStyles.button(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .buttonTextSecondary,
+                                        ),
                                       ),
                                     );
                                   },
-                                );
-                              },
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonStyle(context),
-                              child: Text(
-                                "Show QR Code",
-                                style: STextStyles.button(context),
-                              ),
-                            ),
-                            if (isWalletCoin)
-                              const SizedBox(
-                                height: 12,
-                              ),
-                            if (isWalletCoin)
-                              Builder(
-                                builder: (context) {
-                                  String buttonTitle =
-                                      "Send from ${AppConfig.appName}";
-
-                                  final tuple = ref
-                                      .read(
-                                        exchangeSendFromWalletIdStateProvider
-                                            .state,
-                                      )
-                                      .state;
-                                  if (tuple != null &&
-                                      model.sendTicker.toLowerCase() ==
-                                          tuple.item2.ticker.toLowerCase()) {
-                                    final walletName = ref
-                                        .read(pWallets)
-                                        .getWallet(tuple.item1)
-                                        .info
-                                        .name;
-                                    buttonTitle = "Send from $walletName";
-                                  }
-
-                                  return TextButton(
-                                    onPressed: tuple != null &&
-                                            model.sendTicker.toLowerCase() ==
-                                                tuple.item2.ticker.toLowerCase()
-                                        ? () async {
-                                            await _confirmSend(tuple);
-                                          }
-                                        : () {
-                                            Navigator.of(context).push(
-                                              RouteGenerator.getRoute(
-                                                shouldUseMaterialRoute:
-                                                    RouteGenerator
-                                                        .useMaterialPageRoute,
-                                                builder:
-                                                    (BuildContext context) {
-                                                  final coin = AppConfig.coins
-                                                      .firstWhere(
-                                                    (e) =>
-                                                        e.ticker
-                                                            .toLowerCase() ==
-                                                        model.trade!
-                                                            .payInCurrency
-                                                            .toLowerCase(),
-                                                  );
-
-                                                  return SendFromView(
-                                                    coin: coin,
-                                                    amount: model.sendAmount
-                                                        .toAmount(
-                                                      fractionDigits:
-                                                          coin.fractionDigits,
-                                                    ),
-                                                    address: model
-                                                        .trade!.payInAddress,
-                                                    trade: model.trade!,
-                                                  );
-                                                },
-                                                settings: const RouteSettings(
-                                                  name: SendFromView.routeName,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                    style: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getSecondaryEnabledButtonStyle(
-                                          context,
-                                        ),
-                                    child: Text(
-                                      buttonTitle,
-                                      style:
-                                          STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .buttonTextSecondary,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                          ],
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

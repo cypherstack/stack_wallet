@@ -439,7 +439,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     required BigInt satoshisBeingUsed,
     required List<SigningData> utxoSigningData,
     required int? satsPerVByte,
-    required int feeRatePerKB,
+    required BigInt feeRatePerKB,
   }) async {
     Logging.instance.d("Attempting to send all $cryptoCurrency");
     if (txData.recipients!.length != 1) {
@@ -1225,17 +1225,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             Amount.fromDecimal(
               fast,
               fractionDigits: info.coin.fractionDigits,
-            ).raw.toInt(),
+            ).raw,
         medium:
             Amount.fromDecimal(
               medium,
               fractionDigits: info.coin.fractionDigits,
-            ).raw.toInt(),
+            ).raw,
         slow:
             Amount.fromDecimal(
               slow,
               fractionDigits: info.coin.fractionDigits,
-            ).raw.toInt(),
+            ).raw,
       );
 
       Logging.instance.d("fetched fees: $feeObject");
@@ -1256,7 +1256,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     final available = info.cachedBalance.spendable;
     final utxos = _spendableUTXOs(await mainDB.getUTXOs(walletId).findAll());
 
@@ -1717,7 +1717,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         final result = await coinSelection(
-          txData: txData.copyWith(feeRateAmount: -1),
+          txData: txData.copyWith(feeRateAmount: BigInt.from(-1)),
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
           coinControl: coinControl,
@@ -1733,10 +1733,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         return result;
-      } else if (feeRateType is FeeRateType || feeRateAmount is int) {
-        late final int rate;
+      } else if (feeRateType is FeeRateType || feeRateAmount is BigInt) {
+        late final BigInt rate;
         if (feeRateType is FeeRateType) {
-          int fee = 0;
+          BigInt fee = BigInt.zero;
           final feeObject = await fees;
           switch (feeRateType) {
             case FeeRateType.fast:
@@ -1753,7 +1753,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           }
           rate = fee;
         } else {
-          rate = feeRateAmount as int;
+          rate = feeRateAmount!;
         }
 
         // check for send all
@@ -1836,8 +1836,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   // ===========================================================================
   // ========== Interface functions ============================================
 
-  int estimateTxFee({required int vSize, required int feeRatePerKB});
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB);
+  int estimateTxFee({required int vSize, required BigInt feeRatePerKB});
+  Amount roughFeeEstimate(int inputCount, int outputCount, BigInt feeRatePerKB);
 
   Future<List<Address>> fetchAddressesForElectrumXScan();
 
@@ -1868,7 +1868,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         .toList();
   }
 
-  Future<Amount> _sweepAllEstimate(int feeRate, List<UTXO> usableUTXOs) async {
+  Future<Amount> _sweepAllEstimate(
+    BigInt feeRate,
+    List<UTXO> usableUTXOs,
+  ) async {
     final available = usableUTXOs
         .map((e) => BigInt.from(e.value))
         .fold(BigInt.zero, (p, e) => p + e);
