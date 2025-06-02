@@ -1060,7 +1060,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as List<_i19.NodeModel>);
 
   @override
-  _i10.Future<void> add(
+  _i10.Future<void> save(
     _i19.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,

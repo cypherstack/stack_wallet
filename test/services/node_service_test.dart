@@ -17,7 +17,7 @@ void main() {
       Hive.registerAdapter(NodeModelAdapter());
     }
     await Hive.openBox<NodeModel>(DB.boxNameNodeModels);
-    await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
+    // await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
   });
 
   group("Empty nodes DB tests", () {
@@ -50,6 +50,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       );
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
@@ -133,6 +134,7 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+      isPrimary: true,
     );
     final nodeB = NodeModel(
       host: "host2",
@@ -146,6 +148,7 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+      isPrimary: true,
     );
     final nodeC = NodeModel(
       host: "host3",
@@ -159,6 +162,7 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+      isPrimary: true,
     );
 
     setUp(() async {
@@ -226,7 +230,7 @@ void main() {
     test("add a node without a password", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      await service.add(nodeA, null, true);
+      await service.save(nodeA, null, true);
       expect(
         service.nodes.length,
         AppConfig.coins.map((e) => e.defaultNode).length + 1,
@@ -237,7 +241,7 @@ void main() {
     test("add a node with a password", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      await service.add(nodeA, "some password", true);
+      await service.save(nodeA, "some password", true);
       expect(
         service.nodes.length,
         AppConfig.coins.map((e) => e.defaultNode).length + 1,
@@ -276,7 +280,7 @@ void main() {
           trusted: null,
         );
 
-        await service.edit(editedNode, "123456", true);
+        await service.save(editedNode, "123456", true);
 
         expect(service.nodes.length, currentLength);
 

@@ -218,20 +218,33 @@ class NodeService extends ChangeNotifier {
     ).where((e) => e.isFailover && !e.isDown).toList();
   }
 
-  // should probably just combine this and edit into a save() func at some point
-  /// Over write node in hive if a node with existing id already exists.
-  /// Otherwise add node to hive
-  Future<void> add(
+  /// Adds a new node to the database.
+  ///
+  /// If a node with the same ID already exists, it will be overwritten.
+  Future<void> save(
     NodeModel node,
     String? password,
     bool shouldNotifyListeners,
   ) async {
+    // Handle primary node updates (logic from edit())
+    final coin = AppConfig.getCryptoCurrencyByPrettyName(node.coinName);
+    final primaryNode = getPrimaryNodeFor(currency: coin);
+    if (primaryNode?.id == node.id) {
+      await setPrimaryNodeFor(
+        coin: coin,
+        node: node,
+        shouldNotifyListeners: true,
+      );
+    }
+
+    // Save to database (logic from add()).
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,
       key: node.id,
       value: node,
     );
 
+    // Save password to secure storage.
     if (password != null) {
       await secureStorageInterface.write(
         key: "${node.id}_nodePW",
@@ -273,26 +286,6 @@ class NodeService extends ChangeNotifier {
     if (shouldNotifyListeners) {
       notifyListeners();
     }
-  }
-
-  /// convenience wrapper for add
-  Future<void> edit(
-    NodeModel editedNode,
-    String? password,
-    bool shouldNotifyListeners,
-  ) async {
-    // check if the node being edited is the primary one; if it is, setPrimaryNodeFor coin
-    final coin = AppConfig.getCryptoCurrencyByPrettyName(editedNode.coinName);
-    final primaryNode = getPrimaryNodeFor(currency: coin);
-    if (primaryNode?.id == editedNode.id) {
-      await setPrimaryNodeFor(
-        coin: coin,
-        node: editedNode,
-        shouldNotifyListeners: true,
-      );
-    }
-
-    return add(editedNode, password, shouldNotifyListeners);
   }
 
   //============================================================================
@@ -344,7 +337,7 @@ class NodeService extends ChangeNotifier {
               trusted: node.trusted,
             );
           }
-          await add(node, null, false);
+          await save(node, null, false);
         }
       }
     } catch (e, s) {

@@ -262,11 +262,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
           forceNoTor: forceNoTor,
+          isPrimary: false,
         );
 
         await ref
             .read(nodeServiceChangeNotifierProvider)
-            .add(node, formData.password, true);
+            .save(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
           Navigator.of(
@@ -290,11 +291,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
           forceNoTor: forceNoTor,
+          isPrimary: formData.isPrimary ?? false,
         );
 
         await ref
             .read(nodeServiceChangeNotifierProvider)
-            .add(node, formData.password, true);
+            .save(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
           Navigator.of(
@@ -420,6 +422,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               torEnabled: true,
               clearnetEnabled: !nodeQrData.host.endsWith(".onion"),
               loginName: (nodeQrData as LibMoneroNodeQrData?)?.user,
+              isPrimary: false,
             ),
             (nodeQrData as LibMoneroNodeQrData?)?.password ?? "",
           );
@@ -766,12 +769,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 class NodeFormData {
   String? name, host, login, password;
   int? port;
-  bool? useSSL, isFailover, trusted, forceNoTor;
+  bool? useSSL, isFailover, trusted, forceNoTor, isPrimary;
   TorPlainNetworkOption? netOption;
 
   @override
   String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted, netOption: $netOption }";
+    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted, netOption: $netOption, isPrimary: $isPrimary }";
   }
 }
 
@@ -819,6 +822,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   int? port;
   late bool enableSSLCheckbox;
   late TorPlainNetworkOption netOption;
+  bool _isPrimary = false;
 
   late final bool enableAuthFields;
 
@@ -875,6 +879,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     ref.read(nodeFormDataProvider).trusted = _trusted;
     ref.read(nodeFormDataProvider).netOption = netOption;
     ref.read(nodeFormDataProvider).forceNoTor = _forceNoTor;
+    ref.read(nodeFormDataProvider).host;
+    ref.read(nodeFormDataProvider).isPrimary = _isPrimary;
   }
 
   @override
@@ -910,6 +916,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
       _forceNoTor = node.forceNoTor ?? false;
+      _isPrimary = node.isPrimary ?? false;
 
       if (node.torEnabled && !node.clearnetEnabled) {
         netOption = TorPlainNetworkOption.tor;
@@ -1359,7 +1366,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   if (widget.readOnly) {
                     ref
                         .read(nodeServiceChangeNotifierProvider)
-                        .edit(
+                        .save(
                           widget.node!.copyWith(
                             isFailover: _isFailover,
                             loginName: widget.node!.loginName,
@@ -1390,7 +1397,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                             if (widget.readOnly) {
                               ref
                                   .read(nodeServiceChangeNotifierProvider)
-                                  .edit(
+                                  .save(
                                     widget.node!.copyWith(
                                       isFailover: _isFailover,
                                       loginName: widget.node!.loginName,

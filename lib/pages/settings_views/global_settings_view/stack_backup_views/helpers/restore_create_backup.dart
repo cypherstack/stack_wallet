@@ -975,7 +975,7 @@ abstract class SWB {
         if (nodeData != null) {
           // node existed before restore attempt
           // revert to pre restore node
-          await nodeService.edit(
+          await nodeService.save(
             node.copyWith(
               host: nodeData['host'] as String,
               port: nodeData['port'] as int,
@@ -1177,7 +1177,7 @@ abstract class SWB {
 
       for (final node in nodes) {
         final id = node['id'] as String;
-        await nodeService.add(
+        await nodeService.save(
           NodeModel(
             host: node['host'] as String,
             port: node['port'] as int,
