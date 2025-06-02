@@ -814,6 +814,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     try {
       await updateBalance();
       await updateTransactions();
+      // TODO: Implement a better balance change detection, not by onBalancesChanged
       if (newBalance != BigInt.zero && !_balanceChangeCompleter.isCompleted) {
         _balanceChangeCompleter.complete();
       }

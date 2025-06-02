@@ -9,6 +9,7 @@ import '../../providers/global/secure_store_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
+import '../../utilities/logger.dart';
 import '../isar/models/wallet_info.dart';
 import '../wallet/wallet.dart';
 
@@ -104,30 +105,39 @@ abstract class CryptoCurrency {
   @override
   int get hashCode => Object.hash(runtimeType, network);
 
-  Future<Wallet> importPaperWallet(WalletUriData walletData, WidgetRef ref) async {
-    final info = WalletInfo.createNew(
-      coin: walletData.coin,
-      name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
-      restoreHeight: walletData.height ?? 0,
-      otherDataJsonString: walletData.toJson(),
-    );
+  Future<Wallet?> importPaperWallet(WalletUriData walletData, WidgetRef ref, {Wallet? newWallet}) async {
+    try {
+      final info = WalletInfo.createNew(
+        coin: walletData.coin,
+        name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+        restoreHeight: walletData.height ?? 0,
+        otherDataJsonString: walletData.toJson(),
+      );
 
-    final wallet = await Wallet.create(
-      walletInfo: info,
-      mainDB: ref.read(mainDBProvider),
-      secureStorageInterface: ref.read(secureStoreProvider),
-      nodeService: ref.read(nodeServiceChangeNotifierProvider),
-      prefs: ref.read(prefsChangeNotifierProvider),
-      mnemonicPassphrase: null,
-      mnemonic: walletData.seed,
-    );
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
 
-    await wallet.init();
-    await wallet.recover(isRescan: false);
-    await wallet.info.setMnemonicVerified(isar: ref
-        .read(mainDBProvider)
-        .isar);
-    ref.read(pWallets).addWallet(wallet);
-    return wallet;
+      await wallet.init();
+      await wallet.recover(isRescan: false);
+      await wallet.info.setMnemonicVerified(isar: ref
+          .read(mainDBProvider)
+          .isar);
+      ref.read(pWallets).addWallet(wallet);
+      return wallet;
+    } catch (e, stackTrace) {
+      Logging.instance.e(
+        "Error importing paper wallet: $e",
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 }
