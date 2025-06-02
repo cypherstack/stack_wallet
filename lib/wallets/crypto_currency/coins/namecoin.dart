@@ -89,7 +89,7 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -104,6 +104,7 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet support.
@@ -114,10 +115,8 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L60
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(546),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L6
@@ -149,10 +148,11 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        ).program.script;
+        final p2wpkhScript =
+            coinlib.P2WPKHAddress.fromPublicKey(
+              publicKey,
+              hrp: networkParams.bech32Hrp,
+            ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
@@ -200,11 +200,11 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        // DerivePathType.bip16,
-        DerivePathType.bip44,
-        DerivePathType.bip49,
-        DerivePathType.bip84,
-      ];
+    // DerivePathType.bip16,
+    DerivePathType.bip44,
+    DerivePathType.bip49,
+    DerivePathType.bip84,
+  ];
 
   @override
   bool validateAddress(String address) {

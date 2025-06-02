@@ -60,7 +60,7 @@ class BitcoinFrost extends FrostCurrency {
   bool get torSupport => true;
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -75,6 +75,7 @@ class BitcoinFrost extends FrostCurrency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -90,6 +91,7 @@ class BitcoinFrost extends FrostCurrency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test4:
@@ -105,6 +107,7 @@ class BitcoinFrost extends FrostCurrency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -127,10 +130,8 @@ class BitcoinFrost extends FrostCurrency {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(294),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(294), fractionDigits: fractionDigits);
 
   @override
   Uint8List addressToPubkey({required String address}) {
@@ -222,7 +223,8 @@ class BitcoinFrost extends FrostCurrency {
   int get targetBlockTimeSeconds => 600;
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

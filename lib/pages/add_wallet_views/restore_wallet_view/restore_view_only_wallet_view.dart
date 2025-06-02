@@ -205,10 +205,10 @@ class _RestoreViewOnlyWalletViewState
           .getPrimaryNodeFor(currency: widget.coin);
 
       if (node == null) {
-        node = widget.coin.defaultNode;
+        node = widget.coin.defaultNode(isPrimary: true);
         await ref
             .read(nodeServiceChangeNotifierProvider)
-            .setPrimaryNodeFor(coin: widget.coin, node: node);
+            .save(node, null, false);
       }
 
       try {

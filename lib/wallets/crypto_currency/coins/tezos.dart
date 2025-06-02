@@ -54,11 +54,11 @@ class Tezos extends Bip39Currency {
       DerivationPath()..value = "m/44'/1729'/0'/0'";
 
   static List<DerivationPath> get possibleDerivationPaths => [
-        standardDerivationPath,
-        DerivationPath()..value = "",
-        DerivationPath()..value = "m/44'/1729'/0'/0'/0'",
-        DerivationPath()..value = "m/44'/1729'/0'/0/0",
-      ];
+    standardDerivationPath,
+    DerivationPath()..value = "",
+    DerivationPath()..value = "m/44'/1729'/0'/0'/0'",
+    DerivationPath()..value = "m/44'/1729'/0'/0/0",
+  ];
 
   static Keystore mnemonicToKeyStore({
     required String mnemonic,
@@ -88,9 +88,8 @@ class Tezos extends Bip39Currency {
   // =========== Overrides =====================================================
 
   @override
-  String get genesisHash => throw UnimplementedError(
-        "Not used in tezos at the moment",
-      );
+  String get genesisHash =>
+      throw UnimplementedError("Not used in tezos at the moment");
 
   @override
   int get minConfirms => 1;
@@ -104,7 +103,7 @@ class Tezos extends Bip39Currency {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -120,6 +119,7 @@ class Tezos extends Bip39Currency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

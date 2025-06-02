@@ -505,7 +505,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   NodeModel getCurrentNode() {
     final node =
         nodeService.getPrimaryNodeFor(currency: cryptoCurrency) ??
-        cryptoCurrency.defaultNode;
+        cryptoCurrency.defaultNode(isPrimary: true);
 
     return node;
   }

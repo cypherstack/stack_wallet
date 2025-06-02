@@ -67,7 +67,7 @@ class Epiccash extends Bip39Currency {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -82,6 +82,7 @@ class Epiccash extends Bip39Currency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -114,7 +115,8 @@ class Epiccash extends Bip39Currency {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 
