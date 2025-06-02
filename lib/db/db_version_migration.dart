@@ -669,7 +669,6 @@ class DbVersionMigrator with WalletDB {
       );
     }
 
-    await primariesBox.close();
     await primariesBox.deleteFromDisk();
   }
 }
