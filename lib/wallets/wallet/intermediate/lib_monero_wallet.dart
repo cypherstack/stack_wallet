@@ -19,6 +19,7 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/keys/cw_key_data.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
+import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -494,30 +495,16 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<void> updateNode() async {
     final node = getCurrentNode();
 
+    if (_torNodeMismatchGuard(node)) {
+      throw Exception("TOR – clearnet mismatch");
+    }
+
     final host =
         node.host.endsWith(".onion") ? node.host : Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
-    _canPing = true;
-    if (prefs.useTor) {
-      if (node.clearnetEnabled && !node.torEnabled) {
-        _canPing = false;
-        libMoneroWallet?.stopAutoSaving();
-        libMoneroWallet?.stopListeners();
-        libMoneroWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        throw Exception("TOR - clearnet mismatch");
-      }
-      proxy = TorService.sharedInstance.getProxyInfo();
-    } else {
-      if (!node.clearnetEnabled && node.torEnabled) {
-        _canPing = false;
-        libMoneroWallet?.stopAutoSaving();
-        libMoneroWallet?.stopListeners();
-        libMoneroWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        throw Exception("TOR - clearnet mismatch");
-      }
-    }
+    proxy = prefs.useTor && !node.forceNoTor
+        ? TorService.sharedInstance.getProxyInfo()
+        : null;
 
     _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
     try {
@@ -1001,6 +988,23 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     }
   }
 
+  bool _torNodeMismatchGuard(NodeModel node) {
+    _canPing = true; // Reset.
+
+    final bool mismatch = (prefs.useTor  && node.clearnetEnabled && !node.torEnabled) ||
+        (!prefs.useTor && !node.clearnetEnabled && node.torEnabled);
+
+    if (mismatch) {
+      _canPing = false;
+      libMoneroWallet?.stopAutoSaving();
+      libMoneroWallet?.stopListeners();
+      libMoneroWallet?.stopSyncing();
+      _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+    }
+
+    return mismatch; // Caller decides whether to throw.
+  }
+
   // ============ Overrides ====================================================
 
   @override
@@ -1097,25 +1101,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     final node = getCurrentNode();
 
-    _canPing = true;
-    if (prefs.useTor) {
-      if (node.clearnetEnabled && !node.torEnabled) {
-        _canPing = false;
-        libMoneroWallet?.stopAutoSaving();
-        libMoneroWallet?.stopListeners();
-        libMoneroWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        throw Exception("TOR - clearnet mismatch");
-      }
-    } else {
-      if (!node.clearnetEnabled && node.torEnabled) {
-        _canPing = false;
-        libMoneroWallet?.stopAutoSaving();
-        libMoneroWallet?.stopListeners();
-        libMoneroWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        throw Exception("TOR - clearnet mismatch");
-      }
+    if (_torNodeMismatchGuard(node)) {
+      throw Exception("TOR – clearnet mismatch");
     }
 
     // this acquire should be almost instant due to above check.
