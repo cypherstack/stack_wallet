@@ -27,9 +27,7 @@ class NodeService extends ChangeNotifier {
   final SecureStorageInterface secureStorageInterface;
 
   /// Exposed [secureStorageInterface] in order to inject mock for tests
-  NodeService({
-    required this.secureStorageInterface,
-  });
+  NodeService({required this.secureStorageInterface});
 
   Future<void> updateDefaults() async {
     // hack
@@ -64,6 +62,7 @@ class NodeService extends ChangeNotifier {
             isDown: false,
             torEnabled: true,
             clearnetEnabled: true,
+            isPrimary: false,
           );
 
           await DB.instance.put<NodeModel>(
@@ -75,17 +74,15 @@ class NodeService extends ChangeNotifier {
       }
     }
 
-    for (final defaultNode in AppConfig.coins.map(
-      (e) => e.defaultNode,
-    )) {
-      final savedNode = DB.instance
-          .get<NodeModel>(boxName: DB.boxNameNodeModels, key: defaultNode.id);
+    for (final defaultNode in AppConfig.coins.map((e) => e.defaultNode)) {
+      final savedNode = DB.instance.get<NodeModel>(
+        boxName: DB.boxNameNodeModels,
+        key: defaultNode.id,
+      );
       if (savedNode == null) {
         // save the default node to hive only if no other nodes for the specific coin exist
         if (getNodesFor(
-          AppConfig.getCryptoCurrencyByPrettyName(
-            defaultNode.coinName,
-          ),
+          AppConfig.getCryptoCurrencyByPrettyName(defaultNode.coinName),
         ).isEmpty) {
           await DB.instance.put<NodeModel>(
             boxName: DB.boxNameNodeModels,
@@ -111,8 +108,9 @@ class NodeService extends ChangeNotifier {
 
       // check if a default node is the primary node for the crypto currency
       // and update it if needed
-      final coin =
-          AppConfig.getCryptoCurrencyByPrettyName(defaultNode.coinName);
+      final coin = AppConfig.getCryptoCurrencyByPrettyName(
+        defaultNode.coinName,
+      );
       final primaryNode = getPrimaryNodeFor(currency: coin);
       if (primaryNode != null && primaryNode.id == defaultNode.id) {
         await setPrimaryNodeFor(
@@ -135,25 +133,48 @@ class NodeService extends ChangeNotifier {
     required NodeModel node,
     bool shouldNotifyListeners = false,
   }) async {
-    await DB.instance.put<NodeModel>(
-      boxName: DB.boxNamePrimaryNodes,
-      key: coin.identifier,
-      value: node,
+    // current
+    final currentPrimaries = primaryNodes.where(
+      (e) => e.coinName == coin.identifier && e.id != node.id,
     );
+    final List<NodeModel> toStore = [];
+    for (final node in currentPrimaries) {
+      final updated = node.copyWith(
+        loginName: node.loginName,
+        trusted: node.trusted,
+        isPrimary: false,
+      );
+      toStore.add(updated);
+    }
+    toStore.add(
+      node.copyWith(
+        loginName: node.loginName,
+        trusted: node.trusted,
+        isPrimary: true,
+      ),
+    );
+
+    for (final node in toStore) {
+      await DB.instance.put<NodeModel>(
+        boxName: DB.boxNameNodeModels,
+        key: node.id,
+        value: node,
+      );
+    }
+
     if (shouldNotifyListeners) {
       notifyListeners();
     }
   }
 
   NodeModel? getPrimaryNodeFor({required CryptoCurrency currency}) {
-    return DB.instance.get<NodeModel>(
-      boxName: DB.boxNamePrimaryNodes,
-      key: currency.identifier,
-    );
+    return primaryNodes
+        .where((e) => e.coinName == currency.identifier)
+        .firstOrNull;
   }
 
   List<NodeModel> get primaryNodes {
-    return DB.instance.values<NodeModel>(boxName: DB.boxNamePrimaryNodes);
+    return nodes.where((e) => e.isPrimary).toList();
   }
 
   List<NodeModel> get nodes {
@@ -161,14 +182,15 @@ class NodeService extends ChangeNotifier {
   }
 
   List<NodeModel> getNodesFor(CryptoCurrency coin) {
-    final list = DB.instance
-        .values<NodeModel>(boxName: DB.boxNameNodeModels)
-        .where(
-          (e) =>
-              e.coinName == coin.identifier &&
-              !e.id.startsWith(DefaultNodes.defaultNodeIdPrefix),
-        )
-        .toList();
+    final list =
+        DB.instance
+            .values<NodeModel>(boxName: DB.boxNameNodeModels)
+            .where(
+              (e) =>
+                  e.coinName == coin.identifier &&
+                  !e.id.startsWith(DefaultNodes.defaultNodeIdPrefix),
+            )
+            .toList();
 
     // add default to end of list
     list.addAll(
@@ -191,9 +213,9 @@ class NodeService extends ChangeNotifier {
   }
 
   List<NodeModel> failoverNodesFor({required CryptoCurrency currency}) {
-    return getNodesFor(currency)
-        .where((e) => e.isFailover && !e.isDown)
-        .toList();
+    return getNodesFor(
+      currency,
+    ).where((e) => e.isFailover && !e.isDown).toList();
   }
 
   // should probably just combine this and edit into a save() func at some point
@@ -237,10 +259,8 @@ class NodeService extends ChangeNotifier {
     bool enabled,
     bool shouldNotifyListeners,
   ) async {
-    final model = DB.instance.get<NodeModel>(
-      boxName: DB.boxNameNodeModels,
-      key: id,
-    )!;
+    final model =
+        DB.instance.get<NodeModel>(boxName: DB.boxNameNodeModels, key: id)!;
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,
       key: model.id,
@@ -284,10 +304,7 @@ class NodeService extends ChangeNotifier {
       final response = await client.post(
         uri,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "jsonrpc": "2.0",
-          "id": "0",
-        }),
+        body: jsonEncode({"jsonrpc": "2.0", "id": "0"}),
       );
 
       final json = jsonDecode(response.body) as Map;
@@ -312,6 +329,7 @@ class NodeService extends ChangeNotifier {
             torEnabled: nodeMap["torEnabled"] == "true",
             isDown: nodeMap["isDown"] == "true",
             clearnetEnabled: nodeMap["plainEnabled"] == "true",
+            isPrimary: nodeMap["plainEnabled"] == "true",
           );
           final currentNode = getNodeById(id: nodeMap["id"] as String);
           if (currentNode != null) {
