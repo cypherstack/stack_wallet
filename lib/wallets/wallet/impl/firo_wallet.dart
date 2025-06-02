@@ -24,6 +24,7 @@ import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 
@@ -655,7 +656,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<void> recover({required bool isRescan}) async {
-    if (isViewOnly) {
+    if (isViewOnly && viewOnlyType != ViewOnlyWalletType.spark) {
       await recoverViewOnly(isRescan: isRescan);
       return;
     }
@@ -669,7 +670,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     );
 
     final start = DateTime.now();
-    final root = await getRootHDNode();
 
     final List<Future<({int index, List<Address> addresses})>> receiveFutures =
         [];
@@ -716,22 +716,44 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
         final canBatch = await serverCanBatch;
 
-        for (final type in cryptoCurrency.supportedDerivationPathTypes) {
-          receiveFutures.add(
-            canBatch
-                ? checkGapsBatched(txCountBatchSize, root, type, receiveChain)
-                : checkGapsLinearly(root, type, receiveChain),
-          );
-        }
+        if (!isViewOnly && viewOnlyType == ViewOnlyWalletType.spark) {
+          final root = await getRootHDNode();
 
-        // change addresses
-        Logging.instance.d("checking change addresses...");
-        for (final type in cryptoCurrency.supportedDerivationPathTypes) {
-          changeFutures.add(
-            canBatch
-                ? checkGapsBatched(txCountBatchSize, root, type, changeChain)
-                : checkGapsLinearly(root, type, changeChain),
-          );
+          for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+            receiveFutures.add(
+              canBatch
+                  ? checkGapsBatched(
+                      txCountBatchSize,
+                      root,
+                      type,
+                      receiveChain,
+                    )
+                  : checkGapsLinearly(
+                      root,
+                      type,
+                      receiveChain,
+                    ),
+            );
+          }
+
+          // change addresses
+          Logging.instance.d("checking change addresses...");
+          for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+            changeFutures.add(
+              canBatch
+                  ? checkGapsBatched(
+                      txCountBatchSize,
+                      root,
+                      type,
+                      changeChain,
+                    )
+                  : checkGapsLinearly(
+                      root,
+                      type,
+                      changeChain,
+                    ),
+            );
+          }
         }
 
         // io limitations may require running these linearly instead
