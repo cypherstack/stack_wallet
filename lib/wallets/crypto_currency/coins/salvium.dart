@@ -88,7 +88,7 @@ class Salvium extends CryptonoteCurrency {
   int get defaultSeedPhraseLength => 25;
 
   @override
-  int get fractionDigits => 12;
+  int get fractionDigits => 8;
 
   @override
   bool get hasBuySupport => false;
@@ -100,13 +100,14 @@ class Salvium extends CryptonoteCurrency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength];
 
   @override
-  BigInt get satsPerCoin => BigInt.from(1000000000000);
+  BigInt get satsPerCoin => BigInt.from(100000000);
 
   @override
   int get targetBlockTimeSeconds => 120;
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 
