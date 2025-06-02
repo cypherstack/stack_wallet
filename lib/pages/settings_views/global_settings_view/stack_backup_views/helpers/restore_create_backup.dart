@@ -47,7 +47,6 @@ import '../../../../../utilities/format.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/prefs.dart';
 import '../../../../../utilities/util.dart';
-import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
@@ -242,17 +241,6 @@ abstract class SWB {
     await DB.instance.mutex.protect(() async {
       Logging.instance.i("...createStackWalletJSON DB.instance.mutex acquired");
       Logging.instance.i("SWB backing up nodes");
-      try {
-        final primaryNodes =
-            nodeService.primaryNodes.map((e) async {
-              final map = e.toMap();
-              map["password"] = await e.getPassword(_secureStore);
-              return map;
-            }).toList();
-        backupJson['primaryNodes'] = await Future.wait(primaryNodes);
-      } catch (e, s) {
-        Logging.instance.e("", error: e, stackTrace: s);
-      }
       try {
         final nodesFuture =
             nodeService.nodes.map((e) async {
@@ -806,8 +794,8 @@ abstract class SWB {
       var node = nodeService.getPrimaryNodeFor(currency: coin);
 
       if (node == null) {
-        node = coin.defaultNode;
-        await nodeService.setPrimaryNodeFor(coin: coin, node: node);
+        node = coin.defaultNode(isPrimary: true);
+        await nodeService.save(node, null, false);
       }
 
       // final txTracker = TransactionNotificationTracker(walletId: walletId);
@@ -896,8 +884,6 @@ abstract class SWB {
         revertToState.validJSON["prefs"] as Map<String, dynamic>;
     final List<dynamic>? addressBookEntries =
         revertToState.validJSON["addressBookEntries"] as List?;
-    final List<dynamic>? primaryNodes =
-        revertToState.validJSON["primaryNodes"] as List?;
     final List<dynamic>? nodes = revertToState.validJSON["nodes"] as List?;
     final List<dynamic>? trades =
         revertToState.validJSON["tradeHistory"] as List?;
@@ -989,7 +975,7 @@ abstract class SWB {
         if (nodeData != null) {
           // node existed before restore attempt
           // revert to pre restore node
-          await nodeService.edit(
+          await nodeService.save(
             node.copyWith(
               host: nodeData['host'] as String,
               port: nodeData['port'] as int,
@@ -1001,6 +987,7 @@ abstract class SWB {
               isFailover: nodeData['isFailover'] as bool,
               isDown: nodeData['isDown'] as bool,
               trusted: nodeData['trusted'] as bool?,
+              isPrimary: nodeData["isPrimary"] as bool? ?? false,
             ),
             nodeData['password'] as String?,
             true,
@@ -1011,28 +998,6 @@ abstract class SWB {
       }
     }
 
-    // primary nodes
-    if (primaryNodes != null) {
-      for (final node in primaryNodes) {
-        try {
-          final CryptoCurrency coin;
-          try {
-            coin = AppConfig.getCryptoCurrencyByPrettyName(
-              node['coinName'] as String,
-            );
-          } catch (_) {
-            continue;
-          }
-
-          await nodeService.setPrimaryNodeFor(
-            coin: coin,
-            node: nodeService.getNodeById(id: node['id'] as String)!,
-          );
-        } catch (e, s) {
-          Logging.instance.e("", error: e, stackTrace: s);
-        }
-      }
-    }
     await nodeService.updateDefaults();
 
     // trades
@@ -1204,13 +1169,20 @@ abstract class SWB {
       secureStorageInterface: secureStorageInterface,
     );
     if (nodes != null) {
+      final primaryIds =
+          primaryNodes
+              ?.map((e) => e["id"] as String?)
+              .whereType<String>()
+              .toSet();
+
       for (final node in nodes) {
-        await nodeService.add(
+        final id = node['id'] as String;
+        await nodeService.save(
           NodeModel(
             host: node['host'] as String,
             port: node['port'] as int,
             name: node['name'] as String,
-            id: node['id'] as String,
+            id: id,
             useSSL: node['useSSL'] == "false" ? false : true,
             enabled: node['enabled'] == "false" ? false : true,
             coinName: node['coinName'] as String,
@@ -1219,33 +1191,15 @@ abstract class SWB {
             isDown: node['isDown'] as bool,
             torEnabled: node['torEnabled'] as bool? ?? true,
             clearnetEnabled: node['plainEnabled'] as bool? ?? true,
+            isPrimary:
+                node["isPrimary"] as bool? ?? primaryIds?.contains(id) ?? false,
           ),
           node["password"] as String?,
           true,
         );
       }
     }
-    if (primaryNodes != null) {
-      for (final node in primaryNodes) {
-        final CryptoCurrency coin;
-        try {
-          coin = AppConfig.getCryptoCurrencyByPrettyName(
-            node['coinName'] as String,
-          );
-        } catch (_) {
-          continue;
-        }
 
-        try {
-          await nodeService.setPrimaryNodeFor(
-            coin: coin,
-            node: nodeService.getNodeById(id: node['id'] as String)!,
-          );
-        } catch (e, s) {
-          Logging.instance.e("", error: e, stackTrace: s);
-        }
-      }
-    }
     await nodeService.updateDefaults();
   }
 

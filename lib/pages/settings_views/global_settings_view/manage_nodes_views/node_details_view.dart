@@ -396,7 +396,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
                           await ref
                               .read(nodeServiceChangeNotifierProvider)
-                              .edit(
+                              .save(
                                 editedNode,
                                 ref.read(nodeFormDataProvider).password,
                                 true,

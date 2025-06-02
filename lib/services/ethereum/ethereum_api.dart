@@ -43,7 +43,7 @@ class EthereumResponse<T> {
 
 abstract class EthereumAPI {
   static String get stackBaseServer =>
-      Ethereum(CryptoCurrencyNetwork.main).defaultNode.host;
+      Ethereum(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true).host;
 
   static HTTP client = HTTP();
 

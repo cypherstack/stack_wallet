@@ -61,7 +61,7 @@ class Monero extends CryptonoteCurrency {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -77,6 +77,7 @@ class Monero extends CryptonoteCurrency {
           trusted: true,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -106,7 +107,8 @@ class Monero extends CryptonoteCurrency {
   int get targetBlockTimeSeconds => 120;
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

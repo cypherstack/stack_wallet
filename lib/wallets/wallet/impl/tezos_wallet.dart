@@ -520,7 +520,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         NodeService(
           secureStorageInterface: secureStorageInterface,
         ).getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+        info.coin.defaultNode(isPrimary: true);
 
     await refresh();
   }
@@ -531,7 +531,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         NodeService(
           secureStorageInterface: secureStorageInterface,
         ).getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+        info.coin.defaultNode(isPrimary: true);
   }
 
   @override
