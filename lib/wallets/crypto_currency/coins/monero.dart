@@ -219,6 +219,8 @@ class Monero extends CryptonoteCurrency {
         ));
         await wallet.confirmSend(txData: txData);
 
+        await wallet.exit();
+
         return newWallet;
       } else {
         final info = WalletInfo.createNew(

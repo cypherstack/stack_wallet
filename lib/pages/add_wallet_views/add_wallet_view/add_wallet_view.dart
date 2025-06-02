@@ -35,6 +35,7 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
@@ -397,6 +398,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                       message: "Importing paper wallet...",
                     );
                     if (wallet == null) {
+                      await newWallet.exit();
+                      await ref.read(pWallets).deleteWallet(newWallet.info, ref.read(secureStoreProvider));
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -417,6 +420,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                     }
                   }
                 } else {
+                  await newWallet.exit();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -428,6 +432,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                   }
                 }
               }
+            } else {
+              await newWallet.exit();
             }
           }
         } else {
