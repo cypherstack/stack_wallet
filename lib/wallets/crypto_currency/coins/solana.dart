@@ -42,7 +42,7 @@ class Solana extends Bip39Currency {
   String get ticker => _ticker;
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -57,6 +57,7 @@ class Solana extends Bip39Currency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
       default:
         throw Exception("Unsupported network: $network");

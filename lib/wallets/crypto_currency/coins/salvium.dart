@@ -61,7 +61,7 @@ class Salvium extends CryptonoteCurrency {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -77,6 +77,7 @@ class Salvium extends CryptonoteCurrency {
           trusted: true,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

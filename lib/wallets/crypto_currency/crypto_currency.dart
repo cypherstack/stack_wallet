@@ -81,7 +81,7 @@ abstract class CryptoCurrency {
 
   bool validateAddress(String address);
 
-  NodeModel get defaultNode;
+  NodeModel defaultNode({required bool isPrimary});
 
   int get defaultSeedPhraseLength;
   int get fractionDigits;

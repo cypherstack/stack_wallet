@@ -324,7 +324,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         NodeService(
           secureStorageInterface: secureStorageInterface,
         ).getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+        info.coin.defaultNode(isPrimary: true);
 
     unawaited(refresh());
   }
@@ -335,7 +335,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         NodeService(
           secureStorageInterface: secureStorageInterface,
         ).getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+        info.coin.defaultNode(isPrimary: true);
   }
 
   @override

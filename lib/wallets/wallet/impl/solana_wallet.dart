@@ -371,7 +371,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         NodeService(
           secureStorageInterface: secureStorageInterface,
         ).getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+        info.coin.defaultNode(isPrimary: true);
     await refresh();
   }
 
@@ -381,7 +381,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         NodeService(
           secureStorageInterface: secureStorageInterface,
         ).getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+        info.coin.defaultNode(isPrimary: true);
 
     return _solNode!;
   }

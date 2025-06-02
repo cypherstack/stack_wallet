@@ -65,9 +65,9 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-        if (network != CryptoCurrencyNetwork.test) DerivePathType.bch44,
-      ];
+    DerivePathType.bip44,
+    if (network != CryptoCurrencyNetwork.test) DerivePathType.bch44,
+  ];
 
   @override
   String get genesisHash {
@@ -82,10 +82,8 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(546),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
   coinlib.Network get networkParams {
@@ -285,7 +283,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -300,6 +298,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -315,6 +314,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

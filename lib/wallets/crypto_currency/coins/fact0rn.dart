@@ -171,7 +171,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -186,6 +186,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: false,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
