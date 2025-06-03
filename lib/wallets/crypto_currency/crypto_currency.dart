@@ -104,40 +104,4 @@ abstract class CryptoCurrency {
 
   @override
   int get hashCode => Object.hash(runtimeType, network);
-
-  Future<Wallet?> importPaperWallet(WalletUriData walletData, WidgetRef ref, {Wallet? newWallet}) async {
-    try {
-      final info = WalletInfo.createNew(
-        coin: walletData.coin,
-        name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
-        restoreHeight: walletData.height ?? 0,
-        otherDataJsonString: walletData.toJson(),
-      );
-
-      final wallet = await Wallet.create(
-        walletInfo: info,
-        mainDB: ref.read(mainDBProvider),
-        secureStorageInterface: ref.read(secureStoreProvider),
-        nodeService: ref.read(nodeServiceChangeNotifierProvider),
-        prefs: ref.read(prefsChangeNotifierProvider),
-        mnemonicPassphrase: null,
-        mnemonic: walletData.seed,
-      );
-
-      await wallet.init();
-      await wallet.recover(isRescan: false);
-      await wallet.info.setMnemonicVerified(isar: ref
-          .read(mainDBProvider)
-          .isar);
-      ref.read(pWallets).addWallet(wallet);
-      return wallet;
-    } catch (e, stackTrace) {
-      Logging.instance.e(
-        "Error importing paper wallet: $e",
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-  }
 }

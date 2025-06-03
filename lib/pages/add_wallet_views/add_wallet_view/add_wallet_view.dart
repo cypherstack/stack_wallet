@@ -9,15 +9,18 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/io_client.dart';
 import 'package:isar/isar.dart';
+import 'package:monero_rpc/monero_rpc.dart';
+import 'package:socks5_proxy/socks.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
@@ -30,24 +33,27 @@ import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
+import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../services/node_service.dart';
+import '../../../services/tor_service.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
-import '../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
@@ -61,7 +67,6 @@ import '../../wallet_view/wallet_view.dart';
 import '../add_token_view/add_custom_token_view.dart';
 import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
 import '../new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import '../verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'sub_widgets/add_wallet_text.dart';
 import 'sub_widgets/expanding_sub_list_item.dart';
 import 'sub_widgets/next_button.dart';
@@ -175,6 +180,131 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     }
 
     return Tuple2(result, chosenWord);
+  }
+
+  // Imports the given walletData, returns the walletId of the imported wallet
+  // TODO: Implement wallet creation service and move this logic there
+  Future<Wallet<CryptoCurrency>?> importPaperWallet(WalletUriData walletData, {Wallet? newWallet}) async {
+    if (walletData.coin == Monero(CryptoCurrencyNetwork.main) && walletData.txids != null) {
+      // If the walletData contains txids, we need to create a temporary wallet to sweep the gift wallet
+      try {
+        final wallet = await Wallet.create(
+          walletInfo: WalletInfo.createNew(
+            coin: walletData.coin,
+            name: "${walletData.coin.prettyName} Paper Wallet",
+            restoreHeight: walletData.height ?? 0,
+            otherDataJsonString: walletData.toJson(),
+          ),
+          mainDB: ref.read(mainDBProvider),
+          secureStorageInterface: ref.read(secureStoreProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          prefs: ref.read(prefsChangeNotifierProvider),
+          mnemonicPassphrase: null,
+          mnemonic: walletData.seed,
+        );
+        await (wallet as MoneroWallet).init(isRestore: true);
+        await wallet.recover(isRescan: false);
+
+        final primaryNode = NodeService(secureStorageInterface: ref.read(secureStoreProvider))
+            .getPrimaryNodeFor(currency: walletData.coin) ?? walletData.coin.defaultNode(isPrimary: true);
+
+        // Create an HTTP client with Tor support if enabled
+        final torService = TorService.sharedInstance;
+        final prefs = Prefs.instance;
+        final httpClient = HttpClient();
+        if (prefs.useTor) {
+          if (torService.status != TorConnectionStatus.connected) {
+            if (prefs.torKillSwitch) {
+              throw Exception("Tor is not connected, and the kill switch is enabled. Can't sweep gift wallet");
+            } else {
+              // If Tor is not connected, we can still proceed with the request
+              Logging.instance.w("Tor is not connected, proceeding without Tor.");
+            }
+          } else {
+            SocksTCPClient.assignToHttpClient(httpClient, [ProxySettings(torService.getProxyInfo().host, torService.getProxyInfo().port)]);
+          }
+        }
+
+        // Create a DaemonRpc instance to interact with the Monero node
+        final daemonRpc = DaemonRpc(
+            IOClient(httpClient), "${primaryNode.host}:${primaryNode.port}");
+
+        // Scan the blocks with given txids
+        final txs = await daemonRpc.postToEndpoint("/get_transactions", {
+          "txs_hashes": walletData.txids,
+          "decode_as_json": true,
+        });
+
+        for (final tx in txs["txs"] as List) {
+          wallet.onSyncingUpdate(syncHeight: tx["block_height"] as int,
+              nodeHeight: wallet.currentKnownChainHeight);
+          await wallet.waitForBalanceChange();
+        }
+
+        // Set the sync height to the current known chain height - make the wallet synced
+        wallet.onSyncingUpdate(syncHeight: wallet.currentKnownChainHeight,
+            nodeHeight: wallet.currentKnownChainHeight);
+
+        if (newWallet == null) {
+          throw Exception("newWallet must be provided when importing a paper wallet with txids");
+        }
+
+        // Send the balance to the new wallet
+        final txData = await wallet.prepareSend(txData: TxData(
+          recipients: [
+            (address: (await newWallet.getCurrentReceivingAddress())!.value, amount: (await wallet.totalBalance), isChange: false)
+          ],
+          feeRateType: FeeRateType.average,
+        ));
+        await wallet.confirmSend(txData: txData);
+
+        await wallet.exit();
+
+        return newWallet;
+      } catch (e, stackTrace) {
+        Logging.instance.e(
+          "Error importing Monero gift wallet: $e",
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return null;
+      }
+    } else {
+      // Normal import
+      try {
+        final info = WalletInfo.createNew(
+          coin: walletData.coin,
+          name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+          restoreHeight: walletData.height ?? 0,
+          otherDataJsonString: walletData.toJson(),
+        );
+
+        final wallet = await Wallet.create(
+          walletInfo: info,
+          mainDB: ref.read(mainDBProvider),
+          secureStorageInterface: ref.read(secureStoreProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          prefs: ref.read(prefsChangeNotifierProvider),
+          mnemonicPassphrase: null,
+          mnemonic: walletData.seed,
+        );
+
+        await wallet.init();
+        await wallet.recover(isRescan: false);
+        await wallet.info.setMnemonicVerified(isar: ref
+            .read(mainDBProvider)
+            .isar);
+        ref.read(pWallets).addWallet(wallet);
+        return wallet;
+      } catch (e, stackTrace) {
+        Logging.instance.e(
+          "Error importing paper wallet for ${walletData.coin.prettyName}: $e",
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return null;
+      }
+    }
   }
 
   Future<void> scanPaperWalletQr() async {
@@ -393,7 +523,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                         ref.read(pWallets).addWallet(newWallet);
                         await newWallet.open();
                         await newWallet.generateNewReceivingAddress();
-                        return results.coin.importPaperWallet(results, ref, newWallet: newWallet);
+                        return importPaperWallet(results, newWallet: newWallet);
                       })(),
                       context: context,
                       message: "Importing paper wallet...",
@@ -439,7 +569,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         } else {
           if (mounted) {
             final wallet = await showLoading(
-              whileFuture: results.coin.importPaperWallet(results, ref),
+              whileFuture: importPaperWallet(results),
               context: context,
               message: "Importing paper wallet...",
             );
