@@ -10,8 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:logger/logger.dart';
-
 import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'logger.dart';
@@ -179,7 +177,7 @@ class AddressUtils {
   /// Parses a wallet URI and returns a WalletUriData object.
   ///
   /// Returns null on failure to parse.
-  static WalletUriData? parseWalletUri(String uri, {Logging? logging}) {
+  static WalletUriData? parseWalletUri(String uri) {
     String scheme = "";
     Map<String, String> parsedData = {};
     if (uri.split(":")[0].contains("_")) { // We need to check if the uri is compatible because RFC 3986 does not allow underscores in the scheme

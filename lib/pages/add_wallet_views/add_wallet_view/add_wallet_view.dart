@@ -26,6 +26,7 @@ import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
@@ -178,9 +179,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   Future<void> scanPaperWalletQr() async {
     try {
-      final qrResult = await const BarcodeScannerWrapper().scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
-      final results = AddressUtils.parseWalletUri(qrResult.rawContent, logging: Logging.instance);
+      final results = AddressUtils.parseWalletUri(qrResult.rawContent);
 
       if (results != null) {
         if (results.coin == Monero(CryptoCurrencyNetwork.main) && results.txids != null) {
@@ -401,12 +402,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                       await newWallet.exit();
                       await ref.read(pWallets).deleteWallet(newWallet.info, ref.read(secureStoreProvider));
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Failed to import paper wallet for ${results.coin.prettyName}. Please try again.",
-                            ),
-                          ),
+                        unawaited(
+                            showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Failed to import gift wallet for ${results.coin.prettyName}. Please try again.",
+                                context: context)
                         );
                       }
                       return;
@@ -422,11 +422,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                 } else {
                   await newWallet.exit();
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Mnemonic verification failed. Please try again.",
-                        ),
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: "Failed to verify mnemonic phrase for the new wallet. Please try again.",
+                        context: context,
                       ),
                     );
                   }
@@ -445,11 +445,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
             );
             if (wallet == null) {
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "Failed to import paper wallet for ${results.coin.prettyName}. Please try again.",
-                    ),
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.warning,
+                    message: "Failed to import paper wallet for ${results.coin.prettyName}. Please try again.",
+                    context: context,
                   ),
                 );
               }
@@ -472,6 +472,15 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         error: e,
         stackTrace: s,
       );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Failed to import paper wallet. Please try again.",
+            context: context,
+          ),
+        );
+      }
     }
   }
 

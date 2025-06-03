@@ -169,7 +169,7 @@ class Monero extends CryptonoteCurrency {
         await wallet.recover(isRescan: false);
 
         final primaryNode = NodeService(secureStorageInterface: ref.read(secureStoreProvider))
-            .getPrimaryNodeFor(currency: walletData.coin) ?? defaultNode;
+            .getPrimaryNodeFor(currency: walletData.coin) ?? defaultNode(isPrimary: true);
 
         // Create an HTTP client with Tor support if enabled
         final torService = TorService.sharedInstance;
