@@ -187,21 +187,21 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   Future<Wallet<CryptoCurrency>?> importPaperWallet(WalletUriData walletData, {Wallet? newWallet}) async {
     if (walletData.coin == Monero(CryptoCurrencyNetwork.main) && walletData.txids != null) {
       // If the walletData contains txids, we need to create a temporary wallet to sweep the gift wallet
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo.createNew(
+          coin: walletData.coin,
+          name: "${walletData.coin.prettyName} Paper Wallet",
+          restoreHeight: walletData.height ?? 0,
+          otherDataJsonString: walletData.toJson(),
+        ),
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
       try {
-        final wallet = await Wallet.create(
-          walletInfo: WalletInfo.createNew(
-            coin: walletData.coin,
-            name: "${walletData.coin.prettyName} Paper Wallet",
-            restoreHeight: walletData.height ?? 0,
-            otherDataJsonString: walletData.toJson(),
-          ),
-          mainDB: ref.read(mainDBProvider),
-          secureStorageInterface: ref.read(secureStoreProvider),
-          nodeService: ref.read(nodeServiceChangeNotifierProvider),
-          prefs: ref.read(prefsChangeNotifierProvider),
-          mnemonicPassphrase: null,
-          mnemonic: walletData.seed,
-        );
         await (wallet as MoneroWallet).init(isRestore: true);
         await wallet.recover(isRescan: false);
 
@@ -262,6 +262,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
         return newWallet;
       } catch (e, stackTrace) {
+        await wallet.exit();
         Logging.instance.e(
           "Error importing Monero gift wallet: $e",
           error: e,
@@ -271,24 +272,23 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       }
     } else {
       // Normal import
+      final info = WalletInfo.createNew(
+        coin: walletData.coin,
+        name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+        restoreHeight: walletData.height ?? 0,
+        otherDataJsonString: walletData.toJson(),
+      );
+
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
       try {
-        final info = WalletInfo.createNew(
-          coin: walletData.coin,
-          name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
-          restoreHeight: walletData.height ?? 0,
-          otherDataJsonString: walletData.toJson(),
-        );
-
-        final wallet = await Wallet.create(
-          walletInfo: info,
-          mainDB: ref.read(mainDBProvider),
-          secureStorageInterface: ref.read(secureStoreProvider),
-          nodeService: ref.read(nodeServiceChangeNotifierProvider),
-          prefs: ref.read(prefsChangeNotifierProvider),
-          mnemonicPassphrase: null,
-          mnemonic: walletData.seed,
-        );
-
         await wallet.init();
         await wallet.recover(isRescan: false);
         await wallet.info.setMnemonicVerified(isar: ref
@@ -297,6 +297,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         ref.read(pWallets).addWallet(wallet);
         return wallet;
       } catch (e, stackTrace) {
+        await wallet.exit();
         Logging.instance.e(
           "Error importing paper wallet for ${walletData.coin.prettyName}: $e",
           error: e,
