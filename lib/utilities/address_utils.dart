@@ -174,6 +174,41 @@ class AddressUtils {
     }
   }
 
+  /// Parses a wallet URI and returns a WalletUriData object.
+  ///
+  /// Returns null on failure to parse.
+  static WalletUriData? parseWalletUri(String uri) {
+    String scheme = "";
+    Map<String, String> parsedData = {};
+    if (uri.split(":")[0].contains("_")) { // We need to check if the uri is compatible because RFC 3986 does not allow underscores in the scheme
+      final String compatibleUri = uri.replaceFirst("_", "");
+      scheme = uri.split(":")[0];
+      parsedData = _parseUri(compatibleUri);
+      parsedData.remove("scheme");
+    } else {
+      parsedData = _parseUri(uri);
+      scheme = parsedData['scheme'] ?? '';
+      parsedData.remove('scheme');
+    }
+
+    final CryptoCurrency? coin = AppConfig.coins.map((e) => "${e.uriScheme}_wallet").toSet().contains(scheme) ?
+    AppConfig.coins.firstWhere((e) => "${e.uriScheme}_wallet".contains(scheme)) : null;
+
+    if (coin == null) {
+      return null;
+    }
+
+    return WalletUriData(
+      coin: coin,
+      address: parsedData['address']?.trim(),
+      seed: parsedData['seed'] ?? parsedData['mnemonic'],
+      spendKey: parsedData['spend_key'],
+      viewKey: parsedData['view_key'],
+      height: int.tryParse(parsedData['height'] ?? ''),
+      txids: parsedData['txids']?.split(',') ?? parsedData['txid']?.split(','),
+    );
+  }
+
   /// Builds a uri string with the given address and query parameters (if any)
   static String buildUriString(
     String scheme,
@@ -298,4 +333,49 @@ class PaymentUriData {
       "paymentId: $paymentId, "
       "additionalParams: $additionalParams"
       " }";
+}
+
+class WalletUriData {
+  final CryptoCurrency coin;
+  final String? address;
+  final String? seed;
+  final String? spendKey;
+  final String? viewKey;
+  final int? height;
+  final List<String>? txids;
+
+  WalletUriData({
+    required this.coin,
+    this.address,
+    this.seed,
+    this.spendKey,
+    this.viewKey,
+    this.height,
+    this.txids,
+  });
+
+  @override
+  String toString() {
+    return "WalletUriData { "
+        "coin: $coin, "
+        "address: $address, "
+        "seed: $seed, "
+        "spendKey: $spendKey, "
+        "viewKey: $viewKey, "
+        "height: $height, "
+        "txids: $txids"
+        " }";
+  }
+
+  String toJson() {
+    return jsonEncode({
+      "coin": coin.prettyName,
+      "address": address,
+      "seed": seed,
+      "spendKey": spendKey,
+      "viewKey": viewKey,
+      "height": height,
+      "txids": txids,
+    });
+  }
 }

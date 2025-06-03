@@ -9,11 +9,19 @@
  */
 
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/io_client.dart';
 import 'package:isar/isar.dart';
+import 'package:monero_rpc/monero_rpc.dart';
+import 'package:socks5_proxy/socks.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
 import '../../../db/isar/main_db.dart';
@@ -21,27 +29,44 @@ import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
+import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../services/node_service.dart';
+import '../../../services/tor_service.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/models/tx_data.dart';
+import '../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/expandable.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../../wallet_view/wallet_view.dart';
 import '../add_token_view/add_custom_token_view.dart';
 import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
+import '../new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'sub_widgets/add_wallet_text.dart';
 import 'sub_widgets/expanding_sub_list_item.dart';
 import 'sub_widgets/next_button.dart';
@@ -121,6 +146,471 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
+      }
+    }
+  }
+
+  Tuple2<List<String>, String> randomize(
+      List<String> mnemonic,
+      int chosenIndex,
+      int wordsToShow,
+      ) {
+    final List<String> remaining = [];
+    final String chosenWord = mnemonic[chosenIndex];
+
+    for (int i = 0; i < mnemonic.length; i++) {
+      if (chosenWord != mnemonic[i]) {
+        remaining.add(mnemonic[i]);
+      }
+    }
+
+    final random = Random();
+
+    final List<String> result = [];
+
+    for (int i = 0; i < wordsToShow - 1; i++) {
+      final randomIndex = random.nextInt(remaining.length);
+      result.add(remaining.removeAt(randomIndex));
+    }
+
+    result.insert(random.nextInt(wordsToShow), chosenWord);
+
+    if (kDebugMode) {
+      print("Mnemonic game correct word: $chosenWord");
+    }
+
+    return Tuple2(result, chosenWord);
+  }
+
+  // Imports the given walletData, returns the walletId of the imported wallet
+  // TODO: Implement wallet creation service and move this logic there
+  Future<Wallet<CryptoCurrency>?> importPaperWallet(WalletUriData walletData, {Wallet? newWallet}) async {
+    if (walletData.coin == Monero(CryptoCurrencyNetwork.main) && walletData.txids != null) {
+      // If the walletData contains txids, we need to create a temporary wallet to sweep the gift wallet
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo.createNew(
+          coin: walletData.coin,
+          name: "${walletData.coin.prettyName} Paper Wallet",
+          restoreHeight: walletData.height ?? 0,
+          otherDataJsonString: walletData.toJson(),
+        ),
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
+      try {
+        await (wallet as MoneroWallet).init(isRestore: true);
+        await wallet.recover(isRescan: false);
+
+        final primaryNode = NodeService(secureStorageInterface: ref.read(secureStoreProvider))
+            .getPrimaryNodeFor(currency: walletData.coin) ?? walletData.coin.defaultNode(isPrimary: true);
+
+        // Create an HTTP client with Tor support if enabled
+        final torService = TorService.sharedInstance;
+        final prefs = Prefs.instance;
+        final httpClient = HttpClient();
+        if (prefs.useTor) {
+          if (torService.status != TorConnectionStatus.connected) {
+            if (prefs.torKillSwitch) {
+              throw Exception("Tor is not connected, and the kill switch is enabled. Can't sweep gift wallet");
+            } else {
+              // If Tor is not connected, we can still proceed with the request
+              Logging.instance.w("Tor is not connected, proceeding without Tor.");
+            }
+          } else {
+            SocksTCPClient.assignToHttpClient(httpClient, [ProxySettings(torService.getProxyInfo().host, torService.getProxyInfo().port)]);
+          }
+        }
+
+        // Create a DaemonRpc instance to interact with the Monero node
+        final daemonRpc = DaemonRpc(
+            IOClient(httpClient), "${primaryNode.host}:${primaryNode.port}");
+
+        // Scan the blocks with given txids
+        final txs = await daemonRpc.postToEndpoint("/get_transactions", {
+          "txs_hashes": walletData.txids,
+          "decode_as_json": true,
+        });
+
+        for (final tx in txs["txs"] as List) {
+          wallet.onSyncingUpdate(syncHeight: tx["block_height"] as int,
+              nodeHeight: wallet.currentKnownChainHeight);
+          await wallet.waitForBalanceChange();
+        }
+
+        // Set the sync height to the current known chain height - make the wallet synced
+        wallet.onSyncingUpdate(syncHeight: wallet.currentKnownChainHeight,
+            nodeHeight: wallet.currentKnownChainHeight);
+
+        if (newWallet == null) {
+          throw Exception("newWallet must be provided when importing a paper wallet with txids");
+        }
+
+        // Send the balance to the new wallet
+        final txData = await wallet.prepareSend(txData: TxData(
+          recipients: [
+            (address: (await newWallet.getCurrentReceivingAddress())!.value, amount: (await wallet.totalBalance), isChange: false)
+          ],
+          feeRateType: FeeRateType.average,
+        ));
+        await wallet.confirmSend(txData: txData);
+
+        await wallet.exit();
+
+        return newWallet;
+      } catch (e, stackTrace) {
+        await wallet.exit();
+        Logging.instance.e(
+          "Error importing Monero gift wallet: $e",
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return null;
+      }
+    } else {
+      // Normal import
+      final info = WalletInfo.createNew(
+        coin: walletData.coin,
+        name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+        restoreHeight: walletData.height ?? 0,
+        otherDataJsonString: walletData.toJson(),
+      );
+
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
+      try {
+        await wallet.init();
+        await wallet.recover(isRescan: false);
+        await wallet.info.setMnemonicVerified(isar: ref
+            .read(mainDBProvider)
+            .isar);
+        ref.read(pWallets).addWallet(wallet);
+        return wallet;
+      } catch (e, stackTrace) {
+        await wallet.exit();
+        Logging.instance.e(
+          "Error importing paper wallet for ${walletData.coin.prettyName}: $e",
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return null;
+      }
+    }
+  }
+
+  Future<void> scanPaperWalletQr() async {
+    try {
+      final qrResult = await ref.read(pBarcodeScanner).scan();
+
+      final results = AddressUtils.parseWalletUri(qrResult.rawContent);
+
+      if (results != null) {
+        if (results.coin == Monero(CryptoCurrencyNetwork.main) && results.txids != null) {
+          // Mnemonic for the wallet to sweep into is shown and gets confirmed
+          // Create the new wallet info
+          final newWallet = await Wallet.create(
+            walletInfo: WalletInfo.createNew(
+              coin: results.coin,
+              name: "${results.coin.prettyName} Gift Wallet ${results.address != null ? '(${results.address!.substring(results.address!.length - 4)})' : ''}",
+            ),
+            mainDB: ref.read(mainDBProvider),
+            secureStorageInterface: ref.read(secureStoreProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            prefs: ref.read(prefsChangeNotifierProvider),
+            mnemonic: null,
+            mnemonicPassphrase: null,
+            privateKey: null,
+          );
+          await (newWallet as MoneroWallet).init(wordCount: 16);
+          final mnemonic = (await newWallet.getMnemonic()).split(" ");
+          if (mounted) {
+            final hasWroteDown = await showDialog<bool>(context: context, barrierDismissible: false, builder: (context) {
+              return Dialog(
+                insetPadding: const EdgeInsets.all(16), // This may seem too much, but its needed for the dialog to show the mnemonic table properly
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).extension<StackColors>()!.background,
+                    borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Monero Gift Wallet Redeem",
+                        style: STextStyles.titleBold12(context),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "You are about to redeem the gift into a wallet with the following mnemonic phrase. Please write down this words. You will be asked to verify the mnemonic phrase after you have written it down.",
+                        style: isDesktop
+                            ? STextStyles.desktopH2(context)
+                            : STextStyles.label(context).copyWith(fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      MnemonicTable(words: mnemonic, isDesktop: isDesktop),
+                      const SizedBox(height: 16),
+                      PrimaryButton(
+                        label: "I have written down the mnemonic",
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }) ?? false;
+            if (hasWroteDown) {
+              // Verify if checked
+              final chosenIndex = Random().nextInt(mnemonic.length);
+              final words = randomize(mnemonic, chosenIndex, 3);
+              if (mounted) {
+                final hasVerified = await showDialog<bool>(context: context, builder: (context) {
+                  return Dialog(
+                    insetPadding: const EdgeInsets.all(16), // This may seem too much, but its needed for the dialog to show the mnemonic table properly
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).extension<StackColors>()!.background,
+                        borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Monero Gift Wallet Redeem",
+                            style: STextStyles.titleBold12(context),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Verify recovery phrase",
+                            textAlign: TextAlign.center,
+                            style:
+                            isDesktop
+                                ? STextStyles.desktopH2(context)
+                                : STextStyles.label(context).copyWith(fontSize: 12),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            isDesktop ? "Select word number" : "Tap word number ",
+                            textAlign: TextAlign.center,
+                            style:
+                            isDesktop
+                                ? STextStyles.desktopSubtitleH1(context)
+                                : STextStyles.pageTitleH1(context),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldDefaultBG,
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                "${chosenIndex + 1}",
+                                textAlign: TextAlign.center,
+                                style: STextStyles.subtitle600(
+                                  context,
+                                ).copyWith(fontSize: 32, letterSpacing: 0.25),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Column(
+                            children: [
+                              for (int i = 0; i < words.item1.length; i++)
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: isDesktop ? 8 : 5,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (isDesktop) ...[
+                                        const SizedBox(width: 10),
+                                      ],
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).extension<StackColors>()!.popupBG,
+                                          borderRadius: BorderRadius.circular(
+                                            Constants.size.circularBorderRadius,
+                                          ),
+                                        ),
+                                        child: MaterialButton(
+                                          splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                                          padding: isDesktop
+                                              ? const EdgeInsets.symmetric(
+                                            vertical: 18,
+                                            horizontal: 12,
+                                          )
+                                              : const EdgeInsets.all(12),
+                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(Constants.size.circularBorderRadius),
+                                          ),
+                                          onPressed: () {
+                                            final word = words.item1[i];
+                                            final wordIndex = mnemonic.indexOf(word);
+                                            if (wordIndex == chosenIndex) {
+                                              Navigator.of(context).pop(true);
+                                            } else {
+                                              Navigator.of(context).pop(false);
+                                            }
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                words.item1[i],
+                                                textAlign: TextAlign.center,
+                                                style: isDesktop
+                                                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark,
+                                                )
+                                                    : STextStyles.baseXS(context).copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                }) ?? false;
+                if (hasVerified) {
+                  if (mounted) {
+                    final wallet = await showLoading(
+                      whileFuture: (() async {
+                        await newWallet.info.setMnemonicVerified(isar: ref
+                            .read(mainDBProvider)
+                            .isar);
+                        ref.read(pWallets).addWallet(newWallet);
+                        await newWallet.open();
+                        await newWallet.generateNewReceivingAddress();
+                        return importPaperWallet(results, newWallet: newWallet);
+                      })(),
+                      context: context,
+                      message: "Importing paper wallet...",
+                    );
+                    if (wallet == null) {
+                      await newWallet.exit();
+                      await ref.read(pWallets).deleteWallet(newWallet.info, ref.read(secureStoreProvider));
+                      if (mounted) {
+                        unawaited(
+                            showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Failed to import gift wallet for ${results.coin.prettyName}. Please try again.",
+                                context: context)
+                        );
+                      }
+                      return;
+                    }
+                    if (mounted) {
+                      Navigator.pop(context);
+                      await Navigator.of(context).pushNamed(
+                        WalletView.routeName,
+                        arguments: wallet.walletId,
+                      );
+                    }
+                  }
+                } else {
+                  await newWallet.exit();
+                  if (mounted) {
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: "Failed to verify mnemonic phrase for the new wallet. Please try again.",
+                        context: context,
+                      ),
+                    );
+                  }
+                }
+              }
+            } else {
+              await newWallet.exit();
+            }
+          }
+        } else {
+          if (mounted) {
+            final wallet = await showLoading(
+              whileFuture: importPaperWallet(results),
+              context: context,
+              message: "Importing paper wallet...",
+            );
+            if (wallet == null) {
+              if (mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.warning,
+                    message: "Failed to import paper wallet for ${results.coin.prettyName}. Please try again.",
+                    context: context,
+                  ),
+                );
+              }
+              return;
+            }
+            if (mounted) {
+              Navigator.pop(context);
+              await Navigator.of(context).pushNamed(
+                WalletView.routeName,
+                arguments: wallet.walletId,
+              );
+            }
+          }
+        }
+      }
+    } on PlatformException catch (e, s) {
+      // likely failed to get camera permissions
+      Logging.instance.e(
+        "Restore wallet qr scan failed: $e",
+        error: e,
+        stackTrace: s,
+      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Failed to import paper wallet. Please try again.",
+            context: context,
+          ),
+        );
       }
     }
   }
@@ -335,6 +825,37 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                 Navigator.of(context).pop();
               },
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    semanticsLabel:
+                    "Paper Wallet Import Button. Imports your paper wallet to Stack Wallet.",
+                    key: const Key("restoreWalletImportPaperWalletButton"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.paperWallet,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
+                    onPressed: scanPaperWalletQr,
+                  ),
+                ),
+              ),
+            ],
           ),
           body: SafeArea(
             child: Container(

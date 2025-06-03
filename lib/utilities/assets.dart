@@ -146,6 +146,7 @@ class _SVG {
   String get checkCircle => "assets/svg/circle-check.svg";
   String get clipboard => "assets/svg/clipboard.svg";
   String get qrcode => "assets/svg/qrcode1.svg";
+  String get paperWallet => "assets/svg/paperwallet.svg";
   String get ellipsis => "assets/svg/gear-3.svg";
   String get chevronDown => "assets/svg/chevron-down.svg";
   String get chevronUp => "assets/svg/chevron-up.svg";
