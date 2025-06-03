@@ -1,31 +1,9 @@
-import 'dart:io';
-
 import 'package:cs_monero/src/ffi_bindings/monero_wallet_bindings.dart'
     as xmr_wallet_ffi;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/io_client.dart';
-import 'package:monero_rpc/monero_rpc.dart';
-import 'package:socks5_proxy/socks.dart';
 
 import '../../../models/node_model.dart';
-import '../../../providers/db/main_db_provider.dart';
-import '../../../providers/global/node_service_provider.dart';
-import '../../../providers/global/prefs_provider.dart';
-import '../../../providers/global/secure_store_provider.dart';
-import '../../../providers/global/wallets_provider.dart';
-import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import '../../../services/node_service.dart';
-import '../../../services/tor_service.dart';
-import '../../../utilities/address_utils.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../utilities/enums/fee_rate_type_enum.dart';
-import '../../../utilities/logger.dart';
-import '../../../utilities/prefs.dart';
-import '../../isar/models/wallet_info.dart';
-import '../../models/tx_data.dart';
-import '../../wallet/impl/monero_wallet.dart';
-import '../../wallet/wallet.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 

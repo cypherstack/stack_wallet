@@ -1,17 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/node_model.dart';
-import '../../providers/db/main_db_provider.dart';
-import '../../providers/global/node_service_provider.dart';
-import '../../providers/global/prefs_provider.dart';
-import '../../providers/global/secure_store_provider.dart';
-import '../../providers/global/wallets_provider.dart';
-import '../../utilities/address_utils.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
-import '../../utilities/logger.dart';
-import '../isar/models/wallet_info.dart';
-import '../wallet/wallet.dart';
 
 export 'coins/banano.dart';
 export 'coins/bitcoin.dart';
