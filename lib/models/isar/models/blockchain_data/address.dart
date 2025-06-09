@@ -175,7 +175,8 @@ enum AddressType {
   solana,
   cardanoShelley,
   xelis,
-  fact0rn;
+  fact0rn,
+  mweb;
 
   String get readableName {
     switch (this) {
@@ -217,6 +218,8 @@ enum AddressType {
         return "Xelis";
       case AddressType.fact0rn:
         return "FACT0RN";
+      case AddressType.mweb:
+        return "MWEB";
     }
   }
 }
