@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   camera_windows
   connectivity_plus
   cs_monero_flutter_libs_windows
+  cs_salvium_flutter_libs_windows
   desktop_drop
   flutter_libepiccash
   flutter_secure_storage_windows
@@ -24,6 +25,7 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
   flutter_libsparkmobile
   frostdart
   tor_ffi_plugin
+  xelis_flutter
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

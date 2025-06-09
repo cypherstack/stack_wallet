@@ -25,14 +25,6 @@ jobs:
           sudo apt clean
           sudo apt update
           sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm debhelper libclang-dev opencl-headers libssl-dev ocl-icd-opencl-dev libc6-dev-i386
-      - name: Build Lelantus
-        run: |
-         cd crypto_plugins/flutter_liblelantus/scripts/linux/
-         ./build_all.sh
-      - name: Build Monero
-        run: |
-          cd crypto_plugins/flutter_libmonero/scripts/linux/
-          ./build_monero_all.sh
       - name: Build Epic Cash
         run: |
           cd crypto_plugins/flutter_libepiccash/scripts/linux/

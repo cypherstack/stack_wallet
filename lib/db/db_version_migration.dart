@@ -12,7 +12,6 @@ import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../app_config.dart';
-import '../electrumx_rpc/electrumx_client.dart';
 import '../models/contact.dart';
 import '../models/exchange/change_now/exchange_transaction.dart';
 import '../models/exchange/response_objects/trade.dart';
@@ -22,7 +21,6 @@ import '../models/isar/models/isar_models.dart' as isar_models;
 import '../models/models.dart';
 import '../models/node_model.dart';
 import '../services/mixins/wallet_db.dart';
-import '../services/node_service.dart';
 import '../services/wallets_service.dart';
 import '../utilities/amount/amount.dart';
 import '../utilities/constants.dart';
@@ -50,107 +48,11 @@ class DbVersionMigrator with WalletDB {
       case 0:
         await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
         await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
-        final walletsService = WalletsService();
-        final nodeService = NodeService(secureStorageInterface: secureStore);
         final prefs = Prefs.instance;
-        final walletInfoList = await walletsService.walletNames;
         await prefs.init();
 
-        ElectrumXClient? client;
-        int? latestSetId;
-
-        final firo = Firo(CryptoCurrencyNetwork.main);
-        // only instantiate client if there are firo wallets
-        if (walletInfoList.values
-            .any((element) => element.coinIdentifier == firo.identifier)) {
-          await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
-          await DB.instance.hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
-          final node =
-              nodeService.getPrimaryNodeFor(currency: firo) ?? firo.defaultNode;
-          final List<ElectrumXNode> failovers = nodeService
-              .failoverNodesFor(currency: firo)
-              .map(
-                (e) => ElectrumXNode(
-                  address: e.host,
-                  port: e.port,
-                  name: e.name,
-                  id: e.id,
-                  useSSL: e.useSSL,
-                  torEnabled: e.torEnabled,
-                  clearnetEnabled: e.clearnetEnabled,
-                ),
-              )
-              .toList();
-
-          client = ElectrumXClient.from(
-            node: ElectrumXNode(
-              address: node.host,
-              port: node.port,
-              name: node.name,
-              id: node.id,
-              useSSL: node.useSSL,
-              torEnabled: node.torEnabled,
-              clearnetEnabled: node.clearnetEnabled,
-            ),
-            prefs: prefs,
-            failovers: failovers,
-            cryptoCurrency: Firo(CryptoCurrencyNetwork.main),
-          );
-
-          try {
-            latestSetId = await client.getLelantusLatestCoinId();
-          } catch (e, s) {
-            // default to 2 for now
-            latestSetId = 2;
-            Logging.instance.w(
-              "Failed to fetch latest coin id during firo db migrate: $e \nUsing a default value of 2",
-              error: e,
-              stackTrace: s,
-            );
-          }
-        }
-
-        for (final walletInfo in walletInfoList.values) {
-          // migrate each firo wallet's lelantus coins
-          if (walletInfo.coinIdentifier == firo.identifier) {
-            await DB.instance.hive.openBox<dynamic>(walletInfo.walletId);
-            final _lelantusCoins = DB.instance.get<dynamic>(
-              boxName: walletInfo.walletId,
-              key: '_lelantus_coins',
-            ) as List?;
-            final List<Map<dynamic, LelantusCoin>> lelantusCoins = [];
-            for (final lCoin in _lelantusCoins ?? []) {
-              lelantusCoins
-                  .add({lCoin.keys.first: lCoin.values.first as LelantusCoin});
-            }
-
-            final List<Map<dynamic, LelantusCoin>> coins = [];
-            for (final element in lelantusCoins) {
-              final LelantusCoin coin = element.values.first;
-              int anonSetId = coin.anonymitySetId;
-              if (coin.anonymitySetId == 1 &&
-                  (coin.publicCoin == '' ||
-                      coin.publicCoin == "jmintData.publicCoin")) {
-                anonSetId = latestSetId!;
-              }
-              coins.add({
-                element.keys.first: LelantusCoin(
-                  coin.index,
-                  coin.value,
-                  coin.publicCoin,
-                  coin.txId,
-                  anonSetId,
-                  coin.isUsed,
-                ),
-              });
-            }
-            await DB.instance.put<dynamic>(
-              boxName: walletInfo.walletId,
-              key: '_lelantus_coins',
-              value: coins,
-            );
-          }
-        }
+        // nothing happens here anymore.
+        // Kept for legacy reasons after removing old lelantus
 
         // update version
         await DB.instance.put<dynamic>(
@@ -165,8 +67,9 @@ class DbVersionMigrator with WalletDB {
       case 1:
         await DB.instance.hive.openBox<ExchangeTransaction>(DB.boxNameTrades);
         await DB.instance.hive.openBox<Trade>(DB.boxNameTradesV2);
-        final trades =
-            DB.instance.values<ExchangeTransaction>(boxName: DB.boxNameTrades);
+        final trades = DB.instance.values<ExchangeTransaction>(
+          boxName: DB.boxNameTrades,
+        );
 
         for (final old in trades) {
           if (old.statusObject != null) {
@@ -208,9 +111,7 @@ class DbVersionMigrator with WalletDB {
       case 3:
         // clear possible broken firo cache
         await DB.instance.clearSharedTransactionCache(
-          currency: Firo(
-            CryptoCurrencyNetwork.test,
-          ),
+          currency: Firo(CryptoCurrencyNetwork.test),
         );
 
         // update version
@@ -244,8 +145,8 @@ class DbVersionMigrator with WalletDB {
 
         final themeName =
             DB.instance.get<dynamic>(boxName: "theme", key: "colorScheme")
-                    as String? ??
-                "light";
+                as String? ??
+            "light";
 
         await DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
@@ -269,11 +170,12 @@ class DbVersionMigrator with WalletDB {
         final count = await MainDB.instance.isar.addresses.count();
         // add change/receiving tags to address labels
         for (var i = 0; i < count; i += 50) {
-          final addresses = await MainDB.instance.isar.addresses
-              .where()
-              .offset(i)
-              .limit(50)
-              .findAll();
+          final addresses =
+              await MainDB.instance.isar.addresses
+                  .where()
+                  .offset(i)
+                  .limit(50)
+                  .findAll();
 
           final List<isar_models.AddressLabel> labels = [];
           for (final address in addresses) {
@@ -301,11 +203,14 @@ class DbVersionMigrator with WalletDB {
 
             // update/create label if tags is not empty
             if (tags != null) {
-              isar_models.AddressLabel? label = await MainDB
-                  .instance.isar.addressLabels
-                  .where()
-                  .addressStringWalletIdEqualTo(address.value, address.walletId)
-                  .findFirst();
+              isar_models.AddressLabel? label =
+                  await MainDB.instance.isar.addressLabels
+                      .where()
+                      .addressStringWalletIdEqualTo(
+                        address.value,
+                        address.walletId,
+                      )
+                      .findFirst();
               if (label == null) {
                 label = isar_models.AddressLabel(
                   walletId: address.walletId,
@@ -363,12 +268,13 @@ class DbVersionMigrator with WalletDB {
                   Bitcoincash(CryptoCurrencyNetwork.main).identifier ||
               info.coinIdentifier ==
                   Bitcoincash(CryptoCurrencyNetwork.test).identifier) {
-            final ids = await MainDB.instance
-                .getAddresses(walletId)
-                .filter()
-                .typeEqualTo(isar_models.AddressType.p2sh)
-                .idProperty()
-                .findAll();
+            final ids =
+                await MainDB.instance
+                    .getAddresses(walletId)
+                    .filter()
+                    .typeEqualTo(isar_models.AddressType.p2sh)
+                    .idProperty()
+                    .findAll();
 
             await MainDB.instance.isar.writeTxn(() async {
               await MainDB.instance.isar.addresses.deleteAll(ids);
@@ -456,6 +362,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(14, secureStore: secureStore);
 
+      case 14:
+        // migrate
+        await _v14();
+
+        // update version
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 15,
+        );
+
+        // try to continue migrating
+        return await migrate(15, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -490,7 +410,7 @@ class DbVersionMigrator with WalletDB {
         const rcvIndex = 0;
 
         final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
-            transactionsData = [];
+        transactionsData = [];
         if (txnData != null) {
           final txns = txnData.getAllTransactions();
 
@@ -501,15 +421,17 @@ class DbVersionMigrator with WalletDB {
               walletId: walletId,
               txid: tx.txid,
               timestamp: tx.timestamp,
-              type: isIncoming
-                  ? isar_models.TransactionType.incoming
-                  : isar_models.TransactionType.outgoing,
+              type:
+                  isIncoming
+                      ? isar_models.TransactionType.incoming
+                      : isar_models.TransactionType.outgoing,
               subType: isar_models.TransactionSubType.none,
               amount: tx.amount,
-              amountString: Amount(
-                rawValue: BigInt.from(tx.amount),
-                fractionDigits: epic.fractionDigits,
-              ).toJsonString(),
+              amountString:
+                  Amount(
+                    rawValue: BigInt.from(tx.amount),
+                    fractionDigits: epic.fractionDigits,
+                  ).toJsonString(),
               fee: tx.fees,
               height: tx.height,
               isCancelled: tx.isCancelled,
@@ -531,12 +453,14 @@ class DbVersionMigrator with WalletDB {
                 publicKey: [],
                 derivationIndex: isIncoming ? rcvIndex : -1,
                 derivationPath: null,
-                type: isIncoming
-                    ? isar_models.AddressType.mimbleWimble
-                    : isar_models.AddressType.unknown,
-                subType: isIncoming
-                    ? isar_models.AddressSubType.receiving
-                    : isar_models.AddressSubType.unknown,
+                type:
+                    isIncoming
+                        ? isar_models.AddressType.mimbleWimble
+                        : isar_models.AddressType.unknown,
+                subType:
+                    isIncoming
+                        ? isar_models.AddressSubType.receiving
+                        : isar_models.AddressSubType.unknown,
               );
               transactionsData.add(Tuple2(iTx, address));
             }
@@ -594,25 +518,28 @@ class DbVersionMigrator with WalletDB {
       final crypto = AppConfig.getCryptoCurrencyFor(info.coinIdentifier)!;
 
       for (var i = 0; i < count; i += 50) {
-        final txns = await MainDB.instance
-            .getTransactions(walletId)
-            .offset(i)
-            .limit(50)
-            .findAll();
+        final txns =
+            await MainDB.instance
+                .getTransactions(walletId)
+                .offset(i)
+                .limit(50)
+                .findAll();
 
         // migrate amount to serialized amount string
-        final txnsData = txns
-            .map(
-              (tx) => Tuple2(
-                tx
-                  ..amountString = Amount(
-                    rawValue: BigInt.from(tx.amount),
-                    fractionDigits: crypto.fractionDigits,
-                  ).toJsonString(),
-                tx.address.value,
-              ),
-            )
-            .toList();
+        final txnsData =
+            txns
+                .map(
+                  (tx) => Tuple2(
+                    tx
+                      ..amountString =
+                          Amount(
+                            rawValue: BigInt.from(tx.amount),
+                            fractionDigits: crypto.fractionDigits,
+                          ).toJsonString(),
+                    tx.address.value,
+                  ),
+                )
+                .toList();
 
         // update db records
         await MainDB.instance.addNewTransactionData(txnsData, walletId);
@@ -621,17 +548,16 @@ class DbVersionMigrator with WalletDB {
   }
 
   Future<void> _v9() async {
-    final addressBookBox =
-        await DB.instance.hive.openBox<dynamic>(DB.boxNameAddressBook);
+    final addressBookBox = await DB.instance.hive.openBox<dynamic>(
+      DB.boxNameAddressBook,
+    );
     await MainDB.instance.initMainDB();
 
     final keys = List<String>.from(addressBookBox.keys);
     final contacts = keys
         .map(
           (id) => Contact.fromJson(
-            Map<String, dynamic>.from(
-              addressBookBox.get(id) as Map,
-            ),
+            Map<String, dynamic>.from(addressBookBox.get(id) as Map),
           ),
         )
         .toList(growable: false);
@@ -672,65 +598,12 @@ class DbVersionMigrator with WalletDB {
   Future<void> _v10(SecureStorageInterface secureStore) async {
     await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
     await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
-    final walletsService = WalletsService();
     final prefs = Prefs.instance;
-    final walletInfoList = await walletsService.walletNames;
     await prefs.init();
     await MainDB.instance.initMainDB();
 
-    final firo = Firo(CryptoCurrencyNetwork.main);
-
-    for (final walletId in walletInfoList.keys) {
-      final info = walletInfoList[walletId]!;
-      assert(info.walletId == walletId);
-
-      if (info.coinIdentifier == firo.identifier &&
-          MainDB.instance.isar.lelantusCoins
-                  .where()
-                  .walletIdEqualTo(walletId)
-                  .countSync() ==
-              0) {
-        final walletBox = await DB.instance.hive.openBox<dynamic>(walletId);
-
-        final hiveLCoins = DB.instance.get<dynamic>(
-              boxName: walletId,
-              key: "_lelantus_coins",
-            ) as List? ??
-            [];
-
-        final jindexes = (DB.instance
-                    .get<dynamic>(boxName: walletId, key: "jindex") as List? ??
-                [])
-            .cast<int>();
-
-        final List<isar_models.LelantusCoin> coins = [];
-        for (final e in hiveLCoins) {
-          final map = e as Map;
-          final lcoin = map.values.first as LelantusCoin;
-
-          final isJMint = jindexes.contains(lcoin.index);
-
-          final coin = isar_models.LelantusCoin(
-            walletId: walletId,
-            txid: lcoin.txId,
-            value: lcoin.value.toString(),
-            mintIndex: lcoin.index,
-            anonymitySetId: lcoin.anonymitySetId,
-            isUsed: lcoin.isUsed,
-            isJMint: isJMint,
-            otherData: null,
-          );
-
-          coins.add(coin);
-        }
-
-        if (coins.isNotEmpty) {
-          await MainDB.instance.isar.writeTxn(() async {
-            await MainDB.instance.isar.lelantusCoins.putAll(coins);
-          });
-        }
-      }
-    }
+    // nothing happens here anymore.
+    // Kept for legacy reasons after removing old lelantus
   }
 
   Future<void> _v11(SecureStorageInterface secureStore) async {
@@ -773,5 +646,29 @@ class DbVersionMigrator with WalletDB {
       // finally delete logs db
       await isar.close(deleteFromDisk: true);
     }
+  }
+
+  Future<void> _v14() async {
+    final nodesBox = await DB.instance.hive.openBox<NodeModel>(
+      DB.boxNameNodeModels,
+    );
+    final primariesBox = await DB.instance.hive.openBox<NodeModel>(
+      DB.boxNamePrimaryNodesDeprecated,
+    );
+
+    final primaries = primariesBox.values;
+
+    for (final node in primaries) {
+      await nodesBox.put(
+        node.id,
+        node.copyWith(
+          loginName: node.loginName,
+          trusted: node.trusted,
+          isPrimary: true,
+        ),
+      );
+    }
+
+    await primariesBox.deleteFromDisk();
   }
 }

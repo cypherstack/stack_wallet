@@ -8,12 +8,14 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../notifications/show_flush_bar.dart';
-import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
+import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/flutter_secure_storage_interface.dart';
@@ -21,12 +23,11 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../widgets/background.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/custom_pin_put/custom_pin_put.dart';
+import '../../../../pinpad_views/lock_screen_view.dart';
 import '../security_view.dart';
 
 class ChangePinView extends ConsumerStatefulWidget {
-  const ChangePinView({
-    super.key,
-  });
+  const ChangePinView({super.key});
 
   static const String routeName = "/changePin";
 
@@ -46,8 +47,10 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
     );
   }
 
-  final PageController _pageController =
-      PageController(initialPage: 0, keepPage: true);
+  final PageController _pageController = PageController(
+    initialPage: 0,
+    keepPage: true,
+  );
 
   // Attributes for Page 1 of the page view
   final TextEditingController _pinPutController1 = TextEditingController();
@@ -110,16 +113,12 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                       style: STextStyles.pageTitleH1(context),
                     ),
                   ),
-                  const SizedBox(
-                    height: 52,
-                  ),
+                  const SizedBox(height: 52),
                   CustomPinPut(
                     fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
-                    textStyle: STextStyles.label(context).copyWith(
-                      fontSize: 1,
-                    ),
+                    textStyle: STextStyles.label(context).copyWith(fontSize: 1),
                     focusNode: _pinPutFocusNode1,
                     controller: _pinPutController1,
                     useNativeKeyboard: false,
@@ -131,9 +130,10 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      fillColor:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                       counterText: "",
                     ),
                     isRandom:
@@ -161,7 +161,6 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
               ),
 
               // page 2
-
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -171,17 +170,16 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                       style: STextStyles.pageTitleH1(context),
                     ),
                   ),
-                  const SizedBox(
-                    height: 52,
-                  ),
+                  const SizedBox(height: 52),
                   CustomPinPut(
                     fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle3,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle3,
                       fontSize: 1,
                     ),
                     focusNode: _pinPutFocusNode2,
@@ -195,9 +193,10 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      fillColor:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                       counterText: "",
                     ),
                     isRandom:
@@ -207,40 +206,58 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     followingFieldDecoration: _pinPutDecoration,
                     onSubmit: (String pin) async {
                       if (_pinPutController1.text == _pinPutController2.text) {
-                        // This should never fail as we are overwriting the existing pin
-                        assert(
-                          (await _secureStore.read(key: "stack_pin")) != null,
-                        );
-                        await _secureStore.write(key: "stack_pin", value: pin);
+                        final isDuress = ref.read(pDuress);
 
-                        showFloatingFlushBar(
-                          type: FlushBarType.success,
-                          message: "New PIN is set up",
-                          context: context,
-                          iconAsset: Assets.svg.check,
-                        );
-
-                        await Future<void>.delayed(
-                          const Duration(milliseconds: 1200),
-                        );
-
-                        if (mounted) {
-                          Navigator.of(context).popUntil(
-                            ModalRoute.withName(SecurityView.routeName),
+                        if (isDuress) {
+                          await _secureStore.write(
+                            key: kDuressPinKey,
+                            value: pin,
                           );
+                        } else {
+                          // This should never fail as we are overwriting the existing pin
+                          assert(
+                            (await _secureStore.read(key: kPinKey)) != null,
+                          );
+                          await _secureStore.write(key: kPinKey, value: pin);
+                        }
+
+                        if (context.mounted) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.success,
+                              message:
+                                  "New${isDuress ? " duress" : ""} PIN is set up",
+                              context: context,
+                              iconAsset: Assets.svg.check,
+                            ),
+                          );
+
+                          await Future<void>.delayed(
+                            const Duration(milliseconds: 1200),
+                          );
+
+                          if (context.mounted) {
+                            Navigator.of(context).popUntil(
+                              ModalRoute.withName(SecurityView.routeName),
+                            );
+                          }
                         }
                       } else {
-                        _pageController.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.linear,
+                        unawaited(
+                          _pageController.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.linear,
+                          ),
                         );
 
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "PIN codes do not match. Try again.",
-                          context: context,
-                          iconAsset: Assets.svg.alertCircle,
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "PIN codes do not match. Try again.",
+                            context: context,
+                            iconAsset: Assets.svg.alertCircle,
+                          ),
                         );
 
                         _pinPutController1.text = '';

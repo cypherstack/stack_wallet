@@ -50,9 +50,10 @@ class MajesticBankAPI {
     try {
       final response = await client.get(
         url: uri,
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       code = response.code;
@@ -61,16 +62,17 @@ class MajesticBankAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance
-          .e("_makeRequest($uri) HTTP:$code threw: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "_makeRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
   Future<ExchangeResponse<List<MBRate>>> getRates() async {
-    final uri = _buildUri(
-      endpoint: "rates",
-    );
+    final uri = _buildUri(endpoint: "rates");
 
     try {
       final jsonObject = await _makeGetRequest(uri);
@@ -90,11 +92,7 @@ class MajesticBankAPI {
       }
       return ExchangeResponse(value: rates);
     } catch (e, s) {
-      Logging.instance.e(
-        "getRates exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getRates exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -109,9 +107,7 @@ class MajesticBankAPI {
   }) async {
     final uri = _buildUri(
       endpoint: "limits",
-      params: {
-        "from_currency": fromCurrency,
-      },
+      params: {"from_currency": fromCurrency},
     );
 
     try {
@@ -127,11 +123,7 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: limit);
     } catch (e, s) {
-      Logging.instance.e(
-        "getLimits exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getLimits exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -163,11 +155,7 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: limits);
     } catch (e, s) {
-      Logging.instance.e(
-        "getLimits exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getLimits exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -196,10 +184,7 @@ class MajesticBankAPI {
       params["from_amount"] = amount;
     }
 
-    final uri = _buildUri(
-      endpoint: "calculate",
-      params: params,
-    );
+    final uri = _buildUri(endpoint: "calculate", params: params);
 
     try {
       final jsonObject = await _makeGetRequest(uri);
@@ -284,11 +269,7 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: order);
     } catch (e, s) {
-      Logging.instance.e(
-        "createOrder exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("createOrder exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -342,8 +323,11 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: order);
     } catch (e, s) {
-      Logging.instance
-          .e("createFixedRateOrder exception: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "createFixedRateOrder exception: ",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -356,12 +340,7 @@ class MajesticBankAPI {
   Future<ExchangeResponse<MBOrderStatus>> trackOrder({
     required String orderId,
   }) async {
-    final uri = _buildUri(
-      endpoint: "track",
-      params: {
-        "trx": orderId,
-      },
-    );
+    final uri = _buildUri(endpoint: "track", params: {"trx": orderId});
 
     try {
       final jsonObject = await _makeGetRequest(uri);

@@ -170,6 +170,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
   _i8.Future<void> load(
     _i10.Prefs? prefs,
     _i3.MainDB? mainDB,
+    bool? isDuress,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -177,6 +178,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
           [
             prefs,
             mainDB,
+            isDuress,
           ],
         ),
         returnValue: _i8.Future<void>.value(),
@@ -307,7 +309,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as List<_i11.NodeModel>);
 
   @override
-  _i8.Future<void> add(
+  _i8.Future<void> save(
     _i11.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,

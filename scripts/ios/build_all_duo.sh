@@ -4,21 +4,21 @@ set -x -e
 
 # todo: revisit following at some point
 
+# ensure ios rust triples are there
+rustup target add aarch64-apple-ios
+rustup target add x86_64-apple-ios
+
+# ensure ios rust triples are there
+rustup target add aarch64-apple-ios
+rustup target add x86_64-apple-ios
+
 # libepiccash requires old rust
 source ../rust_version.sh
-set_rust_to_1671
-
-# ensure ios rust triples are there
-rustup target add aarch64-apple-ios
-rustup target add x86_64-apple-ios
-
-# ensure ios rust triples are there
-rustup target add aarch64-apple-ios
-rustup target add x86_64-apple-ios
-
-(cd ../../crypto_plugins/flutter_liblelantus/scripts/ios && ./build_all.sh )
+set_rust_version_for_libepiccash
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/ios && ./build_all.sh )
-set_rust_to_1720
+# set rust (back) to a more recent stable release after building epiccash
+set_rust_to_everything_else
+
 (cd ../../crypto_plugins/frostdart/scripts/ios && ./build_all.sh )
 
 wait

@@ -14,6 +14,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
+
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
@@ -36,40 +37,41 @@ class LoadingView extends ConsumerWidget {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Center(
-            child: ConditionalParent(
-              condition: Theme.of(context).extension<StackColors>()!.themeId ==
-                  "oled_black",
-              builder: (child) => RoundedContainer(
-                color: const Color(0xFFDEDEDE),
-                radiusMultiplier: 100,
-                width: width * 1.35,
-                height: width * 1.35,
-                child: child,
+        body: SafeArea(
+          child: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Center(
+              child: ConditionalParent(
+                condition:
+                    Theme.of(context).extension<StackColors>()!.themeId ==
+                    "oled_black",
+                builder:
+                    (child) => RoundedContainer(
+                      color: const Color(0xFFDEDEDE),
+                      radiusMultiplier: 100,
+                      width: width * 1.35,
+                      height: width * 1.35,
+                      child: child,
+                    ),
+                child: SizedBox(
+                  width: width,
+                  child:
+                      assetPath != null
+                          ? Image.file(File(assetPath))
+                          : Lottie.asset(
+                            Assets.lottie.test2,
+                            animate: true,
+                            repeat: true,
+                          ),
+                ),
               ),
-              child: SizedBox(
-                width: width,
-                child: assetPath != null
-                    ? Image.file(
-                        File(
-                          assetPath,
-                        ),
-                      )
-                    : Lottie.asset(
-                        Assets.lottie.test2,
-                        animate: true,
-                        repeat: true,
-                      ),
-              ),
+              // child: Image(
+              //   image: AssetImage(
+              //     Assets.png.splash,
+              //   ),
+              //   width: MediaQuery.of(context).size.width * 0.5,
+              // ),
             ),
-            // child: Image(
-            //   image: AssetImage(
-            //     Assets.png.splash,
-            //   ),
-            //   width: MediaQuery.of(context).size.width * 0.5,
-            // ),
           ),
         ),
       ),

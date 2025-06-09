@@ -38,6 +38,7 @@ void main() {
               isDown: false,
               torEnabled: true,
               clearnetEnabled: true,
+              isPrimary: true,
             ));
 
     when(mockNodeService.getPrimaryNodeFor(
@@ -53,7 +54,8 @@ void main() {
             isFailover: false,
             torEnabled: true,
             clearnetEnabled: true,
-            isDown: false));
+            isDown: false,
+            isPrimary: true));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -116,6 +118,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -134,6 +137,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -197,6 +201,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -215,6 +220,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 

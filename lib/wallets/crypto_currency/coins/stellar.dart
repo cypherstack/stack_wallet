@@ -50,12 +50,10 @@ class Stellar extends Bip39Currency {
   bool get torSupport => true;
 
   @override
-  String get genesisHash => throw UnimplementedError(
-        "Not used for stellar",
-      );
+  String get genesisHash => throw UnimplementedError("Not used for stellar");
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -70,6 +68,7 @@ class Stellar extends Bip39Currency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -85,6 +84,7 @@ class Stellar extends Bip39Currency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -115,15 +115,14 @@ class Stellar extends Bip39Currency {
   AddressType get defaultAddressType => AddressType.stellar;
 
   @override
-  BigInt get satsPerCoin => BigInt.from(
-        10000000,
-      ); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
+  BigInt get satsPerCoin => BigInt.from(10000000); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
 
   @override
   int get targetBlockTimeSeconds => 5;
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

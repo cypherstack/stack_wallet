@@ -4,12 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../frost_route_generator.dart';
 import '../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../providers/global/node_service_provider.dart';
-import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
-import '../../../../providers/global/wallets_provider.dart';
+import '../../../../providers/providers.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
@@ -68,12 +65,20 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
           isar: ref.read(mainDBProvider).isar,
         );
 
+        if (ref.read(pDuress)) {
+          await wallet.info.updateDuressVisibilityStatus(
+            isDuressVisible: true,
+            isar: ref.read(mainDBProvider).isar,
+          );
+        }
+
         ref.read(pWallets).addWallet(wallet);
       } else {
-        wallet = ref
-                .read(pWallets)
-                .getWallet(ref.read(pFrostScaffoldArgs)!.walletId!)
-            as BitcoinFrostWallet;
+        wallet =
+            ref
+                    .read(pWallets)
+                    .getWallet(ref.read(pFrostScaffoldArgs)!.walletId!)
+                as BitcoinFrostWallet;
       }
 
       if (mounted) {
@@ -96,22 +101,19 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
         if (mounted) {
           ref.read(pFrostResharingData).reset();
           ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
-          ref.read(pFrostScaffoldArgs)?.parentNav.popUntil(
-                ModalRoute.withName(
-                  _popUntilPath,
-                ),
-              );
+          ref
+              .read(pFrostScaffoldArgs)
+              ?.parentNav
+              .popUntil(ModalRoute.withName(_popUntilPath));
         }
       }
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: "Error",
-            message: e.toString(),
-          ),
+          builder:
+              (_) => FrostErrorDialog(title: "Error", message: e.toString()),
         );
       }
     } finally {
@@ -119,11 +121,12 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
     }
   }
 
-  String get _popUntilPath => isNew
-      ? Util.isDesktop
-          ? DesktopHomeView.routeName
-          : HomeView.routeName
-      : Util.isDesktop
+  String get _popUntilPath =>
+      isNew
+          ? Util.isDesktop
+              ? DesktopHomeView.routeName
+              : HomeView.routeName
+          : Util.isDesktop
           ? DesktopWalletView.routeName
           : WalletView.routeName;
 
@@ -134,7 +137,8 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
         ref.read(pFrostResharingData).newWalletData!.serializedKeys;
     reshareId = ref.read(pFrostResharingData).newWalletData!.resharedId;
 
-    isNew = ref.read(pFrostResharingData).incompleteWallet != null &&
+    isNew =
+        ref.read(pFrostResharingData).incompleteWallet != null &&
         ref.read(pFrostResharingData).incompleteWallet!.walletId ==
             ref.read(pFrostScaffoldArgs)!.walletId!;
 
@@ -151,66 +155,42 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
             "Ensure your reshare ID matches that of each other participant",
             style: STextStyles.pageTitleH2(context),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           DetailItem(
             title: "ID",
             detail: reshareId,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: reshareId,
-                  )
-                : SimpleCopyButton(
-                    data: reshareId,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: reshareId)
+                    : SimpleCopyButton(data: reshareId),
           ),
-          const SizedBox(
-            height: 12,
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
             "Back up your keys and config",
             style: STextStyles.pageTitleH2(context),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           DetailItem(
             title: "Config",
             detail: config,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: config,
-                  )
-                : SimpleCopyButton(
-                    data: config,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: config)
+                    : SimpleCopyButton(data: config),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           DetailItem(
             title: "Keys",
             detail: serializedKeys,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: serializedKeys,
-                  )
-                : SimpleCopyButton(
-                    data: serializedKeys,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: serializedKeys)
+                    : SimpleCopyButton(data: serializedKeys),
           ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 12,
-          ),
-          PrimaryButton(
-            label: "Confirm",
-            onPressed: _onPressed,
-          ),
+          const SizedBox(height: 12),
+          PrimaryButton(label: "Confirm", onPressed: _onPressed),
         ],
       ),
     );

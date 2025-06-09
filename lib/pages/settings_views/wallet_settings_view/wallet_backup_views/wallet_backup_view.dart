@@ -62,7 +62,8 @@ class WalletBackupView extends ConsumerWidget {
     String config,
     String keys,
     ({String config, String keys})? prevGen,
-  })? frostWalletData;
+  })?
+  frostWalletData;
   final KeyDataInterface? keyData;
 
   @override
@@ -80,10 +81,7 @@ class WalletBackupView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Wallet backup",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Wallet backup", style: STextStyles.navBarTitle(context)),
           actions: [
             if (keyData != null)
               Padding(
@@ -93,7 +91,8 @@ class WalletBackupView extends ConsumerWidget {
                     final XPrivData _ => "xpriv(s)",
                     final CWKeyData _ => "keys",
                     final ViewOnlyWalletData _ => "keys",
-                    _ => throw UnimplementedError(
+                    _ =>
+                      throw UnimplementedError(
                         "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
                       ),
                   },
@@ -101,27 +100,24 @@ class WalletBackupView extends ConsumerWidget {
                     Navigator.pushNamed(
                       context,
                       MobileKeyDataView.routeName,
-                      arguments: (
-                        walletId: walletId,
-                        keyData: keyData!,
-                      ),
+                      arguments: (walletId: walletId, keyData: keyData!),
                     );
                   },
                 ),
               ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: frost
-              ? _FrostKeys(
-                  frostWalletData: frostWalletData,
-                  walletId: walletId,
-                )
-              : _Mnemonic(
-                  walletId: walletId,
-                  mnemonic: mnemonic,
-                ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child:
+                frost
+                    ? _FrostKeys(
+                      frostWalletData: frostWalletData,
+                      walletId: walletId,
+                    )
+                    : _Mnemonic(walletId: walletId, mnemonic: mnemonic),
+          ),
         ),
       ),
     );
@@ -148,21 +144,15 @@ class _Mnemonic extends ConsumerWidget {
         Text(
           ref.watch(pWalletName(walletId)),
           textAlign: TextAlign.center,
-          style: STextStyles.label(context).copyWith(
-            fontSize: 12,
-          ),
+          style: STextStyles.label(context).copyWith(fontSize: 12),
         ),
-        const SizedBox(
-          height: 4,
-        ),
+        const SizedBox(height: 4),
         Text(
           "Recovery Phrase",
           textAlign: TextAlign.center,
           style: STextStyles.pageTitleH1(context),
         ),
-        const SizedBox(
-          height: 16,
-        ),
+        const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -182,25 +172,19 @@ class _Mnemonic extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(
-          height: 8,
-        ),
+        const SizedBox(height: 8),
         Expanded(
           child: SingleChildScrollView(
-            child: MnemonicTable(
-              words: mnemonic,
-              isDesktop: false,
-            ),
+            child: MnemonicTable(words: mnemonic, isDesktop: false),
           ),
         ),
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
         SecondaryButton(
           label: "Copy",
           onPressed: () async {
-            await clipboardInterface
-                .setData(ClipboardData(text: mnemonic.join(" ")));
+            await clipboardInterface.setData(
+              ClipboardData(text: mnemonic.join(" ")),
+            );
             if (context.mounted) {
               unawaited(
                 showFloatingFlushBar(
@@ -213,9 +197,7 @@ class _Mnemonic extends ConsumerWidget {
             }
           },
         ),
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
         PrimaryButton(
           label: "Show QR Code",
           onPressed: () {
@@ -237,25 +219,18 @@ class _Mnemonic extends ConsumerWidget {
                           style: STextStyles.pageTitleH2(context),
                         ),
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
+                      const SizedBox(height: 12),
                       Center(
                         child: RepaintBoundary(
                           // key: _qrKey,
                           child: SizedBox(
                             width: width + 20,
                             height: width + 20,
-                            child: QR(
-                              data: data,
-                              size: width,
-                            ),
+                            child: QR(data: data, size: width),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
+                      const SizedBox(height: 12),
                       Center(
                         child: SizedBox(
                           width: width,
@@ -266,15 +241,14 @@ class _Mnemonic extends ConsumerWidget {
                             },
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getSecondaryEnabledButtonStyle(
-                                  context,
-                                ),
+                                .getSecondaryEnabledButtonStyle(context),
                             child: Text(
                               "Cancel",
                               style: STextStyles.button(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorDark,
                               ),
                             ),
                           ),
@@ -293,11 +267,7 @@ class _Mnemonic extends ConsumerWidget {
 }
 
 class _FrostKeys extends StatelessWidget {
-  const _FrostKeys({
-    super.key,
-    required this.walletId,
-    this.frostWalletData,
-  });
+  const _FrostKeys({super.key, required this.walletId, this.frostWalletData});
 
   final String walletId;
   final ({
@@ -305,7 +275,8 @@ class _FrostKeys extends StatelessWidget {
     String config,
     String keys,
     ({String config, String keys})? prevGen,
-  })? frostWalletData;
+  })?
+  frostWalletData;
 
   @override
   Widget build(BuildContext context) {
@@ -314,9 +285,7 @@ class _FrostKeys extends StatelessWidget {
       builder: (builderContext, constraints) {
         return SingleChildScrollView(
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight - 24,
-            ),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 24),
             child: IntrinsicHeight(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -334,9 +303,7 @@ class _FrostKeys extends StatelessWidget {
                       style: STextStyles.label(context),
                     ),
                   ),
-                  const SizedBox(
-                    height: 24,
-                  ),
+                  const SizedBox(height: 24),
                   // DetailItem(
                   //   title: "My name",
                   //   detail: frostWalletData!.myName,
@@ -354,32 +321,21 @@ class _FrostKeys extends StatelessWidget {
                   DetailItem(
                     title: "Multisig config",
                     detail: frostWalletData!.config,
-                    button: Util.isDesktop
-                        ? IconCopyButton(
-                            data: frostWalletData!.config,
-                          )
-                        : SimpleCopyButton(
-                            data: frostWalletData!.config,
-                          ),
+                    button:
+                        Util.isDesktop
+                            ? IconCopyButton(data: frostWalletData!.config)
+                            : SimpleCopyButton(data: frostWalletData!.config),
                   ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: 16),
                   DetailItem(
                     title: "Keys",
                     detail: frostWalletData!.keys,
-                    button: Util.isDesktop
-                        ? IconCopyButton(
-                            data: frostWalletData!.keys,
-                          )
-                        : SimpleCopyButton(
-                            data: frostWalletData!.keys,
-                          ),
+                    button:
+                        Util.isDesktop
+                            ? IconCopyButton(data: frostWalletData!.keys)
+                            : SimpleCopyButton(data: frostWalletData!.keys),
                   ),
-                  if (prevGen)
-                    const SizedBox(
-                      height: 24,
-                    ),
+                  if (prevGen) const SizedBox(height: 24),
                   if (prevGen)
                     RoundedWhiteContainer(
                       child: Text(
@@ -387,37 +343,33 @@ class _FrostKeys extends StatelessWidget {
                         style: STextStyles.label(context),
                       ),
                     ),
-                  if (prevGen)
-                    const SizedBox(
-                      height: 12,
-                    ),
+                  if (prevGen) const SizedBox(height: 12),
                   if (prevGen)
                     DetailItem(
                       title: "Previous multisig config",
                       detail: frostWalletData!.prevGen!.config,
-                      button: Util.isDesktop
-                          ? IconCopyButton(
-                              data: frostWalletData!.prevGen!.config,
-                            )
-                          : SimpleCopyButton(
-                              data: frostWalletData!.prevGen!.config,
-                            ),
+                      button:
+                          Util.isDesktop
+                              ? IconCopyButton(
+                                data: frostWalletData!.prevGen!.config,
+                              )
+                              : SimpleCopyButton(
+                                data: frostWalletData!.prevGen!.config,
+                              ),
                     ),
-                  if (prevGen)
-                    const SizedBox(
-                      height: 16,
-                    ),
+                  if (prevGen) const SizedBox(height: 16),
                   if (prevGen)
                     DetailItem(
                       title: "Previous keys",
                       detail: frostWalletData!.prevGen!.keys,
-                      button: Util.isDesktop
-                          ? IconCopyButton(
-                              data: frostWalletData!.prevGen!.keys,
-                            )
-                          : SimpleCopyButton(
-                              data: frostWalletData!.prevGen!.keys,
-                            ),
+                      button:
+                          Util.isDesktop
+                              ? IconCopyButton(
+                                data: frostWalletData!.prevGen!.keys,
+                              )
+                              : SimpleCopyButton(
+                                data: frostWalletData!.prevGen!.keys,
+                              ),
                     ),
                 ],
               ),
@@ -459,9 +411,7 @@ class MobileKeyDataView extends ConsumerWidget {
               final XPrivData _ => "xpriv(s)",
               final CWKeyData _ => "keys",
               final ViewOnlyWalletData _ => "keys",
-              _ => throw UnimplementedError(
-                  "Don't forget to add your KeyDataInterface here!",
-                ),
+              _ => throw UnimplementedError("Don't forget to add your KeyDataInterface here!"),
             }}",
             style: STextStyles.navBarTitle(context),
           ),
@@ -470,40 +420,40 @@ class MobileKeyDataView extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Expanded(
-                          child: switch (keyData) {
-                            final XPrivData e => WalletXPrivs(
-                                walletId: walletId,
-                                xprivData: e,
-                              ),
-                            final CWKeyData e => CNWalletKeys(
-                                walletId: walletId,
-                                cwKeyData: e,
-                              ),
-                            final ViewOnlyWalletData e =>
-                              ViewOnlyWalletDataWidget(
-                                data: e,
-                              ),
-                            _ => throw UnimplementedError(
-                                "Don't forget to add your KeyDataInterface here!",
-                              ),
-                          },
+              builder:
+                  (context, constraints) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(
+                              child: switch (keyData) {
+                                final XPrivData e => WalletXPrivs(
+                                  walletId: walletId,
+                                  xprivData: e,
+                                ),
+                                final CWKeyData e => CNWalletKeys(
+                                  walletId: walletId,
+                                  cwKeyData: e,
+                                ),
+                                final ViewOnlyWalletData e =>
+                                  ViewOnlyWalletDataWidget(data: e),
+                                _ =>
+                                  throw UnimplementedError(
+                                    "Don't forget to add your KeyDataInterface here!",
+                                  ),
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
             ),
           ),
         ),

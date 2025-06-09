@@ -171,6 +171,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
   _i8.Future<void> load(
     _i11.Prefs? prefs,
     _i3.MainDB? mainDB,
+    bool? isDuress,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -178,6 +179,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
           [
             prefs,
             mainDB,
+            isDuress,
           ],
         ),
         returnValue: _i8.Future<void>.value(),

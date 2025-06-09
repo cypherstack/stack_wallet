@@ -63,16 +63,19 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Ecash(CryptoCurrencyNetwork.main),
   Epiccash(CryptoCurrencyNetwork.main),
   Ethereum(CryptoCurrencyNetwork.main),
+  Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
   Peercoin(CryptoCurrencyNetwork.main),
+  Salvium(CryptoCurrencyNetwork.main),
   Solana(CryptoCurrencyNetwork.main),
   Stellar(CryptoCurrencyNetwork.main),
   Tezos(CryptoCurrencyNetwork.main),
   Wownero(CryptoCurrencyNetwork.main),
+  Xelis(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
   Bitcoin(CryptoCurrencyNetwork.test4),
   Bitcoincash(CryptoCurrencyNetwork.test),
@@ -83,8 +86,15 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Litecoin(CryptoCurrencyNetwork.test),
   Peercoin(CryptoCurrencyNetwork.test),
   Stellar(CryptoCurrencyNetwork.test),
+  Xelis(CryptoCurrencyNetwork.test),
 ]);
 
-final ({String from, String to}) _swapDefaults = (from: "BTC", to: "XMR");
+final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
+_swapDefaults = (
+  from: "BTC",
+  fromFuzzyNet: "btc",
+  to: "XMR",
+  toFuzzyNet: "xmr",
+);
 
 EOF

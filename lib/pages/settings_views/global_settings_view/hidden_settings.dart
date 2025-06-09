@@ -41,338 +41,344 @@ class HiddenSettings extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: AppBarIconButton(
               size: 32,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .topNavIconPrimary,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),
           ),
-          title: Text(
-            "Dev options",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Dev options", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .advancedFiroFeatures =
-                                    !ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .advancedFiroFeatures;
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                      (s) => s.advancedFiroFeatures,
-                                    ),
-                                  )
-                                      ? "Hide advanced Firo features"
-                                      : "Show advanced Firo features",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                final notifs = ref
-                                    .read(notificationsProvider)
-                                    .notifications;
-
-                                for (final n in notifs) {
-                                  await ref
-                                      .read(notificationsProvider)
-                                      .delete(n, false);
-                                }
-                                await ref
-                                    .read(notificationsProvider)
-                                    .delete(notifs[0], true);
-
-                                if (context.mounted) {
-                                  unawaited(
-                                    showFloatingFlushBar(
-                                      type: FlushBarType.success,
-                                      message: "Notification history deleted",
-                                      context: context,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Delete notifications",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                ref.read(prefsChangeNotifierProvider).logsPath =
-                                    null;
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Reset log location",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       final trades =
-                        //           ref.read(tradesServiceProvider).trades;
-                        //
-                        //       for (final trade in trades) {
-                        //         ref.read(tradesServiceProvider).delete(
-                        //             trade: trade, shouldNotifyListeners: false);
-                        //       }
-                        //       ref.read(tradesServiceProvider).delete(
-                        //           trade: trades[0], shouldNotifyListeners: true);
-                        //
-                        //       // ref.read(notificationsProvider).DELETE_EVERYTHING();
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Delete trade history",
-                        //         style: STextStyles.button(context).copyWith(
-                        //           color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                        //         ),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(
-                        //   builder: (_, ref, __) {
-                        //     return GestureDetector(
-                        //       onTap: () async {
-                        //         await ref
-                        //             .read(debugServiceProvider)
-                        //             .deleteAllLogs();
-                        //
-                        //         if (context.mounted) {
-                        //           unawaited(
-                        //             showFloatingFlushBar(
-                        //               type: FlushBarType.success,
-                        //               message: "Debug Logs deleted",
-                        //               context: context,
-                        //             ),
-                        //           );
-                        //         }
-                        //       },
-                        //       child: RoundedWhiteContainer(
-                        //         child: Text(
-                        //           "Delete Debug Logs",
-                        //           style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark,
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     );
-                        //   },
-                        // ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       await showOneTimeTorHasBeenAddedDialogIfRequired(
-                        //         context,
-                        //       );
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Test tor stacy popup",
-                        //         style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       final box = await Hive.openBox<bool>(
-                        //           DB.boxNameOneTimeDialogsShown);
-                        //       await box.clear();
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Reset tor stacy popup",
-                        //         style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            if (ref.watch(
-                                  prefsChangeNotifierProvider
-                                      .select((value) => value.familiarity),
-                                ) <
-                                6) {
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Consumer(
+                            builder: (_, ref, __) {
                               return GestureDetector(
                                 onTap: () async {
-                                  final familiarity = ref
+                                  ref
                                       .read(prefsChangeNotifierProvider)
-                                      .familiarity;
-                                  if (familiarity < 6) {
-                                    ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .familiarity = 6;
-
-                                    Constants.exchangeForExperiencedUsers(6);
-                                  }
+                                      .advancedFiroFeatures = !ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .advancedFiroFeatures;
                                 },
                                 child: RoundedWhiteContainer(
                                   child: Text(
-                                    "Enable exchange",
+                                    ref.watch(
+                                          prefsChangeNotifierProvider.select(
+                                            (s) => s.advancedFiroFeatures,
+                                          ),
+                                        )
+                                        ? "Hide advanced Firo features"
+                                        : "Show advanced Firo features",
                                     style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
                                     ),
                                   ),
                                 ),
                               );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                await showDialog<bool>(
-                                  context: context,
-                                  builder: (_) => TorWarningDialog(
-                                    coin: Stellar(CryptoCurrencyNetwork.main),
-                                  ),
-                                );
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Show Tor warning popup",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  final notifs =
+                                      ref
+                                          .read(notificationsProvider)
+                                          .notifications;
+
+                                  for (final n in notifs) {
+                                    await ref
+                                        .read(notificationsProvider)
+                                        .delete(n, false);
+                                  }
+                                  await ref
+                                      .read(notificationsProvider)
+                                      .delete(notifs[0], true);
+
+                                  if (context.mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.success,
+                                        message: "Notification history deleted",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: RoundedWhiteContainer(
+                                  child: Text(
+                                    "Delete notifications",
+                                    style: STextStyles.button(context).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(
-                        //   builder: (_, ref, __) {
-                        //     return GestureDetector(
-                        //       onTap: () async {
-                        //         await showLoading(
-                        //           whileFuture: FiroCache.init(),
-                        //           context: context,
-                        //           rootNavigator: true,
-                        //           message: "initializing firo cache",
-                        //         );
-                        //       },
-                        //       child: RoundedWhiteContainer(
-                        //         child: Text(
-                        //           "init firo_cache",
-                        //           style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark,
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     );
-                        //   },
-                        // ),
-                      ],
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .logsPath = null;
+                                },
+                                child: RoundedWhiteContainer(
+                                  child: Text(
+                                    "Reset log location",
+                                    style: STextStyles.button(context).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // const SizedBox(
+                          //   height: 12,
+                          // ),
+                          // Consumer(builder: (_, ref, __) {
+                          //   return GestureDetector(
+                          //     onTap: () async {
+                          //       final trades =
+                          //           ref.read(tradesServiceProvider).trades;
+                          //
+                          //       for (final trade in trades) {
+                          //         ref.read(tradesServiceProvider).delete(
+                          //             trade: trade, shouldNotifyListeners: false);
+                          //       }
+                          //       ref.read(tradesServiceProvider).delete(
+                          //           trade: trades[0], shouldNotifyListeners: true);
+                          //
+                          //       // ref.read(notificationsProvider).DELETE_EVERYTHING();
+                          //     },
+                          //     child: RoundedWhiteContainer(
+                          //       child: Text(
+                          //         "Delete trade history",
+                          //         style: STextStyles.button(context).copyWith(
+                          //           color: Theme.of(context).extension<StackColors>()!.accentColorDark
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   );
+                          // }),
+                          // const SizedBox(
+                          //   height: 12,
+                          // ),
+                          // Consumer(
+                          //   builder: (_, ref, __) {
+                          //     return GestureDetector(
+                          //       onTap: () async {
+                          //         await ref
+                          //             .read(debugServiceProvider)
+                          //             .deleteAllLogs();
+                          //
+                          //         if (context.mounted) {
+                          //           unawaited(
+                          //             showFloatingFlushBar(
+                          //               type: FlushBarType.success,
+                          //               message: "Debug Logs deleted",
+                          //               context: context,
+                          //             ),
+                          //           );
+                          //         }
+                          //       },
+                          //       child: RoundedWhiteContainer(
+                          //         child: Text(
+                          //           "Delete Debug Logs",
+                          //           style: STextStyles.button(context).copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .accentColorDark,
+                          //           ),
+                          //         ),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
+                          const SizedBox(height: 12),
+                          // Consumer(builder: (_, ref, __) {
+                          //   return GestureDetector(
+                          //     onTap: () async {
+                          //       await showOneTimeTorHasBeenAddedDialogIfRequired(
+                          //         context,
+                          //       );
+                          //     },
+                          //     child: RoundedWhiteContainer(
+                          //       child: Text(
+                          //         "Test tor stacy popup",
+                          //         style: STextStyles.button(context).copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .accentColorDark),
+                          //       ),
+                          //     ),
+                          //   );
+                          // }),
+                          // const SizedBox(
+                          //   height: 12,
+                          // ),
+                          // Consumer(builder: (_, ref, __) {
+                          //   return GestureDetector(
+                          //     onTap: () async {
+                          //       final box = await Hive.openBox<bool>(
+                          //           DB.boxNameOneTimeDialogsShown);
+                          //       await box.clear();
+                          //     },
+                          //     child: RoundedWhiteContainer(
+                          //       child: Text(
+                          //         "Reset tor stacy popup",
+                          //         style: STextStyles.button(context).copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .accentColorDark),
+                          //       ),
+                          //     ),
+                          //   );
+                          // }),
+                          // const SizedBox(
+                          //   height: 12,
+                          // ),
+                          Consumer(
+                            builder: (_, ref, __) {
+                              if (ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.familiarity,
+                                    ),
+                                  ) <
+                                  6) {
+                                return GestureDetector(
+                                  onTap: () async {
+                                    final familiarity =
+                                        ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .familiarity;
+                                    if (familiarity < 6) {
+                                      ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .familiarity = 6;
+
+                                      Constants.exchangeForExperiencedUsers(6);
+                                    }
+                                  },
+                                  child: RoundedWhiteContainer(
+                                    child: Text(
+                                      "Enable exchange",
+                                      style: STextStyles.button(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                return Container();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  await showDialog<bool>(
+                                    context: context,
+                                    builder:
+                                        (_) => TorWarningDialog(
+                                          coin: Stellar(
+                                            CryptoCurrencyNetwork.main,
+                                          ),
+                                        ),
+                                  );
+                                },
+                                child: RoundedWhiteContainer(
+                                  child: Text(
+                                    "Show Tor warning popup",
+                                    style: STextStyles.button(context).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // const SizedBox(
+                          //   height: 12,
+                          // ),
+                          // Consumer(
+                          //   builder: (_, ref, __) {
+                          //     return GestureDetector(
+                          //       onTap: () async {
+                          //         await showLoading(
+                          //           whileFuture: FiroCache.init(),
+                          //           context: context,
+                          //           rootNavigator: true,
+                          //           message: "initializing firo cache",
+                          //         );
+                          //       },
+                          //       child: RoundedWhiteContainer(
+                          //         child: Text(
+                          //           "init firo_cache",
+                          //           style: STextStyles.button(context).copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .accentColorDark,
+                          //           ),
+                          //         ),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

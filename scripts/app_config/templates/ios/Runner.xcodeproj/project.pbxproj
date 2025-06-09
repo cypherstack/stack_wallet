@@ -11,28 +11,12 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7E1603B5288D73EA002F7A6F /* libepic_cash_wallet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E8A4F06288D5A9300F18717 /* libepic_cash_wallet.a */; };
-		7E569F992798D47200056D51 /* mobileliblelantus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E569F982798D47200056D51 /* mobileliblelantus.framework */; };
-		7E569F9A2798D47F00056D51 /* mobileliblelantus.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7E569F982798D47200056D51 /* mobileliblelantus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7E729AE82893C1B1009BBD65 /* flutter_libepiccash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E1603B3288D734C002F7A6F /* flutter_libepiccash.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B49D91439948369648AB0603 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51604430FD0FD1FA5C4767A0 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				7E569F9A2798D47F00056D51 /* mobileliblelantus.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
@@ -45,7 +29,6 @@
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7E1603B3288D734C002F7A6F /* flutter_libepiccash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = flutter_libepiccash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		7E569F982798D47200056D51 /* mobileliblelantus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = mobileliblelantus.framework; path = ../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus/mobileliblelantus.framework; sourceTree = "<group>"; };
 		7E8A4F02288D57DE00F18717 /* flutter_libepiccash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = flutter_libepiccash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E8A4F06288D5A9300F18717 /* libepic_cash_wallet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libepic_cash_wallet.a; path = ../crypto_plugins/flutter_libepiccash/ios/libs/libepic_cash_wallet.a; sourceTree = "<group>"; };
 		7E8A4F09288D5E8F00F18717 /* flutter_libepiccash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = flutter_libepiccash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -74,7 +57,6 @@
 			files = (
 				7E1603B5288D73EA002F7A6F /* libepic_cash_wallet.a in Frameworks */,
 				7E729AE82893C1B1009BBD65 /* flutter_libepiccash.framework in Frameworks */,
-				7E569F992798D47200056D51 /* mobileliblelantus.framework in Frameworks */,
 				B49D91439948369648AB0603 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -104,7 +86,6 @@
 				7E8A4F09288D5E8F00F18717 /* flutter_libepiccash.framework */,
 				7E8A4F06288D5A9300F18717 /* libepic_cash_wallet.a */,
 				7E8A4F02288D57DE00F18717 /* flutter_libepiccash.framework */,
-				7E569F982798D47200056D51 /* mobileliblelantus.framework */,
 				51604430FD0FD1FA5C4767A0 /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
@@ -178,7 +159,6 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
-				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				FD1CA371131604E6658D4146 /* [CP] Embed Pods Frameworks */,
 				4823D12ED8C268BC85F26ABD /* [CP] Copy Pods Resources */,
@@ -330,9 +310,11 @@
 				"${BUILT_PRODUCTS_DIR}/barcode_scan2/barcode_scan2.framework",
 				"${BUILT_PRODUCTS_DIR}/coinlib_flutter/secp256k1.framework",
 				"${BUILT_PRODUCTS_DIR}/connectivity_plus/connectivity_plus.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs/ios/Frameworks/MoneroWallet.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs/ios/Frameworks/WowneroWallet.framework",
-				"${BUILT_PRODUCTS_DIR}/cs_monero_flutter_libs/cs_monero_flutter_libs.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/MoneroWallet.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/WowneroWallet.framework",
+				"${BUILT_PRODUCTS_DIR}/cs_monero_flutter_libs_ios/cs_monero_flutter_libs_ios.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_salvium_flutter_libs_ios/ios/Frameworks/SalviumWallet.framework",
+				"${BUILT_PRODUCTS_DIR}/cs_salvium_flutter_libs_ios/cs_salvium_flutter_libs_ios.framework",
 				"${BUILT_PRODUCTS_DIR}/device_info_plus/device_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/devicelocale/devicelocale.framework",
 				"${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework",
@@ -343,7 +325,6 @@
 				"${BUILT_PRODUCTS_DIR}/frostdart/frostdart.framework",
 				"${BUILT_PRODUCTS_DIR}/integration_test/integration_test.framework",
 				"${BUILT_PRODUCTS_DIR}/isar_flutter_libs/isar_flutter_libs.framework",
-				"${BUILT_PRODUCTS_DIR}/lelantus/lelantus.framework",
 				"${BUILT_PRODUCTS_DIR}/local_auth_darwin/local_auth_darwin.framework",
 				"${BUILT_PRODUCTS_DIR}/package_info_plus/package_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/path_provider_foundation/path_provider_foundation.framework",
@@ -354,6 +335,7 @@
 				"${BUILT_PRODUCTS_DIR}/tor_ffi_plugin/tor_ffi_plugin.framework",
 				"${BUILT_PRODUCTS_DIR}/url_launcher_ios/url_launcher_ios.framework",
 				"${BUILT_PRODUCTS_DIR}/wakelock_plus/wakelock_plus.framework",
+				"${BUILT_PRODUCTS_DIR}/xelis_flutter/xelis_flutter.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -369,7 +351,9 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/connectivity_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MoneroWallet.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WowneroWallet.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_monero_flutter_libs.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_monero_flutter_libs_ios.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SalviumWallet.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_salvium_flutter_libs_ios.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/device_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/devicelocale.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/file_picker.framework",
@@ -380,7 +364,6 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/frostdart.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/integration_test.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/isar_flutter_libs.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/lelantus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/local_auth_darwin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/package_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/path_provider_foundation.framework",
@@ -391,6 +374,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/tor_ffi_plugin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/url_launcher_ios.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/wakelock_plus.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/xelis_flutter.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -497,7 +481,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus",
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -516,7 +499,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_native_splash/flutter_native_splash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/integration_test/integration_test.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/lelantus/lelantus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/local_auth/local_auth.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus/package_info_plus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_ios/path_provider_ios.framework/Headers\"",
@@ -679,7 +661,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus",
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -698,7 +679,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_native_splash/flutter_native_splash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/integration_test/integration_test.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/lelantus/lelantus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/local_auth/local_auth.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus/package_info_plus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_ios/path_provider_ios.framework/Headers\"",
@@ -753,7 +733,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus/**",
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -772,7 +751,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_native_splash/flutter_native_splash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/integration_test/integration_test.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/lelantus/lelantus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/local_auth/local_auth.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus/package_info_plus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_ios/path_provider_ios.framework/Headers\"",

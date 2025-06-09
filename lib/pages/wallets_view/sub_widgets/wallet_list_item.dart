@@ -25,7 +25,7 @@ import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../wallet_view/wallet_view.dart';
@@ -46,8 +46,9 @@ class WalletListItem extends ConsumerWidget {
     // debugPrint("BUILD: $runtimeType");
     final walletCountString =
         walletCount == 1 ? "$walletCount wallet" : "$walletCount wallets";
-    final currency = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    final currency = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.currency),
+    );
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
@@ -57,8 +58,9 @@ class WalletListItem extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(Constants.size.circularBorderRadius),
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
         ),
         onPressed: () async {
           // Check if Tor is enabled...
@@ -66,11 +68,10 @@ class WalletListItem extends ConsumerWidget {
             // ... and if the coin supports Tor.
             if (!coin.torSupport) {
               // If not, show a Tor warning dialog.
-              final shouldContinue = await showDialog<bool>(
+              final shouldContinue =
+                  await showDialog<bool>(
                     context: context,
-                    builder: (_) => TorWarningDialog(
-                      coin: coin,
-                    ),
+                    builder: (_) => TorWarningDialog(coin: coin),
                   ) ??
                   false;
               if (!shouldContinue) {
@@ -99,9 +100,10 @@ class WalletListItem extends ConsumerWidget {
             }
 
             final Future<void> loadFuture;
-            if (wallet is LibMoneroWallet) {
-              loadFuture =
-                  wallet.init().then((value) async => await (wallet).open());
+            if (wallet is ExternalWallet) {
+              loadFuture = wallet.init().then(
+                (value) async => await (wallet).open(),
+              );
             } else {
               loadFuture = wallet.init();
             }
@@ -113,63 +115,67 @@ class WalletListItem extends ConsumerWidget {
             );
             if (context.mounted) {
               unawaited(
-                Navigator.of(context).pushNamed(
-                  WalletView.routeName,
-                  arguments: wallet.walletId,
-                ),
+                Navigator.of(
+                  context,
+                ).pushNamed(WalletView.routeName, arguments: wallet.walletId),
               );
             }
           } else {
             unawaited(
-              Navigator.of(context).pushNamed(
-                WalletsOverview.routeName,
-                arguments: coin,
-              ),
+              Navigator.of(
+                context,
+              ).pushNamed(WalletsOverview.routeName, arguments: coin),
             );
           }
         },
         child: Row(
           children: [
             SvgPicture.file(
-              File(
-                ref.watch(coinIconProvider(coin)),
-              ),
+              File(ref.watch(coinIconProvider(coin))),
               width: 28,
               height: 28,
             ),
-            const SizedBox(
-              width: 10,
-            ),
+            const SizedBox(width: 10),
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final tuple = ref.watch(
-                    priceAnd24hChangeNotifierProvider
-                        .select((value) => value.getPrice(coin)),
-                  );
-                  final calls =
-                      ref.watch(prefsChangeNotifierProvider).externalCalls;
+                  Color percentChangedColor =
+                      Theme.of(context).extension<StackColors>()!.textDark;
+                  String? priceString;
+                  double? percentChange;
+                  if (ref.watch(
+                    prefsChangeNotifierProvider.select((s) => s.externalCalls),
+                  )) {
+                    final price = ref.watch(
+                      priceAnd24hChangeNotifierProvider.select(
+                        (value) => value.getPrice(coin),
+                      ),
+                    );
 
-                  final priceString =
-                      tuple.item1.toAmount(fractionDigits: 2).fiatString(
+                    if (price != null) {
+                      priceString = price.value
+                          .toAmount(fractionDigits: 2)
+                          .fiatString(
                             locale: ref.watch(
-                              localeServiceChangeNotifierProvider
-                                  .select((value) => value.locale),
+                              localeServiceChangeNotifierProvider.select(
+                                (value) => value.locale,
+                              ),
                             ),
                           );
+                      percentChange = price.change24h;
 
-                  final double percentChange = tuple.item2;
-
-                  var percentChangedColor =
-                      Theme.of(context).extension<StackColors>()!.textDark;
-                  if (percentChange > 0) {
-                    percentChangedColor = Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorGreen;
-                  } else if (percentChange < 0) {
-                    percentChangedColor = Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorRed;
+                      if (percentChange > 0) {
+                        percentChangedColor =
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorGreen;
+                      } else if (percentChange < 0) {
+                        percentChangedColor =
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorRed;
+                      }
+                    }
                   }
 
                   return Column(
@@ -182,16 +188,14 @@ class WalletListItem extends ConsumerWidget {
                             style: STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
-                          if (calls)
+                          if (priceString != null)
                             Text(
                               "$priceString $currency/${coin.ticker}",
                               style: STextStyles.itemSubtitle(context),
                             ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 1,
-                      ),
+                      const SizedBox(height: 1),
                       Row(
                         children: [
                           Text(
@@ -199,12 +203,12 @@ class WalletListItem extends ConsumerWidget {
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
-                          if (calls)
+                          if (percentChange != null)
                             Text(
                               "${percentChange.toStringAsFixed(2)}%",
-                              style: STextStyles.itemSubtitle(context).copyWith(
-                                color: percentChangedColor,
-                              ),
+                              style: STextStyles.itemSubtitle(
+                                context,
+                              ).copyWith(color: percentChangedColor),
                             ),
                         ],
                       ),

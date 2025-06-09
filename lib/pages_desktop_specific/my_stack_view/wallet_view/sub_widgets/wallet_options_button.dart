@@ -30,6 +30,7 @@ import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
@@ -296,7 +297,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     final bool canChangeRep = coin is NanoCurrency;
 
     final bool isFrost = coin is FrostCurrency;
-    final bool isMoneroWow = wallet is LibMoneroWallet;
+    final bool isMoneroWow = wallet is LibMoneroWallet || wallet is LibSalviumWallet;
 
     return Stack(
       children: [

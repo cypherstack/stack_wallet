@@ -74,307 +74,301 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 75));
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
           ),
-          title: Text(
-            "Swap",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Swap", style: STextStyles.navBarTitle(context)),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = MediaQuery.of(context).size.width - 32;
-            return Padding(
-              padding: const EdgeInsets.all(12),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          StepRow(
-                            count: 4,
-                            current: 2,
-                            width: width,
-                          ),
-                          const SizedBox(
-                            height: 14,
-                          ),
-                          Text(
-                            "Confirm exchange details",
-                            style: STextStyles.pageTitleH1(context),
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Row(
-                              children: [
-                                Text(
-                                  "You send",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ],
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = MediaQuery.of(context).size.width - 32;
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            StepRow(count: 4, current: 2, width: width),
+                            const SizedBox(height: 14),
+                            Text(
+                              "Confirm exchange details",
+                              style: STextStyles.pageTitleH1(context),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Row(
-                              children: [
-                                Text(
-                                  "You receive",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  "${model.receiveAmount.toString()} ${model.receiveTicker.toUpperCase()}",
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Row(
-                              children: [
-                                Text(
-                                  "Estimated rate",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  model.rateInfo,
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Recipient ${model.receiveTicker.toUpperCase()} address",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const SizedBox(
-                                  height: 4,
-                                ),
-                                Text(
-                                  model.recipientAddress!,
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (supportsRefund)
-                            const SizedBox(
-                              height: 8,
-                            ),
-                          if (supportsRefund)
+                            const SizedBox(height: 24),
                             RoundedWhiteContainer(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
                                 children: [
                                   Text(
-                                    "Refund ${model.sendTicker.toUpperCase()} address",
+                                    "You send",
                                     style: STextStyles.itemSubtitle(context),
                                   ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
+                                  const Spacer(),
                                   Text(
-                                    model.refundAddress!,
+                                    "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
                                     style: STextStyles.itemSubtitle12(context),
                                   ),
                                 ],
                               ),
                             ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  style: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonStyle(context),
-                                  child: Text(
-                                    "Back",
-                                    style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary,
+                            const SizedBox(height: 8),
+                            RoundedWhiteContainer(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "You receive",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    "${model.receiveAmount.toString()} ${model.receiveTicker.toUpperCase()}",
+                                    style: STextStyles.itemSubtitle12(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            RoundedWhiteContainer(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Estimated rate",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    model.rateInfo,
+                                    style: STextStyles.itemSubtitle12(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Recipient ${model.receiveTicker.toUpperCase()} address",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    model.recipientAddress!,
+                                    style: STextStyles.itemSubtitle12(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (supportsRefund) const SizedBox(height: 8),
+                            if (supportsRefund)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Refund ${model.sendTicker.toUpperCase()} address",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      model.refundAddress!,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            const Spacer(),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    style: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getSecondaryEnabledButtonStyle(
+                                          context,
+                                        ),
+                                    child: Text(
+                                      "Back",
+                                      style: STextStyles.button(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(
-                                width: 16,
-                              ),
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: () async {
-                                    unawaited(
-                                      showDialog<void>(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (_) => WillPopScope(
-                                          onWillPop: () async => false,
-                                          child: Container(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .overlay
-                                                .withOpacity(0.6),
-                                            child: const CustomLoadingOverlay(
-                                              message: "Creating a trade",
-                                              eventBus: null,
-                                            ),
-                                          ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed: () async {
+                                      unawaited(
+                                        showDialog<void>(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder:
+                                              (_) => WillPopScope(
+                                                onWillPop: () async => false,
+                                                child: Container(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .overlay
+                                                      .withOpacity(0.6),
+                                                  child:
+                                                      const CustomLoadingOverlay(
+                                                        message:
+                                                            "Creating a trade",
+                                                        eventBus: null,
+                                                      ),
+                                                ),
+                                              ),
                                         ),
-                                      ),
-                                    );
+                                      );
 
-                                    final ExchangeResponse<Trade> response =
-                                        await ref
-                                            .read(efExchangeProvider)
-                                            .createTrade(
-                                              from: model.sendTicker,
-                                              to: model.receiveTicker,
-                                              fixedRate: model.rateType !=
-                                                  ExchangeRateType.estimated,
-                                              amount: model.reversed
-                                                  ? model.receiveAmount
-                                                  : model.sendAmount,
-                                              addressTo:
-                                                  model.recipientAddress!,
-                                              extraId: null,
-                                              addressRefund: supportsRefund
-                                                  ? model.refundAddress!
-                                                  : "",
-                                              refundExtraId: "",
-                                              estimate: model.estimate,
-                                              reversed: model.reversed,
-                                            );
+                                      final ExchangeResponse<Trade>
+                                      response = await ref
+                                          .read(efExchangeProvider)
+                                          .createTrade(
+                                            from: model.sendTicker,
+                                            fromNetwork:
+                                                model.sendCurrency.network,
+                                            to: model.receiveTicker,
+                                            toNetwork:
+                                                model.receiveCurrency.network,
+                                            fixedRate:
+                                                model.rateType !=
+                                                ExchangeRateType.estimated,
+                                            amount:
+                                                model.reversed
+                                                    ? model.receiveAmount
+                                                    : model.sendAmount,
+                                            addressTo: model.recipientAddress!,
+                                            extraId: null,
+                                            addressRefund:
+                                                supportsRefund
+                                                    ? model.refundAddress!
+                                                    : "",
+                                            refundExtraId: "",
+                                            estimate: model.estimate,
+                                            reversed: model.reversed,
+                                          );
 
-                                    if (response.value == null) {
-                                      if (context.mounted) {
-                                        Navigator.of(context).pop();
+                                      if (response.value == null) {
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop();
 
-                                        // TODO: better errors
-                                        String? message;
-                                        if (response.exception != null) {
-                                          message =
-                                              response.exception!.toString();
-                                          if (message.startsWith(
-                                                "FormatException:",
-                                              ) &&
-                                              message.contains("<html>")) {
+                                          // TODO: better errors
+                                          String? message;
+                                          if (response.exception != null) {
                                             message =
-                                                "${ref.read(efExchangeProvider).name} server error";
+                                                response.exception!.toString();
+                                            if (message.startsWith(
+                                                  "FormatException:",
+                                                ) &&
+                                                message.contains("<html>")) {
+                                              message =
+                                                  "${ref.read(efExchangeProvider).name} server error";
+                                            }
                                           }
-                                        }
 
-                                        unawaited(
-                                          showDialog<void>(
-                                            context: context,
-                                            barrierDismissible: true,
-                                            builder: (_) => StackDialog(
-                                              title: "Failed to create trade",
-                                              message: message ?? "",
+                                          unawaited(
+                                            showDialog<void>(
+                                              context: context,
+                                              barrierDismissible: true,
+                                              builder:
+                                                  (_) => StackDialog(
+                                                    title:
+                                                        "Failed to create trade",
+                                                    message: message ?? "",
+                                                  ),
                                             ),
+                                          );
+                                        }
+                                        return;
+                                      }
+
+                                      // save trade to hive
+                                      await ref
+                                          .read(tradesServiceProvider)
+                                          .add(
+                                            trade: response.value!,
+                                            shouldNotifyListeners: true,
+                                          );
+
+                                      String status = response.value!.status;
+
+                                      model.trade = response.value!;
+
+                                      // extra info if status is waiting
+                                      if (status == "Waiting") {
+                                        status += " for deposit";
+                                      }
+
+                                      if (mounted) {
+                                        Navigator.of(context).pop();
+                                      }
+
+                                      unawaited(
+                                        NotificationApi.showNotification(
+                                          changeNowId: model.trade!.tradeId,
+                                          title: status,
+                                          body:
+                                              "Trade ID ${model.trade!.tradeId}",
+                                          walletId: "",
+                                          iconAssetName: Assets.svg.arrowRotate,
+                                          date: model.trade!.timestamp,
+                                          shouldWatchForUpdates: true,
+                                          coinName: "coinName",
+                                        ),
+                                      );
+
+                                      if (context.mounted) {
+                                        unawaited(
+                                          Navigator.of(context).pushNamed(
+                                            Step4View.routeName,
+                                            arguments: model,
                                           ),
                                         );
                                       }
-                                      return;
-                                    }
-
-                                    // save trade to hive
-                                    await ref.read(tradesServiceProvider).add(
-                                          trade: response.value!,
-                                          shouldNotifyListeners: true,
-                                        );
-
-                                    String status = response.value!.status;
-
-                                    model.trade = response.value!;
-
-                                    // extra info if status is waiting
-                                    if (status == "Waiting") {
-                                      status += " for deposit";
-                                    }
-
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-
-                                    unawaited(
-                                      NotificationApi.showNotification(
-                                        changeNowId: model.trade!.tradeId,
-                                        title: status,
-                                        body:
-                                            "Trade ID ${model.trade!.tradeId}",
-                                        walletId: "",
-                                        iconAssetName: Assets.svg.arrowRotate,
-                                        date: model.trade!.timestamp,
-                                        shouldWatchForUpdates: true,
-                                        coinName: "coinName",
-                                      ),
-                                    );
-
-                                    if (mounted) {
-                                      unawaited(
-                                        Navigator.of(context).pushNamed(
-                                          Step4View.routeName,
-                                          arguments: model,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  style: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonStyle(context),
-                                  child: Text(
-                                    "Next",
-                                    style: STextStyles.button(context),
+                                    },
+                                    style: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryEnabledButtonStyle(context),
+                                    child: Text(
+                                      "Next",
+                                      style: STextStyles.button(context),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

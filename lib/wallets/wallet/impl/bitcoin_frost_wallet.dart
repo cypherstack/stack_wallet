@@ -37,12 +37,13 @@ const kFrostSecureStartingIndex = 1;
 class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     with MultiAddressInterface {
   BitcoinFrostWallet(CryptoCurrencyNetwork network)
-      : super(BitcoinFrost(network) as T);
+    : super(BitcoinFrost(network) as T);
 
-  FrostWalletInfo get frostInfo => mainDB.isar.frostWalletInfo
-      .where()
-      .walletIdEqualTo(walletId)
-      .findFirstSync()!;
+  FrostWalletInfo get frostInfo =>
+      mainDB.isar.frostWalletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .findFirstSync()!;
 
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
@@ -59,11 +60,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     Logging.instance.i("Generating new FROST wallet.");
 
     try {
-      final salt = frost
-          .multisigSalt(
-            multisigConfig: multisigConfig,
-          )
-          .toHex;
+      final salt = frost.multisigSalt(multisigConfig: multisigConfig).toHex;
 
       final FrostWalletInfo frostWalletInfo = FrostWalletInfo(
         walletId: info.walletId,
@@ -127,22 +124,24 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           .map((e) => e.amount)
           .reduce((value, e) => value += e);
 
-      final utxos = await mainDB
-          .getUTXOs(walletId)
-          .filter()
-          .isBlockedEqualTo(false)
-          .findAll();
+      final utxos =
+          await mainDB
+              .getUTXOs(walletId)
+              .filter()
+              .isBlockedEqualTo(false)
+              .findAll();
 
       if (utxos.isEmpty) {
         throw Exception("No UTXOs found");
       } else {
         final currentHeight = await chainHeight;
         utxos.removeWhere(
-          (e) => !e.isConfirmed(
-            currentHeight,
-            cryptoCurrency.minConfirms,
-            cryptoCurrency.minCoinbaseConfirms,
-          ),
+          (e) =>
+              !e.isConfirmed(
+                currentHeight,
+                cryptoCurrency.minConfirms,
+                cryptoCurrency.minCoinbaseConfirms,
+              ),
         );
         if (utxos.isEmpty) {
           throw Exception("No confirmed UTXOs found");
@@ -174,32 +173,32 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         }
       }
 
-      final int network = cryptoCurrency.network == CryptoCurrencyNetwork.main
-          ? Network.Mainnet
-          : Network.Testnet;
+      final int network =
+          cryptoCurrency.network == CryptoCurrencyNetwork.main
+              ? Network.Mainnet
+              : Network.Testnet;
 
       final List<
-          ({
-            UTXO utxo,
-            Uint8List scriptPubKey,
-            ({int account, int index, bool change}) addressDerivationData
-          })> inputs = [];
+        ({
+          UTXO utxo,
+          Uint8List scriptPubKey,
+          ({int account, int index, bool change, bool secure})
+          addressDerivationData,
+        })
+      >
+      inputs = [];
 
       for (final utxo in utxosToUse) {
-        final dData = await getDerivationData(
-          utxo.address,
-        );
+        final dData = await getDerivationData(utxo.address);
         final publicKey = cryptoCurrency.addressToPubkey(
           address: utxo.address!,
         );
 
-        inputs.add(
-          (
-            utxo: utxo,
-            scriptPubKey: publicKey,
-            addressDerivationData: dData,
-          ),
-        );
+        inputs.add((
+          utxo: utxo,
+          scriptPubKey: publicKey,
+          addressDerivationData: dData,
+        ));
       }
       await checkChangeAddressForTransactions();
       final changeAddress = await getCurrentChangeAddress();
@@ -221,19 +220,15 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
               utxosRemaining.isNotEmpty) {
             // add extra utxo
             final utxo = utxosRemaining.take(1).first;
-            final dData = await getDerivationData(
-              utxo.address,
-            );
+            final dData = await getDerivationData(utxo.address);
             final publicKey = cryptoCurrency.addressToPubkey(
               address: utxo.address!,
             );
-            inputs.add(
-              (
-                utxo: utxo,
-                scriptPubKey: publicKey,
-                addressDerivationData: dData,
-              ),
-            );
+            inputs.add((
+              utxo: utxo,
+              scriptPubKey: publicKey,
+              addressDerivationData: dData,
+            ));
           } else {
             rethrow;
           }
@@ -246,9 +241,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
   }
 
-  Future<({int account, int index, bool change})> getDerivationData(
-    String? address,
-  ) async {
+  Future<({int account, int index, bool change, bool secure})>
+  getDerivationData(String? address) async {
     if (address == null) {
       throw Exception("Missing address required for FROST signing");
     }
@@ -269,15 +263,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         );
       }
       if (components[1] != 0 && components[1] != 1) {
-        throw Exception(
-          "${components[1]} must be 1 or 0 for change",
-        );
+        throw Exception("${components[1]} must be 1 or 0 for change");
       }
 
       return (
         account: components[0],
         change: components[1] == 1,
         index: components[2],
+        secure: addr.zSafeFrost ?? false,
       );
     } catch (_) {
       rethrow;
@@ -285,15 +278,13 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   Future<
-      ({
-        Pointer<TransactionSignMachineWrapper> machinePtr,
-        String preprocess,
-      })> frostAttemptSignConfig({
-    required String config,
-  }) async {
-    final int network = cryptoCurrency.network == CryptoCurrencyNetwork.main
-        ? Network.Mainnet
-        : Network.Testnet;
+    ({Pointer<TransactionSignMachineWrapper> machinePtr, String preprocess})
+  >
+  frostAttemptSignConfig({required String config}) async {
+    final int network =
+        cryptoCurrency.network == CryptoCurrencyNetwork.main
+            ? Network.Mainnet
+            : Network.Testnet;
     final serializedKeys = await getSerializedKeys();
 
     return Frost.attemptSignConfig(
@@ -312,17 +303,13 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     await _saveMultisigConfig(multisigConfig);
 
     await _updateThreshold(
-      frost.getThresholdFromKeys(
-        serializedKeys: serializedKeys,
-      ),
+      frost.getThresholdFromKeys(serializedKeys: serializedKeys),
     );
 
     final myNameIndex = frost.getParticipantIndexFromKeys(
       serializedKeys: serializedKeys,
     );
-    final participants = Frost.getParticipants(
-      multisigConfig: multisigConfig,
-    );
+    final participants = Frost.getParticipants(multisigConfig: multisigConfig);
     final myName = participants[myNameIndex];
 
     await _updateParticipants(participants);
@@ -337,7 +324,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
   }
 
-  Future<Amount> sweepAllEstimate(int feeRate) async {
+  Future<Amount> sweepAllEstimate(BigInt feeRate) async {
     int available = 0;
     int inputCount = 0;
     final height = await chainHeight;
@@ -367,11 +354,15 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   //   return vSize * (feeRatePerKB / 1000).ceil();
   // }
 
-  Amount _roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount _roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     return Amount(
       rawValue: BigInt.from(
         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
@@ -386,48 +377,26 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   int get isarTransactionVersion => 2;
 
   @override
-  FilterOperation? get changeAddressFilterOperation => FilterGroup.and(
-        [
-          FilterCondition.equalTo(
-            property: r"type",
-            value: info.mainAddressType,
-          ),
-          const FilterCondition.equalTo(
-            property: r"subType",
-            value: AddressSubType.change,
-          ),
-          const FilterCondition.equalTo(
-            property: r"zSafeFrost",
-            value: true,
-          ),
-          const FilterCondition.greaterThan(
-            property: r"derivationIndex",
-            value: 0,
-          ),
-        ],
-      );
+  FilterOperation? get changeAddressFilterOperation => FilterGroup.and([
+    FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.change,
+    ),
+    const FilterCondition.equalTo(property: r"zSafeFrost", value: true),
+    const FilterCondition.greaterThan(property: r"derivationIndex", value: 0),
+  ]);
 
   @override
-  FilterOperation? get receivingAddressFilterOperation => FilterGroup.and(
-        [
-          FilterCondition.equalTo(
-            property: r"type",
-            value: info.mainAddressType,
-          ),
-          const FilterCondition.equalTo(
-            property: r"subType",
-            value: AddressSubType.receiving,
-          ),
-          const FilterCondition.equalTo(
-            property: r"zSafeFrost",
-            value: true,
-          ),
-          const FilterCondition.greaterThan(
-            property: r"derivationIndex",
-            value: 0,
-          ),
-        ],
-      );
+  FilterOperation? get receivingAddressFilterOperation => FilterGroup.and([
+    FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.receiving,
+    ),
+    const FilterCondition.equalTo(property: r"zSafeFrost", value: true),
+    const FilterCondition.greaterThan(property: r"derivationIndex", value: 0),
+  ]);
 
   @override
   Future<void> updateTransactions() async {
@@ -436,14 +405,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         await _fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) => e.value)
-        .toSet();
-    final Set<String> changeAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.change)
-        .map((e) => e.value)
-        .toSet();
+    final Set<String> receivingAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.receiving)
+            .map((e) => e.value)
+            .toSet();
+    final Set<String> changeAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.change)
+            .map((e) => e.value)
+            .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
@@ -451,18 +422,20 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     final currentHeight = await chainHeight;
 
     // Fetch history from ElectrumX.
-    final List<Map<String, dynamic>> allTxHashes =
-        await _fetchHistory(allAddressesSet);
+    final List<Map<String, dynamic>> allTxHashes = await _fetchHistory(
+      allAddressesSet,
+    );
 
     final List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
-      final storedTx = await mainDB.isar.transactionV2s
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .txidEqualTo(txHash["tx_hash"] as String)
-          .findFirst();
+      final storedTx =
+          await mainDB.isar.transactionV2s
+              .where()
+              .walletIdEqualTo(walletId)
+              .filter()
+              .txidEqualTo(txHash["tx_hash"] as String)
+              .findFirst();
 
       if (storedTx == null ||
           !storedTx.isConfirmed(
@@ -590,8 +563,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       TransactionSubType subType = TransactionSubType.none;
       if (outputs.length > 1 && inputs.isNotEmpty) {
         for (int i = 0; i < outputs.length; i++) {
-          final List<String>? scriptChunks =
-              outputs[i].scriptPubKeyAsm?.split(" ");
+          final List<String>? scriptChunks = outputs[i].scriptPubKeyAsm?.split(
+            " ",
+          );
           if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
             final blindedPaymentCode = scriptChunks![1];
             final bytes = blindedPaymentCode.toUint8ListFromHex;
@@ -635,7 +609,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
-        timestamp: txData["blocktime"] as int? ??
+        timestamp:
+            txData["blocktime"] as int? ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),
@@ -698,9 +673,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       final hex = txData.raw!;
 
       final txHash = await electrumXClient.broadcastTransaction(rawTx: hex);
-      Logging.instance.d(
-        "Sent txHash: $txHash",
-      );
+      Logging.instance.d("Sent txHash: $txHash");
 
       // mark utxos as used
       final usedUTXOs = txData.utxos!.map((e) => e.copyWith(used: true));
@@ -724,7 +697,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     final available = info.cachedBalance.spendable;
 
     if (available == amount) {
@@ -787,18 +760,21 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Amount.fromDecimal(
-          fast,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ).raw.toInt(),
-        medium: Amount.fromDecimal(
-          medium,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ).raw.toInt(),
-        slow: Amount.fromDecimal(
-          slow,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ).raw.toInt(),
+        fast:
+            Amount.fromDecimal(
+              fast,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ).raw,
+        medium:
+            Amount.fromDecimal(
+              medium,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ).raw,
+        slow:
+            Amount.fromDecimal(
+              slow,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ).raw,
       );
 
       Logging.instance.i("fetched fees: $feeObject");
@@ -839,21 +815,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     final coin = info.coin;
 
     GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.syncing,
-        walletId,
-        coin,
-      ),
+      WalletSyncStatusChangedEvent(WalletSyncStatus.syncing, walletId, coin),
     );
 
     try {
       await refreshMutex.protect(() async {
         if (!isRescan) {
-          final salt = frost
-              .multisigSalt(
-                multisigConfig: multisigConfig!,
-              )
-              .toHex;
+          final salt =
+              frost.multisigSalt(multisigConfig: multisigConfig!).toHex;
           final knownSalts = _getKnownSalts();
           if (knownSalts.contains(salt)) {
             throw Exception("Known frost multisig salt found!");
@@ -875,20 +844,12 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         const receiveChain = 0;
         const changeChain = 1;
         final List<Future<({int index, List<Address> addresses})>>
-            receiveFutures = [
-          _checkGapsLinearly(
-            serializedKeys,
-            receiveChain,
-            secure: true,
-          ),
+        receiveFutures = [
+          _checkGapsLinearly(serializedKeys, receiveChain, secure: true),
         ];
         final List<Future<({int index, List<Address> addresses})>>
-            changeFutures = [
-          _checkGapsLinearly(
-            serializedKeys,
-            changeChain,
-            secure: true,
-          ),
+        changeFutures = [
+          _checkGapsLinearly(serializedKeys, changeChain, secure: true),
         ];
 
         // io limitations may require running these linearly instead
@@ -949,17 +910,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       });
 
       GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.synced,
-          walletId,
-          coin,
-        ),
+        WalletSyncStatusChangedEvent(WalletSyncStatus.synced, walletId, coin),
       );
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance
-          .f("recoverFromSerializedKeys failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "recoverFromSerializedKeys failed: ",
+        error: e,
+        stackTrace: s,
+      );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
@@ -978,21 +938,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     const changeChain = 1;
 
     final List<Future<({int index, List<Address> addresses})>> receiveFutures =
-        [
-      _checkGapsLinearly(
-        serializedKeys,
-        receiveChain,
-        secure: false,
-      ),
-    ];
+        [_checkGapsLinearly(serializedKeys, receiveChain, secure: false)];
     final List<Future<({int index, List<Address> addresses})>> changeFutures = [
       // for legacy support secure is set to false to see
       // funds received on insecure addresses
-      _checkGapsLinearly(
-        serializedKeys,
-        changeChain,
-        secure: false,
-      ),
+      _checkGapsLinearly(serializedKeys, changeChain, secure: false),
     ];
 
     // io limitations may require running these linearly instead
@@ -1111,10 +1061,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       rethrow;
     }
 
-    await info.updateCachedChainHeight(
-      newHeight: height,
-      isar: mainDB.isar,
-    );
+    await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
   }
 
   @override
@@ -1153,9 +1100,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
-          final utxo = await _parseUTXO(
-            jsonUTXO: fetchedUtxoList[i][j],
-          );
+          final utxo = await _parseUTXO(jsonUTXO: fetchedUtxoList[i][j]);
 
           outputArray.add(utxo);
         }
@@ -1163,8 +1108,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return await mainDB.updateUTXOs(walletId, outputArray);
     } catch (e, s) {
-      Logging.instance
-          .e("Output fetch unsuccessful: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Output fetch unsuccessful: ",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
@@ -1172,13 +1120,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   // =================== Secure storage ========================================
 
   Future<String?> getSerializedKeys() async =>
-      await secureStorageInterface.read(
-        key: "{$walletId}_serializedFROSTKeys",
-      );
+      await secureStorageInterface.read(key: "{$walletId}_serializedFROSTKeys");
 
-  Future<void> _saveSerializedKeys(
-    String keys,
-  ) async {
+  Future<void> _saveSerializedKeys(String keys) async {
     final current = await getSerializedKeys();
 
     if (current == null) {
@@ -1205,18 +1149,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       );
 
   Future<String?> getMultisigConfig() async =>
-      await secureStorageInterface.read(
-        key: "{$walletId}_multisigConfig",
-      );
+      await secureStorageInterface.read(key: "{$walletId}_multisigConfig");
 
   Future<String?> getMultisigConfigPrevGen() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_multisigConfigPrevGen",
       );
 
-  Future<void> _saveMultisigConfig(
-    String multisigConfig,
-  ) async {
+  Future<void> _saveMultisigConfig(String multisigConfig) async {
     final current = await getMultisigConfig();
 
     if (current == null) {
@@ -1248,21 +1188,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
   }
 
-  Future<void> _saveMultisigId(
-    Uint8List id,
-  ) async =>
+  Future<void> _saveMultisigId(Uint8List id) async =>
       await secureStorageInterface.write(
         key: "{$walletId}_multisigIdFROST",
         value: id.toHex,
       );
 
-  Future<String?> _recoveryString() async => await secureStorageInterface.read(
-        key: "{$walletId}_recoveryStringFROST",
-      );
+  Future<String?> _recoveryString() async =>
+      await secureStorageInterface.read(key: "{$walletId}_recoveryStringFROST");
 
-  Future<void> _saveRecoveryString(
-    String recoveryString,
-  ) async =>
+  Future<void> _saveRecoveryString(String recoveryString) async =>
       await secureStorageInterface.write(
         key: "{$walletId}_recoveryStringFROST",
         value: recoveryString,
@@ -1270,11 +1205,12 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
   // =================== DB ====================================================
 
-  List<String> _getKnownSalts() => mainDB.isar.frostWalletInfo
-      .where()
-      .walletIdEqualTo(walletId)
-      .knownSaltsProperty()
-      .findFirstSync()!;
+  List<String> _getKnownSalts() =>
+      mainDB.isar.frostWalletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .knownSaltsProperty()
+          .findFirstSync()!;
 
   Future<void> _updateKnownSalts(List<String> knownSalts) async {
     final info = frostInfo;
@@ -1287,11 +1223,12 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     });
   }
 
-  List<String> _getParticipants() => mainDB.isar.frostWalletInfo
-      .where()
-      .walletIdEqualTo(walletId)
-      .participantsProperty()
-      .findFirstSync()!;
+  List<String> _getParticipants() =>
+      mainDB.isar.frostWalletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .participantsProperty()
+          .findFirstSync()!;
 
   Future<void> _updateParticipants(List<String> participants) async {
     final info = frostInfo;
@@ -1304,11 +1241,12 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     });
   }
 
-  int _getThreshold() => mainDB.isar.frostWalletInfo
-      .where()
-      .walletIdEqualTo(walletId)
-      .thresholdProperty()
-      .findFirstSync()!;
+  int _getThreshold() =>
+      mainDB.isar.frostWalletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .thresholdProperty()
+          .findFirstSync()!;
 
   Future<void> _updateThreshold(int threshold) async {
     final info = frostInfo;
@@ -1321,20 +1259,19 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     });
   }
 
-  String _getMyName() => mainDB.isar.frostWalletInfo
-      .where()
-      .walletIdEqualTo(walletId)
-      .myNameProperty()
-      .findFirstSync()!;
+  String _getMyName() =>
+      mainDB.isar.frostWalletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .myNameProperty()
+          .findFirstSync()!;
 
   Future<void> _updateMyName(String myName) async {
     final info = frostInfo;
 
     await mainDB.isar.writeTxn(() async {
       await mainDB.isar.frostWalletInfo.delete(info.id);
-      await mainDB.isar.frostWalletInfo.put(
-        info.copyWith(myName: myName),
-      );
+      await mainDB.isar.frostWalletInfo.put(info.copyWith(myName: myName));
     });
   }
 
@@ -1356,20 +1293,21 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
   // TODO [prio=low]: Use ElectrumXInterface method.
   Future<void> _updateElectrumX() async {
-    final failovers = nodeService
-        .failoverNodesFor(currency: cryptoCurrency)
-        .map(
-          (e) => ElectrumXNode(
-            address: e.host,
-            port: e.port,
-            name: e.name,
-            id: e.id,
-            useSSL: e.useSSL,
-            torEnabled: e.torEnabled,
-            clearnetEnabled: e.clearnetEnabled,
-          ),
-        )
-        .toList();
+    final failovers =
+        nodeService
+            .failoverNodesFor(currency: cryptoCurrency)
+            .map(
+              (e) => ElectrumXNode(
+                address: e.host,
+                port: e.port,
+                name: e.name,
+                id: e.id,
+                useSSL: e.useSSL,
+                torEnabled: e.torEnabled,
+                clearnetEnabled: e.clearnetEnabled,
+              ),
+            )
+            .toList();
 
     final newNode = await _getCurrentElectrumXNode();
     try {
@@ -1409,9 +1347,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     return false;
   }
 
-  Future<UTXO> _parseUTXO({
-    required Map<String, dynamic> jsonUTXO,
-  }) async {
+  Future<UTXO> _parseUTXO({required Map<String, dynamic> jsonUTXO}) async {
     final txn = await electrumXCachedClient.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
       verbose: true,
@@ -1430,7 +1366,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         // scriptPubKey = output["scriptPubKey"]?["hex"] as String?;
         utxoOwnerAddress =
             output["scriptPubKey"]?["addresses"]?[0] as String? ??
-                output["scriptPubKey"]?["address"] as String?;
+            output["scriptPubKey"]?["address"] as String?;
       }
     }
 
@@ -1476,9 +1412,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         await checkChangeAddressForTransactions();
       }
     } catch (e, s) {
-      Logging.instance
-          .i("Exception rethrown from _checkChangeAddressForTransactions"
-              "($cryptoCurrency): $e\n$s");
+      Logging.instance.i(
+        "Exception rethrown from _checkChangeAddressForTransactions"
+        "($cryptoCurrency): $e\n$s",
+      );
       rethrow;
     }
   }
@@ -1534,9 +1471,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   @override
   Future<void> generateNewChangeAddress() async {
     final current = await getCurrentChangeAddress();
-    int index = current == null
-        ? kFrostSecureStartingIndex
-        : current.derivationIndex + 1;
+    int index =
+        current == null
+            ? kFrostSecureStartingIndex
+            : current.derivationIndex + 1;
     const chain = 1; // change address
 
     final serializedKeys = (await getSerializedKeys())!;
@@ -1567,9 +1505,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   @override
   Future<void> generateNewReceivingAddress() async {
     final current = await getCurrentReceivingAddress();
-    int index = current == null
-        ? kFrostSecureStartingIndex
-        : current.derivationIndex + 1;
+    int index =
+        current == null
+            ? kFrostSecureStartingIndex
+            : current.derivationIndex + 1;
     const chain = 0; // receiving address
 
     final serializedKeys = (await getSerializedKeys())!;
@@ -1649,8 +1588,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       }
     }
 
-    nextReceivingAddresses
-        .removeWhere((e) => e.derivationIndex > activeReceiveIndex);
+    nextReceivingAddresses.removeWhere(
+      (e) => e.derivationIndex > activeReceiveIndex,
+    );
     if (nextReceivingAddresses.isNotEmpty) {
       await mainDB.updateOrPutAddresses(nextReceivingAddresses);
       await info.updateReceivingAddress(
@@ -1658,8 +1598,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         isar: mainDB.isar,
       );
     }
-    nextChangeAddresses
-        .removeWhere((e) => e.derivationIndex > activeChangeIndex);
+    nextChangeAddresses.removeWhere(
+      (e) => e.derivationIndex > activeChangeIndex,
+    );
     if (nextChangeAddresses.isNotEmpty) {
       await mainDB.updateOrPutAddresses(nextChangeAddresses);
     }
@@ -1707,14 +1648,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       account: account,
       change: change == 1,
       index: index,
+      secure: secure,
     );
 
     final keys = frost.deserializeKeys(keys: serializedKeys);
 
     final addressString = frost.addressForKeys(
-      network: cryptoCurrency.network == CryptoCurrencyNetwork.main
-          ? Network.Mainnet
-          : Network.Testnet,
+      network:
+          cryptoCurrency.network == CryptoCurrencyNetwork.main
+              ? Network.Mainnet
+              : Network.Testnet,
       keys: keys,
       addressDerivationData: addressDerivationData,
       secure: secure,
@@ -1726,9 +1669,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       publicKey: cryptoCurrency.addressToPubkey(address: addressString),
       derivationIndex: index,
       derivationPath: DerivationPath()..value = "$account/$change/$index",
-      subType: change == 0
-          ? AddressSubType.receiving
-          : change == 1
+      subType:
+          change == 0
+              ? AddressSubType.receiving
+              : change == 1
               ? AddressSubType.change
               : AddressSubType.unknown,
       type: AddressType.frostMS,
@@ -1770,9 +1714,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       }
 
       // get address tx count
-      final count = await _fetchTxCount(
-        address: address,
-      );
+      final count = await _fetchTxCount(address: address);
 
       // check and add appropriate addresses
       if (count > 0) {
@@ -1792,25 +1734,24 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
   Future<int> _fetchTxCount({required Address address}) async {
     final transactions = await electrumXClient.getHistory(
-      scripthash: cryptoCurrency.addressToScriptHash(
-        address: address.value,
-      ),
+      scripthash: cryptoCurrency.addressToScriptHash(address: address.value),
     );
     return transactions.length;
   }
 
   Future<List<Address>> _fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
+    final allAddresses =
+        await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .not()
+            .group(
+              (q) => q
+                  .typeEqualTo(AddressType.nonWallet)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.nonWallet),
+            )
+            .findAll();
     return allAddresses;
   }
 
@@ -1839,8 +1780,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance
-          .e("$runtimeType._fetchHistory: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType._fetchHistory: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

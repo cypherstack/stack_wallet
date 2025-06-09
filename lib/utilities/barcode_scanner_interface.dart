@@ -8,7 +8,16 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import '../widgets/desktop/primary_button.dart';
+import '../widgets/desktop/secondary_button.dart';
+import '../widgets/stack_dialog.dart';
+import 'logger.dart';
 
 abstract class BarcodeScannerInterface {
   Future<ScanResult> scan({ScanOptions options = const ScanOptions()});
@@ -24,6 +33,59 @@ class BarcodeScannerWrapper implements BarcodeScannerInterface {
       return result;
     } catch (e) {
       rethrow;
+    }
+  }
+}
+
+/// Check if cam perms permanently denied on mobile and open app settings
+Future<void> checkCamPermDeniedMobileAndOpenAppSettings(
+  BuildContext context, {
+  required Logging logging,
+}) async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    final status = await Permission.camera.status;
+    final androidShow =
+        Platform.isAndroid && status == PermissionStatus.permanentlyDenied;
+    final iosShow = Platform.isIOS && status == PermissionStatus.denied;
+
+    if ((iosShow || androidShow) && context.mounted) {
+      final trySettings = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => StackDialog(
+              title: "Camera permissions required",
+              message: "Open settings?",
+              leftButton: SecondaryButton(
+                label: "Cancel",
+                onPressed: Navigator.of(context).pop,
+              ),
+              rightButton: PrimaryButton(
+                label: "Continue",
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ),
+      );
+
+      if (trySettings == true) {
+        final success = await openAppSettings();
+        if (!success) {
+          logging.e("Failed to open app settings");
+          if (context.mounted) {
+            await showDialog<bool>(
+              context: context,
+              builder:
+                  (context) => StackDialog(
+                    title: "Could not open app settings",
+                    message: "You will need manually go find your app settings",
+                    rightButton: PrimaryButton(
+                      label: "Ok",
+                      onPressed: Navigator.of(context).pop,
+                    ),
+                  ),
+            );
+          }
+        }
+      }
     }
   }
 }

@@ -52,8 +52,8 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-      ];
+    DerivePathType.bip44,
+  ];
 
   @override
   String constructDerivePath({
@@ -89,10 +89,8 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(1000000),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(1000000), fractionDigits: fractionDigits);
 
   @override
   String get genesisHash {
@@ -107,10 +105,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({
-    coinlib.Address address,
-    AddressType addressType,
-  }) getAddressForPublicKey({
+  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
     required coinlib.ECPublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
@@ -176,7 +171,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -191,6 +186,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

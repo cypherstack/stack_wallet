@@ -12,6 +12,7 @@ export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
 export 'coins/epiccash.dart';
 export 'coins/ethereum.dart';
+export 'coins/fact0rn.dart';
 export 'coins/firo.dart';
 export 'coins/litecoin.dart';
 export 'coins/monero.dart';
@@ -19,10 +20,12 @@ export 'coins/namecoin.dart';
 export 'coins/nano.dart';
 export 'coins/particl.dart';
 export 'coins/peercoin.dart';
+export 'coins/salvium.dart';
 export 'coins/solana.dart';
 export 'coins/stellar.dart';
 export 'coins/tezos.dart';
 export 'coins/wownero.dart';
+export 'coins/xelis.dart';
 
 enum CryptoCurrencyNetwork {
   main,
@@ -67,7 +70,7 @@ abstract class CryptoCurrency {
 
   bool validateAddress(String address);
 
-  NodeModel get defaultNode;
+  NodeModel defaultNode({required bool isPrimary});
 
   int get defaultSeedPhraseLength;
   int get fractionDigits;
