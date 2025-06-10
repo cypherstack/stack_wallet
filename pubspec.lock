@@ -1111,8 +1111,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9dc883f4432c8db4ec44cb8cc836963295d63952"
-      resolved-ref: "9dc883f4432c8db4ec44cb8cc836963295d63952"
+      ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
+      resolved-ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
