@@ -981,6 +981,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.2.0"
+  flutter_mwebd:
+    dependency: "direct main"
+    description:
+      name: flutter_mwebd
+      sha256: b390f5c99aaddec5d4c785c6c3d96b786b4eb333e5e1fd0051079cec1aacf40a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-pre.1"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -1132,6 +1140,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.5"
+  google_identity_services_web:
+    dependency: transitive
+    description:
+      name: google_identity_services_web
+      sha256: "5d187c46dc59e02646e10fe82665fc3884a9b71bc1c90c2b8b749316d33ee454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.3+1"
+  googleapis_auth:
+    dependency: transitive
+    description:
+      name: googleapis_auth
+      sha256: b81fe352cc4a330b3710d2b7ad258d9bcef6f909bb759b306bf42973a7d046db
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   graphs:
     dependency: transitive
     description:
@@ -1140,6 +1164,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  grpc:
+    dependency: transitive
+    description:
+      name: grpc
+      sha256: "30e1edae6846b163a64f6d8716e3443980fe1f7d2d1f086f011d24ea186f2582"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.4"
   hex:
     dependency: "direct main"
     description:
@@ -1196,6 +1228,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.6"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "382d3aefc5bd6dc68c6b892d7664f29b5beb3251611ae946a98d35158a82bbfa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -1522,6 +1562,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  mweb_client:
+    dependency: "direct main"
+    description:
+      name: mweb_client
+      sha256: "8c9498adaaa1166a49ee114b03498268aff176778eeb311ed049fd22657feacb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   namecoin:
     dependency: "direct main"
     description:
@@ -1767,10 +1815,10 @@ packages:
     dependency: transitive
     description:
       name: protobuf
-      sha256: "68645b24e0716782e58948f8467fd42a880f255096a821f9e7d0ec625b00c84d"
+      sha256: "579fe5557eae58e3adca2e999e38f02441d8aa908703854a9e0a0f47fa857731"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "4.1.0"
   pub_semver:
     dependency: transitive
     description:
@@ -2513,5 +2561,5 @@ packages:
     source: hosted
     version: "0.2.3"
 sdks:
-  dart: ">=3.7.0 <4.0.0"
+  dart: ">=3.7.2 <4.0.0"
   flutter: ">=3.29.0"
