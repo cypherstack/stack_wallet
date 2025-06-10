@@ -43,6 +43,7 @@ import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
@@ -420,12 +421,20 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await showDialog<String>(
+        context: context,
+        builder: (context) => const QrCodeScannerDialog(),
+      );
 
-      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
+      if (qrResult == null) {
+        Logging.instance.w("Qr scanning cancelled");
+        return;
+      }
+
+      Logging.instance.d("qrResult content: $qrResult");
 
       final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent,
+        qrResult,
         logging: Logging.instance,
       );
 
@@ -464,7 +473,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
         // now check for non standard encoded basic address
       } else {
-        _address = qrResult.rawContent.split("\n").first.trim();
+        _address = qrResult.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _updatePreviewButtonState(_address, _amountToSend);

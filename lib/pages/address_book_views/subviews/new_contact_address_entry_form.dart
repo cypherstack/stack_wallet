@@ -70,7 +70,7 @@ class _NewContactAddressEntryFormState
       //     .read(shouldShowLockscreenOnResumeStateProvider
       //         .state)
       //     .state = false;
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),

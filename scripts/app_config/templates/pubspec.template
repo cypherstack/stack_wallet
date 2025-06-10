@@ -122,7 +122,8 @@ dependencies:
   event_bus: ^2.0.0
   uuid: ^3.0.5
   crypto: ^3.0.2
-  barcode_scan2: ^4.5.0
+  mobile_scanner: ^7.0.1
+  image: ^4.3.0
   wakelock_plus: ^1.2.8
   intl: ^0.17.0
   devicelocale:
