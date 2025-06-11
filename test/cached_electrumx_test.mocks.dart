@@ -1262,6 +1262,21 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
       );
 
   @override
+  bool get useMweb => (super.noSuchMethod(
+        Invocation.getter(#useMweb),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set useMweb(bool? useMweb) => super.noSuchMethod(
+        Invocation.setter(
+          #useMweb,
+          useMweb,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,

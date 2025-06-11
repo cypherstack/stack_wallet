@@ -44,13 +44,35 @@ class SparkNames extends Table {
   Set<Column> get primaryKey => {name};
 }
 
-@DriftDatabase(tables: [SparkNames])
+class MwebUtxos extends Table {
+  TextColumn get outputId => text()();
+  TextColumn get address => text()();
+  IntColumn get value => integer()();
+  IntColumn get height => integer()();
+  IntColumn get blockTime => integer()();
+  BoolColumn get blocked => boolean()();
+  BoolColumn get used => boolean()();
+
+  @override
+  Set<Column> get primaryKey => {outputId};
+}
+
+@DriftDatabase(tables: [SparkNames, MwebUtxos])
 final class WalletDatabase extends _$WalletDatabase {
   WalletDatabase._(String walletId, [QueryExecutor? executor])
     : super(executor ?? _openConnection(walletId));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from == 1 && to == 2) {
+        await m.createTable(mwebUtxos);
+      }
+    },
+  );
 
   static QueryExecutor _openConnection(String walletId) {
     return driftDatabase(

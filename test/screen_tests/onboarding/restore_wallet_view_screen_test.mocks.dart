@@ -3,15 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
+import 'dart:async' as _i4;
 import 'dart:ui' as _i7;
 
-import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
+import 'package:flutter/material.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/node_model.dart' as _i9;
 import 'package:stackwallet/services/node_service.dart' as _i8;
 import 'package:stackwallet/services/wallets_service.dart' as _i6;
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i4;
+import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i2;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i3;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
@@ -55,29 +55,28 @@ class _FakeSecureStorageInterface_1 extends _i1.SmartFake
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockBarcodeScannerWrapper extends _i1.Mock
-    implements _i4.BarcodeScannerWrapper {
+    implements _i2.BarcodeScannerWrapper {
   MockBarcodeScannerWrapper() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.ScanResult> scan(
-          {_i2.ScanOptions? options = const _i2.ScanOptions()}) =>
+  _i4.Future<_i2.ScanResult> scan({required _i5.BuildContext? context}) =>
       (super.noSuchMethod(
         Invocation.method(
           #scan,
           [],
-          {#options: options},
+          {#context: context},
         ),
-        returnValue: _i5.Future<_i2.ScanResult>.value(_FakeScanResult_0(
+        returnValue: _i4.Future<_i2.ScanResult>.value(_FakeScanResult_0(
           this,
           Invocation.method(
             #scan,
             [],
-            {#options: options},
+            {#context: context},
           ),
         )),
-      ) as _i5.Future<_i2.ScanResult>);
+      ) as _i4.Future<_i2.ScanResult>);
 }
 
 /// A class which mocks [WalletsService].
@@ -89,12 +88,12 @@ class MockWalletsService extends _i1.Mock implements _i6.WalletsService {
   }
 
   @override
-  _i5.Future<Map<String, _i6.WalletInfo>> get walletNames =>
+  _i4.Future<Map<String, _i6.WalletInfo>> get walletNames =>
       (super.noSuchMethod(
         Invocation.getter(#walletNames),
-        returnValue: _i5.Future<Map<String, _i6.WalletInfo>>.value(
+        returnValue: _i4.Future<Map<String, _i6.WalletInfo>>.value(
             <String, _i6.WalletInfo>{}),
-      ) as _i5.Future<Map<String, _i6.WalletInfo>>);
+      ) as _i4.Future<Map<String, _i6.WalletInfo>>);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
@@ -175,17 +174,17 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
       ) as bool);
 
   @override
-  _i5.Future<void> updateDefaults() => (super.noSuchMethod(
+  _i4.Future<void> updateDefaults() => (super.noSuchMethod(
         Invocation.method(
           #updateDefaults,
           [],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> setPrimaryNodeFor({
+  _i4.Future<void> setPrimaryNodeFor({
     required _i10.CryptoCurrency? coin,
     required _i9.NodeModel? node,
     bool? shouldNotifyListeners = false,
@@ -200,9 +199,9 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
             #shouldNotifyListeners: shouldNotifyListeners,
           },
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
   _i9.NodeModel? getPrimaryNodeFor({required _i10.CryptoCurrency? currency}) =>
@@ -243,26 +242,26 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
       ) as List<_i9.NodeModel>);
 
   @override
-  _i5.Future<void> save(
+  _i4.Future<void> save(
     _i9.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #add,
+          #save,
           [
             node,
             password,
             shouldNotifyListeners,
           ],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> delete(
+  _i4.Future<void> delete(
     String? id,
     bool? shouldNotifyListeners,
   ) =>
@@ -274,12 +273,12 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
             shouldNotifyListeners,
           ],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> setEnabledState(
+  _i4.Future<void> setEnabledState(
     String? id,
     bool? enabled,
     bool? shouldNotifyListeners,
@@ -293,38 +292,19 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
             shouldNotifyListeners,
           ],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> edit(
-    _i9.NodeModel? editedNode,
-    String? password,
-    bool? shouldNotifyListeners,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #edit,
-          [
-            editedNode,
-            password,
-            shouldNotifyListeners,
-          ],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-
-  @override
-  _i5.Future<void> updateCommunityNodes() => (super.noSuchMethod(
+  _i4.Future<void> updateCommunityNodes() => (super.noSuchMethod(
         Invocation.method(
           #updateCommunityNodes,
           [],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
   void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(

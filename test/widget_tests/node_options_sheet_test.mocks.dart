@@ -781,6 +781,21 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       );
 
   @override
+  bool get useMweb => (super.noSuchMethod(
+        Invocation.getter(#useMweb),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set useMweb(bool? useMweb) => super.noSuchMethod(
+        Invocation.setter(
+          #useMweb,
+          useMweb,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -1067,7 +1082,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #add,
+          #save,
           [
             node,
             password,
@@ -1107,25 +1122,6 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           [
             id,
             enabled,
-            shouldNotifyListeners,
-          ],
-        ),
-        returnValue: _i10.Future<void>.value(),
-        returnValueForMissingStub: _i10.Future<void>.value(),
-      ) as _i10.Future<void>);
-
-  @override
-  _i10.Future<void> edit(
-    _i19.NodeModel? editedNode,
-    String? password,
-    bool? shouldNotifyListeners,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #edit,
-          [
-            editedNode,
-            password,
             shouldNotifyListeners,
           ],
         ),

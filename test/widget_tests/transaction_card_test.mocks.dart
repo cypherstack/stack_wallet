@@ -879,6 +879,21 @@ class MockPrefs extends _i1.Mock implements _i13.Prefs {
       );
 
   @override
+  bool get useMweb => (super.noSuchMethod(
+        Invocation.getter(#useMweb),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set useMweb(bool? useMweb) => super.noSuchMethod(
+        Invocation.setter(
+          #useMweb,
+          useMweb,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -1976,17 +1991,6 @@ class MockMainDB extends _i1.Mock implements _i3.MainDB {
         returnValue: _i10.Future<void>.value(),
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
-
-  @override
-  _i10.Future<int?> getHighestUsedMintIndex({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getHighestUsedMintIndex,
-          [],
-          {#walletId: walletId},
-        ),
-        returnValue: _i10.Future<int?>.value(),
-      ) as _i10.Future<int?>);
 }
 
 /// A class which mocks [IThemeAssets].
