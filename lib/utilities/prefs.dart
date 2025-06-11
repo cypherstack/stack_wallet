@@ -16,6 +16,7 @@ import 'package:uuid/uuid.dart';
 
 import '../app_config.dart';
 import '../db/hive/db.dart';
+import '../services/event_bus/events/global/mweb_status_changed_event.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -1346,5 +1347,38 @@ class Prefs extends ChangeNotifier {
       // default to warning
       return Level.warning;
     }
+  }
+
+  // enabled mweb
+
+  bool _useMweb = false;
+
+  bool get useMweb => _useMweb;
+
+  set useMweb(bool useMweb) {
+    if (_useMweb != useMweb) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "useMweb",
+        value: useMweb,
+      );
+      _useMweb = useMweb;
+      notifyListeners();
+      GlobalEventBus.instance.fire(
+        MwebPreferenceChangedEvent(
+          status: useMweb ? MwebStatus.enabled : MwebStatus.disabled,
+          message: "useMweb updated in prefs",
+        ),
+      );
+    }
+  }
+
+  Future<bool> _getUseMweb() async {
+    return await DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "useMweb",
+            )
+            as bool? ??
+        false;
   }
 }

@@ -139,6 +139,15 @@ abstract class StackFileSystem {
     }
   }
 
+  static Future<Directory> applicationMwebdDirectory(String network) async {
+    final root = await applicationRootDirectory();
+    final dir = Directory(path.join(root.path, "mwebd", network));
+    if (!dir.existsSync()) {
+      await dir.create();
+    }
+    return dir;
+  }
+
   static Future<Directory> applicationFiroCacheSQLiteDirectory() async {
     final root = await applicationRootDirectory();
     if (_createSubDirs) {
