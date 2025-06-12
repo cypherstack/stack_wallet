@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -55,6 +56,27 @@ class MwebUtxos extends Table {
 
   @override
   Set<Column> get primaryKey => {outputId};
+}
+
+extension MwebUtxoExt on MwebUtxo {
+  int getConfirmations(int currentChainHeight) {
+    if (blockTime <= 0) return 0;
+    if (height <= 0) return 0;
+    return math.max(0, currentChainHeight - (height - 1));
+  }
+
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms, {
+    int? overrideMinConfirms,
+  }) {
+    final confirmations = getConfirmations(currentChainHeight);
+
+    if (overrideMinConfirms != null) {
+      return confirmations >= overrideMinConfirms;
+    }
+    return confirmations >= minimumConfirms;
+  }
 }
 
 @DriftDatabase(tables: [SparkNames, MwebUtxos])

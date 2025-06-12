@@ -69,7 +69,8 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     }
   }
 
-  late final DSBController _switchController;
+  late final DSBController _switchControllerAddressReuse;
+  late final DSBController _switchControllerMwebToggle;
 
   bool _switchReuseAddressToggledLock = false; // Mutex.
   Future<void> _switchReuseAddressToggled() async {
@@ -79,7 +80,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     _switchReuseAddressToggledLock = true; // Lock mutex.
 
     try {
-      if (_switchController.isOn?.call() != true) {
+      if (_switchControllerAddressReuse.isOn?.call() != true) {
         final canContinue = await showDialog<bool?>(
           context: context,
           builder: (context) {
@@ -168,16 +169,123 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           isar: ref.read(mainDBProvider).isar,
         );
 
-    if (_switchController.isOn != null) {
-      if (_switchController.isOn!.call() != shouldReuse) {
-        _switchController.activate?.call();
+    if (_switchControllerAddressReuse.isOn != null) {
+      if (_switchControllerAddressReuse.isOn!.call() != shouldReuse) {
+        _switchControllerAddressReuse.activate?.call();
+      }
+    }
+  }
+
+  bool _switchMwebToggleToggledLock = false; // Mutex.
+  Future<void> _switchMwebToggleToggled() async {
+    if (_switchMwebToggleToggledLock) {
+      return;
+    }
+    _switchMwebToggleToggledLock = true; // Lock mutex.
+
+    try {
+      if (_switchControllerMwebToggle.isOn?.call() != true) {
+        final canContinue = await showDialog<bool?>(
+          context: context,
+          builder: (context) {
+            return DesktopDialog(
+              maxWidth: 576,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32),
+                        child: Text(
+                          "Warning!",
+                          style: STextStyles.desktopH3(context),
+                        ),
+                      ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 8,
+                      left: 32,
+                      right: 32,
+                      bottom: 32,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "TODO warning about extra data downloaded and initial sync/scan time",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 43),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SecondaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                onPressed: () {
+                                  Navigator.of(context).pop(false);
+                                },
+                                label: "Cancel",
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: PrimaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                onPressed: () {
+                                  Navigator.of(context).pop(true);
+                                },
+                                label: "Continue",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+
+        if (canContinue == true) {
+          await _updateMwebToggle(true);
+
+          unawaited(ref.read(pWallets).getWallet(widget.walletId).init());
+        }
+      } else {
+        await _updateMwebToggle(false);
+      }
+    } finally {
+      // ensure _switchMwebToggleToggledLock is set to false no matter what.
+      _switchMwebToggleToggledLock = false;
+    }
+  }
+
+  Future<void> _updateMwebToggle(bool shouldReuse) async {
+    await ref
+        .read(pWalletInfo(widget.walletId))
+        .updateOtherData(
+          newEntries: {WalletInfoKeys.mwebEnabled: shouldReuse},
+          isar: ref.read(mainDBProvider).isar,
+        );
+
+    if (_switchControllerMwebToggle.isOn != null) {
+      if (_switchControllerMwebToggle.isOn!.call() != shouldReuse) {
+        _switchControllerMwebToggle.activate?.call();
       }
     }
   }
 
   @override
   void initState() {
-    _switchController = DSBController();
+    _switchControllerAddressReuse = DSBController();
+    _switchControllerMwebToggle = DSBController();
     super.initState();
   }
 
@@ -281,7 +389,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                     )[WalletInfoKeys.reuseAddress]
                                     as bool? ??
                                 false,
-                            controller: _switchController,
+                            controller: _switchControllerAddressReuse,
                           ),
                         ),
                       ),
@@ -291,6 +399,43 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                         children: [
                           Text(
                             "Reuse receiving address",
+                            style: STextStyles.w600_20(context),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+
+              case WalletFeature.enableMweb:
+                return _MoreFeaturesItemBase(
+                  onPressed: _switchMwebToggleToggled,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 3),
+                      SizedBox(
+                        height: 20,
+                        width: 40,
+                        child: IgnorePointer(
+                          child: DraggableSwitchButton(
+                            isOn:
+                                ref.watch(
+                                      pWalletInfo(
+                                        widget.walletId,
+                                      ).select((value) => value.otherData),
+                                    )[WalletInfoKeys.mwebEnabled]
+                                    as bool? ??
+                                false,
+                            controller: _switchControllerMwebToggle,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Enable MWEB",
                             style: STextStyles.w600_20(context),
                           ),
                         ],

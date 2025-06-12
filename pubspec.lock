@@ -884,7 +884,7 @@ packages:
     source: git
     version: "8.3.1"
   fixnum:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: fixnum
       sha256: b6dc7065e46c974bc7c5f143080a6764ec7a4be6da1285ececdc37be96de53be
@@ -1566,10 +1566,10 @@ packages:
     dependency: "direct main"
     description:
       name: mweb_client
-      sha256: "8c9498adaaa1166a49ee114b03498268aff176778eeb311ed049fd22657feacb"
+      sha256: "263ba560dab7e63a1d03875d455a19cc4a1ab9720786cd9d6ffcc42127d06732"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.2.0"
   namecoin:
     dependency: "direct main"
     description:

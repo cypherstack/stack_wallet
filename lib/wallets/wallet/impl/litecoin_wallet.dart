@@ -53,6 +53,8 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
             .not()
             .group(
               (q) => q
+                  .typeEqualTo(AddressType.mweb)
+                  .or()
                   .typeEqualTo(AddressType.nonWallet)
                   .or()
                   .subTypeEqualTo(AddressSubType.nonWallet),

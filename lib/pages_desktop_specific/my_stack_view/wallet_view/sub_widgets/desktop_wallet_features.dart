@@ -44,6 +44,7 @@ import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -59,6 +60,7 @@ import '../../../cashfusion/desktop_cashfusion_view.dart';
 import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
+import '../../../mweb_utxos_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
 import '../desktop_wallet_view.dart';
@@ -74,6 +76,7 @@ enum WalletFeature {
     "Control, freeze, and utilize outputs at your discretion",
   ),
   sparkCoins("Spark coins", "View wallet spark coins"),
+  mwebUtxos("MWEB outputs", "View wallet MWEB outputs"),
   ordinals("Ordinals", "View and control your ordinals in ${AppConfig.prefix}"),
   monkey("MonKey", "Generate Banano MonKey"),
   fusion("Fusion", "Decentralized mixing protocol"),
@@ -84,7 +87,8 @@ enum WalletFeature {
   // special cases
   clearSparkCache("", ""),
   rbf("", ""),
-  reuseAddress("", "");
+  reuseAddress("", ""),
+  enableMweb("", "");
 
   final String label;
   final String description;
@@ -136,6 +140,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     Navigator.of(
       context,
     ).pushNamed(SparkCoinsView.routeName, arguments: widget.walletId);
+  }
+
+  void _onMwebUtxosPressed() {
+    Navigator.of(
+      context,
+    ).pushNamed(MwebUtxosView.routeName, arguments: widget.walletId);
   }
 
   Future<void> _onAnonymizeAllPressed() async {
@@ -413,6 +423,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           _onSparkCoinsPressed,
         ),
 
+      if (!isViewOnly && wallet is MwebInterface)
+        (
+          WalletFeature.mwebUtxos,
+          Assets.svg.coinControl.gamePad,
+          _onMwebUtxosPressed,
+        ),
+
       if (!isViewOnly && wallet is PaynymInterface)
         (WalletFeature.paynym, Assets.svg.robotHead, _onPaynymPressed),
 
@@ -461,6 +478,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         wallet.isViewOnly &&
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
+    final showMwebOption = wallet is MwebInterface && !wallet.isViewOnly;
+
     final extraOptions = [
       if (wallet is SparkInterface && !isViewOnly)
         (WalletFeature.clearSparkCache, Assets.svg.key, () => ()),
@@ -469,6 +488,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (!isViewOnlyNoAddressGen)
         (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
+
+      if (showMwebOption) (WalletFeature.enableMweb, Assets.svg.key, () => ()),
     ];
 
     return StaticOverflowRow(

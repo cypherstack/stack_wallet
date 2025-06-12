@@ -3,6 +3,7 @@ import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
+import '../../db/drift/database.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
@@ -82,6 +83,11 @@ class TxData {
   // Namecoin Name related
   final NameOpState? opNameState;
 
+  // MWEB
+  final bool isMweb;
+  final Set<MwebUtxo>? mwebUtxos;
+  final List<MwebUtxo>? usedMwebUtxos;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -116,6 +122,9 @@ class TxData {
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
     this.sparkNameInfo,
+    this.isMweb = false,
+    this.mwebUtxos,
+    this.usedMwebUtxos,
   });
 
   Amount? get amount {
@@ -263,6 +272,9 @@ class TxData {
       int validBlocks,
     })?
     sparkNameInfo,
+    bool? isMweb,
+    Set<MwebUtxo>? mwebUtxos,
+    List<MwebUtxo>? usedMwebUtxos,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -300,6 +312,9 @@ class TxData {
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
+      isMweb: isMweb ?? this.isMweb,
+      mwebUtxos: mwebUtxos ?? this.mwebUtxos,
+      usedMwebUtxos: usedMwebUtxos ?? this.usedMwebUtxos,
     );
   }
 
@@ -338,5 +353,8 @@ class TxData {
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
+      'isMweb: $isMweb, '
+      'mwebUtxos: $mwebUtxos, '
+      'usedMwebUtxos: $usedMwebUtxos, '
       '}';
 }

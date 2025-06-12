@@ -143,7 +143,7 @@ abstract class StackFileSystem {
     final root = await applicationRootDirectory();
     final dir = Directory(path.join(root.path, "mwebd", network));
     if (!dir.existsSync()) {
-      await dir.create();
+      await dir.create(recursive: true);
     }
     return dir;
   }
