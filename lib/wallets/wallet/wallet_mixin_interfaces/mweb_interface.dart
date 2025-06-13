@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:isar/isar.dart';
+import 'package:meta/meta.dart';
 import 'package:mweb_client/mweb_client.dart';
 
 import '../../../db/drift/database.dart';
 import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -67,7 +71,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           cryptoCurrency.network,
         );
 
-        Logging.instance.i("_polling mwebd status: $status");
+        Logging.instance.t(
+          "$walletId ${info.name} _polling mwebd status: $status",
+        );
 
         if (status == null) {
           throw Exception(
@@ -115,22 +121,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
           syncStatus = WalletSyncStatus.syncing;
         } else {
-          final walletMwebScanHeight =
-              info.otherData[WalletInfoKeys.mwebScanHeight] as int? ??
-              info.restoreHeight;
-
-          if (status.mwebUtxosHeight > walletMwebScanHeight) {
-            // TODO: check utxos and transactions?
-
-            // then
-            await info.updateOtherData(
-              newEntries: {
-                WalletInfoKeys.mwebScanHeight: status.mwebUtxosHeight,
-              },
-              isar: mainDB.isar,
-            );
-          }
-
           syncStatus = WalletSyncStatus.synced;
         }
 
@@ -152,21 +142,29 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     });
   }
 
+  Future<void> _stopUpdateMwebUtxos() async =>
+      await _mwebUtxoSubscription?.cancel();
   Future<void> _startUpdateMwebUtxos() async {
+    await _stopUpdateMwebUtxos();
+
     final client = await _client;
 
     Logging.instance.i("info.restoreHeight: ${info.restoreHeight}");
-    final fromHeight = info.restoreHeight;
+    Logging.instance.i(
+      "info.otherData[WalletInfoKeys.mwebScanHeight]: ${info.otherData[WalletInfoKeys.mwebScanHeight]}",
+    );
+    final fromHeight =
+        info.otherData[WalletInfoKeys.mwebScanHeight] as int? ??
+        info.restoreHeight;
 
     final request = UtxosRequest(
       fromHeight: fromHeight,
       scanSecret: await _scanSecret,
     );
 
-    await _mwebUtxoSubscription?.cancel();
     final db = Drift.get(walletId);
     _mwebUtxoSubscription = (await client.utxos(request)).listen((utxo) async {
-      Logging.instance.i(
+      Logging.instance.t(
         "Found UTXO in stream: Utxo("
         "height: ${utxo.height}, "
         "value: ${utxo.value}, "
@@ -198,6 +196,50 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
                   ),
                 );
           });
+
+          // TODO get real txid one day
+          final fakeTxid = "mweb_outputId_${utxo.outputId}";
+
+          final tx = TransactionV2(
+            walletId: walletId,
+            blockHash: null, // ??
+            hash: "",
+            txid: fakeTxid,
+            timestamp: utxo.blockTime,
+            height: utxo.height,
+            inputs: [],
+            outputs: [
+              OutputV2.isarCantDoRequiredInDefaultConstructor(
+                scriptPubKeyHex: "",
+                valueStringSats: utxo.value.toString(),
+                addresses: [utxo.address],
+                walletOwns: true,
+              ),
+            ],
+            version: 2, // probably
+            type: TransactionType.incoming,
+            subType: TransactionSubType.mweb,
+            otherData: jsonEncode({
+              TxV2OdKeys.overrideFee:
+                  Amount(
+                    rawValue:
+                        BigInt
+                            .zero, // TODO fill in correctly when we have a real txid
+                    fractionDigits: cryptoCurrency.fractionDigits,
+                  ).toJsonString(),
+            }),
+          );
+
+          await mainDB.updateOrPutTransactionV2s([tx]);
+
+          await updateBalance(mwebOnly: true);
+
+          if (utxo.height > fromHeight) {
+            await info.updateOtherData(
+              newEntries: {WalletInfoKeys.mwebScanHeight: utxo.height},
+              isar: mainDB.isar,
+            );
+          }
         } catch (e, s) {
           Logging.instance.f(
             "Failed to insert/update mweb utxo",
@@ -337,19 +379,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  /// Should only be called within the standard wallet [recover] function due to
-  /// mutex locking. Otherwise behaviour MAY be undefined.
-  Future<void> recoverMweb() async {
-    if (!info.isMwebEnabled) {
-      Logging.instance.e(
-        "Tried calling recoverMweb with mweb disabled for $walletId ${info.name}",
-      );
-      return;
-    }
-
-    throw UnimplementedError();
-  }
-
   Future<void> anonymizeAllMweb() async {
     if (!info.isMwebEnabled) {
       Logging.instance.e(
@@ -404,6 +433,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   // ===========================================================================
 
+  @mustCallSuper
   @override
   Future<void> init() async {
     if (info.isMwebEnabled) {
@@ -426,18 +456,16 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    // await info.updateReceivingAddress(
-    //   newAddress: address.value,
-    //   isar: mainDB.isar,
-    // );
-
     await super.init();
   }
 
   @override
-  Future<void> updateBalance() async {
-    // call to super to update transparent balance
-    final normalBalanceFuture = super.updateBalance();
+  Future<void> updateBalance({bool mwebOnly = false}) async {
+    Future<void>? normalBalanceFuture;
+    if (!mwebOnly) {
+      // call to super to update transparent balance
+      normalBalanceFuture = super.updateBalance();
+    }
 
     if (info.isMwebEnabled) {
       final start = DateTime.now();
@@ -513,8 +541,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    // wait for normalBalanceFuture to complete before returning
-    await normalBalanceFuture;
+    if (!mwebOnly) {
+      // wait for normalBalanceFuture to complete before returning
+      await normalBalanceFuture;
+    }
   }
 
   @override
@@ -561,6 +591,154 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     // if (synced == true) {
     //   _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
     // }
+  }
+
+  @override
+  Future<void> recover({required bool isRescan}) async {
+    if (isViewOnly) {
+      await recoverViewOnly(isRescan: isRescan);
+      return;
+    }
+
+    final start = DateTime.now();
+    final root = await getRootHDNode();
+
+    final List<Future<({int index, List<Address> addresses})>> receiveFutures =
+        [];
+    final List<Future<({int index, List<Address> addresses})>> changeFutures =
+        [];
+
+    const receiveChain = 0;
+    const changeChain = 1;
+
+    const txCountBatchSize = 12;
+
+    try {
+      await refreshMutex.protect(() async {
+        if (isRescan) {
+          // clear cache
+          await electrumXCachedClient.clearSharedTransactionCache(
+            cryptoCurrency: info.coin,
+          );
+          // clear blockchain info
+          await mainDB.deleteWalletBlockchainData(walletId);
+
+          // reset scan/listen height
+          await info.updateOtherData(
+            newEntries: {WalletInfoKeys.mwebScanHeight: info.restoreHeight},
+            isar: mainDB.isar,
+          );
+
+          // reset balance to 0
+          await info.updateBalanceSecondary(
+            newBalance: Balance.zeroFor(currency: cryptoCurrency),
+            isar: mainDB.isar,
+          );
+
+          // clear all mweb utxos
+          final db = Drift.get(walletId);
+          await db.transaction(() async => await db.delete(db.mwebUtxos).go());
+
+          await _stopUpdateMwebUtxos();
+          if (info.isMwebEnabled) {
+            // only restart scanning if mweb enabled
+            unawaited(_startUpdateMwebUtxos());
+          }
+        }
+
+        // receiving addresses
+        Logging.instance.i("checking receiving addresses...");
+
+        final canBatch = await serverCanBatch;
+
+        for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+          receiveFutures.add(
+            canBatch
+                ? checkGapsBatched(txCountBatchSize, root, type, receiveChain)
+                : checkGapsLinearly(root, type, receiveChain),
+          );
+        }
+
+        // change addresses
+        Logging.instance.d("checking change addresses...");
+        for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+          changeFutures.add(
+            canBatch
+                ? checkGapsBatched(txCountBatchSize, root, type, changeChain)
+                : checkGapsLinearly(root, type, changeChain),
+          );
+        }
+
+        // io limitations may require running these linearly instead
+        final futuresResult = await Future.wait([
+          Future.wait(receiveFutures),
+          Future.wait(changeFutures),
+        ]);
+
+        final receiveResults = futuresResult[0];
+        final changeResults = futuresResult[1];
+
+        final List<Address> addressesToStore = [];
+
+        int highestReceivingIndexWithHistory = 0;
+
+        for (final tuple in receiveResults) {
+          if (tuple.addresses.isEmpty) {
+            if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+              await checkReceivingAddressForTransactions();
+            }
+          } else {
+            highestReceivingIndexWithHistory = math.max(
+              tuple.index,
+              highestReceivingIndexWithHistory,
+            );
+            addressesToStore.addAll(tuple.addresses);
+          }
+        }
+
+        int highestChangeIndexWithHistory = 0;
+        // If restoring a wallet that never sent any funds with change, then set changeArray
+        // manually. If we didn't do this, it'd store an empty array.
+        for (final tuple in changeResults) {
+          if (tuple.addresses.isEmpty) {
+            await checkChangeAddressForTransactions();
+          } else {
+            highestChangeIndexWithHistory = math.max(
+              tuple.index,
+              highestChangeIndexWithHistory,
+            );
+            addressesToStore.addAll(tuple.addresses);
+          }
+        }
+
+        // remove extra addresses to help minimize risk of creating a large gap
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.change &&
+              e.derivationIndex > highestChangeIndexWithHistory,
+        );
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.receiving &&
+              e.derivationIndex > highestReceivingIndexWithHistory,
+        );
+
+        await mainDB.updateOrPutAddresses(addressesToStore);
+      });
+
+      unawaited(refresh());
+      Logging.instance.i(
+        "Mweb recover for "
+        "${info.name}: ${DateTime.now().difference(start)}",
+      );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Exception rethrown from mweb_interface recover(): ",
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
   }
 
   @override

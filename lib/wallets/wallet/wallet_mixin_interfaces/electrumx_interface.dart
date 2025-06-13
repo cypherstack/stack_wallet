@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
+import 'package:meta/meta.dart';
 
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/client_manager.dart';
@@ -1788,6 +1789,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  @mustCallSuper
   @override
   Future<void> init() async {
     try {
