@@ -23,6 +23,7 @@ export './global/barcode_scanner_provider.dart';
 export './global/clipboard_provider.dart';
 export './global/duress_provider.dart';
 export './global/locale_provider.dart';
+export './global/mweb_service_provider.dart';
 export './global/node_service_provider.dart';
 export './global/notifications_provider.dart';
 export './global/prefs_provider.dart';

@@ -10,13 +10,19 @@ import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'event_bus/events/global/mweb_status_changed_event.dart';
 import 'event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'event_bus/events/global/tor_status_changed_event.dart';
 import 'event_bus/global_event_bus.dart';
 import 'tor_service.dart';
 
 final class MwebdService {
+  static String defaultPeer(CryptoCurrencyNetwork net) => switch (net) {
+    CryptoCurrencyNetwork.main => "litecoin.stackwallet.com:9333",
+    CryptoCurrencyNetwork.test => "litecoin.stackwallet.com:19335",
+    CryptoCurrencyNetwork.stage => throw UnimplementedError(),
+    CryptoCurrencyNetwork.test4 => throw UnimplementedError(),
+  };
+
   final Map<CryptoCurrencyNetwork, ({MwebdServer server, MwebClient client})>
   _map = {};
 
@@ -24,8 +30,6 @@ final class MwebdService {
   _torStatusListener;
   late final StreamSubscription<TorPreferenceChangedEvent>
   _torPreferenceListener;
-  late final StreamSubscription<MwebPreferenceChangedEvent>
-  _mwebPreferenceListener;
 
   final Mutex _torConnectingLock = Mutex();
 
@@ -65,27 +69,6 @@ final class MwebdService {
         });
       } else {
         return await _update(null);
-      }
-    });
-
-    // Listen for mweb preference changes.
-    _mwebPreferenceListener = bus.on<MwebPreferenceChangedEvent>().listen((
-      event,
-    ) async {
-      switch (event.status) {
-        case MwebStatus.enabled:
-          // as we don't know which network(s) to use here
-          // we will rely on status checks and init as required within wallets
-          break;
-
-        case MwebStatus.disabled:
-          final nets = _map.keys;
-          for (final net in nets) {
-            final old = _map.remove(net)!;
-            await old.client.cleanup();
-            await old.server.stopServer();
-          }
-          break;
       }
     });
   }
@@ -133,6 +116,8 @@ final class MwebdService {
   }
 
   Future<void> init(CryptoCurrencyNetwork net) async {
+    if (net == CryptoCurrencyNetwork.test) return;
+
     Logging.instance.i("MwebdService init($net) called...");
     await _updateLock.protect(() async {
       if (_map[net] != null) {
@@ -166,7 +151,7 @@ final class MwebdService {
       final newServer = MwebdServer(
         chain: chain,
         dataDir: dir.path,
-        peer: "",
+        peer: defaultPeer(net),
         proxy: proxy,
         serverPort: port,
       );

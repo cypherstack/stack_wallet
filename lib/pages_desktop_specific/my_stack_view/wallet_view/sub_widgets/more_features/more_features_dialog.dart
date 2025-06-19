@@ -16,8 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../db/sqlite/firo_cache.dart';
-import '../../../../../providers/db/main_db_provider.dart';
-import '../../../../../providers/global/wallets_provider.dart';
+import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_providers.dart';
 import '../../../../../utilities/assets.dart';
@@ -267,16 +266,24 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     }
   }
 
-  Future<void> _updateMwebToggle(bool shouldReuse) async {
+  Future<void> _updateMwebToggle(bool value) async {
+    if (value) {
+      unawaited(
+        ref
+            .read(pMwebService)
+            .init(ref.read(pWalletCoin(widget.walletId)).network),
+      );
+    }
+
     await ref
         .read(pWalletInfo(widget.walletId))
         .updateOtherData(
-          newEntries: {WalletInfoKeys.mwebEnabled: shouldReuse},
+          newEntries: {WalletInfoKeys.mwebEnabled: value},
           isar: ref.read(mainDBProvider).isar,
         );
 
     if (_switchControllerMwebToggle.isOn != null) {
-      if (_switchControllerMwebToggle.isOn!.call() != shouldReuse) {
+      if (_switchControllerMwebToggle.isOn!.call() != value) {
         _switchControllerMwebToggle.activate?.call();
       }
     }
