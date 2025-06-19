@@ -18,7 +18,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> buildTransaction({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required covariant List<StandardInput> utxoSigningData,
   }) async {
     Logging.instance.d("Starting buildTransaction ----------");
 
@@ -50,9 +50,10 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
             txid: utxoSigningData[i].utxo.txid,
             vout: utxoSigningData[i].utxo.vout,
           ),
-          addresses: utxoSigningData[i].utxo.address == null
-              ? []
-              : [utxoSigningData[i].utxo.address!],
+          addresses:
+              utxoSigningData[i].utxo.address == null
+                  ? []
+                  : [utxoSigningData[i].utxo.address!],
           valueStringSats: utxoSigningData[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
@@ -73,10 +74,9 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "000000",
           valueStringSats: txData.recipients![i].amount.raw.toString(),
-          addresses: [
-            txData.recipients![i].address.toString(),
-          ],
-          walletOwns: (await mainDB.isar.addresses
+          addresses: [txData.recipients![i].address.toString()],
+          walletOwns:
+              (await mainDB.isar.addresses
                   .where()
                   .walletIdEqualTo(walletId)
                   .filter()
@@ -94,7 +94,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
       // Sign the transaction accordingly
       for (int i = 0; i < utxoSigningData.length; i++) {
         final bitboxEC = bitbox.ECPair.fromPrivateKey(
-          utxoSigningData[i].keyPair!.privateKey.data,
+          utxoSigningData[i].key!.privateKey!.data,
           network: bitbox_utils.Network(
             cryptoCurrency.networkParams.privHDPrefix,
             cryptoCurrency.networkParams.pubHDPrefix,
@@ -103,18 +103,17 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
             cryptoCurrency.networkParams.wifPrefix,
             cryptoCurrency.networkParams.p2pkhPrefix,
           ),
-          compressed: utxoSigningData[i].keyPair!.privateKey.compressed,
+          compressed: utxoSigningData[i].key!.privateKey!.compressed,
         );
 
-        builder.sign(
-          i,
-          bitboxEC,
-          utxoSigningData[i].utxo.value,
-        );
+        builder.sign(i, bitboxEC, utxoSigningData[i].utxo.value);
       }
     } catch (e, s) {
-      Logging.instance.e("Caught exception while signing transaction: ",
-          error: e, stackTrace: s);
+      Logging.instance.e(
+        "Caught exception while signing transaction: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
 

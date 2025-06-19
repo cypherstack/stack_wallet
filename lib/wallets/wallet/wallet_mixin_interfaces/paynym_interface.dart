@@ -526,7 +526,10 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       // gather required signing data
-      final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+      final utxoSigningData =
+          (await fetchBuildTxData(
+            utxoObjectsToUse,
+          )).whereType<StandardInput>().toList();
 
       final vSizeForNoChange = BigInt.from(
         (await _createNotificationTx(
@@ -706,7 +709,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
-    required List<SigningData> utxoSigningData,
+    required List<StandardInput> utxoSigningData,
     required BigInt change,
     BigInt? overrideAmountForTesting,
   }) async {
@@ -726,10 +729,10 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final myKeyPair = utxoSigningData.first.keyPair!;
+      final myKeyPair = utxoSigningData.first.key!;
 
       final S = SecretPoint(
-        myKeyPair.privateKey.data,
+        myKeyPair.privateKey!.data,
         targetPaymentCode.notificationPublicKey(),
       );
 
@@ -785,7 +788,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           case DerivePathType.bch44:
             input = coinlib.P2PKHInput(
               prevOut: prevOutpoint,
-              publicKey: utxoSigningData[i].keyPair!.publicKey,
+              publicKey: utxoSigningData[i].key!.publicKey,
               sequence: 0xffffffff - 1,
             );
 
@@ -803,7 +806,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           case DerivePathType.bip84:
             input = coinlib.P2WPKHInput(
               prevOut: prevOutpoint,
-              publicKey: utxoSigningData[i].keyPair!.publicKey,
+              publicKey: utxoSigningData[i].key!.publicKey,
               sequence: 0xffffffff - 1,
             );
 
@@ -860,21 +863,21 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
         clTx = clTx.signTaproot(
           inputN: 0,
-          key: taproot.tweakPrivateKey(myKeyPair.privateKey),
+          key: taproot.tweakPrivateKey(myKeyPair.privateKey!),
           prevOuts: prevOuts,
         );
       } else if (clTx.inputs[0] is coinlib.LegacyWitnessInput) {
         clTx = clTx.signLegacyWitness(
           inputN: 0,
-          key: myKeyPair.privateKey,
+          key: myKeyPair.privateKey!,
           value: BigInt.from(utxo.value),
         );
       } else if (clTx.inputs[0] is coinlib.LegacyInput) {
-        clTx = clTx.signLegacy(inputN: 0, key: myKeyPair.privateKey);
+        clTx = clTx.signLegacy(inputN: 0, key: myKeyPair.privateKey!);
       } else if (clTx.inputs[0] is coinlib.TaprootSingleScriptSigInput) {
         clTx = clTx.signTaprootSingleScriptSig(
           inputN: 0,
-          key: myKeyPair.privateKey,
+          key: myKeyPair.privateKey!,
           prevOuts: prevOuts,
         );
       } else {
@@ -886,11 +889,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       // sign rest of possible inputs
       for (int i = 1; i < utxoSigningData.length; i++) {
         final value = BigInt.from(utxoSigningData[i].utxo.value);
-        final key = utxoSigningData[i].keyPair!.privateKey;
+        final key = utxoSigningData[i].key!.privateKey!;
 
         if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
           final taproot = coinlib.Taproot(
-            internalKey: utxoSigningData[i].keyPair!.publicKey,
+            internalKey: utxoSigningData[i].key!.publicKey,
           );
 
           clTx = clTx.signTaproot(

@@ -352,7 +352,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> buildTransaction({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required covariant List<StandardInput> utxoSigningData,
   }) async {
     Logging.instance.d("Starting Particl buildTransaction ----------");
 
@@ -374,7 +374,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     for (int i = 0; i < utxoSigningData.length; i++) {
       final sd = utxoSigningData[i];
 
-      final pubKey = sd.keyPair!.publicKey.data;
+      final pubKey = sd.key!.publicKey.data;
       final bitcoindart.PaymentData? data;
       Uint8List? redeem, output;
 
@@ -512,9 +512,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         txb.sign(
           vin: i,
           keyPair: bitcoindart.ECPair.fromPrivateKey(
-            utxoSigningData[i].keyPair!.privateKey.data,
+            utxoSigningData[i].key!.privateKey!.data,
             network: convertedNetwork,
-            compressed: utxoSigningData[i].keyPair!.privateKey.compressed,
+            compressed: utxoSigningData[i].key!.privateKey!.compressed,
           ),
           witnessValue: utxoSigningData[i].utxo.value,
           redeemScript: extraData[i].redeem,

@@ -9,26 +9,53 @@
  */
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
-import 'isar/models/isar_models.dart';
+
+import '../db/drift/database.dart';
 import '../utilities/enums/derive_path_type_enum.dart';
+import 'isar/models/isar_models.dart';
 
-class SigningData {
-  SigningData({
-    required this.derivePathType,
-    required this.utxo,
-    this.keyPair,
-  });
+abstract class BaseInput {
+  BaseInput(this._utxo, {this.key});
 
-  final DerivePathType derivePathType;
-  final UTXO utxo;
-  HDPrivateKey? keyPair;
+  final Object _utxo;
+  HDKey? key;
 
   @override
   String toString() {
-    return "SigningData{\n"
+    return "BaseInput{\n"
+        "  _utxo: $_utxo,\n"
+        "  key: $key,\n"
+        "}";
+  }
+}
+
+class StandardInput extends BaseInput {
+  StandardInput(UTXO super.utxo, {required this.derivePathType, super.key});
+
+  final DerivePathType derivePathType;
+
+  UTXO get utxo => _utxo as UTXO;
+
+  @override
+  String toString() {
+    return "StandardInput{\n"
         "  derivePathType: $derivePathType,\n"
         "  utxo: $utxo,\n"
-        "  keyPair: $keyPair,\n"
+        "  key: $key,\n"
+        "}";
+  }
+}
+
+class MwebInput extends BaseInput {
+  MwebInput(MwebUtxo super.utxo);
+
+  MwebUtxo get utxo => _utxo as MwebUtxo;
+
+  @override
+  String toString() {
+    return "MwebInput{\n"
+        "  utxo: $utxo,\n"
+        "  key: $key,\n"
         "}";
   }
 }

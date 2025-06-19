@@ -627,7 +627,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
   /// Builds and signs a transaction
   Future<TxData> _createNameTx({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required List<StandardInput> utxoSigningData,
     required bool isForFeeCalcPurposesOnly,
   }) async {
     Logging.instance.d("Starting _createNameTx ----------");
@@ -692,7 +692,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         case DerivePathType.bip44:
           input = coinlib.P2PKHInput(
             prevOut: prevOutpoint,
-            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: utxoSigningData[i].key!.publicKey,
             sequence: sequence,
           );
 
@@ -710,7 +710,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         case DerivePathType.bip84:
           input = coinlib.P2WPKHInput(
             prevOut: prevOutpoint,
-            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: utxoSigningData[i].key!.publicKey,
             sequence: sequence,
           );
 
@@ -810,11 +810,11 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       // Sign the transaction accordingly
       for (int i = 0; i < utxoSigningData.length; i++) {
         final value = BigInt.from(utxoSigningData[i].utxo.value);
-        final key = utxoSigningData[i].keyPair!.privateKey;
+        final key = utxoSigningData[i].key!.privateKey!;
 
         if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
           final taproot = coinlib.Taproot(
-            internalKey: utxoSigningData[i].keyPair!.publicKey,
+            internalKey: utxoSigningData[i].key!.publicKey,
           );
 
           clTx = clTx.signTaproot(
@@ -1115,7 +1115,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     final List<BigInt> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
-    final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+    final utxoSigningData =
+        (await fetchBuildTxData(
+          utxoObjectsToUse,
+        )).whereType<StandardInput>().toList();
 
     final int vSizeForOneOutput;
     try {

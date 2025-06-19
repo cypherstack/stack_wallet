@@ -325,7 +325,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           rawValue: feeForOneOutput,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
-        usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+        usedUTXOs:
+            utxoSigningData
+                .whereType<StandardInput>()
+                .map((e) => e.utxo)
+                .toList(),
       );
     }
 
@@ -418,7 +422,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               rawValue: feeBeingPaid,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+            usedUTXOs:
+                utxoSigningData
+                    .whereType<StandardInput>()
+                    .map((e) => e.utxo)
+                    .toList(),
           );
         } else {
           // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize
@@ -438,7 +446,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     required String recipientAddress,
     required BigInt satoshiAmountToSend,
     required BigInt satoshisBeingUsed,
-    required List<SigningData> utxoSigningData,
+    required List<BaseInput> utxoSigningData,
     required int? satsPerVByte,
     required BigInt feeRatePerKB,
   }) async {
@@ -491,13 +499,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         rawValue: feeForOneOutput,
         fractionDigits: cryptoCurrency.fractionDigits,
       ),
-      usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+      usedUTXOs:
+          utxoSigningData
+              .whereType<StandardInput>()
+              .map((e) => e.utxo)
+              .toList(),
     );
   }
 
-  Future<List<SigningData>> fetchBuildTxData(List<UTXO> utxosToUse) async {
+  Future<List<BaseInput>> fetchBuildTxData(List<UTXO> utxosToUse) async {
     // return data
-    final List<SigningData> signingData = [];
+    final List<StandardInput> signingData = [];
 
     try {
       // Populating the addresses to check
@@ -507,7 +519,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         );
 
         signingData.add(
-          SigningData(derivePathType: derivePathType, utxo: utxosToUse[i]),
+          StandardInput(utxosToUse[i], derivePathType: derivePathType),
         );
       }
 
@@ -552,7 +564,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           );
         }
 
-        sd.keyPair = keys;
+        sd.key = keys;
       }
 
       return signingData;
@@ -565,7 +577,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   /// Builds and signs a transaction
   Future<TxData> buildTransaction({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required List<BaseInput> utxoSigningData,
   }) async {
     Logging.instance.d("Starting buildTransaction ----------");
 
@@ -587,20 +599,22 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             ? 0xffffffff - 10
             : 0xffffffff - 1;
 
+    final standardInputs = utxoSigningData.whereType<StandardInput>().toList();
+
     // Add transaction inputs
-    for (var i = 0; i < utxoSigningData.length; i++) {
-      final txid = utxoSigningData[i].utxo.txid;
+    for (var i = 0; i < standardInputs.length; i++) {
+      final txid = standardInputs[i].utxo.txid;
 
       final hash = Uint8List.fromList(
         txid.toUint8ListFromHex.reversed.toList(),
       );
 
-      final prevOutpoint = coinlib.OutPoint(hash, utxoSigningData[i].utxo.vout);
+      final prevOutpoint = coinlib.OutPoint(hash, standardInputs[i].utxo.vout);
 
       final prevOutput = coinlib.Output.fromAddress(
-        BigInt.from(utxoSigningData[i].utxo.value),
+        BigInt.from(standardInputs[i].utxo.value),
         coinlib.Address.fromString(
-          utxoSigningData[i].utxo.address!,
+          standardInputs[i].utxo.address!,
           cryptoCurrency.networkParams,
         ),
       );
@@ -609,12 +623,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       final coinlib.Input input;
 
-      switch (utxoSigningData[i].derivePathType) {
+      switch (standardInputs[i].derivePathType) {
         case DerivePathType.bip44:
         case DerivePathType.bch44:
           input = coinlib.P2PKHInput(
             prevOut: prevOutpoint,
-            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: standardInputs[i].key!.publicKey,
             sequence: sequence,
           );
 
@@ -624,7 +638,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         // input = coinlib.P2SHMultisigInput(
         //   prevOut: prevOutpoint,
         //   program: coinlib.MultisigProgram.decompile(
-        //     utxoSigningData[i].redeemScript!,
+        //     standardInputs[i].redeemScript!,
         //   ),
         //   sequence: sequence,
         // );
@@ -632,7 +646,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         case DerivePathType.bip84:
           input = coinlib.P2WPKHInput(
             prevOut: prevOutpoint,
-            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: standardInputs[i].key!.publicKey,
             sequence: sequence,
           );
 
@@ -641,7 +655,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         default:
           throw UnsupportedError(
-            "Unknown derivation path type found: ${utxoSigningData[i].derivePathType}",
+            "Unknown derivation path type found: ${standardInputs[i].derivePathType}",
           );
       }
 
@@ -653,14 +667,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           scriptSigAsm: null,
           sequence: sequence,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: utxoSigningData[i].utxo.txid,
-            vout: utxoSigningData[i].utxo.vout,
+            txid: standardInputs[i].utxo.txid,
+            vout: standardInputs[i].utxo.vout,
           ),
           addresses:
-              utxoSigningData[i].utxo.address == null
+              standardInputs[i].utxo.address == null
                   ? []
-                  : [utxoSigningData[i].utxo.address!],
-          valueStringSats: utxoSigningData[i].utxo.value.toString(),
+                  : [standardInputs[i].utxo.address!],
+          valueStringSats: standardInputs[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
           coinbase: null,
@@ -715,13 +729,13 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     try {
       // Sign the transaction accordingly
-      for (var i = 0; i < utxoSigningData.length; i++) {
-        final value = BigInt.from(utxoSigningData[i].utxo.value);
-        final key = utxoSigningData[i].keyPair!.privateKey;
+      for (var i = 0; i < standardInputs.length; i++) {
+        final value = BigInt.from(standardInputs[i].utxo.value);
+        final key = standardInputs[i].key!.privateKey!;
 
         if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
           final taproot = coinlib.Taproot(
-            internalKey: utxoSigningData[i].keyPair!.publicKey,
+            internalKey: standardInputs[i].key!.publicKey,
           );
 
           clTx = clTx.signTaproot(

@@ -1413,7 +1413,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               ? max(0, currentHeight - random.nextInt(100))
               : currentHeight;
       const txVersion = 1;
-      final List<SigningData> vin = [];
+      final List<StandardInput> vin = [];
       final List<(dynamic, int, String?)> vout = [];
 
       BigInt nFeeRet = BigInt.zero;
@@ -1426,7 +1426,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       BigInt nValueToSelect, mintedValue;
-      final List<SigningData> setCoins = [];
+      final List<StandardInput> setCoins = [];
       bool skipCoin = false;
 
       // Start with no fee and loop until there is enough fee
@@ -1555,7 +1555,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         BigInt nValueIn = BigInt.zero;
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
-            setCoins.add((await fetchBuildTxData([utxo])).first);
+            setCoins.add(
+              (await fetchBuildTxData([utxo])).whereType<StandardInput>().first,
+            );
             nValueIn += BigInt.from(utxo.value);
           }
         }
@@ -1595,7 +1597,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         for (final sd in setCoins) {
           vin.add(sd);
 
-          final pubKey = sd.keyPair!.publicKey.data;
+          final pubKey = sd.key!.publicKey.data;
           final btc.PaymentData? data;
 
           switch (sd.derivePathType) {
@@ -1659,9 +1661,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           dummyTxb.sign(
             vin: i,
             keyPair: btc.ECPair.fromPrivateKey(
-              setCoins[i].keyPair!.privateKey.data,
+              setCoins[i].key!.privateKey!.data,
               network: _bitcoinDartNetwork,
-              compressed: setCoins[i].keyPair!.privateKey.compressed,
+              compressed: setCoins[i].key!.privateKey!.compressed,
             ),
             witnessValue: setCoins[i].utxo.value,
 
@@ -1756,7 +1758,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       txb.setVersion(txVersion);
       txb.setLockTime(lockTime);
       for (final input in vin) {
-        final pubKey = input.keyPair!.publicKey.data;
+        final pubKey = input.key!.publicKey.data;
         final btc.PaymentData? data;
 
         switch (input.derivePathType) {
@@ -1867,9 +1869,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           txb.sign(
             vin: i,
             keyPair: btc.ECPair.fromPrivateKey(
-              vin[i].keyPair!.privateKey.data,
+              vin[i].key!.privateKey!.data,
               network: _bitcoinDartNetwork,
-              compressed: vin[i].keyPair!.privateKey.compressed,
+              compressed: vin[i].key!.privateKey!.compressed,
             ),
             witnessValue: vin[i].utxo.value,
 
