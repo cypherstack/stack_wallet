@@ -165,11 +165,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final Amount availableBalance;
     if ((coin is Firo)) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
-        case FiroType.spark:
-          availableBalance = wallet.info.cachedBalanceTertiary.spendable;
+        case BalanceType.private:
+          availableBalance =
+              coin is Firo
+                  ? wallet.info.cachedBalanceTertiary.spendable
+                  : wallet.info.cachedBalanceSecondary.spendable;
           break;
       }
     } else {
@@ -280,7 +283,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ref
                                 .read(publicPrivateBalanceStateProvider.state)
                                 .state ==
-                            FiroType.spark,
+                            BalanceType.private,
                     onCancel: () {
                       wasCancelled = true;
 
@@ -325,7 +328,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-          case FiroType.public:
+          case BalanceType.public:
             if (ref.read(pValidSparkSendToAddress)) {
               txDataFuture = wallet.prepareSparkMintTransaction(
                 txData: TxData(
@@ -364,7 +367,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             }
             break;
 
-          case FiroType.spark:
+          case BalanceType.private:
             txDataFuture = wallet.prepareSendSpark(
               txData: TxData(
                 recipients:
@@ -624,7 +627,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(pIsExchangeAddress.state).state = (coin as Firo)
             .isExchangeAddress(address ?? "");
 
-        if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
+        if (ref.read(publicPrivateBalanceStateProvider) ==
+                BalanceType.private &&
             ref.read(pIsExchangeAddress) &&
             !_isFiroExWarningDisplayed) {
           _isFiroExWarningDisplayed = true;
@@ -833,10 +837,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
     } else if (coin is Firo) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
-        case FiroType.spark:
+        case BalanceType.private:
           amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
           break;
       }
@@ -969,12 +973,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       });
     }
 
-    final firoType = ref.watch(publicPrivateBalanceStateProvider);
+    final balType = ref.watch(publicPrivateBalanceStateProvider);
 
     final isExchangeAddress = ref.watch(pIsExchangeAddress);
     ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
       if (previous != next &&
-          next == FiroType.spark &&
+          next == BalanceType.private &&
           isExchangeAddress &&
           !_isFiroExWarningDisplayed) {
         _isFiroExWarningDisplayed = true;
@@ -994,13 +998,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        (coin is Firo ? firoType == FiroType.public : true);
+        (coin is Firo ? balType == BalanceType.public : true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        if (coin is Firo)
+        if (showPrivateBalance)
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1011,19 +1015,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (coin is Firo) const SizedBox(height: 10),
-        if (coin is Firo)
+        if (showPrivateBalance) const SizedBox(height: 10),
+        if (showPrivateBalance)
           DropdownButtonHideUnderline(
             child: DropdownButton2(
               isExpanded: true,
-              value: firoType,
+              value: balType,
               items: [
                 DropdownMenuItem(
-                  value: FiroType.spark,
+                  value: BalanceType.private,
                   child: Row(
                     children: [
                       Text(
-                        "Spark balance",
+                        "Private balance",
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       const SizedBox(width: 10),
@@ -1032,7 +1036,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             .watch(pAmountFormatter(coin))
                             .format(
                               ref
-                                  .watch(pWalletBalanceTertiary(walletId))
+                                  .watch(
+                                    isMwebEnabled
+                                        ? pWalletBalanceSecondary(walletId)
+                                        : pWalletBalanceTertiary(walletId),
+                                  )
                                   .spendable,
                             ),
                         style: STextStyles.itemSubtitle(context),
@@ -1041,7 +1049,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
                 ),
                 DropdownMenuItem(
-                  value: FiroType.public,
+                  value: BalanceType.public,
                   child: Row(
                     children: [
                       Text(
@@ -1062,8 +1070,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 ),
               ],
               onChanged: (value) {
-                if (value is FiroType) {
-                  if (value != FiroType.public) {
+                if (value is BalanceType) {
+                  if (value != BalanceType.public) {
                     ref.read(desktopUseUTXOs.state).state = {};
                   }
                   setState(() {
@@ -1098,7 +1106,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (coin is Firo) const SizedBox(height: 20),
+        if (showPrivateBalance) const SizedBox(height: 20),
         if (isPaynymSend)
           Text(
             "Send to PayNym address",

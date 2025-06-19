@@ -97,11 +97,11 @@ class _TransactionFeeSelectionSheetState
             } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-                case FiroType.spark:
+                case BalanceType.private:
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.public:
+                case BalanceType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
                     feeRate,
@@ -134,11 +134,11 @@ class _TransactionFeeSelectionSheetState
             } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-                case FiroType.spark:
+                case BalanceType.private:
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.public:
+                case BalanceType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
                     feeRate,
@@ -170,11 +170,11 @@ class _TransactionFeeSelectionSheetState
             } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-                case FiroType.spark:
+                case BalanceType.private:
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.public:
+                case BalanceType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
                     feeRate,

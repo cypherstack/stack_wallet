@@ -27,13 +27,13 @@ final pPreviewTxButtonEnabled = Provider.autoDispose
       if (coin is Firo) {
         final firoType = ref.watch(publicPrivateBalanceStateProvider);
         switch (firoType) {
-          case FiroType.spark:
+          case BalanceType.private:
             return (ref.watch(pValidSendToAddress) ||
                     ref.watch(pValidSparkSendToAddress)) &&
                 !ref.watch(pIsExchangeAddress) &&
                 amount > Amount.zero;
 
-          case FiroType.public:
+          case BalanceType.public:
             return ref.watch(pValidSendToAddress) && amount > Amount.zero;
         }
       } else {

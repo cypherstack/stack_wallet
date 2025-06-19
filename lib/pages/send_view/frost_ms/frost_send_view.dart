@@ -230,7 +230,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           ),
         ) &&
         (coin is Firo
-            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            ? ref.watch(publicPrivateBalanceStateProvider) == BalanceType.public
             : true);
 
     return ConditionalParent(

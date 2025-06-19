@@ -71,7 +71,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
         (cryptoCurrency is ElectrumXCurrencyInterface &&
             !(((cryptoCurrency is Firo) &&
                 (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                    FiroType.spark))));
+                    BalanceType.private))));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +183,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                                     .state,
                                               )
                                               .state !=
-                                          FiroType.public) {
+                                          BalanceType.public) {
                                     final firoWallet = wallet as FiroWallet;
 
                                     if (ref
@@ -192,7 +192,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                                   .state,
                                             )
                                             .state ==
-                                        FiroType.spark) {
+                                        BalanceType.private) {
                                       ref
                                           .read(feeSheetSessionCacheProvider)
                                           .average[amount] = await firoWallet
