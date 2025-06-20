@@ -352,21 +352,17 @@ packages:
   coinlib:
     dependency: "direct overridden"
     description:
-      path: coinlib
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      url: "https://www.github.com/julian-CStack/coinlib"
-    source: git
-    version: "3.1.0"
+      path: "../coinlib/coinlib"
+      relative: true
+    source: path
+    version: "4.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      path: coinlib_flutter
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      url: "https://www.github.com/julian-CStack/coinlib"
-    source: git
-    version: "3.0.0"
+      path: "../coinlib/coinlib_flutter"
+      relative: true
+    source: path
+    version: "4.0.0"
   collection:
     dependency: transitive
     description:
@@ -1285,10 +1281,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
+      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.0"
+    version: "0.19.0"
   io:
     dependency: transitive
     description:
@@ -1891,14 +1887,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
-  rxdart:
-    dependency: "direct main"
-    description:
-      name: rxdart
-      sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.27.7"
   sec:
     dependency: transitive
     description:

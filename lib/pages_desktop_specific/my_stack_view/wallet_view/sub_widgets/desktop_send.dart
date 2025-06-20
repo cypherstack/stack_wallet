@@ -49,6 +49,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
@@ -163,7 +164,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
-    if ((coin is Firo)) {
+    if (coin is Firo || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
@@ -310,7 +311,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
             recipients: [
-              (
+              TxRecipient(
                 address: widget.accountLite!.code,
                 amount: amount,
                 isChange: false,
@@ -321,8 +322,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
-                        ref.read(desktopUseUTXOs).isNotEmpty)
-                    ? ref.read(desktopUseUTXOs)
+                        ref.read(pDesktopUseUTXOs).isNotEmpty)
+                    ? ref.read(pDesktopUseUTXOs)
                     : null,
           ),
         );
@@ -344,8 +345,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled &&
-                              ref.read(desktopUseUTXOs).isNotEmpty)
-                          ? ref.read(desktopUseUTXOs)
+                              ref.read(pDesktopUseUTXOs).isNotEmpty)
+                          ? ref.read(pDesktopUseUTXOs)
                           : null,
                 ),
               );
@@ -353,14 +354,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               txDataFuture = wallet.prepareSend(
                 txData: TxData(
                   recipients: [
-                    (address: _address!, amount: amount, isChange: false),
+                    TxRecipient(
+                      address: _address!,
+                      amount: amount,
+                      isChange: false,
+                    ),
                   ],
                   feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled &&
-                              ref.read(desktopUseUTXOs).isNotEmpty)
-                          ? ref.read(desktopUseUTXOs)
+                              ref.read(pDesktopUseUTXOs).isNotEmpty)
+                          ? ref.read(pDesktopUseUTXOs)
                           : null,
                 ),
               );
@@ -374,7 +379,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ref.read(pValidSparkSendToAddress)
                         ? null
                         : [
-                          (address: _address!, amount: amount, isChange: false),
+                          TxRecipient(
+                            address: _address!,
+                            amount: amount,
+                            isChange: false,
+                          ),
                         ],
                 sparkRecipients:
                     ref.read(pValidSparkSendToAddress)
@@ -391,11 +400,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             );
             break;
         }
+      } else if (wallet is MwebInterface &&
+          ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            isMweb: true,
+            recipients: [
+              TxRecipient(address: _address!, amount: amount, isChange: false),
+            ],
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+            satsPerVByte: isCustomFee ? customFeeRate : null,
+            utxos:
+                (wallet is CoinControlInterface &&
+                        coinControlEnabled &&
+                        ref.read(pDesktopUseUTXOs).isNotEmpty)
+                    ? ref.read(pDesktopUseUTXOs)
+                    : null,
+          ),
+        );
       } else {
         final memo = isStellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: _address!, amount: amount, isChange: false)],
+            recipients: [
+              TxRecipient(address: _address!, amount: amount, isChange: false),
+            ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
@@ -406,8 +435,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
-                        ref.read(desktopUseUTXOs).isNotEmpty)
-                    ? ref.read(desktopUseUTXOs)
+                        ref.read(pDesktopUseUTXOs).isNotEmpty)
+                    ? ref.read(pDesktopUseUTXOs)
                     : null,
             ethEIP1559Fee: ethFee,
           ),
@@ -835,7 +864,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     if (showCoinControl && ref.read(desktopUseUTXOs).isNotEmpty) {
       amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
-    } else if (coin is Firo) {
+    } else if (coin is Firo || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
@@ -975,6 +1004,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final balType = ref.watch(publicPrivateBalanceStateProvider);
 
+    final isMwebEnabled = ref.watch(
+      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+    );
+    final showPrivateBalance = coin is Firo || isMwebEnabled;
     final isExchangeAddress = ref.watch(pIsExchangeAddress);
     ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
       if (previous != next &&
@@ -998,7 +1031,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        (coin is Firo ? balType == BalanceType.public : true);
+        balType == BalanceType.public;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

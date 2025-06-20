@@ -133,7 +133,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         txData: TxData(
           feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
           recipients: [
-            (
+            TxRecipient(
               address: _address!,
               isChange: false,
               amount: Amount(

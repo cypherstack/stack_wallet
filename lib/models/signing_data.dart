@@ -20,6 +20,14 @@ abstract class BaseInput {
   final Object _utxo;
   HDKey? key;
 
+  String get id;
+
+  String? get address;
+
+  BigInt get value;
+
+  int? get blockTime;
+
   @override
   String toString() {
     return "BaseInput{\n"
@@ -30,11 +38,23 @@ abstract class BaseInput {
 }
 
 class StandardInput extends BaseInput {
-  StandardInput(UTXO super.utxo, {required this.derivePathType, super.key});
+  StandardInput(UTXO super.utxo, {this.derivePathType, super.key});
 
-  final DerivePathType derivePathType;
+  final DerivePathType? derivePathType;
 
   UTXO get utxo => _utxo as UTXO;
+
+  @override
+  String get id => utxo.txid;
+
+  @override
+  String? get address => utxo.address;
+
+  @override
+  BigInt get value => BigInt.from(utxo.value);
+
+  @override
+  int? get blockTime => utxo.blockTime;
 
   @override
   String toString() {
@@ -44,6 +64,18 @@ class StandardInput extends BaseInput {
         "  key: $key,\n"
         "}";
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is StandardInput &&
+        other.utxo.walletId == utxo.walletId &&
+        other.utxo.txid == utxo.txid &&
+        other.utxo.vout == utxo.vout &&
+        other.derivePathType == derivePathType;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([utxo.walletId, utxo.txid, utxo.vout]);
 }
 
 class MwebInput extends BaseInput {
@@ -52,10 +84,30 @@ class MwebInput extends BaseInput {
   MwebUtxo get utxo => _utxo as MwebUtxo;
 
   @override
+  String get id => utxo.outputId;
+
+  @override
+  String get address => utxo.address;
+
+  @override
+  BigInt get value => BigInt.from(utxo.value);
+
+  @override
+  int? get blockTime => utxo.blockTime < 1 ? null : utxo.blockTime;
+
+  @override
   String toString() {
     return "MwebInput{\n"
         "  utxo: $utxo,\n"
         "  key: $key,\n"
         "}";
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MwebInput && other.utxo == utxo;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([utxo.hashCode]);
 }

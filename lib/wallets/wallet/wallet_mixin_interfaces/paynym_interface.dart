@@ -379,7 +379,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       return prepareSend(
         txData: txData.copyWith(
           recipients: [
-            (
+            TxRecipient(
               address: sendToAddress.value,
               amount: txData.recipients!.first.amount,
               isChange: false,
@@ -528,7 +528,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       // gather required signing data
       final utxoSigningData =
           (await fetchBuildTxData(
-            utxoObjectsToUse,
+            utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
           )).whereType<StandardInput>().toList();
 
       final vSizeForNoChange = BigInt.from(
@@ -608,7 +608,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           final txData = TxData(
             raw: txn.item1,
             recipients: [
-              (
+              TxRecipient(
                 address: targetPaymentCodeString,
                 amount: amountToSend,
                 isChange: false,
@@ -619,7 +619,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             vSize: txn.item2,
-            utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+            utxos: utxoSigningData.toSet(),
             note: "PayNym connect",
           );
 
@@ -638,7 +638,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           final txData = TxData(
             raw: txn.item1,
             recipients: [
-              (
+              TxRecipient(
                 address: targetPaymentCodeString,
                 amount: amountToSend,
                 isChange: false,
@@ -649,7 +649,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             vSize: txn.item2,
-            utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+            utxos: utxoSigningData.toSet(),
             note: "PayNym connect",
           );
 
@@ -669,7 +669,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         final txData = TxData(
           raw: txn.item1,
           recipients: [
-            (
+            TxRecipient(
               address: targetPaymentCodeString,
               amount: amountToSend,
               isChange: false,
@@ -680,7 +680,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
           vSize: txn.item2,
-          utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+          utxos: utxoSigningData.toSet(),
           note: "PayNym connect",
         );
 

@@ -103,7 +103,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
       note: "Reserve ${widget.domainName.substring(2)}.bit",
       feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
       recipients: [
-        (
+        TxRecipient(
           address: myAddress.value,
           isChange: false,
           amount: Amount(
@@ -123,28 +123,30 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
     if (_preRegLock) return;
     _preRegLock = true;
     try {
-      final txData = (await showLoading(
-        whileFuture: _preRegFuture(),
-        context: context,
-        message: "Preparing transaction...",
-        onException: (e) {
-          throw e;
-        },
-      ))!;
+      final txData =
+          (await showLoading(
+            whileFuture: _preRegFuture(),
+            context: context,
+            message: "Preparing transaction...",
+            onException: (e) {
+              throw e;
+            },
+          ))!;
 
       if (mounted) {
         if (Util.isDesktop) {
           await showDialog<void>(
             context: context,
-            builder: (context) => SDialog(
-              child: SizedBox(
-                width: 580,
-                child: ConfirmNameTransactionView(
-                  txData: txData,
-                  walletId: widget.walletId,
+            builder:
+                (context) => SDialog(
+                  child: SizedBox(
+                    width: 580,
+                    child: ConfirmNameTransactionView(
+                      txData: txData,
+                      walletId: widget.walletId,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           );
         } else {
           await Navigator.of(context).pushNamed(
@@ -164,12 +166,13 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
 
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Error",
-            message: err,
-            desktopPopRootNavigator: Util.isDesktop,
-            maxWidth: Util.isDesktop ? 600 : null,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "Error",
+                message: err,
+                desktopPopRootNavigator: Util.isDesktop,
+                maxWidth: Util.isDesktop ? 600 : null,
+              ),
         );
       }
     } finally {
@@ -192,50 +195,48 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                 builder: (context) {
                   return Util.isDesktop
                       ? SDialog(
-                          child: SizedBox(
-                            width: 580,
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 32,
-                                      ),
-                                      child: Text(
-                                        "Add DNS record",
-                                        style: STextStyles.desktopH3(context),
-                                      ),
+                        child: SizedBox(
+                          width: 580,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 32),
+                                    child: Text(
+                                      "Add DNS record",
+                                      style: STextStyles.desktopH3(context),
                                     ),
-                                    DesktopDialogCloseButton(
-                                      onPressedOverride: () {
-                                        Navigator.of(
-                                          context,
-                                          rootNavigator: true,
-                                        ).pop();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
                                   ),
-                                  child: AddDnsStep1(
-                                    name: _getNameFormattedForInternal(),
+                                  DesktopDialogCloseButton(
+                                    onPressedOverride: () {
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop();
+                                    },
                                   ),
+                                ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
                                 ),
-                              ],
-                            ),
+                                child: AddDnsStep1(
+                                  name: _getNameFormattedForInternal(),
+                                ),
+                              ),
+                            ],
                           ),
-                        )
+                        ),
+                      )
                       : StackDialogBase(
-                          child: AddDnsStep1(
-                            name: _getNameFormattedForInternal(),
-                          ),
-                        );
+                        child: AddDnsStep1(
+                          name: _getNameFormattedForInternal(),
+                        ),
+                      );
                 },
               );
             },
@@ -254,11 +255,12 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Add DNS record failed",
-            desktopPopRootNavigator: Util.isDesktop,
-            maxWidth: Util.isDesktop ? 600 : null,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "Add DNS record failed",
+                desktopPopRootNavigator: Util.isDesktop,
+                maxWidth: Util.isDesktop ? 600 : null,
+              ),
         );
       }
     } finally {
@@ -289,8 +291,9 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                 builder: (ctx, constraints) {
                   return SingleChildScrollView(
                     child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(minHeight: constraints.maxHeight),
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
                       child: IntrinsicHeight(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -306,114 +309,120 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
         );
       },
       child: Column(
-        crossAxisAlignment: Util.isDesktop
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.stretch,
+        crossAxisAlignment:
+            Util.isDesktop
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.stretch,
         children: [
           if (!Util.isDesktop)
             Text(
               "Buy domain",
-              style: Util.isDesktop
-                  ? STextStyles.desktopH3(context)
-                  : STextStyles.pageTitleH2(context),
+              style:
+                  Util.isDesktop
+                      ? STextStyles.desktopH3(context)
+                      : STextStyles.pageTitleH2(context),
             ),
-          SizedBox(
-            height: Util.isDesktop ? 24 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 24 : 16),
           Row(
-            mainAxisAlignment: Util.isDesktop
-                ? MainAxisAlignment.center
-                : MainAxisAlignment.start,
+            mainAxisAlignment:
+                Util.isDesktop
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
             children: [
               Text(
                 "Name registration will take approximately 2 to 4 hours.",
-                style: Util.isDesktop
-                    ? STextStyles.w500_14(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      )
-                    : STextStyles.w500_12(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      ),
+                style:
+                    Util.isDesktop
+                        ? STextStyles.w500_14(context).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark3,
+                        )
+                        : STextStyles.w500_12(context).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark3,
+                        ),
               ),
             ],
           ),
-          SizedBox(
-            height: Util.isDesktop ? 24 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 24 : 16),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "Domain name",
-                  style: Util.isDesktop
-                      ? STextStyles.w500_14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
-                        )
-                      : STextStyles.w500_12(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
-                        ),
+                  style:
+                      Util.isDesktop
+                          ? STextStyles.w500_14(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.infoItemLabel,
+                          )
+                          : STextStyles.w500_12(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.infoItemLabel,
+                          ),
                 ),
                 Text(
                   "${widget.domainName.substring(2)}.bit",
-                  style: Util.isDesktop
-                      ? STextStyles.w500_14(context)
-                      : STextStyles.w500_12(context),
+                  style:
+                      Util.isDesktop
+                          ? STextStyles.w500_14(context)
+                          : STextStyles.w500_12(context),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            height: Util.isDesktop ? 16 : 8,
-          ),
+          SizedBox(height: Util.isDesktop ? 16 : 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "Amount",
-                  style: Util.isDesktop
-                      ? STextStyles.w500_14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
-                        )
-                      : STextStyles.w500_12(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
-                        ),
+                  style:
+                      Util.isDesktop
+                          ? STextStyles.w500_14(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.infoItemLabel,
+                          )
+                          : STextStyles.w500_12(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.infoItemLabel,
+                          ),
                 ),
                 Text(
-                  ref.watch(pAmountFormatter(coin)).format(
+                  ref
+                      .watch(pAmountFormatter(coin))
+                      .format(
                         Amount(
                           rawValue: BigInt.from(kNameNewAmountSats),
                           fractionDigits: coin.fractionDigits,
                         ),
                       ),
-                  style: Util.isDesktop
-                      ? STextStyles.w500_14(context)
-                      : STextStyles.w500_12(context),
+                  style:
+                      Util.isDesktop
+                          ? STextStyles.w500_14(context)
+                          : STextStyles.w500_12(context),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            height: Util.isDesktop ? 24 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 24 : 16),
           ConditionalParent(
             condition: !Util.isDesktop,
-            builder: (child) => Row(
-              children: [child],
-            ),
+            builder: (child) => Row(children: [child]),
             child: CustomTextButton(
               text: _settingsHidden ? "More settings" : "Hide settings",
               onTap: () {
@@ -423,10 +432,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
               },
             ),
           ),
-          if (!_settingsHidden)
-            SizedBox(
-              height: Util.isDesktop ? 24 : 16,
-            ),
+          if (!_settingsHidden) SizedBox(height: Util.isDesktop ? 24 : 16),
           if (!_settingsHidden)
             if (_dnsRecords.isEmpty)
               RoundedWhiteContainer(
@@ -436,9 +442,10 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                     Text(
                       "Add DNS records to your domain name",
                       style: STextStyles.w500_12(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textSubtitle1,
                       ),
                     ),
                   ],
@@ -455,27 +462,25 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                     (e) => DNSRecordCard(
                       key: ValueKey(e),
                       record: e,
-                      onRemoveTapped: () => setState(() {
-                        _dnsRecords.remove(e);
-                      }),
+                      onRemoveTapped:
+                          () => setState(() {
+                            _dnsRecords.remove(e);
+                          }),
                     ),
                   ),
-                  SizedBox(
-                    height: Util.isDesktop ? 16 : 8,
-                  ),
+                  SizedBox(height: Util.isDesktop ? 16 : 8),
                   SecondaryButton(
-                    label: _dnsRecords.isEmpty
-                        ? "Add DNS record"
-                        : "Add another DNS record",
+                    label:
+                        _dnsRecords.isEmpty
+                            ? "Add DNS record"
+                            : "Add another DNS record",
                     buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                     onPressed: _addRecord,
                   ),
                 ],
               ),
             ),
-          SizedBox(
-            height: Util.isDesktop ? 24 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 24 : 16),
           if (!Util.isDesktop && _settingsHidden) const Spacer(),
           PrimaryButton(
             label: "Buy",
@@ -483,9 +488,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
             buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
             onPressed: _preRegister,
           ),
-          SizedBox(
-            height: Util.isDesktop ? 32 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 32 : 16),
         ],
       ),
     );
@@ -524,13 +527,8 @@ class DNSRecordCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "${record.type.name}$_extraInfo",
-              ),
-              CustomTextButton(
-                text: "Remove",
-                onTap: onRemoveTapped,
-              ),
+              Text("${record.type.name}$_extraInfo"),
+              CustomTextButton(text: "Remove", onTap: onRemoveTapped),
             ],
           ),
           Text(record.getValueString()),

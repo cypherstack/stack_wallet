@@ -213,10 +213,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
       ),
     );
-    final firoWallet =
-        ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
 
-    final publicBalance = firoWallet.info.cachedBalance.spendable;
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    final publicBalance = wallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (context.mounted) {
@@ -236,7 +235,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
 
     try {
-      await firoWallet.anonymizeAllSpark();
+      if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
+        await wallet.anonymizeAllMweb();
+      } else {
+        await (wallet as FiroWallet).anonymizeAllSpark();
+      }
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -391,7 +394,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
     return [
-      if (!isViewOnly && coin is Firo)
+      if (!isViewOnly &&
+          (coin is Firo ||
+              (wallet is MwebInterface && wallet.info.isMwebEnabled)))
         (
           WalletFeature.anonymizeFunds,
           Assets.svg.recycle,

@@ -491,7 +491,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
-          recipients: [(address: _address!, amount: amount, isChange: false)],
+          recipients: [
+            TxRecipient(address: _address!, amount: amount, isChange: false),
+          ],
           feeRateType: ref.read(feeRateTypeMobileStateProvider),
           note: noteController.text,
           ethEIP1559Fee: ethFee,

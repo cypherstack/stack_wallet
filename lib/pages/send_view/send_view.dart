@@ -22,6 +22,7 @@ import 'package:tuple/tuple.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
+import '../../models/signing_data.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
@@ -52,6 +53,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/animated_text.dart';
@@ -141,7 +143,7 @@ class _SendViewState extends ConsumerState<SendView> {
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
-  Set<UTXO> selectedUTXOs = {};
+  Set<StandardInput> selectedUTXOs = {};
 
   void _applyUri(PaymentUriData paymentData) {
     try {
@@ -714,7 +716,7 @@ class _SendViewState extends ConsumerState<SendView> {
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
             recipients: [
-              (
+              TxRecipient(
                 address: widget.accountLite!.code,
                 amount: amount,
                 isChange: false,
@@ -756,7 +758,11 @@ class _SendViewState extends ConsumerState<SendView> {
               txDataFuture = wallet.prepareSend(
                 txData: TxData(
                   recipients: [
-                    (address: _address!, amount: amount, isChange: false),
+                    TxRecipient(
+                      address: _address!,
+                      amount: amount,
+                      isChange: false,
+                    ),
                   ],
                   feeRateType: ref.read(feeRateTypeMobileStateProvider),
                   satsPerVByte: isCustomFee.value ? customFeeRate : null,
@@ -776,7 +782,11 @@ class _SendViewState extends ConsumerState<SendView> {
                     ref.read(pValidSparkSendToAddress)
                         ? null
                         : [
-                          (address: _address!, amount: amount, isChange: false),
+                          TxRecipient(
+                            address: _address!,
+                            amount: amount,
+                            isChange: false,
+                          ),
                         ],
                 sparkRecipients:
                     ref.read(pValidSparkSendToAddress)
@@ -793,11 +803,31 @@ class _SendViewState extends ConsumerState<SendView> {
             );
             break;
         }
+      } else if (wallet is MwebInterface &&
+          ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            isMweb: true,
+            recipients: [
+              TxRecipient(address: _address!, amount: amount, isChange: false),
+            ],
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+            satsPerVByte: isCustomFee.value ? customFeeRate : null,
+            utxos:
+                (wallet is CoinControlInterface &&
+                        coinControlEnabled &&
+                        selectedUTXOs.isNotEmpty)
+                    ? selectedUTXOs
+                    : null,
+          ),
+        );
       } else {
         final memo = coin is Stellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: _address!, amount: amount, isChange: false)],
+            recipients: [
+              TxRecipient(address: _address!, amount: amount, isChange: false),
+            ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
@@ -906,7 +936,10 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
-  String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
+  String _getSendAllTitle(
+    bool showCoinControl,
+    Set<StandardInput> selectedUTXOs,
+  ) {
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
       return "Send all selected";
     }
@@ -914,8 +947,8 @@ class _SendViewState extends ConsumerState<SendView> {
     return "Send all ${coin.ticker}";
   }
 
-  Amount _selectedUtxosAmount(Set<UTXO> utxos) => Amount(
-    rawValue: utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
+  Amount _selectedUtxosAmount(Set<StandardInput> utxos) => Amount(
+    rawValue: utxos.map((e) => e.value).reduce((v, e) => v += e),
     fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
   );
 
@@ -2065,13 +2098,20 @@ class _SendViewState extends ConsumerState<SendView> {
                                               walletId,
                                               CoinControlViewType.use,
                                               amount,
-                                              selectedUTXOs,
+                                              selectedUTXOs
+                                                  .map((e) => e.utxo)
+                                                  .toSet(),
                                             ),
                                           );
 
                                           if (result is Set<UTXO>) {
                                             setState(() {
-                                              selectedUTXOs = result;
+                                              selectedUTXOs =
+                                                  result
+                                                      .map(
+                                                        (e) => StandardInput(e),
+                                                      )
+                                                      .toSet();
                                             });
                                           }
                                         }

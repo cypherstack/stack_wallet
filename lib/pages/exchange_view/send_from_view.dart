@@ -293,7 +293,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: address, amount: amount, isChange: false)],
+            recipients: [
+              TxRecipient(address: address, amount: amount, isChange: false),
+            ],
             memo: memo,
             feeRateType: FeeRateType.average,
           ),
@@ -304,14 +306,18 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         if (shouldSendPublicFiroFunds) {
           txDataFuture = wallet.prepareSend(
             txData: TxData(
-              recipients: [(address: address, amount: amount, isChange: false)],
+              recipients: [
+                TxRecipient(address: address, amount: amount, isChange: false),
+              ],
               feeRateType: FeeRateType.average,
             ),
           );
         } else {
           txDataFuture = firoWallet.prepareSendSpark(
             txData: TxData(
-              recipients: [(address: address, amount: amount, isChange: false)],
+              recipients: [
+                TxRecipient(address: address, amount: amount, isChange: false),
+              ],
               // feeRateType: FeeRateType.average,
             ),
           );

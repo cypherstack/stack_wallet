@@ -252,7 +252,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
       return txData.copyWith(
         recipients: [
-          (
+          TxRecipient(
             amount: sendAmount,
             address: txData.recipients!.first.address,
             isChange: txData.recipients!.first.isChange,

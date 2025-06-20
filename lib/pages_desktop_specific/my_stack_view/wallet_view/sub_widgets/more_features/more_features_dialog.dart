@@ -271,7 +271,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       unawaited(
         ref
             .read(pMwebService)
-            .init(ref.read(pWalletCoin(widget.walletId)).network),
+            .initService(ref.read(pWalletCoin(widget.walletId)).network),
       );
     }
 

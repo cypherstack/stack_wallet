@@ -416,7 +416,10 @@ class XelisWallet extends LibXelisWallet {
             asset: xelis_sdk.xelisAsset,
           );
 
-          fee = Amount(rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
+          fee = Amount(
+            rawValue: BigInt.zero,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          );
 
           outputs.add(
             OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -477,7 +480,10 @@ class XelisWallet extends LibXelisWallet {
               asset: transfer.asset,
             );
 
-            fee = Amount(rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
+            fee = Amount(
+              rawValue: BigInt.zero,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
 
             outputs.add(
               OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -719,7 +725,7 @@ class XelisWallet extends LibXelisWallet {
           recipients.isNotEmpty
               ? recipients
               : [
-                (
+                TxRecipient(
                   address:
                       'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m',
                   amount: amount,

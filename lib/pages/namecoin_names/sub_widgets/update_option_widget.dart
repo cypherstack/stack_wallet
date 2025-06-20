@@ -147,7 +147,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
         txData: TxData(
           feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
           recipients: [
-            (
+            TxRecipient(
               address: _address!.value,
               isChange: false,
               amount: Amount(

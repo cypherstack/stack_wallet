@@ -579,7 +579,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
             }
 
             TxData txData = TxData(
-              utxos: {utxo},
+              utxos: {StandardInput(utxo)},
               opNameState: NameOpState(
                 name: data.name,
                 saltHex: data.salt,
@@ -593,7 +593,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
               note: "Purchase $noteName",
               feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
               recipients: [
-                (
+                TxRecipient(
                   address: (await getCurrentReceivingAddress())!.value,
                   isChange: false,
                   amount: Amount(
@@ -902,7 +902,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       if (customSatsPerVByte != null) {
         final result = await coinSelectionName(
           txData: txData.copyWith(feeRateAmount: BigInt.from(-1)),
-          utxos: utxos?.toList(),
+          utxos: utxos?.whereType<StandardInput>().map((e) => e.utxo).toList(),
           coinControl: coinControl,
         );
 
@@ -940,7 +940,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
         final result = await coinSelectionName(
           txData: txData.copyWith(feeRateAmount: rate),
-          utxos: utxos?.toList(),
+          utxos: utxos?.whereType<StandardInput>().map((e) => e.utxo).toList(),
           coinControl: coinControl,
         );
 
@@ -1117,7 +1117,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     // gather required signing data
     final utxoSigningData =
         (await fetchBuildTxData(
-          utxoObjectsToUse,
+          utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
         )).whereType<StandardInput>().toList();
 
     final int vSizeForOneOutput;

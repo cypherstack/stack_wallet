@@ -13,6 +13,7 @@ import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../intermediate/external_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -28,7 +29,8 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         CoinControlInterface<T>,
         RbfInterface<T>,
         OrdinalsInterface<T>,
-        MwebInterface<T> {
+        MwebInterface<T>
+    implements ExternalWallet<T> {
   @override
   int get isarTransactionVersion => 2;
 

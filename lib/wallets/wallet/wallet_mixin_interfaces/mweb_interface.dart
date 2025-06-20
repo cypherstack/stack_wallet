@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:isar/isar.dart';
-import 'package:meta/meta.dart';
 import 'package:mweb_client/mweb_client.dart';
 
 import '../../../db/drift/database.dart';
@@ -13,21 +13,25 @@ import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
+import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/mwebd_service.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
+import '../intermediate/external_wallet.dart';
 import 'electrumx_interface.dart';
 
 mixin MwebInterface<T extends ElectrumXCurrencyInterface>
-    on ElectrumXInterface<T> {
+    on ElectrumXInterface<T>
+    implements ExternalWallet<T> {
   // TODO
 
   StreamSubscription<Utxo>? _mwebUtxoSubscription;
@@ -45,7 +49,22 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         .walletIdEqualTo(walletId)
         .filter()
         .typeEqualTo(AddressType.mweb)
+        .and()
+        .subTypeEqualTo(AddressSubType.receiving)
         .sortByDerivationIndexDesc()
+        .findFirst();
+  }
+
+  Future<Address?> getMwebChangeAddress() async {
+    return await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .typeEqualTo(AddressType.mweb)
+        .and()
+        .subTypeEqualTo(AddressSubType.change)
+        .and()
+        .derivationIndexEqualTo(0)
         .findFirst();
   }
 
@@ -59,7 +78,23 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     return client;
   }
 
-  WalletSyncStatus? _syncStatus;
+  WalletSyncStatus? _syncStatusMwebCache;
+  WalletSyncStatus? get _syncStatusMweb => _syncStatusMwebCache;
+  set _syncStatusMweb(WalletSyncStatus? newValue) {
+    switch (newValue) {
+      case null:
+        doNotFireRefreshEvents = true;
+      case WalletSyncStatus.unableToSync:
+        doNotFireRefreshEvents = true;
+      case WalletSyncStatus.synced:
+        doNotFireRefreshEvents = false;
+      case WalletSyncStatus.syncing:
+        doNotFireRefreshEvents = true;
+    }
+
+    _syncStatusMwebCache = newValue;
+  }
+
   Timer? _mwebdPolling;
   int currentKnownChainHeight = 0;
   double highestPercentCached = 0;
@@ -124,7 +159,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           syncStatus = WalletSyncStatus.synced;
         }
 
-        _syncStatus = syncStatus;
+        _syncStatusMweb = syncStatus;
         GlobalEventBus.instance.fire(
           WalletSyncStatusChangedEvent(syncStatus, walletId, info.coin),
         );
@@ -134,9 +169,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           error: e,
           stackTrace: s,
         );
-        _syncStatus = WalletSyncStatus.unableToSync;
+        _syncStatusMweb = WalletSyncStatus.unableToSync;
         GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(_syncStatus!, walletId, info.coin),
+          WalletSyncStatusChangedEvent(_syncStatusMweb!, walletId, info.coin),
         );
       }
     });
@@ -260,7 +295,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         cryptoCurrency.network,
       );
       if (status == null) {
-        await MwebdService.instance.init(cryptoCurrency.network);
+        await MwebdService.instance.initService(cryptoCurrency.network);
       }
 
       _startPollingMwebd();
@@ -269,16 +304,23 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<Address> generateNextMwebAddress() async {
+  /// [isChange] will always return the change address at index 0 !!!!!
+  Future<Address> generateNextMwebAddress({bool isChange = false}) async {
     if (!info.isMwebEnabled) {
       throw Exception(
         "Tried calling generateNextMwebAddress with mweb disabled for $walletId ${info.name}",
       );
     }
-    final highestStoredIndex =
-        (await getCurrentReceivingMwebAddress())?.derivationIndex ?? -1;
 
-    final nextIndex = highestStoredIndex + 1;
+    final int nextIndex;
+    if (isChange) {
+      nextIndex = 0;
+    } else {
+      final highestStoredIndex =
+          (await getCurrentReceivingMwebAddress())?.derivationIndex ?? 0;
+
+      nextIndex = highestStoredIndex + 1;
+    }
 
     final client = await _client;
 
@@ -295,31 +337,12 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       derivationIndex: nextIndex,
       derivationPath: null,
       type: AddressType.mweb,
-      subType: AddressSubType.receiving,
+      subType: isChange ? AddressSubType.change : AddressSubType.receiving,
     );
   }
 
-  Future<Amount> estimateFeeForMweb(Amount amount) async {
-    if (!info.isMwebEnabled) {
-      throw Exception(
-        "Tried calling estimateFeeForMweb with mweb disabled for $walletId ${info.name}",
-      );
-    }
-    throw UnimplementedError();
-  }
-
-  Future<TxData> prepareSendMweb({required TxData txData}) async {
-    if (!info.isMwebEnabled) {
-      throw Exception(
-        "Tried calling prepareSendMweb with mweb disabled for $walletId ${info.name}",
-      );
-    }
-    if (!txData.isMweb) {
-      throw Exception("Invalid mweb flagged tx data");
-    }
-
+  Future<TxData> processMwebTransaction(TxData txData) async {
     final client = await _client;
-
     final response = await client.create(
       CreateRequest(
         rawTx: txData.raw!.toUint8ListFromHex,
@@ -333,19 +356,23 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     return txData.copyWith(raw: Uint8List.fromList(response.rawTx).toHex);
   }
 
-  Future<TxData> confirmSendMweb({required TxData txData}) async {
+  Future<TxData> _confirmSendMweb({required TxData txData}) async {
     if (!info.isMwebEnabled) {
       throw Exception(
-        "Tried calling confirmSendMweb with mweb disabled for $walletId ${info.name}",
+        "Tried calling _confirmSendMweb with mweb disabled for $walletId ${info.name}",
       );
     }
 
     try {
-      Logging.instance.d("confirmSend txData: $txData");
+      Logging.instance.d("_confirmSendMweb txData: $txData");
 
-      final txHash = await electrumXClient.broadcastTransaction(
-        rawTx: txData.raw!,
+      final client = await _client;
+
+      final response = await client.broadcast(
+        BroadcastRequest(rawTx: txData.raw!.toUint8ListFromHex),
       );
+
+      final txHash = response.txid;
       Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(txHash: txHash, txid: txHash);
@@ -371,7 +398,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
       Logging.instance.e(
-        "Exception rethrown from confirmSendMweb(): ",
+        "Exception rethrown from _confirmSendMweb(): ",
         error: e,
         stackTrace: s,
       );
@@ -416,11 +443,34 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       }
 
       // TODO finish
-      final txData = await prepareSendMweb(
-        txData: TxData(utxos: spendableUtxos.toSet()),
+      final txData = await prepareSend(
+        txData: TxData(
+          isMweb: true,
+          feeRateType: FeeRateType.average,
+          utxos: spendableUtxos.map((e) => StandardInput(e)).toSet(),
+          recipients: [
+            TxRecipient(
+              address: (await getCurrentReceivingMwebAddress())!.value,
+              amount: spendableUtxos.fold(
+                Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
+                (p, e) =>
+                    p +
+                    Amount(
+                      rawValue: BigInt.from(e.value),
+                      fractionDigits: cryptoCurrency.fractionDigits,
+                    ),
+              ),
+
+              isChange: false,
+              addressType: AddressType.mweb,
+            ),
+          ],
+        ),
       );
 
-      await confirmSendMweb(txData: txData);
+      final processed = await processMwebTransaction(txData);
+
+      await _confirmSendMweb(txData: processed);
     } catch (e, s) {
       Logging.instance.w(
         "Exception caught in anonymizeAllMweb(): ",
@@ -431,19 +481,71 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  Future<void> _checkSpentMwebUtxos() async {
+    try {
+      final db = Drift.get(walletId);
+      final mwebUtxos =
+          await (db.select(db.mwebUtxos)
+            ..where((e) => e.used.equals(false))).get();
+
+      final client = await _client;
+
+      final spent = await client.spent(
+        SpentRequest(outputId: mwebUtxos.map((e) => e.outputId)),
+      );
+
+      final updated = mwebUtxos.where(
+        (e) => spent.outputId.contains(e.outputId),
+      );
+
+      await db.transaction(() async {
+        for (final utxo in updated) {
+          await db
+              .into(db.mwebUtxos)
+              .insertOnConflictUpdate(
+                utxo.toCompanion(false).copyWith(used: const Value(true)),
+              );
+        }
+      });
+    } catch (e, s) {
+      Logging.instance.e("_checkSpentMwebUtxos()", error: e, stackTrace: s);
+    }
+  }
+
+  Future<void> _checkAddresses() async {
+    // check change first as it is index 0
+    Address? changeAddress = await getMwebChangeAddress();
+    if (changeAddress == null) {
+      changeAddress = await generateNextMwebAddress(isChange: true);
+      await mainDB.putAddress(changeAddress);
+    }
+
+    // check recieving
+    Address? address = await getCurrentReceivingMwebAddress();
+    if (address == null) {
+      address = await generateNextMwebAddress();
+      await mainDB.putAddress(address);
+    }
+  }
+
   // ===========================================================================
 
-  @mustCallSuper
   @override
-  Future<void> init() async {
+  Future<TxData> confirmSend({required TxData txData}) async {
+    if (txData.isMweb) {
+      return await _confirmSendMweb(txData: txData);
+    } else {
+      return await super.confirmSend(txData: txData);
+    }
+  }
+
+  @override
+  Future<void> open() async {
     if (info.isMwebEnabled) {
       try {
         await _initMweb();
-        Address? address = await getCurrentReceivingMwebAddress();
-        if (address == null) {
-          address = await generateNextMwebAddress();
-          await mainDB.putAddress(address);
-        }
+
+        await _checkAddresses();
 
         unawaited(_startUpdateMwebUtxos());
       } catch (e, s) {
@@ -455,8 +557,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         );
       }
     }
-
-    await super.init();
   }
 
   @override
@@ -470,6 +570,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     if (info.isMwebEnabled) {
       final start = DateTime.now();
       try {
+        await _checkSpentMwebUtxos();
+
         final currentHeight = await chainHeight;
         final db = Drift.get(walletId);
         final mwebUtxos =
@@ -548,52 +650,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   }
 
   @override
-  Future<void> refresh() async {
-    if (isViewOnly || !info.isMwebEnabled) {
-      await super.refresh();
-      return;
-    }
-
-    // Awaiting this lock could be dangerous.
-    // Since refresh is periodic (generally)
-    if (refreshMutex.isLocked) {
-      return;
-    }
-
-    // TODO
-
-    // final node = getCurrentNode();
-    //
-    // if (_torNodeMismatchGuard(node)) {
-    //   throw Exception("TOR – clearnet mismatch");
-    // }
-    //
-    // // this acquire should be almost instant due to above check.
-    // // Slight possibility of race but should be irrelevant
-    // await refreshMutex.acquire();
-    //
-    // libMoneroWallet?.startSyncing();
-    // _setSyncStatus(lib_monero_compat.StartingSyncStatus());
-    //
-    // await updateTransactions();
-    // await updateBalance();
-    //
-    // if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-    //   await checkReceivingAddressForTransactions();
-    // }
-    //
-    // if (refreshMutex.isLocked) {
-    //   refreshMutex.release();
-    // }
-    //
-    // final synced = await libMoneroWallet?.isSynced();
-    //
-    // if (synced == true) {
-    //   _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
-    // }
-  }
-
-  @override
   Future<void> recover({required bool isRescan}) async {
     if (isViewOnly) {
       await recoverViewOnly(isRescan: isRescan);
@@ -616,6 +672,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     try {
       await refreshMutex.protect(() async {
         if (isRescan) {
+          await _stopUpdateMwebUtxos();
+
           // clear cache
           await electrumXCachedClient.clearSharedTransactionCache(
             cryptoCurrency: info.coin,
@@ -639,8 +697,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           final db = Drift.get(walletId);
           await db.transaction(() async => await db.delete(db.mwebUtxos).go());
 
-          await _stopUpdateMwebUtxos();
           if (info.isMwebEnabled) {
+            await _checkAddresses();
+
             // only restart scanning if mweb enabled
             unawaited(_startUpdateMwebUtxos());
           }
@@ -746,5 +805,77 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     _mwebdPolling?.cancel();
     _mwebdPolling = null;
     await super.exit();
+  }
+
+  bool isMwebAddress(String address) {
+    try {
+      cl.MwebAddress.fromString(address, network: cryptoCurrency.networkParams);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // TODO: this is broken
+  Future<Amount> mwebFee({required TxData txData}) async {
+    final client = await _client;
+
+    final resp = await client.create(
+      CreateRequest(
+        rawTx: txData.raw!.toUint8ListFromHex,
+        scanSecret: await _scanSecret,
+        spendSecret: await _spendSecret,
+        feeRatePerKb: Int64(txData.feeRateAmount!.toInt()),
+        dryRun: false,
+      ),
+    );
+
+    final tx = cl.Transaction.fromBytes(Uint8List.fromList(resp.rawTx));
+
+    final used = [
+      ...txData.usedUTXOs?.map((e) => StandardInput(e)) ?? [],
+      ...txData.usedMwebUtxos?.map((e) => MwebInput(e)) ?? [],
+    ];
+
+    final posUtxos =
+        used
+            .where(
+              (utxo) => tx.inputs.any(
+                (input) =>
+                    input.prevOut.hash.toHex ==
+                    Uint8List.fromList(
+                      utxo.id.toUint8ListFromHex.reversed.toList(),
+                    ).toHex,
+              ),
+            )
+            .toList();
+
+    final preInSum = used.fold(BigInt.zero, (p, e) => p + e.value);
+    final posOutputSum = tx.outputs.fold(
+      BigInt.zero,
+      (acc, output) => acc + output.value,
+    );
+    final mwebInputSum =
+        preInSum - posUtxos.fold(BigInt.zero, (p, e) => p + e.value);
+
+    final preOutputSum = txData.recipients!.fold(
+      BigInt.zero,
+      (p, e) => p + e.amount.raw,
+    );
+
+    final difference = preOutputSum - mwebInputSum;
+
+    final expectedPegin = difference > BigInt.zero ? difference : BigInt.zero;
+
+    final fee = preInSum - preOutputSum;
+
+    BigInt feeIncrease = posOutputSum - expectedPegin;
+    if (expectedPegin > BigInt.zero && fee == BigInt.zero) {
+      feeIncrease += txData.fee!.raw + txData.feeRateAmount! * BigInt.from(41);
+    }
+    return Amount(
+      rawValue: fee + feeIncrease,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
   }
 }

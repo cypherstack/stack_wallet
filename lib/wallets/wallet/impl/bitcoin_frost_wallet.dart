@@ -18,6 +18,7 @@ import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/frost.dart';
@@ -235,7 +236,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         }
       }
 
-      return txData.copyWith(frostMSConfig: config, utxos: utxosToUse);
+      return txData.copyWith(
+        frostMSConfig: config,
+        utxos: utxosToUse.map((e) => StandardInput(e)).toSet(),
+      );
     } catch (_) {
       rethrow;
     }
@@ -676,11 +680,13 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       Logging.instance.d("Sent txHash: $txHash");
 
       // mark utxos as used
-      final usedUTXOs = txData.utxos!.map((e) => e.copyWith(used: true));
+      final usedUTXOs = txData.utxos!.whereType<StandardInput>().map(
+        (e) => e.utxo.copyWith(used: true),
+      );
       await mainDB.putUTXOs(usedUTXOs.toList());
 
       txData = txData.copyWith(
-        utxos: usedUTXOs.toSet(),
+        utxos: usedUTXOs.map((e) => StandardInput(e)).toSet(),
         txHash: txHash,
         txid: txHash,
       );

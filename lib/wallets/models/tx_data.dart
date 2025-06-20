@@ -7,13 +7,15 @@ import '../../db/drift/database.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
+import '../../models/signing_data.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../isar/models/spark_coin.dart';
 import 'name_op_state.dart';
+import 'tx_recipient.dart';
 
-typedef TxRecipient = ({String address, Amount amount, bool isChange});
+export 'tx_recipient.dart';
 
 class TxData {
   final FeeRateType? feeRateType;
@@ -34,7 +36,7 @@ class TxData {
   final String? memo;
 
   final List<TxRecipient>? recipients;
-  final Set<UTXO>? utxos;
+  final Set<BaseInput>? utxos;
   final List<UTXO>? usedUTXOs;
 
   final String? changeAddress;
@@ -85,7 +87,6 @@ class TxData {
 
   // MWEB
   final bool isMweb;
-  final Set<MwebUtxo>? mwebUtxos;
   final List<MwebUtxo>? usedMwebUtxos;
 
   TxData({
@@ -123,7 +124,6 @@ class TxData {
     this.opNameState,
     this.sparkNameInfo,
     this.isMweb = false,
-    this.mwebUtxos,
     this.usedMwebUtxos,
   });
 
@@ -238,7 +238,7 @@ class TxData {
     String? noteOnChain,
     String? memo,
     String? otherData,
-    Set<UTXO>? utxos,
+    Set<BaseInput>? utxos,
     List<UTXO>? usedUTXOs,
     List<TxRecipient>? recipients,
     String? frostMSConfig,
@@ -273,7 +273,6 @@ class TxData {
     })?
     sparkNameInfo,
     bool? isMweb,
-    Set<MwebUtxo>? mwebUtxos,
     List<MwebUtxo>? usedMwebUtxos,
   }) {
     return TxData(
@@ -313,7 +312,6 @@ class TxData {
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
       isMweb: isMweb ?? this.isMweb,
-      mwebUtxos: mwebUtxos ?? this.mwebUtxos,
       usedMwebUtxos: usedMwebUtxos ?? this.usedMwebUtxos,
     );
   }
@@ -354,7 +352,6 @@ class TxData {
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
       'isMweb: $isMweb, '
-      'mwebUtxos: $mwebUtxos, '
       'usedMwebUtxos: $usedMwebUtxos, '
       '}';
 }

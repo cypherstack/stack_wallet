@@ -480,8 +480,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
 
-    List<({String address, Amount amount, bool isChange})>?
-    recipientsWithFeeSubtracted;
+    List<TxRecipient>? recipientsWithFeeSubtracted;
     List<({String address, Amount amount, String memo, bool isChange})>?
     sparkRecipientsWithFeeSubtracted;
     final recipientCount =
@@ -535,16 +534,18 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
       }
-      recipientsWithFeeSubtracted!.add((
-        address: txData.recipients![i].address,
-        amount: Amount(
-          rawValue:
-              txData.recipients![i].amount.raw -
-              (estimatedFee ~/ BigInt.from(totalRecipientCount)),
-          fractionDigits: cryptoCurrency.fractionDigits,
+      recipientsWithFeeSubtracted!.add(
+        TxRecipient(
+          address: txData.recipients![i].address,
+          amount: Amount(
+            rawValue:
+                txData.recipients![i].amount.raw -
+                (estimatedFee ~/ BigInt.from(totalRecipientCount)),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+          isChange: txData.recipients![i].isChange,
         ),
-        isChange: txData.recipients![i].isChange,
-      ));
+      );
 
       final scriptPubKey = btc.Address.addressToOutputScript(
         txData.recipients![i].address,
@@ -1556,7 +1557,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
             setCoins.add(
-              (await fetchBuildTxData([utxo])).whereType<StandardInput>().first,
+              (await fetchBuildTxData([
+                StandardInput(utxo),
+              ])).whereType<StandardInput>().first,
             );
             nValueIn += BigInt.from(utxo.value);
           }
@@ -2073,7 +2076,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("Attempted send of zero amount");
       }
 
-      final utxos = txData.utxos;
+      final utxos =
+          txData.utxos?.whereType<StandardInput>().map((e) => e.utxo).toList();
       final bool coinControl = utxos != null;
 
       final utxosTotal =
@@ -2228,7 +2232,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       txData: TxData(
         sparkNameInfo: data,
         recipients: [
-          (
+          TxRecipient(
             address: destinationAddress,
             amount: Amount.fromDecimal(
               Decimal.fromInt(kStandardSparkNamesFee[name.length] * years),
