@@ -85,6 +85,18 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final List<TxRecipient> results = [];
 
     for (int i = 0; i < addrs.length; i++) {
+      //  temp mweb hack
+      AddressType? type;
+      if (this is MwebInterface) {
+        final addr = coinlib.Address.fromString(
+          addrs[i],
+          cryptoCurrency.networkParams,
+        );
+        if (addr is coinlib.MwebAddress) {
+          type = AddressType.mweb;
+        }
+      }
+
       results.add(
         TxRecipient(
           address: addrs[i],
@@ -103,6 +115,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
                   .valueProperty()
                   .findFirst()) !=
               null,
+          addressType: type,
         ),
       );
     }
@@ -143,7 +156,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           await (db.select(db.mwebUtxos)
             ..where((e) => e.used.equals(false))).get();
 
-      availableOutputs.addAll(mwebUtxos.map((e) => MwebInput(e)));
+      for (final e in mwebUtxos) {
+        availableOutputs.add(MwebInput(e));
+      }
     }
 
     final currentChainHeight = await chainHeight;
@@ -241,7 +256,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
 
     if (isSendAll || isSendAllCoinControlUtxos) {
-      if (satoshiAmountToSend != satoshisBeingUsed) {
+      if (satoshiAmountToSend != satoshisBeingUsed && !txData.isMweb) {
         throw Exception(
           "Something happened that should never actually happen. "
           "Please report this error to the developers.",
@@ -620,6 +635,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             .isNotEmpty;
 
     final isMweb = hasMwebOutputs || hasMwebInputs;
+
+    print("IS MEB hasMwebInputs: $hasMwebInputs");
+    print("IS MEB hasMwebOutputs: $hasMwebOutputs");
 
     coinlib.Transaction clTx = coinlib.Transaction(
       version: isMweb ? 2 : cryptoCurrency.transactionVersion,
@@ -1783,6 +1801,36 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       if (txData.amount == null) {
         throw Exception("No recipients in attempted transaction!");
       }
+
+      if (this is MwebInterface) {
+        bool hasMwebOutputs = false;
+        final recipients =
+            txData.recipients!.map((e) {
+              if (e.addressType == null) {
+                final addr = coinlib.Address.fromString(
+                  e.address,
+                  cryptoCurrency.networkParams,
+                );
+                if (addr is coinlib.MwebAddress) {
+                  hasMwebOutputs = true;
+                  return TxRecipient(
+                    address: e.address,
+                    amount: e.amount,
+                    isChange: e.isChange,
+                    addressType: AddressType.mweb,
+                  );
+                }
+              }
+              return e;
+            }).toList();
+        txData = txData.copyWith(
+          recipients: recipients,
+          isMweb: txData.isMweb || hasMwebOutputs,
+        );
+        print("IS MEB FLAG AAAA: ${txData.isMweb}");
+      }
+
+      print("IS MEB FLAG: ${txData.isMweb}");
 
       final feeRateType = txData.feeRateType;
       final customSatsPerVByte = txData.satsPerVByte;
