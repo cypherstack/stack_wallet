@@ -151,10 +151,10 @@ packages:
     dependency: "direct main"
     description:
       name: blockchain_utils
-      sha256: ebb6c336ba0120de0982c50d8bc597cb494a530bd22bd462895bb5cebde405af
+      sha256: "1e4f30b98d92f7ccf2eda009a23b53871a1c9b8b6dfa00bb1eb17ec00ae5eeeb"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0"
+    version: "3.6.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -352,16 +352,20 @@ packages:
   coinlib:
     dependency: "direct overridden"
     description:
-      path: "../coinlib/coinlib"
-      relative: true
-    source: path
+      path: coinlib
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      url: "https://www.github.com/julian-CStack/coinlib"
+    source: git
     version: "4.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      path: "../coinlib/coinlib_flutter"
-      relative: true
-    source: path
+      path: coinlib_flutter
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      url: "https://www.github.com/julian-CStack/coinlib"
+    source: git
     version: "4.0.0"
   collection:
     dependency: transitive
@@ -1281,10 +1285,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
+      sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.17.0"
   io:
     dependency: transitive
     description:

@@ -77,7 +77,6 @@ dependencies:
   local_auth: ^2.3.0
   permission_handler: ^12.0.0+1
   flutter_local_notifications: ^17.2.2
-  rxdart: ^0.27.3
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
@@ -174,7 +173,11 @@ dependencies:
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
-  coinlib_flutter: ^3.0.0
+  coinlib_flutter:
+    git:
+      url: https://www.github.com/julian-CStack/coinlib
+      path: coinlib_flutter
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -264,19 +267,17 @@ dependency_overrides:
   win32: ^5.5.4
 
   # namecoin names lib needs to be updated
-  #coinlib: ^3.0.0
-  #coinlib_flutter: ^3.0.0
   coinlib:
     git:
       url: https://www.github.com/julian-CStack/coinlib
       path: coinlib
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
 
   coinlib_flutter:
     git:
       url: https://www.github.com/julian-CStack/coinlib
       path: coinlib_flutter
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
 
   bip47:
     git:
