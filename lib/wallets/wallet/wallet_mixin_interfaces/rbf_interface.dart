@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
@@ -95,6 +95,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
           isChange: isChange,
+          addressType: cryptoCurrency.getAddressType(address)!,
         ),
       );
     }
@@ -147,6 +148,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             isChange: false,
+            addressType: recipients.first.addressType,
           ),
         ],
       );
@@ -175,13 +177,11 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           // update recipients
           txData.recipients!.insert(
             indexOfChangeOutput,
-            TxRecipient(
-              address: removed.address,
+            removed.copyWith(
               amount: Amount(
                 rawValue: newChangeAmount,
                 fractionDigits: cryptoCurrency.fractionDigits,
               ),
-              isChange: removed.isChange,
             ),
           );
           Logging.instance.d(
@@ -203,17 +203,13 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         }
         return await buildTransaction(
           txData: txData.copyWith(
-            usedUTXOs:
-                txData.utxos!
-                    .whereType<StandardInput>()
-                    .map((e) => e.utxo)
-                    .toList(),
+            usedUTXOs: txData.utxos!.toList(),
             fee: Amount(
               rawValue: newFee,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
           ),
-          utxoSigningData: await fetchBuildTxData(txData.utxos!.toList()),
+          inputsWithKeys: await addSigningKeys(txData.utxos!.toList()),
         );
 
         // if change amount is negative
@@ -239,19 +235,17 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         }
         txData.recipients!.insert(
           indexOfChangeOutput,
-          TxRecipient(
-            address: removed.address,
+          removed.copyWith(
             amount: Amount(
               rawValue: newChangeAmount,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            isChange: removed.isChange,
           ),
         );
 
         final newUtxoSet = {
-          ...txData.utxos!.whereType<StandardInput>().map((e) => e.utxo),
-          ...extraUtxos,
+          ...txData.utxos!.whereType<StandardInput>(),
+          ...extraUtxos.map((e) => StandardInput(e)),
         };
 
         // TODO: remove assert
@@ -264,16 +258,14 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
 
         return await buildTransaction(
           txData: txData.copyWith(
-            utxos: newUtxoSet.map((e) => StandardInput(e)).toSet(),
+            utxos: newUtxoSet,
             usedUTXOs: newUtxoSet.toList(),
             fee: Amount(
               rawValue: newFee,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
           ),
-          utxoSigningData: await fetchBuildTxData(
-            newUtxoSet.map((e) => StandardInput(e)).toList(),
-          ),
+          inputsWithKeys: await addSigningKeys(newUtxoSet.toList()),
         );
       }
     } else {

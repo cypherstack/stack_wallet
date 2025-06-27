@@ -128,4 +128,12 @@ class Cardano extends Bip39Currency {
         throw Exception("Unsupported network: $network");
     }
   }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.cardanoShelley;
+    }
+    return null;
+  }
 }

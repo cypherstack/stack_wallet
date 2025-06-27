@@ -730,6 +730,7 @@ class XelisWallet extends LibXelisWallet {
                       'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m',
                   amount: amount,
                   isChange: false,
+                  addressType: AddressType.xelis,
                 ),
               ];
 

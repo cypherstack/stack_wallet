@@ -154,6 +154,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
                 rawValue: BigInt.from(kNameAmountSats),
                 fractionDigits: wallet.cryptoCurrency.fractionDigits,
               ),
+              addressType: _address.type,
             ),
           ],
           note: "Update ${opName.constructedName} (${opName.fullname})",

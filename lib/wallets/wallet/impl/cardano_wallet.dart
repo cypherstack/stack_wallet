@@ -235,13 +235,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       // Check if we are sending all balance, which means no change and only one output for recipient.
       if (totalBalance == txData.amount!.raw) {
         final List<TxRecipient> newRecipients = [
-          TxRecipient(
-            address: txData.recipients!.first.address,
+          txData.recipients!.first.copyWith(
             amount: Amount(
               rawValue: txData.amount!.raw - fee,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            isChange: txData.recipients!.first.isChange,
           ),
         ];
         return txData.copyWith(

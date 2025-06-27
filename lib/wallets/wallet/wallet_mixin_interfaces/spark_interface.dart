@@ -15,11 +15,11 @@ import 'package:logger/logger.dart';
 import '../../../db/drift/database.dart' show Drift;
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/spark_names_service.dart';
@@ -535,15 +535,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         continue;
       }
       recipientsWithFeeSubtracted!.add(
-        TxRecipient(
-          address: txData.recipients![i].address,
+        txData.recipients![i].copyWith(
           amount: Amount(
             rawValue:
                 txData.recipients![i].amount.raw -
                 (estimatedFee ~/ BigInt.from(totalRecipientCount)),
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
-          isChange: txData.recipients![i].isChange,
         ),
       );
 
@@ -1557,7 +1555,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
             setCoins.add(
-              (await fetchBuildTxData([
+              (await addSigningKeys([
                 StandardInput(utxo),
               ])).whereType<StandardInput>().first,
             );
@@ -1921,7 +1919,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           rawValue: nFeeRet,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
-        usedUTXOs: vin.map((e) => e.utxo).toList(),
+        usedUTXOs: vin,
         tempTx: TransactionV2(
           walletId: walletId,
           blockHash: null,
@@ -2239,6 +2237,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             isChange: false,
+            addressType: cryptoCurrency.getAddressType(destinationAddress)!,
           ),
         ],
       ),

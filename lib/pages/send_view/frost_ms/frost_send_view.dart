@@ -88,6 +88,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
             address: e!.address,
             amount: e.amount!,
             isChange: false,
+            addressType: wallet.cryptoCurrency.getAddressType(e.address)!,
           ),
         )
         .toList(growable: false);

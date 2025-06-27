@@ -102,4 +102,12 @@ class Banano extends NanoCurrency {
       throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.banano;
+    }
+    return null;
+  }
 }

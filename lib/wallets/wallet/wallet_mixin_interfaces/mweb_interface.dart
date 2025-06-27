@@ -10,10 +10,10 @@ import 'package:mweb_client/mweb_client.dart';
 
 import '../../../db/drift/database.dart';
 import '../../../models/balance.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -240,7 +240,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
             blockHash: null, // ??
             hash: "",
             txid: fakeTxid,
-            timestamp: utxo.blockTime,
+            timestamp:
+                utxo.height < 1
+                    ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+                    : utxo.blockTime,
             height: utxo.height,
             inputs: [],
             outputs: [
@@ -353,7 +356,68 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       ),
     );
 
-    return txData.copyWith(raw: Uint8List.fromList(response.rawTx).toHex);
+    if (txData.type == TxType.mwebPegIn) {
+      cl.Transaction clTx = cl.Transaction.fromBytes(
+        Uint8List.fromList(response.rawTx),
+      );
+
+      assert(response.rawTx.toString() == clTx.toBytes().toList().toString());
+      final List<cl.Output> prevOuts = [];
+
+      for (int i = 0; i < txData.usedUTXOs!.length; i++) {
+        final data = txData.usedUTXOs![i];
+        if (data is StandardInput) {
+          final prevOutput = cl.Output.fromAddress(
+            BigInt.from(data.utxo.value),
+            cl.Address.fromString(
+              data.utxo.address!,
+              cryptoCurrency.networkParams,
+            ),
+          );
+
+          prevOuts.add(prevOutput);
+        }
+      }
+
+      for (int i = 0; i < txData.usedUTXOs!.length; i++) {
+        final data = txData.usedUTXOs![i];
+
+        if (data is MwebInput) {
+          // do nothing
+        } else if (data is StandardInput) {
+          final value = BigInt.from(data.utxo.value);
+          final key = data.key!.privateKey!;
+          if (clTx.inputs[i] is cl.TaprootKeyInput) {
+            final taproot = cl.Taproot(internalKey: data.key!.publicKey);
+
+            clTx = clTx.signTaproot(
+              inputN: i,
+              key: taproot.tweakPrivateKey(key),
+              prevOuts: prevOuts,
+            );
+          } else if (clTx.inputs[i] is cl.LegacyWitnessInput) {
+            clTx = clTx.signLegacyWitness(inputN: i, key: key, value: value);
+          } else if (clTx.inputs[i] is cl.LegacyInput) {
+            clTx = clTx.signLegacy(inputN: i, key: key);
+          } else if (clTx.inputs[i] is cl.TaprootSingleScriptSigInput) {
+            clTx = clTx.signTaprootSingleScriptSig(
+              inputN: i,
+              key: key,
+              prevOuts: prevOuts,
+            );
+          } else {
+            throw Exception(
+              "Unable to sign input of type ${clTx.inputs[i].runtimeType}",
+            );
+          }
+        } else {
+          throw Exception("Unknown input type: ${data.runtimeType}");
+        }
+      }
+      return txData.copyWith(raw: clTx.toHex());
+    } else {
+      return txData.copyWith(raw: Uint8List.fromList(response.rawTx).toHex);
+    }
   }
 
   Future<TxData> _confirmSendMweb({required TxData txData}) async {
@@ -375,17 +439,41 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       final txHash = response.txid;
       Logging.instance.d("Sent txHash: $txHash");
 
-      txData = txData.copyWith(txHash: txHash, txid: txHash);
+      txData = txData.copyWith(
+        usedUTXOs:
+            txData.usedUTXOs!.map((e) {
+              if (e is StandardInput) {
+                return StandardInput(
+                  e.utxo.copyWith(used: true),
+                  derivePathType: e.derivePathType,
+                );
+              } else if (e is MwebInput) {
+                return MwebInput(e.utxo.copyWith(used: true));
+              } else {
+                return e;
+              }
+            }).toList(),
+        txHash: txHash,
+        txid: txHash,
+      );
+
+      // mark utxos as used
+      await mainDB.putUTXOs(
+        txData.usedUTXOs!
+            .whereType<StandardInput>()
+            .map((e) => e.utxo)
+            .toList(),
+      );
 
       // Update used mweb utxos as used in database. They should already have
       // been marked as isUsed.
-      if (txData.usedMwebUtxos != null && txData.usedMwebUtxos!.isNotEmpty) {
+      if (txData.usedUTXOs!.whereType<MwebInput>().isNotEmpty) {
         final db = Drift.get(walletId);
         await db.transaction(() async {
-          for (final utxo in txData.usedMwebUtxos!) {
+          for (final utxo in txData.usedUTXOs!.whereType<MwebInput>()) {
             await db
                 .into(db.mwebUtxos)
-                .insertOnConflictUpdate(utxo.toCompanion(false));
+                .insertOnConflictUpdate(utxo.utxo.toCompanion(false));
           }
         });
       } else {
@@ -404,6 +492,34 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       );
       rethrow;
     }
+  }
+
+  @override
+  Future<TxData> prepareSend({required TxData txData}) async {
+    final hasMwebOutputs =
+        txData.recipients!
+            .where((e) => e.addressType == AddressType.mweb)
+            .isNotEmpty;
+    if (hasMwebOutputs) {
+      // assume pegin tx
+      txData = txData.copyWith(type: TxType.mwebPegIn);
+    }
+
+    return super.prepareSend(txData: txData);
+  }
+
+  /// prepare mweb transaction where spending mweb outputs
+  Future<TxData> prepareSendMweb({required TxData txData}) async {
+    final hasMwebOutputs =
+        txData.recipients!
+            .where((e) => e.addressType == AddressType.mweb)
+            .isNotEmpty;
+
+    final type = hasMwebOutputs ? TxType.mweb : TxType.mwebPegOut;
+
+    txData = txData.copyWith(type: type);
+
+    return super.prepareSend(txData: txData);
   }
 
   Future<void> anonymizeAllMweb() async {
@@ -445,7 +561,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       // TODO finish
       final txData = await prepareSend(
         txData: TxData(
-          isMweb: true,
+          type: TxType.mwebPegIn,
           feeRateType: FeeRateType.average,
           utxos: spendableUtxos.map((e) => StandardInput(e)).toSet(),
           recipients: [
@@ -460,7 +576,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
                       fractionDigits: cryptoCurrency.fractionDigits,
                     ),
               ),
-
               isChange: false,
               addressType: AddressType.mweb,
             ),
@@ -468,9 +583,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         ),
       );
 
-      final processed = await processMwebTransaction(txData);
-
-      await _confirmSendMweb(txData: processed);
+      await _confirmSendMweb(txData: txData);
     } catch (e, s) {
       Logging.instance.w(
         "Exception caught in anonymizeAllMweb(): ",
@@ -532,7 +645,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
-    if (txData.isMweb) {
+    if (txData.type.isMweb()) {
       return await _confirmSendMweb(txData: txData);
     } else {
       return await super.confirmSend(txData: txData);
@@ -816,8 +929,15 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  // TODO: this is broken
   Future<Amount> mwebFee({required TxData txData}) async {
+    final outputs = txData.recipients!;
+    final utxos = txData.usedUTXOs!;
+
+    final sumOfUtxosValue = utxos.fold(BigInt.zero, (p, e) => p + e.value);
+
+    final preOutputSum = outputs.fold(BigInt.zero, (p, e) => p + e.amount.raw);
+    final fee = sumOfUtxosValue - preOutputSum;
+
     final client = await _client;
 
     final resp = await client.create(
@@ -826,21 +946,19 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
         feeRatePerKb: Int64(txData.feeRateAmount!.toInt()),
-        dryRun: false,
+        dryRun: true,
       ),
     );
 
-    final tx = cl.Transaction.fromBytes(Uint8List.fromList(resp.rawTx));
+    final processedTx = cl.Transaction.fromBytes(
+      Uint8List.fromList(resp.rawTx),
+    );
 
-    final used = [
-      ...txData.usedUTXOs?.map((e) => StandardInput(e)) ?? [],
-      ...txData.usedMwebUtxos?.map((e) => MwebInput(e)) ?? [],
-    ];
-
+    BigInt maxBI(BigInt a, BigInt b) => a > b ? a : b;
     final posUtxos =
-        used
+        utxos
             .where(
-              (utxo) => tx.inputs.any(
+              (utxo) => processedTx.inputs.any(
                 (input) =>
                     input.prevOut.hash.toHex ==
                     Uint8List.fromList(
@@ -850,29 +968,21 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
             )
             .toList();
 
-    final preInSum = used.fold(BigInt.zero, (p, e) => p + e.value);
-    final posOutputSum = tx.outputs.fold(
+    final posOutputSum = processedTx.outputs.fold(
       BigInt.zero,
       (acc, output) => acc + output.value,
     );
     final mwebInputSum =
-        preInSum - posUtxos.fold(BigInt.zero, (p, e) => p + e.value);
-
-    final preOutputSum = txData.recipients!.fold(
-      BigInt.zero,
-      (p, e) => p + e.amount.raw,
-    );
-
-    final difference = preOutputSum - mwebInputSum;
-
-    final expectedPegin = difference > BigInt.zero ? difference : BigInt.zero;
-
-    final fee = preInSum - preOutputSum;
-
+        sumOfUtxosValue - posUtxos.fold(BigInt.zero, (p, e) => p + e.value);
+    final expectedPegin = maxBI(BigInt.zero, (preOutputSum - mwebInputSum));
     BigInt feeIncrease = posOutputSum - expectedPegin;
-    if (expectedPegin > BigInt.zero && fee == BigInt.zero) {
-      feeIncrease += txData.fee!.raw + txData.feeRateAmount! * BigInt.from(41);
+
+    if (expectedPegin > BigInt.zero) {
+      feeIncrease += BigInt.from(
+        (txData.feeRateAmount! / BigInt.from(1000) * 41).ceil(),
+      );
     }
+
     return Amount(
       rawValue: fee + feeIncrease,
       fractionDigits: cryptoCurrency.fractionDigits,

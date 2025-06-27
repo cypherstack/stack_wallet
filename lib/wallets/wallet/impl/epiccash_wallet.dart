@@ -646,11 +646,7 @@ class EpiccashWallet extends Bip39Wallet {
       }
 
       if (info.cachedBalance.spendable == recipient.amount) {
-        recipient = TxRecipient(
-          address: recipient.address,
-          amount: recipient.amount - feeAmount,
-          isChange: recipient.isChange,
-        );
+        recipient = recipient.copyWith(amount: recipient.amount - feeAmount);
       }
 
       return txData.copyWith(recipients: [recipient], fee: feeAmount);

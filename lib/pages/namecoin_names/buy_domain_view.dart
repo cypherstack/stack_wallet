@@ -110,6 +110,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
             rawValue: BigInt.from(kNameNewAmountSats),
             fractionDigits: wallet.cryptoCurrency.fractionDigits,
           ),
+          addressType: myAddress.type,
         ),
       ],
     );

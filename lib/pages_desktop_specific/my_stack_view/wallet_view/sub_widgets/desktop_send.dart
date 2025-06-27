@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
@@ -315,6 +316,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 address: widget.accountLite!.code,
                 amount: amount,
                 isChange: false,
+                addressType: AddressType.unknown,
               ),
             ],
             satsPerVByte: isCustomFee ? customFeeRate : null,
@@ -358,6 +360,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       address: _address!,
                       amount: amount,
                       isChange: false,
+                      addressType:
+                          wallet.cryptoCurrency.getAddressType(_address!)!,
                     ),
                   ],
                   feeRateType: ref.read(feeRateTypeDesktopStateProvider),
@@ -383,6 +387,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             address: _address!,
                             amount: amount,
                             isChange: false,
+                            addressType:
+                                wallet.cryptoCurrency.getAddressType(
+                                  _address!,
+                                )!,
                           ),
                         ],
                 sparkRecipients:
@@ -402,20 +410,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       } else if (wallet is MwebInterface &&
           ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
-        txDataFuture = wallet.prepareSend(
+        txDataFuture = wallet.prepareSendMweb(
           txData: TxData(
-            isMweb: true,
             recipients: [
-              TxRecipient(address: _address!, amount: amount, isChange: false),
+              TxRecipient(
+                address: _address!,
+                amount: amount,
+                isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              ),
             ],
             feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
-            utxos:
-                (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        ref.read(pDesktopUseUTXOs).isNotEmpty)
-                    ? ref.read(pDesktopUseUTXOs)
-                    : null,
+            // these will need to be mweb utxos
+            // utxos:
+            //     (wallet is CoinControlInterface &&
+            //             coinControlEnabled &&
+            //             ref.read(pDesktopUseUTXOs).isNotEmpty)
+            //         ? ref.read(pDesktopUseUTXOs)
+            //         : null,
           ),
         );
       } else {
@@ -423,7 +436,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
-              TxRecipient(address: _address!, amount: amount, isChange: false),
+              TxRecipient(
+                address: _address!,
+                amount: amount,
+                isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              ),
             ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeDesktopStateProvider),

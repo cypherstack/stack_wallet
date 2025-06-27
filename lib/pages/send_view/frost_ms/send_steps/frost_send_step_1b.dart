@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 
 import '../../../../frost_route_generator.dart';
+import '../../../../models/input.dart';
 import '../../../../models/isar/models/isar_models.dart';
-import '../../../../models/signing_data.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -97,6 +97,8 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
                     address: e.address,
                     amount: e.amount,
                     isChange: false,
+                    addressType:
+                        wallet.cryptoCurrency.getAddressType(e.address)!,
                   ),
                 )
                 .toList(),

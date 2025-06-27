@@ -3,11 +3,10 @@ import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
-import '../../db/drift/database.dart';
+import '../../models/input.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
-import '../../models/signing_data.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../widgets/eth_fee_form.dart';
@@ -16,6 +15,20 @@ import 'name_op_state.dart';
 import 'tx_recipient.dart';
 
 export 'tx_recipient.dart';
+
+enum TxType {
+  regular,
+  mweb,
+  mwebPegIn,
+  mwebPegOut;
+
+  bool isMweb() => switch (this) {
+    TxType.mweb => true,
+    TxType.mwebPegIn => true,
+    TxType.mwebPegOut => true,
+    _ => false,
+  };
+}
 
 class TxData {
   final FeeRateType? feeRateType;
@@ -37,7 +50,7 @@ class TxData {
 
   final List<TxRecipient>? recipients;
   final Set<BaseInput>? utxos;
-  final List<UTXO>? usedUTXOs;
+  final List<BaseInput>? usedUTXOs;
 
   final String? changeAddress;
 
@@ -85,9 +98,7 @@ class TxData {
   // Namecoin Name related
   final NameOpState? opNameState;
 
-  // MWEB
-  final bool isMweb;
-  final List<MwebUtxo>? usedMwebUtxos;
+  final TxType type;
 
   TxData({
     this.feeRateType,
@@ -123,8 +134,7 @@ class TxData {
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
     this.sparkNameInfo,
-    this.isMweb = false,
-    this.usedMwebUtxos,
+    this.type = TxType.regular,
   });
 
   Amount? get amount {
@@ -239,7 +249,7 @@ class TxData {
     String? memo,
     String? otherData,
     Set<BaseInput>? utxos,
-    List<UTXO>? usedUTXOs,
+    List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
     String? frostMSConfig,
     List<String>? frostSigners,
@@ -272,8 +282,7 @@ class TxData {
       int validBlocks,
     })?
     sparkNameInfo,
-    bool? isMweb,
-    List<MwebUtxo>? usedMwebUtxos,
+    TxType? type,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -311,8 +320,7 @@ class TxData {
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
-      isMweb: isMweb ?? this.isMweb,
-      usedMwebUtxos: usedMwebUtxos ?? this.usedMwebUtxos,
+      type: type ?? this.type,
     );
   }
 
@@ -351,7 +359,6 @@ class TxData {
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
-      'isMweb: $isMweb, '
-      'usedMwebUtxos: $usedMwebUtxos, '
+      'type: $type, '
       '}';
 }

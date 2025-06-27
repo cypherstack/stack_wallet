@@ -207,30 +207,35 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
       // Parse outputs.
       final List<OutputV2> outputs = [];
       for (final outputJson in txData["vout"] as List) {
-        OutputV2 output = OutputV2.fromElectrumXJson(
-          Map<String, dynamic>.from(outputJson as Map),
-          decimalPlaces: cryptoCurrency.fractionDigits,
-          isFullAmountNotSats: true,
-          // Need addresses before we can know if the wallet owns this input.
-          walletOwns: false,
-        );
+        try {
+          OutputV2 output = OutputV2.fromElectrumXJson(
+            Map<String, dynamic>.from(outputJson as Map),
+            decimalPlaces: cryptoCurrency.fractionDigits,
+            isFullAmountNotSats: true,
+            // Need addresses before we can know if the wallet owns this input.
+            walletOwns: false,
+          );
 
-        // If output was to my wallet, add value to amount received.
-        if (receivingAddresses
-            .intersection(output.addresses.toSet())
-            .isNotEmpty) {
-          wasReceivedInThisWallet = true;
-          amountReceivedInThisWallet += output.value;
-          output = output.copyWith(walletOwns: true);
-        } else if (changeAddresses
-            .intersection(output.addresses.toSet())
-            .isNotEmpty) {
-          wasReceivedInThisWallet = true;
-          changeAmountReceivedInThisWallet += output.value;
-          output = output.copyWith(walletOwns: true);
+          // If output was to my wallet, add value to amount received.
+          if (receivingAddresses
+              .intersection(output.addresses.toSet())
+              .isNotEmpty) {
+            wasReceivedInThisWallet = true;
+            amountReceivedInThisWallet += output.value;
+            output = output.copyWith(walletOwns: true);
+          } else if (changeAddresses
+              .intersection(output.addresses.toSet())
+              .isNotEmpty) {
+            wasReceivedInThisWallet = true;
+            changeAmountReceivedInThisWallet += output.value;
+            output = output.copyWith(walletOwns: true);
+          }
+
+          outputs.add(output);
+        } catch (e, s) {
+          // TODO: mweb output parsing
+          Logging.instance.e("TODO", error: e, stackTrace: s);
         }
-
-        outputs.add(output);
       }
 
       final totalOut = outputs

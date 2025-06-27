@@ -140,6 +140,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                 rawValue: BigInt.from(kNameAmountSats),
                 fractionDigits: wallet.cryptoCurrency.fractionDigits,
               ),
+              addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
             ),
           ],
           note: "Transfer ${opName.constructedName}",

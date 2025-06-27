@@ -16,8 +16,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../models/input.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
-import '../../models/signing_data.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';

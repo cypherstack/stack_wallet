@@ -129,4 +129,12 @@ class Epiccash extends Bip39Currency {
         );
     }
   }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.mimbleWimble;
+    }
+    return null;
+  }
 }

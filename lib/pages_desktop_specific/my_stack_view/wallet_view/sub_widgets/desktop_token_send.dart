@@ -233,7 +233,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
           recipients: [
-            TxRecipient(address: _address!, amount: amount, isChange: false),
+            TxRecipient(
+              address: _address!,
+              amount: amount,
+              isChange: false,
+              addressType:
+                  tokenWallet.cryptoCurrency.getAddressType(_address!)!,
+            ),
           ],
           feeRateType: ref.read(feeRateTypeDesktopStateProvider),
           nonce: int.tryParse(nonceController.text),

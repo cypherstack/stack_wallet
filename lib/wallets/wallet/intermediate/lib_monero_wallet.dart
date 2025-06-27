@@ -11,6 +11,7 @@ import 'package:stack_wallet_backup/generate_password.dart';
 
 import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
@@ -21,7 +22,6 @@ import '../../../models/keys/cw_key_data.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
-import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';

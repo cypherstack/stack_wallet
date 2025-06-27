@@ -14,11 +14,11 @@ import 'package:tuple/tuple.dart';
 
 import '../../../exceptions/wallet/insufficient_balance_exception.dart';
 import '../../../exceptions/wallet/paynym_send_exception.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/bip32_utils.dart';
 import '../../../utilities/bip47_utils.dart';
@@ -383,6 +383,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               address: sendToAddress.value,
               amount: txData.recipients!.first.amount,
               isChange: false,
+              addressType: sendToAddress.type,
             ),
           ],
         ),
@@ -526,15 +527,15 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       // gather required signing data
-      final utxoSigningData =
-          (await fetchBuildTxData(
+      final inputsWithKeys =
+          (await addSigningKeys(
             utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
           )).whereType<StandardInput>().toList();
 
       final vSizeForNoChange = BigInt.from(
         (await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
-          utxoSigningData: utxoSigningData,
+          inputsWithKeys: inputsWithKeys,
           change: BigInt.zero,
           // override amount to get around absurd fees error
           overrideAmountForTesting: satoshisBeingUsed,
@@ -544,7 +545,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final vSizeForWithChange = BigInt.from(
         (await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
-          utxoSigningData: utxoSigningData,
+          inputsWithKeys: inputsWithKeys,
           change: satoshisBeingUsed - amountToSend.raw,
         )).item2,
       );
@@ -587,7 +588,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
                 feeForWithChange) {
           var txn = await _createNotificationTx(
             targetPaymentCodeString: targetPaymentCodeString,
-            utxoSigningData: utxoSigningData,
+            inputsWithKeys: inputsWithKeys,
             change: changeAmount,
           );
 
@@ -600,7 +601,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
             feeBeingPaid += BigInt.one;
             txn = await _createNotificationTx(
               targetPaymentCodeString: targetPaymentCodeString,
-              utxoSigningData: utxoSigningData,
+              inputsWithKeys: inputsWithKeys,
               change: changeAmount,
             );
           }
@@ -612,6 +613,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
                 address: targetPaymentCodeString,
                 amount: amountToSend,
                 isChange: false,
+                addressType: AddressType.unknown,
               ),
             ],
             fee: Amount(
@@ -619,7 +621,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             vSize: txn.item2,
-            utxos: utxoSigningData.toSet(),
+            utxos: inputsWithKeys.toSet(),
             note: "PayNym connect",
           );
 
@@ -629,7 +631,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           // than the dust limit. Try without change
           final txn = await _createNotificationTx(
             targetPaymentCodeString: targetPaymentCodeString,
-            utxoSigningData: utxoSigningData,
+            inputsWithKeys: inputsWithKeys,
             change: BigInt.zero,
           );
 
@@ -642,6 +644,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
                 address: targetPaymentCodeString,
                 amount: amountToSend,
                 isChange: false,
+                addressType: AddressType.unknown,
               ),
             ],
             fee: Amount(
@@ -649,7 +652,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             vSize: txn.item2,
-            utxos: utxoSigningData.toSet(),
+            utxos: inputsWithKeys.toSet(),
             note: "PayNym connect",
           );
 
@@ -660,7 +663,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         // build without change here
         final txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
-          utxoSigningData: utxoSigningData,
+          inputsWithKeys: inputsWithKeys,
           change: BigInt.zero,
         );
 
@@ -673,6 +676,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               address: targetPaymentCodeString,
               amount: amountToSend,
               isChange: false,
+              addressType: AddressType.unknown,
             ),
           ],
           fee: Amount(
@@ -680,7 +684,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
           vSize: txn.item2,
-          utxos: utxoSigningData.toSet(),
+          utxos: inputsWithKeys.toSet(),
           note: "PayNym connect",
         );
 
@@ -709,7 +713,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
-    required List<StandardInput> utxoSigningData,
+    required List<StandardInput> inputsWithKeys,
     required BigInt change,
     BigInt? overrideAmountForTesting,
   }) async {
@@ -720,7 +724,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       );
       final myCode = await getPaymentCode(isSegwit: false);
 
-      final utxo = utxoSigningData.first.utxo;
+      final utxo = inputsWithKeys.first.utxo;
       final txPoint = utxo.txid.toUint8ListFromHex.reversed.toList();
       final txPointIndex = utxo.vout;
 
@@ -729,7 +733,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final myKeyPair = utxoSigningData.first.key!;
+      final myKeyPair = inputsWithKeys.first.key!;
 
       final S = SecretPoint(
         myKeyPair.privateKey!.data,
@@ -759,8 +763,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         outputs: [],
       );
 
-      for (var i = 0; i < utxoSigningData.length; i++) {
-        final txid = utxoSigningData[i].utxo.txid;
+      for (var i = 0; i < inputsWithKeys.length; i++) {
+        final txid = inputsWithKeys[i].utxo.txid;
 
         final hash = Uint8List.fromList(
           txid.toUint8ListFromHex.reversed.toList(),
@@ -768,13 +772,13 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
         final prevOutpoint = coinlib.OutPoint(
           hash,
-          utxoSigningData[i].utxo.vout,
+          inputsWithKeys[i].utxo.vout,
         );
 
         final prevOutput = coinlib.Output.fromAddress(
-          BigInt.from(utxoSigningData[i].utxo.value),
+          BigInt.from(inputsWithKeys[i].utxo.value),
           coinlib.Address.fromString(
-            utxoSigningData[i].utxo.address!,
+            inputsWithKeys[i].utxo.address!,
             cryptoCurrency.networkParams,
           ),
         );
@@ -783,12 +787,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
         final coinlib.Input input;
 
-        switch (utxoSigningData[i].derivePathType) {
+        switch (inputsWithKeys[i].derivePathType) {
           case DerivePathType.bip44:
           case DerivePathType.bch44:
             input = coinlib.P2PKHInput(
               prevOut: prevOutpoint,
-              publicKey: utxoSigningData[i].key!.publicKey,
+              publicKey: inputsWithKeys[i].key!.publicKey,
               sequence: 0xffffffff - 1,
             );
 
@@ -806,7 +810,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           case DerivePathType.bip84:
             input = coinlib.P2WPKHInput(
               prevOut: prevOutpoint,
-              publicKey: utxoSigningData[i].key!.publicKey,
+              publicKey: inputsWithKeys[i].key!.publicKey,
               sequence: 0xffffffff - 1,
             );
 
@@ -815,7 +819,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
           default:
             throw UnsupportedError(
-              "Unknown derivation path type found: ${utxoSigningData[i].derivePathType}",
+              "Unknown derivation path type found: ${inputsWithKeys[i].derivePathType}",
             );
         }
 
@@ -887,13 +891,13 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       // sign rest of possible inputs
-      for (int i = 1; i < utxoSigningData.length; i++) {
-        final value = BigInt.from(utxoSigningData[i].utxo.value);
-        final key = utxoSigningData[i].key!.privateKey!;
+      for (int i = 1; i < inputsWithKeys.length; i++) {
+        final value = BigInt.from(inputsWithKeys[i].utxo.value);
+        final key = inputsWithKeys[i].key!.privateKey!;
 
         if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
           final taproot = coinlib.Taproot(
-            internalKey: utxoSigningData[i].key!.publicKey,
+            internalKey: inputsWithKeys[i].key!.publicKey,
           );
 
           clTx = clTx.signTaproot(

@@ -230,12 +230,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
       Future<TxData> txDataFuture;
 
+      final recipient = TxRecipient(
+        address: address,
+        amount: amount,
+        isChange: false,
+        addressType: wallet.cryptoCurrency.getAddressType(address)!,
+      );
+
       if (wallet is FiroWallet && !firoPublicSend) {
         txDataFuture = wallet.prepareSendSpark(
           txData: TxData(
-            recipients: [
-              TxRecipient(address: address, amount: amount, isChange: false),
-            ],
+            recipients: [recipient],
             note:
                 "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
@@ -250,9 +255,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                 : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [
-              TxRecipient(address: address, amount: amount, isChange: false),
-            ],
+            recipients: [recipient],
             memo: memo,
             feeRateType: FeeRateType.average,
             note:
