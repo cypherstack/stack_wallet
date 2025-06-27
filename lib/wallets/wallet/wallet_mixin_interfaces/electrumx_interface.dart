@@ -134,6 +134,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       throw Exception("Coin control used where utxos is null!");
     }
 
+    Future<Address> changeAddress() async {
+      if (txData.type == TxType.mweb || txData.type == TxType.mwebPegOut) {
+        return (await (this as MwebInterface).getMwebChangeAddress())!;
+      } else {
+        return (await getCurrentChangeAddress())!;
+      }
+    }
+
     final recipientAddress = txData.recipients!.first.address;
     final satoshiAmountToSend = txData.amount!.raw;
     final int? satsPerVByte = txData.satsPerVByte;
@@ -300,7 +308,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             inputsWithKeys: inputsWithKeys,
             txData: txData.copyWith(
               recipients: await helperRecipientsConvert(
-                [recipientAddress, (await getCurrentChangeAddress())!.value],
+                [recipientAddress, (await changeAddress()).value],
                 [
                   satoshiAmountToSend,
                   maxBI(
@@ -393,15 +401,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         // check if possible to add the change output
         if (changeOutputSize > cryptoCurrency.dustLimit.raw &&
             difference - changeOutputSize == feeForTwoOutputs) {
-          // generate new change address if current change address has been used
-          await checkChangeAddressForTransactions();
-          final String newChangeAddress =
-              (await getCurrentChangeAddress())!.value;
+          if (!(txData.type == TxType.mweb ||
+              txData.type == TxType.mwebPegOut)) {
+            // generate new change address if current change address has been used
+            await checkChangeAddressForTransactions();
+          }
+          final newChangeAddress = await changeAddress();
 
           BigInt feeBeingPaid = difference - changeOutputSize;
 
           // add change output
-          recipientsArray.add(newChangeAddress);
+          recipientsArray.add(newChangeAddress.value);
           recipientsAmtArray.add(changeOutputSize);
 
           Logging.instance.d('2 outputs in tx');
