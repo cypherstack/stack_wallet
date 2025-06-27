@@ -219,6 +219,11 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             ref.watch(pWalletBalanceSecondary(walletId)).total;
                         total +=
                             ref.watch(pWalletBalanceTertiary(walletId)).total;
+                      } else if (ref.watch(
+                        pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+                      )) {
+                        total +=
+                            ref.watch(pWalletBalanceSecondary(walletId)).total;
                       }
 
                       Amount fiatTotal = Amount.zero;

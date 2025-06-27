@@ -32,8 +32,6 @@ import 'electrumx_interface.dart';
 mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T>
     implements ExternalWallet<T> {
-  // TODO
-
   StreamSubscription<Utxo>? _mwebUtxoSubscription;
 
   Future<Uint8List> get _scanSecret async =>
@@ -465,23 +463,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
             .toList(),
       );
 
-      // Update used mweb utxos as used in database. They should already have
-      // been marked as isUsed.
-      if (txData.usedUTXOs!.whereType<MwebInput>().isNotEmpty) {
-        final db = Drift.get(walletId);
-        await db.transaction(() async {
-          for (final utxo in txData.usedUTXOs!.whereType<MwebInput>()) {
-            await db
-                .into(db.mwebUtxos)
-                .insertOnConflictUpdate(utxo.utxo.toCompanion(false));
-          }
-        });
-      } else {
-        Logging.instance.w(
-          "txData.usedMwebUtxos is empty or null when it very "
-          "likely should not be!",
-        );
-      }
+      // Update used mweb utxos as used in database
+      await _checkSpentMwebUtxos();
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
@@ -597,9 +580,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   Future<void> _checkSpentMwebUtxos() async {
     try {
       final db = Drift.get(walletId);
-      final mwebUtxos =
-          await (db.select(db.mwebUtxos)
-            ..where((e) => e.used.equals(false))).get();
+      final mwebUtxos = await db.select(db.mwebUtxos).get();
 
       final client = await _client;
 
@@ -607,16 +588,16 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         SpentRequest(outputId: mwebUtxos.map((e) => e.outputId)),
       );
 
-      final updated = mwebUtxos.where(
-        (e) => spent.outputId.contains(e.outputId),
-      );
-
       await db.transaction(() async {
-        for (final utxo in updated) {
+        for (final utxo in mwebUtxos) {
           await db
               .into(db.mwebUtxos)
               .insertOnConflictUpdate(
-                utxo.toCompanion(false).copyWith(used: const Value(true)),
+                utxo
+                    .toCompanion(false)
+                    .copyWith(
+                      used: Value(spent.outputId.contains(utxo.outputId)),
+                    ),
               );
         }
       });
