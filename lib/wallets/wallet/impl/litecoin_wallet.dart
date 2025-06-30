@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 
+import '../../../db/drift/database.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -232,9 +233,26 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
           }
 
           outputs.add(output);
-        } catch (e, s) {
-          // TODO: mweb output parsing
-          Logging.instance.e("TODO", error: e, stackTrace: s);
+        } catch (_) {
+          if (outputJson["ismweb"] == true) {
+            final outputId = outputJson["output_id"] as String;
+
+            final db = Drift.get(walletId);
+
+            final mwebUtxo =
+                await (db.select(
+                  db.mwebUtxos,
+                )..where((e) => e.outputId.equals(outputId))).getSingleOrNull();
+
+            final output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "mweb",
+              scriptPubKeyAsm: null,
+              valueStringSats: mwebUtxo?.value.toString() ?? "0",
+              addresses: [outputId],
+              walletOwns: mwebUtxo != null,
+            );
+            outputs.add(output);
+          }
         }
       }
 

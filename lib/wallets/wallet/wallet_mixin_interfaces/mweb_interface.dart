@@ -177,6 +177,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   Future<void> _stopUpdateMwebUtxos() async =>
       await _mwebUtxoSubscription?.cancel();
+
   Future<void> _startUpdateMwebUtxos() async {
     await _stopUpdateMwebUtxos();
 
@@ -215,19 +216,17 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
                   (e) => e.outputId.equals(utxo.outputId),
                 )).getSingleOrNull();
 
-            await db
-                .into(db.mwebUtxos)
-                .insertOnConflictUpdate(
-                  MwebUtxosCompanion(
-                    outputId: Value(prev?.outputId ?? utxo.outputId),
-                    address: Value(prev?.address ?? utxo.address),
-                    value: Value(utxo.value.toInt()),
-                    height: Value(utxo.height),
-                    blockTime: Value(utxo.blockTime),
-                    blocked: Value(prev?.blocked ?? false),
-                    used: Value(prev?.used ?? false),
-                  ),
-                );
+            final newUtxo = MwebUtxosCompanion(
+              outputId: Value(prev?.outputId ?? utxo.outputId),
+              address: Value(prev?.address ?? utxo.address),
+              value: Value(utxo.value.toInt()),
+              height: Value(utxo.height),
+              blockTime: Value(utxo.blockTime),
+              blocked: Value(prev?.blocked ?? false),
+              used: Value(prev?.used ?? false),
+            );
+
+            await db.into(db.mwebUtxos).insertOnConflictUpdate(newUtxo);
           });
 
           // TODO get real txid one day
@@ -268,7 +267,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
           await mainDB.updateOrPutTransactionV2s([tx]);
 
-          await updateBalance(mwebOnly: true);
+          await updateBalance();
 
           if (utxo.height > fromHeight) {
             await info.updateOtherData(
@@ -655,12 +654,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   }
 
   @override
-  Future<void> updateBalance({bool mwebOnly = false}) async {
-    Future<void>? normalBalanceFuture;
-    if (!mwebOnly) {
-      // call to super to update transparent balance
-      normalBalanceFuture = super.updateBalance();
-    }
+  Future<void> updateBalance() async {
+    // call to super to update transparent balance
+    final normalBalanceFuture = super.updateBalance();
 
     if (info.isMwebEnabled) {
       final start = DateTime.now();
@@ -738,10 +734,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    if (!mwebOnly) {
-      // wait for normalBalanceFuture to complete before returning
-      await normalBalanceFuture;
-    }
+    // wait for normalBalanceFuture to complete before returning
+    await normalBalanceFuture;
   }
 
   @override

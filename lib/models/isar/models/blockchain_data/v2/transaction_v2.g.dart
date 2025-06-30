@@ -389,6 +389,7 @@ const _TransactionV2subTypeEnumValueMap = {
   'sparkMint': 6,
   'sparkSpend': 7,
   'ordinal': 8,
+  'mweb': 9,
 };
 const _TransactionV2subTypeValueEnumMap = {
   0: TransactionSubType.none,
@@ -400,6 +401,7 @@ const _TransactionV2subTypeValueEnumMap = {
   6: TransactionSubType.sparkMint,
   7: TransactionSubType.sparkSpend,
   8: TransactionSubType.ordinal,
+  9: TransactionSubType.mweb,
 };
 const _TransactionV2typeEnumValueMap = {
   'outgoing': 0,
