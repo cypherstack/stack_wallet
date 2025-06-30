@@ -541,24 +541,25 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("No available UTXOs found to anonymize");
       }
 
+      final amount = spendableUtxos.fold(
+        Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
+        (p, e) =>
+            p +
+            Amount(
+              rawValue: BigInt.from(e.value),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+      );
+
       // TODO finish
       final txData = await prepareSend(
         txData: TxData(
           type: TxType.mwebPegIn,
           feeRateType: FeeRateType.average,
-          utxos: spendableUtxos.map((e) => StandardInput(e)).toSet(),
           recipients: [
             TxRecipient(
               address: (await getCurrentReceivingMwebAddress())!.value,
-              amount: spendableUtxos.fold(
-                Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
-                (p, e) =>
-                    p +
-                    Amount(
-                      rawValue: BigInt.from(e.value),
-                      fractionDigits: cryptoCurrency.fractionDigits,
-                    ),
-              ),
+              amount: amount,
               isChange: false,
               addressType: AddressType.mweb,
             ),

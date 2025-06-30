@@ -265,10 +265,13 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     if (isSendAll || isSendAllCoinControlUtxos) {
       if ((overrideFeeAmount ?? BigInt.zero) + satoshiAmountToSend !=
           satoshisBeingUsed) {
-        throw Exception(
-          "Something happened that should never actually happen. "
-          "Please report this error to the developers.",
-        );
+        // hack check
+        if (txData.type != TxType.mwebPegIn) {
+          throw Exception(
+            "Something happened that should never actually happen. "
+            "Please report this error to the developers.",
+          );
+        }
       }
       return await _sendAllBuilder(
         txData: txData,
