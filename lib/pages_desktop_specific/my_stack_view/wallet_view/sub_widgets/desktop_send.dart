@@ -888,7 +888,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
         case BalanceType.private:
-          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
+          amount =
+              coin is Firo
+                  ? ref.read(pWalletBalanceTertiary(walletId)).spendable
+                  : ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
       }
     } else {

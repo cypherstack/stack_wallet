@@ -263,7 +263,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final inputsWithKeys = await addSigningKeys(utxoObjectsToUse);
 
     if (isSendAll || isSendAllCoinControlUtxos) {
-      if (satoshiAmountToSend != satoshisBeingUsed) {
+      if ((overrideFeeAmount ?? BigInt.zero) + satoshiAmountToSend !=
+          satoshisBeingUsed) {
         throw Exception(
           "Something happened that should never actually happen. "
           "Please report this error to the developers.",
@@ -272,7 +273,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       return await _sendAllBuilder(
         txData: txData,
         recipientAddress: recipientAddress,
-        satoshiAmountToSend: satoshiAmountToSend,
         satoshisBeingUsed: satoshisBeingUsed,
         inputsWithKeys: inputsWithKeys,
         satsPerVByte: satsPerVByte,
@@ -486,7 +486,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   Future<TxData> _sendAllBuilder({
     required TxData txData,
     required String recipientAddress,
-    required BigInt satoshiAmountToSend,
     required BigInt satoshisBeingUsed,
     required List<BaseInput> inputsWithKeys,
     required int? satsPerVByte,
@@ -530,9 +529,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       feeForOneOutput = overrideFeeAmount;
     }
 
-    final amount = satoshiAmountToSend - feeForOneOutput;
+    final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
 
-    if (amount.isNegative) {
+    if (satoshiAmountToSend.isNegative) {
       throw Exception(
         "Estimated fee ($feeForOneOutput sats) is greater than balance!",
       );
@@ -540,7 +539,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final data = await buildTransaction(
       txData: txData.copyWith(
-        recipients: await helperRecipientsConvert([recipientAddress], [amount]),
+        recipients: await helperRecipientsConvert(
+          [recipientAddress],
+          [satoshiAmountToSend],
+        ),
       ),
       inputsWithKeys: inputsWithKeys,
     );
@@ -1822,6 +1824,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("No recipients in attempted transaction!");
       }
 
+      final balance =
+          txData.type == TxType.mweb || txData.type == TxType.mwebPegOut
+              ? info.cachedBalanceSecondary
+              : info.cachedBalance;
       final feeRateType = txData.feeRateType;
       final customSatsPerVByte = txData.satsPerVByte;
       final feeRateAmount = txData.feeRateAmount;
@@ -1842,15 +1848,13 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         // check for send all
         isSendAll = false;
         if (txData.ignoreCachedBalanceChecks ||
-            txData.amount == info.cachedBalance.spendable) {
+            txData.amount == balance.spendable) {
           isSendAll = true;
         }
 
         if (coinControl &&
             this is CpfpInterface &&
-            txData.amount ==
-                (info.cachedBalance.spendable +
-                    info.cachedBalance.pendingSpendable)) {
+            txData.amount == (balance.spendable + balance.pendingSpendable)) {
           isSendAll = true;
         }
 
@@ -1886,7 +1890,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         // check for send all
         isSendAll = false;
-        if (txData.amount == info.cachedBalance.spendable) {
+        if (txData.amount == balance.spendable) {
           isSendAll = true;
         }
 
