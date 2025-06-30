@@ -658,10 +658,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             ? 0xffffffff - 10
             : 0xffffffff - 1;
 
+    bool isMweb = false;
+    bool hasNonWitnessInput = false;
+
     // Add transaction inputs
     for (var i = 0; i < inputsWithKeys.length; i++) {
       final data = inputsWithKeys[i];
       if (data is MwebInput) {
+        isMweb = true;
         final address = data.address;
 
         final addr = await mainDB.getAddress(walletId, address);
@@ -753,6 +757,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             );
         }
 
+        if (input is! coinlib.WitnessInput) {
+          hasNonWitnessInput = true;
+        }
+
         clTx = clTx.addInput(input);
 
         tempInputs.add(
@@ -798,6 +806,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
       final coinlib.Output output;
       if (address is coinlib.MwebAddress) {
+        isMweb = true;
         output = coinlib.Output.fromProgram(
           txData.recipients![i].amount.raw,
           address.program,
@@ -827,6 +836,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               null,
         ),
       );
+    }
+
+    if (isMweb) {
+      if (hasNonWitnessInput) {
+        throw Exception("Found non witness input in mweb tx");
+      }
     }
 
     try {
