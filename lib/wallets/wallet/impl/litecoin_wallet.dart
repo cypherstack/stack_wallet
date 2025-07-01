@@ -292,6 +292,10 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
                   .isNotEmpty();
           if (hasOrdinal) {
             subType = TransactionSubType.ordinal;
+          } else {
+            if (outputs.any((e) => e.scriptPubKeyHex == "mweb")) {
+              subType = TransactionSubType.mweb;
+            }
           }
 
           // making API calls for every output in every transaction is too expensive

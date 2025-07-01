@@ -11,13 +11,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../providers/providers.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
 class DualBalanceSelectionSheet extends ConsumerStatefulWidget {
   const DualBalanceSelectionSheet({super.key, required this.walletId});
@@ -43,12 +43,7 @@ class _FiroBalanceSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final wallet = ref.watch(
-      pWallets.select((value) => value.getWallet(walletId)),
-    );
-    final firoWallet = wallet as FiroWallet;
-
-    final coin = wallet.info.coin;
+    final coin = ref.watch(pWalletCoin(walletId));
 
     return Container(
       decoration: BoxDecoration(
@@ -141,7 +136,7 @@ class _FiroBalanceSelectionSheetState
                               // Row(
                               //   children: [
                               Text(
-                                "Spark balance",
+                                "Private balance",
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -150,9 +145,16 @@ class _FiroBalanceSelectionSheetState
                                 ref
                                     .watch(pAmountFormatter(coin))
                                     .format(
-                                      firoWallet
-                                          .info
-                                          .cachedBalanceTertiary
+                                      ref
+                                          .watch(
+                                            coin is Firo
+                                                ? pWalletBalanceTertiary(
+                                                  walletId,
+                                                )
+                                                : pWalletBalanceSecondary(
+                                                  walletId,
+                                                ),
+                                          )
                                           .spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
@@ -231,7 +233,9 @@ class _FiroBalanceSelectionSheetState
                                 ref
                                     .watch(pAmountFormatter(coin))
                                     .format(
-                                      firoWallet.info.cachedBalance.spendable,
+                                      ref
+                                          .watch(pWalletBalance(walletId))
+                                          .spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,

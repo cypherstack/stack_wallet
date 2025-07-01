@@ -94,14 +94,17 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     final bool toggleBalance;
 
-    if (coin is Firo) {
+    if (coin is Firo || ref.watch(pWalletInfo(walletId)).isMwebEnabled) {
       toggleBalance = false;
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
       switch (type) {
         case BalanceType.private:
-          final balance = ref.watch(pWalletBalanceTertiary(walletId));
+          final balance =
+              coin is Firo
+                  ? ref.watch(pWalletBalanceTertiary(walletId))
+                  : ref.watch(pWalletBalanceSecondary(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 

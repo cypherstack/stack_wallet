@@ -56,6 +56,7 @@ import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -432,9 +433,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
             ),
       ),
     );
-    final firoWallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
+    final wallet = ref.read(pWallets).getWallet(walletId);
 
-    final Amount publicBalance = firoWallet.info.cachedBalance.spendable;
+    final Amount publicBalance = wallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {
@@ -453,7 +454,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      await firoWallet.anonymizeAllSpark();
+      if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
+        await wallet.anonymizeAllMweb();
+      } else {
+        await (wallet as FiroWallet).anonymizeAllSpark();
+      }
       shouldPop = true;
       if (mounted) {
         Navigator.of(
@@ -811,8 +816,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if (isSparkWallet) const SizedBox(height: 10),
-                        if (isSparkWallet)
+                        if (isSparkWallet ||
+                            ref.watch(pWalletInfo(walletId)).isMwebEnabled)
+                          const SizedBox(height: 10),
+                        if (isSparkWallet ||
+                            ref.watch(pWalletInfo(walletId)).isMwebEnabled)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(

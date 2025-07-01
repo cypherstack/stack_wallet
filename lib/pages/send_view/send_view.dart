@@ -607,13 +607,16 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
-    if (isFiro) {
+    if (isFiro || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
         case BalanceType.private:
-          availableBalance = wallet.info.cachedBalanceTertiary.spendable;
+          availableBalance =
+              isFiro
+                  ? wallet.info.cachedBalanceTertiary.spendable
+                  : wallet.info.cachedBalanceSecondary.spendable;
           break;
       }
     } else {
@@ -975,14 +978,17 @@ class _SendViewState extends ConsumerState<SendView> {
 
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
       amount = _selectedUtxosAmount(selectedUTXOs);
-    } else if (isFiro) {
+    } else if (isFiro || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
 
         case BalanceType.private:
-          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
+          amount =
+              isFiro
+                  ? ref.read(pWalletBalanceTertiary(walletId)).spendable
+                  : ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
       }
     } else {
@@ -1198,54 +1204,56 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final wallet = ref.watch(pWallets).getWallet(walletId);
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
+    final balType = ref.watch(publicPrivateBalanceStateProvider);
+
+    final isMwebEnabled = ref.watch(
+      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+    );
+    final showPrivateBalance = coin is Firo || isMwebEnabled;
+
     final showCoinControl =
-        wallet is CoinControlInterface &&
         ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
         ) &&
-        (coin is Firo
-            ? ref.watch(publicPrivateBalanceStateProvider) == BalanceType.public
-            : true);
+        ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
+        balType == BalanceType.public;
 
-    if (isFiro) {
-      final isExchangeAddress = ref.watch(pIsExchangeAddress);
+    final isExchangeAddress = ref.watch(pIsExchangeAddress);
 
-      ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-        selectedUTXOs = {};
+    ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+      selectedUTXOs = {};
 
-        if (ref.read(pSendAmount) == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-              0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
-            );
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture = calculateFees(ref.read(pSendAmount)!);
-          });
-        }
-
-        if (previous != next &&
-            next == BalanceType.private &&
-            isExchangeAddress &&
-            !_isFiroExWarningDisplayed) {
-          _isFiroExWarningDisplayed = true;
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => showFiroExchangeAddressWarning(
-              context,
-              () => _isFiroExWarningDisplayed = false,
-            ),
+      if (ref.read(pSendAmount) == null) {
+        setState(() {
+          _calculateFeesFuture = calculateFees(
+            0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
           );
-        }
-      });
-    }
+        });
+      } else {
+        setState(() {
+          _calculateFeesFuture = calculateFees(ref.read(pSendAmount)!);
+        });
+      }
+
+      if (previous != next &&
+          next == BalanceType.private &&
+          isExchangeAddress &&
+          !_isFiroExWarningDisplayed) {
+        _isFiroExWarningDisplayed = true;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          ),
+        );
+      }
+    });
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin is Epiccash) {
@@ -1346,9 +1354,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         // const SizedBox(
                                         //   height: 2,
                                         // ),
-                                        if (isFiro)
+                                        if (isFiro || isMwebEnabled)
                                           Text(
-                                            "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
+                                            "${balType.name.capitalize()} balance",
                                             style: STextStyles.label(
                                               context,
                                             ).copyWith(fontSize: 10),
@@ -1366,13 +1374,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                     Builder(
                                       builder: (context) {
                                         final Amount amount;
-                                        if (isFiro) {
-                                          switch (ref
-                                              .watch(
-                                                publicPrivateBalanceStateProvider
-                                                    .state,
-                                              )
-                                              .state) {
+                                        if (showPrivateBalance) {
+                                          switch (balType) {
                                             case BalanceType.public:
                                               amount =
                                                   ref
@@ -1388,9 +1391,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                               amount =
                                                   ref
                                                       .read(
-                                                        pWalletBalanceTertiary(
-                                                          walletId,
-                                                        ),
+                                                        isMwebEnabled
+                                                            ? pWalletBalanceSecondary(
+                                                              walletId,
+                                                            )
+                                                            : pWalletBalanceTertiary(
+                                                              walletId,
+                                                            ),
                                                       )
                                                       .spendable;
                                               break;
@@ -1771,15 +1778,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                 }
                               },
                             ),
-                            if (isFiro) const SizedBox(height: 12),
-                            if (isFiro)
+                            if (isFiro || isMwebEnabled)
+                              const SizedBox(height: 12),
+                            if (isFiro || isMwebEnabled)
                               Text(
                                 "Send from",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                            if (isFiro) const SizedBox(height: 8),
-                            if (isFiro)
+                            if (isFiro || isMwebEnabled)
+                              const SizedBox(height: 8),
+                            if (isFiro || isMwebEnabled)
                               Stack(
                                 children: [
                                   TextField(
@@ -1855,9 +1864,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       amount =
                                                           ref
                                                               .watch(
-                                                                pWalletBalanceTertiary(
-                                                                  walletId,
-                                                                ),
+                                                                isFiro
+                                                                    ? pWalletBalanceTertiary(
+                                                                      walletId,
+                                                                    )
+                                                                    : pWalletBalanceSecondary(
+                                                                      walletId,
+                                                                    ),
                                                               )
                                                               .spendable;
                                                       break;
