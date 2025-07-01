@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,12 +25,15 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
@@ -53,6 +58,7 @@ class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
 class _WalletSettingsWalletSettingsViewState
     extends ConsumerState<WalletSettingsWalletSettingsView> {
   late final DSBController _switchController;
+  late final DSBController _switchControllerMwebToggle;
 
   bool _switchDuressToggleLock = false; // Mutex.
   Future<void> _switchDuressToggled() async {
@@ -135,6 +141,72 @@ class _WalletSettingsWalletSettingsViewState
     }
   }
 
+  bool _switchMwebToggleToggledLock = false; // Mutex.
+  Future<void> _switchMwebToggleToggled() async {
+    if (_switchMwebToggleToggledLock) {
+      return;
+    }
+    _switchMwebToggleToggledLock = true; // Lock mutex.
+
+    try {
+      if (_switchControllerMwebToggle.isOn?.call() != true) {
+        final canContinue = await showDialog<bool?>(
+          context: context,
+          builder: (context) {
+            return StackDialog(
+              title: "Notice",
+              message:
+                  "Activating MWEB requires some synchronization with the p2p network. "
+                  "This process currently takes around 30 minutes to complete, "
+                  "as it involves synchronizing on-chain MWEB related data.",
+              leftButton: SecondaryButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                label: "Cancel",
+              ),
+              rightButton: PrimaryButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                label: "Continue",
+              ),
+            );
+          },
+        );
+
+        if (canContinue == true) {
+          await _updateMwebToggle(true);
+
+          unawaited(
+            (ref.read(pWallets).getWallet(widget.walletId) as MwebInterface)
+                .open(),
+          );
+        }
+      } else {
+        await _updateMwebToggle(false);
+      }
+    } finally {
+      // ensure _switchMwebToggleToggledLock is set to false no matter what.
+      _switchMwebToggleToggledLock = false;
+    }
+  }
+
+  Future<void> _updateMwebToggle(bool value) async {
+    await ref
+        .read(pWalletInfo(widget.walletId))
+        .updateOtherData(
+          newEntries: {WalletInfoKeys.mwebEnabled: value},
+          isar: ref.read(mainDBProvider).isar,
+        );
+
+    if (_switchControllerMwebToggle.isOn != null) {
+      if (_switchControllerMwebToggle.isOn!.call() != value) {
+        _switchControllerMwebToggle.activate?.call();
+      }
+    }
+  }
+
   Future<void> _updateAddressReuse(bool shouldReuse) async {
     await ref
         .read(pWalletInfo(widget.walletId))
@@ -153,6 +225,7 @@ class _WalletSettingsWalletSettingsViewState
   @override
   void initState() {
     _switchController = DSBController();
+    _switchControllerMwebToggle = DSBController();
     super.initState();
   }
 
@@ -296,6 +369,56 @@ class _WalletSettingsWalletSettingsViewState
                                             as bool? ??
                                         false,
                                     controller: _switchController,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (wallet is MwebInterface) const SizedBox(height: 8),
+                  if (wallet is MwebInterface)
+                    RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      child: RawMaterialButton(
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: _switchMwebToggleToggled,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 20,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Enable MWEB",
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: IgnorePointer(
+                                  child: DraggableSwitchButton(
+                                    isOn:
+                                        ref.watch(
+                                              pWalletInfo(
+                                                widget.walletId,
+                                              ).select(
+                                                (value) => value.otherData,
+                                              ),
+                                            )[WalletInfoKeys.mwebEnabled]
+                                            as bool? ??
+                                        false,
+                                    controller: _switchControllerMwebToggle,
                                   ),
                                 ),
                               ),

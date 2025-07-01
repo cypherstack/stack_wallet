@@ -24,6 +24,7 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -198,7 +199,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       Padding(
                         padding: const EdgeInsets.only(left: 32),
                         child: Text(
-                          "Warning!",
+                          "Notice",
                           style: STextStyles.desktopH3(context),
                         ),
                       ),
@@ -216,7 +217,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "TODO warning about extra data downloaded and initial sync/scan time",
+                          "Activating MWEB requires some synchronization with the p2p network. "
+                          "This process currently takes around 30 minutes to complete, "
+                          "as it involves synchronizing on-chain MWEB related data.",
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         const SizedBox(height: 43),
@@ -255,7 +258,10 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
         if (canContinue == true) {
           await _updateMwebToggle(true);
 
-          unawaited(ref.read(pWallets).getWallet(widget.walletId).init());
+          unawaited(
+            (ref.read(pWallets).getWallet(widget.walletId) as MwebInterface)
+                .open(),
+          );
         }
       } else {
         await _updateMwebToggle(false);
