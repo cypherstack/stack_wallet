@@ -217,9 +217,8 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "Activating MWEB requires some synchronization with the p2p network. "
-                          "This process currently takes around 30 minutes to complete, "
-                          "as it involves synchronizing on-chain MWEB related data.",
+                          "Activating MWEB requires synchronizing on-chain MWEB related data. "
+                          "This currently requires about 800 MB of storage.",
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         const SizedBox(height: 43),

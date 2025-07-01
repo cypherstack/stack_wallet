@@ -156,9 +156,8 @@ class _WalletSettingsWalletSettingsViewState
             return StackDialog(
               title: "Notice",
               message:
-                  "Activating MWEB requires some synchronization with the p2p network. "
-                  "This process currently takes around 30 minutes to complete, "
-                  "as it involves synchronizing on-chain MWEB related data.",
+                  "Activating MWEB requires synchronizing on-chain MWEB related data. "
+                  "This currently requires about 800 MB of storage.",
               leftButton: SecondaryButton(
                 onPressed: () {
                   Navigator.of(context).pop(false);
