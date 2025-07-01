@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -192,6 +193,54 @@ final class MwebdService {
     return await _updateLock.protect(() async {
       return _map[net]?.client;
     });
+  }
+
+  Future<Stream<String>> logsStream(
+    CryptoCurrencyNetwork net, {
+    Duration pollInterval = const Duration(milliseconds: 200),
+  }) async {
+    final controller = StreamController<String>();
+    int offset = 0;
+    String leftover = '';
+    Timer? timer;
+
+    final path =
+        "${(await StackFileSystem.applicationMwebdDirectory(net == CryptoCurrencyNetwork.main ? "mainnet" : "testnet")).path}"
+        "${Platform.pathSeparator}logs"
+        "${Platform.pathSeparator}debug.log";
+
+    Future<void> poll() async {
+      if (!controller.isClosed) {
+        final file = File(path);
+        final length = await file.length();
+
+        if (length > offset) {
+          final raf = await file.open();
+          await raf.setPosition(offset);
+          final bytes = await raf.read(length - offset);
+          await raf.close();
+
+          final chunk = utf8.decode(bytes);
+          final lines = (leftover + chunk).split('\n');
+          leftover = lines.removeLast(); // possibly incomplete
+
+          for (final line in lines) {
+            controller.add(line);
+          }
+
+          offset = length;
+        }
+      }
+    }
+
+    timer = Timer.periodic(pollInterval, (_) => poll());
+
+    controller.onCancel = () {
+      timer?.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 }
 

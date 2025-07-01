@@ -59,6 +59,7 @@ import 'providers/providers.dart';
 import 'route_generator.dart';
 import 'services/exchange/exchange_data_loading_service.dart';
 import 'services/locale_service.dart';
+import 'services/mwebd_service.dart';
 import 'services/node_service.dart';
 import 'services/notifications_api.dart';
 import 'services/notifications_service.dart';
@@ -73,6 +74,7 @@ import 'utilities/logger.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
+import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
@@ -212,6 +214,25 @@ void main(List<String> args) async {
       !Util.isDesktop &&
       !CampfireMigration.didRun) {
     await CampfireMigration.init();
+  }
+
+  if (kDebugMode) {
+    unawaited(
+      MwebdService.instance
+          .logsStream(CryptoCurrencyNetwork.main)
+          .then(
+            (stream) =>
+                stream.listen((line) => print("[MWEBD: MAINNET]: $line")),
+          ),
+    );
+    unawaited(
+      MwebdService.instance
+          .logsStream(CryptoCurrencyNetwork.test)
+          .then(
+            (stream) =>
+                stream.listen((line) => print("[MWEBD: TESTNET]: $line")),
+          ),
+    );
   }
 
   // TODO:
