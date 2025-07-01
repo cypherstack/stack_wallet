@@ -28,6 +28,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -36,6 +37,7 @@ import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
@@ -74,6 +76,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   late final ClipboardInterface clipboard;
   late final bool _supportsSpark;
   late final bool _showMultiType;
+  late bool supportsMweb;
 
   int _currentIndex = 0;
 
@@ -202,6 +205,31 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     }
   }
 
+  Future<Address> _generateNewMwebAddress() async {
+    final wallet = ref.read(pWallets).getWallet(walletId) as MwebInterface;
+
+    final address = await wallet.generateNextMwebAddress();
+    await ref.read(mainDBProvider).isar.writeTxn(() async {
+      await ref.read(mainDBProvider).isar.addresses.put(address);
+    });
+
+    return address;
+  }
+
+  Future<void> generateNewMwebAddress() async {
+    final address = await showLoading<Address>(
+      whileFuture: _generateNewMwebAddress(),
+      context: context,
+      message: "Generating address",
+    );
+
+    if (mounted && address != null) {
+      setState(() {
+        _addressMap[AddressType.mweb] = address.value;
+      });
+    }
+  }
+
   @override
   void initState() {
     walletId = widget.walletId;
@@ -209,12 +237,17 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
     _supportsSpark = wallet is SparkInterface;
+    supportsMweb =
+        wallet is MwebInterface &&
+        !wallet.info.isViewOnly &&
+        wallet.info.isMwebEnabled;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       _showMultiType = false;
     } else {
       _showMultiType =
           _supportsSpark ||
+          supportsMweb ||
           (wallet is! BCashInterface &&
               wallet is Bip39HDWallet &&
               wallet.supportedAddressTypes.length > 1);
@@ -231,6 +264,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             (e) => e != wallet.info.mainAddressType,
           ),
         );
+
+        if (supportsMweb) {
+          _walletAddressTypes.insert(0, AddressType.mweb);
+        }
       }
     }
 
@@ -285,6 +322,54 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     final ticker = widget.tokenContract?.symbol ?? coin.ticker;
 
+    ref.listen(pWalletInfo(walletId), (prev, next) {
+      if (prev?.isMwebEnabled != next.isMwebEnabled) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              supportsMweb = next.isMwebEnabled;
+
+              if (supportsMweb &&
+                  !_walletAddressTypes.contains(AddressType.mweb)) {
+                _walletAddressTypes.insert(0, AddressType.mweb);
+                _addressSubMap[AddressType.mweb] = ref
+                    .read(mainDBProvider)
+                    .isar
+                    .addresses
+                    .where()
+                    .walletIdEqualTo(walletId)
+                    .filter()
+                    .typeEqualTo(AddressType.mweb)
+                    .sortByDerivationIndexDesc()
+                    .findFirst()
+                    .asStream()
+                    .listen((event) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {
+                            _addressMap[AddressType.mweb] =
+                                event?.value ??
+                                _addressMap[AddressType.mweb] ??
+                                "[No address yet]";
+                          });
+                        }
+                      });
+                    });
+              } else {
+                _walletAddressTypes.remove(AddressType.mweb);
+                _addressSubMap[AddressType.mweb]?.cancel();
+                _addressSubMap.remove(AddressType.mweb);
+              }
+
+              if (_currentIndex >= _walletAddressTypes.length) {
+                _currentIndex = _walletAddressTypes.length - 1;
+              }
+            });
+          }
+        });
+      }
+    });
+
     final String address;
     if (_showMultiType) {
       address = _addressMap[_walletAddressTypes[_currentIndex]]!;
@@ -302,7 +387,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
       canGen = false;
     } else {
-      canGen = (wallet is MultiAddressInterface || _supportsSpark);
+      canGen =
+          (wallet is MultiAddressInterface || _supportsSpark || supportsMweb);
     }
 
     return Background(
@@ -590,7 +676,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       SecondaryButton(
                         label: "Generate new address",
                         onPressed:
-                            _supportsSpark &&
+                            supportsMweb &&
+                                    _walletAddressTypes[_currentIndex] ==
+                                        AddressType.mweb
+                                ? generateNewMwebAddress
+                                : _supportsSpark &&
                                     _walletAddressTypes[_currentIndex] ==
                                         AddressType.spark
                                 ? generateNewSparkAddress
