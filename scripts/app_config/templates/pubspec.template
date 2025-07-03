@@ -224,7 +224,7 @@ dependencies:
   path: ^1.9.1
   cs_salvium: ^1.2.0
   cs_salvium_flutter_libs: ^1.0.2
-  flutter_mwebd: ^0.0.1-pre.3
+  flutter_mwebd: ^0.0.1-pre.4
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
 

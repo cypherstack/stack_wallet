@@ -985,10 +985,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_mwebd
-      sha256: f3b2f86b9b7352e1a6a33d2f4ed098d454a8841929b767e9390b14b66e243274
+      sha256: bc664ef047b5364c02fa1d75aa3b0d73c1ae888530857fb8a646e31e4dd3ce7c
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-pre.3"
+    version: "0.0.1-pre.4"
   flutter_native_splash:
     dependency: "direct main"
     description:
