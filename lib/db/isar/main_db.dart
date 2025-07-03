@@ -313,8 +313,6 @@ class MainDB {
   Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
     bool newUTXO = false;
 
-    if (utxos.isEmpty) return newUTXO;
-
     await isar.writeTxn(() async {
       final set = utxos.toSet();
       for (final utxo in utxos) {
@@ -343,7 +341,9 @@ class MainDB {
       }
 
       await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
-      await isar.utxos.putAll(set.toList());
+      if (set.isNotEmpty) {
+        await isar.utxos.putAll(set.toList());
+      }
     });
 
     return newUTXO;
