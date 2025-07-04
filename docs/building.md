@@ -164,6 +164,8 @@ cd scripts/windows
 ./deps.sh
 ```
 
+install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `x86_64-w64-mingw32-gcc` 
+
 and use `scripts/build_app.sh` to build plugins:
 ```
 cd ..
