@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -67,7 +68,7 @@ import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
 
 enum WalletFeature {
-  anonymizeFunds("Anonymize funds", "Anonymize funds"),
+  anonymizeFunds("Privatize funds", "Privatize funds"),
   swap("Swap", ""),
   buy("Buy", "Buy cryptocurrency"),
   paynym("PayNym", "Increased address privacy using BIP47"),
@@ -163,7 +164,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                   Text("Attention!", style: STextStyles.desktopH2(context)),
                   const SizedBox(height: 16),
                   Text(
-                    "You're about to anonymize all of your public funds.",
+                    "You're about to privatize all of your public funds.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
                   const SizedBox(height: 32),
@@ -206,7 +207,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         builder:
             (context) => WillPopScope(
               child: const CustomLoadingOverlay(
-                message: "Anonymizing balance",
+                message: "Privatizing balance",
                 eventBus: null,
               ),
               onWillPop: () async => shouldPop,
@@ -226,7 +227,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
-            message: "No funds available to anonymize!",
+            message: "No funds available to privatize!",
             context: context,
           ),
         );
@@ -249,7 +250,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
+            message: "Privatize transaction submitted",
             context: context,
           ),
         );
@@ -273,7 +274,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Anonymize all failed",
+                        "Privatize all failed",
                         style: STextStyles.desktopH3(context),
                       ),
                       const Spacer(flex: 1),
@@ -428,7 +429,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           _onSparkCoinsPressed,
         ),
 
-      if (!isViewOnly && wallet is MwebInterface)
+      if (kDebugMode && !isViewOnly && wallet is MwebInterface)
         (
           WalletFeature.mwebUtxos,
           Assets.svg.coinControl.gamePad,

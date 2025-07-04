@@ -151,7 +151,7 @@ class _Prefix extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           SelectableText(
-            isMweb ? "MWEB" : "",
+            isMweb ? "Private" : "Public",
             style: STextStyles.w500_24(context),
           ),
         ],

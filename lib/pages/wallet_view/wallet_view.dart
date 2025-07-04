@@ -445,7 +445,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
-            message: "No funds available to anonymize!",
+            message: "No funds available to privatize!",
             context: context,
           ),
         );
@@ -467,7 +467,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
+            message: "Privatize transaction submitted",
             context: context,
           ),
         );
@@ -482,7 +482,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
           context: context,
           builder:
               (_) => StackOkDialog(
-                title: "Anonymize all failed",
+                title: "Privatize all failed",
                 message: "Reason: $e",
               ),
         );
@@ -839,7 +839,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                             (context) => StackDialog(
                                               title: "Attention!",
                                               message:
-                                                  "You're about to anonymize all of your public funds.",
+                                                  "You're about to privatize all of your public funds.",
                                               leftButton: TextButton(
                                                 onPressed: () {
                                                   Navigator.of(context).pop();
@@ -880,7 +880,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       );
                                     },
                                     child: Text(
-                                      "Anonymize funds",
+                                      "Privatize funds",
                                       style: STextStyles.button(
                                         context,
                                       ).copyWith(
