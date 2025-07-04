@@ -1938,6 +1938,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           txData: result.copyWith(
             recipients: result.recipients!.where((e) => !(e.isChange)).toList(),
           ),
+          utxos: utxos?.toList(),
           coinControl: coinControl,
           isSendAll: isSendAll,
           isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
