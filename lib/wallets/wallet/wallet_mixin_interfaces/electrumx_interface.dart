@@ -265,8 +265,18 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     if (isSendAll || isSendAllCoinControlUtxos) {
       if ((overrideFeeAmount ?? BigInt.zero) + satoshiAmountToSend !=
           satoshisBeingUsed) {
+        Logging.instance.d("txData.type: ${txData.type}");
+        Logging.instance.d("isSendAll: $isSendAll");
+        Logging.instance.d(
+          "isSendAllCoinControlUtxos: $isSendAllCoinControlUtxos",
+        );
+        Logging.instance.d("overrideFeeAmount: $overrideFeeAmount");
+        Logging.instance.d("satoshiAmountToSend: $satoshiAmountToSend");
+        Logging.instance.d("satoshisBeingUsed: $satoshisBeingUsed");
+
         // hack check
-        if (txData.type != TxType.mwebPegIn) {
+        if (!(txData.type == TxType.mwebPegIn ||
+            (txData.type == TxType.mweb && overrideFeeAmount != null))) {
           throw Exception(
             "Something happened that should never actually happen. "
             "Please report this error to the developers.",
