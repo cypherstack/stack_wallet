@@ -229,6 +229,12 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
             await db.into(db.mwebUtxos).insertOnConflictUpdate(newUtxo);
           });
 
+          Address? addr = await mainDB.getAddress(walletId, utxo.address);
+          while (addr == null || addr.value != utxo.address) {
+            addr = await generateNextMwebAddress();
+            await mainDB.updateOrPutAddresses([addr]);
+          }
+
           // TODO get real txid one day
           final fakeTxid = "mweb_outputId_${utxo.outputId}";
 
