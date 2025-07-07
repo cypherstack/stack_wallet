@@ -813,7 +813,10 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch blockchain.transaction.get...");
     await checkElectrumAdapter();
-    final dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
+    final dynamic response = await getElectrumAdapter()!.request(
+      'blockchain.transaction.get',
+      [txHash, verbose],
+    );
     Logging.instance.d("Fetching blockchain.transaction.get finished");
 
     if (!verbose) {

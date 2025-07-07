@@ -15,11 +15,11 @@ import 'package:logger/logger.dart';
 import '../../../db/drift/database.dart' show Drift;
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/spark_names_service.dart';
@@ -480,8 +480,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
 
-    List<({String address, Amount amount, bool isChange})>?
-    recipientsWithFeeSubtracted;
+    List<TxRecipient>? recipientsWithFeeSubtracted;
     List<({String address, Amount amount, String memo, bool isChange})>?
     sparkRecipientsWithFeeSubtracted;
     final recipientCount =
@@ -535,16 +534,16 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
       }
-      recipientsWithFeeSubtracted!.add((
-        address: txData.recipients![i].address,
-        amount: Amount(
-          rawValue:
-              txData.recipients![i].amount.raw -
-              (estimatedFee ~/ BigInt.from(totalRecipientCount)),
-          fractionDigits: cryptoCurrency.fractionDigits,
+      recipientsWithFeeSubtracted!.add(
+        txData.recipients![i].copyWith(
+          amount: Amount(
+            rawValue:
+                txData.recipients![i].amount.raw -
+                (estimatedFee ~/ BigInt.from(totalRecipientCount)),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
         ),
-        isChange: txData.recipients![i].isChange,
-      ));
+      );
 
       final scriptPubKey = btc.Address.addressToOutputScript(
         txData.recipients![i].address,
@@ -1413,7 +1412,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               ? max(0, currentHeight - random.nextInt(100))
               : currentHeight;
       const txVersion = 1;
-      final List<SigningData> vin = [];
+      final List<StandardInput> vin = [];
       final List<(dynamic, int, String?)> vout = [];
 
       BigInt nFeeRet = BigInt.zero;
@@ -1426,7 +1425,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       BigInt nValueToSelect, mintedValue;
-      final List<SigningData> setCoins = [];
+      final List<StandardInput> setCoins = [];
       bool skipCoin = false;
 
       // Start with no fee and loop until there is enough fee
@@ -1555,7 +1554,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         BigInt nValueIn = BigInt.zero;
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
-            setCoins.add((await fetchBuildTxData([utxo])).first);
+            setCoins.add(
+              (await addSigningKeys([
+                StandardInput(utxo),
+              ])).whereType<StandardInput>().first,
+            );
             nValueIn += BigInt.from(utxo.value);
           }
         }
@@ -1595,7 +1598,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         for (final sd in setCoins) {
           vin.add(sd);
 
-          final pubKey = sd.keyPair!.publicKey.data;
+          final pubKey = sd.key!.publicKey.data;
           final btc.PaymentData? data;
 
           switch (sd.derivePathType) {
@@ -1659,9 +1662,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           dummyTxb.sign(
             vin: i,
             keyPair: btc.ECPair.fromPrivateKey(
-              setCoins[i].keyPair!.privateKey.data,
+              setCoins[i].key!.privateKey!.data,
               network: _bitcoinDartNetwork,
-              compressed: setCoins[i].keyPair!.privateKey.compressed,
+              compressed: setCoins[i].key!.privateKey!.compressed,
             ),
             witnessValue: setCoins[i].utxo.value,
 
@@ -1756,7 +1759,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       txb.setVersion(txVersion);
       txb.setLockTime(lockTime);
       for (final input in vin) {
-        final pubKey = input.keyPair!.publicKey.data;
+        final pubKey = input.key!.publicKey.data;
         final btc.PaymentData? data;
 
         switch (input.derivePathType) {
@@ -1867,9 +1870,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           txb.sign(
             vin: i,
             keyPair: btc.ECPair.fromPrivateKey(
-              vin[i].keyPair!.privateKey.data,
+              vin[i].key!.privateKey!.data,
               network: _bitcoinDartNetwork,
-              compressed: vin[i].keyPair!.privateKey.compressed,
+              compressed: vin[i].key!.privateKey!.compressed,
             ),
             witnessValue: vin[i].utxo.value,
 
@@ -1916,7 +1919,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           rawValue: nFeeRet,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
-        usedUTXOs: vin.map((e) => e.utxo).toList(),
+        usedUTXOs: vin,
         tempTx: TransactionV2(
           walletId: walletId,
           blockHash: null,
@@ -2071,7 +2074,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("Attempted send of zero amount");
       }
 
-      final utxos = txData.utxos;
+      final utxos =
+          txData.utxos?.whereType<StandardInput>().map((e) => e.utxo).toList();
       final bool coinControl = utxos != null;
 
       final utxosTotal =
@@ -2226,13 +2230,14 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       txData: TxData(
         sparkNameInfo: data,
         recipients: [
-          (
+          TxRecipient(
             address: destinationAddress,
             amount: Amount.fromDecimal(
               Decimal.fromInt(kStandardSparkNamesFee[name.length] * years),
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             isChange: false,
+            addressType: cryptoCurrency.getAddressType(destinationAddress)!,
           ),
         ],
       ),

@@ -11,26 +11,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../providers/providers.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
-class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
-  const FiroBalanceSelectionSheet({super.key, required this.walletId});
+class DualBalanceSelectionSheet extends ConsumerStatefulWidget {
+  const DualBalanceSelectionSheet({super.key, required this.walletId});
 
   final String walletId;
 
   @override
-  ConsumerState<FiroBalanceSelectionSheet> createState() =>
+  ConsumerState<DualBalanceSelectionSheet> createState() =>
       _FiroBalanceSelectionSheetState();
 }
 
 class _FiroBalanceSelectionSheetState
-    extends ConsumerState<FiroBalanceSelectionSheet> {
+    extends ConsumerState<DualBalanceSelectionSheet> {
   late final String walletId;
 
   @override
@@ -43,12 +43,7 @@ class _FiroBalanceSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final wallet = ref.watch(
-      pWallets.select((value) => value.getWallet(walletId)),
-    );
-    final firoWallet = wallet as FiroWallet;
-
-    final coin = wallet.info.coin;
+    final coin = ref.watch(pWalletCoin(walletId));
 
     return Container(
       decoration: BoxDecoration(
@@ -90,9 +85,9 @@ class _FiroBalanceSelectionSheetState
                   onTap: () {
                     final state =
                         ref.read(publicPrivateBalanceStateProvider.state).state;
-                    if (state != FiroType.spark) {
+                    if (state != BalanceType.private) {
                       ref.read(publicPrivateBalanceStateProvider.state).state =
-                          FiroType.spark;
+                          BalanceType.private;
                     }
                     Navigator.of(context).pop();
                   },
@@ -112,7 +107,7 @@ class _FiroBalanceSelectionSheetState
                                     Theme.of(context)
                                         .extension<StackColors>()!
                                         .radioButtonIconEnabled,
-                                value: FiroType.spark,
+                                value: BalanceType.private,
                                 groupValue:
                                     ref
                                         .watch(
@@ -125,7 +120,7 @@ class _FiroBalanceSelectionSheetState
                                       .read(
                                         publicPrivateBalanceStateProvider.state,
                                       )
-                                      .state = FiroType.spark;
+                                      .state = BalanceType.private;
 
                                   Navigator.of(context).pop();
                                 },
@@ -141,7 +136,7 @@ class _FiroBalanceSelectionSheetState
                               // Row(
                               //   children: [
                               Text(
-                                "Spark balance",
+                                "Private balance",
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -150,9 +145,16 @@ class _FiroBalanceSelectionSheetState
                                 ref
                                     .watch(pAmountFormatter(coin))
                                     .format(
-                                      firoWallet
-                                          .info
-                                          .cachedBalanceTertiary
+                                      ref
+                                          .watch(
+                                            coin is Firo
+                                                ? pWalletBalanceTertiary(
+                                                  walletId,
+                                                )
+                                                : pWalletBalanceSecondary(
+                                                  walletId,
+                                                ),
+                                          )
                                           .spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
@@ -173,9 +175,9 @@ class _FiroBalanceSelectionSheetState
                   onTap: () {
                     final state =
                         ref.read(publicPrivateBalanceStateProvider.state).state;
-                    if (state != FiroType.public) {
+                    if (state != BalanceType.public) {
                       ref.read(publicPrivateBalanceStateProvider.state).state =
-                          FiroType.public;
+                          BalanceType.public;
                     }
                     Navigator.of(context).pop();
                   },
@@ -194,7 +196,7 @@ class _FiroBalanceSelectionSheetState
                                     Theme.of(context)
                                         .extension<StackColors>()!
                                         .radioButtonIconEnabled,
-                                value: FiroType.public,
+                                value: BalanceType.public,
                                 groupValue:
                                     ref
                                         .watch(
@@ -207,7 +209,7 @@ class _FiroBalanceSelectionSheetState
                                       .read(
                                         publicPrivateBalanceStateProvider.state,
                                       )
-                                      .state = FiroType.public;
+                                      .state = BalanceType.public;
                                   Navigator.of(context).pop();
                                 },
                               ),
@@ -231,7 +233,9 @@ class _FiroBalanceSelectionSheetState
                                 ref
                                     .watch(pAmountFormatter(coin))
                                     .format(
-                                      firoWallet.info.cachedBalance.spendable,
+                                      ref
+                                          .watch(pWalletBalance(walletId))
+                                          .spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,

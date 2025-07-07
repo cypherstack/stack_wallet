@@ -147,13 +147,14 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
         txData: TxData(
           feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
           recipients: [
-            (
+            TxRecipient(
               address: _address!.value,
               isChange: false,
               amount: Amount(
                 rawValue: BigInt.from(kNameAmountSats),
                 fractionDigits: wallet.cryptoCurrency.fractionDigits,
               ),
+              addressType: _address.type,
             ),
           ],
           note: "Update ${opName.constructedName} (${opName.fullname})",

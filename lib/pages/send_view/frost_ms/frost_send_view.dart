@@ -83,7 +83,14 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
     final recipients = recipientWidgetIndexes
         .map((i) => ref.read(pRecipient(i).state).state)
-        .map((e) => (address: e!.address, amount: e!.amount!, isChange: false))
+        .map(
+          (e) => TxRecipient(
+            address: e!.address,
+            amount: e.amount!,
+            isChange: false,
+            addressType: wallet.cryptoCurrency.getAddressType(e.address)!,
+          ),
+        )
         .toList(growable: false);
 
     final txData = await wallet.frostCreateSignConfig(
@@ -230,7 +237,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           ),
         ) &&
         (coin is Firo
-            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            ? ref.watch(publicPrivateBalanceStateProvider) == BalanceType.public
             : true);
 
     return ConditionalParent(

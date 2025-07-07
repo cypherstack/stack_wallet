@@ -1976,17 +1976,6 @@ class MockMainDB extends _i1.Mock implements _i3.MainDB {
         returnValue: _i10.Future<void>.value(),
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
-
-  @override
-  _i10.Future<int?> getHighestUsedMintIndex({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getHighestUsedMintIndex,
-          [],
-          {#walletId: walletId},
-        ),
-        returnValue: _i10.Future<int?>.value(),
-      ) as _i10.Future<int?>);
 }
 
 /// A class which mocks [IThemeAssets].

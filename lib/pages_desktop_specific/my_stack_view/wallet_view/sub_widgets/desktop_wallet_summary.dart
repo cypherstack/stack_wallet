@@ -104,12 +104,12 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     final Amount balanceToShow;
     if (isFiro) {
       switch (ref.watch(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.spark:
+        case BalanceType.private:
           final balance = ref.watch(pWalletBalanceTertiary(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
-        case FiroType.public:
+        case BalanceType.public:
           final balance = ref.watch(pWalletBalance(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;

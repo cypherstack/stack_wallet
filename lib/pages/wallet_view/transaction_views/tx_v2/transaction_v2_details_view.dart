@@ -1852,147 +1852,306 @@ class _TransactionV2DetailsViewState
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
-                              RoundedWhiteContainer(
-                                padding:
-                                    isDesktop
-                                        ? const EdgeInsets.all(16)
-                                        : const EdgeInsets.all(12),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          ConditionalParent(
-                                            condition: !isDesktop,
-                                            builder:
-                                                (child) => Row(
-                                                  children: [
-                                                    Expanded(child: child),
-                                                    SimpleCopyButton(
-                                                      data: _transaction.txid,
+
+                              _transaction.txid.startsWith("mweb_outputId_") &&
+                                      _transaction.subType ==
+                                          TransactionSubType.mweb
+                                  ? RoundedWhiteContainer(
+                                    padding:
+                                        isDesktop
+                                            ? const EdgeInsets.all(16)
+                                            : const EdgeInsets.all(12),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              ConditionalParent(
+                                                condition: !isDesktop,
+                                                builder:
+                                                    (child) => Row(
+                                                      children: [
+                                                        Expanded(child: child),
+                                                        SimpleCopyButton(
+                                                          data: _transaction
+                                                              .txid
+                                                              .replaceFirst(
+                                                                "mweb_outputId_",
+                                                                "",
+                                                              ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
+                                                child: Text(
+                                                  "MWEB Output ID",
+                                                  style:
+                                                      isDesktop
+                                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                                            context,
+                                                          )
+                                                          : STextStyles.itemSubtitle(
+                                                            context,
+                                                          ),
                                                 ),
-                                            child: Text(
-                                              "Transaction ID",
-                                              style:
-                                                  isDesktop
-                                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                                        context,
-                                                      )
-                                                      : STextStyles.itemSubtitle(
-                                                        context,
-                                                      ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Flexible(
-                                          //   child: FittedBox(
-                                          //     fit: BoxFit.scaleDown,
-                                          //     child:
-                                          SelectableText(
-                                            _transaction.txid,
-                                            style:
-                                                isDesktop
-                                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    ).copyWith(
-                                                      color:
-                                                          Theme.of(context)
-                                                              .extension<
-                                                                StackColors
-                                                              >()!
-                                                              .textDark,
-                                                    )
-                                                    : STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
-                                          ),
-                                          if (coin is! Epiccash)
-                                            const SizedBox(height: 8),
-                                          if (coin is! Epiccash)
-                                            CustomTextButton(
-                                              text: "Open in block explorer",
-                                              onTap: () async {
-                                                final uri =
-                                                    getBlockExplorerTransactionUrlFor(
-                                                      coin: coin,
-                                                      txid: _transaction.txid,
-                                                    );
-
-                                                if (ref
-                                                        .read(
-                                                          prefsChangeNotifierProvider,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              SelectableText(
+                                                _transaction.txid.replaceFirst(
+                                                  "mweb_outputId_",
+                                                  "",
+                                                ),
+                                                style:
+                                                    isDesktop
+                                                        ? STextStyles.desktopTextExtraExtraSmall(
+                                                          context,
+                                                        ).copyWith(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textDark,
                                                         )
-                                                        .hideBlockExplorerWarning ==
-                                                    false) {
-                                                  final shouldContinue =
-                                                      await showExplorerWarning(
-                                                        "${uri.scheme}://${uri.host}",
-                                                      );
-
-                                                  if (!shouldContinue) {
-                                                    return;
-                                                  }
-                                                }
-
-                                                // ref
-                                                //     .read(
-                                                //         shouldShowLockscreenOnResumeStateProvider
-                                                //             .state)
-                                                //     .state = false;
-                                                try {
-                                                  await launchUrl(
-                                                    uri,
-                                                    mode:
-                                                        LaunchMode
-                                                            .externalApplication,
-                                                  );
-                                                } catch (_) {
-                                                  if (context.mounted) {
-                                                    unawaited(
-                                                      showDialog<void>(
-                                                        context: context,
-                                                        builder:
-                                                            (
-                                                              _,
-                                                            ) => StackOkDialog(
-                                                              title:
-                                                                  "Could not open in block explorer",
-                                                              message:
-                                                                  "Failed to open \"${uri.toString()}\"",
-                                                            ),
-                                                      ),
-                                                    );
-                                                  }
-                                                } finally {
-                                                  // Future<void>.delayed(
-                                                  //   const Duration(seconds: 1),
-                                                  //   () => ref
-                                                  //       .read(
-                                                  //           shouldShowLockscreenOnResumeStateProvider
-                                                  //               .state)
-                                                  //       .state = true,
-                                                  // );
-                                                }
-                                              },
-                                            ),
-                                          //   ),
-                                          // ),
-                                        ],
-                                      ),
+                                                        : STextStyles.itemSubtitle12(
+                                                          context,
+                                                        ),
+                                              ),
+                                              // if (coin is Litecoin &&
+                                              //     coin.network ==
+                                              //         CryptoCurrencyNetwork
+                                              //             .main)
+                                              //   const SizedBox(height: 8),
+                                              // if (coin is Litecoin &&
+                                              //     coin.network ==
+                                              //         CryptoCurrencyNetwork
+                                              //             .main)
+                                              //   CustomTextButton(
+                                              //     text:
+                                              //         "Open in block explorer",
+                                              //     onTap: () async {
+                                              //       final uri =
+                                              //           getBlockExplorerTransactionUrlFor(
+                                              //             coin: coin,
+                                              //             txid: _transaction
+                                              //                 .txid
+                                              //                 .replaceFirst(
+                                              //                   "mweb_outputId_",
+                                              //                   "",
+                                              //                 ),
+                                              //           );
+                                              //
+                                              //       if (ref
+                                              //               .read(
+                                              //                 prefsChangeNotifierProvider,
+                                              //               )
+                                              //               .hideBlockExplorerWarning ==
+                                              //           false) {
+                                              //         final shouldContinue =
+                                              //             await showExplorerWarning(
+                                              //               "${uri.scheme}://${uri.host}",
+                                              //             );
+                                              //
+                                              //         if (!shouldContinue) {
+                                              //           return;
+                                              //         }
+                                              //       }
+                                              //       try {
+                                              //         await launchUrl(
+                                              //           uri,
+                                              //           mode:
+                                              //               LaunchMode
+                                              //                   .externalApplication,
+                                              //         );
+                                              //       } catch (_) {
+                                              //         if (context.mounted) {
+                                              //           unawaited(
+                                              //             showDialog<void>(
+                                              //               context: context,
+                                              //               builder:
+                                              //                   (
+                                              //                     _,
+                                              //                   ) => StackOkDialog(
+                                              //                     title:
+                                              //                         "Could not open in block explorer",
+                                              //                     message:
+                                              //                         "Failed to open \"${uri.toString()}\"",
+                                              //                   ),
+                                              //             ),
+                                              //           );
+                                              //         }
+                                              //       }
+                                              //     },
+                                              //   ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (isDesktop)
+                                          const SizedBox(width: 12),
+                                        if (isDesktop)
+                                          IconCopyButton(
+                                            data: _transaction.txid
+                                                .replaceFirst(
+                                                  "mweb_outputId_",
+                                                  "",
+                                                ),
+                                          ),
+                                      ],
                                     ),
-                                    if (isDesktop) const SizedBox(width: 12),
-                                    if (isDesktop)
-                                      IconCopyButton(data: _transaction.txid),
-                                  ],
-                                ),
-                              ),
+                                  )
+                                  : RoundedWhiteContainer(
+                                    padding:
+                                        isDesktop
+                                            ? const EdgeInsets.all(16)
+                                            : const EdgeInsets.all(12),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              ConditionalParent(
+                                                condition: !isDesktop,
+                                                builder:
+                                                    (child) => Row(
+                                                      children: [
+                                                        Expanded(child: child),
+                                                        SimpleCopyButton(
+                                                          data:
+                                                              _transaction.txid,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                child: Text(
+                                                  "Transaction ID",
+                                                  style:
+                                                      isDesktop
+                                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                                            context,
+                                                          )
+                                                          : STextStyles.itemSubtitle(
+                                                            context,
+                                                          ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              // Flexible(
+                                              //   child: FittedBox(
+                                              //     fit: BoxFit.scaleDown,
+                                              //     child:
+                                              SelectableText(
+                                                _transaction.txid,
+                                                style:
+                                                    isDesktop
+                                                        ? STextStyles.desktopTextExtraExtraSmall(
+                                                          context,
+                                                        ).copyWith(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textDark,
+                                                        )
+                                                        : STextStyles.itemSubtitle12(
+                                                          context,
+                                                        ),
+                                              ),
+                                              if (coin is! Epiccash)
+                                                const SizedBox(height: 8),
+                                              if (coin is! Epiccash)
+                                                CustomTextButton(
+                                                  text:
+                                                      "Open in block explorer",
+                                                  onTap: () async {
+                                                    final uri =
+                                                        getBlockExplorerTransactionUrlFor(
+                                                          coin: coin,
+                                                          txid:
+                                                              _transaction.txid,
+                                                        );
+
+                                                    if (ref
+                                                            .read(
+                                                              prefsChangeNotifierProvider,
+                                                            )
+                                                            .hideBlockExplorerWarning ==
+                                                        false) {
+                                                      final shouldContinue =
+                                                          await showExplorerWarning(
+                                                            "${uri.scheme}://${uri.host}",
+                                                          );
+
+                                                      if (!shouldContinue) {
+                                                        return;
+                                                      }
+                                                    }
+
+                                                    // ref
+                                                    //     .read(
+                                                    //         shouldShowLockscreenOnResumeStateProvider
+                                                    //             .state)
+                                                    //     .state = false;
+                                                    try {
+                                                      await launchUrl(
+                                                        uri,
+                                                        mode:
+                                                            LaunchMode
+                                                                .externalApplication,
+                                                      );
+                                                    } catch (_) {
+                                                      if (context.mounted) {
+                                                        unawaited(
+                                                          showDialog<void>(
+                                                            context: context,
+                                                            builder:
+                                                                (
+                                                                  _,
+                                                                ) => StackOkDialog(
+                                                                  title:
+                                                                      "Could not open in block explorer",
+                                                                  message:
+                                                                      "Failed to open \"${uri.toString()}\"",
+                                                                ),
+                                                          ),
+                                                        );
+                                                      }
+                                                    } finally {
+                                                      // Future<void>.delayed(
+                                                      //   const Duration(seconds: 1),
+                                                      //   () => ref
+                                                      //       .read(
+                                                      //           shouldShowLockscreenOnResumeStateProvider
+                                                      //               .state)
+                                                      //       .state = true,
+                                                      // );
+                                                    }
+                                                  },
+                                                ),
+                                              //   ),
+                                              // ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (isDesktop)
+                                          const SizedBox(width: 12),
+                                        if (isDesktop)
+                                          IconCopyButton(
+                                            data: _transaction.txid,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                               // if ((coin is FiroTestNet || coin is Firo) &&
                               //     _transaction.subType == "mint")
                               //   const SizedBox(

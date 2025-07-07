@@ -51,9 +51,9 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
 
   @override
   void initState() {
-    final wallet = ref.read(pWallets).getWallet(
-          ref.read(pFrostScaffoldArgs)!.walletId!,
-        ) as BitcoinFrostWallet;
+    final wallet =
+        ref.read(pWallets).getWallet(ref.read(pFrostScaffoldArgs)!.walletId!)
+            as BitcoinFrostWallet;
 
     final frostInfo = wallet.frostInfo;
 
@@ -62,12 +62,13 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
     myIndex = frostInfo.participants.indexOf(frostInfo.myName);
     myShare = ref.read(pFrostContinueSignData.state).state!.share;
 
-    participantsWithoutMe = frostInfo.participants
-        .toSet()
-        .intersection(
-          ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet(),
-        )
-        .toList();
+    participantsWithoutMe =
+        frostInfo.participants
+            .toSet()
+            .intersection(
+              ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet(),
+            )
+            .toList();
 
     participantsWithoutMe.remove(myName);
 
@@ -98,46 +99,28 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          const FrostStepUserSteps(userSteps: info),
+          const SizedBox(height: 12),
           DetailItem(
             title: "My name",
             detail: myName,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: myName,
-                  )
-                : SimpleCopyButton(
-                    data: myName,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: myName)
+                    : SimpleCopyButton(data: myName),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           DetailItem(
             title: "My share",
             detail: myShare,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: myShare,
-                  )
-                : SimpleCopyButton(
-                    data: myShare,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: myShare)
+                    : SimpleCopyButton(data: myShare),
           ),
-          const SizedBox(
-            height: 12,
-          ),
-          FrostQrDialogPopupButton(
-            data: myShare,
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
+          FrostQrDialogPopupButton(data: myShare),
+          const SizedBox(height: 12),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,9 +141,7 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
             ],
           ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           CheckboxTextButton(
             label: "I have verified that everyone has my share",
             onChanged: (value) {
@@ -169,12 +150,11 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
               });
             },
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           PrimaryButton(
             label: "Generate transaction",
-            enabled: _userVerifyContinue &&
+            enabled:
+                _userVerifyContinue &&
                 !fieldIsEmptyFlags.fold(false, (v, e) => v |= e),
             onPressed: () async {
               // collect Share strings
@@ -206,23 +186,21 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
 
                 final inputTotal = Amount(
                   rawValue: txData.utxos!
-                      .map((e) => BigInt.from(e.value))
+                      .map((e) => e.value)
                       .reduce((v, e) => v += e),
                   fractionDigits: fractionDigits,
                 );
                 final outputTotal = Amount(
-                  rawValue:
-                      tx.outputs.map((e) => e.value).reduce((v, e) => v += e),
+                  rawValue: tx.outputs
+                      .map((e) => e.value)
+                      .reduce((v, e) => v += e),
                   fractionDigits: fractionDigits,
                 );
 
                 ref.read(pFrostTxData.state).state = txData.copyWith(
                   raw: rawTx,
                   fee: inputTotal - outputTotal,
-                  frostSigners: [
-                    myName,
-                    ...participantsWithoutMe,
-                  ],
+                  frostSigners: [myName, ...participantsWithoutMe],
                 );
 
                 ref.read(pFrostCreateCurrentStep.state).state = 4;
@@ -233,14 +211,15 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
                       .routeName,
                 );
               } catch (e, s) {
-                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,
-                    builder: (_) => const FrostErrorDialog(
-                      title: "Failed to complete signing process",
-                    ),
+                    builder:
+                        (_) => const FrostErrorDialog(
+                          title: "Failed to complete signing process",
+                        ),
                   );
                 }
               }

@@ -141,4 +141,12 @@ class Xelis extends ElectrumCurrency {
         );
     }
   }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.xelis;
+    }
+    return null;
+  }
 }

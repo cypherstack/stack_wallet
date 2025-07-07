@@ -79,7 +79,7 @@ class _FrostStepFieldState extends ConsumerState<FrostStepField> {
           await Future<void>.delayed(const Duration(milliseconds: 75));
         }
 
-        final qrResult = await ref.read(pBarcodeScanner).scan();
+        final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
         widget.controller.text = qrResult.rawContent;
 

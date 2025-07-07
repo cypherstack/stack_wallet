@@ -693,7 +693,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 

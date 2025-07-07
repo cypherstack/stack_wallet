@@ -209,7 +209,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #add,
+          #save,
           [
             node,
             password,
@@ -249,25 +249,6 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
           [
             id,
             enabled,
-            shouldNotifyListeners,
-          ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> edit(
-    _i7.NodeModel? editedNode,
-    String? password,
-    bool? shouldNotifyListeners,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #edit,
-          [
-            editedNode,
-            password,
             shouldNotifyListeners,
           ],
         ),

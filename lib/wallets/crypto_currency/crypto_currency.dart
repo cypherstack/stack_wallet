@@ -69,6 +69,7 @@ abstract class CryptoCurrency {
   String get genesisHash;
 
   bool validateAddress(String address);
+  AddressType? getAddressType(String address);
 
   NodeModel defaultNode({required bool isPrimary});
 

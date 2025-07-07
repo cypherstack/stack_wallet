@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
 
+import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -54,11 +55,12 @@ class WowneroWallet extends LibMoneroWallet {
             txData: TxData(
               recipients: [
                 // This address is only used for getting an approximate fee, never for sending
-                (
+                TxRecipient(
                   address:
                       "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
                   amount: amount,
                   isChange: false,
+                  addressType: AddressType.cryptonote,
                 ),
               ],
               feeRateType: feeRateType,

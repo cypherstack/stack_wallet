@@ -89,12 +89,12 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
         color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
-          if (currentType != FiroType.spark) {
+          if (currentType != BalanceType.private) {
             ref.read(publicPrivateBalanceStateProvider.state).state =
-                FiroType.spark;
+                BalanceType.private;
           } else {
             ref.read(publicPrivateBalanceStateProvider.state).state =
-                FiroType.public;
+                BalanceType.public;
           }
 
           onPressed?.call();

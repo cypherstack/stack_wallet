@@ -377,7 +377,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         }
       } else {
         try {
-          final result = await ref.read(pBarcodeScanner).scan();
+          final result = await ref.read(pBarcodeScanner).scan(context: context);
           await _processQrData(result.rawContent);
         } on PlatformException catch (e, s) {
           if (mounted) {

@@ -431,20 +431,24 @@ abstract class Wallet<T extends CryptoCurrency> {
           hasNetwork
               ? NodeConnectionStatus.connected
               : NodeConnectionStatus.disconnected;
-      GlobalEventBus.instance.fire(
-        NodeConnectionStatusChangedEvent(status, walletId, cryptoCurrency),
-      );
+      if (!doNotFireRefreshEvents) {
+        GlobalEventBus.instance.fire(
+          NodeConnectionStatusChangedEvent(status, walletId, cryptoCurrency),
+        );
+      }
 
       _isConnected = hasNetwork;
 
       if (status == NodeConnectionStatus.disconnected) {
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.unableToSync,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.unableToSync,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+        }
       }
 
       if (hasNetwork) {
@@ -511,19 +515,22 @@ abstract class Wallet<T extends CryptoCurrency> {
     return node;
   }
 
+  bool doNotFireRefreshEvents = false;
+
   // Should fire events
   Future<void> refresh() async {
     final refreshCompleter = Completer<void>();
     final future = refreshCompleter.future.then(
       (_) {
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.synced,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
-
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.synced,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+        }
         if (shouldAutoSync) {
           _periodicRefreshTimer ??= Timer.periodic(const Duration(seconds: 150), (
             timer,
@@ -541,20 +548,22 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       },
       onError: (Object e, StackTrace s) {
-        GlobalEventBus.instance.fire(
-          NodeConnectionStatusChangedEvent(
-            NodeConnectionStatus.disconnected,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.unableToSync,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            NodeConnectionStatusChangedEvent(
+              NodeConnectionStatus.disconnected,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.unableToSync,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+        }
         Logging.instance.e(
           "Caught exception in refreshWalletData()",
           error: e,
@@ -572,7 +581,11 @@ abstract class Wallet<T extends CryptoCurrency> {
     if (this is ElectrumXInterface) {
       (this as ElectrumXInterface?)?.refreshingPercent = percent;
     }
-    GlobalEventBus.instance.fire(RefreshPercentChangedEvent(percent, walletId));
+    if (!doNotFireRefreshEvents) {
+      GlobalEventBus.instance.fire(
+        RefreshPercentChangedEvent(percent, walletId),
+      );
+    }
   }
 
   // Should fire events
@@ -593,13 +606,15 @@ abstract class Wallet<T extends CryptoCurrency> {
       // Slight possibility of race but should be irrelevant
       await refreshMutex.acquire();
 
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.syncing,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
+      if (!doNotFireRefreshEvents) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.syncing,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+      }
 
       // add some small buffer before making calls.
       // this can probably be removed in the future but was added as a

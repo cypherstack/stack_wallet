@@ -5,11 +5,11 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:namecoin/namecoin.dart';
 
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
@@ -578,8 +578,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
               noteName += ".bit";
             }
 
+            final receivingAddress = (await getCurrentReceivingAddress())!;
+
             TxData txData = TxData(
-              utxos: {utxo},
+              utxos: {StandardInput(utxo)},
               opNameState: NameOpState(
                 name: data.name,
                 saltHex: data.salt,
@@ -593,13 +595,14 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
               note: "Purchase $noteName",
               feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
               recipients: [
-                (
-                  address: (await getCurrentReceivingAddress())!.value,
+                TxRecipient(
+                  address: receivingAddress.value,
                   isChange: false,
                   amount: Amount(
                     rawValue: BigInt.from(kNameAmountSats),
                     fractionDigits: cryptoCurrency.fractionDigits,
                   ),
+                  addressType: receivingAddress.type,
                 ),
               ],
             );
@@ -627,7 +630,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
   /// Builds and signs a transaction
   Future<TxData> _createNameTx({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required List<StandardInput> inputsWithKeys,
     required bool isForFeeCalcPurposesOnly,
   }) async {
     Logging.instance.d("Starting _createNameTx ----------");
@@ -667,19 +670,19 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
             : 0xffffffff - 1;
 
     // Add transaction inputs
-    for (int i = 0; i < utxoSigningData.length; i++) {
-      final txid = utxoSigningData[i].utxo.txid;
+    for (int i = 0; i < inputsWithKeys.length; i++) {
+      final txid = inputsWithKeys[i].utxo.txid;
 
       final hash = Uint8List.fromList(
         txid.toUint8ListFromHex.reversed.toList(),
       );
 
-      final prevOutpoint = coinlib.OutPoint(hash, utxoSigningData[i].utxo.vout);
+      final prevOutpoint = coinlib.OutPoint(hash, inputsWithKeys[i].utxo.vout);
 
       final prevOutput = coinlib.Output.fromAddress(
-        BigInt.from(utxoSigningData[i].utxo.value),
+        BigInt.from(inputsWithKeys[i].utxo.value),
         coinlib.Address.fromString(
-          utxoSigningData[i].utxo.address!,
+          inputsWithKeys[i].utxo.address!,
           cryptoCurrency.networkParams,
         ),
       );
@@ -688,11 +691,11 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
       final coinlib.Input input;
 
-      switch (utxoSigningData[i].derivePathType) {
+      switch (inputsWithKeys[i].derivePathType) {
         case DerivePathType.bip44:
           input = coinlib.P2PKHInput(
             prevOut: prevOutpoint,
-            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: inputsWithKeys[i].key!.publicKey,
             sequence: sequence,
           );
 
@@ -710,7 +713,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         case DerivePathType.bip84:
           input = coinlib.P2WPKHInput(
             prevOut: prevOutpoint,
-            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: inputsWithKeys[i].key!.publicKey,
             sequence: sequence,
           );
 
@@ -719,7 +722,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
         default:
           throw UnsupportedError(
-            "Unknown derivation path type found: ${utxoSigningData[i].derivePathType}",
+            "Unknown derivation path type found: ${inputsWithKeys[i].derivePathType}",
           );
       }
 
@@ -731,14 +734,14 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
           scriptSigAsm: null,
           sequence: sequence,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: utxoSigningData[i].utxo.txid,
-            vout: utxoSigningData[i].utxo.vout,
+            txid: inputsWithKeys[i].utxo.txid,
+            vout: inputsWithKeys[i].utxo.vout,
           ),
           addresses:
-              utxoSigningData[i].utxo.address == null
+              inputsWithKeys[i].utxo.address == null
                   ? []
-                  : [utxoSigningData[i].utxo.address!],
-          valueStringSats: utxoSigningData[i].utxo.value.toString(),
+                  : [inputsWithKeys[i].utxo.address!],
+          valueStringSats: inputsWithKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
           coinbase: null,
@@ -808,13 +811,13 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     try {
       // Sign the transaction accordingly
-      for (int i = 0; i < utxoSigningData.length; i++) {
-        final value = BigInt.from(utxoSigningData[i].utxo.value);
-        final key = utxoSigningData[i].keyPair!.privateKey;
+      for (int i = 0; i < inputsWithKeys.length; i++) {
+        final value = BigInt.from(inputsWithKeys[i].utxo.value);
+        final key = inputsWithKeys[i].key!.privateKey!;
 
         if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
           final taproot = coinlib.Taproot(
-            internalKey: utxoSigningData[i].keyPair!.publicKey,
+            internalKey: inputsWithKeys[i].key!.publicKey,
           );
 
           clTx = clTx.signTaproot(
@@ -902,7 +905,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       if (customSatsPerVByte != null) {
         final result = await coinSelectionName(
           txData: txData.copyWith(feeRateAmount: BigInt.from(-1)),
-          utxos: utxos?.toList(),
+          utxos: utxos?.whereType<StandardInput>().map((e) => e.utxo).toList(),
           coinControl: coinControl,
         );
 
@@ -940,7 +943,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
         final result = await coinSelectionName(
           txData: txData.copyWith(feeRateAmount: rate),
-          utxos: utxos?.toList(),
+          utxos: utxos?.whereType<StandardInput>().map((e) => e.utxo).toList(),
           coinControl: coinControl,
         );
 
@@ -1115,13 +1118,16 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     final List<BigInt> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
-    final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+    final inputsWithKeys =
+        (await addSigningKeys(
+          utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
+        )).whereType<StandardInput>().toList();
 
     final int vSizeForOneOutput;
     try {
       vSizeForOneOutput =
           (await _createNameTx(
-            utxoSigningData: utxoSigningData,
+            inputsWithKeys: inputsWithKeys,
             isForFeeCalcPurposesOnly: true,
             txData: txData.copyWith(
               recipients: await helperRecipientsConvert(
@@ -1142,7 +1148,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     try {
       vSizeForTwoOutPuts =
           (await _createNameTx(
-            utxoSigningData: utxoSigningData,
+            inputsWithKeys: inputsWithKeys,
             isForFeeCalcPurposesOnly: true,
             txData: txData.copyWith(
               recipients: await helperRecipientsConvert(
@@ -1194,7 +1200,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       );
       final txnData = await _createNameTx(
         isForFeeCalcPurposesOnly: false,
-        utxoSigningData: utxoSigningData,
+        inputsWithKeys: inputsWithKeys,
         txData: txData.copyWith(
           recipients: await helperRecipientsConvert(
             recipientsArray,
@@ -1207,7 +1213,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
           rawValue: feeForOneOutput,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
-        usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+        usedUTXOs: inputsWithKeys,
       );
     }
 
@@ -1256,7 +1262,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
           );
 
           TxData txnData = await _createNameTx(
-            utxoSigningData: utxoSigningData,
+            inputsWithKeys: inputsWithKeys,
             isForFeeCalcPurposesOnly: false,
             txData: txData.copyWith(
               recipients: await helperRecipientsConvert(
@@ -1282,7 +1288,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
             );
 
             txnData = await _createNameTx(
-              utxoSigningData: utxoSigningData,
+              inputsWithKeys: inputsWithKeys,
               isForFeeCalcPurposesOnly: false,
               txData: txData.copyWith(
                 recipients: await helperRecipientsConvert(
@@ -1298,7 +1304,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
               rawValue: feeBeingPaid,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+            usedUTXOs: inputsWithKeys,
           );
         } else {
           // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize

@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -44,13 +45,56 @@ class SparkNames extends Table {
   Set<Column> get primaryKey => {name};
 }
 
-@DriftDatabase(tables: [SparkNames])
+class MwebUtxos extends Table {
+  TextColumn get outputId => text()();
+  TextColumn get address => text()();
+  IntColumn get value => integer()();
+  IntColumn get height => integer()();
+  IntColumn get blockTime => integer()();
+  BoolColumn get blocked => boolean()();
+  BoolColumn get used => boolean()();
+
+  @override
+  Set<Column> get primaryKey => {outputId};
+}
+
+extension MwebUtxoExt on MwebUtxo {
+  int getConfirmations(int currentChainHeight) {
+    if (blockTime <= 0) return 0;
+    if (height <= 0) return 0;
+    return math.max(0, currentChainHeight - (height - 1));
+  }
+
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms, {
+    int? overrideMinConfirms,
+  }) {
+    final confirmations = getConfirmations(currentChainHeight);
+
+    if (overrideMinConfirms != null) {
+      return confirmations >= overrideMinConfirms;
+    }
+    return confirmations >= minimumConfirms;
+  }
+}
+
+@DriftDatabase(tables: [SparkNames, MwebUtxos])
 final class WalletDatabase extends _$WalletDatabase {
   WalletDatabase._(String walletId, [QueryExecutor? executor])
     : super(executor ?? _openConnection(walletId));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from == 1 && to == 2) {
+        await m.createTable(mwebUtxos);
+      }
+    },
+  );
 
   static QueryExecutor _openConnection(String walletId) {
     return driftDatabase(

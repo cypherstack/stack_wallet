@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -44,6 +45,7 @@ import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -59,13 +61,14 @@ import '../../../cashfusion/desktop_cashfusion_view.dart';
 import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
+import '../../../mweb_utxos_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
 import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
 
 enum WalletFeature {
-  anonymizeFunds("Anonymize funds", "Anonymize funds"),
+  anonymizeFunds("Privatize funds", "Privatize funds"),
   swap("Swap", ""),
   buy("Buy", "Buy cryptocurrency"),
   paynym("PayNym", "Increased address privacy using BIP47"),
@@ -74,6 +77,7 @@ enum WalletFeature {
     "Control, freeze, and utilize outputs at your discretion",
   ),
   sparkCoins("Spark coins", "View wallet spark coins"),
+  mwebUtxos("MWEB outputs", "View wallet MWEB outputs"),
   ordinals("Ordinals", "View and control your ordinals in ${AppConfig.prefix}"),
   monkey("MonKey", "Generate Banano MonKey"),
   fusion("Fusion", "Decentralized mixing protocol"),
@@ -84,7 +88,8 @@ enum WalletFeature {
   // special cases
   clearSparkCache("", ""),
   rbf("", ""),
-  reuseAddress("", "");
+  reuseAddress("", ""),
+  enableMweb("", "");
 
   final String label;
   final String description;
@@ -138,6 +143,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     ).pushNamed(SparkCoinsView.routeName, arguments: widget.walletId);
   }
 
+  void _onMwebUtxosPressed() {
+    Navigator.of(
+      context,
+    ).pushNamed(MwebUtxosView.routeName, arguments: widget.walletId);
+  }
+
   Future<void> _onAnonymizeAllPressed() async {
     await showDialog<void>(
       context: context,
@@ -153,7 +164,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                   Text("Attention!", style: STextStyles.desktopH2(context)),
                   const SizedBox(height: 16),
                   Text(
-                    "You're about to anonymize all of your public funds.",
+                    "You're about to privatize all of your public funds.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
                   const SizedBox(height: 32),
@@ -196,17 +207,16 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         builder:
             (context) => WillPopScope(
               child: const CustomLoadingOverlay(
-                message: "Anonymizing balance",
+                message: "Privatizing balance",
                 eventBus: null,
               ),
               onWillPop: () async => shouldPop,
             ),
       ),
     );
-    final firoWallet =
-        ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
 
-    final publicBalance = firoWallet.info.cachedBalance.spendable;
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    final publicBalance = wallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (context.mounted) {
@@ -217,7 +227,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
-            message: "No funds available to anonymize!",
+            message: "No funds available to privatize!",
             context: context,
           ),
         );
@@ -226,7 +236,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
 
     try {
-      await firoWallet.anonymizeAllSpark();
+      if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
+        await wallet.anonymizeAllMweb();
+      } else {
+        await (wallet as FiroWallet).anonymizeAllSpark();
+      }
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -236,7 +250,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
+            message: "Privatize transaction submitted",
             context: context,
           ),
         );
@@ -260,7 +274,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Anonymize all failed",
+                        "Privatize all failed",
                         style: STextStyles.desktopH3(context),
                       ),
                       const Spacer(flex: 1),
@@ -381,7 +395,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
     return [
-      if (!isViewOnly && coin is Firo)
+      if (!isViewOnly &&
+          (coin is Firo ||
+              (wallet is MwebInterface && wallet.info.isMwebEnabled)))
         (
           WalletFeature.anonymizeFunds,
           Assets.svg.recycle,
@@ -411,6 +427,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           WalletFeature.sparkCoins,
           Assets.svg.coinControl.gamePad,
           _onSparkCoinsPressed,
+        ),
+
+      if (kDebugMode && !isViewOnly && wallet is MwebInterface)
+        (
+          WalletFeature.mwebUtxos,
+          Assets.svg.coinControl.gamePad,
+          _onMwebUtxosPressed,
         ),
 
       if (!isViewOnly && wallet is PaynymInterface)
@@ -461,6 +484,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         wallet.isViewOnly &&
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
+    final showMwebOption = wallet is MwebInterface && !wallet.isViewOnly;
+
     final extraOptions = [
       if (wallet is SparkInterface && !isViewOnly)
         (WalletFeature.clearSparkCache, Assets.svg.key, () => ()),
@@ -469,6 +494,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (!isViewOnlyNoAddressGen)
         (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
+
+      if (showMwebOption) (WalletFeature.enableMweb, Assets.svg.key, () => ()),
     ];
 
     return StaticOverflowRow(

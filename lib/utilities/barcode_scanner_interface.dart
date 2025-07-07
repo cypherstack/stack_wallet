@@ -10,27 +10,37 @@
 
 import 'dart:io';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
+import '../widgets/qr_scanner.dart';
 import '../widgets/stack_dialog.dart';
 import 'logger.dart';
 
+class ScanResult {
+  final String rawContent;
+
+  ScanResult({required this.rawContent});
+}
+
 abstract class BarcodeScannerInterface {
-  Future<ScanResult> scan({ScanOptions options = const ScanOptions()});
+  Future<ScanResult> scan({required BuildContext context});
 }
 
 class BarcodeScannerWrapper implements BarcodeScannerInterface {
   const BarcodeScannerWrapper();
 
   @override
-  Future<ScanResult> scan({ScanOptions options = const ScanOptions()}) async {
+  Future<ScanResult> scan({required BuildContext context}) async {
     try {
-      final result = await BarcodeScanner.scan(options: options);
-      return result;
+      final data = await showDialog<Object?>(
+        context: context,
+        builder: (context) => const QrScanner(),
+      );
+
+      return ScanResult(rawContent: data.toString());
     } catch (e) {
       rethrow;
     }

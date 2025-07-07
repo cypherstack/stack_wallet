@@ -13,4 +13,12 @@ abstract class CryptonoteCurrency extends CryptoCurrency
 
   @override
   AddressType get defaultAddressType => AddressType.cryptonote;
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.cryptonote;
+    }
+    return null;
+  }
 }

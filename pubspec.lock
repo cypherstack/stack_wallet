@@ -70,14 +70,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.12.0"
-  barcode_scan2:
-    dependency: "direct main"
-    description:
-      name: barcode_scan2
-      sha256: efbe38629e6df2200e4d60ebe252e8e041cd5ae7b50f194a20f01779ade9d1c3
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.5.0"
   basic_utils:
     dependency: "direct main"
     description:
@@ -159,10 +151,10 @@ packages:
     dependency: "direct main"
     description:
       name: blockchain_utils
-      sha256: ebb6c336ba0120de0982c50d8bc597cb494a530bd22bd462895bb5cebde405af
+      sha256: "1e4f30b98d92f7ccf2eda009a23b53871a1c9b8b6dfa00bb1eb17ec00ae5eeeb"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0"
+    version: "3.6.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -361,20 +353,20 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
-    version: "3.1.0"
+    version: "4.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
-    version: "3.0.0"
+    version: "4.0.0"
   collection:
     dependency: transitive
     description:
@@ -892,7 +884,7 @@ packages:
     source: git
     version: "8.3.1"
   fixnum:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: fixnum
       sha256: b6dc7065e46c974bc7c5f143080a6764ec7a4be6da1285ececdc37be96de53be
@@ -989,6 +981,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.2.0"
+  flutter_mwebd:
+    dependency: "direct main"
+    description:
+      name: flutter_mwebd
+      sha256: f6daecf6a4e10dde0a2fbfe026d801cd41864c6464923d9a26a92c613c893173
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-pre.6"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -1119,8 +1119,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9dc883f4432c8db4ec44cb8cc836963295d63952"
-      resolved-ref: "9dc883f4432c8db4ec44cb8cc836963295d63952"
+      ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
+      resolved-ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -1140,6 +1140,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.5"
+  google_identity_services_web:
+    dependency: transitive
+    description:
+      name: google_identity_services_web
+      sha256: "5d187c46dc59e02646e10fe82665fc3884a9b71bc1c90c2b8b749316d33ee454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.3+1"
+  googleapis_auth:
+    dependency: transitive
+    description:
+      name: googleapis_auth
+      sha256: b81fe352cc4a330b3710d2b7ad258d9bcef6f909bb759b306bf42973a7d046db
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   graphs:
     dependency: transitive
     description:
@@ -1148,6 +1164,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  grpc:
+    dependency: transitive
+    description:
+      name: grpc
+      sha256: "30e1edae6846b163a64f6d8716e3443980fe1f7d2d1f086f011d24ea186f2582"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.4"
   hex:
     dependency: "direct main"
     description:
@@ -1204,6 +1228,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.6"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "382d3aefc5bd6dc68c6b892d7664f29b5beb3251611ae946a98d35158a82bbfa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -1229,7 +1261,7 @@ packages:
     source: hosted
     version: "1.0.3"
   image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image
       sha256: f31d52537dc417fdcde36088fdf11d191026fd5e4fae742491ebd40e5a8bea7d
@@ -1482,6 +1514,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: "54005bdea7052d792d35b4fef0f84ec5ddc3a844b250ecd48dc192fb9b4ebc95"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.1"
   mockingjay:
     dependency: "direct dev"
     description:
@@ -1522,6 +1562,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  mweb_client:
+    dependency: "direct main"
+    description:
+      name: mweb_client
+      sha256: "263ba560dab7e63a1d03875d455a19cc4a1ab9720786cd9d6ffcc42127d06732"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   namecoin:
     dependency: "direct main"
     description:
@@ -1767,10 +1815,10 @@ packages:
     dependency: transitive
     description:
       name: protobuf
-      sha256: "68645b24e0716782e58948f8467fd42a880f255096a821f9e7d0ec625b00c84d"
+      sha256: "579fe5557eae58e3adca2e999e38f02441d8aa908703854a9e0a0f47fa857731"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "4.1.0"
   pub_semver:
     dependency: transitive
     description:
@@ -1843,14 +1891,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
-  rxdart:
-    dependency: "direct main"
-    description:
-      name: rxdart
-      sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.27.7"
   sec:
     dependency: transitive
     description:
@@ -2513,5 +2553,5 @@ packages:
     source: hosted
     version: "0.2.3"
 sdks:
-  dart: ">=3.7.0 <4.0.0"
+  dart: ">=3.7.2 <4.0.0"
   flutter: ">=3.29.0"

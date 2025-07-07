@@ -2,11 +2,11 @@ import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitbox/src/utils/network.dart' as bitbox_utils;
 import 'package:isar/isar.dart';
 
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../../models/signing_data.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/tx_data.dart';
@@ -18,7 +18,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> buildTransaction({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required covariant List<StandardInput> inputsWithKeys,
   }) async {
     Logging.instance.d("Starting buildTransaction ----------");
 
@@ -35,10 +35,10 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
     final List<OutputV2> tempOutputs = [];
 
     // Add transaction inputs
-    for (int i = 0; i < utxoSigningData.length; i++) {
+    for (int i = 0; i < inputsWithKeys.length; i++) {
       builder.addInput(
-        utxoSigningData[i].utxo.txid,
-        utxoSigningData[i].utxo.vout,
+        inputsWithKeys[i].utxo.txid,
+        inputsWithKeys[i].utxo.vout,
       );
 
       tempInputs.add(
@@ -47,13 +47,14 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: utxoSigningData[i].utxo.txid,
-            vout: utxoSigningData[i].utxo.vout,
+            txid: inputsWithKeys[i].utxo.txid,
+            vout: inputsWithKeys[i].utxo.vout,
           ),
-          addresses: utxoSigningData[i].utxo.address == null
-              ? []
-              : [utxoSigningData[i].utxo.address!],
-          valueStringSats: utxoSigningData[i].utxo.value.toString(),
+          addresses:
+              inputsWithKeys[i].utxo.address == null
+                  ? []
+                  : [inputsWithKeys[i].utxo.address!],
+          valueStringSats: inputsWithKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
           coinbase: null,
@@ -73,10 +74,9 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "000000",
           valueStringSats: txData.recipients![i].amount.raw.toString(),
-          addresses: [
-            txData.recipients![i].address.toString(),
-          ],
-          walletOwns: (await mainDB.isar.addresses
+          addresses: [txData.recipients![i].address.toString()],
+          walletOwns:
+              (await mainDB.isar.addresses
                   .where()
                   .walletIdEqualTo(walletId)
                   .filter()
@@ -92,9 +92,9 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
 
     try {
       // Sign the transaction accordingly
-      for (int i = 0; i < utxoSigningData.length; i++) {
+      for (int i = 0; i < inputsWithKeys.length; i++) {
         final bitboxEC = bitbox.ECPair.fromPrivateKey(
-          utxoSigningData[i].keyPair!.privateKey.data,
+          inputsWithKeys[i].key!.privateKey!.data,
           network: bitbox_utils.Network(
             cryptoCurrency.networkParams.privHDPrefix,
             cryptoCurrency.networkParams.pubHDPrefix,
@@ -103,18 +103,17 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
             cryptoCurrency.networkParams.wifPrefix,
             cryptoCurrency.networkParams.p2pkhPrefix,
           ),
-          compressed: utxoSigningData[i].keyPair!.privateKey.compressed,
+          compressed: inputsWithKeys[i].key!.privateKey!.compressed,
         );
 
-        builder.sign(
-          i,
-          bitboxEC,
-          utxoSigningData[i].utxo.value,
-        );
+        builder.sign(i, bitboxEC, inputsWithKeys[i].utxo.value);
       }
     } catch (e, s) {
-      Logging.instance.e("Caught exception while signing transaction: ",
-          error: e, stackTrace: s);
+      Logging.instance.e(
+        "Caught exception while signing transaction: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
 

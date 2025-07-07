@@ -251,13 +251,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       await opList.simulate();
 
       return txData.copyWith(
-        recipients: [
-          (
-            amount: sendAmount,
-            address: txData.recipients!.first.address,
-            isChange: txData.recipients!.first.isChange,
-          ),
-        ],
+        recipients: [txData.recipients!.first.copyWith(amount: sendAmount)],
         // fee: fee,
         fee: Amount(
           rawValue: opList.operations

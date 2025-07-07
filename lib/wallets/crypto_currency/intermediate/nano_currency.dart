@@ -1,4 +1,5 @@
 import 'package:nanodart/nanodart.dart';
+
 import 'bip39_currency.dart';
 
 abstract class NanoCurrency extends Bip39Currency {
@@ -24,13 +25,10 @@ abstract class NanoCurrency extends Bip39Currency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
 
   @override
-  bool validateAddress(String address) => NanoAccounts.isValid(
-        nanoAccountType,
-        address,
-      );
+  bool validateAddress(String address) =>
+      NanoAccounts.isValid(nanoAccountType, address);
 
   @override
-  String get genesisHash => throw UnimplementedError(
-        "Not used in nano based coins",
-      );
+  String get genesisHash =>
+      throw UnimplementedError("Not used in nano based coins");
 }

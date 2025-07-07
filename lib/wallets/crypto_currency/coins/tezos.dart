@@ -220,4 +220,12 @@ class Tezos extends Bip39Currency {
         );
     }
   }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.tezos;
+    }
+    return null;
+  }
 }
