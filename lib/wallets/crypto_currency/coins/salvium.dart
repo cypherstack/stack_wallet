@@ -116,7 +116,7 @@ class Salvium extends CryptonoteCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://explorer.salvium.io//tx/$txid");
+        return Uri.parse("https://explorer.salvium.io/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
