@@ -49,6 +49,7 @@ class PriceAPI {
     Nano: "nano",
     Banano: "banano",
     Xelis: "xelis",
+    Salvium: "salvium",
   };
 
   static const refreshInterval = 60;
