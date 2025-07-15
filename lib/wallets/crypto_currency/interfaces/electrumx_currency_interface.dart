@@ -18,6 +18,7 @@ mixin ElectrumXCurrencyInterface on Bip39HDCurrency {
         cl.P2PKHAddress() => AddressType.p2pkh,
         cl.P2WSHAddress() => AddressType.p2sh,
         cl.P2WPKHAddress() => AddressType.p2wpkh,
+        cl.P2TRAddress() => AddressType.p2tr,
         cl.MwebAddress() => AddressType.mweb,
         _ => null,
       };
