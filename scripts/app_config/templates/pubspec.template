@@ -222,8 +222,8 @@ dependencies:
   drift: ^2.22.1
   drift_flutter: ^0.2.3
   path: ^1.9.1
-  cs_salvium: ^1.2.0
-  cs_salvium_flutter_libs: ^1.0.2
+  cs_salvium: ^1.2.1
+  cs_salvium_flutter_libs: ^1.0.3
   flutter_mwebd: ^0.0.1-pre.6
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
