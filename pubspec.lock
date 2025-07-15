@@ -540,10 +540,10 @@ packages:
     dependency: "direct main"
     description:
       name: cs_salvium_flutter_libs
-      sha256: d7b6d257a2279526fb67f8f45f835e6432a221e231949829a26272d2bfd35b2b
+      sha256: d1e49ed67632f77d863ad3eafc78db8867f155cf9decf156345ec75c92e0d026
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.4"
   cs_salvium_flutter_libs_android:
     dependency: transitive
     description:
@@ -580,10 +580,10 @@ packages:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_ios
-      sha256: "62739c13186aa4a89dd8dcb04ec7f7a01976a77a7cfa46172434b7c56b93938f"
+      sha256: "54d18fbac60c8a602e4d0f967ea7d02fab71bff3e032f9576e159229ce372534"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   cs_salvium_flutter_libs_linux:
     dependency: transitive
     description:
