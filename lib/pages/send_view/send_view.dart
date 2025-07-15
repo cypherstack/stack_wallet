@@ -1222,7 +1222,7 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        balType == BalanceType.public;
+        (showPrivateBalance ? balType == BalanceType.public : true);
 
     final isExchangeAddress = ref.watch(pIsExchangeAddress);
 

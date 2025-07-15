@@ -1052,7 +1052,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        balType == BalanceType.public;
+        (showPrivateBalance ? balType == BalanceType.public : true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
