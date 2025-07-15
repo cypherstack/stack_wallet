@@ -216,17 +216,28 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
                   (e) => e.outputId.equals(utxo.outputId),
                 )).getSingleOrNull();
 
-            final newUtxo = MwebUtxosCompanion(
-              outputId: Value(prev?.outputId ?? utxo.outputId),
-              address: Value(prev?.address ?? utxo.address),
-              value: Value(utxo.value.toInt()),
-              height: Value(utxo.height),
-              blockTime: Value(utxo.blockTime),
-              blocked: Value(prev?.blocked ?? false),
-              used: Value(prev?.used ?? false),
-            );
+            if (prev == null) {
+              final newUtxo = MwebUtxosCompanion(
+                outputId: Value(utxo.outputId),
+                address: Value(utxo.address),
+                value: Value(utxo.value.toInt()),
+                height: Value(utxo.height),
+                blockTime: Value(utxo.blockTime),
+                blocked: const Value(false),
+                used: const Value(false),
+              );
 
-            await db.into(db.mwebUtxos).insertOnConflictUpdate(newUtxo);
+              await db.into(db.mwebUtxos).insert(newUtxo);
+            } else {
+              await db
+                  .update(db.mwebUtxos)
+                  .replace(
+                    prev.copyWith(
+                      blockTime: utxo.blockTime,
+                      height: utxo.height,
+                    ),
+                  );
+            }
           });
 
           Address? addr = await mainDB.getAddress(walletId, utxo.address);
@@ -469,7 +480,19 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       );
 
       // Update used mweb utxos as used in database
-      await _checkSpentMwebUtxos();
+      final usedMwebUtxos =
+          txData.usedUTXOs!.whereType<MwebInput>().map((e) => e.utxo).toList();
+
+      Logging.instance.i("Used mweb inputs: $usedMwebUtxos");
+
+      if (usedMwebUtxos.isNotEmpty) {
+        final db = Drift.get(walletId);
+        await db.transaction(() async {
+          for (final used in usedMwebUtxos) {
+            await db.update(db.mwebUtxos).replace(used);
+          }
+        });
+      }
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
@@ -583,35 +606,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<void> _checkSpentMwebUtxos() async {
-    try {
-      final db = Drift.get(walletId);
-      final mwebUtxos = await db.select(db.mwebUtxos).get();
-
-      final client = await _client;
-
-      final spent = await client.spent(
-        SpentRequest(outputId: mwebUtxos.map((e) => e.outputId)),
-      );
-
-      await db.transaction(() async {
-        for (final utxo in mwebUtxos) {
-          await db
-              .into(db.mwebUtxos)
-              .insertOnConflictUpdate(
-                utxo
-                    .toCompanion(false)
-                    .copyWith(
-                      used: Value(spent.outputId.contains(utxo.outputId)),
-                    ),
-              );
-        }
-      });
-    } catch (e, s) {
-      Logging.instance.e("_checkSpentMwebUtxos()", error: e, stackTrace: s);
-    }
-  }
-
   Future<void> _checkAddresses() async {
     // check change first as it is index 0
     Address? changeAddress = await getMwebChangeAddress();
@@ -667,8 +661,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     if (info.isMwebEnabled) {
       final start = DateTime.now();
       try {
-        await _checkSpentMwebUtxos();
-
         final currentHeight = await chainHeight;
         final db = Drift.get(walletId);
         final mwebUtxos =
