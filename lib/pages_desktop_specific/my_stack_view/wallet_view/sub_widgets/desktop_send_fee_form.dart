@@ -55,7 +55,15 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
 
   bool get isEth => cryptoCurrency is Ethereum;
 
-  bool isCustomFee = false;
+  bool _isCustomFeeValue = false;
+  bool get _isCustomFee => _isCustomFeeValue;
+  set _isCustomFee(bool newValue) {
+    if (_isCustomFeeValue != newValue) {
+      _isCustomFeeValue = newValue;
+      widget.onCustomFeeOptionChanged.call(_isCustomFeeValue);
+    }
+  }
+
   (FeeRateType, String?, String?)? feeSelectionResult;
 
   @override
@@ -97,12 +105,12 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                           );
 
                       if (feeSelectionResult != null) {
-                        if (isCustomFee &&
+                        if (_isCustomFee &&
                             feeSelectionResult!.$1 != FeeRateType.custom) {
-                          isCustomFee = false;
-                        } else if (!isCustomFee &&
+                          _isCustomFee = false;
+                        } else if (!_isCustomFee &&
                             feeSelectionResult!.$1 == FeeRateType.custom) {
-                          isCustomFee = true;
+                          _isCustomFee = true;
                         }
                       }
 
@@ -113,7 +121,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
               ),
           child: Text(
             "Transaction fee"
-            "${isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
+            "${_isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color:
                   Theme.of(
@@ -124,7 +132,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
         ),
         const SizedBox(height: 10),
-        if (!isCustomFee)
+        if (!_isCustomFee)
           Padding(
             padding: const EdgeInsets.all(10),
             child:
@@ -275,7 +283,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                       ],
                     ),
           ),
-        if (isCustomFee && isEth)
+        if (_isCustomFee && isEth)
           EthFeeForm(
             minGasLimit:
                 widget.isToken
@@ -284,7 +292,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             stateChanged:
                 (value) => widget.onCustomEip1559FeeOptionChanged?.call(value),
           ),
-        if (isCustomFee && !isEth)
+        if (_isCustomFee && !isEth)
           Padding(
             padding: const EdgeInsets.only(bottom: 12, top: 16),
             child: FeeSlider(

@@ -255,6 +255,7 @@ class BitcoinFrost extends FrostCurrency {
       final clAddress = cl.Address.fromString(address, networkParams);
 
       return switch (clAddress) {
+        cl.P2TRAddress() => AddressType.p2tr,
         cl.P2PKHAddress() => AddressType.p2pkh,
         cl.P2WSHAddress() => AddressType.p2sh,
         cl.P2WPKHAddress() => AddressType.p2wpkh,
