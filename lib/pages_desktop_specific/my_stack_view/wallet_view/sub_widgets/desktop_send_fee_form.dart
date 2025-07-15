@@ -104,6 +104,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                             feeSelectionResult!.$1 == FeeRateType.custom) {
                           isCustomFee = true;
                         }
+                        widget.onCustomFeeOptionChanged(isCustomFee);
                       }
 
                       setState(() {});
