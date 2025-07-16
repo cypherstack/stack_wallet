@@ -90,7 +90,7 @@ class Banano extends NanoCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://www.bananolooker.com/block/$txid");
+        return Uri.parse("https://creeper.banano.cc/hash/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
