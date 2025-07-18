@@ -198,8 +198,8 @@ class _NewWalletRecoveryPhraseWarningViewState
             mnemonicPassphrase =
                 ref.read(pNewWalletOptions.state).state!.mnemonicPassphrase;
           } else {
-            // this may not be epiccash specific?
-            if (coin is Epiccash) {
+            // this may not be epiccash and sol specific?
+            if (coin is Epiccash || coin is Solana) {
               mnemonicPassphrase = "";
             }
           }
