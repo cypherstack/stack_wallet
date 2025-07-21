@@ -1060,12 +1060,24 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       ),
                     if (Constants.enableExchange &&
                         ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                        wallet is! FiroWallet &&
                         AppConfig.hasFeature(AppFeature.buy) &&
                         showExchange)
                       WalletNavigationBarItemData(
                         label: "Buy",
                         icon: const BuyNavIcon(),
                         onTap: () => _onBuyPressed(context),
+                      ),
+                    if (wallet is SparkInterface)
+                      WalletNavigationBarItemData(
+                        label: "Names",
+                        icon: const PaynymNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            SparkNamesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
                       ),
                   ],
                   moreItems: [
@@ -1149,17 +1161,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             NamecoinNamesHomeView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (wallet is SparkInterface)
-                      WalletNavigationBarItemData(
-                        label: "Names",
-                        icon: const PaynymNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            SparkNamesHomeView.routeName,
                             arguments: widget.walletId,
                           );
                         },

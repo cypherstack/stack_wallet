@@ -23,6 +23,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/coins/firo.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/background.dart';
@@ -80,8 +81,20 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
   }
 
   Future<TxData> _preRegFuture() async {
+    final chosenAddress = addressController.text;
+
+    if (chosenAddress.isEmpty) {
+      throw Exception(
+        "Please select the Spark address you want to link to your Spark Name",
+      );
+    }
+
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
+
+    if (!(wallet.cryptoCurrency as Firo).validateSparkAddress(chosenAddress)) {
+      throw Exception("Invalid Spark address selected");
+    }
 
     final myAddresses =
         await wallet.mainDB.isar.addresses
@@ -94,10 +107,8 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
             .valueProperty()
             .findAll();
 
-    final chosenAddress = addressController.text;
-
     if (!myAddresses.contains(chosenAddress)) {
-      throw Exception("Address does not belong to this wallet");
+      throw Exception("Selected Spark address does not belong to this wallet");
     }
 
     final txData = await wallet.prepareSparkNameTransaction(
@@ -274,7 +285,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Address",
+                      "Spark address",
                       style:
                           Util.isDesktop
                               ? STextStyles.w500_14(context).copyWith(
@@ -311,7 +322,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                       isDense: true,
                       contentPadding: const EdgeInsets.all(16),
                       hintStyle: STextStyles.fieldLabel(context),
-                      hintText: "Address",
+                      hintText: "Spark address (required)",
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -360,7 +371,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                       isDense: true,
                       contentPadding: const EdgeInsets.all(16),
                       hintStyle: STextStyles.fieldLabel(context),
-                      hintText: "Additional info",
+                      hintText: "Additional info (optional)",
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
