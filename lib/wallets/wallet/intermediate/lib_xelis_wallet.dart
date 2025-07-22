@@ -327,6 +327,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
   @override
   Future<void> open() async {
+    while (exitInProgress) {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+
     try {
       await connect();
     } catch (e) {
@@ -339,18 +343,25 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     unawaited(refresh());
   }
 
+  bool exitInProgress = false;
+
   @override
   Future<void> exit() async {
-    await refreshMutex.protect(() async {
-      timer?.cancel();
-      timer = null;
+    exitInProgress = true;
+    try {
+      await refreshMutex.protect(() async {
+        timer?.cancel();
+        timer = null;
 
-      await _eventSubscription?.cancel();
-      _eventSubscription = null;
+        await _eventSubscription?.cancel();
+        _eventSubscription = null;
 
-      await libXelisWallet?.offlineMode();
-      await super.exit();
-    });
+        await libXelisWallet?.offlineMode();
+        await super.exit();
+      });
+    } finally {
+      exitInProgress = false;
+    }
   }
 
   void invalidSeedLengthCheck(int length) {
