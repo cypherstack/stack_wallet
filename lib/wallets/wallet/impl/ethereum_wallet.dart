@@ -338,7 +338,14 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       final Amount txFee = element.gasCost;
       final transactionAmount = element.value;
       final addressFrom = checksumEthereumAddress(element.from);
-      final addressTo = checksumEthereumAddress(element.to);
+      final String addressTo;
+      try {
+        addressTo = checksumEthereumAddress(element.to);
+      } catch (e, s) {
+        Logging.instance.w("Ignoring eth transaction:\n$e\n$s");
+        // temp "fix"
+        continue;
+      }
 
       bool isIncoming;
       bool txFailed = false;
