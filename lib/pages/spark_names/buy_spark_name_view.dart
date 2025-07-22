@@ -60,6 +60,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
   String get _title => isRenewal ? "Renew name" : "Buy name";
 
   int _years = 1;
+  late bool _buttonEnabled;
 
   bool _lockAddressFill = false;
   Future<void> _fillCurrentReceiving() async {
@@ -185,10 +186,19 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
   @override
   void initState() {
     super.initState();
+
     if (isRenewal) {
       additionalInfoController.text = widget.nameToRenew!.additionalInfo ?? "";
       addressController.text = widget.nameToRenew!.address;
     }
+    _buttonEnabled = addressController.text.isNotEmpty;
+    addressController.addListener(() {
+      if (mounted) {
+        setState(() {
+          _buttonEnabled = addressController.text.isNotEmpty;
+        });
+      }
+    });
   }
 
   @override
@@ -527,7 +537,8 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
           PrimaryButton(
             label: isRenewal ? "Renew" : "Buy",
             buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-            onPressed: _prepareNameTx,
+            enabled: _buttonEnabled,
+            onPressed: _buttonEnabled ? _prepareNameTx : null,
           ),
           SizedBox(height: Util.isDesktop ? 32 : 16),
         ],
