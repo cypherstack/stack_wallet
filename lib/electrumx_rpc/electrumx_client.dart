@@ -1036,7 +1036,7 @@ class ElectrumXClient {
     }
   }
 
-  /// Returns the txids of the current transactions found in the mempool
+  /// Returns the txids of the current spark transactions found in the mempool
   Future<Set<String>> getMempoolTxids({String? requestID}) async {
     try {
       final start = DateTime.now();
@@ -1089,6 +1089,7 @@ class ElectrumXClient {
             // the space after lTags is required lol
             lTags: List<String>.from(entry.value["lTags "] as List),
             coins: List<String>.from(entry.value["coins"] as List),
+            isLocked: entry.value["isLocked"] as bool,
           ),
         );
       }

@@ -3,12 +3,14 @@ class SparkMempoolData {
   final List<String> serialContext;
   final List<String> lTags;
   final List<String> coins;
+  final bool isLocked;
 
   SparkMempoolData({
     required this.txid,
     required this.serialContext,
     required this.lTags,
     required this.coins,
+    required this.isLocked,
   });
 
   @override
@@ -17,7 +19,8 @@ class SparkMempoolData {
         "txid: $txid, "
         "serialContext: $serialContext, "
         "lTags: $lTags, "
-        "coins: $coins"
+        "coins: $coins, "
+        "isLocked: $isLocked"
         "}";
   }
 }

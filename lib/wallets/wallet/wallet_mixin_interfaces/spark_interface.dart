@@ -880,7 +880,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         // add checked txids after identification
         _mempoolTxidsChecked.addAll(checkedTxids);
 
-        result.addAll(myCoins);
+        for (final coin in myCoins) {
+          final match = sparkDataToCheck.firstWhere(
+            (e) => e.serialContext.contains(coin.contextB64!),
+          );
+          result.add(coin.copyWith(isLocked: match.isLocked));
+        }
       }
 
       return result;

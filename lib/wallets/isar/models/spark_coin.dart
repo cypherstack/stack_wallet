@@ -17,13 +17,7 @@ enum SparkCoinType {
 class SparkCoin {
   Id id = Isar.autoIncrement;
 
-  @Index(
-    unique: true,
-    replace: true,
-    composite: [
-      CompositeIndex("lTagHash"),
-    ],
-  )
+  @Index(unique: true, replace: true, composite: [CompositeIndex("lTagHash")])
   final String walletId;
 
   @enumerated
@@ -55,6 +49,10 @@ class SparkCoin {
   final String? serializedCoinB64;
   final String? contextB64;
 
+  // prefix name with zzz to ensure serialization order remains unchanged
+  @Name("zzzIsLocked")
+  final bool? isLocked;
+
   @ignore
   BigInt get value => BigInt.parse(valueIntString);
 
@@ -66,10 +64,7 @@ class SparkCoin {
     return max(0, currentChainHeight - (height! - 1));
   }
 
-  bool isConfirmed(
-    int currentChainHeight,
-    int minimumConfirms,
-  ) {
+  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
     final confirmations = getConfirmations(currentChainHeight);
     return confirmations >= minimumConfirms;
   }
@@ -93,6 +88,7 @@ class SparkCoin {
     this.height,
     this.serializedCoinB64,
     this.contextB64,
+    this.isLocked,
   });
 
   SparkCoin copyWith({
@@ -113,6 +109,7 @@ class SparkCoin {
     int? height,
     String? serializedCoinB64,
     String? contextB64,
+    bool? isLocked,
   }) {
     return SparkCoin(
       walletId: walletId,
@@ -134,6 +131,7 @@ class SparkCoin {
       height: height ?? this.height,
       serializedCoinB64: serializedCoinB64 ?? this.serializedCoinB64,
       contextB64: contextB64 ?? this.contextB64,
+      isLocked: isLocked ?? this.isLocked,
     );
   }
 
@@ -158,6 +156,7 @@ class SparkCoin {
         ', height: $height'
         ', serializedCoinB64: $serializedCoinB64'
         ', contextB64: $contextB64'
+        ', isLocked: $isLocked'
         ')';
   }
 }

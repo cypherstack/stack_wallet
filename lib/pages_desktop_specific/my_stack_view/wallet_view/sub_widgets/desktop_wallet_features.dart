@@ -403,6 +403,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           Assets.svg.recycle,
           _onAnonymizeAllPressed,
         ),
+
+      if (wallet is SparkInterface)
+        (WalletFeature.sparkNames, Assets.svg.robotHead, _onSparkNamesPressed),
+
       if (!isViewOnly &&
           Constants.enableExchange &&
           AppConfig.hasFeature(AppFeature.swap) &&
@@ -411,9 +415,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (showExchange && AppConfig.hasFeature(AppFeature.buy))
         (WalletFeature.buy, Assets.svg.swap, _onBuyPressed),
-
-      if (wallet is SparkInterface)
-        (WalletFeature.sparkNames, Assets.svg.robotHead, _onSparkNamesPressed),
 
       if (showCoinControl)
         (
@@ -463,9 +464,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final options = _getOptions(
       wallet,
-      ref.watch(
-        prefsChangeNotifierProvider.select((value) => value.enableExchange),
-      ),
+      wallet is! FiroWallet &&
+          ref.watch(
+            prefsChangeNotifierProvider.select((value) => value.enableExchange),
+          ),
       (wallet is CoinControlInterface &&
           ref.watch(
             prefsChangeNotifierProvider.select(
