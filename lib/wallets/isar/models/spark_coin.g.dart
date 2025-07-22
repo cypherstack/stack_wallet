@@ -107,6 +107,11 @@ const SparkCoinSchema = CollectionSchema(
       id: 17,
       name: r'walletId',
       type: IsarType.string,
+    ),
+    r'zzzIsLocked': PropertySchema(
+      id: 18,
+      name: r'zzzIsLocked',
+      type: IsarType.bool,
     )
   },
   estimateSize: _sparkCoinEstimateSize,
@@ -229,6 +234,7 @@ void _sparkCoinSerialize(
   writer.writeByte(offsets[15], object.type.index);
   writer.writeString(offsets[16], object.valueIntString);
   writer.writeString(offsets[17], object.walletId);
+  writer.writeBool(offsets[18], object.isLocked);
 }
 
 SparkCoin _sparkCoinDeserialize(
@@ -257,6 +263,7 @@ SparkCoin _sparkCoinDeserialize(
         SparkCoinType.mint,
     valueIntString: reader.readString(offsets[16]),
     walletId: reader.readString(offsets[17]),
+    isLocked: reader.readBoolOrNull(offsets[18]),
   );
   object.id = id;
   return object;
@@ -306,6 +313,8 @@ P _sparkCoinDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 17:
       return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readBoolOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2867,6 +2876,33 @@ extension SparkCoinQueryFilter
       ));
     });
   }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> isLockedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'zzzIsLocked',
+      ));
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+      isLockedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'zzzIsLocked',
+      ));
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> isLockedEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'zzzIsLocked',
+        value: value,
+      ));
+    });
+  }
 }
 
 extension SparkCoinQueryObject
@@ -3032,6 +3068,18 @@ extension SparkCoinQuerySortBy on QueryBuilder<SparkCoin, SparkCoin, QSortBy> {
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> sortByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> sortByIsLocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zzzIsLocked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> sortByIsLockedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zzzIsLocked', Sort.desc);
     });
   }
 }
@@ -3208,6 +3256,18 @@ extension SparkCoinQuerySortThenBy
       return query.addSortBy(r'walletId', Sort.desc);
     });
   }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> thenByIsLocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zzzIsLocked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> thenByIsLockedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zzzIsLocked', Sort.desc);
+    });
+  }
 }
 
 extension SparkCoinQueryWhereDistinct
@@ -3332,6 +3392,12 @@ extension SparkCoinQueryWhereDistinct
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByIsLocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'zzzIsLocked');
+    });
+  }
 }
 
 extension SparkCoinQueryProperty
@@ -3451,6 +3517,12 @@ extension SparkCoinQueryProperty
   QueryBuilder<SparkCoin, String, QQueryOperations> walletIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'walletId');
+    });
+  }
+
+  QueryBuilder<SparkCoin, bool?, QQueryOperations> isLockedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'zzzIsLocked');
     });
   }
 }

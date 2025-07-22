@@ -26,10 +26,7 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/isar_collection_watcher_list.dart';
 
 class SparkCoinsView extends ConsumerWidget {
-  const SparkCoinsView({
-    super.key,
-    required this.walletId,
-  });
+  const SparkCoinsView({super.key, required this.walletId});
 
   static const title = "Spark coins";
   static const String routeName = "/sparkCoinsView";
@@ -47,32 +44,27 @@ class SparkCoinsView extends ConsumerWidget {
             leading: Expanded(
               child: Row(
                 children: [
-                  const SizedBox(
-                    width: 32,
-                  ),
+                  const SizedBox(width: 32),
                   AppBarIconButton(
                     size: 32,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                     shadows: const [],
                     icon: SvgPicture.asset(
                       Assets.svg.arrowLeft,
                       width: 18,
                       height: 18,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.topNavIconPrimary,
                     ),
                     onPressed: Navigator.of(context).pop,
                   ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Text(
-                    title,
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  const SizedBox(width: 12),
+                  Text(title, style: STextStyles.desktopH3(context)),
                   const Spacer(),
                 ],
               ),
@@ -80,10 +72,7 @@ class SparkCoinsView extends ConsumerWidget {
             useSpacers: false,
             isCompactHeight: true,
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(24),
-            child: child,
-          ),
+          body: Padding(padding: const EdgeInsets.all(24), child: child),
         );
       },
       child: ConditionalParent(
@@ -98,26 +87,23 @@ class SparkCoinsView extends ConsumerWidget {
                 leading: AppBarBackButton(
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                title: Text(
-                  title,
-                  style: STextStyles.navBarTitle(context),
-                ),
+                title: Text(title, style: STextStyles.navBarTitle(context)),
               ),
-              body: SafeArea(
-                child: child,
-              ),
+              body: SafeArea(child: child),
             ),
           );
         },
         child: IsarCollectionWatcherList(
           itemName: title,
-          queryBuilder: () => ref
-              .read(mainDBProvider)
-              .isar
-              .sparkCoins
-              .where()
-              .walletIdEqualToAnyLTagHash(walletId)
-              .sortByHeightDesc(),
+          queryBuilder:
+              () =>
+                  ref
+                      .read(mainDBProvider)
+                      .isar
+                      .sparkCoins
+                      .where()
+                      .walletIdEqualToAnyLTagHash(walletId)
+                      .sortByHeightDesc(),
           itemBuilder: (SparkCoin? coin) {
             return [
               ("TXID", coin?.txHash ?? "", 9),
@@ -129,6 +115,7 @@ class SparkCoinsView extends ConsumerWidget {
               ("Group ID", coin?.groupId.toString() ?? "", 2),
               ("Type", coin?.type.name ?? "", 2),
               ("Used", coin?.isUsed.toString() ?? "", 2),
+              ("Locked", coin?.isLocked.toString() ?? "", 2),
             ];
           },
         ),
