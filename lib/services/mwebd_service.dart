@@ -83,7 +83,7 @@ final class MwebdService {
       final proxy =
           proxyInfo == null
               ? ""
-              : "${proxyInfo.host.address}:${proxyInfo.port}";
+              : "socks5://${proxyInfo.host.address}:${proxyInfo.port}";
       final nets = _map.keys;
       for (final net in nets) {
         final old = _map.remove(net)!;
@@ -158,7 +158,7 @@ final class MwebdService {
       final String proxy;
       if (Prefs.instance.useTor) {
         final proxyInfo = TorService.sharedInstance.getProxyInfo();
-        proxy = "${proxyInfo.host.address}:${proxyInfo.port}";
+        proxy = "socks5://${proxyInfo.host.address}:${proxyInfo.port}";
       } else {
         proxy = "";
       }
