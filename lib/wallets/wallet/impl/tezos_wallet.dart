@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:isar/isar.dart';
@@ -128,6 +129,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         // customFee: customFee?.raw.toInt(),
         // customGasLimit: customGasLimit,
         // reveal: false,
+        customGasLimit: 10600,
       );
 
       // if (reveal) {
@@ -286,8 +288,38 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     _hackedCheckTorNodePrefs();
+
+    final completer = Completer<void>();
+    final sub = mainDB.isar.transactions
+        .where()
+        .walletIdEqualTo(walletId)
+        .watch(fireImmediately: true)
+        .listen((event) {
+          if (!completer.isCompleted &&
+              event
+                  .where((e) => e.txid == txData.tezosOperationsList!.result.id)
+                  .isNotEmpty) {
+            completer.complete();
+          }
+        });
+
     await txData.tezosOperationsList!.inject();
-    await txData.tezosOperationsList!.monitor();
+
+    final completerFuture = completer.future.timeout(
+      const Duration(minutes: 2),
+      onTimeout: () {
+        throw Exception("Tezos confirm send timeout");
+      },
+    );
+
+    while (!completer.isCompleted) {
+      await updateTransactions();
+      await Future<void>.delayed(const Duration(seconds: 3));
+    }
+
+    await completerFuture;
+
+    unawaited(sub.cancel());
     return txData.copyWith(txid: txData.tezosOperationsList!.result.id);
   }
 
