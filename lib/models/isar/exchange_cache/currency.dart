@@ -71,6 +71,11 @@ class Currency {
   @ignore
   String? _fuzzyCache;
   String getFuzzyNet() {
+    // hack for legacy support
+    if (exchangeName == "Majestic Bank") {
+      return ticker.toLowerCase();
+    }
+
     return _fuzzyCache ??= switch (Exchange.fromName(
       exchangeName,
     ).runtimeType) {
