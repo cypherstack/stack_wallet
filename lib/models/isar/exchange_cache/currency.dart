@@ -13,7 +13,6 @@ import 'package:isar/isar.dart';
 import '../../../app_config.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange.dart';
-import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
 import 'pair.dart';
@@ -82,8 +81,7 @@ class Currency {
       // case const (SimpleSwapExchange):
 
       // currently a hardcoded of coins so we can just
-      const (MajesticBankExchange) => ticker.toLowerCase(),
-
+      // const (MajesticBankExchange) => ticker.toLowerCase(),
       const (TrocadorExchange) =>
         (network == "Mainnet" ? ticker.toLowerCase() : network),
 

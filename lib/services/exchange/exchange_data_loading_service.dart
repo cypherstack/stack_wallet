@@ -23,7 +23,6 @@ import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
 import 'change_now/change_now_exchange.dart';
-import 'majestic_bank/majestic_bank_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 
@@ -194,7 +193,7 @@ class ExchangeDataLoadingService {
 
         // Exchanges which support Tor just get treated normally.
         final futures = [
-          loadMajesticBankCurrencies(),
+          // loadMajesticBankCurrencies(),
           loadTrocadorCurrencies(),
           loadNanswapCurrencies(),
         ];
@@ -359,28 +358,28 @@ class ExchangeDataLoadingService {
   //   }
   // }
 
-  Future<void> loadMajesticBankCurrencies() async {
-    if (_isar == null) {
-      await initDB();
-    }
-    final exchange = MajesticBankExchange.instance;
-    final responseCurrencies = await exchange.getAllCurrencies(false);
-
-    if (responseCurrencies.value != null) {
-      await isar.writeTxn(() async {
-        final idsToDelete =
-            await isar.currencies
-                .where()
-                .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-                .idProperty()
-                .findAll();
-        await isar.currencies.deleteAll(idsToDelete);
-        await isar.currencies.putAll(responseCurrencies.value!);
-      });
-    } else {
-      Logging.instance.w("loadMajesticBankCurrencies: $responseCurrencies");
-    }
-  }
+  // Future<void> loadMajesticBankCurrencies() async {
+  //   if (_isar == null) {
+  //     await initDB();
+  //   }
+  //   final exchange = MajesticBankExchange.instance;
+  //   final responseCurrencies = await exchange.getAllCurrencies(false);
+  //
+  //   if (responseCurrencies.value != null) {
+  //     await isar.writeTxn(() async {
+  //       final idsToDelete =
+  //           await isar.currencies
+  //               .where()
+  //               .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+  //               .idProperty()
+  //               .findAll();
+  //       await isar.currencies.deleteAll(idsToDelete);
+  //       await isar.currencies.putAll(responseCurrencies.value!);
+  //     });
+  //   } else {
+  //     Logging.instance.w("loadMajesticBankCurrencies: $responseCurrencies");
+  //   }
+  // }
 
   Future<void> loadTrocadorCurrencies() async {
     if (_isar == null) {

@@ -50,8 +50,9 @@ class NotificationsService extends ChangeNotifier {
 
   // watched transactions
   List<NotificationModel> get _watchedTransactionNotifications {
-    return DB.instance
-        .values<NotificationModel>(boxName: DB.boxNameWatchedTransactions);
+    return DB.instance.values<NotificationModel>(
+      boxName: DB.boxNameWatchedTransactions,
+    );
   }
 
   Future<void> _addWatchedTxNotification(NotificationModel notification) async {
@@ -73,8 +74,9 @@ class NotificationsService extends ChangeNotifier {
 
   // watched trades
   List<NotificationModel> get _watchedChangeNowTradeNotifications {
-    return DB.instance
-        .values<NotificationModel>(boxName: DB.boxNameWatchedTrades);
+    return DB.instance.values<NotificationModel>(
+      boxName: DB.boxNameWatchedTrades,
+    );
   }
 
   Future<void> _addWatchedTradeNotification(
@@ -127,8 +129,9 @@ class NotificationsService extends ChangeNotifier {
   void _checkTransactions() async {
     for (final notification in _watchedTransactionNotifications) {
       try {
-        final CryptoCurrency coin =
-            AppConfig.getCryptoCurrencyByPrettyName(notification.coinName);
+        final CryptoCurrency coin = AppConfig.getCryptoCurrencyByPrettyName(
+          notification.coinName,
+        );
         final txid = notification.txid!;
         final wallet = Wallets.sharedInstance.getWallet(notification.walletId);
 
@@ -156,20 +159,21 @@ class NotificationsService extends ChangeNotifier {
               torEnabled: node.torEnabled,
               clearnetEnabled: node.clearnetEnabled,
             );
-            final failovers = nodeService
-                .failoverNodesFor(currency: coin)
-                .map(
-                  (e) => ElectrumXNode(
-                    address: e.host,
-                    port: e.port,
-                    name: e.name,
-                    id: e.id,
-                    useSSL: e.useSSL,
-                    torEnabled: node.torEnabled,
-                    clearnetEnabled: node.clearnetEnabled,
-                  ),
-                )
-                .toList();
+            final failovers =
+                nodeService
+                    .failoverNodesFor(currency: coin)
+                    .map(
+                      (e) => ElectrumXNode(
+                        address: e.host,
+                        port: e.port,
+                        name: e.name,
+                        id: e.id,
+                        useSSL: e.useSSL,
+                        torEnabled: node.torEnabled,
+                        clearnetEnabled: node.clearnetEnabled,
+                      ),
+                    )
+                    .toList();
 
             final client = ElectrumXClient.from(
               node: eNode,
@@ -193,13 +197,16 @@ class NotificationsService extends ChangeNotifier {
             // grab confirms string to compare
             final String newConfirms =
                 "($confirmations/${wallet.cryptoCurrency.minConfirms})";
-            final String oldConfirms = notification.title
-                .substring(notification.title.lastIndexOf("("));
+            final String oldConfirms = notification.title.substring(
+              notification.title.lastIndexOf("("),
+            );
 
             // only update if they don't match
             if (oldConfirms != newConfirms) {
-              final String newTitle =
-                  notification.title.replaceFirst(oldConfirms, newConfirms);
+              final String newTitle = notification.title.replaceFirst(
+                oldConfirms,
+                newConfirms,
+              );
 
               final updatedNotification = notification.copyWith(
                 title: newTitle,
@@ -230,8 +237,10 @@ class NotificationsService extends ChangeNotifier {
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 
-      final trades =
-          tradesService.trades.where((element) => element.tradeId == id);
+      final trades = tradesService.trades.where(
+        (element) =>
+            element.tradeId == id && element.exchangeName != "Majestic Bank",
+      );
 
       if (trades.isEmpty) {
         return;
@@ -362,8 +371,11 @@ class NotificationsService extends ChangeNotifier {
   }
 
   Future<void> markAsRead(int id, bool shouldNotifyListeners) async {
-    final model = DB.instance
-        .get<NotificationModel>(boxName: DB.boxNameNotifications, key: id)!;
+    final model =
+        DB.instance.get<NotificationModel>(
+          boxName: DB.boxNameNotifications,
+          key: id,
+        )!;
     await DB.instance.put<NotificationModel>(
       boxName: DB.boxNameNotifications,
       key: model.id,

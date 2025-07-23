@@ -30,8 +30,8 @@ abstract class Exchange {
         return ChangeNowExchange.instance;
       case SimpleSwapExchange.exchangeName:
         return SimpleSwapExchange.instance;
-      case MajesticBankExchange.exchangeName:
-        return MajesticBankExchange.instance;
+      // case MajesticBankExchange.exchangeName:
+      //   return MajesticBankExchange.instance;
       case TrocadorExchange.exchangeName:
         return TrocadorExchange.instance;
       case NanswapExchange.exchangeName:
@@ -106,7 +106,7 @@ abstract class Exchange {
   ///
   /// Add to this list when adding a new exchange which supports Tor.
   static List<Exchange> get exchangesWithTorSupport => [
-    MajesticBankExchange.instance,
+    // MajesticBankExchange.instance,
     TrocadorExchange.instance,
     NanswapExchange.instance, // Maybe??
   ];

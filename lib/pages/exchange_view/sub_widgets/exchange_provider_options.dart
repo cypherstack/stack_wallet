@@ -15,7 +15,6 @@ import '../../../models/exchange/aggregate_currency.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange.dart';
-import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
 import '../../../themes/stack_colors.dart';
@@ -82,11 +81,6 @@ class _ExchangeProviderOptionsState
       sendCurrency: sendCurrency,
       receiveCurrency: receivingCurrency,
     );
-    final showMajesticBank = exchangeSupported(
-      exchangeName: MajesticBankExchange.exchangeName,
-      sendCurrency: sendCurrency,
-      receiveCurrency: receivingCurrency,
-    );
     final showTrocador = exchangeSupported(
       exchangeName: TrocadorExchange.exchangeName,
       sendCurrency: sendCurrency,
@@ -112,20 +106,7 @@ class _ExchangeProviderOptionsState
               fixedRate: widget.fixedRate,
               reversed: widget.reversed,
             ),
-          if (showChangeNow && showMajesticBank)
-            isDesktop
-                ? Container(
-                  height: 1,
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                )
-                : const SizedBox(height: 16),
-          if (showMajesticBank)
-            ExchangeOption(
-              exchange: MajesticBankExchange.instance,
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-            ),
-          if ((showChangeNow || showMajesticBank) && showTrocador)
+          if (showChangeNow && showTrocador)
             isDesktop
                 ? Container(
                   height: 1,
@@ -138,8 +119,7 @@ class _ExchangeProviderOptionsState
               reversed: widget.reversed,
               exchange: TrocadorExchange.instance,
             ),
-          if ((showChangeNow || showMajesticBank || showTrocador) &&
-              showNanswap)
+          if ((showChangeNow || showTrocador) && showNanswap)
             isDesktop
                 ? Container(
                   height: 1,

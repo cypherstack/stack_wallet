@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/exchange/change_now/change_now_exchange.dart';
-import '../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../services/exchange/nanswap/nanswap_exchange.dart';
 import '../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../services/exchange/trocador/trocador_exchange.dart';
@@ -44,8 +43,8 @@ class _EXCHANGE {
 
   String get changeNow => "${_path}change_now_logo_1.svg";
   String get simpleSwap => "${_path}simpleswap-icon.svg";
-  String get majesticBankBlue => "${_path}mb_blue.svg";
-  String get majesticBankGreen => "${_path}mb_green.svg";
+  // String get majesticBankBlue => "${_path}mb_blue.svg";
+  // String get majesticBankGreen => "${_path}mb_green.svg";
   String get trocador => "${_path}trocador.svg";
   String get nanswap => "${_path}nanswap.svg";
 
@@ -55,8 +54,8 @@ class _EXCHANGE {
         return simpleSwap;
       case ChangeNowExchange.exchangeName:
         return changeNow;
-      case MajesticBankExchange.exchangeName:
-        return majesticBankBlue;
+      // case MajesticBankExchange.exchangeName:
+      //   return majesticBankBlue;
       case TrocadorExchange.exchangeName:
         return trocador;
       case NanswapExchange.exchangeName:
