@@ -409,6 +409,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             break;
         }
       } else if (wallet is MwebInterface &&
+          ref.read(pWalletInfo(walletId)).isMwebEnabled &&
           ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
         txDataFuture = wallet.prepareSendMweb(
           txData: TxData(
