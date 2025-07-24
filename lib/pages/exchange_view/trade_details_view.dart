@@ -29,7 +29,6 @@ import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange.dart';
-import '../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
@@ -101,7 +100,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             .trades
             .firstWhere((e) => e.tradeId == tradeId);
 
-        if (mounted) {
+        if (mounted && trade.exchangeName != "Majestic Bank") {
           final exchange = Exchange.fromName(trade.exchangeName);
           final response = await exchange.updateTrade(trade);
 
@@ -435,36 +434,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Status", style: STextStyles.itemSubtitle(context)),
-                      if (trade.exchangeName ==
-                              MajesticBankExchange.exchangeName &&
-                          trade.status == "Completed")
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                showDialog<void>(
-                                  context: context,
-                                  builder:
-                                      (context) => const StackOkDialog(
-                                        title: "Trade Info",
-                                        message:
-                                            "Majestic Bank does not store order data indefinitely",
-                                      ),
-                                );
-                              },
-                              child: SvgPicture.asset(
-                                Assets.svg.circleInfo,
-                                height: 20,
-                                width: 20,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemIcons,
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -1202,68 +1171,66 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 ],
               ),
             ),
-            isDesktop ? const _Divider() : const SizedBox(height: 12),
-            RoundedWhiteContainer(
-              padding:
-                  isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Tracking", style: STextStyles.itemSubtitle(context)),
-                  const SizedBox(height: 4),
-                  Builder(
-                    builder: (context) {
-                      late final String url;
-                      switch (trade.exchangeName) {
-                        case ChangeNowExchange.exchangeName:
-                          url =
-                              "https://changenow.io/exchange/txs/${trade.tradeId}";
-                          break;
-                        case SimpleSwapExchange.exchangeName:
-                          url =
-                              "https://simpleswap.io/exchange?id=${trade.tradeId}";
-                          break;
-                        case MajesticBankExchange.exchangeName:
-                          url =
-                              "https://majesticbank.sc/track?trx=${trade.tradeId}";
-                          break;
-                        case NanswapExchange.exchangeName:
-                          url =
-                              "https://nanswap.com/transaction/${trade.tradeId}";
-                          break;
-
-                        default:
-                          if (trade.exchangeName.startsWith(
-                            TrocadorExchange.exchangeName,
-                          )) {
+            if (trade.exchangeName != "Majestic Bank")
+              isDesktop ? const _Divider() : const SizedBox(height: 12),
+            if (trade.exchangeName != "Majestic Bank")
+              RoundedWhiteContainer(
+                padding:
+                    isDesktop
+                        ? const EdgeInsets.all(16)
+                        : const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Tracking", style: STextStyles.itemSubtitle(context)),
+                    const SizedBox(height: 4),
+                    Builder(
+                      builder: (context) {
+                        late final String url;
+                        switch (trade.exchangeName) {
+                          case ChangeNowExchange.exchangeName:
                             url =
-                                "https://trocador.app/en/checkout/${trade.tradeId}";
-                          }
-                      }
-                      return ConditionalParent(
-                        condition: isDesktop,
-                        builder:
-                            (child) => MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: child,
-                            ),
-                        child: GestureDetector(
-                          onTap: () {
-                            launchUrl(
-                              Uri.parse(url),
-                              mode: LaunchMode.externalApplication,
-                            );
-                          },
-                          child: Text(url, style: STextStyles.link2(context)),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                                "https://changenow.io/exchange/txs/${trade.tradeId}";
+                            break;
+                          case SimpleSwapExchange.exchangeName:
+                            url =
+                                "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                            break;
+                          case NanswapExchange.exchangeName:
+                            url =
+                                "https://nanswap.com/transaction/${trade.tradeId}";
+                            break;
+
+                          default:
+                            if (trade.exchangeName.startsWith(
+                              TrocadorExchange.exchangeName,
+                            )) {
+                              url =
+                                  "https://trocador.app/en/checkout/${trade.tradeId}";
+                            }
+                        }
+                        return ConditionalParent(
+                          condition: isDesktop,
+                          builder:
+                              (child) => MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: child,
+                              ),
+                          child: GestureDetector(
+                            onTap: () {
+                              launchUrl(
+                                Uri.parse(url),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            child: Text(url, style: STextStyles.link2(context)),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
             if (!isDesktop) const SizedBox(height: 12),
             if (!isDesktop && showSendFromStackButton)
               SecondaryButton(
