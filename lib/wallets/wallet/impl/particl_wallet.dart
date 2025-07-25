@@ -352,8 +352,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> buildTransaction({
     required TxData txData,
-    required covariant List<StandardInput> inputsWithKeys,
+    required List<BaseInput> inputsWithKeys,
   }) async {
+    final insAndKeys = inputsWithKeys.cast<StandardInput>();
+
     Logging.instance.d("Starting Particl buildTransaction ----------");
 
     // TODO: use coinlib (For this we need coinlib to support particl)
@@ -371,8 +373,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     );
 
     final List<({Uint8List? output, Uint8List? redeem})> extraData = [];
-    for (int i = 0; i < inputsWithKeys.length; i++) {
-      final sd = inputsWithKeys[i];
+    for (int i = 0; i < insAndKeys.length; i++) {
+      final sd = insAndKeys[i];
 
       final pubKey = sd.key!.publicKey.data;
       final bitcoindart.PaymentData? data;
@@ -448,11 +450,11 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final List<OutputV2> tempOutputs = [];
 
     // Add inputs.
-    for (var i = 0; i < inputsWithKeys.length; i++) {
-      final txid = inputsWithKeys[i].utxo.txid;
+    for (var i = 0; i < insAndKeys.length; i++) {
+      final txid = insAndKeys[i].utxo.txid;
       txb.addInput(
         txid,
-        inputsWithKeys[i].utxo.vout,
+        insAndKeys[i].utxo.vout,
         null,
         extraData[i].output!,
         cryptoCurrency.networkParams.bech32Hrp,
@@ -464,14 +466,14 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: inputsWithKeys[i].utxo.txid,
-            vout: inputsWithKeys[i].utxo.vout,
+            txid: insAndKeys[i].utxo.txid,
+            vout: insAndKeys[i].utxo.vout,
           ),
           addresses:
-              inputsWithKeys[i].utxo.address == null
+              insAndKeys[i].utxo.address == null
                   ? []
-                  : [inputsWithKeys[i].utxo.address!],
-          valueStringSats: inputsWithKeys[i].utxo.value.toString(),
+                  : [insAndKeys[i].utxo.address!],
+          valueStringSats: insAndKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
           coinbase: null,
@@ -508,15 +510,15 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
     // Sign.
     try {
-      for (var i = 0; i < inputsWithKeys.length; i++) {
+      for (var i = 0; i < insAndKeys.length; i++) {
         txb.sign(
           vin: i,
           keyPair: bitcoindart.ECPair.fromPrivateKey(
-            inputsWithKeys[i].key!.privateKey!.data,
+            insAndKeys[i].key!.privateKey!.data,
             network: convertedNetwork,
-            compressed: inputsWithKeys[i].key!.privateKey!.compressed,
+            compressed: insAndKeys[i].key!.privateKey!.compressed,
           ),
-          witnessValue: inputsWithKeys[i].utxo.value,
+          witnessValue: insAndKeys[i].utxo.value,
           redeemScript: extraData[i].redeem,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );

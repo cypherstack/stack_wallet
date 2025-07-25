@@ -18,8 +18,10 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> buildTransaction({
     required TxData txData,
-    required covariant List<StandardInput> inputsWithKeys,
+    required List<BaseInput> inputsWithKeys,
   }) async {
+    final insAndKeys = inputsWithKeys.cast<StandardInput>();
+
     Logging.instance.d("Starting buildTransaction ----------");
 
     // TODO: use coinlib
@@ -35,11 +37,8 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
     final List<OutputV2> tempOutputs = [];
 
     // Add transaction inputs
-    for (int i = 0; i < inputsWithKeys.length; i++) {
-      builder.addInput(
-        inputsWithKeys[i].utxo.txid,
-        inputsWithKeys[i].utxo.vout,
-      );
+    for (int i = 0; i < insAndKeys.length; i++) {
+      builder.addInput(insAndKeys[i].utxo.txid, insAndKeys[i].utxo.vout);
 
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -47,14 +46,14 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: inputsWithKeys[i].utxo.txid,
-            vout: inputsWithKeys[i].utxo.vout,
+            txid: insAndKeys[i].utxo.txid,
+            vout: insAndKeys[i].utxo.vout,
           ),
           addresses:
-              inputsWithKeys[i].utxo.address == null
+              insAndKeys[i].utxo.address == null
                   ? []
-                  : [inputsWithKeys[i].utxo.address!],
-          valueStringSats: inputsWithKeys[i].utxo.value.toString(),
+                  : [insAndKeys[i].utxo.address!],
+          valueStringSats: insAndKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
           coinbase: null,
@@ -92,9 +91,9 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
 
     try {
       // Sign the transaction accordingly
-      for (int i = 0; i < inputsWithKeys.length; i++) {
+      for (int i = 0; i < insAndKeys.length; i++) {
         final bitboxEC = bitbox.ECPair.fromPrivateKey(
-          inputsWithKeys[i].key!.privateKey!.data,
+          insAndKeys[i].key!.privateKey!.data,
           network: bitbox_utils.Network(
             cryptoCurrency.networkParams.privHDPrefix,
             cryptoCurrency.networkParams.pubHDPrefix,
@@ -103,10 +102,10 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
             cryptoCurrency.networkParams.wifPrefix,
             cryptoCurrency.networkParams.p2pkhPrefix,
           ),
-          compressed: inputsWithKeys[i].key!.privateKey!.compressed,
+          compressed: insAndKeys[i].key!.privateKey!.compressed,
         );
 
-        builder.sign(i, bitboxEC, inputsWithKeys[i].utxo.value);
+        builder.sign(i, bitboxEC, insAndKeys[i].utxo.value);
       }
     } catch (e, s) {
       Logging.instance.e(
