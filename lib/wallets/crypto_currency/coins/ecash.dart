@@ -223,6 +223,17 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
+  AddressType? getAddressType(String address) {
+    final format = bitbox.Address.detectFormat(address);
+
+    return super.getAddressType(
+      format == bitbox.Address.formatCashAddr
+          ? bitbox.Address.toLegacyAddress(address)
+          : address,
+    );
+  }
+
+  @override
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
