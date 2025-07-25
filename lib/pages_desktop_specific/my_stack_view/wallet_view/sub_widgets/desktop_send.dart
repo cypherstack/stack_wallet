@@ -1666,6 +1666,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
             onCustomFeeOptionChanged: (value) {
               isCustomFee = value;
+              customFeeRate = 1;
               ethFee = null;
             },
             onCustomEip1559FeeOptionChanged: (value) => ethFee = value,

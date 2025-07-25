@@ -1087,7 +1087,10 @@ class _SendViewState extends ConsumerState<SendView> {
       ref.refresh(pIsExchangeAddress);
     });
     isCustomFee.addListener(() {
-      if (!isCustomFee.value) ethFee = null;
+      if (!isCustomFee.value) {
+        customFeeRate = 1;
+        ethFee = null;
+      }
     });
     hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
