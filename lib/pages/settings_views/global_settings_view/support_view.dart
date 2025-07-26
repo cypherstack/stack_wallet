@@ -21,6 +21,8 @@ import '../../../utilities/util.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 
 class SupportView extends StatelessWidget {
@@ -140,8 +142,26 @@ class AboutItem extends StatelessWidget {
             Constants.size.circularBorderRadius,
           ),
         ),
-        onPressed: () {
-          launchUrl(Uri.parse(linkUrl), mode: LaunchMode.externalApplication);
+        onPressed: () async {
+          if (label == "Email") {
+            await launchUrl(
+              Uri.parse(linkUrl),
+              mode: LaunchMode.externalApplication,
+            );
+          } else {
+            await showDialog<void>(
+              context: context,
+              builder:
+                  (_) => ScamWarningDialog(
+                    channel: label,
+                    onUnderstandPressed:
+                        () => launchUrl(
+                          Uri.parse(linkUrl),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                  ),
+            );
+          }
         },
         child: Padding(
           padding:
@@ -204,6 +224,185 @@ class AboutItem extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ScamWarningDialog extends StatelessWidget {
+  const ScamWarningDialog({
+    super.key,
+    required this.onUnderstandPressed,
+    required this.channel,
+  });
+
+  final String channel;
+  final VoidCallback onUnderstandPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SDialog(
+      padding: EdgeInsets.all(Util.isDesktop ? 32 : 16),
+      child: ConditionalParent(
+        condition: Util.isDesktop,
+        builder: (child) => IntrinsicWidth(child: child),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RichText(
+              text: TextSpan(
+                style:
+                    Util.isDesktop
+                        ? STextStyles.w500_16(context)
+                        : STextStyles.w500_14(context),
+                children: [
+                  TextSpan(
+                    text: "Important: Protect Yourself from Scammers!\n\n",
+                    style:
+                        Util.isDesktop
+                            ? STextStyles.desktopH2(context)
+                            : STextStyles.pageTitleH2(context),
+                  ),
+                  const TextSpan(
+                    text: "All official support for ",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                  const TextSpan(
+                    text: AppConfig.appName,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(
+                    text: " in ",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                  TextSpan(
+                    text: channel,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(
+                    text: " is provided ",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                  const TextSpan(
+                    text: "ONLY",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(
+                    text: " in public channels.\n\n",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                ],
+              ),
+            ),
+            const _Bullet(
+              text:
+                  "Never trust direct messages (DMs) from anyone"
+                  " claiming to be support staff.\n",
+            ),
+            const _Bullet(
+              text:
+                  "Do not share personal information,"
+                  " wallet details, or private keys.\n",
+            ),
+            const _Bullet(
+              text:
+                  "If someone asks you to send them money or crypto,"
+                  " they are a scammer.\n\n",
+            ),
+            RichText(
+              text: TextSpan(
+                style:
+                    Util.isDesktop
+                        ? STextStyles.w500_16(context)
+                        : STextStyles.w500_14(context),
+                children: const [
+                  TextSpan(
+                    text: "Our support staff will ",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                  TextSpan(
+                    text: "*never*",
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text:
+                        " contact you privately first. "
+                        "They will only help you in the public chat.",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: Util.isDesktop ? 40 : 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (!Util.isDesktop) const Spacer(),
+                ConditionalParent(
+                  condition: !Util.isDesktop,
+                  builder: (child) => Expanded(child: child),
+                  child: PrimaryButton(
+                    width: Util.isDesktop ? 240 : null,
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                    label: "I UNDERSTAND",
+                    onPressed: onUnderstandPressed,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Bullet extends StatelessWidget {
+  const _Bullet({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            style:
+                Util.isDesktop
+                    ? STextStyles.w500_16(context)
+                    : STextStyles.w500_14(context),
+            children: const [
+              TextSpan(
+                text: "    •  ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        ConditionalParent(
+          condition: !Util.isDesktop,
+          builder: (child) => Expanded(child: child),
+          child: RichText(
+            text: TextSpan(
+              style:
+                  Util.isDesktop
+                      ? STextStyles.w500_16(context)
+                      : STextStyles.w500_14(context),
+              children: [
+                TextSpan(
+                  text: text,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
