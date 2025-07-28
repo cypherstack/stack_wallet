@@ -497,7 +497,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         subtractFeeFromAmount: true,
         serializedCoins: serializedCoins,
         privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
-        utxoNum: 0, // ??
+        utxoNum: recipientCount,
         additionalTxSize: 0, // name script size
       );
       estimatedFee = BigInt.from(estFee);
