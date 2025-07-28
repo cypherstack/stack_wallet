@@ -92,8 +92,8 @@ class SupportView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           AboutItem(
-            linkUrl: "https://twitter.com/stack_wallet",
-            label: "Twitter",
+            linkUrl: "https://x.com/stack_wallet",
+            label: "X",
             buttonText: "@stack_wallet",
             iconAsset: Assets.socials.twitter,
             isDesktop: isDesktop,
