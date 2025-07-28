@@ -80,7 +80,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
             .read(pWallets)
             .getWallet(walletId)
             .getCurrentReceivingAddress();
-    String filePath = path.join(dir.path, "monkey_$address");
+    String filePath = path.join(dir.path, "monkey_${address?.value}");
 
     filePath += isPNG ? ".png" : ".svg";
 
