@@ -34,6 +34,9 @@ final class MwebdService {
 
   final Mutex _torConnectingLock = Mutex();
 
+  // Track active log stream controllers for cleanup during shutdown.
+  final Set<StreamController<String>> _activeLogControllers = {};
+
   static final instance = MwebdService._();
 
   MwebdService._() {
@@ -204,6 +207,9 @@ final class MwebdService {
     String leftover = '';
     Timer? timer;
 
+    // Track this controller for cleanup during shutdown.
+    _activeLogControllers.add(controller);
+
     final path =
         "${(await StackFileSystem.applicationMwebdDirectory(net == CryptoCurrencyNetwork.main ? "mainnet" : "testnet")).path}"
         "${Platform.pathSeparator}logs"
@@ -237,10 +243,140 @@ final class MwebdService {
 
     controller.onCancel = () {
       timer?.cancel();
+      _activeLogControllers.remove(controller);
       controller.close();
     };
 
     return controller.stream;
+  }
+
+  /// Shutdown all mwebd servers and clean up resources.
+  ///
+  /// This method should be called when the app is terminating to prevent hanging.
+  Future<void> shutdown() async {
+    final stopwatch = Stopwatch()..start();
+    Logging.instance.i("MwebdService shutdown() started");
+    
+    await _updateLock.protect(() async {
+      // Cancel stream subscriptions to prevent further events.
+      try {
+        await _torStatusListener.cancel();
+        Logging.instance.i("Canceled tor status listener");
+      } catch (e, s) {
+        Logging.instance.w(
+          "Error canceling tor status listener", 
+          error: e, 
+          stackTrace: s,
+        );
+      }
+
+      try {
+        await _torPreferenceListener.cancel();
+        Logging.instance.i("Canceled tor preference listener");
+      } catch (e, s) {
+        Logging.instance.w(
+          "Error canceling tor preference listener", 
+          error: e, 
+          stackTrace: s,
+        );
+      }
+
+      // Cancel all active log stream controllers and their timers.
+      final logControllers = List.from(_activeLogControllers);
+      for (final controller in logControllers) {
+        try {
+          await controller.close();
+          Logging.instance.i("Closed log stream controller");
+        } catch (e, s) {
+          Logging.instance.w(
+            "Error closing log stream controller", 
+            error: e, 
+            stackTrace: s,
+          );
+        }
+      }
+      _activeLogControllers.clear();
+
+      // Stop all servers and clean up clients with timeout protection.
+      final stopFutures = <Future>[];
+      for (final entry in _map.values) {
+        stopFutures.add(_shutdownServerSafely(entry));
+      }
+
+      // Wait for all shutdowns with overall timeout.
+      try {
+        await Future.wait(stopFutures).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            Logging.instance.w("Timeout waiting for mwebd servers to stop");
+            return []; // Return a dummy list.
+          },
+        );
+      } catch (e, s) {
+        Logging.instance.w(
+          "Error during mwebd servers shutdown", 
+          error: e, 
+          stackTrace: s,
+        );
+      }
+
+      _map.clear();
+      
+      final elapsedMs = stopwatch.elapsedMilliseconds;
+      Logging.instance.i("MwebdService shutdown() completed in ${elapsedMs}ms");
+      
+      // Warn if shutdown took too long (could indicate hanging).
+      if (elapsedMs > 3000) {
+        Logging.instance.w("MwebdService shutdown took ${elapsedMs}ms - longer than expected");
+      }
+    });
+  }
+
+  /// Safely shutdown a server/client pair with timeout protection.
+  Future<void> _shutdownServerSafely(
+    ({MwebdServer server, MwebClient client}) entry,
+  ) async {
+    final serverStopwatch = Stopwatch()..start();
+    Logging.instance.i("Starting shutdown of mwebd server/client pair");
+    
+    try {
+      // Clean up client first.
+      final clientStopwatch = Stopwatch()..start();
+      await entry.client.cleanup().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          Logging.instance.w("Timeout cleaning up mweb client after 3s");
+        },
+      );
+      Logging.instance.i("Client cleanup completed in ${clientStopwatch.elapsedMilliseconds}ms");
+    } catch (e, s) {
+      Logging.instance.w(
+        "Error cleaning up mweb client", 
+        error: e, 
+        stackTrace: s,
+      );
+    }
+
+    try {
+      // Stop server with timeout protection.
+      final serverShutdownStopwatch = Stopwatch()..start();
+      await entry.server.stopServer().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          Logging.instance.w("Timeout stopping mwebd server after 5s");
+        },
+      );
+      Logging.instance.i("Server stop completed in ${serverShutdownStopwatch.elapsedMilliseconds}ms");
+    } catch (e, s) {
+      Logging.instance.w(
+        "Error stopping mwebd server", 
+        error: e, 
+        stackTrace: s,
+      );
+    }
+    
+    final totalMs = serverStopwatch.elapsedMilliseconds;
+    Logging.instance.i("Server/client pair shutdown completed in ${totalMs}ms");
   }
 }
 
