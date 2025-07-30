@@ -20,11 +20,14 @@ import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
+import '../../route_generator.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/idle_monitor.dart';
+import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
@@ -35,6 +38,7 @@ import '../../widgets/stack_dialog.dart';
 import '../buy_view/buy_view.dart';
 import '../exchange_view/exchange_view.dart';
 import '../notification_views/notifications_view.dart';
+import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
 import '../settings_views/global_settings_view/hidden_settings.dart';
 import '../wallets_view/wallets_view.dart';
@@ -62,6 +66,51 @@ class _HomeViewState extends ConsumerState<HomeView> {
   bool _exitEnabled = false;
 
   late TorConnectionStatus _currentSyncStatus;
+
+  IdleMonitor? _idleMonitor;
+
+  void _onIdle() async {
+    final context = _key.currentContext;
+    if (context != null) {
+      await Navigator.push(
+        context,
+        RouteGenerator.getRoute(
+          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+          builder:
+              (_) => const LockscreenView(
+                showBackButton: false,
+                popOnSuccess: true,
+                routeOnSuccessArguments: true,
+                routeOnSuccess: "",
+                biometricsCancelButtonString: "CANCEL",
+                biometricsLocalizedReason:
+                    "Authenticate to unlock ${AppConfig.appName}",
+                biometricsAuthenticationTitle: "Unlock ${AppConfig.appName}",
+              ),
+          settings: const RouteSettings(name: "/unlockTimedOutAppScreen"),
+        ),
+      );
+    }
+  }
+
+  late AutoLockInfo _autoLockInfo;
+  void _prefsTimeoutListener() {
+    final prefs = ref.read(prefsChangeNotifierProvider);
+    if (mounted && prefs.autoLockInfo != _autoLockInfo) {
+      _autoLockInfo = prefs.autoLockInfo;
+      if (_autoLockInfo.enabled) {
+        _idleMonitor?.detach();
+        _idleMonitor = IdleMonitor(
+          timeout: Duration(minutes: _autoLockInfo.minutes),
+          onIdle: _onIdle,
+        );
+        _idleMonitor!.attach();
+      } else {
+        _idleMonitor?.detach();
+        _idleMonitor = null;
+      }
+    }
+  }
 
   // final _buyDataLoadingService = BuyDataLoadingService();
 
@@ -124,6 +173,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   void initState() {
+    _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
+    if (_autoLockInfo.enabled) {
+      _idleMonitor = IdleMonitor(
+        timeout: Duration(minutes: _autoLockInfo.minutes),
+        onIdle: _onIdle,
+      );
+    }
+
     _pageController = PageController();
     _rotateIconController = RotateIconController();
     _children = [
@@ -140,11 +197,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
     // });
 
+    _idleMonitor?.attach();
+
+    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
+
     super.initState();
   }
 
   @override
   dispose() {
+    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _idleMonitor?.detach();
     _pageController.dispose();
     _rotateIconController.forward = null;
     _rotateIconController.reverse = null;

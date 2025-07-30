@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,6 +24,8 @@ import '../providers/ui/unread_notifications_provider.dart';
 import '../route_generator.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/enums/backup_frequency_type.dart';
+import '../utilities/idle_monitor.dart';
+import '../utilities/prefs.dart';
 import '../widgets/background.dart';
 import 'address_book_view/desktop_address_book.dart';
 import 'desktop_buy/desktop_buy_view.dart';
@@ -29,6 +33,7 @@ import 'desktop_exchange/desktop_exchange_view.dart';
 import 'desktop_menu.dart';
 import 'my_stack_view/my_stack_view.dart';
 import 'notifications/desktop_notifications_view.dart';
+import 'password/desktop_unlock_app_dialog.dart';
 import 'settings/desktop_settings_view.dart';
 import 'settings/settings_menu/desktop_about_view.dart';
 import 'settings/settings_menu/desktop_support_view.dart';
@@ -45,14 +50,60 @@ class DesktopHomeView extends ConsumerStatefulWidget {
 class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   final GlobalKey myStackViewNavKey = GlobalKey<NavigatorState>();
   late final Navigator myStackViewNav;
+  IdleMonitor? _idleMonitor;
+
+  void _onIdle() async {
+    final context = myStackViewNavKey.currentContext;
+    if (context != null) {
+      await showDialog<void>(
+        barrierDismissible: false,
+        context: context,
+        useSafeArea: false,
+        builder:
+            (context) => const Background(
+              child: Center(child: DesktopUnlockAppDialog()),
+            ),
+      );
+    }
+  }
+
+  late AutoLockInfo _autoLockInfo;
+  void _prefsTimeoutListener() {
+    final prefs = ref.read(prefsChangeNotifierProvider);
+    if (mounted && prefs.autoLockInfo != _autoLockInfo) {
+      _autoLockInfo = prefs.autoLockInfo;
+      if (_autoLockInfo.enabled) {
+        _idleMonitor?.detach();
+        _idleMonitor = IdleMonitor(
+          timeout: Duration(minutes: _autoLockInfo.minutes),
+          onIdle: _onIdle,
+        );
+        _idleMonitor!.attach();
+      } else {
+        _idleMonitor?.detach();
+        _idleMonitor = null;
+      }
+    }
+  }
 
   @override
   void initState() {
+    _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
+    if (_autoLockInfo.enabled) {
+      _idleMonitor = IdleMonitor(
+        timeout: Duration(minutes: _autoLockInfo.minutes),
+        onIdle: _onIdle,
+      );
+    }
+
     myStackViewNav = Navigator(
       key: myStackViewNavKey,
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
     );
+    _idleMonitor?.attach();
+
+    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
 
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
@@ -61,12 +112,19 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     super.initState();
   }
 
+  @override
+  dispose() {
+    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _idleMonitor?.detach();
+    super.dispose();
+  }
+
   final Map<DesktopMenuItemId, Widget> contentViews = {
     DesktopMenuItemId.myStack: Container(
-        // key: Key("desktopStackHomeKey"),
-        // onGenerateRoute: RouteGenerator.generateRoute,
-        // initialRoute: MyStackView.routeName,
-        ),
+      // key: Key("desktopStackHomeKey"),
+      // onGenerateRoute: RouteGenerator.generateRoute,
+      // initialRoute: MyStackView.routeName,
+    ),
     DesktopMenuItemId.exchange: const Navigator(
       key: Key("desktopExchangeHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -109,11 +167,13 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     if (ref.read(prevDesktopMenuItemProvider.state).state ==
             DesktopMenuItemId.myStack &&
         ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
-      Navigator.of(myStackViewNavKey.currentContext!)
-          .popUntil(ModalRoute.withName(MyStackView.routeName));
+      Navigator.of(
+        myStackViewNavKey.currentContext!,
+      ).popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
-        final wallet =
-            ref.read(pWallets).getWallet(ref.read(currentWalletIdProvider)!);
+        final wallet = ref
+            .read(pWallets)
+            .getWallet(ref.read(currentWalletIdProvider)!);
 
         if (wallet.shouldAutoSync) {
           wallet.shouldAutoSync = false;
@@ -182,17 +242,19 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
             ),
             Expanded(
               child: IndexedStack(
-                index: ref
-                            .watch(currentDesktopMenuItemProvider.state)
-                            .state
-                            .index >
-                        0
-                    ? 1
-                    : 0,
+                index:
+                    ref
+                                .watch(currentDesktopMenuItemProvider.state)
+                                .state
+                                .index >
+                            0
+                        ? 1
+                        : 0,
                 children: [
                   myStackViewNav,
-                  contentViews[
-                      ref.watch(currentDesktopMenuItemProvider.state).state]!,
+                  contentViews[ref
+                      .watch(currentDesktopMenuItemProvider.state)
+                      .state]!,
                 ],
               ),
             ),

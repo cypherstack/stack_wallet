@@ -27,6 +27,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
+import 'auto_lock_timeout_settings_view.dart';
 import 'change_pin_view/change_pin_view.dart';
 import 'create_duress_pin_view.dart';
 
@@ -519,6 +520,56 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                       },
                     ),
                   ),
+                const SizedBox(height: 8),
+                RoundedWhiteContainer(
+                  padding: const EdgeInsets.all(0),
+                  child: RawMaterialButton(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        RouteGenerator.getRoute(
+                          shouldUseMaterialRoute:
+                              RouteGenerator.useMaterialPageRoute,
+                          builder:
+                              (_) => const LockscreenView(
+                                showBackButton: true,
+                                routeOnSuccess:
+                                    AutoLockTimeoutSettingsView.routeName,
+                                biometricsCancelButtonString: "CANCEL",
+                                biometricsLocalizedReason:
+                                    "Authenticate to change auto lock settings",
+                                biometricsAuthenticationTitle:
+                                    "Auto lock settings",
+                              ),
+                          settings: const RouteSettings(
+                            name: "/autoLockTimeoutSettingsLockScreen",
+                          ),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Auto lock settings",
+                            style: STextStyles.titleBold12(context),
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
