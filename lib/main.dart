@@ -615,38 +615,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         // }
         break;
       case AppLifecycleState.detached:
-        // Clean shutdown of mwebd service with aggressive timeout for macOS.
-        if (Platform.isMacOS) {
-          // On macOS, use very short timeout since native StopServer is skipped.
-          try {
-            debugPrint("App detached on macOS, quick shutdown...");
-            await ref.read(pMwebService).shutdown().timeout(
-              const Duration(seconds: 2),
-              onTimeout: () {
-                debugPrint("MwebdService shutdown timed out after 2 seconds on macOS");
-                exit(0);
-              },
-            );
-            debugPrint("MwebdService shutdown completed on macOS");
-          } catch (e, s) {
-            debugPrint("Error during MwebdService shutdown on macOS: $e\n$s");
-            exit(0);
-          }
-        } else {
-          // Non-macOS platforms can use longer timeout.
-          try {
-            debugPrint("App detached, shutting down MwebdService...");
-            await ref.read(pMwebService).shutdown().timeout(
-              const Duration(seconds: 5),
-              onTimeout: () {
-                debugPrint("MwebdService shutdown timed out after 5 seconds");
-              },
-            );
-            debugPrint("MwebdService shutdown completed successfully");
-          } catch (e, s) {
-            debugPrint("Error during MwebdService shutdown: $e\n$s");
-          }
-        }
         break;
       case AppLifecycleState.hidden:
         break;
