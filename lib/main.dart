@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:compat/compat.dart' as lib_monero_compat;
@@ -619,6 +620,21 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case AppLifecycleState.hidden:
         break;
     }
+  }
+
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    debugPrint("didRequestAppExit called");
+    if (Platform.isMacOS) {
+      // On macOS, mwebd fails to shut down, hanging the app on close.
+      //
+      // Exiting is a hack fix for this issue.
+
+      // await ref.read(pMwebService).shutdown();
+      // Something like the above would probably be prudent to make.
+      exit(0);
+    }
+    return AppExitResponse.exit;
   }
 
   /// should only be called on android currently
