@@ -55,6 +55,20 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   @override
   Future<TxData> updateSentCachedTxData({required TxData txData}) async {
     if (txData.tempTx != null) {
+      final otherDataString = txData.tempTx!.otherData;
+      final Map<dynamic, dynamic> map;
+      if (otherDataString == null) {
+        map = {};
+      } else {
+        map = jsonDecode(otherDataString) as Map? ?? {};
+      }
+
+      map[TxV2OdKeys.isInstantLock] = true;
+
+      txData = txData.copyWith(
+        tempTx: txData.tempTx!.copyWith(otherData: jsonEncode(map)),
+      );
+
       await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
       _unconfirmedTxids.add(txData.tempTx!.txid);
       Logging.instance.d("Added firo unconfirmed: ${txData.tempTx!.txid}");
