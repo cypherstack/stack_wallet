@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 
 class DesktopStepItem extends StatelessWidget {
   const DesktopStepItem({
@@ -21,12 +22,14 @@ class DesktopStepItem extends StatelessWidget {
     required this.value,
     this.padding = const EdgeInsets.all(16),
     this.vertical = false,
+    this.copyableValue = false,
   });
 
   final String label;
   final String value;
   final EdgeInsets padding;
   final bool vertical;
+  final bool copyableValue;
 
   @override
   Widget build(BuildContext context) {
@@ -34,35 +37,69 @@ class DesktopStepItem extends StatelessWidget {
       padding: padding,
       child: ConditionalParent(
         condition: vertical,
-        builder: (child) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            child,
-            const SizedBox(
-              height: 2,
+        builder:
+            (child) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ConditionalParent(
+                  condition: copyableValue,
+                  builder:
+                      (child) => Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [child, SimpleCopyButton(data: value)],
+                      ),
+                  child: child,
+                ),
+                const SizedBox(height: 2),
+                copyableValue
+                    ? SelectableText(
+                      value,
+                      style: STextStyles.desktopTextExtraExtraSmall(
+                        context,
+                      ).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
+                      ),
+                    )
+                    : Text(
+                      value,
+                      style: STextStyles.desktopTextExtraExtraSmall(
+                        context,
+                      ).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
+                      ),
+                    ),
+              ],
             ),
-            Text(
-              value,
-              style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textDark,
-              ),
-            ),
-          ],
-        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: STextStyles.desktopTextExtraExtraSmall(context),
-            ),
+            Text(label, style: STextStyles.desktopTextExtraExtraSmall(context)),
             if (!vertical)
-              Text(
-                value,
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark,
-                ),
-              ),
+              copyableValue
+                  ? SelectableText(
+                    value,
+                    style: STextStyles.desktopTextExtraExtraSmall(
+                      context,
+                    ).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
+                    ),
+                  )
+                  : Text(
+                    value,
+                    style: STextStyles.desktopTextExtraExtraSmall(
+                      context,
+                    ).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
+                    ),
+                  ),
           ],
         ),
       ),
