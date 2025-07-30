@@ -1,3 +1,6 @@
+import 'package:blockchain_utils/bip/address/ada/ada.dart';
+import 'package:on_chain/ada/ada.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -123,7 +126,18 @@ class Cardano extends Bip39Currency {
   bool validateAddress(String address) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return RegExp(r"^addr1[0-9a-zA-Z]{98}$").hasMatch(address);
+        try {
+          final adaAddress = ADAAddress.fromAddress(
+            address,
+            network: ADANetwork.mainnet,
+          );
+
+          return (adaAddress is ADABaseAddress ||
+              adaAddress is ADAEnterpriseAddress);
+        } catch (_) {
+          return false;
+        }
+
       default:
         throw Exception("Unsupported network: $network");
     }
