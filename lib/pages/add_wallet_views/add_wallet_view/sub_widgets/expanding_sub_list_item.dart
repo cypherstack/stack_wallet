@@ -30,7 +30,7 @@ class ExpandingSubListItem extends StatefulWidget {
     double? animationDurationMultiplier,
     this.curve = Curves.easeInOutCubicEmphasized,
   }) : animationDurationMultiplier =
-            animationDurationMultiplier ?? entities.length * 0.11;
+           animationDurationMultiplier ?? entities.length * 0.11;
 
   final String title;
   final List<AddWalletListEntity> entities;
@@ -85,23 +85,21 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
       header: Container(
         color: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.only(
-            top: 8.0,
-            bottom: 8.0,
-            right: 10,
-          ),
+          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 widget.title,
-                style: isDesktop
-                    ? STextStyles.desktopTextMedium(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      )
-                    : STextStyles.smallMed12(context),
+                style:
+                    isDesktop
+                        ? STextStyles.desktopTextMedium(context).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark3,
+                        )
+                        : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
               ),
               RotateIcon(
@@ -109,9 +107,10 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
                   Assets.svg.chevronDown,
                   width: isDesktop ? 20 : 12,
                   height: isDesktop ? 10 : 6,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveSearchIconRight,
+                  color:
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconRight,
                 ),
                 curve: widget.curve,
                 animationDurationMultiplier: widget.animationDurationMultiplier,

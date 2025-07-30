@@ -46,21 +46,40 @@ class AddTokenListElement extends ConsumerStatefulWidget {
 class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
   final bool isDesktop = Util.isDesktop;
 
+  Currency? currency;
+
+  @override
+  void initState() {
+    super.initState();
+
+    ExchangeDataLoadingService.instance.isar.then((isar) async {
+      final currency =
+          await isar.currencies
+              .where()
+              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+              .filter()
+              .tokenContractEqualTo(
+                widget.data.token.address,
+                caseSensitive: false,
+              )
+              .and()
+              .imageIsNotEmpty()
+              .findFirst();
+
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              this.currency = currency;
+            });
+          }
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currency =
-        ExchangeDataLoadingService.instance.isar.currencies
-            .where()
-            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-            .filter()
-            .tokenContractEqualTo(
-              widget.data.token.address,
-              caseSensitive: false,
-            )
-            .and()
-            .imageIsNotEmpty()
-            .findFirstSync();
-
     final String mainLabel = widget.data.token.name;
     final double iconSize = isDesktop ? 32 : 24;
 
@@ -77,7 +96,7 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
             children: [
               currency != null
                   ? SvgPicture.network(
-                    currency.image,
+                    currency!.image,
                     width: iconSize,
                     height: iconSize,
                     placeholderBuilder:

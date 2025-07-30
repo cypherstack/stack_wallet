@@ -23,7 +23,7 @@ import '../../../themes/theme_providers.dart';
 import '../../../utilities/constants.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 
-class WalletInfoCoinIcon extends ConsumerWidget {
+class WalletInfoCoinIcon extends ConsumerStatefulWidget {
   const WalletInfoCoinIcon({
     super.key,
     required this.coin,
@@ -36,36 +36,62 @@ class WalletInfoCoinIcon extends ConsumerWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Currency? currency;
-    if (contractAddress != null) {
-      currency =
-          ExchangeDataLoadingService.instance.isar.currencies
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .filter()
-              .tokenContractEqualTo(contractAddress!, caseSensitive: false)
-              .and()
-              .imageIsNotEmpty()
-              .findFirstSync();
-    }
+  ConsumerState<WalletInfoCoinIcon> createState() => _WalletInfoCoinIconState();
+}
 
+class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
+  String? imageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+
+    ExchangeDataLoadingService.instance.isar.then((isar) async {
+      if (widget.contractAddress != null) {
+        final currency =
+            await isar.currencies
+                .where()
+                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+                .filter()
+                .tokenContractEqualTo(
+                  widget.contractAddress!,
+                  caseSensitive: false,
+                )
+                .and()
+                .imageIsNotEmpty()
+                .findFirst();
+
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                imageUrl = currency?.image;
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: size,
-      height: size,
+      width: widget.size,
+      height: widget.size,
       decoration: BoxDecoration(
-        color: ref.watch(pCoinColor(coin)).withOpacity(0.4),
+        color: ref.watch(pCoinColor(widget.coin)).withOpacity(0.4),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(size / 5),
+        padding: EdgeInsets.all(widget.size / 5),
         child:
-            currency != null && currency.image.isNotEmpty
-                ? SvgPicture.network(currency.image, width: 20, height: 20)
+            imageUrl != null && imageUrl!.isNotEmpty
+                ? SvgPicture.network(imageUrl!, width: 20, height: 20)
                 : SvgPicture.file(
-                  File(ref.watch(coinIconProvider(coin))),
+                  File(ref.watch(coinIconProvider(widget.coin))),
                   width: 20,
                   height: 20,
                 ),

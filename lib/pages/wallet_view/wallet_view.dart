@@ -358,16 +358,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
       );
     } else {
       Future<Currency?> _future;
+      final isar = await ExchangeDataLoadingService.instance.isar;
       try {
         _future =
-            ExchangeDataLoadingService.instance.isar.currencies
+            isar.currencies
                 .where()
                 .tickerEqualToAnyExchangeNameName(coin.ticker)
                 .findFirst();
       } catch (_) {
         _future = ExchangeDataLoadingService.instance.loadAll().then(
           (_) =>
-              ExchangeDataLoadingService.instance.isar.currencies
+              isar.currencies
                   .where()
                   .tickerEqualToAnyExchangeNameName(coin.ticker)
                   .findFirst(),

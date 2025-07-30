@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
@@ -33,7 +35,10 @@ class ExchangeDataLoadingService {
   static ExchangeDataLoadingService get instance => _instance;
 
   Isar? _isar;
-  Isar get isar => _isar!;
+  Future<Isar> get isar async {
+    if (_isar == null) await initDB();
+    return _isar!;
+  }
 
   VoidCallback? onLoadingError;
   VoidCallback? onLoadingComplete;
@@ -56,9 +61,16 @@ class ExchangeDataLoadingService {
     );
   }
 
+  Completer<void>? _initCompleter;
   Future<void> initDB() async {
     if (_isar != null) return;
-    await _isar?.close();
+
+    if (_initCompleter != null) {
+      return await _initCompleter!.future;
+    }
+
+    _initCompleter = Completer();
+
     _isar = await Isar.open(
       [
         CurrencySchema,
@@ -70,6 +82,8 @@ class ExchangeDataLoadingService {
       name: "exchange_cache",
       maxSizeMiB: 64,
     );
+
+    _initCompleter!.complete();
   }
 
   Future<void> setCurrenciesIfEmpty(
@@ -77,7 +91,7 @@ class ExchangeDataLoadingService {
     ExchangeRateType rateType,
   ) async {
     if (pair?.send == null && pair?.receive == null) {
-      if (await isar.currencies.count() > 0) {
+      if (await (await isar).currencies.count() > 0) {
         pair?.setSend(
           await getAggregateCurrency(
             AppConfig.swapDefaults.from,
@@ -108,9 +122,10 @@ class ExchangeDataLoadingService {
     String? contract,
   ) async {
     final List<Currency> currencies;
+
     if (contract != null) {
       currencies =
-          await ExchangeDataLoadingService.instance.isar.currencies
+          await (await isar).currencies
               .filter()
               .tokenContractEqualTo(contract)
               .and()
@@ -129,7 +144,7 @@ class ExchangeDataLoadingService {
               .findAll();
     } else {
       currencies =
-          await ExchangeDataLoadingService.instance.isar.currencies
+          await (await isar).currencies
               .filter()
               .group(
                 (q) =>
@@ -232,15 +247,15 @@ class ExchangeDataLoadingService {
     final exchange = ChangeNowExchange.instance;
     final responseCurrencies = await exchange.getAllCurrencies(false);
     if (responseCurrencies.value != null) {
-      await isar.writeTxn(() async {
+      await (await isar).writeTxn(() async {
         final idsToDelete =
-            await isar.currencies
+            await (await isar).currencies
                 .where()
                 .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
                 .idProperty()
                 .findAll();
-        await isar.currencies.deleteAll(idsToDelete);
-        await isar.currencies.putAll(responseCurrencies.value!);
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
       });
     } else {
       Logging.instance.w(
@@ -389,15 +404,15 @@ class ExchangeDataLoadingService {
     final responseCurrencies = await exchange.getAllCurrencies(false);
 
     if (responseCurrencies.value != null) {
-      await isar.writeTxn(() async {
+      await (await isar).writeTxn(() async {
         final idsToDelete =
-            await isar.currencies
+            await (await isar).currencies
                 .where()
                 .exchangeNameEqualTo(TrocadorExchange.exchangeName)
                 .idProperty()
                 .findAll();
-        await isar.currencies.deleteAll(idsToDelete);
-        await isar.currencies.putAll(responseCurrencies.value!);
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
       });
     } else {
       Logging.instance.w("loadTrocadorCurrencies: $responseCurrencies");
@@ -413,15 +428,15 @@ class ExchangeDataLoadingService {
     );
 
     if (responseCurrencies.value != null) {
-      await isar.writeTxn(() async {
+      await (await isar).writeTxn(() async {
         final idsToDelete =
-            await isar.currencies
+            await (await isar).currencies
                 .where()
                 .exchangeNameEqualTo(NanswapExchange.exchangeName)
                 .idProperty()
                 .findAll();
-        await isar.currencies.deleteAll(idsToDelete);
-        await isar.currencies.putAll(responseCurrencies.value!);
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
       });
     } else {
       Logging.instance.w("loadNanswapCurrencies: $responseCurrencies");
