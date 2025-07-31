@@ -20,14 +20,18 @@ import '../../../models/exchange/response_objects/trade.dart';
 import '../../../pages/exchange_view/send_from_view.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
 import '../../../providers/global/trades_service_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
 import '../../../route_generator.dart';
 import '../../../services/exchange/exchange_response.dart';
 import '../../../services/notifications_api.dart';
+import '../../../services/wallets.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
@@ -241,6 +245,26 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     );
   }
 
+  bool isWalletCoinAndCanSendWithoutWalletOpened(
+    String ticker,
+    Wallets walletsInstance,
+  ) {
+    try {
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      return walletsInstance.wallets
+          .where(
+            (e) =>
+                e.info.coin == coin &&
+                (e is! ExternalWallet ||
+                    e is MwebInterface), // ltc mweb is external but swaps
+            // should not use mweb, hence the odd logic check here
+          )
+          .isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     duration = const Duration(milliseconds: 250);
@@ -251,6 +275,18 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   @override
   Widget build(BuildContext context) {
     final model = ref.watch(desktopExchangeModelProvider);
+
+    final bool canSendFromStack;
+    if (currentStep != 4) {
+      // set to true anyways to show back button
+      canSendFromStack = true;
+    } else {
+      canSendFromStack = isWalletCoinAndCanSendWithoutWalletOpened(
+        model?.sendTicker ?? "",
+        ref.read(pWallets),
+      );
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -307,25 +343,27 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           ),
           child: Row(
             children: [
-              Expanded(
-                child: AnimatedCrossFade(
-                  duration: const Duration(milliseconds: 250),
-                  crossFadeState:
-                      currentStep == 4
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                  firstChild: SecondaryButton(
-                    label: "Back",
-                    buttonHeight: ButtonHeight.l,
-                    onPressed: onBack,
-                  ),
-                  secondChild: SecondaryButton(
-                    label: "Send from ${AppConfig.appName}",
-                    buttonHeight: ButtonHeight.l,
-                    onPressed: sendFromStack,
-                  ),
-                ),
-              ),
+              canSendFromStack
+                  ? Expanded(
+                    child: AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 250),
+                      crossFadeState:
+                          currentStep == 4
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                      firstChild: SecondaryButton(
+                        label: "Back",
+                        buttonHeight: ButtonHeight.l,
+                        onPressed: onBack,
+                      ),
+                      secondChild: SecondaryButton(
+                        label: "Send from ${AppConfig.appName}",
+                        buttonHeight: ButtonHeight.l,
+                        onPressed: sendFromStack,
+                      ),
+                    ),
+                  )
+                  : const Spacer(),
               const SizedBox(width: 16),
               Expanded(
                 child: AnimatedCrossFade(
