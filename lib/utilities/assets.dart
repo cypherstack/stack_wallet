@@ -32,7 +32,7 @@ class _SOCIALS {
 
   String get discord => "${_path}discord.svg";
   String get reddit => "${_path}reddit-alien-brands.svg";
-  String get twitter => "${_path}twitter-brands.svg";
+  String get twitter => "${_path}x.svg";
   String get telegram => "${_path}telegram-brands.svg";
 }
 

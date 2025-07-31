@@ -212,6 +212,11 @@ final class MwebdService {
     Future<void> poll() async {
       if (!controller.isClosed) {
         final file = File(path);
+
+        if (!file.existsSync()) {
+          return;
+        }
+
         final length = await file.length();
 
         if (length > offset) {

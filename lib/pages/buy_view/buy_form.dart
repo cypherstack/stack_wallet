@@ -16,12 +16,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:isar/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/buy/response_objects/crypto.dart';
 import '../../models/buy/response_objects/fiat.dart';
 import '../../models/buy/response_objects/quote.dart';
 import '../../models/contact_address_entry.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import '../../providers/providers.dart';
@@ -33,10 +35,12 @@ import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/enums/derive_path_type_enum.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
@@ -1204,9 +1208,34 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 // _toController.text = manager.walletName;
                                 // model.recipientAddress =
                                 //     await manager.currentReceivingAddress;
-                                _receiveAddressController.text =
-                                    (await wallet.getCurrentReceivingAddress())!
-                                        .value;
+
+                                final address =
+                                    await wallet.getCurrentReceivingAddress();
+
+                                if (address!.type == AddressType.p2tr &&
+                                    wallet is Bip39HDWallet) {
+                                  // lets assume any wallet that has taproot also has segwit. WCGW
+                                  final address =
+                                      await ref
+                                          .read(mainDBProvider)
+                                          .isar
+                                          .addresses
+                                          .where()
+                                          .walletIdEqualTo(wallet.walletId)
+                                          .filter()
+                                          .typeEqualTo(AddressType.p2wpkh)
+                                          .sortByDerivationIndexDesc()
+                                          .findFirst() ??
+                                      await wallet.generateNextReceivingAddress(
+                                        derivePathType: DerivePathType.bip84,
+                                      );
+
+                                  _receiveAddressController.text =
+                                      address.value;
+                                } else {
+                                  _receiveAddressController.text =
+                                      address.value;
+                                }
 
                                 setState(() {
                                   _addressToggleFlag =

@@ -26,6 +26,8 @@ import 'enums/backup_frequency_type.dart';
 import 'enums/languages_enum.dart';
 import 'enums/sync_type_enum.dart';
 
+typedef AutoLockInfo = ({bool enabled, int minutes});
+
 class Prefs extends ChangeNotifier {
   Prefs._();
   static final Prefs _instance = Prefs._();
@@ -78,6 +80,7 @@ class Prefs extends ChangeNotifier {
       _advancedFiroFeatures = await _getAdvancedFiroFeatures();
       _logsPath = await _getLogsPath();
       _logLevel = await _getLogLevel();
+      _autoLockInfo = await _getAutoLockInfo();
 
       _initialized = true;
     }
@@ -1346,5 +1349,38 @@ class Prefs extends ChangeNotifier {
       // default to warning
       return Level.warning;
     }
+  }
+
+  // auto lock timeout
+
+  AutoLockInfo _autoLockInfo = (enabled: false, minutes: 10);
+
+  AutoLockInfo get autoLockInfo => _autoLockInfo;
+
+  set autoLockInfo(AutoLockInfo autoLockInfo) {
+    if (_autoLockInfo != autoLockInfo) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "autoLockInfo",
+        value: {
+          "enabled": autoLockInfo.enabled,
+          "minutes": autoLockInfo.minutes,
+        },
+      );
+      _autoLockInfo = autoLockInfo;
+      notifyListeners();
+    }
+  }
+
+  Future<AutoLockInfo> _getAutoLockInfo() async {
+    final map =
+        await DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "autoLockInfo",
+            )
+            as Map? ??
+        {"enabled": false, "minutes": 10};
+
+    return (enabled: map["enabled"] as bool, minutes: map["minutes"] as int);
   }
 }

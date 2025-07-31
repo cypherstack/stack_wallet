@@ -45,6 +45,7 @@ import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -481,10 +482,20 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
-    final isViewOnlyNoAddressGen =
-        wallet is ViewOnlyOptionInterface &&
-        wallet.isViewOnly &&
-        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
+    final bool canGen;
+    if (isViewOnly && wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
+      canGen = false;
+    } else {
+      final supportsMweb =
+          wallet is MwebInterface &&
+          !wallet.info.isViewOnly &&
+          wallet.info.isMwebEnabled;
+
+      canGen =
+          (wallet is MultiAddressInterface ||
+              wallet is SparkInterface ||
+              supportsMweb);
+    }
 
     final showMwebOption = wallet is MwebInterface && !wallet.isViewOnly;
 
@@ -494,8 +505,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (wallet is RbfInterface) (WalletFeature.rbf, Assets.svg.key, () => ()),
 
-      if (!isViewOnlyNoAddressGen)
-        (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
+      if (canGen) (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
 
       if (showMwebOption) (WalletFeature.enableMweb, Assets.svg.key, () => ()),
     ];

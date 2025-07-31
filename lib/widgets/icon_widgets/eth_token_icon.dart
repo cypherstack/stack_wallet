@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../models/isar/exchange_cache/currency.dart';
+import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -32,17 +34,36 @@ class EthTokenIcon extends ConsumerStatefulWidget {
 }
 
 class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
-  late final String? imageUrl;
+  String? imageUrl;
 
   @override
   void initState() {
-    imageUrl = ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .filter()
-        .tokenContractEqualTo(widget.contractAddress, caseSensitive: false)
-        .findFirstSync()
-        ?.image;
     super.initState();
+
+    ExchangeDataLoadingService.instance.isar.then((isar) async {
+      final currency =
+          await isar.currencies
+              .where()
+              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+              .filter()
+              .tokenContractEqualTo(
+                widget.contractAddress,
+                caseSensitive: false,
+              )
+              .and()
+              .imageIsNotEmpty()
+              .findFirst();
+
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              imageUrl = currency?.image;
+            });
+          }
+        });
+      }
+    });
   }
 
   @override

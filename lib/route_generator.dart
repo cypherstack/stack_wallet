@@ -113,6 +113,7 @@ import 'pages/settings_views/global_settings_view/manage_nodes_views/add_edit_no
 import 'pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import 'pages/settings_views/global_settings_view/security_views/auto_lock_timeout_settings_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/create_duress_pin_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/security_view.dart';
@@ -994,6 +995,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const CreateDuressPinView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case AutoLockTimeoutSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AutoLockTimeoutSettingsView(),
           settings: RouteSettings(name: settings.name),
         );
 

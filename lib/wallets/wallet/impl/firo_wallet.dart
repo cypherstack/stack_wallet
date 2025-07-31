@@ -55,6 +55,20 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   @override
   Future<TxData> updateSentCachedTxData({required TxData txData}) async {
     if (txData.tempTx != null) {
+      final otherDataString = txData.tempTx!.otherData;
+      final Map<dynamic, dynamic> map;
+      if (otherDataString == null) {
+        map = {};
+      } else {
+        map = jsonDecode(otherDataString) as Map? ?? {};
+      }
+
+      map[TxV2OdKeys.isInstantLock] = true;
+
+      txData = txData.copyWith(
+        tempTx: txData.tempTx!.copyWith(otherData: jsonEncode(map)),
+      );
+
       await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
       _unconfirmedTxids.add(txData.tempTx!.txid);
       Logging.instance.d("Added firo unconfirmed: ${txData.tempTx!.txid}");
@@ -563,9 +577,14 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         continue;
       }
 
-      String? otherData;
+      final isInstantLock = txData["instantlock"] as bool? ?? false;
+
+      final otherData = <String, dynamic>{
+        TxV2OdKeys.isInstantLock: isInstantLock,
+      };
+
       if (anonFees != null) {
-        otherData = jsonEncode({"overrideFee": anonFees!.toJsonString()});
+        otherData[TxV2OdKeys.overrideFee] = anonFees!.toJsonString();
       }
 
       final tx = TransactionV2(
@@ -582,7 +601,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: otherData,
+        otherData: jsonEncode(otherData),
       );
 
       if (_unconfirmedTxids.contains(tx.txid)) {
@@ -591,14 +610,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           cryptoCurrency.minConfirms,
           cryptoCurrency.minCoinbaseConfirms,
         )) {
-          txns.add(tx);
           _unconfirmedTxids.removeWhere((e) => e == tx.txid);
-        } else {
-          // don't update in db until confirmed
         }
-      } else {
-        txns.add(tx);
       }
+      txns.add(tx);
     }
 
     await mainDB.updateOrPutTransactionV2s(txns);

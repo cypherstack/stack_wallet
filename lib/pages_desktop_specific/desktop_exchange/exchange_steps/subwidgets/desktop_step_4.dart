@@ -23,9 +23,7 @@ import '../step_scaffold.dart';
 import 'desktop_step_item.dart';
 
 class DesktopStep4 extends ConsumerStatefulWidget {
-  const DesktopStep4({
-    super.key,
-  });
+  const DesktopStep4({super.key});
 
   @override
   ConsumerState<DesktopStep4> createState() => _DesktopStep4State();
@@ -56,8 +54,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
       return;
     }
 
-    final statusResponse =
-        await ref.read(efExchangeProvider).updateTrade(trade);
+    final statusResponse = await ref
+        .read(efExchangeProvider)
+        .updateTrade(trade);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;
@@ -99,16 +98,12 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
           "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to the address below",
           style: STextStyles.desktopTextMedium(context),
         ),
-        const SizedBox(
-          height: 8,
-        ),
+        const SizedBox(height: 8),
         Text(
           "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to the address below. Once it is received, ${ref.watch(desktopExchangeModelProvider.select((value) => value!.trade?.exchangeName))} will send the ${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveTicker.toUpperCase()))} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
           style: STextStyles.desktopTextExtraExtraSmall(context),
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         RoundedContainer(
           color: Theme.of(context).extension<StackColors>()!.warningBackground,
           child: RichText(
@@ -116,9 +111,10 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               text:
                   "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
               style: STextStyles.label700(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningForeground,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningForeground,
                 fontSize: 14,
               ),
               children: [
@@ -126,9 +122,10 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                   text:
                       "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
                   style: STextStyles.label(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .warningForeground,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
                     fontSize: 14,
                   ),
                 ),
@@ -136,9 +133,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
             ),
           ),
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         RoundedWhiteContainer(
           borderColor: Theme.of(context).extension<StackColors>()!.background,
           padding: const EdgeInsets.all(0),
@@ -146,11 +141,14 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
             children: [
               DesktopStepItem(
                 vertical: true,
+                copyableValue: true,
                 label:
                     "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to this address",
-                value: ref.watch(
-                      desktopExchangeModelProvider
-                          .select((value) => value!.trade?.payInAddress),
+                value:
+                    ref.watch(
+                      desktopExchangeModelProvider.select(
+                        (value) => value!.trade?.payInAddress,
+                      ),
                     ) ??
                     "Error",
               ),
@@ -159,22 +157,26 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
               if (ref.watch(
-                    desktopExchangeModelProvider
-                        .select((value) => value!.trade?.payInExtraId),
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.trade?.payInExtraId,
+                    ),
                   ) !=
                   null)
                 DesktopStepItem(
                   vertical: true,
                   label: "Memo",
-                  value: ref.watch(
-                        desktopExchangeModelProvider
-                            .select((value) => value!.trade?.payInExtraId),
+                  value:
+                      ref.watch(
+                        desktopExchangeModelProvider.select(
+                          (value) => value!.trade?.payInExtraId,
+                        ),
                       ) ??
                       "Error",
                 ),
               if (ref.watch(
-                    desktopExchangeModelProvider
-                        .select((value) => value!.trade?.payInExtraId),
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.trade?.payInExtraId,
+                    ),
                   ) !=
                   null)
                 Container(
@@ -192,9 +194,11 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               ),
               DesktopStepItem(
                 label: "Trade ID",
-                value: ref.watch(
-                      desktopExchangeModelProvider
-                          .select((value) => value!.trade?.tradeId),
+                value:
+                    ref.watch(
+                      desktopExchangeModelProvider.select(
+                        (value) => value!.trade?.tradeId,
+                      ),
                     ) ??
                     "Error",
               ),
@@ -213,8 +217,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                     ),
                     Text(
                       _statusString,
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
+                      style: STextStyles.desktopTextExtraExtraSmall(
+                        context,
+                      ).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .colorForStatus(_statusString),
