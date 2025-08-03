@@ -217,7 +217,7 @@ void main(List<String> args) async {
     await CampfireMigration.init();
   }
 
-  if (kDebugMode) {
+  if (kDebugMode && !Platform.isIOS) {
     unawaited(
       MwebdService.instance
           .logsStream(CryptoCurrencyNetwork.main)
