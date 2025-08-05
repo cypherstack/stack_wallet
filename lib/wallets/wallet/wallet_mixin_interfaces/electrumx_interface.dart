@@ -907,8 +907,23 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       // dirty shortcut for peercoin's weirdness
       vSize: this is PeercoinWallet ? clTx.size : clTx.vSize(),
       tempTx:
-          txData.type.isMweb()
+          txData.type == TxType.mwebPegIn
               ? null
+              : txData.type.isMweb()
+              ? TransactionV2(
+                walletId: walletId,
+                blockHash: null,
+                hash: clTx.hashHex,
+                txid: clTx.txid,
+                height: null,
+                timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+                inputs: List.unmodifiable(tempInputs),
+                outputs: List.unmodifiable(tempOutputs),
+                version: clTx.version,
+                type: TransactionType.outgoing,
+                subType: TransactionSubType.mweb,
+                otherData: null,
+              )
               : TransactionV2(
                 walletId: walletId,
                 blockHash: null,

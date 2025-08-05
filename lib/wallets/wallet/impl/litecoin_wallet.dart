@@ -361,6 +361,10 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
     }
 
     await mainDB.updateOrPutTransactionV2s(txns);
+
+    if (info.isMwebEnabled) {
+      await checkMwebSpends();
+    }
   }
 
   @override
