@@ -276,7 +276,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         // hack check
         if (!(txData.type == TxType.mwebPegIn ||
-            (txData.type == TxType.mweb && overrideFeeAmount != null))) {
+            (txData.type.isMweb() && overrideFeeAmount != null))) {
           throw Exception(
             "Something happened that should never actually happen. "
             "Please report this error to the developers.",
