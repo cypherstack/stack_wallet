@@ -952,13 +952,14 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     BigInt feeIncrease = posOutputSum - expectedPegin;
 
     if (expectedPegin > BigInt.zero) {
-      feeIncrease += BigInt.from(
-        (txData.feeRateAmount! / BigInt.from(1000) * 41).ceil(),
-      );
+      feeIncrease +=
+          BigInt.from((txData.feeRateAmount! / BigInt.from(1000)).ceil()) *
+          BigInt.from(41);
     }
 
+    // bandaid: add one to account for a rounding error that happens sometimes
     return Amount(
-      rawValue: fee + feeIncrease,
+      rawValue: fee + feeIncrease + BigInt.one,
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
