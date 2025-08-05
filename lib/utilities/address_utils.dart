@@ -17,10 +17,11 @@ import 'logger.dart';
 class AddressUtils {
   static final Set<String> recognizedParams = {
     'amount',
+    'amounts',
     'label',
+    'labels',
     'message',
     'tx_amount', // For Monero/Wownero.
-    'tx_payment_id',
     'recipient_name',
     'tx_description',
     // TODO [prio=med]: Add more recognized params for other coins.
@@ -57,11 +58,18 @@ class AddressUtils {
             '?',
             7,
           ); // 7 is the length of "monero:".
+          String addressPart;
           if (addressEnd != -1) {
-            result["address"] = uri.substring(7, addressEnd);
+            addressPart = uri.substring(7, addressEnd);
           } else {
-            result["address"] = uri.substring(7);
+            addressPart = uri.substring(7);
           }
+          // Handle multiple semicolon-separated addresses.
+          final addresses = addressPart.split(';').map((addr) => addr.trim()).where((addr) => addr.isNotEmpty).toList();
+          if (addresses.length > 1) {
+            result["addresses"] = addresses.join(';');
+          }
+          result["address"] = addresses.isNotEmpty ? addresses.first : '';  // Backward compatibility.
         } else {
           // Default case, treat path as address.
           result["address"] = u.path;
@@ -94,18 +102,23 @@ class AddressUtils {
         switch (lowerKey) {
           case 'amount':
           case 'tx_amount':
-            result['amount'] = _normalizeAmount(value);
+            // Handle multiple semicolon-separated amounts.
+            final amounts = value.split(';').map((amt) => _normalizeAmount(amt.trim())).where((amt) => amt.isNotEmpty).toList();
+            if (amounts.length > 1) {
+              result['amounts'] = amounts.join(';');
+            }
+            result['amount'] = amounts.isNotEmpty ? amounts.first : '';  // Backward compatibility.
             break;
           case 'label':
           case 'recipient_name':
-            result['label'] = Uri.decodeComponent(value);
+            // Handle multiple semicolon-separated labels.
+            final labels = value.split(';').map((lbl) => Uri.decodeComponent(lbl.trim())).where((lbl) => lbl.isNotEmpty).toList();
+            result['labels'] = labels.join(';');
+            result['label'] = labels.isNotEmpty ? labels.first : '';  // Backward compatibility.
             break;
           case 'message':
           case 'tx_description':
             result['message'] = Uri.decodeComponent(value);
-            break;
-          case 'tx_payment_id':
-            result['tx_payment_id'] = Uri.decodeComponent(value);
             break;
           default:
             result[lowerKey] = Uri.decodeComponent(value);
@@ -128,6 +141,14 @@ class AddressUtils {
       return '${parts[0]}.${parts.sublist(1).join()}';
     }
     return sanitized;
+  }
+
+  /// Validates that the number of addresses matches the number of amounts for Monero multi-recipient URIs.
+  static bool _validateMultiRecipient(List<String> addresses, List<String>? amounts) {
+    if (amounts == null || amounts.isEmpty) {
+      return true; // No amounts specified is valid.
+    }
+    return addresses.length == amounts.length;
   }
 
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
@@ -158,14 +179,60 @@ class AddressUtils {
       // Filter out unrecognized parameters.
       final filteredParams = _filterParams(parsedData);
 
+      // Handle multiple addresses and amounts for Monero.
+      List<String> addresses = [];
+      List<String>? amounts;
+      List<String>? labels;
+
+      if (scheme == 'monero') {
+        // Parse addresses - check for multiple first.
+        if (parsedData.containsKey('addresses')) {
+          addresses = parsedData['addresses']!.split(';').map((addr) => addr.trim()).where((addr) => addr.isNotEmpty).toList();
+        } else {
+          addresses = [parsedData['address']!.trim()];
+        }
+        
+        // Parse amounts.
+        if (filteredParams.containsKey('amounts')) {
+          amounts = filteredParams['amounts']!.split(';').map((amt) => amt.trim()).where((amt) => amt.isNotEmpty).toList();
+        } else if (filteredParams.containsKey('amount')) {
+          amounts = [filteredParams['amount']!];
+        }
+        
+        // Parse labels.
+        if (filteredParams.containsKey('labels')) {
+          labels = filteredParams['labels']!.split(';').map((lbl) => lbl.trim()).where((lbl) => lbl.isNotEmpty).toList();
+        } else if (filteredParams.containsKey('label') || filteredParams.containsKey('recipient_name')) {
+          final singleLabel = filteredParams['label'] ?? filteredParams['recipient_name']!;
+          if (singleLabel.contains(';')) {
+            labels = singleLabel.split(';').map((lbl) => lbl.trim()).where((lbl) => lbl.isNotEmpty).toList();
+          } else {
+            labels = [singleLabel];
+          }
+        }
+        
+        // Validate multi-recipient structure.
+        if (!_validateMultiRecipient(addresses, amounts)) {
+          logging?.i("Invalid Monero URI: number of addresses (${addresses.length}) does not match number of amounts (${amounts?.length ?? 0})");
+          return null;
+        }
+      } else {
+        // Single address case (backward compatibility and other cryptocurrencies).
+        addresses = [parsedData['address']!.trim()];
+        if (filteredParams.containsKey('amount') || filteredParams.containsKey('tx_amount')) {
+          amounts = [filteredParams['amount'] ?? filteredParams['tx_amount']!];
+        }
+        if (filteredParams.containsKey('label') || filteredParams.containsKey('recipient_name')) {
+          labels = [filteredParams['label'] ?? filteredParams['recipient_name']!];
+        }
+      }
+
       return PaymentUriData(
         scheme: scheme,
-        address: parsedData['address']!.trim(),
-        amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
-        label: filteredParams['label'] ?? filteredParams['recipient_name'],
+        addresses: addresses,
+        amounts: amounts,
+        labels: labels,
         message: filteredParams['message'] ?? filteredParams['tx_description'],
-        paymentId: filteredParams['tx_payment_id'],
-        // Specific to Monero
         additionalParams: filteredParams,
       );
     } catch (e, s) {
@@ -207,6 +274,44 @@ class AddressUtils {
       if (filteredParams.isNotEmpty) {
         uriString += Uri(queryParameters: filteredParams).toString();
       }
+    }
+
+    return uriString;
+  }
+
+  /// Builds a multi-recipient Monero URI string.
+  static String buildMoneroMultiUriString(
+    List<String> addresses,
+    List<String>? amounts,
+    List<String>? labels,
+    String? description,
+  ) {
+    if (addresses.isEmpty) {
+      throw ArgumentError('At least one address is required');
+    }
+    
+    if (amounts != null && amounts.isNotEmpty && addresses.length != amounts.length) {
+      throw ArgumentError('Number of addresses must match number of amounts');
+    }
+
+    String uriString = "monero:${addresses.join(';')}";
+    
+    final params = <String, String>{};
+    
+    if (amounts != null && amounts.isNotEmpty) {
+      params['tx_amount'] = amounts.join(';');
+    }
+    
+    if (labels != null && labels.isNotEmpty) {
+      params['recipient_name'] = labels.join(';');
+    }
+
+    if (params.isNotEmpty) {
+      uriString += Uri(queryParameters: params).toString();
+    }
+
+    if (description != null && description.isNotEmpty) {
+      uriString += "#${Uri.encodeComponent(description)}";
     }
 
     return uriString;
@@ -264,38 +369,57 @@ class AddressUtils {
 }
 
 class PaymentUriData {
-  final String address;
+  final List<String> addresses;
   final String? scheme;
-  final String? amount;
-  final String? label;
+  final List<String>? amounts;
+  final List<String>? labels;
   final String? message;
-  final String? paymentId; // Specific to Monero.
   final Map<String, String> additionalParams;
 
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
     scheme ?? "", // empty will just return null
   );
 
+  // Backward compatibility getters.
+  String get address => addresses.isNotEmpty ? addresses.first : '';
+  String? get amount => amounts?.isNotEmpty == true ? amounts!.first : null;
+  String? get label => labels?.isNotEmpty == true ? labels!.first : null;
+
   PaymentUriData({
-    required this.address,
+    required this.addresses,
     this.scheme,
-    this.amount,
-    this.label,
+    this.amounts,
+    this.labels,
     this.message,
-    this.paymentId,
     required this.additionalParams,
   });
+
+  // Backward compatibility constructor.
+  PaymentUriData.single({
+    required String address,
+    String? scheme,
+    String? amount,
+    String? label,
+    String? message,
+    required Map<String, String> additionalParams,
+  }) : this(
+    addresses: [address],
+    scheme: scheme,
+    amounts: amount != null ? [amount] : null,
+    labels: label != null ? [label] : null,
+    message: message,
+    additionalParams: additionalParams,
+  );
 
   @override
   String toString() =>
       "PaymentUriData { "
       "coin: $coin, "
-      "address: $address, "
-      "amount: $amount, "
+      "addresses: $addresses, "
+      "amounts: $amounts, "
       "scheme: $scheme, "
-      "label: $label, "
+      "labels: $labels, "
       "message: $message, "
-      "paymentId: $paymentId, "
       "additionalParams: $additionalParams"
       " }";
 }

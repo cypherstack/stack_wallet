@@ -132,4 +132,149 @@ void main() {
       "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
     );
   });
+
+  // Monero URI Tests.
+  group('Monero URI Tests', () {
+    const String moneroAddress = "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em";
+    const String moneroAddress2 = "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H";
+
+    test("parse single recipient Monero URI with amount and description", () {
+      const uri = "monero:${moneroAddress}?tx_amount=239.39014&tx_description=donation";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.scheme, "monero");
+      expect(result.addresses, [moneroAddress]);
+      expect(result.amounts, ["239.39014"]);
+      expect(result.message, "donation");
+      // Test backward compatibility.
+      expect(result.address, moneroAddress);
+      expect(result.amount, "239.39014");
+    });
+
+    test("parse single recipient Monero URI with fragment description", () {
+      const uri = "monero:${moneroAddress}?tx_amount=239.39014#donation";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.scheme, "monero");
+      expect(result.addresses, [moneroAddress]);
+      expect(result.amounts, ["239.39014"]);
+      expect(result.message, "donation");
+    });
+
+    test("parse multi-recipient Monero URI with matching amounts", () {
+      const uri = "monero:${moneroAddress};${moneroAddress2}?tx_amount=239.39014;132.44&tx_description=donations";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.scheme, "monero");
+      expect(result.addresses, [moneroAddress, moneroAddress2]);
+      expect(result.amounts, ["239.39014", "132.44"]);
+      expect(result.message, "donations");
+      // Test backward compatibility - should return first values.
+      expect(result.address, moneroAddress);
+      expect(result.amount, "239.39014");
+    });
+
+    test("parse multi-recipient Monero URI with recipient names", () {
+      const uri = "monero:${moneroAddress};${moneroAddress2}?tx_amount=239.39014;132.44&recipient_name=Alice;Bob";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.scheme, "monero");
+      expect(result.addresses, [moneroAddress, moneroAddress2]);
+      expect(result.amounts, ["239.39014", "132.44"]);
+      expect(result.labels, ["Alice", "Bob"]);
+      expect(result.label, "Alice");  // Backward compatibility.
+    });
+
+    test("reject multi-recipient Monero URI with mismatched amounts", () {
+      const uri = "monero:${moneroAddress};${moneroAddress2}?tx_amount=239.39014";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNull);  // Should be null due to validation failure.
+    });
+
+    test("parse multi-recipient Monero URI without amounts", () {
+      const uri = "monero:${moneroAddress};${moneroAddress2}?tx_description=donations";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.scheme, "monero");
+      expect(result.addresses, [moneroAddress, moneroAddress2]);
+      expect(result.amounts, isNull);
+      expect(result.message, "donations");
+    });
+
+    test("reject URI with deprecated tx_payment_id", () {
+      const uri = "monero:${moneroAddress}?tx_amount=239.39014&tx_payment_id=1234567890abcdef";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      // tx_payment_id should no longer be recognized or stored.
+      expect(result!.additionalParams.containsKey('tx_payment_id'), false);
+    });
+
+    test("build single recipient Monero URI", () {
+      final uri = AddressUtils.buildUriString(
+        "monero",
+        moneroAddress,
+        {"tx_amount": "239.39014", "tx_description": "donation"},
+      );
+      expect(uri, "monero:${moneroAddress}?tx_amount=239.39014#donation");
+    });
+
+    test("build multi-recipient Monero URI", () {
+      final uri = AddressUtils.buildMoneroMultiUriString(
+        [moneroAddress, moneroAddress2],
+        ["239.39014", "132.44"],
+        ["Alice", "Bob"],
+        "donations",
+      );
+      expect(uri, "monero:${moneroAddress};${moneroAddress2}?tx_amount=239.39014%3B132.44&recipient_name=Alice%3BBob#donations");
+    });
+
+    test("build multi-recipient Monero URI without amounts", () {
+      final uri = AddressUtils.buildMoneroMultiUriString(
+        [moneroAddress, moneroAddress2],
+        null,
+        null,
+        "donations",
+      );
+      expect(uri, "monero:${moneroAddress};${moneroAddress2}#donations");
+    });
+
+    test("reject multi-recipient URI builder with mismatched amounts", () {
+      expect(
+        () => AddressUtils.buildMoneroMultiUriString(
+          [moneroAddress, moneroAddress2],
+          ["239.39014"],  // Only one amount for two addresses.
+          null,
+          null,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test("reject multi-recipient URI builder with empty addresses", () {
+      expect(
+        () => AddressUtils.buildMoneroMultiUriString(
+          [],  // Empty addresses.
+          null,
+          null,
+          null,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test("parse Monero URI with special characters in description", () {
+      const uri = "monero:${moneroAddress}?tx_amount=239.39014#Donation%20for%20charity%21";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.message, "Donation for charity!");
+    });
+
+    test("parse Monero URI with URL encoded parameters", () {
+      const uri = "monero:${moneroAddress}?tx_amount=239.39014&recipient_name=Alice%20Smith";
+      final result = AddressUtils.parsePaymentUri(uri);
+      expect(result, isNotNull);
+      expect(result!.labels, ["Alice Smith"]);
+      expect(result.label, "Alice Smith");
+    });
+  });
 }
