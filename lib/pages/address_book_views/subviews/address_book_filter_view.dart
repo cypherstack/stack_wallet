@@ -42,9 +42,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
   @override
   void initState() {
     final coins = [...AppConfig.coins];
-    coins.removeWhere(
-      (e) => e is Firo && e.network.isTestNet,
-    );
+    coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
     final showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 
@@ -81,45 +79,43 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.all(12),
-              child: LayoutBuilder(
-                builder: (builderContext, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              RoundedWhiteContainer(
-                                child: Text(
-                                  "Only selected cryptocurrency addresses will be displayed.",
-                                  style: STextStyles.itemSubtitle(context),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: LayoutBuilder(
+                  builder: (builderContext, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                RoundedWhiteContainer(
+                                  child: Text(
+                                    "Only selected cryptocurrency addresses will be displayed.",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              Text(
-                                "Select cryptocurrency",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              child,
-                            ],
+                                const SizedBox(height: 12),
+                                Text(
+                                  "Select cryptocurrency",
+                                  style: STextStyles.smallMed12(context),
+                                ),
+                                const SizedBox(height: 12),
+                                child,
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -157,8 +153,9 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                           child: Column(
                             children: [
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 32),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                ),
                                 child: child,
                               ),
                             ],
@@ -170,8 +167,10 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                 ),
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 32,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -234,8 +233,9 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                 child: Checkbox(
                                   value: ref
                                       .watch(
-                                        addressBookFilterProvider
-                                            .select((value) => value.coins),
+                                        addressBookFilterProvider.select(
+                                          (value) => value.coins,
+                                        ),
                                       )
                                       .contains(coin),
                                   onChanged: (value) {
@@ -254,9 +254,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                   },
                                 ),
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
+                              const SizedBox(width: 12),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -264,9 +262,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                     coin.prettyName,
                                     style: STextStyles.largeMedium14(context),
                                   ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
+                                  const SizedBox(height: 2),
                                   Text(
                                     coin.ticker,
                                     style: STextStyles.itemSubtitle(context),

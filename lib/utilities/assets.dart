@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/exchange/change_now/change_now_exchange.dart';
-import '../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../services/exchange/nanswap/nanswap_exchange.dart';
 import '../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../services/exchange/trocador/trocador_exchange.dart';
@@ -33,7 +32,7 @@ class _SOCIALS {
 
   String get discord => "${_path}discord.svg";
   String get reddit => "${_path}reddit-alien-brands.svg";
-  String get twitter => "${_path}twitter-brands.svg";
+  String get twitter => "${_path}x.svg";
   String get telegram => "${_path}telegram-brands.svg";
 }
 
@@ -44,8 +43,8 @@ class _EXCHANGE {
 
   String get changeNow => "${_path}change_now_logo_1.svg";
   String get simpleSwap => "${_path}simpleswap-icon.svg";
-  String get majesticBankBlue => "${_path}mb_blue.svg";
-  String get majesticBankGreen => "${_path}mb_green.svg";
+  // String get majesticBankBlue => "${_path}mb_blue.svg";
+  // String get majesticBankGreen => "${_path}mb_green.svg";
   String get trocador => "${_path}trocador.svg";
   String get nanswap => "${_path}nanswap.svg";
 
@@ -55,15 +54,17 @@ class _EXCHANGE {
         return simpleSwap;
       case ChangeNowExchange.exchangeName:
         return changeNow;
-      case MajesticBankExchange.exchangeName:
-        return majesticBankBlue;
+      // case MajesticBankExchange.exchangeName:
+      //   return majesticBankBlue;
       case TrocadorExchange.exchangeName:
         return trocador;
       case NanswapExchange.exchangeName:
         return nanswap;
       default:
-        throw ArgumentError("Invalid exchange name passed to "
-            "Assets.exchange.getIconFor()");
+        throw ArgumentError(
+          "Invalid exchange name passed to "
+          "Assets.exchange.getIconFor()",
+        );
     }
   }
 }
@@ -232,7 +233,7 @@ class _SVG {
   String get trocadorRatingC => "assets/svg/trocador_rating_c.svg";
   String get trocadorRatingD => "assets/svg/trocador_rating_d.svg";
 
-// TODO provide proper assets
+  // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
   String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";

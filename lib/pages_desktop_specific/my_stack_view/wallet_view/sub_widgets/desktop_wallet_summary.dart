@@ -84,7 +84,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
             )
             : null;
 
-    final priceTuple =
+    final price =
         widget.isToken
             ? ref.watch(
               priceAnd24hChangeNotifierProvider.select(
@@ -104,17 +104,12 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     final Amount balanceToShow;
     if (isFiro) {
       switch (ref.watch(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.spark:
+        case BalanceType.private:
           final balance = ref.watch(pWalletBalanceTertiary(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
-        case FiroType.lelantus:
-          final balance = ref.watch(pWalletBalanceSecondary(walletId));
-          balanceToShow = _showAvailable ? balance.spendable : balance.total;
-          break;
-
-        case FiroType.public:
+        case BalanceType.public:
           final balance = ref.watch(pWalletBalance(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
@@ -150,9 +145,9 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
-                if (externalCalls)
+                if (externalCalls && price != null)
                   SelectableText(
-                    "${Amount.fromDecimal(priceTuple.item1 * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
+                    "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
                           Theme.of(

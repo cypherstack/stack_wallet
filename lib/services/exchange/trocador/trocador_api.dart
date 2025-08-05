@@ -56,9 +56,10 @@ abstract class TrocadorAPI {
           "Content-Type": "application/json",
           "API-KEY": kTrocadorApiKey,
         },
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       code = response.code;
@@ -68,10 +69,17 @@ abstract class TrocadorAPI {
 
       final json = jsonDecode(response.body);
 
+      if (code != 200) {
+        throw Exception(json["error"] as String? ?? json);
+      }
+
       return json;
     } catch (e, s) {
-      Logging.instance
-          .e("_makeRequest($uri) HTTP:$code threw: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "_makeRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -83,9 +91,7 @@ abstract class TrocadorAPI {
     final uri = _buildUri(
       isOnion: isOnion,
       method: "coins",
-      params: {
-        "ref": kTrocadorRefCode,
-      },
+      params: {"ref": kTrocadorRefCode},
     );
 
     try {
@@ -93,22 +99,15 @@ abstract class TrocadorAPI {
 
       if (json is List) {
         final list = List<Map<String, dynamic>>.from(json);
-        final List<TrocadorCoin> coins = list
-            .map(
-              (e) => TrocadorCoin.fromMap(e),
-            )
-            .toList();
+        final List<TrocadorCoin> coins =
+            list.map((e) => TrocadorCoin.fromMap(e)).toList();
 
         return ExchangeResponse(value: coins);
       } else {
         throw Exception("unexpected json: $json");
       }
     } catch (e, s) {
-      Logging.instance.e(
-        "getCoins exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getCoins exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -126,10 +125,7 @@ abstract class TrocadorAPI {
     final uri = _buildUri(
       isOnion: isOnion,
       method: "trade",
-      params: {
-        "ref": kTrocadorRefCode,
-        "id": tradeId,
-      },
+      params: {"ref": kTrocadorRefCode, "id": tradeId},
     );
 
     try {
@@ -138,11 +134,7 @@ abstract class TrocadorAPI {
 
       return ExchangeResponse(value: TrocadorTrade.fromMap(map));
     } catch (e, s) {
-      Logging.instance.e(
-        "getTrade exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getTrade exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -204,11 +196,7 @@ abstract class TrocadorAPI {
     required bool isOnion,
     required Map<String, String> params,
   }) async {
-    final uri = _buildUri(
-      isOnion: isOnion,
-      method: "new_rate",
-      params: params,
-    );
+    final uri = _buildUri(isOnion: isOnion, method: "new_rate", params: params);
 
     try {
       final json = await _makeGetRequest(uri);
@@ -216,11 +204,7 @@ abstract class TrocadorAPI {
 
       return ExchangeResponse(value: TrocadorRate.fromMap(map));
     } catch (e, s) {
-      Logging.instance.e(
-        "getNewRate exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getNewRate exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),

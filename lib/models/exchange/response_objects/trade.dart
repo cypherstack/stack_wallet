@@ -11,6 +11,7 @@
 import 'package:hive/hive.dart';
 
 import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../change_now/cn_exchange_transaction.dart';
 import '../change_now/exchange_transaction.dart';
 
 part 'trade.g.dart';
@@ -225,9 +226,10 @@ class Trade {
       timestamp: exTx.date,
       updatedAt: DateTime.tryParse(exTx.statusObject!.updatedAt) ?? exTx.date,
       payInCurrency: exTx.fromCurrency,
-      payInAmount: exTx.statusObject!.amountSendDecimal.isEmpty
-          ? exTx.statusObject!.expectedSendAmountDecimal
-          : exTx.statusObject!.amountSendDecimal,
+      payInAmount:
+          exTx.statusObject!.amountSendDecimal.isEmpty
+              ? exTx.statusObject!.expectedSendAmountDecimal
+              : exTx.statusObject!.amountSendDecimal,
       payInAddress: exTx.payinAddress,
       payInNetwork: "",
       payInExtraId: exTx.payinExtraId,
@@ -238,6 +240,42 @@ class Trade {
       payOutNetwork: "",
       payOutExtraId: exTx.payoutExtraId,
       payOutTxid: exTx.statusObject!.payoutHash,
+      refundAddress: exTx.refundAddress,
+      refundExtraId: exTx.refundExtraId,
+      status: exTx.statusObject!.status.name,
+      exchangeName: ChangeNowExchange.exchangeName,
+    );
+  }
+
+  factory Trade.fromCNExchangeTransaction(
+    CNExchangeTransaction exTx,
+    bool reversed,
+  ) {
+    return Trade(
+      uuid: exTx.uuid,
+      tradeId: exTx.id,
+      rateType: "",
+      direction: reversed ? "reverse" : "direct",
+      timestamp: exTx.date,
+      updatedAt: DateTime.tryParse(exTx.statusObject!.updatedAt) ?? exTx.date,
+      payInCurrency: exTx.fromCurrency,
+      payInAmount:
+          exTx.statusObject!.amountFrom ??
+          exTx.statusObject!.expectedAmountFrom ??
+          exTx.fromAmount.toString(),
+      payInAddress: exTx.payinAddress,
+      payInNetwork: exTx.fromNetwork,
+      payInExtraId: "",
+      payInTxid: exTx.statusObject!.payinHash ?? "",
+      payOutCurrency: exTx.toCurrency,
+      payOutAmount:
+          exTx.statusObject!.amountTo ??
+          exTx.statusObject!.expectedAmountTo ??
+          exTx.toAmount.toString(),
+      payOutAddress: exTx.payoutAddress,
+      payOutNetwork: exTx.toNetwork,
+      payOutExtraId: exTx.payoutExtraId,
+      payOutTxid: exTx.statusObject!.payoutHash ?? "",
       refundAddress: exTx.refundAddress,
       refundExtraId: exTx.refundExtraId,
       status: exTx.statusObject!.status.name,

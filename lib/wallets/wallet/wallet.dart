@@ -35,6 +35,7 @@ import 'impl/dogecoin_wallet.dart';
 import 'impl/ecash_wallet.dart';
 import 'impl/epiccash_wallet.dart';
 import 'impl/ethereum_wallet.dart';
+import 'impl/fact0rn_wallet.dart';
 import 'impl/firo_wallet.dart';
 import 'impl/litecoin_wallet.dart';
 import 'impl/monero_wallet.dart';
@@ -42,6 +43,7 @@ import 'impl/namecoin_wallet.dart';
 import 'impl/nano_wallet.dart';
 import 'impl/particl_wallet.dart';
 import 'impl/peercoin_wallet.dart';
+import 'impl/salvium_wallet.dart';
 import 'impl/solana_wallet.dart';
 import 'impl/stellar_wallet.dart';
 import 'impl/sub_wallets/eth_token_wallet.dart';
@@ -50,7 +52,6 @@ import 'impl/wownero_wallet.dart';
 import 'impl/xelis_wallet.dart';
 import 'intermediate/cryptonote_wallet.dart';
 import 'wallet_mixin_interfaces/electrumx_interface.dart';
-import 'wallet_mixin_interfaces/lelantus_interface.dart';
 import 'wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'wallet_mixin_interfaces/multi_address_interface.dart';
 import 'wallet_mixin_interfaces/paynym_interface.dart';
@@ -127,11 +128,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       await updateChainHeight();
     } catch (e, s) {
       // do nothing on failure (besides logging)
-      Logging.instance.w(
-        "$e\n$s",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s);
     }
 
     // return regardless of whether it was updated or not as we want a
@@ -173,7 +170,8 @@ abstract class Wallet<T extends CryptoCurrency> {
         value: viewOnlyData!.toJsonEncodedString(),
       );
     } else if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet || wallet is XelisWallet) { // 
+      if (wallet is CryptonoteWallet || wallet is XelisWallet) {
+        //
         // currently a special case due to the xmr/wow/xelis libraries handling their
         // own mnemonic generation on new wallet creation
         // if its a restore we must set them
@@ -238,10 +236,11 @@ abstract class Wallet<T extends CryptoCurrency> {
     required NodeService nodeService,
     required Prefs prefs,
   }) async {
-    final walletInfo = await mainDB.isar.walletInfo
-        .where()
-        .walletIdEqualTo(walletId)
-        .findFirst();
+    final walletInfo =
+        await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .findFirst();
 
     Logging.instance.i(
       "Wallet.load loading"
@@ -270,10 +269,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     required EthereumWallet ethWallet,
     required EthContract contract,
   }) {
-    final Wallet wallet = EthTokenWallet(
-      ethWallet,
-      contract,
-    );
+    final Wallet wallet = EthTokenWallet(ethWallet, contract);
 
     wallet.prefs = ethWallet.prefs;
     wallet.nodeService = ethWallet.nodeService;
@@ -287,27 +283,19 @@ abstract class Wallet<T extends CryptoCurrency> {
   // ========== Static Util ====================================================
 
   // secure storage key
-  static String mnemonicKey({
-    required String walletId,
-  }) =>
+  static String mnemonicKey({required String walletId}) =>
       "${walletId}_mnemonic";
 
   // secure storage key
-  static String mnemonicPassphraseKey({
-    required String walletId,
-  }) =>
+  static String mnemonicPassphraseKey({required String walletId}) =>
       "${walletId}_mnemonicPassphrase";
 
   // secure storage key
-  static String privateKeyKey({
-    required String walletId,
-  }) =>
+  static String privateKeyKey({required String walletId}) =>
       "${walletId}_privateKey";
 
   // secure storage key
-  static String getViewOnlyWalletDataSecStoreKey({
-    required String walletId,
-  }) =>
+  static String getViewOnlyWalletDataSecStoreKey({required String walletId}) =>
       "${walletId}_viewOnlyWalletData";
 
   //============================================================================
@@ -321,9 +309,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     required NodeService nodeService,
     required Prefs prefs,
   }) async {
-    final Wallet wallet = _loadWallet(
-      walletInfo: walletInfo,
-    );
+    final Wallet wallet = _loadWallet(walletInfo: walletInfo);
 
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
@@ -339,9 +325,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       .._walletId = walletInfo.walletId;
   }
 
-  static Wallet _loadWallet({
-    required WalletInfo walletInfo,
-  }) {
+  static Wallet _loadWallet({required WalletInfo walletInfo}) {
     final net = walletInfo.coin.network;
     switch (walletInfo.coin.runtimeType) {
       case const (Banano):
@@ -374,6 +358,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       case const (Ethereum):
         return EthereumWallet(net);
 
+      case const (Fact0rn):
+        return Fact0rnWallet(net);
+
       case const (Firo):
         return FiroWallet(net);
 
@@ -394,6 +381,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Peercoin):
         return PeercoinWallet(net);
+
+      case const (Salvium):
+        return SalviumWallet(net);
 
       case const (Solana):
         return SolanaWallet(net);
@@ -421,12 +411,11 @@ abstract class Wallet<T extends CryptoCurrency> {
     _periodicPingCheck();
 
     // then periodically check
-    _networkAliveTimer = Timer.periodic(
-      Constants.networkAliveTimerDuration,
-      (_) async {
-        _periodicPingCheck();
-      },
-    );
+    _networkAliveTimer = Timer.periodic(Constants.networkAliveTimerDuration, (
+      _,
+    ) async {
+      _periodicPingCheck();
+    });
   }
 
   void _periodicPingCheck() async {
@@ -438,27 +427,28 @@ abstract class Wallet<T extends CryptoCurrency> {
     final bool hasNetwork = await pingCheck();
 
     if (_isConnected != hasNetwork) {
-      final NodeConnectionStatus status = hasNetwork
-          ? NodeConnectionStatus.connected
-          : NodeConnectionStatus.disconnected;
-      GlobalEventBus.instance.fire(
-        NodeConnectionStatusChangedEvent(
-          status,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
+      final NodeConnectionStatus status =
+          hasNetwork
+              ? NodeConnectionStatus.connected
+              : NodeConnectionStatus.disconnected;
+      if (!doNotFireRefreshEvents) {
+        GlobalEventBus.instance.fire(
+          NodeConnectionStatusChangedEvent(status, walletId, cryptoCurrency),
+        );
+      }
 
       _isConnected = hasNetwork;
 
       if (status == NodeConnectionStatus.disconnected) {
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.unableToSync,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.unableToSync,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+        }
       }
 
       if (hasNetwork) {
@@ -499,7 +489,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// updates the wallet info's cachedChainHeight
   Future<void> updateChainHeight();
 
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate);
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate);
 
   Future<FeeObject> get fees;
 
@@ -518,28 +508,33 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   NodeModel getCurrentNode() {
-    final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency) ??
-        cryptoCurrency.defaultNode;
+    final node =
+        nodeService.getPrimaryNodeFor(currency: cryptoCurrency) ??
+        cryptoCurrency.defaultNode(isPrimary: true);
 
     return node;
   }
+
+  bool doNotFireRefreshEvents = false;
 
   // Should fire events
   Future<void> refresh() async {
     final refreshCompleter = Completer<void>();
     final future = refreshCompleter.future.then(
       (_) {
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.synced,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
-
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.synced,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+        }
         if (shouldAutoSync) {
-          _periodicRefreshTimer ??=
-              Timer.periodic(const Duration(seconds: 150), (timer) async {
+          _periodicRefreshTimer ??= Timer.periodic(const Duration(seconds: 150), (
+            timer,
+          ) async {
             // chain height check currently broken
             // if ((await chainHeight) != (await storedChainHeight)) {
 
@@ -553,20 +548,22 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       },
       onError: (Object e, StackTrace s) {
-        GlobalEventBus.instance.fire(
-          NodeConnectionStatusChangedEvent(
-            NodeConnectionStatus.disconnected,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.unableToSync,
-            walletId,
-            cryptoCurrency,
-          ),
-        );
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            NodeConnectionStatusChangedEvent(
+              NodeConnectionStatus.disconnected,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.unableToSync,
+              walletId,
+              cryptoCurrency,
+            ),
+          );
+        }
         Logging.instance.e(
           "Caught exception in refreshWalletData()",
           error: e,
@@ -584,7 +581,11 @@ abstract class Wallet<T extends CryptoCurrency> {
     if (this is ElectrumXInterface) {
       (this as ElectrumXInterface?)?.refreshingPercent = percent;
     }
-    GlobalEventBus.instance.fire(RefreshPercentChangedEvent(percent, walletId));
+    if (!doNotFireRefreshEvents) {
+      GlobalEventBus.instance.fire(
+        RefreshPercentChangedEvent(percent, walletId),
+      );
+    }
   }
 
   // Should fire events
@@ -596,7 +597,8 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
     final start = DateTime.now();
 
-    final viewOnly = this is ViewOnlyOptionInterface &&
+    final viewOnly =
+        this is ViewOnlyOptionInterface &&
         (this as ViewOnlyOptionInterface).isViewOnly;
 
     try {
@@ -604,13 +606,15 @@ abstract class Wallet<T extends CryptoCurrency> {
       // Slight possibility of race but should be irrelevant
       await refreshMutex.acquire();
 
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.syncing,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
+      if (!doNotFireRefreshEvents) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.syncing,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+      }
 
       // add some small buffer before making calls.
       // this can probably be removed in the future but was added as a
@@ -621,8 +625,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       final Set<String> codesToCheck = {};
       if (this is PaynymInterface && !viewOnly) {
         // isSegwit does not matter here at all
-        final myCode =
-            await (this as PaynymInterface).getPaymentCode(isSegwit: false);
+        final myCode = await (this as PaynymInterface).getPaymentCode(
+          isSegwit: false,
+        );
 
         final nym = await PaynymIsApi().nym(myCode.toString());
         if (nym.value != null) {
@@ -685,8 +690,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
-        await (this as PaynymInterface)
-            .checkForNotificationTransactionsTo(codesToCheck);
+        await (this as PaynymInterface).checkForNotificationTransactionsTo(
+          codesToCheck,
+        );
         // check utxos again for notification outputs
         await updateUTXOs();
       }
@@ -694,13 +700,6 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // await getAllTxsToWatch();
 
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is LelantusInterface && !viewOnly) {
-        if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
-            false) {
-          await (this as LelantusInterface).refreshLelantusData();
-        }
-      }
       _fireRefreshPercentChange(0.90);
 
       await updateBalance();
@@ -746,10 +745,11 @@ abstract class Wallet<T extends CryptoCurrency> {
           // Check if there's another wallet of this coin on the sync list.
           final List<String> walletIds = [];
           for (final id in prefs.walletIdsSyncOnStartup) {
-            final wallet = mainDB.isar.walletInfo
-                .where()
-                .walletIdEqualTo(id)
-                .findFirstSync()!;
+            final wallet =
+                mainDB.isar.walletInfo
+                    .where()
+                    .walletIdEqualTo(id)
+                    .findFirstSync()!;
 
             if (wallet.coin == cryptoCurrency) {
               walletIds.add(id);
@@ -802,17 +802,11 @@ abstract class Wallet<T extends CryptoCurrency> {
     return await mainDB.isar.addresses
         .buildQuery<Address>(
           whereClauses: [
-            IndexWhereClause.equalTo(
-              indexName: r"walletId",
-              value: [walletId],
-            ),
+            IndexWhereClause.equalTo(indexName: r"walletId", value: [walletId]),
           ],
           filter: filterOperation,
           sortBy: [
-            const SortProperty(
-              property: r"derivationIndex",
-              sort: Sort.desc,
-            ),
+            const SortProperty(property: r"derivationIndex", sort: Sort.desc),
           ],
         )
         .findFirst();

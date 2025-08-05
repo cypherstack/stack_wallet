@@ -4,6 +4,7 @@ import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/eth_commons.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
 
@@ -41,25 +42,26 @@ class Ethereum extends Bip39Currency {
   @override
   String get ticker => _ticker;
 
-  int get gasLimit => 21000;
+  int get gasLimit => kEthereumMinGasLimit;
 
   @override
   bool get hasTokenSupport => true;
 
   @override
-  NodeModel get defaultNode => NodeModel(
-        host: "https://eth.stackwallet.com",
-        port: 443,
-        name: DefaultNodes.defaultName,
-        id: DefaultNodes.buildId(this),
-        useSSL: true,
-        enabled: true,
-        coinName: identifier,
-        isFailover: true,
-        isDown: false,
-        torEnabled: true,
-        clearnetEnabled: true,
-      );
+  NodeModel defaultNode({required bool isPrimary}) => NodeModel(
+    host: "https://eth2.stackwallet.com",
+    port: 443,
+    name: DefaultNodes.defaultName,
+    id: DefaultNodes.buildId(this),
+    useSSL: true,
+    enabled: true,
+    coinName: identifier,
+    isFailover: true,
+    isDown: false,
+    torEnabled: true,
+    clearnetEnabled: true,
+    isPrimary: isPrimary,
+  );
 
   @override
   // Not used for eth
@@ -110,5 +112,13 @@ class Ethereum extends Bip39Currency {
           "Unsupported network for defaultBlockExplorer(): $network",
         );
     }
+  }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.ethereum;
+    }
+    return null;
   }
 }

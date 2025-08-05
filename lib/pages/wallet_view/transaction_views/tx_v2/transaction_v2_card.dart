@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,15 +21,14 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../widgets/coin_ticker_tag.dart';
+import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../sub_widgets/tx_icon.dart';
 import 'transaction_v2_details_view.dart';
 
 class TransactionCardV2 extends ConsumerStatefulWidget {
-  const TransactionCardV2({
-    super.key,
-    required this.transaction,
-  });
+  const TransactionCardV2({super.key, required this.transaction});
 
   final TransactionV2 transaction;
 
@@ -47,25 +47,24 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
   bool get isTokenTx => tokenContract != null;
 
-  String whatIsIt(
-    CryptoCurrency coin,
-    int currentHeight,
-  ) =>
+  String whatIsIt(CryptoCurrency coin, int currentHeight) =>
       _transaction.isCancelled && coin is Ethereum
           ? "Failed"
           : _transaction.statusLabel(
-              currentChainHeight: currentHeight,
-              minConfirms: ref
-                  .read(pWallets)
-                  .getWallet(walletId)
-                  .cryptoCurrency
-                  .minConfirms,
-              minCoinbaseConfirms: ref
-                  .read(pWallets)
-                  .getWallet(walletId)
-                  .cryptoCurrency
-                  .minCoinbaseConfirms,
-            );
+            currentChainHeight: currentHeight,
+            minConfirms:
+                ref
+                    .read(pWallets)
+                    .getWallet(walletId)
+                    .cryptoCurrency
+                    .minConfirms,
+            minCoinbaseConfirms:
+                ref
+                    .read(pWallets)
+                    .getWallet(walletId)
+                    .cryptoCurrency
+                    .minCoinbaseConfirms,
+          );
 
   @override
   void initState() {
@@ -106,18 +105,23 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    final baseCurrency = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    final baseCurrency = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.currency),
+    );
 
-    final price = ref
-        .watch(
-          priceAnd24hChangeNotifierProvider.select(
-            (value) => isTokenTx
-                ? value.getTokenPrice(tokenContract!.address)
-                : value.getPrice(coin),
-          ),
-        )
-        .item1;
+    Decimal? price;
+    if (ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    )) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) =>
+              isTokenTx
+                  ? value.getTokenPrice(tokenContract!.address)?.value
+                  : value.getPrice(coin)?.value,
+        ),
+      );
+    }
 
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
@@ -134,6 +138,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
 
@@ -165,6 +170,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
       }
@@ -174,8 +180,9 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(Constants.size.circularBorderRadius),
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(6),
@@ -189,25 +196,22 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
             if (Util.isDesktop) {
               await showDialog<void>(
                 context: context,
-                builder: (context) => DesktopDialog(
-                  maxHeight: MediaQuery.of(context).size.height - 64,
-                  maxWidth: 580,
-                  child: TransactionV2DetailsView(
-                    transaction: _transaction,
-                    coin: coin,
-                    walletId: walletId,
-                  ),
-                ),
+                builder:
+                    (context) => DesktopDialog(
+                      maxHeight: MediaQuery.of(context).size.height - 64,
+                      maxWidth: 580,
+                      child: TransactionV2DetailsView(
+                        transaction: _transaction,
+                        coin: coin,
+                        walletId: walletId,
+                      ),
+                    ),
               );
             } else {
               unawaited(
                 Navigator.of(context).pushNamed(
                   TransactionV2DetailsView.routeName,
-                  arguments: (
-                    tx: _transaction,
-                    coin: coin,
-                    walletId: walletId,
-                  ),
+                  arguments: (tx: _transaction, coin: coin, walletId: walletId),
                 ),
               );
             }
@@ -221,9 +225,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                   coin: coin,
                   currentHeight: currentHeight,
                 ),
-                const SizedBox(
-                  width: 14,
-                ),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -235,18 +237,32 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                           Flexible(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
-                              child: Text(
-                                whatIsIt(
-                                  coin,
-                                  currentHeight,
+                              child: ConditionalParent(
+                                condition:
+                                    coin is Firo &&
+                                    _transaction.isInstantLock &&
+                                    !_transaction.isConfirmed(
+                                      currentHeight,
+                                      coin.minConfirms,
+                                      coin.minCoinbaseConfirms,
+                                    ),
+                                builder:
+                                    (child) => Row(
+                                      children: [
+                                        child,
+
+                                        const SizedBox(width: 10),
+                                        const CoinTickerTag(ticker: "INSTANT"),
+                                      ],
+                                    ),
+                                child: Text(
+                                  whatIsIt(coin, currentHeight),
+                                  style: STextStyles.itemSubtitle12(context),
                                 ),
-                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
+                          const SizedBox(width: 10),
                           Flexible(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
@@ -262,9 +278,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         // crossAxisAlignment: CrossAxisAlignment.end,
@@ -278,29 +292,15 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               ),
                             ),
                           ),
-                          if (ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.externalCalls),
-                          ))
-                            const SizedBox(
-                              width: 10,
-                            ),
-                          if (ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.externalCalls),
-                          ))
+                          if (price != null) const SizedBox(width: 10),
+                          if (price != null)
                             Flexible(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Builder(
                                   builder: (_) {
                                     return Text(
-                                      "$prefix${Amount.fromDecimal(
-                                        amount.decimal * price,
-                                        fractionDigits: 2,
-                                      ).fiatString(
-                                        locale: locale,
-                                      )} $baseCurrency",
+                                      "$prefix${Amount.fromDecimal(amount.decimal * price!, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                                       style: STextStyles.label(context),
                                     );
                                   },

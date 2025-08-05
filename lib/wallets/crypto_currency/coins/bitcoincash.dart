@@ -1,9 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:bech32/bech32.dart';
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:flutter/foundation.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -65,9 +64,9 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-        if (network != CryptoCurrencyNetwork.test) DerivePathType.bch44,
-      ];
+    DerivePathType.bip44,
+    if (network != CryptoCurrencyNetwork.test) DerivePathType.bch44,
+  ];
 
   @override
   String get genesisHash {
@@ -82,10 +81,8 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(546),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
   coinlib.Network get networkParams {
@@ -234,6 +231,17 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
+  AddressType? getAddressType(String address) {
+    final format = bitbox.Address.detectFormat(address);
+
+    return super.getAddressType(
+      format == bitbox.Address.formatCashAddr
+          ? bitbox.Address.toLegacyAddress(address)
+          : address,
+    );
+  }
+
+  @override
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
@@ -285,7 +293,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -300,6 +308,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -315,6 +324,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

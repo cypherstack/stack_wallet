@@ -92,32 +92,37 @@ class TrocadorTrade {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      "tradeId": tradeId,
+      "date": date.toIso8601String(),
+      "tickerFrom": tickerFrom,
+      "tickerTo": tickerTo,
+      "coinFrom": coinFrom,
+      "coinTo": coinTo,
+      "networkFrom": networkFrom,
+      "networkTo": networkTo,
+      "amountFrom": amountFrom.toString(),
+      "amountTo": amountTo.toString(),
+      "provider": provider,
+      "fixed": fixed,
+      "status": status,
+      "addressProvider": addressProvider,
+      "addressProviderMemo": addressProviderMemo,
+      "addressUser": addressUser,
+      "addressUserMemo": addressUserMemo,
+      "refundAddress": refundAddress,
+      "refundAddressMemo": refundAddressMemo,
+      "password": password,
+      "idProvider": idProvider,
+      "quotes": quotes,
+      "payment": payment,
+    };
+  }
+
+
   @override
   String toString() {
-    return 'TrocadorTrade( '
-        'tradeId: $tradeId, '
-        'date: $date, '
-        'tickerFrom: $tickerFrom, '
-        'tickerTo: $tickerTo, '
-        'coinFrom: $coinFrom, '
-        'coinTo: $coinTo, '
-        'networkFrom: $networkFrom, '
-        'networkTo: $networkTo, '
-        'amountFrom: $amountFrom, '
-        'amountTo: $amountTo, '
-        'provider: $provider, '
-        'fixed: $fixed, '
-        'status: $status, '
-        'addressProvider: $addressProvider, '
-        'addressProviderMemo: $addressProviderMemo, '
-        'addressUser: $addressUser, '
-        'addressUserMemo: $addressUserMemo, '
-        'refundAddress: $refundAddress, '
-        'refundAddressMemo: $refundAddressMemo, '
-        'password: $password, '
-        'idProvider: $idProvider, '
-        'quotes: $quotes, '
-        'payment: $payment '
-        ')';
+    return  "TrocadorTrade: ${toMap()}";
   }
 }

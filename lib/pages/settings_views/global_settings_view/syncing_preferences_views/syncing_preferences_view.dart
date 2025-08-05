@@ -54,127 +54,136 @@ class SyncingPreferencesView extends ConsumerWidget {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: RawMaterialButton(
-                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          RoundedWhiteContainer(
                             padding: const EdgeInsets.all(0),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
+                            child: RawMaterialButton(
+                              // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                              padding: const EdgeInsets.all(0),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
                               ),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .pushNamed(SyncingOptionsView.routeName);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Syncing",
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      Text(
-                                        _currentTypeDescription(
-                                          ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                              (value) => value.syncType,
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                ).pushNamed(SyncingOptionsView.routeName);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Syncing",
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        Text(
+                                          _currentTypeDescription(
+                                            ref.watch(
+                                              prefsChangeNotifierProvider
+                                                  .select(
+                                                    (value) => value.syncType,
+                                                  ),
                                             ),
                                           ),
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
                                         ),
-                                        style:
-                                            STextStyles.itemSubtitle(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                    ],
-                                  ),
-                                  const Spacer(),
-                                ],
+                                      ],
+                                    ),
+                                    const Spacer(),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Consumer(
-                            builder: (_, ref, __) {
-                              return RawMaterialButton(
-                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
+                          const SizedBox(height: 8),
+                          RoundedWhiteContainer(
+                            child: Consumer(
+                              builder: (_, ref, __) {
+                                return RawMaterialButton(
+                                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
                                   ),
-                                ),
-                                onPressed: null,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "AutoSync only on Wi-Fi",
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                        width: 40,
-                                        child: DraggableSwitchButton(
-                                          isOn: ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                              (value) => value.wifiOnly,
-                                            ),
+                                  onPressed: null,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "AutoSync only on Wi-Fi",
+                                          style: STextStyles.titleBold12(
+                                            context,
                                           ),
-                                          onValueChanged: (newValue) {
-                                            ref
-                                                .read(
-                                                  prefsChangeNotifierProvider,
-                                                )
-                                                .wifiOnly = newValue;
-                                          },
+                                          textAlign: TextAlign.left,
                                         ),
-                                      ),
-                                    ],
+                                        SizedBox(
+                                          height: 20,
+                                          width: 40,
+                                          child: DraggableSwitchButton(
+                                            isOn: ref.watch(
+                                              prefsChangeNotifierProvider
+                                                  .select(
+                                                    (value) => value.wifiOnly,
+                                                  ),
+                                            ),
+                                            onValueChanged: (newValue) {
+                                              ref
+                                                  .read(
+                                                    prefsChangeNotifierProvider,
+                                                  )
+                                                  .wifiOnly = newValue;
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

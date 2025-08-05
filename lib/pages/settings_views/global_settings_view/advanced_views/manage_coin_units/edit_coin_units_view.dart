@@ -154,9 +154,11 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: child,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: child,
+              ),
             ),
           ),
         ),

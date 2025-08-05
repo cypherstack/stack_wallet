@@ -9,9 +9,9 @@
  */
 
 class FeeObject {
-  final int fast;
-  final int medium;
-  final int slow;
+  final BigInt fast;
+  final BigInt medium;
+  final BigInt slow;
 
   final int numberOfBlocksFast;
   final int numberOfBlocksAverage;
@@ -26,19 +26,22 @@ class FeeObject {
     required this.slow,
   });
 
-  factory FeeObject.fromJson(Map<String, dynamic> json) {
-    return FeeObject(
-      fast: json['fast'] as int,
-      medium: json['average'] as int,
-      slow: json['slow'] as int,
-      numberOfBlocksFast: json['numberOfBlocksFast'] as int,
-      numberOfBlocksAverage: json['numberOfBlocksAverage'] as int,
-      numberOfBlocksSlow: json['numberOfBlocksSlow'] as int,
-    );
-  }
-
   @override
   String toString() {
     return "{fast: $fast, medium: $medium, slow: $slow, numberOfBlocksFast: $numberOfBlocksFast, numberOfBlocksAverage: $numberOfBlocksAverage, numberOfBlocksSlow: $numberOfBlocksSlow}";
   }
+}
+
+class EthFeeObject extends FeeObject {
+  final BigInt suggestBaseFee;
+
+  EthFeeObject({
+    required this.suggestBaseFee,
+    required super.numberOfBlocksFast,
+    required super.numberOfBlocksAverage,
+    required super.numberOfBlocksSlow,
+    required super.fast,
+    required super.medium,
+    required super.slow,
+  });
 }

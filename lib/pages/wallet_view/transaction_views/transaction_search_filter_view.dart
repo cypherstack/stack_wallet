@@ -40,10 +40,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 
 class TransactionSearchFilterView extends ConsumerStatefulWidget {
-  const TransactionSearchFilterView({
-    super.key,
-    required this.coin,
-  });
+  const TransactionSearchFilterView({super.key, required this.coin});
 
   static const String routeName = "/transactionSearchFilter";
 
@@ -82,18 +79,19 @@ class _TransactionSearchViewState
       _selectedFromDate = filterState.from;
       _keywordTextEditingController.text = filterState.keyword;
 
-      _fromDateString = _selectedFromDate == null
-          ? ""
-          : Format.formatDate(_selectedFromDate!);
+      _fromDateString =
+          _selectedFromDate == null
+              ? ""
+              : Format.formatDate(_selectedFromDate!);
       _toDateString =
           _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
 
-      final String amount = filterState.amount == null
-          ? ""
-          : ref.read(pAmountFormatter(widget.coin)).format(
-                filterState.amount!,
-                withUnitName: false,
-              );
+      final String amount =
+          filterState.amount == null
+              ? ""
+              : ref
+                  .read(pAmountFormatter(widget.coin))
+                  .format(filterState.amount!, withUnitName: false);
 
       _amountTextEditingController.text = amount;
     }
@@ -118,9 +116,10 @@ class _TransactionSearchViewState
     return Text(
       isDateSelected ? "From..." : _fromDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-        color: isDateSelected
-            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-            : Theme.of(context).extension<StackColors>()!.accentColorDark,
+        color:
+            isDateSelected
+                ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+                : Theme.of(context).extension<StackColors>()!.accentColorDark,
       ),
     );
   }
@@ -130,9 +129,10 @@ class _TransactionSearchViewState
     return Text(
       isDateSelected ? "To..." : _toDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-        color: isDateSelected
-            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-            : Theme.of(context).extension<StackColors>()!.accentColorDark,
+        color:
+            isDateSelected
+                ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+                : Theme.of(context).extension<StackColors>()!.accentColorDark,
       ),
     );
   }
@@ -145,13 +145,14 @@ class _TransactionSearchViewState
     const middleSeparatorWidth = 12.0;
     final isDesktop = Util.isDesktop;
 
-    final width = isDesktop
-        ? null
-        : (MediaQuery.of(context).size.width -
-                (middleSeparatorWidth +
-                    (2 * middleSeparatorPadding) +
-                    (2 * Constants.size.standardPadding))) /
-            2;
+    final width =
+        isDesktop
+            ? null
+            : (MediaQuery.of(context).size.width -
+                    (middleSeparatorWidth +
+                        (2 * middleSeparatorPadding) +
+                        (2 * Constants.size.standardPadding))) /
+                2;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -172,7 +173,8 @@ class _TransactionSearchViewState
                   _selectedFromDate = date;
 
                   // flag to adjust date so from date is always before to date
-                  final flag = _selectedToDate != null &&
+                  final flag =
+                      _selectedToDate != null &&
                       !_selectedFromDate!.isBefore(_selectedToDate!);
                   if (flag) {
                     _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
@@ -182,13 +184,15 @@ class _TransactionSearchViewState
 
                   setState(() {
                     if (flag) {
-                      _toDateString = _selectedToDate == null
-                          ? ""
-                          : Format.formatDate(_selectedToDate!);
+                      _toDateString =
+                          _selectedToDate == null
+                              ? ""
+                              : Format.formatDate(_selectedToDate!);
                     }
-                    _fromDateString = _selectedFromDate == null
-                        ? ""
-                        : Format.formatDate(_selectedFromDate!);
+                    _fromDateString =
+                        _selectedFromDate == null
+                            ? ""
+                            : Format.formatDate(_selectedFromDate!);
                   });
                 }
               }
@@ -196,15 +200,18 @@ class _TransactionSearchViewState
             child: Container(
               width: width,
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius:
-                    BorderRadius.circular(Constants.size.circularBorderRadius),
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
                 border: Border.all(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   width: 1,
                 ),
               ),
@@ -219,18 +226,15 @@ class _TransactionSearchViewState
                       Assets.svg.calendar,
                       height: 20,
                       width: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle2,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle2,
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        child: _dateFromText,
-                      ),
+                      child: FittedBox(child: _dateFromText),
                     ),
                   ],
                 ),
@@ -239,8 +243,9 @@ class _TransactionSearchViewState
           ),
         ),
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: middleSeparatorPadding),
+          padding: const EdgeInsets.symmetric(
+            horizontal: middleSeparatorPadding,
+          ),
           child: Container(
             width: middleSeparatorWidth,
             // height: 1,
@@ -263,7 +268,8 @@ class _TransactionSearchViewState
                   _selectedToDate = date;
 
                   // flag to adjust date so from date is always before to date
-                  final flag = _selectedFromDate != null &&
+                  final flag =
+                      _selectedFromDate != null &&
                       !_selectedToDate!.isAfter(_selectedFromDate!);
                   if (flag) {
                     _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
@@ -273,13 +279,15 @@ class _TransactionSearchViewState
 
                   setState(() {
                     if (flag) {
-                      _fromDateString = _selectedFromDate == null
-                          ? ""
-                          : Format.formatDate(_selectedFromDate!);
+                      _fromDateString =
+                          _selectedFromDate == null
+                              ? ""
+                              : Format.formatDate(_selectedFromDate!);
                     }
-                    _toDateString = _selectedToDate == null
-                        ? ""
-                        : Format.formatDate(_selectedToDate!);
+                    _toDateString =
+                        _selectedToDate == null
+                            ? ""
+                            : Format.formatDate(_selectedToDate!);
                   });
                 }
               }
@@ -287,15 +295,18 @@ class _TransactionSearchViewState
             child: Container(
               width: width,
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius:
-                    BorderRadius.circular(Constants.size.circularBorderRadius),
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
                 border: Border.all(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   width: 1,
                 ),
               ),
@@ -310,18 +321,15 @@ class _TransactionSearchViewState
                       Assets.svg.calendar,
                       height: 20,
                       width: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle2,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle2,
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        child: _dateToText,
-                      ),
+                      child: FittedBox(child: _dateToText),
                     ),
                   ],
                 ),
@@ -329,10 +337,7 @@ class _TransactionSearchViewState
             ),
           ),
         ),
-        if (isDesktop)
-          const SizedBox(
-            width: 24,
-          ),
+        if (isDesktop) const SizedBox(width: 24),
       ],
     );
   }
@@ -344,10 +349,7 @@ class _TransactionSearchViewState
         maxWidth: 576,
         maxHeight: double.infinity,
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 32,
-            bottom: 32,
-          ),
+          padding: const EdgeInsets.only(left: 32, bottom: 32),
           child: _buildContent(context),
         ),
       );
@@ -375,22 +377,23 @@ class _TransactionSearchViewState
               style: STextStyles.navBarTitle(context),
             ),
           ),
-          body: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Constants.size.standardPadding,
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: _buildContent(context),
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Constants.size.standardPadding,
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(child: _buildContent(context)),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -415,9 +418,7 @@ class _TransactionSearchViewState
               const DesktopDialogCloseButton(),
             ],
           ),
-        SizedBox(
-          height: isDesktop ? 14 : 10,
-        ),
+        SizedBox(height: isDesktop ? 14 : 10),
         if (!isDesktop)
           Align(
             alignment: Alignment.centerLeft,
@@ -428,10 +429,7 @@ class _TransactionSearchViewState
               ),
             ),
           ),
-        if (!isDesktop)
-          const SizedBox(
-            height: 12,
-          ),
+        if (!isDesktop) const SizedBox(height: 12),
         RoundedWhiteContainer(
           padding: EdgeInsets.all(isDesktop ? 0 : 12),
           child: Column(
@@ -466,9 +464,7 @@ class _TransactionSearchViewState
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 14,
-                          ),
+                          const SizedBox(width: 14),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: FittedBox(
@@ -476,14 +472,16 @@ class _TransactionSearchViewState
                                 children: [
                                   Text(
                                     "Sent",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
+                                    style:
+                                        isDesktop
+                                            ? STextStyles.desktopTextSmall(
+                                              context,
+                                            )
+                                            : STextStyles.itemSubtitle12(
+                                              context,
+                                            ),
                                   ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
+                                  if (isDesktop) const SizedBox(height: 4),
                                 ],
                               ),
                             ),
@@ -494,9 +492,7 @@ class _TransactionSearchViewState
                   ),
                 ],
               ),
-              SizedBox(
-                height: isDesktop ? 4 : 10,
-              ),
+              SizedBox(height: isDesktop ? 4 : 10),
               Row(
                 children: [
                   GestureDetector(
@@ -526,9 +522,7 @@ class _TransactionSearchViewState
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 14,
-                          ),
+                          const SizedBox(width: 14),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: FittedBox(
@@ -536,14 +530,16 @@ class _TransactionSearchViewState
                                 children: [
                                   Text(
                                     "Received",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
+                                    style:
+                                        isDesktop
+                                            ? STextStyles.desktopTextSmall(
+                                              context,
+                                            )
+                                            : STextStyles.itemSubtitle12(
+                                              context,
+                                            ),
                                   ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
+                                  if (isDesktop) const SizedBox(height: 4),
                                 ],
                               ),
                             ),
@@ -554,9 +550,7 @@ class _TransactionSearchViewState
                   ),
                 ],
               ),
-              SizedBox(
-                height: isDesktop ? 4 : 10,
-              ),
+              SizedBox(height: isDesktop ? 4 : 10),
               Row(
                 children: [
                   GestureDetector(
@@ -586,9 +580,7 @@ class _TransactionSearchViewState
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 14,
-                          ),
+                          const SizedBox(width: 14),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: FittedBox(
@@ -596,14 +588,16 @@ class _TransactionSearchViewState
                                 children: [
                                   Text(
                                     "Trades",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
+                                    style:
+                                        isDesktop
+                                            ? STextStyles.desktopTextSmall(
+                                              context,
+                                            )
+                                            : STextStyles.itemSubtitle12(
+                                              context,
+                                            ),
                                   ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
+                                  if (isDesktop) const SizedBox(height: 4),
                                 ],
                               ),
                             ),
@@ -617,41 +611,35 @@ class _TransactionSearchViewState
             ],
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
+        SizedBox(height: isDesktop ? 32 : 24),
         Align(
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
               "Date",
-              style: isDesktop
-                  ? STextStyles.labelExtraExtraSmall(context)
-                  : STextStyles.smallMed12(context),
+              style:
+                  isDesktop
+                      ? STextStyles.labelExtraExtraSmall(context)
+                      : STextStyles.smallMed12(context),
             ),
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 8,
-        ),
+        SizedBox(height: isDesktop ? 10 : 8),
         _buildDateRangePicker(),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
+        SizedBox(height: isDesktop ? 32 : 24),
         Align(
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
               "Amount",
-              style: isDesktop
-                  ? STextStyles.labelExtraExtraSmall(context)
-                  : STextStyles.smallMed12(context),
+              style:
+                  isDesktop
+                      ? STextStyles.labelExtraExtraSmall(context)
+                      : STextStyles.smallMed12(context),
             ),
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 8,
-        ),
+        SizedBox(height: isDesktop ? 10 : 8),
         Padding(
           padding: EdgeInsets.only(right: isDesktop ? 32 : 0),
           child: ClipRRect(
@@ -665,19 +653,21 @@ class _TransactionSearchViewState
               controller: _amountTextEditingController,
               focusNode: amountTextFieldFocusNode,
               onChanged: (_) => setState(() {}),
-              keyboardType: Util.isDesktop
-                  ? null
-                  : const TextInputType.numberWithOptions(
-                      signed: false,
-                      decimal: true,
-                    ),
+              keyboardType:
+                  Util.isDesktop
+                      ? null
+                      : const TextInputType.numberWithOptions(
+                        signed: false,
+                        decimal: true,
+                      ),
               inputFormatters: [
                 AmountInputFormatter(
                   decimals: widget.coin.fractionDigits,
                   unit: ref.watch(pAmountUnit(widget.coin)),
                   locale: ref.watch(
-                    localeServiceChangeNotifierProvider
-                        .select((value) => value.locale),
+                    localeServiceChangeNotifierProvider.select(
+                      (value) => value.locale,
+                    ),
                   ),
                 ),
                 // // regex to validate a crypto amount with 8 decimal places
@@ -687,65 +677,67 @@ class _TransactionSearchViewState
                 //         ? newValue
                 //         : oldValue),
               ],
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
-                      height: 1.8,
-                    )
-                  : STextStyles.field(context),
+              style:
+                  isDesktop
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
+                        height: 1.8,
+                      )
+                      : STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Enter ${widget.coin.ticker} amount...",
                 keywordTextFieldFocusNode,
                 context,
                 desktopMed: isDesktop,
               ).copyWith(
-                contentPadding: isDesktop
-                    ? const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 16,
-                      )
-                    : null,
-                suffixIcon: _amountTextEditingController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _amountTextEditingController.text = "";
-                                  });
-                                },
-                              ),
-                            ],
+                contentPadding:
+                    isDesktop
+                        ? const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        )
+                        : null,
+                suffixIcon:
+                    _amountTextEditingController.text.isNotEmpty
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      _amountTextEditingController.text = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : null,
+                        )
+                        : null,
               ),
             ),
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
+        SizedBox(height: isDesktop ? 32 : 24),
         Align(
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
               "Keyword",
-              style: isDesktop
-                  ? STextStyles.labelExtraExtraSmall(context)
-                  : STextStyles.smallMed12(context),
+              style:
+                  isDesktop
+                      ? STextStyles.labelExtraExtraSmall(context)
+                      : STextStyles.smallMed12(context),
             ),
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 8,
-        ),
+        SizedBox(height: isDesktop ? 10 : 8),
         Padding(
           padding: EdgeInsets.only(right: isDesktop ? 32 : 0),
           child: ClipRRect(
@@ -758,13 +750,16 @@ class _TransactionSearchViewState
               key: const Key("transactionSearchViewKeywordFieldKey"),
               controller: _keywordTextEditingController,
               focusNode: keywordTextFieldFocusNode,
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
-                      height: 1.8,
-                    )
-                  : STextStyles.field(context),
+              style:
+                  isDesktop
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
+                        height: 1.8,
+                      )
+                      : STextStyles.field(context),
               onChanged: (_) => setState(() {}),
               decoration: standardInputDecoration(
                 "Type keyword...",
@@ -772,39 +767,39 @@ class _TransactionSearchViewState
                 context,
                 desktopMed: isDesktop,
               ).copyWith(
-                contentPadding: isDesktop
-                    ? const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 16,
-                      )
-                    : null,
-                suffixIcon: _keywordTextEditingController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _keywordTextEditingController.text = "";
-                                  });
-                                },
-                              ),
-                            ],
+                contentPadding:
+                    isDesktop
+                        ? const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        )
+                        : null,
+                suffixIcon:
+                    _keywordTextEditingController.text.isNotEmpty
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      _keywordTextEditingController.text = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : null,
+                        )
+                        : null,
               ),
             ),
           ),
         ),
         if (!isDesktop) const Spacer(),
-        SizedBox(
-          height: isDesktop ? 32 : 20,
-        ),
+        SizedBox(height: isDesktop ? 32 : 20),
         Row(
           children: [
             Expanded(
@@ -816,9 +811,7 @@ class _TransactionSearchViewState
                     if (FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
                       await Future<void>.delayed(
-                        const Duration(
-                          milliseconds: 75,
-                        ),
+                        const Duration(milliseconds: 75),
                       );
                     }
                   }
@@ -855,9 +848,7 @@ class _TransactionSearchViewState
             //     ),
             //   ),
             // ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: PrimaryButton(
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
@@ -884,16 +875,10 @@ class _TransactionSearchViewState
             //     ),
             //   ),
             // ),
-            if (isDesktop)
-              const SizedBox(
-                width: 32,
-              ),
+            if (isDesktop) const SizedBox(width: 32),
           ],
         ),
-        if (!isDesktop)
-          const SizedBox(
-            height: 20,
-          ),
+        if (!isDesktop) const SizedBox(height: 20),
       ],
     );
   }
@@ -902,11 +887,14 @@ class _TransactionSearchViewState
     final amountText = _amountTextEditingController.text;
     Amount? amount;
     if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
-      amount = amountText.contains(",")
-          ? Decimal.parse(amountText.replaceFirst(",", "."))
-              .toAmount(fractionDigits: widget.coin.fractionDigits)
-          : Decimal.parse(amountText)
-              .toAmount(fractionDigits: widget.coin.fractionDigits);
+      amount =
+          amountText.contains(",")
+              ? Decimal.parse(
+                amountText.replaceFirst(",", "."),
+              ).toAmount(fractionDigits: widget.coin.fractionDigits)
+              : Decimal.parse(
+                amountText,
+              ).toAmount(fractionDigits: widget.coin.fractionDigits);
     }
 
     final TransactionFilter filter = TransactionFilter(

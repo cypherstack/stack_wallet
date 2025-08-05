@@ -22,6 +22,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.11.0"
+  analyzer_plugin:
+    dependency: transitive
+    description:
+      name: analyzer_plugin
+      sha256: "9661b30b13a685efaee9f02e5d01ed9f2b423bd889d28a304d02d704aee69161"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.11.3"
   another_flushbar:
     dependency: "direct main"
     description:
@@ -62,14 +70,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.12.0"
-  barcode_scan2:
-    dependency: "direct main"
-    description:
-      name: barcode_scan2
-      sha256: efbe38629e6df2200e4d60ebe252e8e041cd5ae7b50f194a20f01779ade9d1c3
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.5.0"
   basic_utils:
     dependency: "direct main"
     description:
@@ -151,10 +151,10 @@ packages:
     dependency: "direct main"
     description:
       name: blockchain_utils
-      sha256: ebb6c336ba0120de0982c50d8bc597cb494a530bd22bd462895bb5cebde405af
+      sha256: "1e4f30b98d92f7ccf2eda009a23b53871a1c9b8b6dfa00bb1eb17ec00ae5eeeb"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0"
+    version: "3.6.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -353,20 +353,20 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
-    version: "3.1.0"
+    version: "4.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
-      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
-    version: "3.0.0"
+    version: "4.0.0"
   collection:
     dependency: transitive
     description:
@@ -444,10 +444,10 @@ packages:
     dependency: "direct main"
     description:
       name: cs_monero
-      sha256: ed81d9e74ea71a8b8b0bfed07a284e14b6e5f4d0dbde774735f9f0a9ab60b7fb
+      sha256: f48495ed6744a47598b36eaf28adc1e9e55f0d4ea3c18fe42eda0d3d8f714206
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-pre.2"
+    version: "1.0.0-pre.3"
   cs_monero_flutter_libs:
     dependency: "direct main"
     description:
@@ -528,6 +528,94 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0-pre"
+  cs_salvium:
+    dependency: "direct main"
+    description:
+      name: cs_salvium
+      sha256: "838a2f21b0ad567f68a5294360c4c96727b722037ae7bfdc26651c99d6c26bd3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
+  cs_salvium_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: cs_salvium_flutter_libs
+      sha256: d1e49ed67632f77d863ad3eafc78db8867f155cf9decf156345ec75c92e0d026
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
+  cs_salvium_flutter_libs_android:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android
+      sha256: "63603fc4c94d609e13c8e8064c742ac628ef006d3af9990e2c585489bde9b96d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_android_arm64_v8a:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_arm64_v8a
+      sha256: "5ced9fe6d71dd22f90865600b8dff1ed07ce480db6c9de1a8d56e63318000e97"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_android_armeabi_v7a:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_armeabi_v7a
+      sha256: "2fb718dff22918e72b138c191dbd887d8d241f03a34add11e8d699c48b657b47"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_android_x86_64:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_x86_64
+      sha256: "85134ab635a4dddec5735fdd8f3971a1c33e3aaa1c8aa88e54f0b3d5e0d0caab"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_ios:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_ios
+      sha256: "54d18fbac60c8a602e4d0f967ea7d02fab71bff3e032f9576e159229ce372534"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
+  cs_salvium_flutter_libs_linux:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_linux
+      sha256: "0cb2f545ea4aa45c819a0656540d022a9c73a43681e50f1d2a5e72eaf1bc500e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
+  cs_salvium_flutter_libs_macos:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_macos
+      sha256: "9df0818299a5ddadd41eb4c94de2cd8e519d1e9f4aa6166657397200397f402f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_platform_interface:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_platform_interface
+      sha256: "36ef1edd1481b92a95500fbdf397a371c1d624b58401a56638dc315f3c607dc0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_windows:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_windows
+      sha256: "824966223a32bfe4d99c634d3b8d81917806d06ad878007552597e2070c25a02"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   csslib:
     dependency: transitive
     description:
@@ -665,6 +753,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  drift:
+    dependency: "direct main"
+    description:
+      name: drift
+      sha256: c2d073d35ad441730812f4ea05b5dd031fb81c5f9786a4f5fb77ecd6307b6f74
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.22.1"
+  drift_dev:
+    dependency: "direct dev"
+    description:
+      name: drift_dev
+      sha256: f4ab5d6976b1e31551ceb82ff597a505bda7818ff4f7be08a1da9d55eb6e730c
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.22.1"
+  drift_flutter:
+    dependency: "direct main"
+    description:
+      name: drift_flutter
+      sha256: "9fd9b479c6187d6b3bbdfd2703df98010470a6c65c2a8c8c5a1034c620bd0a0e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.3"
   dropdown_button2:
     dependency: "direct main"
     description:
@@ -772,7 +884,7 @@ packages:
     source: git
     version: "8.3.1"
   fixnum:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: fixnum
       sha256: b6dc7065e46c974bc7c5f143080a6764ec7a4be6da1285ececdc37be96de53be
@@ -832,11 +944,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e8c502652da7836cd1a22893339838553675b464
-      resolved-ref: e8c502652da7836cd1a22893339838553675b464
+      ref: f5fd2238fca4ffe82f7e14646a613a04d2c243d6
+      resolved-ref: f5fd2238fca4ffe82f7e14646a613a04d2c243d6
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
-    version: "0.0.2"
+    version: "0.1.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -869,6 +981,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.2.0"
+  flutter_mwebd:
+    dependency: "direct main"
+    description:
+      name: flutter_mwebd
+      sha256: "73b35b6eaccb6e1be7eb37e04bcc94f091244fa31b8aedc17e4119c580a7a747"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-pre.7"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -999,8 +1119,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9dc883f4432c8db4ec44cb8cc836963295d63952"
-      resolved-ref: "9dc883f4432c8db4ec44cb8cc836963295d63952"
+      ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
+      resolved-ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -1020,6 +1140,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.5"
+  google_identity_services_web:
+    dependency: transitive
+    description:
+      name: google_identity_services_web
+      sha256: "5d187c46dc59e02646e10fe82665fc3884a9b71bc1c90c2b8b749316d33ee454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.3+1"
+  googleapis_auth:
+    dependency: transitive
+    description:
+      name: googleapis_auth
+      sha256: b81fe352cc4a330b3710d2b7ad258d9bcef6f909bb759b306bf42973a7d046db
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   graphs:
     dependency: transitive
     description:
@@ -1028,6 +1164,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  grpc:
+    dependency: transitive
+    description:
+      name: grpc
+      sha256: "30e1edae6846b163a64f6d8716e3443980fe1f7d2d1f086f011d24ea186f2582"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.4"
   hex:
     dependency: "direct main"
     description:
@@ -1084,6 +1228,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.6"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "382d3aefc5bd6dc68c6b892d7664f29b5beb3251611ae946a98d35158a82bbfa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -1109,7 +1261,7 @@ packages:
     source: hosted
     version: "1.0.3"
   image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image
       sha256: f31d52537dc417fdcde36088fdf11d191026fd5e4fae742491ebd40e5a8bea7d
@@ -1241,13 +1393,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
-  lelantus:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_liblelantus"
-      relative: true
-    source: path
-    version: "0.0.3"
   lints:
     dependency: transitive
     description:
@@ -1369,6 +1514,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: "54005bdea7052d792d35b4fef0f84ec5ddc3a844b250ecd48dc192fb9b4ebc95"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.1"
   mockingjay:
     dependency: "direct dev"
     description:
@@ -1409,6 +1562,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  mweb_client:
+    dependency: "direct main"
+    description:
+      name: mweb_client
+      sha256: "263ba560dab7e63a1d03875d455a19cc4a1ab9720786cd9d6ffcc42127d06732"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   namecoin:
     dependency: "direct main"
     description:
@@ -1475,7 +1636,7 @@ packages:
     source: hosted
     version: "3.2.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"
@@ -1542,18 +1703,18 @@ packages:
     dependency: "direct main"
     description:
       name: permission_handler
-      sha256: "59adad729136f01ea9e35a48f5d1395e25cba6cea552249ddbe9cf950f5d7849"
+      sha256: "2d070d8684b68efb580a5997eb62f675e8a885ef0be6e754fb9ef489c177470f"
       url: "https://pub.dev"
     source: hosted
-    version: "11.4.0"
+    version: "12.0.0+1"
   permission_handler_android:
     dependency: transitive
     description:
       name: permission_handler_android
-      sha256: d3971dcdd76182a0c198c096b5db2f0884b0d4196723d21a866fc4cdea057ebc
+      sha256: "1e3bc410ca1bf84662104b100eb126e066cb55791b7451307f9708d4007350e6"
       url: "https://pub.dev"
     source: hosted
-    version: "12.1.0"
+    version: "13.0.1"
   permission_handler_apple:
     dependency: transitive
     description:
@@ -1654,10 +1815,10 @@ packages:
     dependency: transitive
     description:
       name: protobuf
-      sha256: "68645b24e0716782e58948f8467fd42a880f255096a821f9e7d0ec625b00c84d"
+      sha256: "579fe5557eae58e3adca2e999e38f02441d8aa908703854a9e0a0f47fa857731"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "4.1.0"
   pub_semver:
     dependency: transitive
     description:
@@ -1706,6 +1867,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.3"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.0"
   retry:
     dependency: transitive
     description:
@@ -1722,14 +1891,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
-  rxdart:
-    dependency: "direct main"
-    description:
-      name: rxdart
-      sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.27.7"
   sec:
     dependency: transitive
     description:
@@ -1861,18 +2022,26 @@ packages:
     dependency: "direct main"
     description:
       name: sqlite3
-      sha256: b384f598b813b347c5a7e5ffad82cbaff1bec3d1561af267041e66f6f0899295
+      sha256: fde692580bee3379374af1f624eb3e113ab2865ecb161dbe2d8ac2de9735dbdb
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.3"
+    version: "2.4.5"
   sqlite3_flutter_libs:
     dependency: "direct main"
     description:
       name: sqlite3_flutter_libs
-      sha256: "1e62698dc1ab396152ccaf3b3990d826244e9f3c8c39b51805f209adcd6dbea3"
+      sha256: "62bbb4073edbcdf53f40c80775f33eea01d301b7b81417e5b3fb7395416258c1"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.22"
+    version: "0.5.24"
+  sqlparser:
+    dependency: transitive
+    description:
+      name: sqlparser
+      sha256: "4cad4b2c5f63dc9ea1a8dcffb58cf762322bea5dd8836870164a65e913bdae41"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.40.0"
   stack_trace:
     dependency: transitive
     description:
@@ -2384,5 +2553,5 @@ packages:
     source: hosted
     version: "0.2.3"
 sdks:
-  dart: ">=3.7.0 <4.0.0"
+  dart: ">=3.7.2 <4.0.0"
   flutter: ">=3.29.0"

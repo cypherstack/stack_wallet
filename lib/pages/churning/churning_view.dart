@@ -23,10 +23,7 @@ import 'churning_progress_view.dart';
 import 'churning_rounds_selection_sheet.dart';
 
 class ChurningView extends ConsumerStatefulWidget {
-  const ChurningView({
-    super.key,
-    required this.walletId,
-  });
+  const ChurningView({super.key, required this.walletId});
 
   static const routeName = "/churnView";
 
@@ -47,16 +44,16 @@ class _ChurnViewState extends ConsumerState<ChurningView> {
   Future<void> _startChurn() async {
     final churningService = ref.read(pChurningService(widget.walletId));
 
-    final int rounds = _option == ChurnOption.continuous
-        ? 0
-        : int.parse(churningRoundController.text);
+    final int rounds =
+        _option == ChurnOption.continuous
+            ? 0
+            : int.parse(churningRoundController.text);
 
     churningService.rounds = rounds;
 
-    await Navigator.of(context).pushNamed(
-      ChurningProgressView.routeName,
-      arguments: widget.walletId,
-    );
+    await Navigator.of(
+      context,
+    ).pushNamed(ChurningProgressView.routeName, arguments: widget.walletId);
   }
 
   @override
@@ -86,61 +83,58 @@ class _ChurnViewState extends ConsumerState<ChurningView> {
   @override
   Widget build(BuildContext context) {
     return Background(
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leading: const AppBarBackButton(),
-            title: Text(
-              "Churn",
-              style: STextStyles.navBarTitle(context),
-            ),
-            titleSpacing: 0,
-            actions: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  size: 36,
-                  icon: SvgPicture.asset(
-                    Assets.svg.circleQuestion,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: () async {
-                    await showDialog<void>(
-                      context: context,
-                      builder: (context) => const StackOkDialog(
-                        title: "What is churning?",
-                        message: "Churning in a Monero wallet involves"
-                            " sending Monero to oneself in multiple"
-                            " transactions, which can enhance privacy"
-                            " by making it harder for observers to "
-                            "link your transactions. This process"
-                            " re-mixes the funds within the network,"
-                            " helping obscure transaction history. "
-                            "Churning is optional and mainly beneficial"
-                            " in scenarios where maximum privacy is"
-                            " desired or if you received the Monero from"
-                            " a source from which you'd like to disassociate.",
-                      ),
-                    );
-                  },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: const AppBarBackButton(),
+          title: Text("Churn", style: STextStyles.navBarTitle(context)),
+          titleSpacing: 0,
+          actions: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: AppBarIconButton(
+                size: 36,
+                icon: SvgPicture.asset(
+                  Assets.svg.circleQuestion,
+                  width: 20,
+                  height: 20,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
+                onPressed: () async {
+                  await showDialog<void>(
+                    context: context,
+                    builder:
+                        (context) => const StackOkDialog(
+                          title: "What is churning?",
+                          message:
+                              "Churning in a Monero wallet involves"
+                              " sending Monero to oneself in multiple"
+                              " transactions, which can enhance privacy"
+                              " by making it harder for observers to "
+                              "link your transactions. This process"
+                              " re-mixes the funds within the network,"
+                              " helping obscure transaction history. "
+                              "Churning is optional and mainly beneficial"
+                              " in scenarios where maximum privacy is"
+                              " desired or if you received the Monero from"
+                              " a source from which you'd like to disassociate.",
+                        ),
+                  );
+                },
               ),
-            ],
-          ),
-          body: LayoutBuilder(
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
             builder: (builderContext, constraints) {
               return SingleChildScrollView(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -151,55 +145,52 @@ class _ChurnViewState extends ConsumerState<ChurningView> {
                             child: Text(
                               "Churning helps anonymize your coins by mixing them.",
                               style: STextStyles.w500_12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle1,
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
+                          const SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
                             "Configuration",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark3,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
                             ),
                           ),
-                          const SizedBox(
-                            height: 12,
-                          ),
+                          const SizedBox(height: 12),
                           RoundedContainer(
                             onPressed: () async {
                               final option =
                                   await showModalBottomSheet<ChurnOption?>(
-                                backgroundColor: Colors.transparent,
-                                context: context,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(20),
-                                  ),
-                                ),
-                                builder: (_) {
-                                  return ChurnRoundCountSelectSheet(
-                                    currentOption: _option,
+                                    backgroundColor: Colors.transparent,
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20),
+                                      ),
+                                    ),
+                                    builder: (_) {
+                                      return ChurnRoundCountSelectSheet(
+                                        currentOption: _option,
+                                      );
+                                    },
                                   );
-                                },
-                              );
                               if (option != null) {
                                 setState(() {
                                   _option = option;
                                 });
                               }
                             },
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveBG,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textFieldActiveBG,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Row(
@@ -213,18 +204,17 @@ class _ChurnViewState extends ConsumerState<ChurningView> {
                                   SvgPicture.asset(
                                     Assets.svg.chevronDown,
                                     width: 12,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
                                   ),
                                 ],
                               ),
                             ),
                           ),
                           if (_option == ChurnOption.custom)
-                            const SizedBox(
-                              height: 10,
-                            ),
+                            const SizedBox(height: 10),
                           if (_option == ChurnOption.custom)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
@@ -254,23 +244,20 @@ class _ChurnViewState extends ConsumerState<ChurningView> {
                                 ),
                               ),
                             ),
-                          const SizedBox(
-                            height: 16,
-                          ),
+                          const SizedBox(height: 16),
                           CheckboxTextButton(
                             label: "Pause on errors",
-                            initialValue: !ref
-                                .read(pChurningService(widget.walletId))
-                                .ignoreErrors,
+                            initialValue:
+                                !ref
+                                    .read(pChurningService(widget.walletId))
+                                    .ignoreErrors,
                             onChanged: (value) {
                               ref
                                   .read(pChurningService(widget.walletId))
                                   .ignoreErrors = !value;
                             },
                           ),
-                          const SizedBox(
-                            height: 16,
-                          ),
+                          const SizedBox(height: 16),
                           const Spacer(),
                           PrimaryButton(
                             label: "Start",

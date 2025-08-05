@@ -101,7 +101,8 @@ class Address extends CryptoCurrencyAddress {
   }
 
   @override
-  String toString() => "{ "
+  String toString() =>
+      "{ "
       "id: $id, "
       "walletId: $walletId, "
       "value: $value, "
@@ -130,10 +131,7 @@ class Address extends CryptoCurrencyAddress {
     return jsonEncode(result);
   }
 
-  static Address fromJsonString(
-    String jsonString, {
-    String? overrideWalletId,
-  }) {
+  static Address fromJsonString(String jsonString, {String? overrideWalletId}) {
     final json = jsonDecode(jsonString);
     final derivationPathString = json["derivationPath"] as String?;
 
@@ -176,7 +174,9 @@ enum AddressType {
   p2tr,
   solana,
   cardanoShelley,
-  xelis;
+  xelis,
+  fact0rn,
+  mweb;
 
   String get readableName {
     switch (this) {
@@ -216,6 +216,10 @@ enum AddressType {
         return "Cardano Shelley";
       case AddressType.xelis:
         return "Xelis";
+      case AddressType.fact0rn:
+        return "FACT0RN";
+      case AddressType.mweb:
+        return "MWEB";
     }
   }
 }

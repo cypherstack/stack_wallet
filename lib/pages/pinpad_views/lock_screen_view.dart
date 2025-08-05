@@ -15,11 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../notifications/show_flush_bar.dart';
-// import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
-import '../../providers/global/node_service_provider.dart';
-import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
-import '../../providers/global/wallets_provider.dart';
+import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import '../../utilities/assets.dart';
@@ -30,6 +27,7 @@ import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/intermediate/external_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
@@ -37,6 +35,9 @@ import '../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../widgets/shake/shake.dart';
 import '../home_view/home_view.dart';
 import '../wallet_view/wallet_view.dart';
+
+const kPinKey = "stack_pin";
+const kDuressPinKey = "stack_pin_duress";
 
 class LockscreenView extends ConsumerStatefulWidget {
   const LockscreenView({
@@ -82,6 +83,54 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   static const maxAttemptsBeforeThrottling = 3;
   Timer? _timer;
 
+  Future<bool> _loadWallets(String? loadIntoWalletId) async {
+    await ref
+        .read(pWallets)
+        .load(
+          ref.read(prefsChangeNotifierProvider),
+          ref.read(mainDBProvider),
+          ref.read(pDuress),
+        );
+
+    if (loadIntoWalletId != null) {
+      final Wallet wallet;
+      try {
+        wallet = ref.read(pWallets).getWallet(loadIntoWalletId);
+      } catch (_) {
+        // wallet isn't marked as duress, continue without loading into it
+        return true;
+      }
+
+      final canContinue =
+          mounted &&
+          await checkShowNodeTorSettingsMismatch(
+            context: context,
+            currency: wallet.cryptoCurrency,
+            prefs: ref.read(prefsChangeNotifierProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            allowCancel: false,
+            rootNavigator: Util.isDesktop,
+          );
+
+      if (!canContinue) {
+        return false;
+      }
+
+      final Future<void> loadFuture;
+      if (wallet is ExternalWallet) {
+        loadFuture = wallet.init().then(
+          (value) async => await (wallet as ExternalWallet).open(),
+        );
+      } else {
+        loadFuture = wallet.init();
+      }
+
+      await loadFuture;
+    }
+
+    return true;
+  }
+
   Future<void> _onUnlock() async {
     final now = DateTime.now().toUtc();
     ref.read(prefsChangeNotifierProvider).lastUnlocked =
@@ -97,41 +146,23 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     if (widget.popOnSuccess) {
       Navigator.of(context).pop(widget.routeOnSuccessArguments);
     } else {
-      final loadIntoWallet = widget.routeOnSuccess == HomeView.routeName &&
+      final loadIntoWallet =
+          widget.routeOnSuccess == HomeView.routeName &&
           widget.routeOnSuccessArguments is String;
 
-      if (loadIntoWallet) {
-        final walletId = widget.routeOnSuccessArguments as String;
-
-        final wallet = ref.read(pWallets).getWallet(walletId);
-
-        final canContinue = await checkShowNodeTorSettingsMismatch(
+      if (widget.isInitialAppLogin) {
+        final loadSuccess = await showLoading(
+          whileFuture: _loadWallets(
+            loadIntoWallet ? widget.routeOnSuccessArguments as String : null,
+          ),
+          opaqueBG: true,
           context: context,
-          currency: wallet.cryptoCurrency,
-          prefs: ref.read(prefsChangeNotifierProvider),
-          nodeService: ref.read(nodeServiceChangeNotifierProvider),
-          allowCancel: false,
-          rootNavigator: Util.isDesktop,
+          message: "Loading wallets...",
         );
 
-        if (!canContinue) {
+        if (loadSuccess == null || loadSuccess == false) {
           return;
         }
-
-        final Future<void> loadFuture;
-        if (wallet is ExternalWallet) {
-          loadFuture =
-              wallet.init().then((value) async => await (wallet).open());
-        } else {
-          loadFuture = wallet.init();
-        }
-
-        await showLoading(
-          opaqueBG: true,
-          whileFuture: loadFuture,
-          context: context,
-          message: "Loading ${wallet.info.coin.prettyName} wallet...",
-        );
       }
 
       if (mounted) {
@@ -146,10 +177,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           final walletId = widget.routeOnSuccessArguments as String;
 
           unawaited(
-            Navigator.of(context).pushNamed(
-              WalletView.routeName,
-              arguments: walletId,
-            ),
+            Navigator.of(
+              context,
+            ).pushNamed(WalletView.routeName, arguments: walletId),
           );
         }
       }
@@ -169,11 +199,30 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     final cancelButtonText = widget.biometricsCancelButtonString;
 
     if (useBiometrics) {
-      if (await biometrics.authenticate(
-        title: title,
-        localizedReason: localizedReason,
-        cancelButtonText: cancelButtonText,
-      )) {
+      final bool canTryUnlock;
+      if (widget.isInitialAppLogin) {
+        final hasDuressPin =
+            (await _secureStore.read(key: kDuressPinKey)) != null;
+
+        ref.read(pDuress.notifier).state =
+            hasDuressPin &&
+            ref.read(prefsChangeNotifierProvider).biometricsDuress;
+
+        canTryUnlock = true;
+      } else {
+        if (ref.read(pDuress)) {
+          canTryUnlock = ref.read(prefsChangeNotifierProvider).biometricsDuress;
+        } else {
+          canTryUnlock = true;
+        }
+      }
+
+      if (canTryUnlock &&
+          (await biometrics.authenticate(
+            title: title,
+            localizedReason: localizedReason,
+            cancelButtonText: cancelButtonText,
+          ))) {
         // check if initial log in
         // if (widget.routeOnSuccess == "/mainview") {
         //   await logIn(await walletsService.networkName, currentWalletName,
@@ -239,6 +288,29 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   final _pinTextController = TextEditingController();
 
+  Future<bool> _checkCanUnlock(String pin) async {
+    final bool canUnlock;
+    if (widget.isInitialAppLogin) {
+      final storedPin = await _secureStore.read(key: kPinKey);
+      final duressPin = await _secureStore.read(key: kDuressPinKey);
+      if (pin == storedPin || pin == duressPin) {
+        ref.read(pDuress.notifier).state = pin == duressPin;
+        canUnlock = true;
+      } else {
+        canUnlock = false;
+      }
+    } else {
+      if (ref.read(pDuress)) {
+        final duressPin = await _secureStore.read(key: kDuressPinKey);
+        canUnlock = pin == duressPin;
+      } else {
+        final storedPin = await _secureStore.read(key: kPinKey);
+        canUnlock = pin == storedPin;
+      }
+    }
+    return canUnlock;
+  }
+
   final Mutex _autoPinCheckLock = Mutex();
   void _onPinChangedAutologinCheck() async {
     if (mounted) {
@@ -247,11 +319,8 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
     try {
       if (_autoPin && _pinTextController.text.length >= 4) {
-        final storedPin = await _secureStore.read(key: 'stack_pin');
-        if (_pinTextController.text == storedPin) {
-          await Future<void>.delayed(
-            const Duration(milliseconds: 200),
-          );
+        if (await _checkCanUnlock(_pinTextController.text)) {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
           unawaited(_onUnlock());
         }
       }
@@ -319,21 +388,15 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         ),
       );
 
-      await Future<void>.delayed(
-        const Duration(milliseconds: 100),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       _pinTextController.text = '';
 
       return;
     }
 
-    final storedPin = await _secureStore.read(key: 'stack_pin');
-
-    if (storedPin == pin) {
-      await Future<void>.delayed(
-        const Duration(milliseconds: 200),
-      );
+    if (await _checkCanUnlock(pin)) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       unawaited(_onUnlock());
     } else {
       unawaited(_shakeController.shake());
@@ -348,136 +411,128 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         );
       }
 
-      await Future<void>.delayed(
-        const Duration(milliseconds: 100),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       _pinTextController.text = '';
     }
   }
 
   Widget get _body => Background(
-        child: SafeArea(
-          child: Scaffold(
-            extendBodyBehindAppBar: true,
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              leading: widget.showBackButton
+    child: SafeArea(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading:
+              widget.showBackButton
                   ? AppBarBackButton(
-                      onPressed: () async {
-                        if (FocusScope.of(context).hasFocus) {
-                          FocusScope.of(context).unfocus();
-                          await Future<void>.delayed(
-                            const Duration(milliseconds: 70),
-                          );
-                        }
-                        if (mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                    )
+                    onPressed: () async {
+                      if (FocusScope.of(context).hasFocus) {
+                        FocusScope.of(context).unfocus();
+                        await Future<void>.delayed(
+                          const Duration(milliseconds: 70),
+                        );
+                      }
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  )
                   : Container(),
-              actions: [
-                // check prefs and hide if user has biometrics toggle off?
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        right: 16.0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          if (ref
-                                  .read(prefsChangeNotifierProvider)
-                                  .useBiometrics ==
-                              true)
-                            CustomTextButton(
-                              text: "Use biometrics",
-                              onTap: () async {
-                                await _checkUseBiometrics();
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            body: Column(
+          actions: [
+            // check prefs and hide if user has biometrics toggle off?
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Shake(
-                  animationDuration: const Duration(milliseconds: 700),
-                  animationRange: 12,
-                  controller: _shakeController,
-                  child: Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Center(
-                          child: Text(
-                            "Enter PIN",
-                            style: STextStyles.pageTitleH1(context),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 52,
-                        ),
-                        CustomPinPut(
-                          fieldsCount: pinCount,
-                          eachFieldHeight: 12,
-                          eachFieldWidth: 12,
-                          textStyle: STextStyles.label(context).copyWith(
-                            fontSize: 1,
-                          ),
-                          focusNode: _pinFocusNode,
-                          controller: _pinTextController,
-                          useNativeKeyboard: false,
-                          obscureText: "",
-                          inputDecoration: InputDecoration(
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            focusedErrorBorder: InputBorder.none,
-                            fillColor: Theme.of(context)
-                                .extension<StackColors>()!
-                                .background,
-                            counterText: "",
-                          ),
-                          submittedFieldDecoration: _pinPutDecoration,
-                          isRandom: ref
-                              .read(prefsChangeNotifierProvider)
-                              .randomizePIN,
-                          onSubmit: (pin) {
-                            if (!_autoPinCheckLock.isLocked) {
-                              _onSubmitPin(pin);
-                            }
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (ref.read(prefsChangeNotifierProvider).useBiometrics ==
+                          true)
+                        CustomTextButton(
+                          text: "Use biometrics",
+                          onTap: () async {
+                            await _checkUseBiometrics();
                           },
                         ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
-      );
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Shake(
+              animationDuration: const Duration(milliseconds: 700),
+              animationRange: 12,
+              controller: _shakeController,
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Enter PIN",
+                        style: STextStyles.pageTitleH1(context),
+                      ),
+                    ),
+                    const SizedBox(height: 52),
+                    CustomPinPut(
+                      fieldsCount: pinCount,
+                      eachFieldHeight: 12,
+                      eachFieldWidth: 12,
+                      textStyle: STextStyles.label(
+                        context,
+                      ).copyWith(fontSize: 1),
+                      focusNode: _pinFocusNode,
+                      controller: _pinTextController,
+                      useNativeKeyboard: false,
+                      obscureText: "",
+                      inputDecoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        fillColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
+                        counterText: "",
+                      ),
+                      submittedFieldDecoration: _pinPutDecoration,
+                      isRandom:
+                          ref.read(prefsChangeNotifierProvider).randomizePIN,
+                      onSubmit: (pin) {
+                        if (!_autoPinCheckLock.isLocked) {
+                          _onSubmitPin(pin);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
   @override
   Widget build(BuildContext context) {
     return widget.showBackButton
         ? _body
         : WillPopScope(
-            onWillPop: () async {
-              return widget.showBackButton;
-            },
-            child: _body,
-          );
+          onWillPop: () async {
+            return widget.showBackButton;
+          },
+          child: _body,
+        );
   }
 }

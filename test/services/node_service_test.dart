@@ -17,7 +17,7 @@ void main() {
       Hive.registerAdapter(NodeModelAdapter());
     }
     await Hive.openBox<NodeModel>(DB.boxNameNodeModels);
-    await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
+    // await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
   });
 
   group("Empty nodes DB tests", () {
@@ -50,6 +50,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       );
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
@@ -133,6 +134,7 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+      isPrimary: true,
     );
     final nodeB = NodeModel(
       host: "host2",
@@ -146,6 +148,7 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+      isPrimary: true,
     );
     final nodeC = NodeModel(
       host: "host3",
@@ -159,11 +162,13 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+      isPrimary: true,
     );
 
     setUp(() async {
-      await NodeService(secureStorageInterface: FakeSecureStorage())
-          .updateDefaults();
+      await NodeService(
+        secureStorageInterface: FakeSecureStorage(),
+      ).updateDefaults();
     });
 
     test("setPrimaryNodeFor and getPrimaryNodeFor", () async {
@@ -177,7 +182,7 @@ void main() {
       );
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
-        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode,
+        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
       );
       expect(
         service
@@ -193,17 +198,17 @@ void main() {
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
-        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode,
+        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
       );
       await service.setPrimaryNodeFor(
         coin: Monero(CryptoCurrencyNetwork.main),
-        node: Monero(CryptoCurrencyNetwork.main).defaultNode,
+        node: Monero(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
       );
       expect(
         service.primaryNodes.toString(),
         [
-          Bitcoin(CryptoCurrencyNetwork.main).defaultNode,
-          Monero(CryptoCurrencyNetwork.main).defaultNode,
+          Bitcoin(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
+          Monero(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
         ].toString(),
       );
       expect(fakeStore.interactions, 0);
@@ -213,7 +218,8 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
-      final defaults = AppConfig.coins.map((e) => e.defaultNode).toList();
+      final defaults =
+          AppConfig.coins.map((e) => e.defaultNode(isPrimary: true)).toList();
 
       nodes.sort((a, b) => a.id.compareTo(b.id));
       defaults.sort((a, b) => a.id.compareTo(b.id));
@@ -226,7 +232,7 @@ void main() {
     test("add a node without a password", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      await service.add(nodeA, null, true);
+      await service.save(nodeA, null, true);
       expect(
         service.nodes.length,
         AppConfig.coins.map((e) => e.defaultNode).length + 1,
@@ -237,7 +243,7 @@ void main() {
     test("add a node with a password", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      await service.add(nodeA, "some password", true);
+      await service.save(nodeA, "some password", true);
       expect(
         service.nodes.length,
         AppConfig.coins.map((e) => e.defaultNode).length + 1,
@@ -276,7 +282,7 @@ void main() {
           trusted: null,
         );
 
-        await service.edit(editedNode, "123456", true);
+        await service.save(editedNode, "123456", true);
 
         expect(service.nodes.length, currentLength);
 

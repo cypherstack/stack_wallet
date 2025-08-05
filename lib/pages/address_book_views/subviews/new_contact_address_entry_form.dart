@@ -42,13 +42,11 @@ class NewContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({
     super.key,
     required this.id,
-    required this.barcodeScanner,
     required this.clipboard,
   });
 
   final int id;
 
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override
@@ -72,7 +70,7 @@ class _NewContactAddressEntryFormState
       //     .read(shouldShowLockscreenOnResumeStateProvider
       //         .state)
       //     .state = false;
-      final qrResult = await widget.barcodeScanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),
@@ -102,9 +100,10 @@ class _NewContactAddressEntryFormState
 
         // now check for non standard encoded basic address
       } else if (ref.read(addressEntryDataProvider(widget.id)).coin != null) {
-        if (ref.read(addressEntryDataProvider(widget.id)).coin!.validateAddress(
-              qrResult.rawContent,
-            )) {
+        if (ref
+            .read(addressEntryDataProvider(widget.id))
+            .coin!
+            .validateAddress(qrResult.rawContent)) {
           addressController.text = qrResult.rawContent;
           ref.read(addressEntryDataProvider(widget.id)).address =
               qrResult.rawContent;
@@ -115,16 +114,39 @@ class _NewContactAddressEntryFormState
       //     .read(shouldShowLockscreenOnResumeStateProvider
       //         .state)
       //     .state = true;
-      Logging.instance.w("Failed to get camera permissions to scan address qr code: ", error: e, stackTrace: s);
+
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions to scan address qr code: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
   @override
   void initState() {
-    addressLabelController = TextEditingController()
-      ..text = ref.read(addressEntryDataProvider(widget.id)).addressLabel ?? "";
-    addressController = TextEditingController()
-      ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
+    addressLabelController =
+        TextEditingController()
+          ..text =
+              ref.read(addressEntryDataProvider(widget.id)).addressLabel ?? "";
+    addressController =
+        TextEditingController()
+          ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
     coins = [...AppConfig.coins];
@@ -153,18 +175,17 @@ class _NewContactAddressEntryFormState
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
       coins = [...AppConfig.coins];
-      coins.removeWhere(
-        (e) => e is Firo && e.network.isTestNet,
-      );
+      coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
       final showTestNet =
           ref.read(prefsChangeNotifierProvider).showTestNetCoins;
       if (showTestNet) {
         coins = coins.toList();
       } else {
-        coins = coins
-            .where((e) => e.network != CryptoCurrencyNetwork.test)
-            .toList();
+        coins =
+            coins
+                .where((e) => e.network != CryptoCurrencyNetwork.test)
+                .toList();
       }
     }
 
@@ -181,24 +202,23 @@ class _NewContactAddressEntryFormState
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
                 ),
               ),
               menuItemStyleData: const MenuItemStyleData(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               ),
               isExpanded: true,
               value: ref.watch(
-                addressEntryDataProvider(widget.id)
-                    .select((value) => value.coin),
+                addressEntryDataProvider(
+                  widget.id,
+                ).select((value) => value.coin),
               ),
               onChanged: (value) {
                 if (value is CryptoCurrency) {
@@ -222,23 +242,20 @@ class _NewContactAddressEntryFormState
                       child: Row(
                         children: [
                           SvgPicture.file(
-                            File(
-                              ref.watch(coinIconProvider(coin)),
-                            ),
+                            File(ref.watch(coinIconProvider(coin))),
                             height: 24,
                             width: 24,
                           ),
-                          const SizedBox(
-                            width: 12,
-                          ),
+                          const SizedBox(width: 12),
                           Text(
                             coin.prettyName,
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context)
-                                    .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark,
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
                             ),
                           ),
                         ],
@@ -285,54 +302,54 @@ class _NewContactAddressEntryFormState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         ref.watch(
-                                  addressEntryDataProvider(widget.id)
-                                      .select((value) => value.coin),
+                                  addressEntryDataProvider(
+                                    widget.id,
+                                  ).select((value) => value.coin),
                                 ) ==
                                 null
                             ? Text(
-                                "Select cryptocurrency",
-                                style: STextStyles.fieldLabel(context),
-                              )
+                              "Select cryptocurrency",
+                              style: STextStyles.fieldLabel(context),
+                            )
                             : Row(
-                                children: [
-                                  SvgPicture.file(
-                                    File(
-                                      ref.watch(
-                                        coinIconProvider(
-                                          ref.watch(
-                                            addressEntryDataProvider(widget.id)
-                                                .select(
-                                              (value) => value.coin,
-                                            ),
-                                          )!,
-                                        ),
+                              children: [
+                                SvgPicture.file(
+                                  File(
+                                    ref.watch(
+                                      coinIconProvider(
+                                        ref.watch(
+                                          addressEntryDataProvider(
+                                            widget.id,
+                                          ).select((value) => value.coin),
+                                        )!,
                                       ),
                                     ),
-                                    height: 20,
-                                    width: 20,
                                   ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
-                                  Text(
-                                    ref
-                                        .watch(
-                                          addressEntryDataProvider(widget.id)
-                                              .select((value) => value.coin),
-                                        )!
-                                        .prettyName,
-                                    style: STextStyles.itemSubtitle12(context),
-                                  ),
-                                ],
-                              ),
+                                  height: 20,
+                                  width: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  ref
+                                      .watch(
+                                        addressEntryDataProvider(
+                                          widget.id,
+                                        ).select((value) => value.coin),
+                                      )!
+                                      .prettyName,
+                                  style: STextStyles.itemSubtitle12(context),
+                                ),
+                              ],
+                            ),
                         if (!isDesktop)
                           SvgPicture.asset(
                             Assets.svg.chevronDown,
                             width: 8,
                             height: 4,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle2,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textSubtitle2,
                           ),
                       ],
                     ),
@@ -341,10 +358,7 @@ class _NewContactAddressEntryFormState
               ),
             ),
           ),
-        if (!AppConfig.isSingleCoinApp)
-          const SizedBox(
-            height: 8,
-          ),
+        if (!AppConfig.isSingleCoinApp) const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -361,25 +375,26 @@ class _NewContactAddressEntryFormState
               context,
             ).copyWith(
               labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
-              suffixIcon: addressLabelController.text.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            TextFieldIconButton(
-                              child: const XIcon(),
-                              onTap: () async {
-                                setState(() {
-                                  addressLabelController.text = "";
-                                });
-                              },
-                            ),
-                          ],
+              suffixIcon:
+                  addressLabelController.text.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.only(right: 0),
+                        child: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              TextFieldIconButton(
+                                child: const XIcon(),
+                                onTap: () async {
+                                  setState(() {
+                                    addressLabelController.text = "";
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
             onChanged: (newValue) {
               ref.read(addressEntryDataProvider(widget.id)).addressLabel =
@@ -388,9 +403,7 @@ class _NewContactAddressEntryFormState
             },
           ),
         ),
-        const SizedBox(
-          height: 8,
-        ),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -410,8 +423,9 @@ class _NewContactAddressEntryFormState
                 child: Row(
                   children: [
                     if (ref.watch(
-                          addressEntryDataProvider(widget.id)
-                              .select((value) => value.address),
+                          addressEntryDataProvider(
+                            widget.id,
+                          ).select((value) => value.address),
                         ) !=
                         null)
                       TextFieldIconButton(
@@ -425,8 +439,9 @@ class _NewContactAddressEntryFormState
                         child: const XIcon(),
                       ),
                     if (ref.watch(
-                          addressEntryDataProvider(widget.id)
-                              .select((value) => value.address),
+                          addressEntryDataProvider(
+                            widget.id,
+                          ).select((value) => value.address),
                         ) ==
                         null)
                       TextFieldIconButton(
@@ -438,8 +453,10 @@ class _NewContactAddressEntryFormState
                           if (data?.text != null && data!.text!.isNotEmpty) {
                             String content = data.text!.trim();
                             if (content.contains("\n")) {
-                              content =
-                                  content.substring(0, content.indexOf("\n"));
+                              content = content.substring(
+                                0,
+                                content.indexOf("\n"),
+                              );
                             }
                             addressController.text = content;
                             ref
@@ -451,8 +468,9 @@ class _NewContactAddressEntryFormState
                       ),
                     if (!Util.isDesktop &&
                         ref.watch(
-                              addressEntryDataProvider(widget.id)
-                                  .select((value) => value.address),
+                              addressEntryDataProvider(
+                                widget.id,
+                              ).select((value) => value.address),
                             ) ==
                             null)
                       TextFieldIconButton(
@@ -460,9 +478,7 @@ class _NewContactAddressEntryFormState
                         onTap: _onQrTapped,
                         child: const QrCodeIcon(),
                       ),
-                    const SizedBox(
-                      width: 8,
-                    ),
+                    const SizedBox(width: 8),
                   ],
                 ),
               ),
@@ -485,21 +501,18 @@ class _NewContactAddressEntryFormState
           ),
         ),
         if (!ref.watch(
-              addressEntryDataProvider(widget.id)
-                  .select((value) => value.isValidAddress),
+              addressEntryDataProvider(
+                widget.id,
+              ).select((value) => value.isValidAddress),
             ) &&
             addressController.text.isNotEmpty)
           Row(
             children: [
-              const SizedBox(
-                width: 12,
-              ),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  const SizedBox(height: 4),
                   Text(
                     "Invalid address",
                     textAlign: TextAlign.left,

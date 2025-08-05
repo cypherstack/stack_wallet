@@ -1,11 +1,11 @@
+import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../crypto_currency.dart';
 import '../intermediate/electrum_currency.dart';
-
-import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
 
 class Xelis extends ElectrumCurrency {
   Xelis(super.network) {
@@ -46,7 +46,7 @@ class Xelis extends ElectrumCurrency {
   String get ticker => _ticker;
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -61,6 +61,7 @@ class Xelis extends ElectrumCurrency {
           isDown: false,
           torEnabled: false,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -76,6 +77,7 @@ class Xelis extends ElectrumCurrency {
           isDown: false,
           torEnabled: false,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -138,5 +140,13 @@ class Xelis extends ElectrumCurrency {
           "Unsupported network for defaultBlockExplorer(): $network",
         );
     }
+  }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.xelis;
+    }
+    return null;
   }
 }

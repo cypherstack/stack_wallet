@@ -110,21 +110,21 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(child: child),
                       ),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -140,8 +140,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 padding: const EdgeInsets.only(bottom: 10.0),
                 child: Text(
                   "Choose file location",
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
                     color:
                         Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
@@ -183,20 +184,17 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark3,
                         width: 16,
                         height: 16,
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                     ],
                   ),
                 ),
@@ -211,16 +209,15 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
               ),
               onChanged: (newValue) {},
             ),
-            SizedBox(
-              height: !isDesktop ? 8 : 24,
-            ),
+            SizedBox(height: !isDesktop ? 8 : 24),
             if (isDesktop)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10.0),
                 child: Text(
                   "Enter passphrase",
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
                     color:
                         Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
@@ -249,9 +246,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                   suffixIcon: UnconstrainedBox(
                     child: Row(
                       children: [
-                        const SizedBox(
-                          width: 16,
-                        ),
+                        const SizedBox(width: 16),
                         GestureDetector(
                           key: const Key(
                             "restoreFromFilePasswordFieldShowPasswordButtonKey",
@@ -263,16 +258,15 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                           },
                           child: SvgPicture.asset(
                             hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark3,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark3,
                             width: 16,
                             height: 16,
                           ),
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                       ],
                     ),
                   ),
@@ -282,24 +276,24 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 },
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             if (!isDesktop) const Spacer(),
             !isDesktop
                 ? TextButton(
-                    style: passwordController.text.isEmpty ||
-                            fileLocationController.text.isEmpty
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryDisabledButtonStyle(context)
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryEnabledButtonStyle(context),
-                    onPressed: passwordController.text.isEmpty ||
-                            fileLocationController.text.isEmpty
-                        ? null
-                        : () async {
+                  style:
+                      passwordController.text.isEmpty ||
+                              fileLocationController.text.isEmpty
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryDisabledButtonStyle(context)
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonStyle(context),
+                  onPressed:
+                      passwordController.text.isEmpty ||
+                              fileLocationController.text.isEmpty
+                          ? null
+                          : () async {
                             final String fileToRestore =
                                 fileLocationController.text;
                             final String passphrase = passwordController.text;
@@ -325,41 +319,42 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               showDialog<dynamic>(
                                 barrierDismissible: false,
                                 context: context,
-                                builder: (_) => WillPopScope(
-                                  onWillPop: () async {
-                                    return shouldPop;
-                                  },
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: Center(
-                                          child: Text(
-                                            "Decrypting ${AppConfig.prefix} backup file",
-                                            style: STextStyles.pageTitleH2(
-                                              context,
-                                            ).copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textWhite,
+                                builder:
+                                    (_) => WillPopScope(
+                                      onWillPop: () async {
+                                        return shouldPop;
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Center(
+                                              child: Text(
+                                                "Decrypting ${AppConfig.prefix} backup file",
+                                                style: STextStyles.pageTitleH2(
+                                                  context,
+                                                ).copyWith(
+                                                  color:
+                                                      Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textWhite,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                          const SizedBox(height: 64),
+                                          const Center(
+                                            child: LoadingIndicator(width: 100),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(
-                                        height: 64,
-                                      ),
-                                      const Center(
-                                        child: LoadingIndicator(
-                                          width: 100,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                    ),
                               ),
                             );
 
@@ -387,31 +382,31 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
                               await Navigator.of(context).push(
                                 RouteGenerator.getRoute(
-                                  builder: (_) => StackRestoreProgressView(
-                                    jsonString: jsonString,
-                                    shouldPushToHome: true,
-                                  ),
+                                  builder:
+                                      (_) => StackRestoreProgressView(
+                                        jsonString: jsonString,
+                                        shouldPushToHome: true,
+                                      ),
                                 ),
                               );
                             }
                           },
-                    child: Text(
-                      "Restore",
-                      style: STextStyles.button(context),
-                    ),
-                  )
+                  child: Text("Restore", style: STextStyles.button(context)),
+                )
                 : Row(
-                    children: [
-                      PrimaryButton(
-                        width: 183,
-                        buttonHeight: ButtonHeight.m,
-                        label: "Restore",
-                        enabled: !(passwordController.text.isEmpty ||
-                            fileLocationController.text.isEmpty),
-                        onPressed: passwordController.text.isEmpty ||
-                                fileLocationController.text.isEmpty
-                            ? null
-                            : () async {
+                  children: [
+                    PrimaryButton(
+                      width: 183,
+                      buttonHeight: ButtonHeight.m,
+                      label: "Restore",
+                      enabled:
+                          !(passwordController.text.isEmpty ||
+                              fileLocationController.text.isEmpty),
+                      onPressed:
+                          passwordController.text.isEmpty ||
+                                  fileLocationController.text.isEmpty
+                              ? null
+                              : () async {
                                 final String fileToRestore =
                                     fileLocationController.text;
                                 final String passphrase =
@@ -438,42 +433,45 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
-                                    builder: (_) => WillPopScope(
-                                      onWillPop: () async {
-                                        return shouldPop;
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Center(
-                                              child: Text(
-                                                "Decrypting ${AppConfig.prefix} backup file",
-                                                style: STextStyles.pageTitleH2(
-                                                  context,
-                                                ).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textWhite,
+                                    builder:
+                                        (_) => WillPopScope(
+                                          onWillPop: () async {
+                                            return shouldPop;
+                                          },
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Material(
+                                                color: Colors.transparent,
+                                                child: Center(
+                                                  child: Text(
+                                                    "Decrypting ${AppConfig.prefix} backup file",
+                                                    style:
+                                                        STextStyles.pageTitleH2(
+                                                          context,
+                                                        ).copyWith(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textWhite,
+                                                        ),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
+                                              const SizedBox(height: 64),
+                                              const Center(
+                                                child: LoadingIndicator(
+                                                  width: 100,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(
-                                            height: 64,
-                                          ),
-                                          const Center(
-                                            child: LoadingIndicator(
-                                              width: 100,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                        ),
                                   ),
                                 );
 
@@ -530,16 +528,15 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                         children: [
                                                           Padding(
                                                             padding:
-                                                                const EdgeInsets
-                                                                    .all(
-                                                              32,
-                                                            ),
+                                                                const EdgeInsets.all(
+                                                                  32,
+                                                                ),
                                                             child: Text(
                                                               "Restore ${AppConfig.appName}",
-                                                              style: STextStyles
-                                                                  .desktopH3(
-                                                                context,
-                                                              ),
+                                                              style:
+                                                                  STextStyles.desktopH3(
+                                                                    context,
+                                                                  ),
                                                               textAlign:
                                                                   TextAlign
                                                                       .center,
@@ -550,15 +547,14 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                       ),
                                                       Padding(
                                                         padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                          horizontal: 32,
-                                                        ),
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 32,
+                                                            ),
                                                         child:
                                                             StackRestoreProgressView(
-                                                          jsonString:
-                                                              jsonString,
-                                                        ),
+                                                              jsonString:
+                                                                  jsonString,
+                                                            ),
                                                       ),
                                                       const SizedBox(
                                                         height: 32,
@@ -575,18 +571,16 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   );
                                 }
                               },
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      SecondaryButton(
-                        width: 183,
-                        buttonHeight: ButtonHeight.m,
-                        label: "Cancel",
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    SecondaryButton(
+                      width: 183,
+                      buttonHeight: ButtonHeight.m,
+                      label: "Cancel",
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
           ],
         ),
       ),

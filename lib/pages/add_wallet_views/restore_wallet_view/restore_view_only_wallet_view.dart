@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
-    as cs_monero_deprecated;
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,12 +11,10 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
@@ -51,9 +47,7 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
     super.key,
     required this.walletName,
     required this.coin,
-    required this.restoreFromDate,
-    this.enableLelantusScanning = false,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+    required this.restoreBlockHeight,
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -61,9 +55,7 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
 
   final String walletName;
   final CryptoCurrency coin;
-  final DateTime? restoreFromDate;
-  final bool enableLelantusScanning;
-  final BarcodeScannerInterface barcodeScanner;
+  final int restoreBlockHeight;
   final ClipboardInterface clipboard;
 
   @override
@@ -91,9 +83,7 @@ class _RestoreViewOnlyWalletViewState
       if (!Util.isDesktop) {
         // wait for keyboard to disappear
         FocusScope.of(context).unfocus();
-        await Future<void>.delayed(
-          const Duration(milliseconds: 100),
-        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
       }
 
       if (mounted) {
@@ -102,9 +92,7 @@ class _RestoreViewOnlyWalletViewState
           useSafeArea: false,
           barrierDismissible: true,
           builder: (context) {
-            return ConfirmRecoveryDialog(
-              onConfirm: _attemptRestore,
-            );
+            return ConfirmRecoveryDialog(onConfirm: _attemptRestore);
           },
         );
       }
@@ -114,40 +102,17 @@ class _RestoreViewOnlyWalletViewState
   }
 
   Future<void> _attemptRestore() async {
-    int height = 0;
     final Map<String, dynamic> otherDataJson = {
       WalletInfoKeys.isViewOnlyKey: true,
     };
 
     final ViewOnlyWalletType viewOnlyWalletType;
     if (widget.coin is Bip39HDCurrency) {
-      if (widget.coin is Firo) {
-        otherDataJson.addAll(
-          {
-            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-            WalletInfoKeys.enableLelantusScanning:
-                widget.enableLelantusScanning,
-          },
-        );
-      }
-      viewOnlyWalletType = _addressOnly
-          ? ViewOnlyWalletType.addressOnly
-          : ViewOnlyWalletType.xPub;
+      viewOnlyWalletType =
+          _addressOnly
+              ? ViewOnlyWalletType.addressOnly
+              : ViewOnlyWalletType.xPub;
     } else if (widget.coin is CryptonoteCurrency) {
-      if (widget.restoreFromDate != null) {
-        if (widget.coin is Monero) {
-          height = cs_monero_deprecated.getMoneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (widget.coin is Wownero) {
-          height = cs_monero_deprecated.getWowneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (height < 0) height = 0;
-      }
-
       viewOnlyWalletType = ViewOnlyWalletType.cryptonote;
     } else {
       throw Exception(
@@ -163,7 +128,7 @@ class _RestoreViewOnlyWalletViewState
       final info = WalletInfo.createNew(
         coin: widget.coin,
         name: widget.walletName,
-        restoreHeight: height,
+        restoreHeight: widget.restoreBlockHeight,
         otherDataJsonString: jsonEncode(otherDataJson),
       );
 
@@ -181,10 +146,9 @@ class _RestoreViewOnlyWalletViewState
                 onCancel: () async {
                   isRestoring = false;
 
-                  await ref.read(pWallets).deleteWallet(
-                        info,
-                        ref.read(secureStoreProvider),
-                      );
+                  await ref
+                      .read(pWallets)
+                      .deleteWallet(info, ref.read(secureStoreProvider));
                 },
               );
             },
@@ -234,11 +198,10 @@ class _RestoreViewOnlyWalletViewState
           .getPrimaryNodeFor(currency: widget.coin);
 
       if (node == null) {
-        node = widget.coin.defaultNode;
-        await ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
-              coin: widget.coin,
-              node: node,
-            );
+        node = widget.coin.defaultNode(isPrimary: true);
+        await ref
+            .read(nodeServiceChangeNotifierProvider)
+            .save(node, null, false);
       }
 
       try {
@@ -282,21 +245,25 @@ class _RestoreViewOnlyWalletViewState
             isar: ref.read(mainDBProvider).isar,
           );
 
+          if (ref.read(pDuress)) {
+            await wallet.info.updateDuressVisibilityStatus(
+              isDuressVisible: true,
+              isar: ref.read(mainDBProvider).isar,
+            );
+          }
+
           ref.read(pWallets).addWallet(wallet);
 
           if (mounted) {
             if (Util.isDesktop) {
-              Navigator.of(context).popUntil(
-                ModalRoute.withName(
-                  DesktopHomeView.routeName,
-                ),
-              );
+              Navigator.of(
+                context,
+              ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             } else {
               unawaited(
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  HomeView.routeName,
-                  (route) => false,
-                ),
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
               );
             }
 
@@ -344,9 +311,10 @@ class _RestoreViewOnlyWalletViewState
     viewKeyController = TextEditingController();
 
     if (widget.coin is Bip39HDCurrency) {
-      _currentDropDownValue = (widget.coin as Bip39HDCurrency)
-          .supportedHardenedDerivationPaths
-          .last;
+      _currentDropDownValue =
+          (widget.coin as Bip39HDCurrency)
+              .supportedHardenedDerivationPaths
+              .last;
     }
   }
 
@@ -365,27 +333,28 @@ class _RestoreViewOnlyWalletViewState
 
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? const DesktopAppBar(
-              isCompactHeight: false,
-              leading: AppBarBackButton(),
-              trailing: ExitToMyStackButton(),
-            )
-          : AppBar(
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (FocusScope.of(context).hasFocus) {
-                    FocusScope.of(context).unfocus();
-                    await Future<void>.delayed(
-                      const Duration(milliseconds: 50),
-                    );
-                  }
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
+      appBar:
+          isDesktop
+              ? const DesktopAppBar(
+                isCompactHeight: false,
+                leading: AppBarBackButton(),
+                trailing: ExitToMyStackButton(),
+              )
+              : AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 50),
+                      );
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
               ),
-            ),
       body: Container(
         color: Theme.of(context).extension<StackColors>()!.background,
         child: LayoutBuilder(
@@ -401,28 +370,21 @@ class _RestoreViewOnlyWalletViewState
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        if (isDesktop)
-                          const Spacer(
-                            flex: 10,
-                          ),
+                        if (isDesktop) const Spacer(flex: 10),
                         if (!isDesktop)
                           Text(
                             widget.walletName,
                             style: STextStyles.itemSubtitle(context),
                           ),
-                        SizedBox(
-                          height: isDesktop ? 0 : 4,
-                        ),
+                        SizedBox(height: isDesktop ? 0 : 4),
                         Text(
                           "Enter view only details",
-                          style: isDesktop
-                              ? STextStyles.desktopH2(context)
-                              : STextStyles.pageTitleH1(context),
+                          style:
+                              isDesktop
+                                  ? STextStyles.desktopH2(context)
+                                  : STextStyles.pageTitleH1(context),
                         ),
-                        if (isElectrumX)
-                          SizedBox(
-                            height: isDesktop ? 24 : 16,
-                          ),
+                        if (isElectrumX) SizedBox(height: isDesktop ? 24 : 16),
                         if (isElectrumX)
                           SizedBox(
                             height: isDesktop ? 56 : 48,
@@ -431,12 +393,14 @@ class _RestoreViewOnlyWalletViewState
                               key: UniqueKey(),
                               onText: "Extended pub key",
                               offText: "Single address",
-                              onColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
-                              offColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldDefaultBG,
+                              onColor:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG,
+                              offColor:
+                                  Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                               isOn: _addressOnly,
                               onValueChanged: (value) {
                                 setState(() {
@@ -451,9 +415,7 @@ class _RestoreViewOnlyWalletViewState
                               ),
                             ),
                           ),
-                        SizedBox(
-                          height: isDesktop ? 24 : 16,
-                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
                         if (!isElectrumX || _addressOnly)
                           FullTextField(
                             key: const Key("viewOnlyAddressRestoreFieldKey"),
@@ -467,16 +429,14 @@ class _RestoreViewOnlyWalletViewState
                                 });
                               } else {
                                 setState(() {
-                                  _enableRestoreButton = newValue.isNotEmpty &&
+                                  _enableRestoreButton =
+                                      newValue.isNotEmpty &&
                                       viewKeyController.text.isNotEmpty;
                                 });
                               }
                             },
                           ),
-                        if (!isElectrumX)
-                          SizedBox(
-                            height: isDesktop ? 16 : 12,
-                          ),
+                        if (!isElectrumX) SizedBox(height: isDesktop ? 16 : 12),
                         if (isElectrumX && !_addressOnly)
                           DropdownButtonHideUnderline(
                             child: DropdownButton2<String>(
@@ -504,9 +464,10 @@ class _RestoreViewOnlyWalletViewState
                               isExpanded: true,
                               buttonStyleData: ButtonStyleData(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultBG,
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -519,9 +480,10 @@ class _RestoreViewOnlyWalletViewState
                                     Assets.svg.chevronDown,
                                     width: 12,
                                     height: 6,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldActiveSearchIconRight,
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textFieldActiveSearchIconRight,
                                   ),
                                 ),
                               ),
@@ -529,9 +491,10 @@ class _RestoreViewOnlyWalletViewState
                                 offset: const Offset(0, -10),
                                 elevation: 0,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultBG,
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -546,9 +509,7 @@ class _RestoreViewOnlyWalletViewState
                             ),
                           ),
                         if (isElectrumX && !_addressOnly)
-                          SizedBox(
-                            height: isDesktop ? 16 : 12,
-                          ),
+                          SizedBox(height: isDesktop ? 16 : 12),
                         if (!isElectrumX || !_addressOnly)
                           FullTextField(
                             key: const Key("viewOnlyKeyRestoreFieldKey"),
@@ -563,26 +524,22 @@ class _RestoreViewOnlyWalletViewState
                                 });
                               } else {
                                 setState(() {
-                                  _enableRestoreButton = value.isNotEmpty &&
+                                  _enableRestoreButton =
+                                      value.isNotEmpty &&
                                       addressController.text.isNotEmpty;
                                 });
                               }
                             },
                           ),
                         if (!isDesktop) const Spacer(),
-                        SizedBox(
-                          height: isDesktop ? 24 : 16,
-                        ),
+                        SizedBox(height: isDesktop ? 24 : 16),
                         PrimaryButton(
                           enabled: _enableRestoreButton,
                           onPressed: _requestRestore,
                           width: isDesktop ? 480 : null,
                           label: "Restore",
                         ),
-                        if (isDesktop)
-                          const Spacer(
-                            flex: 15,
-                          ),
+                        if (isDesktop) const Spacer(flex: 15),
                       ],
                     ),
                   ),

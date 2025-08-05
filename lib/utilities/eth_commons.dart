@@ -12,36 +12,45 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import "package:hex/hex.dart";
+
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class GasTracker {
+  final Decimal low;
   final Decimal average;
-  final Decimal fast;
-  final Decimal slow;
+  final Decimal high;
 
   final int numberOfBlocksFast;
   final int numberOfBlocksAverage;
   final int numberOfBlocksSlow;
 
+  final Decimal suggestBaseFee;
+
   final String lastBlock;
 
   const GasTracker({
+    required this.low,
     required this.average,
-    required this.fast,
-    required this.slow,
+    required this.high,
     required this.numberOfBlocksFast,
     required this.numberOfBlocksAverage,
     required this.numberOfBlocksSlow,
+    required this.suggestBaseFee,
     required this.lastBlock,
   });
+
+  Decimal get lowPriority => (low - suggestBaseFee).zeroIfNegative;
+  Decimal get averagePriority => (average - suggestBaseFee).zeroIfNegative;
+  Decimal get highPriority => (high - suggestBaseFee).zeroIfNegative;
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
     final targetTime =
         Ethereum(CryptoCurrencyNetwork.main).targetBlockTimeSeconds;
     return GasTracker(
-      fast: Decimal.parse(json["FastGasPrice"].toString()),
+      high: Decimal.parse(json["FastGasPrice"].toString()),
       average: Decimal.parse(json["ProposeGasPrice"].toString()),
-      slow: Decimal.parse(json["SafeGasPrice"].toString()),
+      low: Decimal.parse(json["SafeGasPrice"].toString()),
+      suggestBaseFee: Decimal.parse(json["suggestBaseFee"].toString()),
       // TODO fix hardcoded
       numberOfBlocksFast: 30 ~/ targetTime,
       numberOfBlocksAverage: 180 ~/ targetTime,
@@ -49,9 +58,33 @@ class GasTracker {
       lastBlock: json["LastBlock"] as String,
     );
   }
+
+  @override
+  String toString() {
+    return 'GasTracker('
+        'slow: $low, '
+        'average: $average, '
+        'fast: $high, '
+        'suggestBaseFee: $suggestBaseFee, '
+        'numberOfBlocksFast: $numberOfBlocksFast, '
+        'numberOfBlocksAverage: $numberOfBlocksAverage, '
+        'numberOfBlocksSlow: $numberOfBlocksSlow, '
+        'lastBlock: $lastBlock'
+        ')';
+  }
+}
+
+extension DecimalExt on Decimal {
+  Decimal get zeroIfNegative {
+    if (this < Decimal.zero) return Decimal.zero;
+    return this;
+  }
 }
 
 const hdPathEthereum = "m/44'/60'/0'/0";
+
+const kEthereumMinGasLimit = 21000;
+const kEthereumTokenMinGasLimit = 65000;
 
 // equal to "0x${keccak256("Transfer(address,address,uint256)".toUint8ListFromUtf8).toHex}";
 const kTransferEventSignature =

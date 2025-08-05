@@ -30,11 +30,7 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class NetworkInfoButton extends ConsumerStatefulWidget {
-  const NetworkInfoButton({
-    super.key,
-    required this.walletId,
-    this.eventBus,
-  });
+  const NetworkInfoButton({super.key, required this.walletId, this.eventBus});
 
   final String walletId;
   final EventBus? eventBus;
@@ -74,27 +70,25 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
       }
     }
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          setState(() {
-            _currentSyncStatus = event.newStatus;
-          });
-        }
-      },
-    );
+    _syncStatusSubscription = eventBus
+        .on<WalletSyncStatusChangedEvent>()
+        .listen((event) async {
+          if (event.walletId == widget.walletId) {
+            setState(() {
+              _currentSyncStatus = event.newStatus;
+            });
+          }
+        });
 
-    _nodeStatusSubscription =
-        eventBus.on<NodeConnectionStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          setState(() {
-            _currentNodeStatus = event.newStatus;
-          });
-        }
-      },
-    );
+    _nodeStatusSubscription = eventBus
+        .on<NodeConnectionStatusChangedEvent>()
+        .listen((event) async {
+          if (event.walletId == widget.walletId) {
+            setState(() {
+              _currentNodeStatus = event.newStatus;
+            });
+          }
+        });
 
     super.initState();
   }
@@ -151,9 +145,9 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
     return Text(
       label,
-      style: STextStyles.desktopMenuItemSelected(context).copyWith(
-        color: _getColor(status, context),
-      ),
+      style: STextStyles.desktopMenuItemSelected(
+        context,
+      ).copyWith(color: _getColor(status, context)),
     );
   }
 
@@ -172,9 +166,7 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
   Widget build(BuildContext context) {
     return RawMaterialButton(
       hoverColor: _getColor(_currentSyncStatus, context).withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(1000),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
       onPressed: () {
         if (Util.isDesktop) {
           // showDialog<void>(
@@ -220,88 +212,80 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
           showDialog<void>(
             context: context,
-            builder: (context) => Navigator(
-              initialRoute: WalletNetworkSettingsView.routeName,
-              onGenerateRoute: RouteGenerator.generateRoute,
-              onGenerateInitialRoutes: (_, __) {
-                return [
-                  FadePageRoute(
-                    DesktopDialog(
-                      maxHeight: null,
-                      maxWidth: 580,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 32,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Network",
-                                  style: STextStyles.desktopH3(context),
-                                ),
-                                DesktopDialogCloseButton(
-                                  onPressedOverride: Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Flexible(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: 16,
-                                left: 32,
-                                right: 32,
-                                bottom: 32,
-                              ),
-                              child: SingleChildScrollView(
-                                child: WalletNetworkSettingsView(
-                                  walletId: walletId,
-                                  initialSyncStatus: _currentSyncStatus,
-                                  initialNodeStatus: _currentNodeStatus,
+            builder:
+                (context) => Navigator(
+                  initialRoute: WalletNetworkSettingsView.routeName,
+                  onGenerateRoute: RouteGenerator.generateRoute,
+                  onGenerateInitialRoutes: (_, __) {
+                    return [
+                      FadePageRoute(
+                        DesktopDialog(
+                          maxHeight: null,
+                          maxWidth: 580,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 32),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Network",
+                                      style: STextStyles.desktopH3(context),
+                                    ),
+                                    DesktopDialogCloseButton(
+                                      onPressedOverride:
+                                          Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop,
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
+                              Flexible(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 16,
+                                    left: 32,
+                                    right: 32,
+                                    bottom: 32,
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: WalletNetworkSettingsView(
+                                      walletId: walletId,
+                                      initialSyncStatus: _currentSyncStatus,
+                                      initialNodeStatus: _currentNodeStatus,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                        const RouteSettings(
+                          name: WalletNetworkSettingsView.routeName,
+                        ),
                       ),
-                    ),
-                    const RouteSettings(
-                      name: WalletNetworkSettingsView.routeName,
-                    ),
-                  ),
-                ];
-              },
-            ),
+                    ];
+                  },
+                ),
           );
         } else {
           Navigator.of(context).pushNamed(
             WalletNetworkSettingsView.routeName,
-            arguments: Tuple3(
-              walletId,
-              _currentSyncStatus,
-              _currentNodeStatus,
-            ),
+            arguments: Tuple3(walletId, _currentSyncStatus, _currentNodeStatus),
           );
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 32,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
         child: Row(
           children: [
             _buildNetworkIcon(_currentSyncStatus, context),
-            const SizedBox(
-              width: 6,
-            ),
+            const SizedBox(width: 6),
             _buildText(_currentSyncStatus, context),
           ],
         ),

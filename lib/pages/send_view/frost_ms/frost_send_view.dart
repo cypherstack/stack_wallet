@@ -51,11 +51,7 @@ import '../../coin_control/coin_control_view.dart';
 import 'recipient.dart';
 
 class FrostSendView extends ConsumerStatefulWidget {
-  const FrostSendView({
-    super.key,
-    required this.walletId,
-    required this.coin,
-  });
+  const FrostSendView({super.key, required this.walletId, required this.coin});
 
   static const String routeName = "/frostSendView";
 
@@ -87,7 +83,14 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
     final recipients = recipientWidgetIndexes
         .map((i) => ref.read(pRecipient(i).state).state)
-        .map((e) => (address: e!.address, amount: e!.amount!, isChange: false))
+        .map(
+          (e) => TxRecipient(
+            address: e!.address,
+            amount: e.amount!,
+            isChange: false,
+            addressType: wallet.cryptoCurrency.getAddressType(e.address)!,
+          ),
+        )
         .toList(growable: false);
 
     final txData = await wallet.frostCreateSignConfig(
@@ -107,9 +110,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     try {
       // wait for keyboard to disappear
       FocusScope.of(context).unfocus();
-      await Future<void>.delayed(
-        const Duration(milliseconds: 100),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       TxData? txData;
       if (mounted) {
@@ -143,9 +144,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           callerRouteName: FrostSendView.routeName,
         );
 
-        await Navigator.of(context).pushNamed(
-          FrostStepScaffold.routeName,
-        );
+        await Navigator.of(context).pushNamed(FrostStepScaffold.routeName);
       }
     } catch (e) {
       if (mounted) {
@@ -165,9 +164,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -229,68 +229,72 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     debugPrint("BUILD: $runtimeType");
     final wallet = ref.watch(pWallets).getWallet(walletId);
 
-    final showCoinControl = wallet is CoinControlInterface &&
+    final showCoinControl =
+        wallet is CoinControlInterface &&
         ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
         ) &&
         (coin is Firo
-            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            ? ref.watch(publicPrivateBalanceStateProvider) == BalanceType.public
             : true);
 
     return ConditionalParent(
       condition: !Util.isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 50));
-                }
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              "Send ${coin.ticker}",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: LayoutBuilder(
-            builder: (builderContext, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    // subtract top and bottom padding set in parent
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: child,
-                    ),
-                  ),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 50),
+                      );
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
-              );
-            },
+                title: Text(
+                  "Send ${coin.ticker}",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (builderContext, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          // subtract top and bottom padding set in parent
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: child,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
       child: ConditionalParent(
         condition: Util.isDesktop,
-        builder: (child) => Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 14,
-          ),
-          child: child,
-        ),
+        builder:
+            (child) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: child,
+            ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -307,24 +311,19 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   child: Row(
                     children: [
                       SvgPicture.file(
-                        File(
-                          ref.watch(
-                            coinIconProvider(coin),
-                          ),
-                        ),
+                        File(ref.watch(coinIconProvider(coin))),
                         width: 22,
                         height: 22,
                       ),
-                      const SizedBox(
-                        width: 6,
-                      ),
+                      const SizedBox(width: 6),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             ref.watch(pWalletName(walletId)),
-                            style: STextStyles.titleBold12(context)
-                                .copyWith(fontSize: 14),
+                            style: STextStyles.titleBold12(
+                              context,
+                            ).copyWith(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
@@ -333,15 +332,14 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                           // ),
                           Text(
                             "Available balance",
-                            style: STextStyles.label(context)
-                                .copyWith(fontSize: 10),
+                            style: STextStyles.label(
+                              context,
+                            ).copyWith(fontSize: 10),
                           ),
                         ],
                       ),
                       Util.isDesktop
-                          ? const SizedBox(
-                              height: 24,
-                            )
+                          ? const SizedBox(height: 24)
                           : const Spacer(),
                       GestureDetector(
                         onTap: () {},
@@ -351,15 +349,16 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                ref.watch(pAmountFormatter(coin)).format(
+                                ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(
                                       ref
                                           .watch(pWalletBalance(walletId))
                                           .spendable,
                                     ),
-                                style:
-                                    STextStyles.titleBold12(context).copyWith(
-                                  fontSize: 10,
-                                ),
+                                style: STextStyles.titleBold12(
+                                  context,
+                                ).copyWith(fontSize: 10),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -370,41 +369,40 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   ),
                 ),
               ),
-            SizedBox(
-              height: recipientWidgetIndexes.length > 1 ? 8 : 16,
-            ),
+            SizedBox(height: recipientWidgetIndexes.length > 1 ? 8 : 16),
             Column(
               children: [
                 for (int i = 0; i < recipientWidgetIndexes.length; i++)
                   ConditionalParent(
                     condition: recipientWidgetIndexes.length > 1,
-                    builder: (child) => Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: child,
-                    ),
+                    builder:
+                        (child) => Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: child,
+                        ),
                     child: Recipient(
-                      key: Key(
-                        "recipientKey_${recipientWidgetIndexes[i]}",
-                      ),
+                      key: Key("recipientKey_${recipientWidgetIndexes[i]}"),
                       index: recipientWidgetIndexes[i],
                       displayNumber: i + 1,
                       coin: coin,
                       onChanged: () {
                         _validateRecipientFormStates();
                       },
-                      remove: i == 0 && recipientWidgetIndexes.length == 1
-                          ? null
-                          : () {
-                              ref
-                                  .read(
-                                    pRecipient(recipientWidgetIndexes[i])
-                                        .notifier,
-                                  )
-                                  .state = null;
-                              recipientWidgetIndexes.removeAt(i);
-                              setState(() {});
-                              _validateRecipientFormStates();
-                            },
+                      remove:
+                          i == 0 && recipientWidgetIndexes.length == 1
+                              ? null
+                              : () {
+                                ref
+                                    .read(
+                                      pRecipient(
+                                        recipientWidgetIndexes[i],
+                                      ).notifier,
+                                    )
+                                    .state = null;
+                                recipientWidgetIndexes.removeAt(i);
+                                setState(() {});
+                                _validateRecipientFormStates();
+                              },
                       addAnotherRecipientTapped: () {
                         // used for tracking recipient forms
                         _greatestWidgetIndex++;
@@ -413,7 +411,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         _validateRecipientFormStates();
                       },
                       sendAllTapped: () {
-                        return ref.read(pAmountFormatter(coin)).format(
+                        return ref
+                            .read(pAmountFormatter(coin))
+                            .format(
                               ref.read(pWalletBalance(walletId)).spendable,
                               withUnitName: false,
                             );
@@ -422,10 +422,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   ),
               ],
             ),
-            if (recipientWidgetIndexes.length > 1)
-              const SizedBox(
-                height: 12,
-              ),
+            if (recipientWidgetIndexes.length > 1) const SizedBox(height: 12),
             if (recipientWidgetIndexes.length > 1)
               SecondaryButton(
                 width: double.infinity,
@@ -437,10 +434,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   setState(() {});
                 },
               ),
-            if (showCoinControl)
-              const SizedBox(
-                height: 8,
-              ),
+            if (showCoinControl) const SizedBox(height: 8),
             if (showCoinControl)
               RoundedWhiteContainer(
                 child: Row(
@@ -449,15 +443,17 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                     Text(
                       "Coin control",
                       style: STextStyles.w500_14(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textSubtitle1,
                       ),
                     ),
                     CustomTextButton(
-                      text: selectedUTXOs.isEmpty
-                          ? "Select coins"
-                          : "Selected coins (${selectedUTXOs.length})",
+                      text:
+                          selectedUTXOs.isEmpty
+                              ? "Select coins"
+                              : "Selected coins (${selectedUTXOs.length})",
                       onTap: () async {
                         if (FocusScope.of(context).hasFocus) {
                           FocusScope.of(context).unfocus();
@@ -492,17 +488,13 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   ],
                 ),
               ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             Text(
               "Note (optional)",
               style: STextStyles.smallMed12(context),
               textAlign: TextAlign.left,
             ),
-            const SizedBox(
-              height: 8,
-            ),
+            const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -519,36 +511,32 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   _noteFocusNode,
                   context,
                 ).copyWith(
-                  suffixIcon: noteController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      noteController.text = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                  suffixIcon:
+                      noteController.text.isNotEmpty
+                          ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        noteController.text = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
-                      : null,
+                          )
+                          : null,
                 ),
               ),
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             Padding(
-              padding: const EdgeInsets.only(
-                bottom: 12,
-                top: 16,
-              ),
+              padding: const EdgeInsets.only(bottom: 12, top: 16),
               child: FeeSlider(
                 coin: coin,
                 showWU: true,
@@ -557,22 +545,14 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                 },
               ),
             ),
-            Util.isDesktop
-                ? const SizedBox(
-                    height: 12,
-                  )
-                : const Spacer(),
-            const SizedBox(
-              height: 12,
-            ),
+            Util.isDesktop ? const SizedBox(height: 12) : const Spacer(),
+            const SizedBox(height: 12),
             PrimaryButton(
               label: "Create multisig transaction",
               enabled: _buttonEnabled,
               onPressed: _createSignConfig,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

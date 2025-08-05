@@ -24,6 +24,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -36,10 +37,7 @@ import '../../../../widgets/stack_text_field.dart';
 import 'wallet_keys_desktop_popup.dart';
 
 class UnlockWalletKeysDesktop extends ConsumerStatefulWidget {
-  const UnlockWalletKeysDesktop({
-    super.key,
-    required this.walletId,
-  });
+  const UnlockWalletKeysDesktop({super.key, required this.walletId});
 
   final String walletId;
 
@@ -63,16 +61,12 @@ class _UnlockWalletKeysDesktopState
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            LoadingIndicator(
-              width: 200,
-              height: 200,
+        builder:
+            (context) => const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [LoadingIndicator(width: 200, height: 200)],
             ),
-          ],
-        ),
       ),
     );
 
@@ -88,17 +82,38 @@ class _UnlockWalletKeysDesktopState
       }
 
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
-      ({String keys, String config})? frostData;
+      ({
+        String myName,
+        String config,
+        String keys,
+        ({String config, String keys})? prevGen,
+      })?
+      frostWalletData;
       List<String>? words;
 
       // TODO: [prio=low] handle wallets that don't have a mnemonic
       // All wallets currently are mnemonic based
       if (wallet is! MnemonicInterface) {
         if (wallet is BitcoinFrostWallet) {
-          frostData = (
-            keys: (await wallet.getSerializedKeys())!,
-            config: (await wallet.getMultisigConfig())!,
-          );
+          final futures = [
+            wallet.getSerializedKeys(),
+            wallet.getMultisigConfig(),
+            wallet.getSerializedKeysPrevGen(),
+            wallet.getMultisigConfigPrevGen(),
+          ];
+
+          final results = await Future.wait(futures);
+          if (results.length == 4) {
+            frostWalletData = (
+              myName: wallet.frostInfo.myName,
+              config: results[1]!,
+              keys: results[0]!,
+              prevGen:
+                  results[2] == null || results[3] == null
+                      ? null
+                      : (config: results[3]!, keys: results[2]!),
+            );
+          }
         } else {
           throw Exception("FIXME ~= see todo in code");
         }
@@ -118,6 +133,8 @@ class _UnlockWalletKeysDesktopState
         keyData = await wallet.getXPrivs();
       } else if (wallet is LibMoneroWallet) {
         keyData = await wallet.getKeys();
+      } else if (wallet is LibSalviumWallet) {
+        keyData = await wallet.getKeys();
       }
 
       if (mounted) {
@@ -126,7 +143,7 @@ class _UnlockWalletKeysDesktopState
           arguments: (
             mnemonic: words ?? [],
             walletId: widget.walletId,
-            frostData: frostData,
+            frostData: frostWalletData,
             keyData: keyData,
           ),
         );
@@ -174,44 +191,25 @@ class _UnlockWalletKeysDesktopState
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               DesktopDialogCloseButton(
-                onPressedOverride: Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pop,
+                onPressedOverride:
+                    Navigator.of(context, rootNavigator: true).pop,
               ),
             ],
           ),
-          const SizedBox(
-            height: 12,
-          ),
-          SvgPicture.asset(
-            Assets.svg.keys,
-            width: 100,
-            height: 58,
-          ),
-          const SizedBox(
-            height: 55,
-          ),
-          Text(
-            "Wallet keys",
-            style: STextStyles.desktopH2(context),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 12),
+          SvgPicture.asset(Assets.svg.keys, width: 100, height: 58),
+          const SizedBox(height: 55),
+          Text("Wallet keys", style: STextStyles.desktopH2(context)),
+          const SizedBox(height: 16),
           Text(
             "Enter your password",
             style: STextStyles.desktopTextMedium(context).copyWith(
               color: Theme.of(context).extension<StackColors>()!.textDark3,
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -220,9 +218,9 @@ class _UnlockWalletKeysDesktopState
                 key: const Key("enterPasswordUnlockWalletKeysDesktopFieldKey"),
                 focusNode: passwordFocusNode,
                 controller: passwordController,
-                style: STextStyles.desktopTextMedium(context).copyWith(
-                  height: 2,
-                ),
+                style: STextStyles.desktopTextMedium(
+                  context,
+                ).copyWith(height: 2),
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
@@ -263,18 +261,17 @@ class _UnlockWalletKeysDesktopState
                                   hidePassword
                                       ? Assets.svg.eye
                                       : Assets.svg.eyeSlash,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark3,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark3,
                                   width: 24,
                                   height: 19,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
+                          const SizedBox(width: 10),
                         ],
                       ),
                     ),
@@ -288,27 +285,18 @@ class _UnlockWalletKeysDesktopState
               ),
             ),
           ),
-          const SizedBox(
-            height: 55,
-          ),
+          const SizedBox(height: 55),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Row(
               children: [
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    onPressed: Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop,
+                    onPressed: Navigator.of(context, rootNavigator: true).pop,
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: "Continue",
@@ -319,9 +307,7 @@ class _UnlockWalletKeysDesktopState
               ],
             ),
           ),
-          const SizedBox(
-            height: 32,
-          ),
+          const SizedBox(height: 32),
         ],
       ),
     );

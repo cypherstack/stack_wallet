@@ -17,13 +17,9 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 
 class DesktopBalanceToggleButton extends ConsumerWidget {
-  const DesktopBalanceToggleButton({
-    super.key,
-    this.onPressed,
-  });
+  const DesktopBalanceToggleButton({super.key, this.onPressed});
 
   final VoidCallback? onPressed;
 
@@ -86,10 +82,6 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentType = ref.watch(publicPrivateBalanceStateProvider);
 
-    final showLelantus =
-        ref.watch(pWalletBalanceSecondary(walletId)).spendable.raw >
-            BigInt.zero;
-
     return SizedBox(
       height: 22,
       width: 80,
@@ -97,32 +89,14 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
         color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
-          if (showLelantus) {
-            switch (currentType) {
-              case FiroType.public:
-                ref.read(publicPrivateBalanceStateProvider.state).state =
-                    FiroType.lelantus;
-                break;
-
-              case FiroType.lelantus:
-                ref.read(publicPrivateBalanceStateProvider.state).state =
-                    FiroType.spark;
-                break;
-
-              case FiroType.spark:
-                ref.read(publicPrivateBalanceStateProvider.state).state =
-                    FiroType.public;
-                break;
-            }
+          if (currentType != BalanceType.private) {
+            ref.read(publicPrivateBalanceStateProvider.state).state =
+                BalanceType.private;
           } else {
-            if (currentType != FiroType.spark) {
-              ref.read(publicPrivateBalanceStateProvider.state).state =
-                  FiroType.spark;
-            } else {
-              ref.read(publicPrivateBalanceStateProvider.state).state =
-                  FiroType.public;
-            }
+            ref.read(publicPrivateBalanceStateProvider.state).state =
+                BalanceType.public;
           }
+
           onPressed?.call();
         },
         elevation: 0,

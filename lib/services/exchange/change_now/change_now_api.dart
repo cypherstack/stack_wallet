@@ -12,18 +12,14 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../exceptions/exchange/pair_unavailable_exception.dart';
-import '../../../exceptions/exchange/unsupported_currency_exception.dart';
 import '../../../external_api_keys.dart';
-import '../../../models/exchange/change_now/cn_exchange_estimate.dart';
+import '../../../models/exchange/change_now/cn_exchange_transaction.dart';
+import '../../../models/exchange/change_now/cn_exchange_transaction_status.dart';
 import '../../../models/exchange/change_now/estimated_exchange_amount.dart';
-import '../../../models/exchange/change_now/exchange_transaction.dart';
-import '../../../models/exchange/change_now/exchange_transaction_status.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
-import '../../../models/exchange/response_objects/fixed_rate_market.dart';
 import '../../../models/exchange/response_objects/range.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
@@ -34,10 +30,25 @@ import '../../tor_service.dart';
 import '../exchange_response.dart';
 import 'change_now_exchange.dart';
 
+enum CNFlow {
+  standard("standard"),
+  fixedRate("fixed-rate");
+
+  const CNFlow(this.value);
+  final String value;
+}
+
+enum CNExchangeType {
+  direct("direct"),
+  reverse("reverse");
+
+  const CNExchangeType(this.value);
+  final String value;
+}
+
 class ChangeNowAPI {
   static const String scheme = "https";
   static const String authority = "api.changenow.io";
-  static const String apiVersion = "/v1";
   static const String apiVersionV2 = "/v2";
 
   final HTTP client;
@@ -48,56 +59,24 @@ class ChangeNowAPI {
   static final ChangeNowAPI _instance = ChangeNowAPI();
   static ChangeNowAPI get instance => _instance;
 
-  Uri _buildUri(String path, Map<String, dynamic>? params) {
-    return Uri.https(authority, apiVersion + path, params);
-  }
-
   Uri _buildUriV2(String path, Map<String, dynamic>? params) {
     return Uri.https(authority, apiVersionV2 + path, params);
   }
 
-  Future<dynamic> _makeGetRequest(Uri uri) async {
-    try {
-      final response = await client.get(
-        url: uri,
-        headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
-      );
-      String? data;
-      try {
-        data = response.body;
-        final parsed = jsonDecode(data);
-
-        return parsed;
-      } on FormatException catch (e) {
-        return {
-          "error": "Dart format exception",
-          "message": data,
-        };
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "_makeRequest($uri) threw",
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-
   Future<dynamic> _makeGetRequestV2(Uri uri, String apiKey) async {
+    Logging.instance.t("ChangeNOW _makeGetRequestV2 to $uri");
+
     try {
       final response = await client.get(
         url: uri,
         headers: {
-          // 'Content-Type': 'application/json',
-          'x-changenow-api-key': apiKey,
+          "Content-Type": "application/json",
+          "x-changenow-api-key": apiKey,
         },
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       final data = response.body;
@@ -105,27 +84,29 @@ class ChangeNowAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.e(
-        "_makeRequestV2($uri) threw",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("_makeRequestV2($uri) threw", error: e, stackTrace: s);
       rethrow;
     }
   }
 
-  Future<dynamic> _makePostRequest(
+  Future<dynamic> _makePostRequestV2(
     Uri uri,
     Map<String, String> body,
+    String apiKey,
   ) async {
+    Logging.instance.t("ChangeNOW _makePostRequestV2 to $uri");
     try {
       final response = await client.post(
         url: uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Content-Type": "application/json",
+          "x-changenow-api-key": apiKey,
+        },
         body: jsonEncode(body),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       String? data;
@@ -144,7 +125,7 @@ class ChangeNowAPI {
       }
     } catch (e, s) {
       Logging.instance.e(
-        "_makePostRequest($uri) threw",
+        "_makePostRequestV2($uri) threw",
         error: e,
         stackTrace: s,
       );
@@ -152,37 +133,41 @@ class ChangeNowAPI {
     }
   }
 
-  /// This API endpoint returns the list of available currencies.
+  /// Retrieves the list of available currencies from the API.
   ///
-  /// Set [active] to true to return only active currencies.
-  /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
+  /// - Set [active] to `true` to return only active currencies.
+  /// - Set [buy] to `true` to return only currencies available for buying.
+  /// - Set [sell] to `true` to return only currencies available for selling.
+  /// - Set [flow] to specify the type of exchange flow.
+  ///   Options are [CNFlow.standard] (default) or [CNFlow.fixedRate].
   Future<ExchangeResponse<List<Currency>>> getAvailableCurrencies({
-    bool? fixedRate,
     bool? active,
+    bool? buy,
+    bool? sell,
+    CNFlow flow = CNFlow.standard,
+    String? apiKey,
   }) async {
-    Map<String, dynamic>? params;
+    final params = {
+      "flow": flow.value,
+      if (active != null) "active": active.toString(),
+      if (buy != null) "buy": buy.toString(),
+      if (sell != null) "sell": sell.toString(),
+    };
 
-    if (active != null || fixedRate != null) {
-      params = {};
-      if (fixedRate != null) {
-        params.addAll({"fixedRate": fixedRate.toString()});
-      }
-      if (active != null) {
-        params.addAll({"active": active.toString()});
-      }
-    }
-
-    final uri = _buildUri("/currencies", params);
+    final uri = _buildUriV2("/exchange/currencies", params);
 
     try {
       // json array is expected here
-      final jsonArray = await _makeGetRequest(uri);
+      final jsonArray = await _makeGetRequestV2(
+        uri,
+        apiKey ?? kChangeNowApiKey,
+      );
 
       try {
-        final result = await compute(
-          _parseAvailableCurrenciesJson,
-          Tuple2(jsonArray as List<dynamic>, fixedRate == true),
-        );
+        final result = await compute(_parseAvailableCurrenciesJson, (
+          jsonList: jsonArray as List<dynamic>,
+          fixedRateFlow: flow == CNFlow.fixedRate,
+        ));
         return result;
       } catch (e, s) {
         Logging.instance.e(
@@ -213,20 +198,21 @@ class ChangeNowAPI {
   }
 
   ExchangeResponse<List<Currency>> _parseAvailableCurrenciesJson(
-    Tuple2<List<dynamic>, bool> args,
+    ({List<dynamic> jsonList, bool fixedRateFlow}) args,
   ) {
     try {
       final List<Currency> currencies = [];
 
-      for (final json in args.item1) {
+      for (final json in args.jsonList) {
         try {
           final map = Map<String, dynamic>.from(json as Map);
           currencies.add(
             Currency.fromJson(
               map,
-              rateType: (map["supportsFixedRate"] as bool)
-                  ? SupportedRateType.both
-                  : SupportedRateType.estimated,
+              rateType:
+                  (map["supportsFixedRate"] as bool)
+                      ? SupportedRateType.both
+                      : SupportedRateType.estimated,
               exchangeName: ChangeNowExchange.exchangeName,
             ),
           );
@@ -246,202 +232,37 @@ class ChangeNowAPI {
     }
   }
 
-  Future<ExchangeResponse<List<Currency>>> getCurrenciesV2(
-      //     {
-      //   bool? fixedRate,
-      //   bool? active,
-      // }
-      ) async {
-    Map<String, dynamic>? params;
-
-    // if (active != null || fixedRate != null) {
-    //   params = {};
-    //   if (fixedRate != null) {
-    //     params.addAll({"fixedRate": fixedRate.toString()});
-    //   }
-    //   if (active != null) {
-    //     params.addAll({"active": active.toString()});
-    //   }
-    // }
-
-    final uri = _buildUriV2("/exchange/currencies", params);
-
-    try {
-      // json array is expected here
-      final jsonArray = await _makeGetRequest(uri);
-
-      try {
-        final result = await compute(
-          _parseV2CurrenciesJson,
-          jsonArray as List<dynamic>,
-        );
-        return result;
-      } catch (e, s) {
-        Logging.instance.e(
-          "getAvailableCurrencies exception: ",
-          error: e,
-          stackTrace: s,
-        );
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Error: $jsonArray",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "getAvailableCurrencies exception: ",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  ExchangeResponse<List<Currency>> _parseV2CurrenciesJson(
-    List<dynamic> args,
-  ) {
-    try {
-      final List<Currency> currencies = [];
-
-      for (final json in args) {
-        try {
-          final map = Map<String, dynamic>.from(json as Map);
-          currencies.add(
-            Currency.fromJson(
-              map,
-              rateType: (map["supportsFixedRate"] as bool)
-                  ? SupportedRateType.both
-                  : SupportedRateType.estimated,
-              exchangeName: ChangeNowExchange.exchangeName,
-            ),
-          );
-        } catch (_) {
-          return ExchangeResponse(
-            exception: ExchangeException(
-              "Failed to serialize $json",
-              ExchangeExceptionType.serializeResponseError,
-            ),
-          );
-        }
-      }
-
-      return ExchangeResponse(value: currencies);
-    } catch (_) {
-      rethrow;
-    }
-  }
-
-  /// This API endpoint returns the array of markets available for the specified currency be default.
-  /// The availability of a particular pair is determined by the 'isAvailable' field.
+  /// Retrieves the minimum amount required to exchange [fromCurrency] to [toCurrency].
   ///
-  /// Required [ticker] to fetch paired currencies for.
-  /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
-  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies({
-    required String ticker,
-    bool? fixedRate,
-  }) async {
-    Map<String, dynamic>? params;
-
-    if (fixedRate != null) {
-      params = {};
-      params.addAll({"fixedRate": fixedRate.toString()});
-    }
-
-    final uri = _buildUri("/currencies-to/$ticker", params);
-
-    try {
-      // json array is expected here
-
-      final response = await _makeGetRequest(uri);
-
-      if (response is Map && response["error"] != null) {
-        return ExchangeResponse(
-          exception: UnsupportedCurrencyException(
-            response["message"] as String? ?? response["error"].toString(),
-            ExchangeExceptionType.generic,
-            ticker,
-          ),
-        );
-      }
-
-      final jsonArray = response as List;
-
-      final List<Currency> currencies = [];
-      try {
-        for (final json in jsonArray) {
-          try {
-            final map = Map<String, dynamic>.from(json as Map);
-            currencies.add(
-              Currency.fromJson(
-                map,
-                rateType: (map["supportsFixedRate"] as bool)
-                    ? SupportedRateType.both
-                    : SupportedRateType.estimated,
-                exchangeName: ChangeNowExchange.exchangeName,
-              ),
-            );
-          } catch (_) {
-            return ExchangeResponse(
-              exception: ExchangeException(
-                "Failed to serialize $json",
-                ExchangeExceptionType.serializeResponseError,
-              ),
-            );
-          }
-        }
-      } catch (e, s) {
-        Logging.instance.e(
-          "getPairedCurrencies exception: ",
-          error: e,
-          stackTrace: s,
-        );
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Error: $jsonArray",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-      return ExchangeResponse(value: currencies);
-    } catch (e, s) {
-      Logging.instance.e(
-        "getPairedCurrencies exception",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  /// The API endpoint returns minimal payment amount required to make
-  /// an exchange of [fromTicker] to [toTicker].
-  /// If you try to exchange less, the transaction will most likely fail.
+  /// If you attempt to exchange less than this amount, the transaction may fail.
+  ///
+  /// - [fromCurrency]: Ticker of the currency you want to exchange (e.g., "btc").
+  /// - [toCurrency]: Ticker of the currency you want to receive (e.g., "usdt").
+  /// - [fromNetwork]: (Optional) Network of the currency you want to exchange (e.g., "btc").
+  /// - [toNetwork]: (Optional) Network of the currency you want to receive (e.g., "eth").
+  /// - [flow]: (Optional) Exchange flow type. Defaults to [CNFlow.standard].
+  /// - [apiKey]: (Optional) API key if required.
   Future<ExchangeResponse<Decimal>> getMinimalExchangeAmount({
-    required String fromTicker,
-    required String toTicker,
+    required String fromCurrency,
+    required String toCurrency,
+    String? fromNetwork,
+    String? toNetwork,
+    CNFlow flow = CNFlow.standard,
     String? apiKey,
   }) async {
-    final Map<String, dynamic> params = {
-      "api_key": apiKey ?? kChangeNowApiKey,
+    final params = {
+      "fromCurrency": fromCurrency,
+      "toCurrency": toCurrency,
+      "flow": flow.value,
+      if (fromNetwork != null) "fromNetwork": fromNetwork,
+      if (toNetwork != null) "toNetwork": toNetwork,
     };
 
-    final uri = _buildUri("/min-amount/${fromTicker}_$toTicker", params);
+    final uri = _buildUriV2("/exchange/min-amount", params);
 
     try {
       // simple json object is expected here
-      final json = await _makeGetRequest(uri);
+      final json = await _makeGetRequestV2(uri, apiKey ?? kChangeNowApiKey);
 
       try {
         final value = Decimal.parse(json["minAmount"].toString());
@@ -469,27 +290,40 @@ class ChangeNowAPI {
     }
   }
 
-  /// The API endpoint returns minimal payment amount and maximum payment amount
-  /// required to make an exchange. If you try to exchange less than minimum or
-  /// more than maximum, the transaction will most likely fail. Any pair of
-  /// assets has minimum amount and some of pairs have maximum amount.
+  /// Retrieves the minimum and maximum exchangeable amounts for a given currency pair.
+  ///
+  /// Attempting to exchange less than the minimum or more than the maximum may result in a failed transaction.
+  /// Every asset pair has a minimum exchange amount, and some also have a maximum.
+  ///
+  /// - [fromCurrency]: Ticker of the currency you want to exchange (e.g., "btc").
+  /// - [toCurrency]: Ticker of the currency you want to receive (e.g., "eth").
+  /// - [fromNetwork]: (Optional) Network of the currency you want to exchange (e.g., "btc").
+  /// - [toNetwork]: (Optional) Network of the currency you want to receive (e.g., "eth").
+  /// - [flow]: (Optional) Type of exchange flow. Defaults to [CNFlow.standard].
+  /// - [apiKey]: (Optional) API key if required.
   Future<ExchangeResponse<Range>> getRange({
-    required String fromTicker,
-    required String toTicker,
-    required bool isFixedRate,
+    required String fromCurrency,
+    required String toCurrency,
+    String? fromNetwork,
+    String? toNetwork,
+    CNFlow flow = CNFlow.standard,
     String? apiKey,
   }) async {
-    final Map<String, dynamic> params = {
-      "api_key": apiKey ?? kChangeNowApiKey,
+    final params = {
+      "fromCurrency": fromCurrency,
+      "toCurrency": toCurrency,
+      "flow": flow.value,
+      if (fromNetwork != null) "fromNetwork": fromNetwork,
+      if (toNetwork != null) "toNetwork": toNetwork,
     };
 
-    final uri = _buildUri(
-      "/exchange-range${isFixedRate ? "/fixed-rate" : ""}/${fromTicker}_$toTicker",
-      params,
-    );
+    final uri = _buildUriV2("/exchange/range", params);
 
     try {
-      final jsonObject = await _makeGetRequest(uri);
+      final jsonObject = await _makeGetRequestV2(
+        uri,
+        apiKey ?? kChangeNowApiKey,
+      );
 
       final json = Map<String, dynamic>.from(jsonObject as Map);
       return ExchangeResponse(
@@ -499,11 +333,7 @@ class ChangeNowAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.e(
-        "getRange exception: ",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.f("getRange exception: ", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -513,24 +343,50 @@ class ChangeNowAPI {
     }
   }
 
-  /// Get estimated amount of [toTicker] cryptocurrency to receive
-  /// for [fromAmount] of [fromTicker]
+  /// Retrieves an estimated amount of [toCurrency] you would receive for a given input amount of [fromCurrency].
+  ///
+  /// - [fromCurrency]: Ticker of the currency you want to exchange (e.g., "btc").
+  /// - [toCurrency]: Ticker of the currency you want to receive (e.g., "eth").
+  /// - [fromAmount]: (Required if [type] is [CNExchangeType.direct]) Amount to exchange. Must be greater than 0.
+  /// - [toAmount]: (Required if [type] is [CNExchangeType.reverse]) Desired amount to receive. Must be greater than 0.
+  /// - [fromNetwork]: (Optional) Network of the currency you want to exchange (e.g., "btc").
+  /// - [toNetwork]: (Optional) Network of the currency you want to receive (e.g., "eth").
+  /// - [flow]: (Optional) Type of exchange flow. Defaults to [CNFlow.standard].
+  /// - [type]: (Optional) Exchange direction. Either [CNExchangeType.direct] or [CNExchangeType.reverse]. Defaults to [CNExchangeType.direct].
+  /// - [useRateId]: (Optional) For fixed-rate flow. When true, the response includes a [rateId] for locking the rate in the next request.
+  /// - [isTopUp]: (Optional) If true, gets an estimate for a balance top-up (no withdrawal fee).
+  /// - [apiKey]: (Optional) API key if required.
   Future<ExchangeResponse<Estimate>> getEstimatedExchangeAmount({
-    required String fromTicker,
-    required String toTicker,
-    required Decimal fromAmount,
+    required String fromCurrency,
+    required String toCurrency,
+    Decimal? fromAmount,
+    Decimal? toAmount,
+    String? fromNetwork,
+    String? toNetwork,
+    CNFlow flow = CNFlow.standard,
+    CNExchangeType type = CNExchangeType.direct,
+    bool? useRateId,
+    bool? isTopUp,
     String? apiKey,
   }) async {
-    final Map<String, dynamic> params = {"api_key": apiKey ?? kChangeNowApiKey};
+    final params = {
+      "fromCurrency": fromCurrency,
+      "toCurrency": toCurrency,
+      if (fromAmount != null) "fromAmount": fromAmount.toString(),
+      if (toAmount != null) "toAmount": toAmount.toString(),
+      if (fromNetwork != null) "fromNetwork": fromNetwork,
+      if (toNetwork != null) "toNetwork": toNetwork,
+      "flow": flow.value,
+      "type": type.value,
+      if (useRateId != null) "useRateId": useRateId.toString(),
+      if (isTopUp != null) "isTopUp": isTopUp.toString(),
+    };
 
-    final uri = _buildUri(
-      "/exchange-amount/${fromAmount.toString()}/${fromTicker}_$toTicker",
-      params,
-    );
+    final uri = _buildUriV2("/exchange/estimated-amount", params);
 
     try {
       // simple json object is expected here
-      final json = await _makeGetRequest(uri);
+      final json = await _makeGetRequestV2(uri, apiKey ?? kChangeNowApiKey);
 
       try {
         final map = Map<String, dynamic>.from(json as Map);
@@ -554,104 +410,19 @@ class ChangeNowAPI {
         }
 
         final value = EstimatedExchangeAmount.fromJson(map);
+        final reversed = value.type == CNExchangeType.reverse;
         return ExchangeResponse(
           value: Estimate(
-            estimatedAmount: value.estimatedAmount,
-            fixedRate: false,
-            reversed: false,
-            rateId: value.rateId,
-            warningMessage: value.warningMessage,
-            exchangeProvider: ChangeNowExchange.exchangeName,
-          ),
-        );
-      } catch (_) {
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Failed to serialize $json",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "getEstimatedExchangeAmount exception: ",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  /// Get estimated amount of [toTicker] cryptocurrency to receive
-  /// for [fromAmount] of [fromTicker]
-  Future<ExchangeResponse<Estimate>> getEstimatedExchangeAmountFixedRate({
-    required String fromTicker,
-    required String toTicker,
-    required Decimal fromAmount,
-    required bool reversed,
-    bool useRateId = true,
-    String? apiKey,
-  }) async {
-    final Map<String, dynamic> params = {
-      "api_key": apiKey ?? kChangeNowApiKey,
-      "useRateId": useRateId.toString(),
-    };
-
-    late final Uri uri;
-    if (reversed) {
-      uri = _buildUri(
-        "/exchange-deposit/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
-        params,
-      );
-    } else {
-      uri = _buildUri(
-        "/exchange-amount/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
-        params,
-      );
-    }
-
-    try {
-      // simple json object is expected here
-      final json = await _makeGetRequest(uri);
-
-      try {
-        final map = Map<String, dynamic>.from(json as Map);
-
-        if (map["error"] != null) {
-          if (map["error"] == "not_valid_fixed_rate_pair") {
-            return ExchangeResponse(
-              exception: PairUnavailableException(
-                map["message"] as String? ?? "Unsupported fixed rate pair",
-                ExchangeExceptionType.generic,
-              ),
-            );
-          } else {
-            return ExchangeResponse(
-              exception: ExchangeException(
-                map["message"] as String? ?? map["error"].toString(),
-                ExchangeExceptionType.generic,
-              ),
-            );
-          }
-        }
-
-        final value = EstimatedExchangeAmount.fromJson(map);
-        return ExchangeResponse(
-          value: Estimate(
-            estimatedAmount: value.estimatedAmount,
-            fixedRate: true,
+            estimatedAmount: reversed ? value.fromAmount : value.toAmount,
+            fixedRate: value.flow == CNFlow.fixedRate,
             reversed: reversed,
             rateId: value.rateId,
             warningMessage: value.warningMessage,
             exchangeProvider: ChangeNowExchange.exchangeName,
           ),
         );
-      } catch (_) {
+      } catch (e, s) {
+        Logging.instance.f(json, error: e, stackTrace: s);
         return ExchangeResponse(
           exception: ExchangeException(
             "Failed to serialize $json",
@@ -674,325 +445,100 @@ class ChangeNowAPI {
     }
   }
 
-  // old v1 version
-  /// This API endpoint returns fixed-rate estimated exchange amount of
-  /// [toTicker] cryptocurrency to receive for [fromAmount] of [fromTicker]
-  // Future<ExchangeResponse<EstimatedExchangeAmount>>
-  //     getEstimatedFixedRateExchangeAmount({
-  //   required String fromTicker,
-  //   required String toTicker,
-  //   required Decimal fromAmount,
-  //   // (Optional) Use rateId for fixed-rate flow. If this field is true, you
-  //   // could use returned field "rateId" in next method for creating transaction
-  //   // to freeze estimated amount that you got in this method. Current estimated
-  //   // amount would be valid until time in field "validUntil"
-  //   bool useRateId = true,
-  //   String? apiKey,
-  // }) async {
-  //   Map<String, dynamic> params = {
-  //     "api_key": apiKey ?? kChangeNowApiKey,
-  //     "useRateId": useRateId.toString(),
-  //   };
-  //
-  //   final uri = _buildUri(
-  //     "/exchange-amount/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
-  //     params,
-  //   );
-  //
-  //   try {
-  //     // simple json object is expected here
-  //     final json = await _makeGetRequest(uri);
-  //
-  //     try {
-  //       final value = EstimatedExchangeAmount.fromJson(
-  //           Map<String, dynamic>.from(json as Map));
-  //       return ExchangeResponse(value: value);
-  //     } catch (_) {
-  //       return ExchangeResponse(
-  //         exception: ExchangeException(
-  //           "Failed to serialize $json",
-  //           ExchangeExceptionType.serializeResponseError,
-  //         ),
-  //       );
-  //     }
-  //   } catch (e, s) {
-  //     Logging.instance.log(
-  //         "getEstimatedFixedRateExchangeAmount exception: $e\n$s",
-  //         level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-
-  /// Get estimated amount of [toTicker] cryptocurrency to receive
-  /// for [fromAmount] of [fromTicker]
-  Future<ExchangeResponse<CNExchangeEstimate>> getEstimatedExchangeAmountV2({
-    required String fromTicker,
-    required String toTicker,
-    required CNEstimateType fromOrTo,
-    required Decimal amount,
-    String? fromNetwork,
-    String? toNetwork,
-    CNFlowType flow = CNFlowType.standard,
+  /// Creates a new exchange transaction.
+  ///
+  /// This method initializes a currency exchange by specifying the source and destination
+  /// currencies, the exchange direction, recipient details, and optional metadata.
+  ///
+  /// If using a fixed-rate flow, you **must** provide a [rateId] obtained from a prior estimate
+  /// to lock in the rate. If using a standard flow, [rateId] can be left null.
+  ///
+  /// Parameters:
+  /// - [fromCurrency]: Ticker of the currency you want to exchange (e.g., "btc").
+  /// - [fromNetwork]: Network of the currency you want to exchange (e.g., "btc").
+  /// - [toCurrency]: Ticker of the currency you want to receive (e.g., "usdt").
+  /// - [toNetwork]: Network of the currency you want to receive (e.g., "eth").
+  /// - [fromAmount]: Amount of currency you want to exchange (used in "direct" flow).
+  /// - [toAmount]: Amount of currency you want to receive (used in "reverse" flow).
+  /// - [flow]: Type of exchange flow. Either [CNFlow.standard] or [CNFlow.fixedRate].
+  /// - [type]: Direction of the exchange. Use [CNExchangeType.direct] to define the amount to send,
+  ///   or [CNExchangeType.reverse] to define the amount to receive.
+  /// - [address]: Wallet address that will receive the exchanged funds.
+  /// - [extraId]: (Optional) Extra ID required by some currencies (e.g., memo, tag).
+  /// - [refundAddress]: (Optional) Address used to refund funds in case of timeout or failure.
+  /// - [refundExtraId]: (Optional) Extra ID for the refund address if required.
+  /// - [userId]: (Optional) Internal user identifier for partners with special access.
+  /// - [payload]: (Optional) Arbitrary string to store additional context for the transaction.
+  /// - [contactEmail]: (Optional) Email address to contact the user in case of issues.
+  /// - [rateId]: (Required for fixed-rate) The rate ID returned from the estimate step to freeze the exchange rate.
+  /// - [apiKey]: (Optional) Your API key, if authentication is required.
+  ///
+  /// Returns a [Future] resolving to [ExchangeResponse] containing the created [ExchangeTransaction].
+  Future<ExchangeResponse<CNExchangeTransaction>> createExchangeTransaction({
+    required String fromCurrency,
+    required String fromNetwork,
+    required String toCurrency,
+    required String toNetwork,
+    Decimal? fromAmount,
+    Decimal? toAmount,
+    CNFlow flow = CNFlow.standard,
+    CNExchangeType type = CNExchangeType.direct,
+    required String address,
+    String? extraId,
+    String? refundAddress,
+    String? refundExtraId,
+    String? userId,
+    String? payload,
+    String? contactEmail,
+    required String? rateId,
     String? apiKey,
   }) async {
-    final Map<String, dynamic> params = {
-      "fromCurrency": fromTicker,
-      "toCurrency": toTicker,
+    final Map<String, String> body = {
+      "fromCurrency": fromCurrency,
+      "fromNetwork": fromNetwork ?? "",
+      "toCurrency": toCurrency,
+      "toNetwork": toNetwork ?? "",
+      "fromAmount": fromAmount?.toString() ?? "",
+      "toAmount": toAmount?.toString() ?? "",
       "flow": flow.value,
-      "type": fromOrTo.name,
+      "type": type.value,
+      "address": address,
+      "extraId": extraId ?? "",
+      "refundAddress": refundAddress ?? "",
+      "refundExtraId": refundExtraId ?? "",
+      "userId": userId ?? "",
+      "payload": payload ?? "",
+      "contactEmail": contactEmail ?? "",
+      "rateId": rateId ?? "",
     };
 
-    switch (fromOrTo) {
-      case CNEstimateType.direct:
-        params["fromAmount"] = amount.toString();
-        break;
-      case CNEstimateType.reverse:
-        params["toAmount"] = amount.toString();
-        break;
-    }
-
-    if (fromNetwork != null) {
-      params["fromNetwork"] = fromNetwork;
-    }
-
-    if (toNetwork != null) {
-      params["toNetwork"] = toNetwork;
-    }
-
-    if (flow == CNFlowType.fixedRate) {
-      params["useRateId"] = "true";
-    }
-
-    final uri = _buildUriV2("/exchange/estimated-amount", params);
+    final uri = _buildUriV2("/exchange", null);
 
     try {
       // simple json object is expected here
-      final json = await _makeGetRequestV2(uri, apiKey ?? kChangeNowApiKey);
+      final json = await _makePostRequestV2(
+        uri,
+        body,
+        apiKey ?? kChangeNowApiKey,
+      );
+
+      json["date"] = DateTime.now().toIso8601String();
 
       try {
-        final value =
-            CNExchangeEstimate.fromJson(Map<String, dynamic>.from(json as Map));
+        final value = CNExchangeTransaction.fromJson(
+          Map<String, dynamic>.from(json as Map),
+        );
         return ExchangeResponse(value: value);
-      } catch (_) {
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Failed to serialize $json",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "getEstimatedExchangeAmountV2 exception: ",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  /// This API endpoint returns the list of all the pairs available on a
-  /// fixed-rate flow. Some currencies get enabled or disabled from time to
-  /// time and the market info gets updates, so make sure to refresh the list
-  /// occasionally. One time per minute is sufficient.
-  Future<ExchangeResponse<List<FixedRateMarket>>> getAvailableFixedRateMarkets({
-    String? apiKey,
-  }) async {
-    final uri = _buildUri(
-      "/market-info/fixed-rate/${apiKey ?? kChangeNowApiKey}",
-      null,
-    );
-
-    try {
-      // json array is expected here
-      final jsonArray = await _makeGetRequest(uri);
-
-      try {
-        final result =
-            await compute(_parseFixedRateMarketsJson, jsonArray as List);
-        return result;
       } catch (e, s) {
-        Logging.instance.e(
-          "getAvailableFixedRateMarkets exception: ",
-          error: e,
-          stackTrace: s,
-        );
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Error: $jsonArray",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "getAvailableFixedRateMarkets exception: ",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  ExchangeResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
-    List<dynamic> jsonArray,
-  ) {
-    try {
-      final List<FixedRateMarket> markets = [];
-      for (final json in jsonArray) {
-        try {
-          markets.add(
-            FixedRateMarket.fromMap(Map<String, dynamic>.from(json as Map)),
-          );
-        } catch (_) {
+        if (json["error"] == "rate_id_not_found_or_expired") {
           return ExchangeResponse(
             exception: ExchangeException(
-              "Failed to serialize $json",
+              "Rate ID not found or expired",
               ExchangeExceptionType.serializeResponseError,
             ),
           );
         }
-      }
-      return ExchangeResponse(value: markets);
-    } catch (_) {
-      rethrow;
-    }
-  }
-
-  /// The API endpoint creates a transaction, generates an address for
-  /// sending funds and returns transaction attributes.
-  Future<ExchangeResponse<ExchangeTransaction>>
-      createStandardExchangeTransaction({
-    required String fromTicker,
-    required String toTicker,
-    required String receivingAddress,
-    required Decimal amount,
-    String extraId = "",
-    String userId = "",
-    String contactEmail = "",
-    String refundAddress = "",
-    String refundExtraId = "",
-    String? apiKey,
-  }) async {
-    final Map<String, String> map = {
-      "from": fromTicker,
-      "to": toTicker,
-      "address": receivingAddress,
-      "amount": amount.toString(),
-      "flow": "standard",
-      "extraId": extraId,
-      "userId": userId,
-      "contactEmail": contactEmail,
-      "refundAddress": refundAddress,
-      "refundExtraId": refundExtraId,
-    };
-
-    final uri = _buildUri("/transactions/${apiKey ?? kChangeNowApiKey}", null);
-
-    try {
-      // simple json object is expected here
-      final json = await _makePostRequest(uri, map);
-
-      // pass in date to prevent using default 1970 date
-      json["date"] = DateTime.now().toString();
-
-      try {
-        final value = ExchangeTransaction.fromJson(
-          Map<String, dynamic>.from(json as Map),
-        );
-        return ExchangeResponse(value: value);
-      } catch (_) {
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Failed to serialize $json",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "createStandardExchangeTransaction exception: ",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  /// The API endpoint creates a transaction, generates an address for
-  /// sending funds and returns transaction attributes.
-  Future<ExchangeResponse<ExchangeTransaction>>
-      createFixedRateExchangeTransaction({
-    required String fromTicker,
-    required String toTicker,
-    required String receivingAddress,
-    required Decimal amount,
-    required String rateId,
-    required bool reversed,
-    String extraId = "",
-    String userId = "",
-    String contactEmail = "",
-    String refundAddress = "",
-    String refundExtraId = "",
-    String? apiKey,
-  }) async {
-    final Map<String, String> map = {
-      "from": fromTicker,
-      "to": toTicker,
-      "address": receivingAddress,
-      "flow": "fixed-rate",
-      "extraId": extraId,
-      "userId": userId,
-      "contactEmail": contactEmail,
-      "refundAddress": refundAddress,
-      "refundExtraId": refundExtraId,
-      "rateId": rateId,
-    };
-
-    if (reversed) {
-      map["result"] = amount.toString();
-    } else {
-      map["amount"] = amount.toString();
-    }
-
-    final uri = _buildUri(
-      "/transactions/fixed-rate${reversed ? "/from-result" : ""}/${apiKey ?? kChangeNowApiKey}",
-      null,
-    );
-
-    try {
-      // simple json object is expected here
-      final json = await _makePostRequest(uri, map);
-
-      // pass in date to prevent using default 1970 date
-      json["date"] = DateTime.now().toString();
-
-      try {
-        final value = ExchangeTransaction.fromJson(
-          Map<String, dynamic>.from(json as Map),
-        );
-        return ExchangeResponse(value: value);
-      } catch (_) {
+        Logging.instance.f(json, error: e, stackTrace: s);
         return ExchangeResponse(
           exception: ExchangeException(
             "Failed to serialize $json",
@@ -1015,23 +561,23 @@ class ChangeNowAPI {
     }
   }
 
-  Future<ExchangeResponse<ExchangeTransactionStatus>> getTransactionStatus({
+  Future<ExchangeResponse<CNExchangeTransactionStatus>> getTransactionStatus({
     required String id,
     String? apiKey,
   }) async {
-    final uri =
-        _buildUri("/transactions/$id/${apiKey ?? kChangeNowApiKey}", null);
+    final uri = _buildUriV2("/exchange/by-id", {"id": id});
 
     try {
       // simple json object is expected here
-      final json = await _makeGetRequest(uri);
+      final json = await _makeGetRequestV2(uri, apiKey ?? kChangeNowApiKey);
 
       try {
-        final value = ExchangeTransactionStatus.fromJson(
+        final value = CNExchangeTransactionStatus.fromMap(
           Map<String, dynamic>.from(json as Map),
         );
         return ExchangeResponse(value: value);
-      } catch (_) {
+      } catch (e, s) {
+        Logging.instance.f(json, error: e, stackTrace: s);
         return ExchangeResponse(
           exception: ExchangeException(
             "Failed to serialize $json",
@@ -1051,83 +597,6 @@ class ChangeNowAPI {
           ExchangeExceptionType.generic,
         ),
       );
-    }
-  }
-
-  Future<ExchangeResponse<List<Pair>>> getAvailableFloatingRatePairs({
-    bool includePartners = false,
-  }) async {
-    final uri = _buildUri(
-      "/market-info/available-pairs",
-      {"includePartners": includePartners.toString()},
-    );
-
-    try {
-      // json array is expected here
-      final jsonArray = await _makeGetRequest(uri);
-
-      try {
-        final result = await compute(
-          _parseAvailableFloatingRatePairsJson,
-          jsonArray as List,
-        );
-        return result;
-      } catch (e, s) {
-        Logging.instance.e(
-          "getAvailableFloatingRatePairs exception: ",
-          error: e,
-          stackTrace: s,
-        );
-        return ExchangeResponse(
-          exception: ExchangeException(
-            "Error: $jsonArray",
-            ExchangeExceptionType.serializeResponseError,
-          ),
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "getAvailableFloatingRatePairs exception: ",
-        error: e,
-        stackTrace: s,
-      );
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  ExchangeResponse<List<Pair>> _parseAvailableFloatingRatePairsJson(
-    List<dynamic> jsonArray,
-  ) {
-    try {
-      final List<Pair> pairs = [];
-      for (final json in jsonArray) {
-        try {
-          final List<String> stringPair = (json as String).split("_");
-          pairs.add(
-            Pair(
-              exchangeName: ChangeNowExchange.exchangeName,
-              from: stringPair[0],
-              to: stringPair[1],
-              rateType: SupportedRateType.estimated,
-            ),
-          );
-        } catch (_) {
-          return ExchangeResponse(
-            exception: ExchangeException(
-              "Failed to serialize $json",
-              ExchangeExceptionType.serializeResponseError,
-            ),
-          );
-        }
-      }
-      return ExchangeResponse(value: pairs);
-    } catch (_) {
-      rethrow;
     }
   }
 }

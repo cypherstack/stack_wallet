@@ -60,9 +60,9 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.eCash44,
-        DerivePathType.bip44,
-      ];
+    DerivePathType.eCash44,
+    DerivePathType.bip44,
+  ];
 
   @override
   String get genesisHash {
@@ -77,10 +77,8 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(546),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
   coinlib.Network get networkParams {
@@ -225,6 +223,17 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
+  AddressType? getAddressType(String address) {
+    final format = bitbox.Address.detectFormat(address);
+
+    return super.getAddressType(
+      format == bitbox.Address.formatCashAddr
+          ? bitbox.Address.toLegacyAddress(address)
+          : address,
+    );
+  }
+
+  @override
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
@@ -276,7 +285,7 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -291,6 +300,7 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -26,10 +27,7 @@ import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
 class RenameWalletView extends ConsumerStatefulWidget {
-  const RenameWalletView({
-    super.key,
-    required this.walletId,
-  });
+  const RenameWalletView({super.key, required this.walletId});
 
   static const String routeName = "/renameWallet";
 
@@ -73,105 +71,104 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Rename wallet",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Rename wallet", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  style: STextStyles.field(context),
-                  onChanged: (_) => setState(() {}),
-                  decoration: standardInputDecoration(
-                    "Wallet name",
-                    _focusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon: _controller.text.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        _controller.text = "";
-                                      });
-                                    },
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                  child: TextField(
+                    autocorrect: Util.isDesktop ? false : true,
+                    enableSuggestions: Util.isDesktop ? false : true,
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    style: STextStyles.field(context),
+                    onChanged: (_) => setState(() {}),
+                    decoration: standardInputDecoration(
+                      "Wallet name",
+                      _focusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon:
+                          _controller.text.isNotEmpty
+                              ? Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            _controller.text = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : null,
+                                ),
+                              )
+                              : null,
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                onPressed: () async {
-                  final newName = _controller.text;
+                const Spacer(),
+                TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context),
+                  onPressed: () async {
+                    final newName = _controller.text;
 
-                  String? errMessage;
-                  try {
-                    await ref.read(pWalletInfo(walletId)).updateName(
-                          newName: newName,
-                          isar: ref.read(mainDBProvider).isar,
+                    String? errMessage;
+                    try {
+                      await ref
+                          .read(pWalletInfo(walletId))
+                          .updateName(
+                            newName: newName,
+                            isar: ref.read(mainDBProvider).isar,
+                          );
+                    } catch (e) {
+                      if (e.toString().contains(
+                        "Empty wallet name not allowed!",
+                      )) {
+                        errMessage = "Empty wallet name not allowed.";
+                      } else {
+                        errMessage = e.toString();
+                      }
+                    }
+
+                    if (mounted) {
+                      if (errMessage == null) {
+                        Navigator.of(context).pop();
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.success,
+                            message: "Wallet renamed",
+                            context: context,
+                          ),
                         );
-                  } catch (e) {
-                    if (e
-                        .toString()
-                        .contains("Empty wallet name not allowed!")) {
-                      errMessage = "Empty wallet name not allowed.";
-                    } else {
-                      errMessage = e.toString();
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "Wallet named \"$newName\" already exists",
+                            context: context,
+                          ),
+                        );
+                      }
                     }
-                  }
-
-                  if (mounted) {
-                    if (errMessage == null) {
-                      Navigator.of(context).pop();
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.success,
-                          message: "Wallet renamed",
-                          context: context,
-                        ),
-                      );
-                    } else {
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Wallet named \"$newName\" already exists",
-                          context: context,
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: Text(
-                  "Save",
-                  style: STextStyles.button(context),
+                  },
+                  child: Text("Save", style: STextStyles.button(context)),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

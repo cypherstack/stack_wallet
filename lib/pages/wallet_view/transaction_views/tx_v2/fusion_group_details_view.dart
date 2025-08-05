@@ -10,8 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'transaction_v2_list_item.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
@@ -21,6 +21,7 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'transaction_v2_list_item.dart';
 
 class FusionGroupDetailsView extends ConsumerStatefulWidget {
   const FusionGroupDetailsView({
@@ -48,23 +49,15 @@ class _FusionGroupDetailsViewState
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      topLeft: Radius.circular(Constants.size.circularBorderRadius),
+      topRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   BorderRadius get _borderRadiusLast {
     return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
+      bottomRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
@@ -97,16 +90,14 @@ class _FusionGroupDetailsViewState
               ),
               Flexible(
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    right: 32,
-                    bottom: 32,
-                  ),
+                  padding: const EdgeInsets.only(right: 32, bottom: 32),
                   child: RoundedWhiteContainer(
-                    borderColor: isDesktop
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .backgroundAppBar
-                        : null,
+                    borderColor:
+                        isDesktop
+                            ? Theme.of(
+                              context,
+                            ).extension<StackColors>()!.backgroundAppBar
+                            : null,
                     padding: const EdgeInsets.all(0),
                     child: ListView.separated(
                       shrinkWrap: true,
@@ -132,9 +123,10 @@ class _FusionGroupDetailsViewState
                         return Container(
                           width: double.infinity,
                           height: 1.2,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
                         );
                       },
                       itemCount: widget.transactions.length,
@@ -164,29 +156,27 @@ class _FusionGroupDetailsViewState
               style: STextStyles.navBarTitle(context),
             ),
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ListView.builder(
-              itemCount: widget.transactions.length,
-              itemBuilder: (context, index) {
-                BorderRadius? radius;
-                if (widget.transactions.length == 1) {
-                  radius = BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  );
-                } else if (index == widget.transactions.length - 1) {
-                  radius = _borderRadiusLast;
-                } else if (index == 0) {
-                  radius = _borderRadiusFirst;
-                }
-                final tx = widget.transactions[index];
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ListView.builder(
+                itemCount: widget.transactions.length,
+                itemBuilder: (context, index) {
+                  BorderRadius? radius;
+                  if (widget.transactions.length == 1) {
+                    radius = BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    );
+                  } else if (index == widget.transactions.length - 1) {
+                    radius = _borderRadiusLast;
+                  } else if (index == 0) {
+                    radius = _borderRadiusFirst;
+                  }
+                  final tx = widget.transactions[index];
 
-                return TxListItem(
-                  tx: tx,
-                  coin: widget.coin,
-                  radius: radius,
-                );
-              },
+                  return TxListItem(tx: tx, coin: widget.coin, radius: radius);
+                },
+              ),
             ),
           ),
         ),

@@ -28,23 +28,32 @@ class EthTokenTxDto {
     required this.articulatedLog,
     required this.transactionHash,
     required this.transactionIndex,
+    required this.blockHash,
+    required this.timestamp,
+    required this.nonce,
+    required this.gasUsed,
+    required this.gasPrice,
   });
 
   EthTokenTxDto.fromMap(Map<String, dynamic> map)
-      : address = map['address'] as String,
-        blockNumber = map['blockNumber'] as int,
-        logIndex = map['logIndex'] as int,
-        topics = List<String>.from(map['topics'] as List),
-        data = map['data'] as String,
-        articulatedLog = map['articulatedLog'] == null
-            ? null
-            : ArticulatedLog.fromMap(
-                Map<String, dynamic>.from(
-                  map['articulatedLog'] as Map,
-                ),
+    : address = map['address'] as String,
+      blockNumber = map['blockNumber'] as int,
+      logIndex = map['logIndex'] as int,
+      topics = List<String>.from(map['topics'] as List),
+      data = map['data'] as String,
+      articulatedLog =
+          map['articulatedLog'] == null
+              ? null
+              : ArticulatedLog.fromMap(
+                Map<String, dynamic>.from(map['articulatedLog'] as Map),
               ),
-        transactionHash = map['transactionHash'] as String,
-        transactionIndex = map['transactionIndex'] as int;
+      transactionHash = map['transactionHash'] as String,
+      transactionIndex = map['transactionIndex'] as int,
+      blockHash = map['blockHash'] as String?,
+      timestamp = map['timestamp'] as int,
+      nonce = map['nonce'] as int?,
+      gasUsed = map['gasUsed'] as int?,
+      gasPrice = BigInt.tryParse(map['gasPrice'].toString());
 
   final String address;
   final int blockNumber;
@@ -54,6 +63,11 @@ class EthTokenTxDto {
   final ArticulatedLog? articulatedLog;
   final String transactionHash;
   final int transactionIndex;
+  final String? blockHash;
+  final int timestamp;
+  final int? nonce;
+  final int? gasUsed;
+  final BigInt? gasPrice;
 
   EthTokenTxDto copyWith({
     String? address,
@@ -65,17 +79,26 @@ class EthTokenTxDto {
     String? compressedLog,
     String? transactionHash,
     int? transactionIndex,
-  }) =>
-      EthTokenTxDto(
-        address: address ?? this.address,
-        blockNumber: blockNumber ?? this.blockNumber,
-        logIndex: logIndex ?? this.logIndex,
-        topics: topics ?? this.topics,
-        data: data ?? this.data,
-        articulatedLog: articulatedLog ?? this.articulatedLog,
-        transactionHash: transactionHash ?? this.transactionHash,
-        transactionIndex: transactionIndex ?? this.transactionIndex,
-      );
+    String? blockHash,
+    int? timestamp,
+    int? nonce,
+    int? gasUsed,
+    BigInt? gasPrice,
+  }) => EthTokenTxDto(
+    address: address ?? this.address,
+    blockNumber: blockNumber ?? this.blockNumber,
+    logIndex: logIndex ?? this.logIndex,
+    topics: topics ?? this.topics,
+    data: data ?? this.data,
+    articulatedLog: articulatedLog ?? this.articulatedLog,
+    transactionHash: transactionHash ?? this.transactionHash,
+    transactionIndex: transactionIndex ?? this.transactionIndex,
+    blockHash: blockHash ?? this.blockHash,
+    timestamp: timestamp ?? this.timestamp,
+    nonce: nonce ?? this.nonce,
+    gasUsed: gasUsed ?? this.gasUsed,
+    gasPrice: gasPrice ?? this.gasPrice,
+  );
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
@@ -87,6 +110,11 @@ class EthTokenTxDto {
     map['articulatedLog'] = articulatedLog?.toMap();
     map['transactionHash'] = transactionHash;
     map['transactionIndex'] = transactionIndex;
+    map['blockHash'] = blockHash;
+    map['timestamp'] = timestamp;
+    map['nonce'] = nonce;
+    map['gasPrice'] = gasPrice;
+    map['gasUsed'] = gasUsed;
     return map;
   }
 
@@ -100,30 +128,17 @@ class EthTokenTxDto {
 /// inputs : {"_amount":"3291036540000000000","_from":"0x3a5cc8689d1b0cef2c317bc5c0ad6ce88b27d597","_to":"0xc5e81fc2401b8104966637d5334cbce92f01dbf7"}
 
 class ArticulatedLog {
-  ArticulatedLog({
-    required this.name,
-    required this.inputs,
-  });
+  ArticulatedLog({required this.name, required this.inputs});
 
   ArticulatedLog.fromMap(Map<String, dynamic> map)
-      : name = map['name'] as String,
-        inputs = Inputs.fromMap(
-          Map<String, dynamic>.from(
-            map['inputs'] as Map,
-          ),
-        );
+    : name = map['name'] as String,
+      inputs = Inputs.fromMap(Map<String, dynamic>.from(map['inputs'] as Map));
 
   final String name;
   final Inputs inputs;
 
-  ArticulatedLog copyWith({
-    String? name,
-    Inputs? inputs,
-  }) =>
-      ArticulatedLog(
-        name: name ?? this.name,
-        inputs: inputs ?? this.inputs,
-      );
+  ArticulatedLog copyWith({String? name, Inputs? inputs}) =>
+      ArticulatedLog(name: name ?? this.name, inputs: inputs ?? this.inputs);
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
@@ -138,31 +153,22 @@ class ArticulatedLog {
 /// _to : "0xc5e81fc2401b8104966637d5334cbce92f01dbf7"
 ///
 class Inputs {
-  Inputs({
-    required this.amount,
-    required this.from,
-    required this.to,
-  });
+  Inputs({required this.amount, required this.from, required this.to});
 
   Inputs.fromMap(Map<String, dynamic> map)
-      : amount = map['_amount'] as String,
-        from = map['_from'] as String,
-        to = map['_to'] as String;
+    : amount = map['_amount'] as String,
+      from = map['_from'] as String,
+      to = map['_to'] as String;
 
   final String amount;
   final String from;
   final String to;
 
-  Inputs copyWith({
-    String? amount,
-    String? from,
-    String? to,
-  }) =>
-      Inputs(
-        amount: amount ?? this.amount,
-        from: from ?? this.from,
-        to: to ?? this.to,
-      );
+  Inputs copyWith({String? amount, String? from, String? to}) => Inputs(
+    amount: amount ?? this.amount,
+    from: from ?? this.from,
+    to: to ?? this.to,
+  );
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};

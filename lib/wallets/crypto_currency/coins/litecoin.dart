@@ -56,10 +56,10 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-        DerivePathType.bip49,
-        DerivePathType.bip84,
-      ];
+    DerivePathType.bip44,
+    DerivePathType.bip49,
+    DerivePathType.bip84,
+  ];
 
   @override
   String get genesisHash {
@@ -74,15 +74,11 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(294),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(294), fractionDigits: fractionDigits);
 
-  Amount get dustLimitP2PKH => Amount(
-        rawValue: BigInt.from(546),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimitP2PKH =>
+      Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
   coinlib.Network get networkParams {
@@ -95,6 +91,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "ltc",
+          mwebBech32Hrp: "ltcmweb",
           messagePrefix: '\x19Litecoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -108,6 +105,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tltc",
+          mwebBech32Hrp: "tmweb",
           messagePrefix: "\x19Litecoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -171,10 +169,11 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        ).program.script;
+        final p2wpkhScript =
+            coinlib.P2WPKHAddress.fromPublicKey(
+              publicKey,
+              hrp: networkParams.bech32Hrp,
+            ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
@@ -207,7 +206,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -222,6 +221,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -237,6 +237,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

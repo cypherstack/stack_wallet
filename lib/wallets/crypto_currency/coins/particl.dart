@@ -84,7 +84,7 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -99,6 +99,7 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet.
@@ -109,10 +110,8 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L58
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(294),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(294), fractionDigits: fractionDigits);
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L63
@@ -180,9 +179,9 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-        DerivePathType.bip84,
-      ];
+    DerivePathType.bip44,
+    DerivePathType.bip84,
+  ];
 
   @override
   bool validateAddress(String address) {

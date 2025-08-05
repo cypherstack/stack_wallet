@@ -10,8 +10,6 @@ rustup target add x86_64-apple-ios
 rustup target add aarch64-apple-ios
 rustup target add x86_64-apple-ios
 
-(cd ../../crypto_plugins/flutter_liblelantus/scripts/ios && ./build_all.sh )
-
 # libepiccash requires old rust
 source ../rust_version.sh
 set_rust_version_for_libepiccash

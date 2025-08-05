@@ -528,6 +528,67 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
       ) as _i8.Future<List<List<dynamic>>>);
 
   @override
+  _i8.Future<List<({String address, String name})>> getSparkNames(
+          {String? requestID}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkNames,
+          [],
+          {#requestID: requestID},
+        ),
+        returnValue: _i8.Future<List<({String address, String name})>>.value(
+            <({String address, String name})>[]),
+      ) as _i8.Future<List<({String address, String name})>>);
+
+  @override
+  _i8.Future<({String additionalInfo, String address, int validUntil})>
+      getSparkNameData({
+    required String? sparkName,
+    String? requestID,
+  }) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getSparkNameData,
+              [],
+              {
+                #sparkName: sparkName,
+                #requestID: requestID,
+              },
+            ),
+            returnValue: _i8.Future<
+                ({
+                  String additionalInfo,
+                  String address,
+                  int validUntil
+                })>.value((
+              additionalInfo: _i7.dummyValue<String>(
+                this,
+                Invocation.method(
+                  #getSparkNameData,
+                  [],
+                  {
+                    #sparkName: sparkName,
+                    #requestID: requestID,
+                  },
+                ),
+              ),
+              address: _i7.dummyValue<String>(
+                this,
+                Invocation.method(
+                  #getSparkNameData,
+                  [],
+                  {
+                    #sparkName: sparkName,
+                    #requestID: requestID,
+                  },
+                ),
+              ),
+              validUntil: 0
+            )),
+          ) as _i8.Future<
+              ({String additionalInfo, String address, int validUntil})>);
+
+  @override
   _i8.Future<_i3.SparkAnonymitySetMeta> getSparkAnonymitySetMeta({
     String? requestID,
     required int? coinGroupId,
@@ -673,26 +734,6 @@ class MockCachedElectrumXClient extends _i1.Mock
       ) as _i5.ElectrumXClient);
 
   @override
-  _i8.Future<Map<String, dynamic>> getAnonymitySet({
-    required String? groupId,
-    String? blockhash = r'',
-    required _i2.CryptoCurrency? cryptoCurrency,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getAnonymitySet,
-          [],
-          {
-            #groupId: groupId,
-            #blockhash: blockhash,
-            #cryptoCurrency: cryptoCurrency,
-          },
-        ),
-        returnValue:
-            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i8.Future<Map<String, dynamic>>);
-
-  @override
   String base64ToHex(String? source) => (super.noSuchMethod(
         Invocation.method(
           #base64ToHex,
@@ -741,23 +782,6 @@ class MockCachedElectrumXClient extends _i1.Mock
         returnValue:
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
-
-  @override
-  _i8.Future<List<String>> getUsedCoinSerials({
-    required _i2.CryptoCurrency? cryptoCurrency,
-    int? startNumber = 0,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getUsedCoinSerials,
-          [],
-          {
-            #cryptoCurrency: cryptoCurrency,
-            #startNumber: startNumber,
-          },
-        ),
-        returnValue: _i8.Future<List<String>>.value(<String>[]),
-      ) as _i8.Future<List<String>>);
 
   @override
   _i8.Future<void> clearSharedTransactionCache(

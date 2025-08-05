@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
@@ -28,7 +28,9 @@ import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -36,10 +38,8 @@ import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
-import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
@@ -50,20 +50,17 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import '../../../../widgets/animated_text.dart';
-import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../../../widgets/desktop/desktop_fee_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
-import '../../../../widgets/fee_slider.dart';
+import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
@@ -74,7 +71,7 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_fee_dropdown.dart';
+import 'desktop_send_fee_form.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -82,14 +79,13 @@ class DesktopSend extends ConsumerStatefulWidget {
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.accountLite,
   });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
   final PaynymAccountLite? accountLite;
 
   @override
@@ -100,13 +96,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
 
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
-  // late TextEditingController feeController;
   late TextEditingController memoController;
+  late TextEditingController nonceController;
 
   late final SendViewAutoFillData? _data;
 
@@ -114,6 +109,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
   final _memoFocus = FocusNode();
+  final _nonceFocusNode = FocusNode();
 
   late final bool isStellar;
 
@@ -134,14 +130,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool isCustomFee = false;
   int customFeeRate = 1;
-  (FeeRateType, String?, String?)? feeSelectionResult;
-
-  final stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
-  ];
+  EthEIP1559Fee? ethFee;
 
   Future<void> scanWebcam() async {
     try {
@@ -155,13 +144,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         try {
           _processQrCodeData(qrResult);
         } catch (e, s) {
-          Logging.instance
-              .e("Error processing QR code data", error: e, stackTrace: s);
+          Logging.instance.e(
+            "Error processing QR code data",
+            error: e,
+            stackTrace: s,
+          );
         }
       }
     } catch (e, s) {
-      Logging.instance
-          .e("Error opening QR code scanner dialog", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error opening QR code scanner dialog",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -170,16 +165,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
-    if ((coin is Firo)) {
+    if (coin is Firo || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
-        case FiroType.lelantus:
-          availableBalance = wallet.info.cachedBalanceSecondary.spendable;
-          break;
-        case FiroType.spark:
-          availableBalance = wallet.info.cachedBalanceTertiary.spendable;
+        case BalanceType.private:
+          availableBalance =
+              coin is Firo
+                  ? wallet.info.cachedBalanceTertiary.spendable
+                  : wallet.info.cachedBalanceSecondary.spendable;
           break;
       }
     } else {
@@ -190,9 +185,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
     if (!(wallet is CoinControlInterface && coinControlEnabled) ||
-        (wallet is CoinControlInterface &&
-            coinControlEnabled &&
-            ref.read(desktopUseUTXOs).isEmpty)) {
+        (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
@@ -204,10 +197,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               maxWidth: 450,
               maxHeight: double.infinity,
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  bottom: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, bottom: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -221,29 +211,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         const DesktopDialogCloseButton(),
                       ],
                     ),
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        right: 32,
-                      ),
+                      padding: const EdgeInsets.only(right: 32),
                       child: Text(
                         "You are about to send your entire balance. Would you like to continue?",
                         textAlign: TextAlign.left,
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          fontSize: 18,
-                        ),
+                        style: STextStyles.desktopTextExtraExtraSmall(
+                          context,
+                        ).copyWith(fontSize: 18),
                       ),
                     ),
-                    const SizedBox(
-                      height: 40,
-                    ),
+                    const SizedBox(height: 40),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        right: 32,
-                      ),
+                      padding: const EdgeInsets.only(right: 32),
                       child: Row(
                         children: [
                           Expanded(
@@ -255,9 +236,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 16,
-                          ),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: PrimaryButton(
                               buttonHeight: ButtonHeight.l,
@@ -301,11 +280,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   padding: const EdgeInsets.all(32),
                   child: BuildingTransactionDialog(
                     coin: wallet.info.coin,
-                    isSpark: wallet is FiroWallet &&
+                    isSpark:
+                        wallet is FiroWallet &&
                         ref
                                 .read(publicPrivateBalanceStateProvider.state)
                                 .state ==
-                            FiroType.spark,
+                            BalanceType.private,
                     onCancel: () {
                       wasCancelled = true;
 
@@ -319,11 +299,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       }
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       TxData txData;
       Future<TxData> txDataFuture;
@@ -331,29 +307,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
 
-        final feeRate = ref.read(feeRateTypeStateProvider);
+        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
         txDataFuture = paynymWallet.preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
             recipients: [
-              (
+              TxRecipient(
                 address: widget.accountLite!.code,
                 amount: amount,
                 isChange: false,
+                addressType: AddressType.unknown,
               ),
             ],
             satsPerVByte: isCustomFee ? customFeeRate : null,
             feeRateType: feeRate,
-            utxos: (wallet is CoinControlInterface &&
-                    coinControlEnabled &&
-                    ref.read(desktopUseUTXOs).isNotEmpty)
-                ? ref.read(desktopUseUTXOs)
-                : null,
+            utxos:
+                (wallet is CoinControlInterface &&
+                        coinControlEnabled &&
+                        ref.read(pDesktopUseUTXOs).isNotEmpty)
+                    ? ref.read(pDesktopUseUTXOs)
+                    : null,
           ),
         );
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-          case FiroType.public:
+          case BalanceType.public:
             if (ref.read(pValidSparkSendToAddress)) {
               txDataFuture = wallet.prepareSparkMintTransaction(
                 txData: TxData(
@@ -365,104 +343,126 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
-                          ref.read(desktopUseUTXOs).isNotEmpty)
-                      ? ref.read(desktopUseUTXOs)
-                      : null,
+                  utxos:
+                      (coinControlEnabled &&
+                              ref.read(pDesktopUseUTXOs).isNotEmpty)
+                          ? ref.read(pDesktopUseUTXOs)
+                          : null,
                 ),
               );
             } else {
               txDataFuture = wallet.prepareSend(
                 txData: TxData(
                   recipients: [
-                    (
+                    TxRecipient(
                       address: _address!,
                       amount: amount,
                       isChange: false,
+                      addressType:
+                          wallet.cryptoCurrency.getAddressType(_address!)!,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
-                          ref.read(desktopUseUTXOs).isNotEmpty)
-                      ? ref.read(desktopUseUTXOs)
-                      : null,
+                  utxos:
+                      (coinControlEnabled &&
+                              ref.read(pDesktopUseUTXOs).isNotEmpty)
+                          ? ref.read(pDesktopUseUTXOs)
+                          : null,
                 ),
               );
             }
             break;
 
-          case FiroType.lelantus:
-            txDataFuture = wallet.prepareSendLelantus(
-              txData: TxData(
-                recipients: [
-                  (
-                    address: _address!,
-                    amount: amount,
-                    isChange: false,
-                  ),
-                ],
-              ),
-            );
-            break;
-
-          case FiroType.spark:
+          case BalanceType.private:
             txDataFuture = wallet.prepareSendSpark(
               txData: TxData(
-                recipients: ref.read(pValidSparkSendToAddress)
-                    ? null
-                    : [
-                        (
-                          address: _address!,
-                          amount: amount,
-                          isChange: false,
-                        ),
-                      ],
-                sparkRecipients: ref.read(pValidSparkSendToAddress)
-                    ? [
-                        (
-                          address: _address!,
-                          amount: amount,
-                          memo: memoController.text,
-                          isChange: false,
-                        ),
-                      ]
-                    : null,
+                recipients:
+                    ref.read(pValidSparkSendToAddress)
+                        ? null
+                        : [
+                          TxRecipient(
+                            address: _address!,
+                            amount: amount,
+                            isChange: false,
+                            addressType:
+                                wallet.cryptoCurrency.getAddressType(
+                                  _address!,
+                                )!,
+                          ),
+                        ],
+                sparkRecipients:
+                    ref.read(pValidSparkSendToAddress)
+                        ? [
+                          (
+                            address: _address!,
+                            amount: amount,
+                            memo: memoController.text,
+                            isChange: false,
+                          ),
+                        ]
+                        : null,
               ),
             );
             break;
         }
+      } else if (wallet is MwebInterface &&
+          ref.read(pWalletInfo(walletId)).isMwebEnabled &&
+          ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
+        txDataFuture = wallet.prepareSendMweb(
+          txData: TxData(
+            recipients: [
+              TxRecipient(
+                address: _address!,
+                amount: amount,
+                isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              ),
+            ],
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+            satsPerVByte: isCustomFee ? customFeeRate : null,
+            // these will need to be mweb utxos
+            // utxos:
+            //     (wallet is CoinControlInterface &&
+            //             coinControlEnabled &&
+            //             ref.read(pDesktopUseUTXOs).isNotEmpty)
+            //         ? ref.read(pDesktopUseUTXOs)
+            //         : null,
+          ),
+        );
       } else {
         final memo = isStellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
-              (
+              TxRecipient(
                 address: _address!,
                 amount: amount,
                 isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeStateProvider),
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
-            utxos: (wallet is CoinControlInterface &&
-                    coinControlEnabled &&
-                    ref.read(desktopUseUTXOs).isNotEmpty)
-                ? ref.read(desktopUseUTXOs)
-                : null,
+            nonce:
+                wallet.cryptoCurrency is Ethereum
+                    ? int.tryParse(nonceController.text)
+                    : null,
+            utxos:
+                (wallet is CoinControlInterface &&
+                        coinControlEnabled &&
+                        ref.read(pDesktopUseUTXOs).isNotEmpty)
+                    ? ref.read(pDesktopUseUTXOs)
+                    : null,
+            ethEIP1559Fee: ethFee,
           ),
         );
       }
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       txData = results.first as TxData;
 
@@ -473,35 +473,29 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             note: _note ?? "PayNym send",
           );
         } else {
-          txData = txData.copyWith(
-            note: _note ?? "",
-          );
+          txData = txData.copyWith(note: _note ?? "");
           if (coin is Epiccash) {
-            txData = txData.copyWith(
-              noteOnChain: _onChainNote ?? "",
-            );
+            txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
           }
         }
         // pop building dialog
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pop();
+        Navigator.of(context, rootNavigator: true).pop();
 
         unawaited(
           showDialog(
             context: context,
-            builder: (context) => DesktopDialog(
-              maxHeight: MediaQuery.of(context).size.height - 64,
-              maxWidth: 580,
-              child: ConfirmTransactionView(
-                txData: txData,
-                walletId: walletId,
-                onSuccess: clearSendForm,
-                isPaynymTransaction: isPaynymSend,
-                routeOnSuccessName: DesktopHomeView.routeName,
-              ),
-            ),
+            builder:
+                (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 580,
+                  child: ConfirmTransactionView(
+                    txData: txData,
+                    walletId: walletId,
+                    onSuccess: clearSendForm,
+                    isPaynymTransaction: isPaynymSend,
+                    routeOnSuccessName: DesktopHomeView.routeName,
+                  ),
+                ),
           ),
         );
       }
@@ -509,10 +503,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted) {
         // pop building dialog
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pop();
+        Navigator.of(context, rootNavigator: true).pop();
 
         unawaited(
           showDialog<void>(
@@ -522,10 +513,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 maxWidth: 450,
                 maxHeight: double.infinity,
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                    bottom: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32, bottom: 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -539,25 +527,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           const DesktopDialogCloseButton(),
                         ],
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
+                      const SizedBox(height: 12),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          right: 32,
-                        ),
+                        padding: const EdgeInsets.only(right: 32),
                         child: Text(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            fontSize: 18,
-                          ),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ).copyWith(fontSize: 18),
                         ),
                       ),
-                      const SizedBox(
-                        height: 40,
-                      ),
+                      const SizedBox(height: 40),
                       Row(
                         children: [
                           Expanded(
@@ -572,9 +553,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 32,
-                          ),
+                          const SizedBox(width: 32),
                         ],
                       ),
                     ],
@@ -593,6 +572,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.text = "";
     baseAmountController.text = "";
     memoController.text = "";
+    nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
     if (mounted) {
@@ -602,9 +582,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
-            cryptoAmountController.text,
-          );
+      final cryptoAmount = ref
+          .read(pAmountFormatter(coin))
+          .tryParse(cryptoAmountController.text);
       final Amount? amount;
       if (cryptoAmount != null) {
         amount = cryptoAmount;
@@ -615,9 +595,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _cachedAmountToSend = amount;
 
         final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
 
-        if (price > Decimal.zero) {
+        if (price != null && price > Decimal.zero) {
           final String fiatAmountString = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
@@ -685,16 +665,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     } else {
       final wallet = ref.read(pWallets).getWallet(walletId);
       if (wallet is SparkInterface) {
-        ref.read(pValidSparkSendToAddress.notifier).state =
-            SparkInterface.validateSparkAddress(
+        ref
+            .read(pValidSparkSendToAddress.notifier)
+            .state = SparkInterface.validateSparkAddress(
           address: address ?? "",
           isTestNet: wallet.cryptoCurrency.network.isTestNet,
         );
 
-        ref.read(pIsExchangeAddress.state).state =
-            (coin as Firo).isExchangeAddress(address ?? "");
+        ref.read(pIsExchangeAddress.state).state = (coin as Firo)
+            .isExchangeAddress(address ?? "");
 
-        if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
+        if (ref.read(publicPrivateBalanceStateProvider) ==
+                BalanceType.private &&
             ref.read(pIsExchangeAddress) &&
             !_isFiroExWarningDisplayed) {
           _isFiroExWarningDisplayed = true;
@@ -705,8 +687,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       }
 
-      ref.read(pValidSendToAddress.notifier).state =
-          wallet.cryptoCurrency.validateAddress(address ?? "");
+      ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
+          .validateAddress(address ?? "");
     }
   }
 
@@ -725,9 +707,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       // autofill amount field
       if (paymentData.amount != null) {
-        final amount = Decimal.parse(paymentData.amount!).toAmount(
-          fractionDigits: coin.fractionDigits,
-        );
+        final amount = Decimal.parse(
+          paymentData.amount!,
+        ).toAmount(fractionDigits: coin.fractionDigits);
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
             .format(amount, withUnitName: false);
@@ -744,12 +726,41 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  Future<void> _checkSparkNameAndOrSetAddress(
+    String content, {
+    bool setController = true,
+  }) async {
+    void setContent() {
+      if (setController) {
+        sendToController.text = content;
+      }
+      _address = content;
+    }
+
+    // check for spark name
+    if (coin is Firo) {
+      final address = await SparkNamesService.getAddressFor(
+        content,
+        network: coin.network,
+      );
+      if (address != null) {
+        // found a spark name
+        sendToController.text = content;
+        _address = address;
+      } else {
+        setContent();
+      }
+    } else {
+      setContent();
+    }
+  }
+
   Future<void> pasteAddress() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
       String content = data.text!.trim();
       if (content.contains("\n")) {
-        content = content.substring(0, content.indexOf("\n"));
+        content = content.substring(0, content.indexOf("\n")).trim();
       }
 
       try {
@@ -761,9 +772,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             paymentData.coin?.uriScheme == coin.uriScheme) {
           _applyUri(paymentData);
         } else {
-          content = content.split("\n").first.trim();
           if (coin is Epiccash) {
-            content = AddressUtils().formatAddress(content);
+            content = AddressUtils().formatEpicCashAddress(content);
           }
 
           sendToController.text = content;
@@ -778,11 +788,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddress(content);
+          content = AddressUtils().formatEpicCashAddress(content);
         }
 
-        sendToController.text = content;
-        _address = content;
+        await _checkSparkNameAndOrSetAddress(content);
 
         // Trigger validation after pasting.
         _setValidAddressProviders(_address);
@@ -818,26 +827,26 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final Amount? amount;
     if (baseAmount != null) {
       final _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
 
-      if (_price == Decimal.zero) {
+      if (_price == null || _price == Decimal.zero) {
         amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
       } else {
-        amount = baseAmount <= Amount.zero
-            ? Decimal.zero.toAmount(fractionDigits: coin.fractionDigits)
-            : (baseAmount.decimal / _price)
-                .toDecimal(scaleOnInfinitePrecision: coin.fractionDigits)
-                .toAmount(fractionDigits: coin.fractionDigits);
+        amount =
+            baseAmount <= Amount.zero
+                ? Decimal.zero.toAmount(fractionDigits: coin.fractionDigits)
+                : (baseAmount.decimal / _price)
+                    .toDecimal(scaleOnInfinitePrecision: coin.fractionDigits)
+                    .toAmount(fractionDigits: coin.fractionDigits);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
         return;
       }
       _cachedAmountToSend = amount;
 
-      final amountString = ref.read(pAmountFormatter(coin)).format(
-            amount,
-            withUnitName: false,
-          );
+      final amountString = ref
+          .read(pAmountFormatter(coin))
+          .format(amount, withUnitName: false);
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
@@ -865,46 +874,45 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   Amount _selectedUtxosAmount(Set<UTXO> utxos) => Amount(
-        rawValue:
-            utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
-        fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
-      );
+    rawValue: utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
+    fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
+  );
 
   Future<void> _sendAllTapped(bool showCoinControl) async {
     final Amount amount;
 
     if (showCoinControl && ref.read(desktopUseUTXOs).isNotEmpty) {
       amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
-    } else if (coin is Firo) {
+    } else if (coin is Firo || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
-        case FiroType.lelantus:
-          amount = ref.read(pWalletBalanceSecondary(walletId)).spendable;
-          break;
-        case FiroType.spark:
-          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
+        case BalanceType.private:
+          amount =
+              coin is Firo
+                  ? ref.read(pWalletBalanceTertiary(walletId)).spendable
+                  : ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
       }
     } else {
       amount = ref.read(pWalletBalance(walletId)).spendable;
     }
 
-    cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-          amount,
-          withUnitName: false,
-        );
+    cryptoAmountController.text = ref
+        .read(pAmountFormatter(coin))
+        .format(amount, withUnitName: false);
   }
 
   void _showDesktopCoinControl() async {
     final amount = ref.read(pSendAmount);
     await showDialog<void>(
       context: context,
-      builder: (context) => DesktopCoinControlUseDialog(
-        walletId: widget.walletId,
-        amountToSend: amount,
-      ),
+      builder:
+          (context) => DesktopCoinControlUseDialog(
+            walletId: widget.walletId,
+            amountToSend: amount,
+          ),
     );
   }
 
@@ -922,14 +930,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
+
     isStellar = coin is Stellar;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     memoController = TextEditingController();
-    // feeController = TextEditingController();
+    nonceController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -983,12 +991,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     memoController.dispose();
-    // feeController.dispose();
+    nonceController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
+    _nonceFocusNode.dispose();
     super.dispose();
   }
 
@@ -1015,12 +1024,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       });
     }
 
-    final firoType = ref.watch(publicPrivateBalanceStateProvider);
+    final balType = ref.watch(publicPrivateBalanceStateProvider);
 
+    final isMwebEnabled = ref.watch(
+      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+    );
+    final showPrivateBalance = coin is Firo || isMwebEnabled;
     final isExchangeAddress = ref.watch(pIsExchangeAddress);
     ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
       if (previous != next &&
-          next == FiroType.spark &&
+          next == BalanceType.private &&
           isExchangeAddress &&
           !_isFiroExWarningDisplayed) {
         _isFiroExWarningDisplayed = true;
@@ -1033,55 +1046,56 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     });
 
-    final showCoinControl = ref.watch(
+    final showCoinControl =
+        ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        (coin is Firo ? firoType == FiroType.public : true);
+        (showPrivateBalance ? balType == BalanceType.public : true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
-          height: 4,
-        ),
-        if (coin is Firo)
+        const SizedBox(height: 4),
+        if (showPrivateBalance)
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
-        if (coin is Firo)
-          const SizedBox(
-            height: 10,
-          ),
-        if (coin is Firo)
+        if (showPrivateBalance) const SizedBox(height: 10),
+        if (showPrivateBalance)
           DropdownButtonHideUnderline(
             child: DropdownButton2(
               isExpanded: true,
-              value: firoType,
+              value: balType,
               items: [
                 DropdownMenuItem(
-                  value: FiroType.spark,
+                  value: BalanceType.private,
                   child: Row(
                     children: [
                       Text(
-                        "Spark balance",
+                        "Private balance",
                         style: STextStyles.itemSubtitle12(context),
                       ),
-                      const SizedBox(
-                        width: 10,
-                      ),
+                      const SizedBox(width: 10),
                       Text(
-                        ref.watch(pAmountFormatter(coin)).format(
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(
                               ref
-                                  .watch(pWalletBalanceTertiary(walletId))
+                                  .watch(
+                                    isMwebEnabled
+                                        ? pWalletBalanceSecondary(walletId)
+                                        : pWalletBalanceTertiary(walletId),
+                                  )
                                   .spendable,
                             ),
                         style: STextStyles.itemSubtitle(context),
@@ -1089,43 +1103,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ],
                   ),
                 ),
-                if (ref.watch(pWalletBalanceSecondary(walletId)).spendable.raw >
-                    BigInt.zero)
-                  DropdownMenuItem(
-                    value: FiroType.lelantus,
-                    child: Row(
-                      children: [
-                        Text(
-                          "Lelantus balance",
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          ref.watch(pAmountFormatter(coin)).format(
-                                ref
-                                    .watch(pWalletBalanceSecondary(walletId))
-                                    .spendable,
-                              ),
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                      ],
-                    ),
-                  ),
                 DropdownMenuItem(
-                  value: FiroType.public,
+                  value: BalanceType.public,
                   child: Row(
                     children: [
                       Text(
                         "Public balance",
                         style: STextStyles.itemSubtitle12(context),
                       ),
-                      const SizedBox(
-                        width: 10,
-                      ),
+                      const SizedBox(width: 10),
                       Text(
-                        ref.watch(pAmountFormatter(coin)).format(
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(
                               ref.watch(pWalletBalance(walletId)).spendable,
                             ),
                         style: STextStyles.itemSubtitle(context),
@@ -1135,8 +1125,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 ),
               ],
               onChanged: (value) {
-                if (value is FiroType) {
-                  if (value != FiroType.public) {
+                if (value is BalanceType) {
+                  if (value != BalanceType.public) {
                     ref.read(desktopUseUTXOs.state).state = {};
                   }
                   setState(() {
@@ -1157,45 +1147,37 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
                 ),
               ),
               menuItemStyleData: const MenuItemStyleData(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
             ),
           ),
-        if (coin is Firo)
-          const SizedBox(
-            height: 20,
-          ),
+        if (showPrivateBalance) const SizedBox(height: 20),
         if (isPaynymSend)
           Text(
             "Send to PayNym address",
             style: STextStyles.smallMed12(context),
             textAlign: TextAlign.left,
           ),
-        if (isPaynymSend)
-          const SizedBox(
-            height: 10,
-          ),
+        if (isPaynymSend) const SizedBox(height: 10),
         if (isPaynymSend)
           TextField(
             key: const Key("sendViewPaynymAddressFieldKey"),
             controller: sendToController,
             enabled: false,
             readOnly: true,
-            style: STextStyles.desktopTextFieldLabel(context).copyWith(
-              fontSize: 16,
-            ),
+            style: STextStyles.desktopTextFieldLabel(
+              context,
+            ).copyWith(fontSize: 16),
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(
                 vertical: 18,
@@ -1203,19 +1185,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (isPaynymSend)
-          const SizedBox(
-            height: 20,
-          ),
+        if (isPaynymSend) const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -1229,9 +1209,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
           ],
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         TextField(
           autocorrect: Util.isDesktop ? false : true,
           enableSuggestions: Util.isDesktop ? false : true,
@@ -1241,12 +1219,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           key: const Key("amountInputFieldCryptoTextFieldKey"),
           controller: cryptoAmountController,
           focusNode: _cryptoFocus,
-          keyboardType: Util.isDesktop
-              ? null
-              : const TextInputType.numberWithOptions(
-                  signed: false,
-                  decimal: true,
-                ),
+          keyboardType:
+              Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
@@ -1270,9 +1249,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultText,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -1281,19 +1261,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
               ),
             ),
           ),
         ),
-        if (Prefs.instance.externalCalls)
-          const SizedBox(
-            height: 10,
-          ),
+        if (Prefs.instance.externalCalls) const SizedBox(height: 10),
         if (Prefs.instance.externalCalls)
           TextField(
             autocorrect: Util.isDesktop ? false : true,
@@ -1304,18 +1282,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             key: const Key("amountInputFieldFiatTextFieldKey"),
             controller: baseAmountController,
             focusNode: _baseFocus,
-            keyboardType: Util.isDesktop
-                ? null
-                : const TextInputType.numberWithOptions(
-                    signed: false,
-                    decimal: true,
-                  ),
+            keyboardType:
+                Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
             textAlign: TextAlign.right,
             inputFormatters: [
-              AmountInputFormatter(
-                decimals: 2,
-                locale: locale,
-              ),
+              AmountInputFormatter(decimals: 2, locale: locale),
               // // regex to validate a fiat amount with 2 decimal places
               // TextInputFormatter.withFunction((oldValue, newValue) =>
               //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
@@ -1332,9 +1308,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultText,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1342,23 +1319,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     ref.watch(
-                      prefsChangeNotifierProvider
-                          .select((value) => value.currency),
+                      prefsChangeNotifierProvider.select(
+                        (value) => value.currency,
+                      ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        if (showCoinControl)
-          const SizedBox(
-            height: 10,
-          ),
+        if (showCoinControl) const SizedBox(height: 10),
         if (showCoinControl)
           RoundedContainer(
             color: Colors.transparent,
@@ -1372,31 +1348,28 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
                 CustomTextButton(
-                  text: ref.watch(desktopUseUTXOs.state).state.isEmpty
-                      ? "Select coins"
-                      : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
+                  text:
+                      ref.watch(desktopUseUTXOs.state).state.isEmpty
+                          ? "Select coins"
+                          : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
                   onTap: _showDesktopCoinControl,
                 ),
               ],
             ),
           ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         if (!isPaynymSend)
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
-        if (!isPaynymSend)
-          const SizedBox(
-            height: 10,
-          ),
+        if (!isPaynymSend) const SizedBox(height: 10),
         if (!isPaynymSend)
           ClipRRect(
             borderRadius: BorderRadius.circular(
@@ -1420,19 +1393,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 paste: true,
                 selectAll: false,
               ),
-              onChanged: (newValue) {
+              onChanged: (newValue) async {
                 final trimmed = newValue;
 
                 if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
-                  final parsed = AddressUtils.parsePaymentUri(trimmed, logging: Logging.instance);
+                  final parsed = AddressUtils.parsePaymentUri(
+                    trimmed,
+                    logging: Logging.instance,
+                  );
                   if (parsed != null) {
                     _applyUri(parsed);
                   } else {
-                    _address = newValue;
-                    sendToController.text = newValue;
+                    await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
-                  _address = newValue;
+                  await _checkSparkNameAndOrSetAddress(
+                    newValue,
+                    setController: false,
+                  );
                 }
 
                 _setValidAddressProviders(_address);
@@ -1443,9 +1421,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               },
               focusNode: _addressFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveText,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
                 height: 1.8,
               ),
               decoration: standardInputDecoration(
@@ -1461,76 +1440,80 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   right: 5,
                 ),
                 suffixIcon: Padding(
-                  padding: sendToController.text.isEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
+                  padding:
+                      sendToController.text.isEmpty
+                          ? const EdgeInsets.only(right: 8)
+                          : const EdgeInsets.only(right: 0),
                   child: UnconstrainedBox(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _addressToggleFlag
                             ? TextFieldIconButton(
-                                key: const Key(
-                                  "sendViewClearAddressFieldButtonKey",
-                                ),
-                                onTap: () {
-                                  sendToController.text = "";
-                                  _address = "";
-                                  _setValidAddressProviders(_address);
-                                  setState(() {
-                                    _addressToggleFlag = false;
-                                  });
-                                },
-                                child: const XIcon(),
-                              )
-                            : TextFieldIconButton(
-                                key: const Key(
-                                  "sendViewPasteAddressFieldButtonKey",
-                                ),
-                                onTap: pasteAddress,
-                                child: sendToController.text.isEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
+                              key: const Key(
+                                "sendViewClearAddressFieldButtonKey",
                               ),
+                              onTap: () {
+                                sendToController.text = "";
+                                _address = "";
+                                _setValidAddressProviders(_address);
+                                setState(() {
+                                  _addressToggleFlag = false;
+                                });
+                              },
+                              child: const XIcon(),
+                            )
+                            : TextFieldIconButton(
+                              key: const Key(
+                                "sendViewPasteAddressFieldButtonKey",
+                              ),
+                              onTap: pasteAddress,
+                              child:
+                                  sendToController.text.isEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                            ),
                         if (sendToController.text.isEmpty)
                           TextFieldIconButton(
                             key: const Key("sendViewAddressBookButtonKey"),
                             onTap: () async {
-                              final entry =
-                                  await showDialog<ContactAddressEntry?>(
+                              final entry = await showDialog<
+                                ContactAddressEntry?
+                              >(
                                 context: context,
-                                builder: (context) => DesktopDialog(
-                                  maxWidth: 696,
-                                  maxHeight: 600,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                builder:
+                                    (context) => DesktopDialog(
+                                      maxWidth: 696,
+                                      maxHeight: 600,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 32,
-                                            ),
-                                            child: Text(
-                                              "Address book",
-                                              style: STextStyles.desktopH3(
-                                                context,
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                ),
+                                                child: Text(
+                                                  "Address book",
+                                                  style: STextStyles.desktopH3(
+                                                    context,
+                                                  ),
+                                                ),
                                               ),
+                                              const DesktopDialogCloseButton(),
+                                            ],
+                                          ),
+                                          Expanded(
+                                            child: AddressBookAddressChooser(
+                                              coin: coin,
                                             ),
                                           ),
-                                          const DesktopDialogCloseButton(),
                                         ],
                                       ),
-                                      Expanded(
-                                        child: AddressBookAddressChooser(
-                                          coin: coin,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                    ),
                               );
 
                               if (entry != null) {
@@ -1552,9 +1535,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           TextFieldIconButton(
                             semanticsLabel:
                                 "Scan QR Button. Opens Camera For Scanning QR Code.",
-                            key: const Key(
-                              "sendViewScanQrButtonKey",
-                            ),
+                            key: const Key("sendViewScanQrButtonKey"),
                             onTap: scanWebcam,
                             child: const QrCodeIcon(),
                           ),
@@ -1573,30 +1554,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               if (_address == null || _address!.isEmpty) {
                 error = null;
               } else if (coin is Firo) {
-                if (firoType == FiroType.lelantus) {
-                  if (_data != null && _data.contactLabel == _address) {
-                    error = SparkInterface.validateSparkAddress(
-                      address: _data.address,
-                      isTestNet: coin.network.isTestNet,
-                    )
-                        ? "Lelantus to Spark not supported"
-                        : null;
-                  } else if (ref.watch(pValidSparkSendToAddress)) {
-                    error = "Lelantus to Spark not supported";
-                  } else {
-                    error = ref.watch(pValidSendToAddress)
-                        ? null
-                        : "Invalid address";
-                  }
+                if (_data != null && _data.contactLabel == _address) {
+                  error = null;
+                } else if (!ref.watch(pValidSendToAddress) &&
+                    !ref.watch(pValidSparkSendToAddress)) {
+                  error = "Invalid address";
                 } else {
-                  if (_data != null && _data.contactLabel == _address) {
-                    error = null;
-                  } else if (!ref.watch(pValidSendToAddress) &&
-                      !ref.watch(pValidSparkSendToAddress)) {
-                    error = "Invalid address";
-                  } else {
-                    error = null;
-                  }
+                  error = null;
                 }
               } else {
                 if (_data != null && _data.contactLabel == _address) {
@@ -1614,17 +1578,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 return Align(
                   alignment: Alignment.topLeft,
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 12.0,
-                      top: 4.0,
-                    ),
+                    padding: const EdgeInsets.only(left: 12.0, top: 4.0),
                     child: Text(
                       error,
                       textAlign: TextAlign.left,
                       style: STextStyles.label(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textError,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textError,
                       ),
                     ),
                   ),
@@ -1632,15 +1594,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
-        if (isStellar ||
-            (ref.watch(pValidSparkSendToAddress) &&
-                firoType != FiroType.lelantus))
-          const SizedBox(
-            height: 10,
-          ),
-        if (isStellar ||
-            (ref.watch(pValidSparkSendToAddress) &&
-                firoType != FiroType.lelantus))
+        if (isStellar || ref.watch(pValidSparkSendToAddress))
+          const SizedBox(height: 10),
+        if (isStellar || ref.watch(pValidSparkSendToAddress))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1659,9 +1615,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 setState(() {});
               },
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveText,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
                 height: 1.8,
               ),
               decoration: standardInputDecoration(
@@ -1678,9 +1635,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   right: 5,
                 ),
                 suffixIcon: Padding(
-                  padding: memoController.text.isEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
+                  padding:
+                      memoController.text.isEmpty
+                          ? const EdgeInsets.only(right: 8)
+                          : const EdgeInsets.only(right: 0),
                   child: UnconstrainedBox(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1688,9 +1646,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         TextFieldIconButton(
                           key: const Key("sendViewPasteMemoButtonKey"),
                           onTap: pasteMemo,
-                          child: memoController.text.isEmpty
-                              ? const ClipboardIcon()
-                              : const XIcon(),
+                          child:
+                              memoController.text.isEmpty
+                                  ? const ClipboardIcon()
+                                  : const XIcon(),
                         ),
                       ],
                     ),
@@ -1699,245 +1658,70 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (!isPaynymSend)
-          const SizedBox(
-            height: 20,
-          ),
+        if (!isPaynymSend) const SizedBox(height: 20),
         if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
-          ConditionalParent(
-            condition: ref.watch(pWallets).getWallet(walletId)
-                    is ElectrumXInterface &&
-                !(((coin is Firo) &&
-                    (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                            FiroType.lelantus ||
-                        ref
-                                .watch(publicPrivateBalanceStateProvider.state)
-                                .state ==
-                            FiroType.spark))),
-            builder: (child) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                child,
-                CustomTextButton(
-                  text: "Edit",
-                  onTap: () async {
-                    feeSelectionResult = await showDialog<
-                        (
-                          FeeRateType,
-                          String?,
-                          String?,
-                        )?>(
-                      context: context,
-                      builder: (_) => DesktopFeeDialog(
-                        walletId: walletId,
-                      ),
-                    );
-
-                    if (feeSelectionResult != null) {
-                      if (isCustomFee &&
-                          feeSelectionResult!.$1 != FeeRateType.custom) {
-                        isCustomFee = false;
-                      } else if (!isCustomFee &&
-                          feeSelectionResult!.$1 == FeeRateType.custom) {
-                        isCustomFee = true;
-                      }
-                    }
-
-                    setState(() {});
-                  },
-                ),
-              ],
+          DesktopSendFeeForm(
+            walletId: walletId,
+            isToken: false,
+            onCustomFeeSliderChanged: (value) => customFeeRate = value,
+            onCustomFeeOptionChanged: (value) {
+              isCustomFee = value;
+              customFeeRate = 1;
+              ethFee = null;
+            },
+            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
+          ),
+        if (coin is Ethereum) const SizedBox(height: 20),
+        if (coin is Ethereum)
+          Text(
+            "Nonce",
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
-            child: Text(
-              "Transaction fee"
-              "${isCustomFee ? "" : " (${coin is Ethereum ? "max" : "estimated"})"}",
+            textAlign: TextAlign.left,
+          ),
+        if (coin is Ethereum) const SizedBox(height: 10),
+        if (coin is Ethereum)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              minLines: 1,
+              maxLines: 1,
+              key: const Key("sendViewNonceFieldKey"),
+              controller: nonceController,
+              readOnly: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              keyboardType: const TextInputType.numberWithOptions(),
+              focusNode: _nonceFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                height: 1.8,
               ),
-              textAlign: TextAlign.left,
+              decoration: standardInputDecoration(
+                "Leave empty to auto select nonce",
+                _nonceFocusNode,
+                context,
+                desktopMed: true,
+              ).copyWith(
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 11,
+                  bottom: 12,
+                  right: 5,
+                ),
+              ),
             ),
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
-          const SizedBox(
-            height: 10,
-          ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
-          if (!isCustomFee)
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: (feeSelectionResult?.$2 == null)
-                  ? FutureBuilder(
-                      future: ref.watch(
-                        pWallets.select(
-                          (value) => value.getWallet(walletId).fees,
-                        ),
-                      ),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          return DesktopFeeItem(
-                            feeObject: snapshot.data,
-                            feeRateType: FeeRateType.average,
-                            walletId: walletId,
-                            isButton: false,
-                            feeFor: ({
-                              required Amount amount,
-                              required FeeRateType feeRateType,
-                              required int feeRate,
-                              required CryptoCurrency coin,
-                            }) async {
-                              if (ref
-                                      .read(feeSheetSessionCacheProvider)
-                                      .average[amount] ==
-                                  null) {
-                                final wallet =
-                                    ref.read(pWallets).getWallet(walletId);
-
-                                if (coin is Monero || coin is Wownero) {
-                                  final fee = await wallet.estimateFeeFor(
-                                    amount,
-                                    lib_monero.TransactionPriority.medium.value,
-                                  );
-                                  ref
-                                      .read(feeSheetSessionCacheProvider)
-                                      .average[amount] = fee;
-                                } else if ((coin is Firo) &&
-                                    ref
-                                            .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state,
-                                            )
-                                            .state !=
-                                        FiroType.public) {
-                                  final firoWallet = wallet as FiroWallet;
-
-                                  if (ref
-                                          .read(
-                                            publicPrivateBalanceStateProvider
-                                                .state,
-                                          )
-                                          .state ==
-                                      FiroType.lelantus) {
-                                    ref
-                                            .read(feeSheetSessionCacheProvider)
-                                            .average[amount] =
-                                        await firoWallet
-                                            .estimateFeeForLelantus(amount);
-                                  } else if (ref
-                                          .read(
-                                            publicPrivateBalanceStateProvider
-                                                .state,
-                                          )
-                                          .state ==
-                                      FiroType.spark) {
-                                    ref
-                                            .read(feeSheetSessionCacheProvider)
-                                            .average[amount] =
-                                        await firoWallet
-                                            .estimateFeeForSpark(amount);
-                                  }
-                                } else {
-                                  ref
-                                          .read(feeSheetSessionCacheProvider)
-                                          .average[amount] =
-                                      await wallet.estimateFeeFor(
-                                    amount,
-                                    feeRate,
-                                  );
-                                }
-                              }
-                              return ref
-                                  .read(feeSheetSessionCacheProvider)
-                                  .average[amount]!;
-                            },
-                            isSelected: true,
-                          );
-                        } else {
-                          return Row(
-                            children: [
-                              AnimatedText(
-                                stringsToLoopThrough: stringsToLoopThrough,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveText,
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    )
-                  : (coin is Firo) &&
-                          ref
-                                  .watch(
-                                    publicPrivateBalanceStateProvider.state,
-                                  )
-                                  .state ==
-                              FiroType.lelantus
-                      ? Text(
-                          "~${ref.watch(pAmountFormatter(coin)).format(
-                                Amount(
-                                  rawValue: BigInt.parse("3794"),
-                                  fractionDigits: coin.fractionDigits,
-                                ),
-                                indicatePrecisionLoss: false,
-                              )}",
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveText,
-                          ),
-                          textAlign: TextAlign.left,
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              feeSelectionResult?.$2 ?? "",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
-                            Text(
-                              feeSelectionResult?.$3 ?? "",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveSearchIconRight,
-                              ),
-                            ),
-                          ],
-                        ),
-            ),
-        if (isCustomFee)
-          Padding(
-            padding: const EdgeInsets.only(
-              bottom: 12,
-              top: 16,
-            ),
-            child: FeeSlider(
-              coin: coin,
-              onSatVByteChanged: (rate) {
-                customFeeRate = rate;
-              },
-            ),
-          ),
-        const SizedBox(
-          height: 36,
-        ),
+        const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
           label: "Preview send",

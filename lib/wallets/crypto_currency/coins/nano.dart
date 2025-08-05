@@ -45,9 +45,7 @@ class Nano extends NanoCurrency {
   int get fractionDigits => 30;
 
   @override
-  BigInt get satsPerCoin => BigInt.parse(
-        "1000000000000000000000000000000",
-      ); // 1*10^30
+  BigInt get satsPerCoin => BigInt.parse("1000000000000000000000000000000"); // 1*10^30
 
   @override
   int get minConfirms => 1;
@@ -63,7 +61,7 @@ class Nano extends NanoCurrency {
   int get nanoAccountType => NanoAccountType.NANO;
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -79,6 +77,7 @@ class Nano extends NanoCurrency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -87,7 +86,8 @@ class Nano extends NanoCurrency {
   }
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 
@@ -101,5 +101,13 @@ class Nano extends NanoCurrency {
           "Unsupported network for defaultBlockExplorer(): $network",
         );
     }
+  }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.nano;
+    }
+    return null;
   }
 }

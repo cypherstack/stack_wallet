@@ -17,10 +17,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 
 class MnemonicWordCountSelectSheet extends ConsumerWidget {
-  const MnemonicWordCountSelectSheet({
-    super.key,
-    required this.lengthOptions,
-  });
+  const MnemonicWordCountSelectSheet({super.key, required this.lengthOptions});
 
   final List<int> lengthOptions;
 
@@ -35,9 +32,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.only(
@@ -46,116 +41,115 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
             top: 10,
             bottom: 0,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
                     ),
+                    width: 60,
+                    height: 4,
                   ),
-                  width: 60,
-                  height: 4,
                 ),
-              ),
-              const SizedBox(
-                height: 36,
-              ),
-              // Expanded(
-              //   child: SingleChildScrollView(
-              //     child:
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Phrase length",
-                    style: STextStyles.pageTitleH2(context),
-                    textAlign: TextAlign.left,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  for (int i = 0; i < lengthOptions.length; i++)
-                    Column(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            final state = ref
-                                .read(mnemonicWordCountStateProvider.state)
-                                .state;
-                            if (state != lengthOptions[i]) {
-                              ref
-                                  .read(mnemonicWordCountStateProvider.state)
-                                  .state = lengthOptions[i];
-                            }
+                const SizedBox(height: 36),
+                // Expanded(
+                //   child: SingleChildScrollView(
+                //     child:
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Phrase length",
+                      style: STextStyles.pageTitleH2(context),
+                      textAlign: TextAlign.left,
+                    ),
+                    const SizedBox(height: 16),
+                    for (int i = 0; i < lengthOptions.length; i++)
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              final state =
+                                  ref
+                                      .read(
+                                        mnemonicWordCountStateProvider.state,
+                                      )
+                                      .state;
+                              if (state != lengthOptions[i]) {
+                                ref
+                                    .read(mnemonicWordCountStateProvider.state)
+                                    .state = lengthOptions[i];
+                              }
 
-                            Navigator.of(context).pop();
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                // Column(
-                                //   mainAxisAlignment: MainAxisAlignment.start,
-                                //   children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                    value: lengthOptions[i],
-                                    groupValue: ref
-                                        .watch(
-                                          mnemonicWordCountStateProvider.state,
-                                        )
-                                        .state,
-                                    onChanged: (x) {
-                                      ref
-                                          .read(
-                                            mnemonicWordCountStateProvider
-                                                .state,
-                                          )
-                                          .state = lengthOptions[i];
-                                      Navigator.of(context).pop();
-                                    },
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // Column(
+                                  //   mainAxisAlignment: MainAxisAlignment.start,
+                                  //   children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Radio(
+                                      activeColor:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .radioButtonIconEnabled,
+                                      value: lengthOptions[i],
+                                      groupValue:
+                                          ref
+                                              .watch(
+                                                mnemonicWordCountStateProvider
+                                                    .state,
+                                              )
+                                              .state,
+                                      onChanged: (x) {
+                                        ref
+                                            .read(
+                                              mnemonicWordCountStateProvider
+                                                  .state,
+                                            )
+                                            .state = lengthOptions[i];
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
                                   ),
-                                ),
-                                //   ],
-                                // ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
-                                Text(
-                                  "${lengthOptions[i]} words",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
-                                ),
-                              ],
+                                  //   ],
+                                  // ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    "${lengthOptions[i]} words",
+                                    style: STextStyles.titleBold12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                      ],
-                    ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                ],
-              ),
-              // ),
-              // )
-            ],
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+                // ),
+                // )
+              ],
+            ),
           ),
         ),
       ),
