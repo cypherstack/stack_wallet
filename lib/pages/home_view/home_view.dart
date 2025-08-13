@@ -29,6 +29,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/idle_monitor.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/background.dart';
@@ -169,6 +170,41 @@ class _HomeViewState extends ConsumerState<HomeView> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.decelerate,
     );
+  }
+
+  Future<void> precacheSettingsIcons(BuildContext context) async {
+    if (Util.isDesktop) return;
+
+    final icons = [
+      Assets.svg.addressBook,
+      Assets.svg.downloadFolder,
+      Assets.svg.lock,
+      Assets.svg.dollarSign,
+      Assets.svg.language,
+      Assets.svg.node,
+      Assets.svg.arrowRotate,
+      Assets.svg.arrowUpRight,
+      Assets.svg.sun,
+      Assets.svg.circleAlert,
+      Assets.svg.ellipsis,
+      Assets.svg.solidSliders,
+      Assets.svg.questionMessage,
+    ];
+
+    for (final asset in icons) {
+      final loader = SvgAssetLoader(asset);
+      await svg.cache.putIfAbsent(
+        loader.cacheKey(context),
+        () => loader.loadBytes(context),
+      );
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    precacheSettingsIcons(context);
   }
 
   @override
