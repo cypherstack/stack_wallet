@@ -217,7 +217,7 @@ void main(List<String> args) async {
     await CampfireMigration.init();
   }
 
-  if (kDebugMode) {
+  if (kDebugMode && !Platform.isIOS) {
     unawaited(
       MwebdService.instance
           .logsStream(CryptoCurrencyNetwork.main)
@@ -344,7 +344,6 @@ class MaterialAppWithTheme extends ConsumerStatefulWidget {
 class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     with WidgetsBindingObserver {
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   // late final Wallets _wallets;
   // late final Prefs _prefs;
@@ -659,10 +658,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   Future<void> goToRestoreSWB(String encrypted) async {
     if (!ref.read(prefsChangeNotifierProvider).hasPin) {
       await Navigator.of(
-        navigatorKey.currentContext!,
+        ref.read(pNavKey).currentContext!,
       ).pushNamed(CreatePinView.routeName, arguments: true).then((value) {
         if (value is! bool || value == false) {
-          Navigator.of(navigatorKey.currentContext!).pushNamed(
+          Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
             RestoreFromEncryptedStringView.routeName,
             arguments: encrypted,
           );
@@ -671,7 +670,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     } else {
       unawaited(
         Navigator.push(
-          navigatorKey.currentContext!,
+          ref.read(pNavKey).currentContext!,
           RouteGenerator.getRoute(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder:
@@ -711,7 +710,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     return MaterialApp(
       key: GlobalKey(),
-      navigatorKey: navigatorKey,
+      navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(

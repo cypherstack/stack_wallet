@@ -358,6 +358,56 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
+  Future<void> checkMwebSpends() async {
+    final pending =
+        await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .heightIsNull()
+            .and()
+            .blockHashIsNull()
+            .and()
+            .subTypeEqualTo(TransactionSubType.mweb)
+            .and()
+            .typeEqualTo(TransactionType.outgoing)
+            .findAll();
+
+    Logging.instance.f(pending);
+
+    final client = await _client;
+    for (final tx in pending) {
+      for (final input in tx.inputs) {
+        if (input.addresses.length == 1) {
+          final address = await mainDB.getAddress(
+            walletId,
+            input.addresses.first,
+          );
+          if (address?.type == AddressType.mweb) {
+            final response = await client.spent(
+              SpentRequest(outputId: [input.outpoint!.txid]),
+            );
+            if (response.outputId.contains(input.outpoint!.txid)) {
+              // dummy to show tx as confirmed. Need a better way to handle this as its kind of stupid, resulting in terrible UX
+              final dummyHeight = await chainHeight;
+
+              TransactionV2? transaction =
+                  await mainDB.isar.transactionV2s
+                      .where()
+                      .txidWalletIdEqualTo(tx.txid, walletId)
+                      .findFirst();
+
+              if (transaction == null || transaction.height == null) {
+                transaction = (transaction ?? tx).copyWith(height: dummyHeight);
+                await mainDB.updateOrPutTransactionV2s([transaction]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   Future<TxData> processMwebTransaction(TxData txData) async {
     final client = await _client;
     final response = await client.create(
@@ -952,13 +1002,14 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     BigInt feeIncrease = posOutputSum - expectedPegin;
 
     if (expectedPegin > BigInt.zero) {
-      feeIncrease += BigInt.from(
-        (txData.feeRateAmount! / BigInt.from(1000) * 41).ceil(),
-      );
+      feeIncrease +=
+          BigInt.from((txData.feeRateAmount! / BigInt.from(1000)).ceil()) *
+          BigInt.from(41);
     }
 
+    // bandaid: add one to account for a rounding error that happens sometimes
     return Amount(
-      rawValue: fee + feeIncrease,
+      rawValue: fee + feeIncrease + BigInt.one,
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
