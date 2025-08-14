@@ -45,11 +45,6 @@ class TestSuiteCard extends ConsumerWidget {
               padding: const EdgeInsets.all(10),
               child: Row(
                 children: [
-                  const SizedBox(
-                    width: 32,
-                    height: 32,
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
