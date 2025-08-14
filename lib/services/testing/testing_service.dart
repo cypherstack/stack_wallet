@@ -16,7 +16,7 @@ import '../../utilities/logger.dart';
 import 'testing_models.dart';
 import 'test_suite_interface.dart';
 import 'test_suites/tor_test_suite.dart';
-import 'test_suites/monero_wallet_test_suite.dart';
+import 'test_suites/monero_integration_test_suite.dart';
 
 final testingServiceProvider = StateNotifierProvider<TestingService, TestingSessionState>((ref) {
   return TestingService();
@@ -24,68 +24,122 @@ final testingServiceProvider = StateNotifierProvider<TestingService, TestingSess
 
 class TestingService extends StateNotifier<TestingSessionState> {
   TestingService() : super(TestingSessionState(
-    suiteStatuses: {
-      for (var type in TestSuiteType.values) type: TestSuiteStatus.waiting
+    testStatuses: {
+      for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting,
+      for (var type in WalletTestType.values) type: TestSuiteStatus.waiting,
+    },
+    integrationTestStatuses: {
+      for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting
+    },
+    walletTestStatuses: {
+      for (var type in WalletTestType.values) type: TestSuiteStatus.waiting
     },
     isRunning: false,
     completed: 0,
-    total: TestSuiteType.values.length,
+    total: IntegrationTestType.values.length + WalletTestType.values.length,
   ));
 
-  final Map<TestSuiteType, TestSuiteInterface> _testSuites = {};
+  final Map<IntegrationTestType, TestSuiteInterface> _integrationTestSuites = {};
+  final Map<WalletTestType, TestSuiteInterface> _walletTestSuites = {};
   final StreamController<TestingSessionState> _statusController = StreamController<TestingSessionState>.broadcast();
+  WalletTestConfig? _walletTestConfig;
   bool _cancelled = false;
 
   Stream<TestingSessionState> get statusStream => _statusController.stream;
 
-  void _initializeTestSuites() {
-    _testSuites[TestSuiteType.tor] = TorTestSuite();
-    _testSuites[TestSuiteType.moneroWallet] = MoneroWalletTestSuite();
+  void _initializeIntegrationTestSuites() {
+    _integrationTestSuites[IntegrationTestType.tor] = TorTestSuite();
+    _integrationTestSuites[IntegrationTestType.moneroIntegration] = MoneroWalletTestSuite();
+  }
+  
+  void _initializeWalletTestSuites() {
+    _walletTestSuites[WalletTestType.moneroWallet] = MoneroWalletTestSuite();
   }
 
-  Future<void> runAllTests() async {
+  Future<void> runAllIntegrationTests() async {
     if (state.isRunning) return;
     
     _cancelled = false;
-    _initializeTestSuites();
+    _initializeIntegrationTestSuites();
     
     state = state.copyWith(
       isRunning: true,
       completed: 0,
-      suiteStatuses: {
-        for (var type in TestSuiteType.values) type: TestSuiteStatus.waiting
+      integrationTestStatuses: {
+        for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting
       },
     );
     _statusController.add(state);
 
     try {
-      for (final type in TestSuiteType.values) {
+      for (final type in IntegrationTestType.values) {
         if (_cancelled) break;
-
-        await runTestSuite(type);
+        await runIntegrationTestSuite(type);
       }
     } catch (e) {
-      Logging.instance.log(Level.error, "Error running test suites: $e");
+      Logging.instance.log(Level.error, "Error running integration test suites: $e");
     } finally {
       state = state.copyWith(isRunning: false);
       _statusController.add(state);
     }
   }
+  
+  Future<void> runAllWalletTests() async {
+    if (state.isRunning) return;
+    if (_walletTestConfig == null || !_walletTestConfig!.isValid) {
+      Logging.instance.log(Level.error, "Wallet test config not set or invalid");
+      return;
+    }
+    
+    _cancelled = false;
+    _initializeWalletTestSuites();
+    
+    state = state.copyWith(
+      isRunning: true,
+      completed: 0,
+      walletTestStatuses: {
+        for (var type in WalletTestType.values) type: TestSuiteStatus.waiting
+      },
+    );
+    _statusController.add(state);
 
-  Future<void> runTestSuite(TestSuiteType type) async {
+    try {
+      for (final type in WalletTestType.values) {
+        if (_cancelled) break;
+        await runWalletTestSuite(type);
+      }
+    } catch (e) {
+      Logging.instance.log(Level.error, "Error running wallet test suites: $e");
+    } finally {
+      state = state.copyWith(isRunning: false);
+      _statusController.add(state);
+    }
+  }
+  
+  @Deprecated('Use runAllIntegrationTests() instead')
+  Future<void> runAllTests() async {
+    await runAllIntegrationTests();
+  }
+
+  Future<void> runIntegrationTestSuite(IntegrationTestType type) async {
     if (_cancelled) return;
 
-    if (_testSuites.isEmpty) {
-      _initializeTestSuites();
+    if (_integrationTestSuites.isEmpty) {
+      _initializeIntegrationTestSuites();
     }
 
-    final suite = _testSuites[type];
+    final suite = _integrationTestSuites[type];
     if (suite == null) return;
 
-    final updatedStatuses = Map<TestSuiteType, TestSuiteStatus>.from(state.suiteStatuses);
+    final updatedStatuses = Map<IntegrationTestType, TestSuiteStatus>.from(state.integrationTestStatuses);
+    final updatedAllStatuses = Map<TestType, TestSuiteStatus>.from(state.testStatuses);
     updatedStatuses[type] = TestSuiteStatus.running;
+    updatedAllStatuses[type] = TestSuiteStatus.running;
     
-    state = state.copyWith(suiteStatuses: updatedStatuses);
+    state = state.copyWith(
+      integrationTestStatuses: updatedStatuses,
+      suiteStatuses: updatedAllStatuses,
+    );
     _statusController.add(state);
 
     try {
@@ -100,14 +154,15 @@ class TestingService extends StateNotifier<TestingSessionState> {
 
       if (_cancelled) return;
 
-      updatedStatuses[type] = result.success ? TestSuiteStatus.passed : TestSuiteStatus.failed;
+      final status = result.success ? TestSuiteStatus.passed : TestSuiteStatus.failed;
+      updatedStatuses[type] = status;
+      updatedAllStatuses[type] = status;
       
-      final completed = updatedStatuses.values
-          .where((status) => status == TestSuiteStatus.passed || status == TestSuiteStatus.failed)
-          .length;
+      final completed = _calculateCompletedTests();
 
       state = state.copyWith(
-        suiteStatuses: updatedStatuses,
+        integrationTestStatuses: updatedStatuses,
+        suiteStatuses: updatedAllStatuses,
         completed: completed,
       );
       _statusController.add(state);
@@ -117,18 +172,98 @@ class TestingService extends StateNotifier<TestingSessionState> {
       if (_cancelled) return;
 
       updatedStatuses[type] = TestSuiteStatus.failed;
+      updatedAllStatuses[type] = TestSuiteStatus.failed;
       
-      final completed = updatedStatuses.values
-          .where((status) => status == TestSuiteStatus.passed || status == TestSuiteStatus.failed)
-          .length;
+      final completed = _calculateCompletedTests();
 
       state = state.copyWith(
-        suiteStatuses: updatedStatuses,
+        integrationTestStatuses: updatedStatuses,
+        suiteStatuses: updatedAllStatuses,
         completed: completed,
       );
       _statusController.add(state);
 
-      Logging.instance.log(Level.error, "Error running $type test suite: $e");
+      Logging.instance.log(Level.error, "Error running $type integration test suite: $e");
+    }
+  }
+  
+  Future<void> runWalletTestSuite(WalletTestType type) async {
+    if (_cancelled) return;
+    if (_walletTestConfig == null || !_walletTestConfig!.isValid) {
+      Logging.instance.log(Level.error, "Wallet test config not set or invalid for $type");
+      return;
+    }
+
+    if (_walletTestSuites.isEmpty) {
+      _initializeWalletTestSuites();
+    }
+
+    final suite = _walletTestSuites[type];
+    if (suite == null) return;
+
+    final updatedStatuses = Map<WalletTestType, TestSuiteStatus>.from(state.walletTestStatuses);
+    final updatedAllStatuses = Map<TestType, TestSuiteStatus>.from(state.testStatuses);
+    updatedStatuses[type] = TestSuiteStatus.running;
+    updatedAllStatuses[type] = TestSuiteStatus.running;
+    
+    state = state.copyWith(
+      walletTestStatuses: updatedStatuses,
+      suiteStatuses: updatedAllStatuses,
+    );
+    _statusController.add(state);
+
+    try {
+      // TODO: Pass wallet config to suite when implementing actual wallet tests.
+      final result = await suite.runTests().timeout(
+        const Duration(minutes: 5), // Wallet tests may take longer.
+        onTimeout: () => const TestResult(
+          success: false,
+          message: "Wallet test suite timed out",
+          executionTime: Duration(minutes: 5),
+        ),
+      );
+
+      if (_cancelled) return;
+
+      final status = result.success ? TestSuiteStatus.passed : TestSuiteStatus.failed;
+      updatedStatuses[type] = status;
+      updatedAllStatuses[type] = status;
+      
+      final completed = _calculateCompletedTests();
+
+      state = state.copyWith(
+        walletTestStatuses: updatedStatuses,
+        suiteStatuses: updatedAllStatuses,
+        completed: completed,
+      );
+      _statusController.add(state);
+
+      await suite.cleanup();
+    } catch (e) {
+      if (_cancelled) return;
+
+      updatedStatuses[type] = TestSuiteStatus.failed;
+      updatedAllStatuses[type] = TestSuiteStatus.failed;
+      
+      final completed = _calculateCompletedTests();
+
+      state = state.copyWith(
+        walletTestStatuses: updatedStatuses,
+        suiteStatuses: updatedAllStatuses,
+        completed: completed,
+      );
+      _statusController.add(state);
+
+      Logging.instance.log(Level.error, "Error running $type wallet test suite: $e");
+    }
+  }
+  
+  @Deprecated('Use runIntegrationTestSuite() or runWalletTestSuite() instead')
+  Future<void> runTestSuite(TestType type) async {
+    if (type is IntegrationTestType) {
+      await runIntegrationTestSuite(type);
+    } else if (type is WalletTestType) {
+      await runWalletTestSuite(type);
     }
   }
 
@@ -137,39 +272,81 @@ class TestingService extends StateNotifier<TestingSessionState> {
     state = state.copyWith(isRunning: false);
     _statusController.add(state);
     
-    for (final suite in _testSuites.values) {
+    for (final suite in _integrationTestSuites.values) {
+      await suite.cleanup();
+    }
+    for (final suite in _walletTestSuites.values) {
       await suite.cleanup();
     }
   }
 
   Future<void> resetTestResults() async {
     state = TestingSessionState(
-      suiteStatuses: {
-        for (var type in TestSuiteType.values) type: TestSuiteStatus.waiting
+      testStatuses: {
+        for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting,
+        for (var type in WalletTestType.values) type: TestSuiteStatus.waiting,
+      },
+      integrationTestStatuses: {
+        for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting
+      },
+      walletTestStatuses: {
+        for (var type in WalletTestType.values) type: TestSuiteStatus.waiting
       },
       isRunning: false,
       completed: 0,
-      total: TestSuiteType.values.length,
+      total: IntegrationTestType.values.length + WalletTestType.values.length,
     );
     _statusController.add(state);
   }
 
-  TestSuiteInterface? getTestSuite(TestSuiteType type) {
-    return _testSuites[type];
+  // Wallet test configuration methods
+  void setWalletTestConfig(WalletTestConfig config) {
+    _walletTestConfig = config;
   }
-
-  String getDisplayNameForTestSuite(TestSuiteType type) {
-    switch (type) {
-      case TestSuiteType.tor:
-        return "Tor Service";
-      case TestSuiteType.moneroWallet:
-        return "Monero Wallet FFI";
+  
+  WalletTestConfig? get walletTestConfig => _walletTestConfig;
+  
+  // Helper method to calculate completed tests across both types
+  int _calculateCompletedTests() {
+    final integrationCompleted = state.integrationTestStatuses.values
+        .where((status) => status == TestSuiteStatus.passed || status == TestSuiteStatus.failed)
+        .length;
+    final walletCompleted = state.walletTestStatuses.values
+        .where((status) => status == TestSuiteStatus.passed || status == TestSuiteStatus.failed)
+        .length;
+    return integrationCompleted + walletCompleted;
+  }
+  
+  TestSuiteInterface? getIntegrationTestSuite(IntegrationTestType type) {
+    return _integrationTestSuites[type];
+  }
+  
+  TestSuiteInterface? getWalletTestSuite(WalletTestType type) {
+    return _walletTestSuites[type];
+  }
+  
+  @Deprecated('Use getIntegrationTestSuite() or getWalletTestSuite() instead')
+  TestSuiteInterface? getTestSuite(TestType type) {
+    if (type is IntegrationTestType) {
+      return getIntegrationTestSuite(type);
+    } else if (type is WalletTestType) {
+      return getWalletTestSuite(type);
     }
+    return null;
   }
 
   @override
   void dispose() {
     _statusController.close();
     super.dispose();
+  }
+  
+  // Convenience methods for getting display names
+  String getDisplayNameForTest(TestType type) {
+    return type.displayName;
+  }
+  
+  String getDescriptionForTest(TestType type) {
+    return type.description;
   }
 }

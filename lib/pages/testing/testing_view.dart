@@ -9,12 +9,16 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../services/testing/testing_service.dart';
 import '../../services/testing/testing_models.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/conditional_parent.dart';
@@ -24,6 +28,9 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/background.dart';
+import '../../widgets/stack_dialog.dart';
+import '../settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
+import '../settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'sub_widgets/test_suite_card.dart';
 
 class TestingView extends ConsumerStatefulWidget {
@@ -37,11 +44,17 @@ class TestingView extends ConsumerStatefulWidget {
 
 class _TestingViewState extends ConsumerState<TestingView> {
   late final StreamSubscription<TestingSessionState>? _subscription;
+  late final SWBFileSystem _swbFileSystem;
+  String? _selectedSwbFile;
+  List<String>? _walletsInSwb;
+
+  bool swbLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _subscription = null;
+    _swbFileSystem = SWBFileSystem();
   }
 
   @override
@@ -140,90 +153,194 @@ class _TestingViewState extends ConsumerState<TestingView> {
                         height: 24,
                       ),
                     
-                    // Control buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ConditionalParent(
-                            condition: isDesktop,
-                            builder: (child) => SecondaryButton(
-                              label: testingState.isRunning ? "Cancel" : "Start All Tests",
-                              onPressed: testingState.isRunning
-                                  ? () => testingService.cancelTesting()
-                                  : () => testingService.runAllTests(),
-                            ),
-                            child: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonStyle(context),
-                              onPressed: testingState.isRunning
-                                  ? () => testingService.cancelTesting()
-                                  : () => testingService.runAllTests(),
-                              child: Text(
-                                testingState.isRunning ? "Cancel" : "Start All Tests",
-                                style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonTextPrimary,
-                                ),
-                              ),
-                            ),
+                    // Run integration tests button
+                    ConditionalParent(
+                      condition: isDesktop,
+                      builder: (child) => SecondaryButton(
+                        label: testingState.isRunning ? "Cancel" : "Run integration tests",
+                        onPressed: testingState.isRunning
+                            ? () => testingService.cancelTesting()
+                            : () => testingService.runAllTests(),
+                      ),
+                      child: TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context),
+                        onPressed: testingState.isRunning
+                            ? () => testingService.cancelTesting()
+                            : () => testingService.runAllTests(),
+                        child: Text(
+                          testingState.isRunning ? "Cancel" : "Run integration tests",
+                          style: STextStyles.button(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextPrimary,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ConditionalParent(
-                            condition: isDesktop,
-                            builder: (child) => PrimaryButton(
-                              label: "Reset",
-                              enabled: !testingState.isRunning,
-                              onPressed: testingState.isRunning
-                                  ? null
-                                  : () => testingService.resetTestResults(),
-                            ),
-                            child: TextButton(
-                              style: testingState.isRunning
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getPrimaryDisabledButtonStyle(context)
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonStyle(context),
-                              onPressed: testingState.isRunning
-                                  ? null
-                                  : () => testingService.resetTestResults(),
-                              child: Text(
-                                "Reset",
-                                style: STextStyles.button(context).copyWith(
-                                  color: testingState.isRunning
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextPrimaryDisabled
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
                     
-                    // Test suite cards
-                    ...TestSuiteType.values.map((type) {
+                    // Integration test suite cards.
+                    ...IntegrationTestType.values.map((type) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: TestSuiteCard(
-                          testSuiteType: type,
-                          status: testingState.suiteStatuses[type] ?? TestSuiteStatus.waiting,
+                          testType: type,
+                          status: testingState.testStatuses[type] ?? TestSuiteStatus.waiting,
                           onTap: testingState.isRunning 
                               ? null 
                               : () => testingService.runTestSuite(type),
                         ),
                       );
                     }),
+                    const SizedBox(height: 16),
+
+                    // SWB button.
+                    if (!swbLoaded)
+                      ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) =>
+                            SecondaryButton(
+                              label: "Load SWB for extended tests",
+                              onPressed: testingState.isRunning
+                                  ? null
+                                  : () => _selectSwbFile(),
+                            ),
+                        child: TextButton(
+                          style: testingState.isRunning
+                              ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryDisabledButtonStyle(context)
+                              : Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonStyle(context),
+                          onPressed: testingState.isRunning
+                              ? null
+                              : () => _selectSwbFile(),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                Assets.svg.backupRestore,
+                                color: testingState.isRunning
+                                    ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimaryDisabled
+                                    : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimary,
+                                width: 16,
+                                height: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Load SWB for extended tests",
+                                style: STextStyles.button(context).copyWith(
+                                  color: testingState.isRunning
+                                      ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimaryDisabled
+                                      : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (swbLoaded)
+                      ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) =>
+                            SecondaryButton(
+                              label: "Run extended SWB tests",
+                              onPressed: testingState.isRunning
+                                  ? null
+                                  : () => _showPasswordDialog(),
+                            ),
+                        child: TextButton(
+                          style: testingState.isRunning
+                              ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryDisabledButtonStyle(context)
+                              : Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonStyle(context),
+                          onPressed: testingState.isRunning
+                              ? null
+                              : () => _selectSwbFile(),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                Assets.svg.backupRestore,
+                                color: testingState.isRunning
+                                    ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimaryDisabled
+                                    : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimary,
+                                width: 16,
+                                height: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Run extended SWB tests",
+                                style: STextStyles.button(context).copyWith(
+                                  color: testingState.isRunning
+                                      ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimaryDisabled
+                                      : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 16),
+                    
+                    // Reset button
+                    ConditionalParent(
+                      condition: isDesktop,
+                      builder: (child) => PrimaryButton(
+                        label: "Reset",
+                        enabled: !testingState.isRunning,
+                        onPressed: testingState.isRunning
+                            ? null
+                            : () => testingService.resetTestResults(),
+                      ),
+                      child: TextButton(
+                        style: testingState.isRunning
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .getPrimaryDisabledButtonStyle(context)
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .getSecondaryEnabledButtonStyle(context),
+                        onPressed: testingState.isRunning
+                            ? null
+                            : () => testingService.resetTestResults(),
+                        child: Text(
+                          "Reset",
+                          style: STextStyles.button(context).copyWith(
+                            color: testingState.isRunning
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimaryDisabled
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -237,6 +354,222 @@ class _TestingViewState extends ConsumerState<TestingView> {
               child: const SizedBox(
                 height: 32,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectSwbFile() async {
+    try {
+      await _swbFileSystem.prepareStorage();
+      if (mounted) {
+        await _swbFileSystem.openFile(context);
+      }
+      
+      if (_swbFileSystem.filePath != null) {
+        setState(() {
+          _selectedSwbFile = _swbFileSystem.filePath;
+        });
+        
+        if (mounted) {
+          swbLoaded = true;
+          // await _showPasswordDialog();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => StackDialog(
+            title: "Error",
+            message: "Failed to open SWB file: $e",
+            rightButton: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "OK",
+                style: STextStyles.button(context),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showPasswordDialog() async {
+    final passwordController = TextEditingController();
+    bool hidePassword = true;
+    
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => StackDialogBase(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Enter SWB Password",
+                style: STextStyles.pageTitleH2(context),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Please enter the password for the Stack Wallet Backup file:",
+                style: STextStyles.smallMed14(context),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: hidePassword,
+                style: STextStyles.field(context),
+                decoration: InputDecoration(
+                  hintText: "Enter password",
+                  hintStyle: STextStyles.fieldLabel(context),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      hidePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        hidePassword = !hidePassword;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        "Cancel",
+                        style: STextStyles.button(context),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.of(context).pop();
+                        await _loadWalletsFromSwb(passwordController.text);
+                      },
+                      child: Text(
+                        "OK",
+                        style: STextStyles.button(context),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    
+    passwordController.dispose();
+  }
+
+  Future<void> _loadWalletsFromSwb(String password) async {
+    try {
+      if (_selectedSwbFile == null) {
+        throw Exception("No SWB file selected");
+      }
+      
+      // Use the actual SWB decryption from the codebase
+      final String? jsonString = await SWB.decryptStackWalletWithPassphrase(
+        Tuple2(_selectedSwbFile!, password),
+      );
+      
+      if (jsonString == null) {
+        swbLoaded = false;
+        throw Exception("Failed to decrypt SWB file. Please check your password.");
+      }
+      
+      // Parse the JSON to extract wallet names
+      final Map<String, dynamic> backupData = jsonDecode(jsonString) as Map<String, dynamic>;
+      final List<dynamic> wallets = backupData["wallets"] as List? ?? [];
+      
+      final List<String> walletNames = wallets
+          .map((wallet) => wallet["name"] as String? ?? "Unknown Wallet")
+          .toList();
+      
+      setState(() {
+        _walletsInSwb = walletNames;
+      });
+      
+      if (mounted) {
+        await _showWalletListDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => StackDialog(
+            title: "Error",
+            message: "Failed to decrypt SWB file: $e",
+            rightButton: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "OK",
+                style: STextStyles.button(context),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showWalletListDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StackDialogBase(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Wallets in SWB",
+              style: STextStyles.pageTitleH2(context),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "The following wallets were found in the backup file:",
+              style: STextStyles.smallMed14(context),
+            ),
+            const SizedBox(height: 16),
+            if (_walletsInSwb != null)
+              ..._walletsInSwb!.map((wallet) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      wallet,
+                      style: STextStyles.smallMed14(context),
+                    ),
+                  ],
+                ),
+              )),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Spacer(),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      "OK",
+                      style: STextStyles.button(context),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -8,50 +8,192 @@
  *
  */
 
+// TODO: Implement actual Monero wallet tests
+// These tests should include:
+// - Wallet creation from SWB backup
+// - Balance verification
+// - Transaction history validation
+// - Address generation testing
+// - Backup/restore functionality
 
 enum TestSuiteStatus { waiting, running, passed, failed }
 
-enum TestSuiteType { 
+/// Base class for all test types.
+abstract class TestType {
+  String get displayName;
+  String get description;
+}
+
+/// Integration tests verify FFI plugins are correctly integrated.
+enum IntegrationTestType implements TestType { 
   tor,
-  moneroWallet
+  moneroIntegration;
+  
+  @override
+  String get displayName {
+    switch (this) {
+      case IntegrationTestType.tor:
+        return "Tor Integration";
+      case IntegrationTestType.moneroIntegration:
+        return "Monero Integration";
+    }
+  }
+  
+  @override
+  String get description {
+    switch (this) {
+      case IntegrationTestType.tor:
+        return "Tests Tor network connectivity and proxy functionality";
+      case IntegrationTestType.moneroIntegration:
+        return "Tests Monero FFI plugin integration and basic functionality";
+    }
+  }
+}
+
+/// Wallet tests operate on SWB files and test various wallet functionalities
+enum WalletTestType implements TestType {
+  moneroWallet;
+  
+  @override
+  String get displayName {
+    switch (this) {
+      case WalletTestType.moneroWallet:
+        return "Monero Wallet";
+    }
+  }
+  
+  @override
+  String get description {
+    switch (this) {
+      case WalletTestType.moneroWallet:
+        return "Tests Monero wallet creation, restoration, and transaction functionality";
+    }
+  }
 }
 
 class TestResult {
   final bool success;
   final String message;
   final Duration executionTime;
+  final String? details;
+  final Map<String, dynamic>? metadata;
 
   const TestResult({
     required this.success,
     required this.message,
     required this.executionTime,
+    this.details,
+    this.metadata,
+  });
+  
+  TestResult copyWith({
+    bool? success,
+    String? message,
+    Duration? executionTime,
+    String? details,
+    Map<String, dynamic>? metadata,
+  }) {
+    return TestResult(
+      success: success ?? this.success,
+      message: message ?? this.message,
+      executionTime: executionTime ?? this.executionTime,
+      details: details ?? this.details,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+}
+
+/// Specific result for integration tests
+class IntegrationTestResult extends TestResult {
+  final IntegrationTestType testType;
+  
+  const IntegrationTestResult({
+    required this.testType,
+    required super.success,
+    required super.message,
+    required super.executionTime,
+    super.details,
+    super.metadata,
+  });
+}
+
+/// Specific result for wallet tests
+class WalletTestResult extends TestResult {
+  final WalletTestType testType;
+  final String? walletId;
+  final String? walletName;
+  
+  const WalletTestResult({
+    required this.testType,
+    required super.success,
+    required super.message,
+    required super.executionTime,
+    this.walletId,
+    this.walletName,
+    super.details,
+    super.metadata,
   });
 }
 
 class TestingSessionState {
-  final Map<TestSuiteType, TestSuiteStatus> suiteStatuses;
+  final Map<TestType, TestSuiteStatus> testStatuses;
+  final Map<IntegrationTestType, TestSuiteStatus> integrationTestStatuses;
+  final Map<WalletTestType, TestSuiteStatus> walletTestStatuses;
   final bool isRunning;
   final int completed;
   final int total;
 
   const TestingSessionState({
-    required this.suiteStatuses,
+    required this.testStatuses,
+    required this.integrationTestStatuses,
+    required this.walletTestStatuses,
     required this.isRunning,
     required this.completed,
     required this.total,
   });
 
   TestingSessionState copyWith({
-    Map<TestSuiteType, TestSuiteStatus>? suiteStatuses,
+    Map<TestType, TestSuiteStatus>? suiteStatuses,
+    Map<IntegrationTestType, TestSuiteStatus>? integrationTestStatuses,
+    Map<WalletTestType, TestSuiteStatus>? walletTestStatuses,
     bool? isRunning,
     int? completed,
     int? total,
   }) {
     return TestingSessionState(
-      suiteStatuses: suiteStatuses ?? this.suiteStatuses,
+      testStatuses: suiteStatuses ?? this.testStatuses,
+      integrationTestStatuses: integrationTestStatuses ?? this.integrationTestStatuses,
+      walletTestStatuses: walletTestStatuses ?? this.walletTestStatuses,
       isRunning: isRunning ?? this.isRunning,
       completed: completed ?? this.completed,
       total: total ?? this.total,
+    );
+  }
+}
+
+/// Configuration for wallet tests that require SWB files
+class WalletTestConfig {
+  final String? swbFilePath;
+  final String? password;
+  final List<String>? selectedWalletIds;
+  
+  const WalletTestConfig({
+    this.swbFilePath,
+    this.password,
+    this.selectedWalletIds,
+  });
+  
+  bool get isValid => swbFilePath != null && password != null;
+  
+  WalletTestConfig copyWith({
+    String? swbFilePath,
+    String? password,
+    List<String>? selectedWalletIds,
+  }) {
+    return WalletTestConfig(
+      swbFilePath: swbFilePath ?? this.swbFilePath,
+      password: password ?? this.password,
+      selectedWalletIds: selectedWalletIds ?? this.selectedWalletIds,
     );
   }
 }

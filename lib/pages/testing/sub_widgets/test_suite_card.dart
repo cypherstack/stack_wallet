@@ -21,12 +21,12 @@ import '../../../widgets/rounded_white_container.dart';
 class TestSuiteCard extends ConsumerWidget {
   const TestSuiteCard({
     super.key,
-    required this.testSuiteType,
+    required this.testType,
     required this.status,
     this.onTap,
   });
 
-  final TestSuiteType testSuiteType;
+  final TestType testType;
   final TestSuiteStatus status;
   final VoidCallback? onTap;
 
@@ -51,7 +51,7 @@ class TestSuiteCard extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          testingService.getDisplayNameForTestSuite(testSuiteType),
+                          testingService.getDisplayNameForTest(testType),
                           style: STextStyles.titleBold12(context),
                         ),
                         const SizedBox(height: 2),
@@ -99,7 +99,7 @@ class TestSuiteCard extends ConsumerWidget {
           color: colors.textSubtitle1,
         );
       case TestSuiteStatus.running:
-        return SizedBox(
+        return const SizedBox(
           width: 20,
           height: 20,
           child: LoadingIndicator(
