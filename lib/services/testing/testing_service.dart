@@ -75,6 +75,10 @@ class TestingService extends StateNotifier<TestingSessionState> {
   Future<void> runTestSuite(TestSuiteType type) async {
     if (_cancelled) return;
 
+    if (_testSuites.isEmpty) {
+      _initializeTestSuites();
+    }
+
     final suite = _testSuites[type];
     if (suite == null) return;
 
