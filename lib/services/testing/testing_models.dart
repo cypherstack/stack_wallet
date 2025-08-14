@@ -18,13 +18,11 @@ enum TestSuiteType {
 class TestResult {
   final bool success;
   final String message;
-  final List<String> logs;
   final Duration executionTime;
 
   const TestResult({
     required this.success,
     required this.message,
-    required this.logs,
     required this.executionTime,
   });
 }
