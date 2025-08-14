@@ -16,6 +16,7 @@ import '../../utilities/logger.dart';
 import 'testing_models.dart';
 import 'test_suite_interface.dart';
 import 'test_suites/tor_test_suite.dart';
+import 'test_suites/monero_wallet_test_suite.dart';
 
 final testingServiceProvider = StateNotifierProvider<TestingService, TestingSessionState>((ref) {
   return TestingService();
@@ -39,6 +40,7 @@ class TestingService extends StateNotifier<TestingSessionState> {
 
   void _initializeTestSuites() {
     _testSuites[TestSuiteType.tor] = TorTestSuite();
+    _testSuites[TestSuiteType.moneroWallet] = MoneroWalletTestSuite();
   }
 
   Future<void> runAllTests() async {
@@ -88,7 +90,6 @@ class TestingService extends StateNotifier<TestingSessionState> {
         onTimeout: () => const TestResult(
           success: false,
           message: "Test suite timed out",
-          logs: ["Test execution exceeded 30 second timeout"],
           executionTime: Duration(seconds: 30),
         ),
       );
@@ -157,6 +158,8 @@ class TestingService extends StateNotifier<TestingSessionState> {
     switch (type) {
       case TestSuiteType.tor:
         return "Tor Service";
+      case TestSuiteType.moneroWallet:
+        return "Monero Wallet FFI";
     }
   }
 

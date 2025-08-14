@@ -12,7 +12,8 @@
 enum TestSuiteStatus { waiting, running, passed, failed }
 
 enum TestSuiteType { 
-  tor
+  tor,
+  moneroWallet
 }
 
 class TestResult {
