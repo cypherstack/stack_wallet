@@ -225,6 +225,13 @@ abstract class Wallet<T extends CryptoCurrency> {
       await wallet.mainDB.isar.walletInfo.put(walletInfo);
     });
 
+    if (wallet is SparkInterface) {
+      await walletInfo.updateOtherData(
+        newEntries: {WalletInfoKeys.firoSparkUsedTagsCacheResetVersion: 1},
+        isar: mainDB.isar,
+      );
+    }
+
     return wallet;
   }
 

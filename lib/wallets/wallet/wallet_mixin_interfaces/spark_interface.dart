@@ -148,6 +148,21 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<void> init() async {
     try {
+      final sparkUsedTagsResetVersion =
+          info.otherData[WalletInfoKeys.firoSparkUsedTagsCacheResetVersion]
+              as int? ??
+          0;
+      if (sparkUsedTagsResetVersion == 0) {
+        await info.updateOtherData(
+          newEntries: {WalletInfoKeys.firoSparkUsedTagsCacheResetVersion: 1},
+          isar: mainDB.isar,
+        );
+        await FiroCacheCoordinator.clearSharedCache(
+          cryptoCurrency.network,
+          clearOnlyUsedTagsCache: true,
+        );
+      }
+
       Address? address = await getCurrentReceivingSparkAddress();
       if (address == null) {
         address = await generateNextSparkAddress();

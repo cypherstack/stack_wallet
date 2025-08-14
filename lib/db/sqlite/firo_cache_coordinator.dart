@@ -23,7 +23,13 @@ abstract class FiroCacheCoordinator {
     }
   }
 
-  static Future<void> clearSharedCache(CryptoCurrencyNetwork network) async {
+  static Future<void> clearSharedCache(
+    CryptoCurrencyNetwork network, {
+    bool clearOnlyUsedTagsCache = false,
+  }) async {
+    if (clearOnlyUsedTagsCache) {
+      return await _FiroCache._deleteUsedTagsCache(network);
+    }
     return await _FiroCache._deleteAllCache(network);
   }
 
@@ -38,9 +44,10 @@ abstract class FiroCacheCoordinator {
 
     final setSize =
         (await setCacheFile.exists()) ? await setCacheFile.length() : 0;
-    final tagsSize = (await usedTagsCacheFile.exists())
-        ? await usedTagsCacheFile.length()
-        : 0;
+    final tagsSize =
+        (await usedTagsCacheFile.exists())
+            ? await usedTagsCacheFile.length()
+            : 0;
 
     Logging.instance.d("Spark cache used tags size: $tagsSize");
     Logging.instance.d("Spark cache anon set size: $setSize");
@@ -67,16 +74,11 @@ abstract class FiroCacheCoordinator {
   ) async {
     await _tagLocks[network]!.protect(() async {
       final count = await FiroCacheCoordinator.getUsedCoinTagsCount(network);
-      final unhashedTags =
-          await client.getSparkUnhashedUsedCoinsTagsWithTxHashes(
-        startNumber: count,
-      );
+      final unhashedTags = await client
+          .getSparkUnhashedUsedCoinsTagsWithTxHashes(startNumber: count);
       if (unhashedTags.isNotEmpty) {
         await _workers[network]!.runTask(
-          FCTask(
-            func: FCFuncName._updateSparkUsedTagsWith,
-            data: unhashedTags,
-          ),
+          FCTask(func: FCFuncName._updateSparkUsedTagsWith, data: unhashedTags),
         );
       }
     });
@@ -98,9 +100,7 @@ abstract class FiroCacheCoordinator {
 
       final prevSize = prevMeta?.size ?? 0;
 
-      final meta = await client.getSparkAnonymitySetMeta(
-        coinGroupId: groupId,
-      );
+      final meta = await client.getSparkAnonymitySetMeta(coinGroupId: groupId);
 
       progressUpdated?.call(prevSize, meta.size);
 
@@ -141,9 +141,10 @@ abstract class FiroCacheCoordinator {
         coins.addAll(data);
       }
 
-      final result = coins
-          .map((e) => RawSparkCoin.fromRPCResponse(e as List, groupId))
-          .toList();
+      final result =
+          coins
+              .map((e) => RawSparkCoin.fromRPCResponse(e as List, groupId))
+              .toList();
 
       await _workers[network]!.runTask(
         FCTask(
@@ -167,9 +168,7 @@ abstract class FiroCacheCoordinator {
     return result.map((e) => e["tag"] as String).toSet();
   }
 
-  static Future<int> getUsedCoinTagsCount(
-    CryptoCurrencyNetwork network,
-  ) async {
+  static Future<int> getUsedCoinTagsCount(CryptoCurrencyNetwork network) async {
     final result = await _Reader._getUsedCoinTagsCount(
       db: _FiroCache.usedTagsCacheDB(network),
     );
@@ -195,12 +194,7 @@ abstract class FiroCacheCoordinator {
       return [];
     }
     return result.rows
-        .map(
-          (e) => (
-            tag: e[0] as String,
-            txid: e[1] as String,
-          ),
-        )
+        .map((e) => (tag: e[0] as String, txid: e[1] as String))
         .toList();
   }
 
@@ -230,16 +224,17 @@ abstract class FiroCacheCoordinator {
     String? afterBlockHash,
     required CryptoCurrencyNetwork network,
   }) async {
-    final resultSet = afterBlockHash == null
-        ? await _Reader._getSetCoinsForGroupId(
-            groupId,
-            db: _FiroCache.setCacheDB(network),
-          )
-        : await _Reader._getSetCoinsForGroupIdAndBlockHash(
-            groupId,
-            afterBlockHash,
-            db: _FiroCache.setCacheDB(network),
-          );
+    final resultSet =
+        afterBlockHash == null
+            ? await _Reader._getSetCoinsForGroupId(
+              groupId,
+              db: _FiroCache.setCacheDB(network),
+            )
+            : await _Reader._getSetCoinsForGroupIdAndBlockHash(
+              groupId,
+              afterBlockHash,
+              db: _FiroCache.setCacheDB(network),
+            );
 
     return resultSet
         .map(

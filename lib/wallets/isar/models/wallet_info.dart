@@ -521,4 +521,6 @@ abstract class WalletInfoKeys {
       "duressMarkedVisibleWalletKey";
   static const String mwebEnabled = "mwebEnabledKey";
   static const String mwebScanHeight = "mwebScanHeightKey";
+  static const String firoSparkUsedTagsCacheResetVersion =
+      "firoSparkUsedTagsCacheResetVersionKey";
 }
