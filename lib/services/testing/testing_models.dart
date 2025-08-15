@@ -31,7 +31,8 @@ enum IntegrationTestType implements TestType {
   wowneroIntegration,
   salviumIntegration,
   epiccashIntegration,
-  firoIntegration;
+  firoIntegration,
+  litecoinMwebIntegration;
   
   @override
   String get displayName {
@@ -48,6 +49,8 @@ enum IntegrationTestType implements TestType {
         return "Epic Cash Integration";
       case IntegrationTestType.firoIntegration:
         return "Firo Integration";
+      case IntegrationTestType.litecoinMwebIntegration:
+        return "Litecoin MWEB Integration";
     }
   }
   
@@ -66,6 +69,8 @@ enum IntegrationTestType implements TestType {
         return "Tests Epic Cash FFI plugin integration and basic functionality";
       case IntegrationTestType.firoIntegration:
         return "Tests Firo flutter_libsparkmobile FFI plugin integration and basic functionality";
+      case IntegrationTestType.litecoinMwebIntegration:
+        return "Tests Litecoin MWEB flutter_mwebd FFI plugin integration and basic functionality";
     }
   }
 }
