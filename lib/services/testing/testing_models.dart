@@ -29,7 +29,8 @@ enum IntegrationTestType implements TestType {
   tor,
   moneroIntegration,
   wowneroIntegration,
-  salviumIntegration;
+  salviumIntegration,
+  epiccashIntegration;
   
   @override
   String get displayName {
@@ -42,6 +43,8 @@ enum IntegrationTestType implements TestType {
         return "Wownero Integration";
       case IntegrationTestType.salviumIntegration:
         return "Salvium Integration";
+      case IntegrationTestType.epiccashIntegration:
+        return "Epic Cash Integration";
     }
   }
   
@@ -56,6 +59,8 @@ enum IntegrationTestType implements TestType {
         return "Tests Wownero FFI plugin integration and basic functionality";
       case IntegrationTestType.salviumIntegration:
         return "Tests Salvium FFI plugin integration and basic functionality";
+      case IntegrationTestType.epiccashIntegration:
+        return "Tests Epic Cash FFI plugin integration and basic functionality";
     }
   }
 }
