@@ -53,7 +53,10 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
 
     final remaining = name.validUntil - currentChainHeight;
 
-    if (remaining <= 0) {
+    if (widget.name.validUntil == -99999) {
+      color = theme.accentColorYellow;
+      message = "Pending";
+    } else if (remaining <= 0) {
       color = theme.accentColorRed;
       message = "Expired";
     } else {

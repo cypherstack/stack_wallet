@@ -1118,7 +1118,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               .isUsedEqualTo(false)
               .findAll();
 
-      Set<String>? spentCoinTags;
+      List<String>? spentCoinTags;
       // only fetch tags from db if we need them to compare against any items
       // in coinsToCheck
       if (coinsToCheck.isNotEmpty) {

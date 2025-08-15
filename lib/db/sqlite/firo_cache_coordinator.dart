@@ -157,7 +157,7 @@ abstract class FiroCacheCoordinator {
 
   // ===========================================================================
 
-  static Future<Set<String>> getUsedCoinTags(
+  static Future<List<String>> getUsedCoinTags(
     int startNumber,
     CryptoCurrencyNetwork network,
   ) async {
@@ -165,7 +165,7 @@ abstract class FiroCacheCoordinator {
       startNumber,
       db: _FiroCache.usedTagsCacheDB(network),
     );
-    return result.map((e) => e["tag"] as String).toSet();
+    return result.map((e) => e["tag"] as String).toList();
   }
 
   static Future<int> getUsedCoinTagsCount(CryptoCurrencyNetwork network) async {
@@ -198,7 +198,7 @@ abstract class FiroCacheCoordinator {
         .toList();
   }
 
-  static Future<Set<String>> getUsedCoinTagsFor({
+  static Future<List<String>> getUsedCoinTagsFor({
     required String txid,
     required CryptoCurrencyNetwork network,
   }) async {
@@ -206,7 +206,7 @@ abstract class FiroCacheCoordinator {
       txid,
       db: _FiroCache.usedTagsCacheDB(network),
     );
-    return result.map((e) => e["tag"] as String).toSet();
+    return result.map((e) => e["tag"] as String).toList();
   }
 
   static Future<bool> checkTagIsUsed(
