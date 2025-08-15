@@ -79,7 +79,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
         for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting
       },
     );
-    _statusController.add(state);
+    if (!_statusController.isClosed) {
+      _statusController.add(state);
+    }
 
     try {
       for (final type in IntegrationTestType.values) {
@@ -90,7 +92,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
       Logging.instance.log(Level.error, "Error running integration test suites: $e");
     } finally {
       state = state.copyWith(isRunning: false);
-      _statusController.add(state);
+      if (!_statusController.isClosed) {
+        _statusController.add(state);
+      }
     }
   }
   
@@ -111,7 +115,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
         for (var type in WalletTestType.values) type: TestSuiteStatus.waiting
       },
     );
-    _statusController.add(state);
+    if (!_statusController.isClosed) {
+      _statusController.add(state);
+    }
 
     try {
       for (final type in WalletTestType.values) {
@@ -122,7 +128,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
       Logging.instance.log(Level.error, "Error running wallet test suites: $e");
     } finally {
       state = state.copyWith(isRunning: false);
-      _statusController.add(state);
+      if (!_statusController.isClosed) {
+        _statusController.add(state);
+      }
     }
   }
   
@@ -150,7 +158,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
       integrationTestStatuses: updatedStatuses,
       suiteStatuses: updatedAllStatuses,
     );
-    _statusController.add(state);
+    if (!_statusController.isClosed) {
+      _statusController.add(state);
+    }
 
     try {
       final result = await suite.runTests().timeout(
@@ -175,7 +185,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
         suiteStatuses: updatedAllStatuses,
         completed: completed,
       );
-      _statusController.add(state);
+      if (!_statusController.isClosed) {
+        _statusController.add(state);
+      }
 
       await suite.cleanup();
     } catch (e) {
@@ -191,7 +203,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
         suiteStatuses: updatedAllStatuses,
         completed: completed,
       );
-      _statusController.add(state);
+      if (!_statusController.isClosed) {
+        _statusController.add(state);
+      }
 
       Logging.instance.log(Level.error, "Error running $type integration test suite: $e");
     }
@@ -220,7 +234,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
       walletTestStatuses: updatedStatuses,
       suiteStatuses: updatedAllStatuses,
     );
-    _statusController.add(state);
+    if (!_statusController.isClosed) {
+      _statusController.add(state);
+    }
 
     try {
       // TODO: Pass wallet config to suite when implementing actual wallet tests.
@@ -246,7 +262,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
         suiteStatuses: updatedAllStatuses,
         completed: completed,
       );
-      _statusController.add(state);
+      if (!_statusController.isClosed) {
+        _statusController.add(state);
+      }
 
       await suite.cleanup();
     } catch (e) {
@@ -262,7 +280,9 @@ class TestingService extends StateNotifier<TestingSessionState> {
         suiteStatuses: updatedAllStatuses,
         completed: completed,
       );
-      _statusController.add(state);
+      if (!_statusController.isClosed) {
+        _statusController.add(state);
+      }
 
       Logging.instance.log(Level.error, "Error running $type wallet test suite: $e");
     }
@@ -280,7 +300,11 @@ class TestingService extends StateNotifier<TestingSessionState> {
   Future<void> cancelTesting() async {
     _cancelled = true;
     state = state.copyWith(isRunning: false);
-    _statusController.add(state);
+    
+    // Only add to stream controller if it's not closed.
+    if (!_statusController.isClosed) {
+      _statusController.add(state);
+    }
     
     for (final suite in _integrationTestSuites.values) {
       await suite.cleanup();
@@ -291,32 +315,41 @@ class TestingService extends StateNotifier<TestingSessionState> {
   }
 
   Future<void> resetTestResults() async {
+    // Clear test suites to ensure fresh state.
+    _integrationTestSuites.clear();
+    _walletTestSuites.clear();
+    _cancelled = false;
+    
     state = TestingSessionState(
       testStatuses: {
-        for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting,
-        for (var type in WalletTestType.values) type: TestSuiteStatus.waiting,
+        for (final type in IntegrationTestType.values) type: TestSuiteStatus.waiting,
+        for (final type in WalletTestType.values) type: TestSuiteStatus.waiting,
       },
       integrationTestStatuses: {
-        for (var type in IntegrationTestType.values) type: TestSuiteStatus.waiting
+        for (final type in IntegrationTestType.values) type: TestSuiteStatus.waiting
       },
       walletTestStatuses: {
-        for (var type in WalletTestType.values) type: TestSuiteStatus.waiting
+        for (final type in WalletTestType.values) type: TestSuiteStatus.waiting
       },
       isRunning: false,
       completed: 0,
       total: IntegrationTestType.values.length + WalletTestType.values.length,
     );
-    _statusController.add(state);
+    
+    // Only add to stream controller if it's not closed.
+    if (!_statusController.isClosed) {
+      _statusController.add(state);
+    }
   }
 
-  // Wallet test configuration methods
+  // Wallet test configuration methods.
   void setWalletTestConfig(WalletTestConfig config) {
     _walletTestConfig = config;
   }
   
   WalletTestConfig? get walletTestConfig => _walletTestConfig;
   
-  // Helper method to calculate completed tests across both types
+  // Helper method to calculate completed tests across both types.
   int _calculateCompletedTests() {
     final integrationCompleted = state.integrationTestStatuses.values
         .where((status) => status == TestSuiteStatus.passed || status == TestSuiteStatus.failed)
@@ -351,7 +384,7 @@ class TestingService extends StateNotifier<TestingSessionState> {
     super.dispose();
   }
   
-  // Convenience methods for getting display names
+  // Convenience methods for getting display names.
   String getDisplayNameForTest(TestType type) {
     return type.displayName;
   }
