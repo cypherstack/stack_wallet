@@ -28,7 +28,8 @@ abstract class TestType {
 enum IntegrationTestType implements TestType { 
   tor,
   moneroIntegration,
-  wowneroIntegration;
+  wowneroIntegration,
+  salviumIntegration;
   
   @override
   String get displayName {
@@ -39,6 +40,8 @@ enum IntegrationTestType implements TestType {
         return "Monero Integration";
       case IntegrationTestType.wowneroIntegration:
         return "Wownero Integration";
+      case IntegrationTestType.salviumIntegration:
+        return "Salvium Integration";
     }
   }
   
@@ -51,6 +54,8 @@ enum IntegrationTestType implements TestType {
         return "Tests Monero FFI plugin integration and basic functionality";
       case IntegrationTestType.wowneroIntegration:
         return "Tests Wownero FFI plugin integration and basic functionality";
+      case IntegrationTestType.salviumIntegration:
+        return "Tests Salvium FFI plugin integration and basic functionality";
     }
   }
 }
