@@ -20,6 +20,7 @@ import 'test_suites/monero_integration_test_suite.dart';
 import 'test_suites/wownero_integration_test_suite.dart';
 import 'test_suites/salvium_integration_test_suite.dart';
 import 'test_suites/epiccash_integration_test_suite.dart';
+import 'test_suites/firo_integration_test_suite.dart';
 
 final testingServiceProvider = StateNotifierProvider<TestingService, TestingSessionState>((ref) {
   return TestingService();
@@ -56,6 +57,7 @@ class TestingService extends StateNotifier<TestingSessionState> {
     _integrationTestSuites[IntegrationTestType.wowneroIntegration] = WowneroIntegrationTestSuite();
     _integrationTestSuites[IntegrationTestType.salviumIntegration] = SalviumIntegrationTestSuite();
     _integrationTestSuites[IntegrationTestType.epiccashIntegration] = EpiccashIntegrationTestSuite();
+    _integrationTestSuites[IntegrationTestType.firoIntegration] = FiroIntegrationTestSuite();
   }
   
   void _initializeWalletTestSuites() {
