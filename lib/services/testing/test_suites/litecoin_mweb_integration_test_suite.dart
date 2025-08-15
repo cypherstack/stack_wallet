@@ -282,7 +282,8 @@ class LitecoinMwebIntegrationTestSuite implements TestSuiteInterface {
 }
 
 // Helper function to get a random unused port.
-Future<int?> _getRandomUnusedPort({Set<int> excluded = const {}}) async {
+Future<int?> _getRandomUnusedPort({Set<int>? excluded}) async {
+  excluded ??= <int>{};
   const int minPort = 1024;
   const int maxPort = 65535;
   const int maxAttempts = 100;
