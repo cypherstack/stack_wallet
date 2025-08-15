@@ -182,18 +182,25 @@ class _TestingViewState extends ConsumerState<TestingView> {
                     const SizedBox(height: 16),
                     
                     // Integration test suite cards.
-                    ...IntegrationTestType.values.map((type) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: TestSuiteCard(
-                          testType: type,
-                          status: testingState.testStatuses[type] ?? TestSuiteStatus.waiting,
-                          onTap: testingState.isRunning 
-                              ? null 
-                              : () => testingService.runTestSuite(type),
-                        ),
-                      );
-                    }),
+                    SizedBox(
+                      height: 300, // Set a fixed height for the scrollable area.
+                      child: ListView.builder(
+                        itemCount: IntegrationTestType.values.length,
+                        itemBuilder: (context, index) {
+                          final type = IntegrationTestType.values[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: TestSuiteCard(
+                              testType: type,
+                              status: testingState.testStatuses[type] ?? TestSuiteStatus.waiting,
+                              onTap: testingState.isRunning 
+                                  ? null 
+                                  : () => testingService.runTestSuite(type),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 16),
 
                     // SWB button.
