@@ -101,12 +101,23 @@ class LitecoinMwebIntegrationTestSuite implements TestSuiteInterface {
       
       // Test server creation - this exercises the FFI bindings.
       await server.createServer();
+
+      // Wait for server to start.
+      await server.startServer();
+
+      // Verify server is running.
+      if (!server.isRunning) {
+        throw Exception("MWEB server did not start successfully");
+      }
+
+      Logging.instance.log(Level.info,
+        "MWEB server created and running on port $port"
+      );
       await server.stopServer();
       
       Logging.instance.log(Level.info, 
         "👍 MWEB server creation test passed"
       );
-      
     } catch (e) {
       throw Exception("MWEB server creation test failed: $e");
     } finally {
