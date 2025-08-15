@@ -27,7 +27,8 @@ abstract class TestType {
 /// Integration tests verify FFI plugins are correctly integrated.
 enum IntegrationTestType implements TestType { 
   tor,
-  moneroIntegration;
+  moneroIntegration,
+  wowneroIntegration;
   
   @override
   String get displayName {
@@ -36,6 +37,8 @@ enum IntegrationTestType implements TestType {
         return "Tor Integration";
       case IntegrationTestType.moneroIntegration:
         return "Monero Integration";
+      case IntegrationTestType.wowneroIntegration:
+        return "Wownero Integration";
     }
   }
   
@@ -46,6 +49,8 @@ enum IntegrationTestType implements TestType {
         return "Tests Tor network connectivity and proxy functionality";
       case IntegrationTestType.moneroIntegration:
         return "Tests Monero FFI plugin integration and basic functionality";
+      case IntegrationTestType.wowneroIntegration:
+        return "Tests Wownero FFI plugin integration and basic functionality";
     }
   }
 }

@@ -17,6 +17,7 @@ import 'testing_models.dart';
 import 'test_suite_interface.dart';
 import 'test_suites/tor_test_suite.dart';
 import 'test_suites/monero_integration_test_suite.dart';
+import 'test_suites/wownero_integration_test_suite.dart';
 
 final testingServiceProvider = StateNotifierProvider<TestingService, TestingSessionState>((ref) {
   return TestingService();
@@ -50,6 +51,7 @@ class TestingService extends StateNotifier<TestingSessionState> {
   void _initializeIntegrationTestSuites() {
     _integrationTestSuites[IntegrationTestType.tor] = TorTestSuite();
     _integrationTestSuites[IntegrationTestType.moneroIntegration] = MoneroWalletTestSuite();
+    _integrationTestSuites[IntegrationTestType.wowneroIntegration] = WowneroIntegrationTestSuite();
   }
   
   void _initializeWalletTestSuites() {
