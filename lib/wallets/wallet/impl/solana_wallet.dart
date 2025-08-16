@@ -146,13 +146,40 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           accInfo.value!.data.toString().length,
         ),
       );
-      if (minimumRent >
-          ((await _getCurrentBalanceInLamports()) -
-              txData.amount!.raw -
-              feeAmount)) {
-        throw Exception(
-          "Insufficient remaining balance for rent exemption, minimum rent: "
-          "${minimumRent.toInt() / pow(10, cryptoCurrency.fractionDigits)}",
+      
+      final BigInt currentBalance = await _getCurrentBalanceInLamports();
+      final BigInt remainingAfterSend = currentBalance - txData.amount!.raw - feeAmount;
+      
+      if (remainingAfterSend < minimumRent) {
+        // For Send All scenarios, automatically adjust amount to preserve rent exemption
+        final BigInt deficit = minimumRent - remainingAfterSend;
+        final BigInt adjustedAmount = txData.amount!.raw - deficit;
+        
+        if (adjustedAmount <= BigInt.zero) {
+          throw Exception(
+            "Insufficient balance to cover transaction fee and rent exemption. "
+            "Minimum rent: ${minimumRent.toInt() / pow(10, cryptoCurrency.fractionDigits)} SOL, "
+            "Fee: ${feeAmount.toInt() / pow(10, cryptoCurrency.fractionDigits)} SOL",
+          );
+        }
+        
+        Logging.instance.i(
+          "Adjusting send amount to preserve rent exemption. "
+          "Original: ${txData.amount!.raw}, "
+          "Adjusted: $adjustedAmount, "
+          "Deficit: $deficit lamports"
+        );
+
+        txData = txData.copyWith(
+          recipients: [
+            txData.recipients!.first.copyWith(
+              address: txData.recipients!.first.address,
+              amount: Amount(
+                rawValue: adjustedAmount,
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ),
+            ),
+          ]
         );
       }
 
