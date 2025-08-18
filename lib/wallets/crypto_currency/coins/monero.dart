@@ -16,6 +16,10 @@ class Monero extends CryptonoteCurrency {
         _id = _idMain;
         _name = "Monero";
         _ticker = "XMR";
+      case CryptoCurrencyNetwork.stage:
+        _id = "${_idMain}Stagenet";
+        _name = "sMonero";
+        _ticker = "sXMR";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -55,6 +59,8 @@ class Monero extends CryptonoteCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return xmr_wallet_ffi.validateAddress(address, 0);
+      case CryptoCurrencyNetwork.stage:
+        return xmr_wallet_ffi.validateAddress(address, 2); // NetworkType_STAGENET.
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -70,6 +76,23 @@ class Monero extends CryptonoteCurrency {
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          trusted: true,
+          torEnabled: true,
+          clearnetEnabled: true,
+          isPrimary: isPrimary,
+        );
+
+      case CryptoCurrencyNetwork.stage:
+        return NodeModel(
+          host: "http://node3.monerodevs.org",
+          port: 38089,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: false,
           enabled: true,
           coinName: identifier,
           isFailover: true,
@@ -117,6 +140,8 @@ class Monero extends CryptonoteCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return Uri.parse("https://xmrchain.net/tx/$txid");
+      case CryptoCurrencyNetwork.stage:
+        return Uri.parse("https://stagenet.xmrchain.net/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
