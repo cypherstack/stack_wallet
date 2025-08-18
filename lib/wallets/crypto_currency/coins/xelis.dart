@@ -83,7 +83,7 @@ class Xelis extends ElectrumCurrency {
           isPrimary: isPrimary,
         );
 
-      case CryptoCurrencyNetwork.test:
+      case CryptoCurrencyNetwork.stage:
         return NodeModel(
           host: "stagenet-node.xelis.io",
           port: 443,

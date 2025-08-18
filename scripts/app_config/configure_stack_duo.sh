@@ -80,6 +80,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.test4),
   BitcoinFrost(CryptoCurrencyNetwork.test),
   BitcoinFrost(CryptoCurrencyNetwork.test4),
+  Monero(CryptoCurrencyNetwork.stage),
 ]);
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
