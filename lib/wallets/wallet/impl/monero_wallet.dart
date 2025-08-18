@@ -41,7 +41,13 @@ class MoneroWallet extends LibMoneroWallet {
   Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
-  }) => csMonero.loadWallet(walletId, path: path, password: password);
+    required int network,
+  }) => csMonero.loadWallet(
+    walletId,
+    path: path,
+    password: password,
+    network: network,
+  );
 
   @override
   Future<WrappedWallet> getCreatedWallet({
@@ -49,11 +55,13 @@ class MoneroWallet extends LibMoneroWallet {
     required String password,
     required int wordCount,
     required String seedOffset,
+    required int network,
   }) => csMonero.getCreatedWallet(
     path: path,
     password: password,
     wordCount: wordCount,
     seedOffset: seedOffset,
+    network: network,
   );
 
   @override
@@ -62,6 +70,7 @@ class MoneroWallet extends LibMoneroWallet {
     required String password,
     required String mnemonic,
     required String seedOffset,
+    required int network,
     int height = 0,
   }) => csMonero.getRestoredWallet(
     path: path,
@@ -69,6 +78,7 @@ class MoneroWallet extends LibMoneroWallet {
     mnemonic: mnemonic,
     height: height,
     seedOffset: seedOffset,
+    network: network,
     walletId: walletId,
   );
 
@@ -78,6 +88,7 @@ class MoneroWallet extends LibMoneroWallet {
     required String password,
     required String address,
     required String privateViewKey,
+    required int network,
     int height = 0,
   }) => csMonero.getRestoredFromViewKeyWallet(
     walletId: walletId,
@@ -85,6 +96,7 @@ class MoneroWallet extends LibMoneroWallet {
     password: password,
     address: address,
     privateViewKey: privateViewKey,
+    network: network,
     height: height,
   );
 
