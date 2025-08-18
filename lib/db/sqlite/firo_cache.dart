@@ -65,11 +65,13 @@ abstract class _FiroCache {
         await StackFileSystem.applicationFiroCacheSQLiteDirectory();
 
     for (final network in networks) {
-      final sparkSetCacheFile =
-          File("${sqliteDir.path}/${sparkSetCacheFileName(network)}");
+      final sparkSetCacheFile = File(
+        "${sqliteDir.path}/${sparkSetCacheFileName(network)}",
+      );
 
-      final sparkUsedTagsCacheFile =
-          File("${sqliteDir.path}/${sparkUsedTagsCacheFileName(network)}");
+      final sparkUsedTagsCacheFile = File(
+        "${sqliteDir.path}/${sparkUsedTagsCacheFileName(network)}",
+      );
 
       if (!(await sparkSetCacheFile.exists())) {
         await _createSparkSetCacheDb(sparkSetCacheFile.path);
@@ -91,20 +93,13 @@ abstract class _FiroCache {
 
   static Future<void> _deleteAllCache(CryptoCurrencyNetwork network) async {
     final start = DateTime.now();
-    setCacheDB(network).execute(
-      """
+    setCacheDB(network).execute("""
         DELETE FROM SparkSet;
         DELETE FROM SparkCoin;
         DELETE FROM SparkSetCoins;
         VACUUM;
-      """,
-    );
-    usedTagsCacheDB(network).execute(
-      """
-        DELETE FROM SparkUsedCoinTags;
-        VACUUM;
-      """,
-    );
+      """);
+    await _deleteUsedTagsCache(network);
 
     Logging.instance.d(
       "_deleteAllCache() "
@@ -112,14 +107,26 @@ abstract class _FiroCache {
     );
   }
 
-  static Future<void> _createSparkSetCacheDb(String file) async {
-    final db = sqlite3.open(
-      file,
-      mode: OpenMode.readWriteCreate,
-    );
+  static Future<void> _deleteUsedTagsCache(
+    CryptoCurrencyNetwork network,
+  ) async {
+    final start = DateTime.now();
 
-    db.execute(
-      """
+    usedTagsCacheDB(network).execute("""
+        DELETE FROM SparkUsedCoinTags;
+        VACUUM;
+      """);
+
+    Logging.instance.d(
+      "_deleteUsedTagsCache() "
+      "duration = ${DateTime.now().difference(start)}",
+    );
+  }
+
+  static Future<void> _createSparkSetCacheDb(String file) async {
+    final db = sqlite3.open(file, mode: OpenMode.readWriteCreate);
+
+    db.execute("""
         CREATE TABLE SparkSet (
           id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
           blockHash TEXT NOT NULL,
@@ -145,27 +152,21 @@ abstract class _FiroCache {
           FOREIGN KEY (setId) REFERENCES SparkSet(id),
           FOREIGN KEY (coinId) REFERENCES SparkCoin(id)
         );
-      """,
-    );
+      """);
 
     db.dispose();
   }
 
   static Future<void> _createSparkUsedTagsCacheDb(String file) async {
-    final db = sqlite3.open(
-      file,
-      mode: OpenMode.readWriteCreate,
-    );
+    final db = sqlite3.open(file, mode: OpenMode.readWriteCreate);
 
-    db.execute(
-      """
+    db.execute("""
         CREATE TABLE SparkUsedCoinTags (
           id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
           tag TEXT NOT NULL UNIQUE,
           txid TEXT NOT NULL
         );
-      """,
-    );
+      """);
 
     db.dispose();
   }
