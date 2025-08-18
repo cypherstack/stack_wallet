@@ -110,6 +110,7 @@ class WowneroWallet extends LibMoneroWallet {
     required String password,
     required int wordCount,
     required String seedOffset,
+    int? networkType,
   }) async {
     final lib_monero.WowneroSeedType type;
     switch (wordCount) {
@@ -131,6 +132,7 @@ class WowneroWallet extends LibMoneroWallet {
       seedType: type,
       overrideDeprecated14WordSeedException: true,
       seedOffset: seedOffset,
+      networkType: networkType ?? getNetworkType(),
     );
   }
 
@@ -141,12 +143,14 @@ class WowneroWallet extends LibMoneroWallet {
     required String mnemonic,
     required String seedOffset,
     int height = 0,
+    int? networkType,
   }) async => await lib_monero.WowneroWallet.restoreWalletFromSeed(
     path: path,
     password: password,
     seed: mnemonic,
     restoreHeight: height,
     seedOffset: seedOffset,
+    networkType: networkType ?? getNetworkType(),
   );
 
   @override
@@ -156,12 +160,14 @@ class WowneroWallet extends LibMoneroWallet {
     required String address,
     required String privateViewKey,
     int height = 0,
+    int? networkType,
   }) async => lib_monero.WowneroWallet.createViewOnlyWallet(
     path: path,
     password: password,
     address: address,
     viewKey: privateViewKey,
     restoreHeight: height,
+    networkType: networkType ?? getNetworkType(),
   );
 
   @override

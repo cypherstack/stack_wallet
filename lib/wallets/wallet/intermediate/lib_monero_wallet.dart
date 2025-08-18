@@ -34,6 +34,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
@@ -108,6 +109,20 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   final lib_monero_compat.WalletType compatType;
   lib_monero.Wallet? libMoneroWallet;
 
+  /// Maps CryptoCurrencyNetwork to monero_c network type integer.
+  int getNetworkType() {
+    switch (cryptoCurrency.network) {
+      case CryptoCurrencyNetwork.main:
+        return 0; // NetworkType_MAINNET.
+      case CryptoCurrencyNetwork.test:
+        return 1; // NetworkType_TESTNET.
+      case CryptoCurrencyNetwork.stage:
+        return 2; // NetworkType_STAGENET.
+      default:
+        throw Exception("Unsupported network: ${cryptoCurrency.network}");
+    }
+  }
+
   lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
   lib_monero_compat.SyncStatus? _syncStatus;
   int _syncedCount = 0;
@@ -142,6 +157,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String password,
     required int wordCount,
     required String seedOffset,
+    int? networkType,
   });
 
   Future<lib_monero.Wallet> getRestoredWallet({
@@ -150,6 +166,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String mnemonic,
     required String seedOffset,
     int height = 0,
+    int? networkType,
   });
 
   Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
@@ -158,6 +175,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String address,
     required String privateViewKey,
     int height = 0,
+    int? networkType,
   });
 
   void invalidSeedLengthCheck(int length);
@@ -348,6 +366,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           password: password,
           wordCount: wordCount,
           seedOffset: "", // default for non restored wallets for now
+          networkType: getNetworkType(),
         );
 
         final height = wallet.getRefreshFromBlockHeight();
@@ -428,6 +447,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             mnemonic: mnemonic,
             height: height,
             seedOffset: seedOffset,
+            networkType: getNetworkType(),
           );
 
           if (libMoneroWallet != null) {
@@ -1453,6 +1473,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           address: data.address,
           privateViewKey: data.privateViewKey,
           height: height,
+          networkType: getNetworkType(),
         );
 
         if (libMoneroWallet != null) {

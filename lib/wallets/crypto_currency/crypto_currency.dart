@@ -34,7 +34,9 @@ enum CryptoCurrencyNetwork {
   test4;
 
   bool get isTestNet =>
-      this == CryptoCurrencyNetwork.test || this == CryptoCurrencyNetwork.test4;
+      this == CryptoCurrencyNetwork.test || 
+      this == CryptoCurrencyNetwork.test4 ||
+      this == CryptoCurrencyNetwork.stage;
 }
 
 abstract class CryptoCurrency {
