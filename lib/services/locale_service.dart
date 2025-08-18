@@ -17,11 +17,40 @@ class LocaleService extends ChangeNotifier {
   String _locale = "en_US"; // use default
 
   String get locale => _locale;
+  
+  Locale get currentLocale {
+    final parts = _locale.split('_');
+    if (parts.length == 2) {
+      return Locale(parts[0], parts[1]);
+    }
+    return Locale(parts[0]);
+  }
 
   Future<void> loadLocale({bool notify = true}) async {
     _locale = Platform.isWindows
         ? "en_US"
         : (await Devicelocale.currentAsLocale)?.toString() ?? "en_US";
+    if (notify) {
+      notifyListeners();
+    }
+  }
+  
+  void setLocale(String newLocale, {bool notify = true}) {
+    // Convert simple locale codes to full locale strings.
+    switch (newLocale) {
+      case 'en':
+        _locale = 'en_US';
+        break;
+      case 'es':
+        _locale = 'es_ES';
+        break;
+      case 'ar':
+        _locale = 'ar_SA';
+        break;
+      default:
+        _locale = newLocale;
+    }
+    
     if (notify) {
       notifyListeners();
     }

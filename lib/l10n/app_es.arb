@@ -1,0 +1,67 @@
+{
+  "@@locale": "es",
+  "appTitle": "Stack Wallet",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "wallets": "Billeteras",
+  "@wallets": {
+    "description": "Label for the wallets section"
+  },
+  "settings": "Configuración",
+  "@settings": {
+    "description": "Label for the settings section"
+  },
+  "exchange": "Intercambio",
+  "@exchange": {
+    "description": "Label for the exchange section"
+  },
+  "buy": "Comprar",
+  "@buy": {
+    "description": "Label for the buy section"
+  },
+  "notifications": "Notificaciones",
+  "@notifications": {
+    "description": "Label for the notifications section"
+  },
+  "continueButton": "Continuar",
+  "@continueButton": {
+    "description": "Continue button text"
+  },
+  "saveChanges": "Guardar cambios",
+  "@saveChanges": {
+    "description": "Save changes button text"
+  },
+  "contractDetails": "Detalles del contrato",
+  "@contractDetails": {
+    "description": "Contract details page title"
+  },
+  "contractAddress": "Dirección del contrato",
+  "@contractAddress": {
+    "description": "Label for contract address field"
+  },
+  "name": "Nombre",
+  "@name": {
+    "description": "Label for name field"
+  },
+  "youCanChangeItLaterInSettings": "Puedes cambiarlo más tarde en Configuración",
+  "@youCanChangeItLaterInSettings": {
+    "description": "Informational text about changing settings later"
+  },
+  "easyCrypto": "Crypto Fácil",
+  "@easyCrypto": {
+    "description": "Easy Crypto option label"
+  },
+  "recommended": "Recomendado",
+  "@recommended": {
+    "description": "Recommended option label"
+  },
+  "incognito": "Incógnito",
+  "@incognito": {
+    "description": "Incognito option label"
+  },
+  "privacyConscious": "Consciente de la privacidad",
+  "@privacyConscious": {
+    "description": "Privacy conscious option label"
+  }
+}
