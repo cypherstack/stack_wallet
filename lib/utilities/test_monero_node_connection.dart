@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:http/io_client.dart';
 import 'package:monero_rpc/monero_rpc.dart';
 import 'package:socks5_proxy/socks.dart';
-import 'package:tor_ffi_plugin/socks_socket.dart';
+import 'package:socks_socket/socks_socket.dart';
 
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
