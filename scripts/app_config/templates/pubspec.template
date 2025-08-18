@@ -70,7 +70,7 @@ dependencies:
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
+      ref: 540d0bc7dc27a97d45d63f412f26818a7f3b8b51
 
   # Utility plugins
   http: ^0.13.0
