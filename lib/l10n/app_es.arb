@@ -28,6 +28,14 @@
   "@continueButton": {
     "description": "Continue button text"
   },
+  "welcomeTagline": "Una billetera multicripto de código abierto para todos",
+  "@welcomeTagline": {
+    "description": "Main tagline shown on welcome/intro screen"
+  },
+  "getStartedButton": "Empezar",
+  "@getStartedButton": {
+    "description": "Button text for starting wallet setup on mobile"
+  },
   "saveChanges": "Guardar cambios",
   "@saveChanges": {
     "description": "Save changes button text"

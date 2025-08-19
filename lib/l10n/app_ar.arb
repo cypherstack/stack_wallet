@@ -28,6 +28,14 @@
   "@continueButton": {
     "description": "Continue button text"
   },
+  "welcomeTagline": "محفظة متعددة العملات مفتوحة المصدر للجميع",
+  "@welcomeTagline": {
+    "description": "Main tagline shown on welcome/intro screen"
+  },
+  "getStartedButton": "ابدأ",
+  "@getStartedButton": {
+    "description": "Button text for starting wallet setup on mobile"
+  },
   "saveChanges": "حفظ التغييرات",
   "@saveChanges": {
     "description": "Save changes button text"

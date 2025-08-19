@@ -9,154 +9,154 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'Stack Wallet';
+  String get appTitle => 'محفظة ستاك';
 
   @override
-  String get walletsTab => 'Wallets';
+  String get walletsTab => 'المحافظ';
 
   @override
-  String get exchangeTab => 'Exchange';
+  String get exchangeTab => 'التبادل';
 
   @override
-  String get buyTab => 'Buy';
+  String get buyTab => 'شراء';
 
   @override
-  String get settingsTab => 'Settings';
+  String get settingsTab => 'الإعدادات';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'الإشعارات';
 
   @override
-  String get addressBookTitle => 'Address Book';
+  String get addressBookTitle => 'دفتر العناوين';
 
   @override
-  String get homeTitle => 'Home';
+  String get homeTitle => 'الرئيسية';
 
   @override
-  String get walletViewTitle => 'Wallet';
+  String get walletViewTitle => 'المحفظة';
 
   @override
-  String get sendTitle => 'Send';
+  String get sendTitle => 'إرسال';
 
   @override
-  String get sendFromTitle => 'Send from';
+  String get sendFromTitle => 'إرسال من';
 
   @override
-  String get receiveTitle => 'Receive';
+  String get receiveTitle => 'استقبال';
 
   @override
-  String get swapTitle => 'Swap';
+  String get swapTitle => 'تبديل';
 
   @override
-  String get tokensTitle => 'Tokens';
+  String get tokensTitle => 'الرموز المميزة';
 
   @override
-  String get saveButton => 'Save';
+  String get saveButton => 'حفظ';
 
   @override
-  String get cancelButton => 'Cancel';
+  String get cancelButton => 'إلغاء';
 
   @override
   String get continueButton => 'متابعة';
 
   @override
-  String get editButton => 'Edit';
+  String get editButton => 'تعديل';
 
   @override
-  String get deleteButton => 'Delete';
+  String get deleteButton => 'حذف';
 
   @override
-  String get nextButton => 'Next';
+  String get nextButton => 'التالي';
 
   @override
-  String get closeButton => 'Close';
+  String get closeButton => 'إغلاق';
 
   @override
-  String get okButton => 'OK';
+  String get okButton => 'موافق';
 
   @override
-  String get yesButton => 'Yes';
+  String get yesButton => 'نعم';
 
   @override
-  String get noButton => 'No';
+  String get noButton => 'لا';
 
   @override
-  String get copyButton => 'Copy';
+  String get copyButton => 'نسخ';
 
   @override
-  String get sendButton => 'Send';
+  String get sendButton => 'إرسال';
 
   @override
-  String get receiveButton => 'Receive';
+  String get receiveButton => 'استقبال';
 
   @override
-  String get addButton => 'Add';
+  String get addButton => 'إضافة';
 
   @override
-  String get nameLabel => 'Name';
+  String get nameLabel => 'الاسم';
 
   @override
-  String get amountLabel => 'Amount';
+  String get amountLabel => 'المبلغ';
 
   @override
-  String get addressLabel => 'Address';
+  String get addressLabel => 'العنوان';
 
   @override
-  String get feeLabel => 'Fee';
+  String get feeLabel => 'الرسوم';
 
   @override
-  String get noteLabel => 'Note';
+  String get noteLabel => 'ملاحظة';
 
   @override
-  String get passwordLabel => 'Password';
+  String get passwordLabel => 'كلمة المرور';
 
   @override
-  String get searchHint => 'Search...';
+  String get searchHint => 'البحث...';
 
   @override
-  String get enterPasswordHint => 'Enter password';
+  String get enterPasswordHint => 'أدخل كلمة المرور';
 
   @override
   String get enterAmountHint => '0.00';
 
   @override
-  String get optionalHint => 'Optional';
+  String get optionalHint => 'اختياري';
 
   @override
-  String get requiredFieldError => 'This field is required';
+  String get requiredFieldError => 'هذا الحقل مطلوب';
 
   @override
-  String get invalidEmailError => 'Please enter a valid email address';
+  String get invalidEmailError => 'يرجى إدخال عنوان بريد إلكتروني صحيح';
 
   @override
-  String get invalidAddressError => 'Please enter a valid address';
+  String get invalidAddressError => 'يرجى إدخال عنوان صحيح';
 
   @override
-  String get insufficientFundsError => 'Insufficient funds';
+  String get insufficientFundsError => 'أموال غير كافية';
 
   @override
-  String get networkError => 'Network connection failed';
+  String get networkError => 'فشل في الاتصال بالشبكة';
 
   @override
-  String get transactionFailed => 'Transaction failed';
+  String get transactionFailed => 'فشلت المعاملة';
 
   @override
-  String get loadingStatus => 'Loading...';
+  String get loadingStatus => 'جاري التحميل...';
 
   @override
-  String get processingStatus => 'Processing...';
+  String get processingStatus => 'جاري المعالجة...';
 
   @override
-  String get syncingStatus => 'Syncing...';
+  String get syncingStatus => 'جاري المزامنة...';
 
   @override
-  String get completedStatus => 'Completed';
+  String get completedStatus => 'مكتمل';
 
   @override
-  String get pendingStatus => 'Pending';
+  String get pendingStatus => 'معلق';
 
   @override
-  String get confirmedStatus => 'Confirmed';
+  String get confirmedStatus => 'مؤكد';
 
   @override
   String get wallets => 'المحافظ';
@@ -183,13 +183,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get contractAddress => 'عنوان العقد';
 
   @override
-  String get symbolLabel => 'Symbol';
+  String get symbolLabel => 'الرمز';
 
   @override
-  String get typeLabel => 'Type';
+  String get typeLabel => 'النوع';
 
   @override
-  String get decimalsLabel => 'Decimals';
+  String get decimalsLabel => 'الكسور العشرية';
 
   @override
   String get name => 'الاسم';
@@ -198,7 +198,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get youCanChangeItLaterInSettings => 'يمكنك تغييره لاحقاً في الإعدادات';
 
   @override
-  String get easyCrypto => 'العملة المشفرة السهلة';
+  String get easyCrypto => 'عملة رقمية سهلة';
 
   @override
   String get recommended => 'موصى به';
@@ -207,52 +207,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incognito => 'مجهول';
 
   @override
-  String get privacyConscious => 'واعي بالخصوصية';
+  String get privacyConscious => 'واعي للخصوصية';
 
   @override
-  String get welcomeTagline => 'An open-source, multicoin wallet for everyone';
+  String get welcomeTagline => 'محفظة متعددة العملات ومفتوحة المصدر للجميع';
 
   @override
-  String get getStartedButton => 'Get started';
+  String get getStartedButton => 'ابدأ';
 
   @override
   String createNewWalletButton(String appPrefix) {
-    return 'Create new $appPrefix';
+    return 'إنشاء $appPrefix جديد';
   }
 
   @override
   String restoreFromBackupButton(String appPrefix) {
-    return 'Restore from $appPrefix backup';
+    return 'استعادة من نسخة احتياطية $appPrefix';
   }
 
   @override
   String privacyAgreementText(String appName) {
-    return 'By using $appName, you agree to the ';
+    return 'باستخدام $appName، فإنك توافق على ';
   }
 
   @override
-  String get termsOfServiceLinkText => 'Terms of service';
+  String get termsOfServiceLinkText => 'شروط الخدمة';
 
   @override
-  String get privacyAgreementConjunction => ' and ';
+  String get privacyAgreementConjunction => ' و ';
 
   @override
-  String get privacyPolicyLinkText => 'Privacy policy';
+  String get privacyPolicyLinkText => 'سياسة الخصوصية';
 
   @override
-  String get enterPinTitle => 'Enter PIN';
+  String get enterPinTitle => 'أدخل رقم التعريف الشخصي';
 
   @override
-  String get useBiometricsButton => 'Use biometrics';
+  String get useBiometricsButton => 'استخدم القياسات الحيوية';
 
   @override
-  String get loadingWalletsMessage => 'Loading wallets...';
+  String get loadingWalletsMessage => 'جاري تحميل المحافظ...';
 
   @override
-  String get incorrectPinTryAgainError => 'Incorrect PIN. Please try again';
+  String get incorrectPinTryAgainError => 'رقم التعريف الشخصي غير صحيح. يرجى المحاولة مرة أخرى';
 
   @override
   String incorrectPinThrottleError(String waitTime) {
-    return 'Incorrect PIN entered too many times. Please wait $waitTime';
+    return 'تم إدخال رقم التعريف الشخصي بشكل خاطئ مرات كثيرة. يرجى الانتظار $waitTime';
   }
 }
