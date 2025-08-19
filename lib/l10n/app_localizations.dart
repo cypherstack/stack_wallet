@@ -497,6 +497,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy conscious'**
   String get privacyConscious;
+
+  /// Main tagline shown on welcome/intro screen
+  ///
+  /// In en, this message translates to:
+  /// **'An open-source, multicoin wallet for everyone'**
+  String get welcomeTagline;
+
+  /// Button text for starting wallet setup on mobile
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get getStartedButton;
+
+  /// Button text for creating new wallet on desktop
+  ///
+  /// In en, this message translates to:
+  /// **'Create new {appPrefix}'**
+  String createNewWalletButton(String appPrefix);
+
+  /// Button text for restoring from backup on desktop
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from {appPrefix} backup'**
+  String restoreFromBackupButton(String appPrefix);
+
+  /// First part of privacy agreement text
+  ///
+  /// In en, this message translates to:
+  /// **'By using {appName}, you agree to the '**
+  String privacyAgreementText(String appName);
+
+  /// Link text for terms of service
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of service'**
+  String get termsOfServiceLinkText;
+
+  /// Conjunction between terms and privacy policy links
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get privacyAgreementConjunction;
+
+  /// Link text for privacy policy
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicyLinkText;
+
+  /// Title text for PIN entry screen
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN'**
+  String get enterPinTitle;
+
+  /// Button text for using biometric authentication
+  ///
+  /// In en, this message translates to:
+  /// **'Use biometrics'**
+  String get useBiometricsButton;
+
+  /// Loading message while wallets are being loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Loading wallets...'**
+  String get loadingWalletsMessage;
+
+  /// Error message for incorrect PIN entry
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. Please try again'**
+  String get incorrectPinTryAgainError;
+
+  /// Error message when PIN attempts are throttled
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN entered too many times. Please wait {waitTime}'**
+  String incorrectPinThrottleError(String waitTime);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

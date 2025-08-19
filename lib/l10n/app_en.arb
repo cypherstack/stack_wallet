@@ -275,5 +275,83 @@
   "privacyConscious": "Privacy conscious",
   "@privacyConscious": {
     "description": "Privacy conscious option label"
+  },
+
+  "welcomeTagline": "An open-source, multicoin wallet for everyone",
+  "@welcomeTagline": {
+    "description": "Main tagline shown on welcome/intro screen"
+  },
+  "getStartedButton": "Get started",
+  "@getStartedButton": {
+    "description": "Button text for starting wallet setup on mobile"
+  },
+  "createNewWalletButton": "Create new {appPrefix}",
+  "@createNewWalletButton": {
+    "description": "Button text for creating new wallet on desktop",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String",
+        "description": "Application prefix (e.g., Stack)"
+      }
+    }
+  },
+  "restoreFromBackupButton": "Restore from {appPrefix} backup",
+  "@restoreFromBackupButton": {
+    "description": "Button text for restoring from backup on desktop",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String",
+        "description": "Application prefix (e.g., Stack)"
+      }
+    }
+  },
+  "privacyAgreementText": "By using {appName}, you agree to the ",
+  "@privacyAgreementText": {
+    "description": "First part of privacy agreement text",
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "description": "Application name"
+      }
+    }
+  },
+  "termsOfServiceLinkText": "Terms of service",
+  "@termsOfServiceLinkText": {
+    "description": "Link text for terms of service"
+  },
+  "privacyAgreementConjunction": " and ",
+  "@privacyAgreementConjunction": {
+    "description": "Conjunction between terms and privacy policy links"
+  },
+  "privacyPolicyLinkText": "Privacy policy",
+  "@privacyPolicyLinkText": {
+    "description": "Link text for privacy policy"
+  },
+
+  "enterPinTitle": "Enter PIN",
+  "@enterPinTitle": {
+    "description": "Title text for PIN entry screen"
+  },
+  "useBiometricsButton": "Use biometrics",
+  "@useBiometricsButton": {
+    "description": "Button text for using biometric authentication"
+  },
+  "loadingWalletsMessage": "Loading wallets...",
+  "@loadingWalletsMessage": {
+    "description": "Loading message while wallets are being loaded"
+  },
+  "incorrectPinTryAgainError": "Incorrect PIN. Please try again",
+  "@incorrectPinTryAgainError": {
+    "description": "Error message for incorrect PIN entry"
+  },
+  "incorrectPinThrottleError": "Incorrect PIN entered too many times. Please wait {waitTime}",
+  "@incorrectPinThrottleError": {
+    "description": "Error message when PIN attempts are throttled",
+    "placeholders": {
+      "waitTime": {
+        "type": "String",
+        "description": "Time to wait before trying again"
+      }
+    }
   }
 }

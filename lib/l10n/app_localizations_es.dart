@@ -208,4 +208,51 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get privacyConscious => 'Consciente de la privacidad';
+
+  @override
+  String get welcomeTagline => 'An open-source, multicoin wallet for everyone';
+
+  @override
+  String get getStartedButton => 'Get started';
+
+  @override
+  String createNewWalletButton(String appPrefix) {
+    return 'Create new $appPrefix';
+  }
+
+  @override
+  String restoreFromBackupButton(String appPrefix) {
+    return 'Restore from $appPrefix backup';
+  }
+
+  @override
+  String privacyAgreementText(String appName) {
+    return 'By using $appName, you agree to the ';
+  }
+
+  @override
+  String get termsOfServiceLinkText => 'Terms of service';
+
+  @override
+  String get privacyAgreementConjunction => ' and ';
+
+  @override
+  String get privacyPolicyLinkText => 'Privacy policy';
+
+  @override
+  String get enterPinTitle => 'Enter PIN';
+
+  @override
+  String get useBiometricsButton => 'Use biometrics';
+
+  @override
+  String get loadingWalletsMessage => 'Loading wallets...';
+
+  @override
+  String get incorrectPinTryAgainError => 'Incorrect PIN. Please try again';
+
+  @override
+  String incorrectPinThrottleError(String waitTime) {
+    return 'Incorrect PIN entered too many times. Please wait $waitTime';
+  }
 }
