@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mutex/mutex.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/secure_store_provider.dart';
@@ -157,7 +158,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           ),
           opaqueBG: true,
           context: context,
-          message: "Loading wallets...",
+          message: AppLocalizations.of(context)!.loadingWalletsMessage,
         );
 
         if (loadSuccess == null || loadSuccess == false) {
@@ -381,8 +382,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
-          message:
-              "Incorrect PIN entered too many times. Please wait $prettyTime",
+          message: AppLocalizations.of(context)!.incorrectPinThrottleError(prettyTime),
           context: context,
           iconAsset: Assets.svg.alertCircle,
         ),
@@ -404,7 +404,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Incorrect PIN. Please try again",
+            message: AppLocalizations.of(context)!.incorrectPinTryAgainError,
             context: context,
             iconAsset: Assets.svg.alertCircle,
           ),
@@ -452,7 +452,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                       if (ref.read(prefsChangeNotifierProvider).useBiometrics ==
                           true)
                         CustomTextButton(
-                          text: "Use biometrics",
+                          text: AppLocalizations.of(context)!.useBiometricsButton,
                           onTap: () async {
                             await _checkUseBiometrics();
                           },
@@ -477,7 +477,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                   children: [
                     Center(
                       child: Text(
-                        "Enter PIN",
+                        AppLocalizations.of(context)!.enterPinTitle,
                         style: STextStyles.pageTitleH1(context),
                       ),
                     ),

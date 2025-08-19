@@ -1,0 +1,105 @@
+{
+  "@@locale": "en",
+  "@@context": "Form field labels, hints, and validation text",
+  
+  "nameLabel": "Name",
+  "@nameLabel": {
+    "description": "Label for name input fields"
+  },
+  "amountLabel": "Amount",
+  "@amountLabel": {
+    "description": "Label for amount input fields"
+  },
+  "addressLabel": "Address",
+  "@addressLabel": {
+    "description": "Label for address input fields"
+  },
+  "feeLabel": "Fee",
+  "@feeLabel": {
+    "description": "Label for fee input fields"
+  },
+  "noteLabel": "Note",
+  "@noteLabel": {
+    "description": "Label for note input fields"
+  },
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Label for password input fields"
+  },
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Label for email input fields"
+  },
+  "phoneLabel": "Phone",
+  "@phoneLabel": {
+    "description": "Label for phone input fields"
+  },
+  "descriptionLabel": "Description",
+  "@descriptionLabel": {
+    "description": "Label for description input fields"
+  },
+  "titleLabel": "Title",
+  "@titleLabel": {
+    "description": "Label for title input fields"
+  },
+  "searchHint": "Search...",
+  "@searchHint": {
+    "description": "Placeholder text for search fields"
+  },
+  "enterPasswordHint": "Enter password",
+  "@enterPasswordHint": {
+    "description": "Placeholder text for password fields"
+  },
+  "enterAmountHint": "0.00",
+  "@enterAmountHint": {
+    "description": "Placeholder text for amount fields"
+  },
+  "enterAddressHint": "Enter recipient address",
+  "@enterAddressHint": {
+    "description": "Placeholder text for address fields"
+  },
+  "enterNameHint": "Enter name",
+  "@enterNameHint": {
+    "description": "Placeholder text for name fields"
+  },
+  "optionalHint": "Optional",
+  "@optionalHint": {
+    "description": "Hint text for optional fields"
+  },
+  "requiredFieldError": "This field is required",
+  "@requiredFieldError": {
+    "description": "Error message for required fields that are empty"
+  },
+  "invalidEmailError": "Please enter a valid email address",
+  "@invalidEmailError": {
+    "description": "Error message for invalid email format"
+  },
+  "invalidAddressError": "Please enter a valid address",
+  "@invalidAddressError": {
+    "description": "Error message for invalid address format"
+  },
+  "insufficientFundsError": "Insufficient funds",
+  "@insufficientFundsError": {
+    "description": "Error message when user has insufficient funds"
+  },
+  "passwordTooShortError": "Password must be at least 8 characters",
+  "@passwordTooShortError": {
+    "description": "Error message for passwords that are too short"
+  },
+  "passwordsDoNotMatchError": "Passwords do not match",
+  "@passwordsDoNotMatchError": {
+    "description": "Error message when password confirmation doesn't match"
+  },
+  "invalidAmountError": "Please enter a valid amount",
+  "@invalidAmountError": {
+    "description": "Error message for invalid amount format"
+  },
+  "amountTooLowError": "Amount too low",
+  "@amountTooLowError": {
+    "description": "Error message when amount is below minimum"
+  },
+  "amountTooHighError": "Amount too high",
+  "@amountTooHighError": {
+    "description": "Error message when amount exceeds maximum"
+  }
+}

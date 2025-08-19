@@ -1,0 +1,101 @@
+{
+  "@@locale": "en",
+  "@@context": "Error messages and status feedback",
+  
+  "networkError": "Network connection failed",
+  "@networkError": {
+    "description": "Error message for network connection failures"
+  },
+  "serverError": "Server error occurred",
+  "@serverError": {
+    "description": "Error message for server-side errors"
+  },
+  "requestTimeout": "Request timeout",
+  "@requestTimeout": {
+    "description": "Error message for request timeouts"
+  },
+  "invalidResponse": "Invalid response from server",
+  "@invalidResponse": {
+    "description": "Error message for invalid server responses"
+  },
+  "authenticationError": "Authentication failed",
+  "@authenticationError": {
+    "description": "Error message for authentication failures"
+  },
+  "incorrectPin": "Incorrect PIN",
+  "@incorrectPin": {
+    "description": "Error message for incorrect PIN entry"
+  },
+  "accountLocked": "Account locked",
+  "@accountLocked": {
+    "description": "Error message when account is locked"
+  },
+  "transactionFailed": "Transaction failed",
+  "@transactionFailed": {
+    "description": "Error message for failed transactions"
+  },
+  "broadcastError": "Failed to broadcast transaction",
+  "@broadcastError": {
+    "description": "Error message for transaction broadcast failures"
+  },
+  "walletLoadError": "Failed to load wallet",
+  "@walletLoadError": {
+    "description": "Error message when wallet fails to load"
+  },
+  "syncError": "Synchronization failed",
+  "@syncError": {
+    "description": "Error message for wallet sync failures"
+  },
+  "connectionError": "Connection error",
+  "@connectionError": {
+    "description": "Generic connection error message"
+  },
+  "unknownError": "An unknown error occurred",
+  "@unknownError": {
+    "description": "Generic error message for unknown errors"
+  },
+  "loadingStatus": "Loading...",
+  "@loadingStatus": {
+    "description": "Status message while loading"
+  },
+  "processingStatus": "Processing...",
+  "@processingStatus": {
+    "description": "Status message while processing"
+  },
+  "syncingStatus": "Syncing...",
+  "@syncingStatus": {
+    "description": "Status message while syncing"
+  },
+  "completedStatus": "Completed",
+  "@completedStatus": {
+    "description": "Status message when operation is completed"
+  },
+  "failedStatus": "Failed",
+  "@failedStatus": {
+    "description": "Status message when operation failed"
+  },
+  "pendingStatus": "Pending",
+  "@pendingStatus": {
+    "description": "Status message when operation is pending"
+  },
+  "confirmedStatus": "Confirmed",
+  "@confirmedStatus": {
+    "description": "Status message when transaction is confirmed"
+  },
+  "unconfirmedStatus": "Unconfirmed",
+  "@unconfirmedStatus": {
+    "description": "Status message when transaction is unconfirmed"
+  },
+  "successMessage": "Operation completed successfully",
+  "@successMessage": {
+    "description": "Generic success message"
+  },
+  "transactionSentMessage": "Transaction sent successfully",
+  "@transactionSentMessage": {
+    "description": "Success message for sent transactions"
+  },
+  "settingsSavedMessage": "Settings saved successfully",
+  "@settingsSavedMessage": {
+    "description": "Success message when settings are saved"
+  }
+}

@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../l10n/app_localizations.dart';
 
 import '../app_config.dart';
 import '../pages_desktop_specific/password/create_password_view.dart';
@@ -128,7 +129,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           if (isDesktop) const SizedBox(height: 20),
                           if (isDesktop)
                             SecondaryButton(
-                              label: "Restore from ${AppConfig.prefix} backup",
+                              label: AppLocalizations.of(context)!.restoreFromBackupButton(AppConfig.prefix),
                               onPressed: () {
                                 Navigator.of(context).pushNamed(
                                   CreatePasswordView.routeName,
@@ -174,7 +175,7 @@ class IntroAboutText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      AppConfig.shortDescriptionText,
+      AppLocalizations.of(context)!.welcomeTagline,
       textAlign: TextAlign.center,
       style:
           !isDesktop
@@ -197,11 +198,11 @@ class PrivacyAndTOSText extends StatelessWidget {
       text: TextSpan(
         style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
-          const TextSpan(
-            text: "By using ${AppConfig.appName}, you agree to the ",
+          TextSpan(
+            text: AppLocalizations.of(context)!.privacyAgreementText(AppConfig.appName),
           ),
           TextSpan(
-            text: "Terms of service",
+            text: AppLocalizations.of(context)!.termsOfServiceLinkText,
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
             recognizer:
                 TapGestureRecognizer()
@@ -214,9 +215,9 @@ class PrivacyAndTOSText extends StatelessWidget {
                     );
                   },
           ),
-          const TextSpan(text: " and "),
+          TextSpan(text: AppLocalizations.of(context)!.privacyAgreementConjunction),
           TextSpan(
-            text: "Privacy policy",
+            text: AppLocalizations.of(context)!.privacyPolicyLinkText,
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
             recognizer:
                 TapGestureRecognizer()
@@ -251,7 +252,7 @@ class GetStartedButton extends StatelessWidget {
               context,
             ).pushNamed(StackPrivacyCalls.routeName, arguments: false);
           },
-          child: Text("Get started", style: STextStyles.button(context)),
+          child: Text(AppLocalizations.of(context)!.getStartedButton, style: STextStyles.button(context)),
         )
         : SizedBox(
           width: double.infinity,
@@ -266,7 +267,7 @@ class GetStartedButton extends StatelessWidget {
               ).pushNamed(StackPrivacyCalls.routeName, arguments: false);
             },
             child: Text(
-              "Create new ${AppConfig.prefix}",
+              AppLocalizations.of(context)!.createNewWalletButton(AppConfig.prefix),
               style: STextStyles.button(context).copyWith(fontSize: 20),
             ),
           ),

@@ -1,0 +1,89 @@
+{
+  "@@locale": "en",
+  "@@context": "Button labels and action text",
+  
+  "saveButton": "Save",
+  "@saveButton": {
+    "description": "Generic save button label used across forms"
+  },
+  "cancelButton": "Cancel",
+  "@cancelButton": {
+    "description": "Generic cancel button label used across dialogs"
+  },
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button text for multi-step processes"
+  },
+  "submitButton": "Submit",
+  "@submitButton": {
+    "description": "Submit button for forms"
+  },
+  "editButton": "Edit",
+  "@editButton": {
+    "description": "Edit button label"
+  },
+  "deleteButton": "Delete",
+  "@deleteButton": {
+    "description": "Delete button label"
+  },
+  "nextButton": "Next",
+  "@nextButton": {
+    "description": "Next button for navigation"
+  },
+  "previousButton": "Previous",
+  "@previousButton": {
+    "description": "Previous button for navigation"
+  },
+  "closeButton": "Close",
+  "@closeButton": {
+    "description": "Close button for dialogs and modals"
+  },
+  "okButton": "OK",
+  "@okButton": {
+    "description": "OK button for confirmation dialogs"
+  },
+  "yesButton": "Yes",
+  "@yesButton": {
+    "description": "Yes button for confirmation dialogs"
+  },
+  "noButton": "No",
+  "@noButton": {
+    "description": "No button for confirmation dialogs"
+  },
+  "copyButton": "Copy",
+  "@copyButton": {
+    "description": "Copy button for copying text to clipboard"
+  },
+  "shareButton": "Share",
+  "@shareButton": {
+    "description": "Share button for sharing content"
+  },
+  "viewDetailsButton": "View Details",
+  "@viewDetailsButton": {
+    "description": "View details button for expanding content"
+  },
+  "sendButton": "Send",
+  "@sendButton": {
+    "description": "Send button for transactions"
+  },
+  "receiveButton": "Receive",
+  "@receiveButton": {
+    "description": "Receive button for receiving transactions"
+  },
+  "refreshButton": "Refresh",
+  "@refreshButton": {
+    "description": "Refresh button for updating content"
+  },
+  "addButton": "Add",
+  "@addButton": {
+    "description": "Add button for creating new items"
+  },
+  "removeButton": "Remove",
+  "@removeButton": {
+    "description": "Remove button for deleting items"
+  },
+  "selectButton": "Select",
+  "@selectButton": {
+    "description": "Select button for choosing options"
+  }
+}

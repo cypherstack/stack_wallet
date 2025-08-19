@@ -1,0 +1,105 @@
+{
+  "@@locale": "en",
+  "@@context": "Dialog titles, content, and modal text",
+  
+  "confirmDeleteTitle": "Confirm Delete",
+  "@confirmDeleteTitle": {
+    "description": "Title for delete confirmation dialogs"
+  },
+  "confirmDeleteMessage": "Are you sure you want to delete this item?",
+  "@confirmDeleteMessage": {
+    "description": "Confirmation message for delete dialogs"
+  },
+  "unsavedChangesTitle": "Unsaved Changes",
+  "@unsavedChangesTitle": {
+    "description": "Title for unsaved changes dialog"
+  },
+  "unsavedChangesMessage": "You have unsaved changes. Do you want to continue?",
+  "@unsavedChangesMessage": {
+    "description": "Message for unsaved changes confirmation"
+  },
+  "warningTitle": "Warning",
+  "@warningTitle": {
+    "description": "Generic warning dialog title"
+  },
+  "errorTitle": "Error",
+  "@errorTitle": {
+    "description": "Generic error dialog title"
+  },
+  "successTitle": "Success",
+  "@successTitle": {
+    "description": "Generic success dialog title"
+  },
+  "infoTitle": "Information",
+  "@infoTitle": {
+    "description": "Generic information dialog title"
+  },
+  "confirmTitle": "Confirm",
+  "@confirmTitle": {
+    "description": "Generic confirmation dialog title"
+  },
+  "backupWarningTitle": "Backup Warning",
+  "@backupWarningTitle": {
+    "description": "Title for backup warning dialogs"
+  },
+  "securityWarningTitle": "Security Warning",
+  "@securityWarningTitle": {
+    "description": "Title for security warning dialogs"
+  },
+  "privacyWarningTitle": "Privacy Warning",
+  "@privacyWarningTitle": {
+    "description": "Title for privacy warning dialogs"
+  },
+  "transactionConfirmTitle": "Confirm Transaction",
+  "@transactionConfirmTitle": {
+    "description": "Title for transaction confirmation dialogs"
+  },
+  "walletDeleteTitle": "Delete Wallet",
+  "@walletDeleteTitle": {
+    "description": "Title for wallet deletion dialogs"
+  },
+  "contactDeleteTitle": "Delete Contact",
+  "@contactDeleteTitle": {
+    "description": "Title for contact deletion dialogs"
+  },
+  "aboutTitle": "About",
+  "@aboutTitle": {
+    "description": "Title for about dialog"
+  },
+  "helpTitle": "Help",
+  "@helpTitle": {
+    "description": "Title for help dialog"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title for settings dialog"
+  },
+  "termsTitle": "Terms of Service",
+  "@termsTitle": {
+    "description": "Title for terms of service dialog"
+  },
+  "privacyPolicyTitle": "Privacy Policy",
+  "@privacyPolicyTitle": {
+    "description": "Title for privacy policy dialog"
+  },
+  "licenseTitle": "License",
+  "@licenseTitle": {
+    "description": "Title for license dialog"
+  },
+  "creditsTitle": "Credits",
+  "@creditsTitle": {
+    "description": "Title for credits dialog"
+  },
+  "versionTitle": "Version",
+  "@versionTitle": {
+    "description": "Title for version dialog"
+  },
+  "updateAvailableTitle": "Update Available",
+  "@updateAvailableTitle": {
+    "description": "Title for update available dialog"
+  },
+  "maintenanceTitle": "Maintenance",
+  "@maintenanceTitle": {
+    "description": "Title for maintenance dialog"
+  }
+}
