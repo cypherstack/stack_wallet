@@ -1,9 +1,213 @@
 {
   "@@locale": "en",
+  "@@last_modified": "2024-08-19T00:00:00.000Z",
+  
   "appTitle": "Stack Wallet",
   "@appTitle": {
     "description": "The title of the application"
   },
+  
+  "walletsTab": "Wallets",
+  "@walletsTab": {
+    "description": "Bottom navigation tab label for wallets view"
+  },
+  "exchangeTab": "Exchange", 
+  "@exchangeTab": {
+    "description": "Bottom navigation tab label for exchange view"
+  },
+  "buyTab": "Buy",
+  "@buyTab": {
+    "description": "Bottom navigation tab label for buy view"
+  },
+  "settingsTab": "Settings",
+  "@settingsTab": {
+    "description": "Bottom navigation tab label for settings view"
+  },
+  "notificationsTitle": "Notifications",
+  "@notificationsTitle": {
+    "description": "AppBar title for notifications screen"
+  },
+  "addressBookTitle": "Address Book",
+  "@addressBookTitle": {
+    "description": "AppBar title for address book screen"
+  },
+  "homeTitle": "Home",
+  "@homeTitle": {
+    "description": "AppBar title for home screen"
+  },
+  "walletViewTitle": "Wallet",
+  "@walletViewTitle": {
+    "description": "AppBar title for wallet details screen"
+  },
+  "sendTitle": "Send",
+  "@sendTitle": {
+    "description": "AppBar title for send screen"
+  },
+  "sendFromTitle": "Send from",
+  "@sendFromTitle": {
+    "description": "AppBar title for send from screen"
+  },
+  "receiveTitle": "Receive",
+  "@receiveTitle": {
+    "description": "AppBar title for receive screen"
+  },
+  "swapTitle": "Swap",
+  "@swapTitle": {
+    "description": "AppBar title for swap screen"
+  },
+  "tokensTitle": "Tokens",
+  "@tokensTitle": {
+    "description": "AppBar title for tokens screen"
+  },
+  
+  "saveButton": "Save",
+  "@saveButton": {
+    "description": "Generic save button label used across forms"
+  },
+  "cancelButton": "Cancel",
+  "@cancelButton": {
+    "description": "Generic cancel button label used across dialogs"
+  },
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button text for multi-step processes"
+  },
+  "editButton": "Edit",
+  "@editButton": {
+    "description": "Edit button label"
+  },
+  "deleteButton": "Delete",
+  "@deleteButton": {
+    "description": "Delete button label"
+  },
+  "nextButton": "Next",
+  "@nextButton": {
+    "description": "Next button for navigation"
+  },
+  "closeButton": "Close",
+  "@closeButton": {
+    "description": "Close button for dialogs and modals"
+  },
+  "okButton": "OK",
+  "@okButton": {
+    "description": "OK button for confirmation dialogs"
+  },
+  "yesButton": "Yes",
+  "@yesButton": {
+    "description": "Yes button for confirmation dialogs"
+  },
+  "noButton": "No",
+  "@noButton": {
+    "description": "No button for confirmation dialogs"
+  },
+  "copyButton": "Copy",
+  "@copyButton": {
+    "description": "Copy button for copying text to clipboard"
+  },
+  "sendButton": "Send",
+  "@sendButton": {
+    "description": "Send button for transactions"
+  },
+  "receiveButton": "Receive",
+  "@receiveButton": {
+    "description": "Receive button for receiving transactions"
+  },
+  "addButton": "Add",
+  "@addButton": {
+    "description": "Add button for creating new items"
+  },
+  
+  "nameLabel": "Name",
+  "@nameLabel": {
+    "description": "Label for name input fields"
+  },
+  "amountLabel": "Amount",
+  "@amountLabel": {
+    "description": "Label for amount input fields"
+  },
+  "addressLabel": "Address",
+  "@addressLabel": {
+    "description": "Label for address input fields"
+  },
+  "feeLabel": "Fee",
+  "@feeLabel": {
+    "description": "Label for fee input fields"
+  },
+  "noteLabel": "Note",
+  "@noteLabel": {
+    "description": "Label for note input fields"
+  },
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Label for password input fields"
+  },
+  "searchHint": "Search...",
+  "@searchHint": {
+    "description": "Placeholder text for search fields"
+  },
+  "enterPasswordHint": "Enter password",
+  "@enterPasswordHint": {
+    "description": "Placeholder text for password fields"
+  },
+  "enterAmountHint": "0.00",
+  "@enterAmountHint": {
+    "description": "Placeholder text for amount fields"
+  },
+  "optionalHint": "Optional",
+  "@optionalHint": {
+    "description": "Hint text for optional fields"
+  },
+  
+  "requiredFieldError": "This field is required",
+  "@requiredFieldError": {
+    "description": "Error message for required fields that are empty"
+  },
+  "invalidEmailError": "Please enter a valid email address",
+  "@invalidEmailError": {
+    "description": "Error message for invalid email format"
+  },
+  "invalidAddressError": "Please enter a valid address",
+  "@invalidAddressError": {
+    "description": "Error message for invalid address format"
+  },
+  "insufficientFundsError": "Insufficient funds",
+  "@insufficientFundsError": {
+    "description": "Error message when user has insufficient funds"
+  },
+  "networkError": "Network connection failed",
+  "@networkError": {
+    "description": "Error message for network connection failures"
+  },
+  "transactionFailed": "Transaction failed",
+  "@transactionFailed": {
+    "description": "Error message for failed transactions"
+  },
+  
+  "loadingStatus": "Loading...",
+  "@loadingStatus": {
+    "description": "Status message while loading"
+  },
+  "processingStatus": "Processing...",
+  "@processingStatus": {
+    "description": "Status message while processing"
+  },
+  "syncingStatus": "Syncing...",
+  "@syncingStatus": {
+    "description": "Status message while syncing"
+  },
+  "completedStatus": "Completed",
+  "@completedStatus": {
+    "description": "Status message when operation is completed"
+  },
+  "pendingStatus": "Pending",
+  "@pendingStatus": {
+    "description": "Status message when operation is pending"
+  },
+  "confirmedStatus": "Confirmed",
+  "@confirmedStatus": {
+    "description": "Status message when transaction is confirmed"
+  },
+  
   "wallets": "Wallets",
   "@wallets": {
     "description": "Label for the wallets section"
@@ -24,10 +228,6 @@
   "@notifications": {
     "description": "Label for the notifications section"
   },
-  "continueButton": "Continue",
-  "@continueButton": {
-    "description": "Continue button text"
-  },
   "saveChanges": "Save changes",
   "@saveChanges": {
     "description": "Save changes button text"
@@ -39,6 +239,18 @@
   "contractAddress": "Contract address",
   "@contractAddress": {
     "description": "Label for contract address field"
+  },
+  "symbolLabel": "Symbol",
+  "@symbolLabel": {
+    "description": "Label for symbol field"
+  },
+  "typeLabel": "Type",
+  "@typeLabel": {
+    "description": "Label for type field"
+  },
+  "decimalsLabel": "Decimals",
+  "@decimalsLabel": {
+    "description": "Label for decimals field"
   },
   "name": "Name",
   "@name": {
