@@ -17,6 +17,7 @@ import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/util.dart';
@@ -27,21 +28,28 @@ import '../../widgets/wallet_info_row/wallet_info_row.dart';
 import 'wallet_view/desktop_wallet_view.dart';
 
 class CoinWalletsTable extends ConsumerWidget {
-  const CoinWalletsTable({
-    super.key,
-    required this.coin,
-  });
+  const CoinWalletsTable({super.key, required this.coin});
 
   final CryptoCurrency coin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final walletIds = ref
-        .watch(pWallets)
-        .wallets
-        .where((e) => e.info.coin == coin)
-        .map((e) => e.walletId)
-        .toList();
+    final walletIds =
+        ref
+            .watch(pWallets)
+            .wallets
+            .where((e) {
+              try {
+                return e.info.coin == coin;
+              } catch (ex) {
+                Logging.instance.e(
+                  "Error while filtering wallets for ${coin.ticker}: $ex",
+                );
+                return false;
+              }
+            })
+            .map((e) => e.walletId)
+            .toList();
 
     return Container(
       decoration: BoxDecoration(

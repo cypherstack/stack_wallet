@@ -26,6 +26,7 @@ import '../utilities/assets.dart';
 import '../utilities/constants.dart';
 import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
+import '../utilities/logger.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/tor_plain_net_option_enum.dart';
@@ -59,8 +60,16 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   bool _advancedIsExpanded = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final wallets =
-        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
+    final wallets = ref.read(pWallets).wallets.where((e) {
+      try {
+        return e.info.coin == widget.coin;
+      } catch (ex) {
+        Logging.instance.e(
+          "Error while filtering wallets for ${widget.coin}: $ex",
+        );
+        return false;
+      }
+    });
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {
