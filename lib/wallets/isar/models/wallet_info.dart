@@ -102,7 +102,13 @@ class WalletInfo implements IsarId {
   }
 
   @ignore
-  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName)!;
+  CryptoCurrency get coin {
+    final result = AppConfig.getCryptoCurrencyFor(coinName);
+    if (result == null) {
+      throw Exception('Unknown cryptocurrency: $coinName for wallet $walletId');
+    }
+    return result;
+  }
 
   @ignore
   Balance get cachedBalance {

@@ -23,6 +23,7 @@ import '../../services/event_bus/global_event_bus.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -130,7 +131,17 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   void updateWallets() {
     final walletsData = ref.read(pAllWalletsInfo);
 
-    walletsData.removeWhere((e) => e.coin != widget.coin);
+    walletsData.removeWhere((e) {
+      try {
+        return e.coin != widget.coin;
+      } catch (ex) {
+        // Remove wallets with unknown/unsupported coins.
+        Logging.instance.e(
+          "Error while filtering wallets for ${e.coin.ticker}: $ex",
+        );
+        return true;
+      }
+    });
 
     if (widget.coin is Ethereum) {
       for (final data in walletsData) {
