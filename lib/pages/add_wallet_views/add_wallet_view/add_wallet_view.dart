@@ -29,6 +29,7 @@ import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../models/isar/models/isar_models.dart' show AddressType;
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/global/secure_store_provider.dart';
@@ -277,10 +278,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         final txData = await wallet.prepareSend(
           txData: TxData(
             recipients: [
-              (
+              TxRecipient(
                 address: (await newWallet.getCurrentReceivingAddress())!.value,
-                amount: (await wallet.totalBalance),
+                amount: await wallet.totalBalance,
                 isChange: false,
+                addressType: AddressType.cryptonote,
               ),
             ],
             feeRateType: FeeRateType.average,
@@ -341,7 +343,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   Future<void> scanPaperWalletQr() async {
     try {
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final results = AddressUtils.parseWalletUri(qrResult.rawContent);
 
