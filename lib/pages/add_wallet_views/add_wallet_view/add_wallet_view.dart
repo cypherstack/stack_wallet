@@ -151,10 +151,10 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   }
 
   Tuple2<List<String>, String> randomize(
-      List<String> mnemonic,
-      int chosenIndex,
-      int wordsToShow,
-      ) {
+    List<String> mnemonic,
+    int chosenIndex,
+    int wordsToShow,
+  ) {
     final List<String> remaining = [];
     final String chosenWord = mnemonic[chosenIndex];
 
@@ -184,8 +184,12 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   // Imports the given walletData, returns the walletId of the imported wallet
   // TODO: Implement wallet creation service and move this logic there
-  Future<Wallet<CryptoCurrency>?> importPaperWallet(WalletUriData walletData, {Wallet? newWallet}) async {
-    if (walletData.coin == Monero(CryptoCurrencyNetwork.main) && walletData.txids != null) {
+  Future<Wallet<CryptoCurrency>?> importPaperWallet(
+    WalletUriData walletData, {
+    Wallet? newWallet,
+  }) async {
+    if (walletData.coin == Monero(CryptoCurrencyNetwork.main) &&
+        walletData.txids != null) {
       // If the walletData contains txids, we need to create a temporary wallet to sweep the gift wallet
       final wallet = await Wallet.create(
         walletInfo: WalletInfo.createNew(
@@ -205,8 +209,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         await (wallet as MoneroWallet).init(isRestore: true);
         await wallet.recover(isRescan: false);
 
-        final primaryNode = NodeService(secureStorageInterface: ref.read(secureStoreProvider))
-            .getPrimaryNodeFor(currency: walletData.coin) ?? walletData.coin.defaultNode(isPrimary: true);
+        final primaryNode =
+            NodeService(
+              secureStorageInterface: ref.read(secureStoreProvider),
+            ).getPrimaryNodeFor(currency: walletData.coin) ??
+            walletData.coin.defaultNode(isPrimary: true);
 
         // Create an HTTP client with Tor support if enabled
         final torService = TorService.sharedInstance;
@@ -215,19 +222,30 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         if (prefs.useTor) {
           if (torService.status != TorConnectionStatus.connected) {
             if (prefs.torKillSwitch) {
-              throw Exception("Tor is not connected, and the kill switch is enabled. Can't sweep gift wallet");
+              throw Exception(
+                "Tor is not connected, and the kill switch is enabled. Can't sweep gift wallet",
+              );
             } else {
               // If Tor is not connected, we can still proceed with the request
-              Logging.instance.w("Tor is not connected, proceeding without Tor.");
+              Logging.instance.w(
+                "Tor is not connected, proceeding without Tor.",
+              );
             }
           } else {
-            SocksTCPClient.assignToHttpClient(httpClient, [ProxySettings(torService.getProxyInfo().host, torService.getProxyInfo().port)]);
+            SocksTCPClient.assignToHttpClient(httpClient, [
+              ProxySettings(
+                torService.getProxyInfo().host,
+                torService.getProxyInfo().port,
+              ),
+            ]);
           }
         }
 
         // Create a DaemonRpc instance to interact with the Monero node
         final daemonRpc = DaemonRpc(
-            IOClient(httpClient), "${primaryNode.host}:${primaryNode.port}");
+          IOClient(httpClient),
+          "${primaryNode.host}:${primaryNode.port}",
+        );
 
         // Scan the blocks with given txids
         final txs = await daemonRpc.postToEndpoint("/get_transactions", {
@@ -236,26 +254,38 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         });
 
         for (final tx in txs["txs"] as List) {
-          wallet.onSyncingUpdate(syncHeight: tx["block_height"] as int,
-              nodeHeight: wallet.currentKnownChainHeight);
+          wallet.onSyncingUpdate(
+            syncHeight: tx["block_height"] as int,
+            nodeHeight: wallet.currentKnownChainHeight,
+          );
           await wallet.waitForBalanceChange();
         }
 
         // Set the sync height to the current known chain height - make the wallet synced
-        wallet.onSyncingUpdate(syncHeight: wallet.currentKnownChainHeight,
-            nodeHeight: wallet.currentKnownChainHeight);
+        wallet.onSyncingUpdate(
+          syncHeight: wallet.currentKnownChainHeight,
+          nodeHeight: wallet.currentKnownChainHeight,
+        );
 
         if (newWallet == null) {
-          throw Exception("newWallet must be provided when importing a paper wallet with txids");
+          throw Exception(
+            "newWallet must be provided when importing a paper wallet with txids",
+          );
         }
 
         // Send the balance to the new wallet
-        final txData = await wallet.prepareSend(txData: TxData(
-          recipients: [
-            (address: (await newWallet.getCurrentReceivingAddress())!.value, amount: (await wallet.totalBalance), isChange: false)
-          ],
-          feeRateType: FeeRateType.average,
-        ));
+        final txData = await wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              (
+                address: (await newWallet.getCurrentReceivingAddress())!.value,
+                amount: (await wallet.totalBalance),
+                isChange: false,
+              ),
+            ],
+            feeRateType: FeeRateType.average,
+          ),
+        );
         await wallet.confirmSend(txData: txData);
 
         await wallet.exit();
@@ -274,7 +304,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       // Normal import
       final info = WalletInfo.createNew(
         coin: walletData.coin,
-        name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+        name:
+            "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
         restoreHeight: walletData.height ?? 0,
         otherDataJsonString: walletData.toJson(),
       );
@@ -291,9 +322,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       try {
         await wallet.init();
         await wallet.recover(isRescan: false);
-        await wallet.info.setMnemonicVerified(isar: ref
-            .read(mainDBProvider)
-            .isar);
+        await wallet.info.setMnemonicVerified(
+          isar: ref.read(mainDBProvider).isar,
+        );
         ref.read(pWallets).addWallet(wallet);
         return wallet;
       } catch (e, stackTrace) {
@@ -315,13 +346,15 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       final results = AddressUtils.parseWalletUri(qrResult.rawContent);
 
       if (results != null) {
-        if (results.coin == Monero(CryptoCurrencyNetwork.main) && results.txids != null) {
+        if (results.coin == Monero(CryptoCurrencyNetwork.main) &&
+            results.txids != null) {
           // Mnemonic for the wallet to sweep into is shown and gets confirmed
           // Create the new wallet info
           final newWallet = await Wallet.create(
             walletInfo: WalletInfo.createNew(
               coin: results.coin,
-              name: "${results.coin.prettyName} Gift Wallet ${results.address != null ? '(${results.address!.substring(results.address!.length - 4)})' : ''}",
+              name:
+                  "${results.coin.prettyName} Gift Wallet ${results.address != null ? '(${results.address!.substring(results.address!.length - 4)})' : ''}",
             ),
             mainDB: ref.read(mainDBProvider),
             secureStorageInterface: ref.read(secureStoreProvider),
@@ -334,210 +367,313 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
           await (newWallet as MoneroWallet).init(wordCount: 16);
           final mnemonic = (await newWallet.getMnemonic()).split(" ");
           if (mounted) {
-            final hasWroteDown = await showDialog<bool>(context: context, barrierDismissible: false, builder: (context) {
-              return Dialog(
-                insetPadding: const EdgeInsets.all(16), // This may seem too much, but its needed for the dialog to show the mnemonic table properly
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.background,
-                    borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Monero Gift Wallet Redeem",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.center,
+            final hasWroteDown =
+                await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    return Dialog(
+                      insetPadding: const EdgeInsets.all(
+                        16,
+                      ), // This may seem too much, but its needed for the dialog to show the mnemonic table properly
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Monero Gift Wallet Redeem",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "You are about to redeem the gift into a wallet with the following mnemonic phrase. Please write down this words. You will be asked to verify the mnemonic phrase after you have written it down.",
+                              style:
+                                  isDesktop
+                                      ? STextStyles.desktopH2(context)
+                                      : STextStyles.label(
+                                        context,
+                                      ).copyWith(fontSize: 12),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            MnemonicTable(
+                              words: mnemonic,
+                              isDesktop: isDesktop,
+                            ),
+                            const SizedBox(height: 16),
+                            PrimaryButton(
+                              label: "I have written down the mnemonic",
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "You are about to redeem the gift into a wallet with the following mnemonic phrase. Please write down this words. You will be asked to verify the mnemonic phrase after you have written it down.",
-                        style: isDesktop
-                            ? STextStyles.desktopH2(context)
-                            : STextStyles.label(context).copyWith(fontSize: 12),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      MnemonicTable(words: mnemonic, isDesktop: isDesktop),
-                      const SizedBox(height: 16),
-                      PrimaryButton(
-                        label: "I have written down the mnemonic",
-                        onPressed: () {
-                          Navigator.of(context).pop(true);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }) ?? false;
+                    );
+                  },
+                ) ??
+                false;
             if (hasWroteDown) {
               // Verify if checked
               final chosenIndex = Random().nextInt(mnemonic.length);
               final words = randomize(mnemonic, chosenIndex, 3);
               if (mounted) {
-                final hasVerified = await showDialog<bool>(context: context, builder: (context) {
-                  return Dialog(
-                    insetPadding: const EdgeInsets.all(16), // This may seem too much, but its needed for the dialog to show the mnemonic table properly
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).extension<StackColors>()!.background,
-                        borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "Monero Gift Wallet Redeem",
-                            style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Verify recovery phrase",
-                            textAlign: TextAlign.center,
-                            style:
-                            isDesktop
-                                ? STextStyles.desktopH2(context)
-                                : STextStyles.label(context).copyWith(fontSize: 12),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            isDesktop ? "Select word number" : "Tap word number ",
-                            textAlign: TextAlign.center,
-                            style:
-                            isDesktop
-                                ? STextStyles.desktopSubtitleH1(context)
-                                : STextStyles.pageTitleH1(context),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
+                final hasVerified =
+                    await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return Dialog(
+                          insetPadding: const EdgeInsets.all(
+                            16,
+                          ), // This may seem too much, but its needed for the dialog to show the mnemonic table properly
+                          child: Container(
                             decoration: BoxDecoration(
                               color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.background,
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
                               ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 12,
-                              ),
-                              child: Text(
-                                "${chosenIndex + 1}",
-                                textAlign: TextAlign.center,
-                                style: STextStyles.subtitle600(
-                                  context,
-                                ).copyWith(fontSize: 32, letterSpacing: 0.25),
-                              ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Column(
-                            children: [
-                              for (int i = 0; i < words.item1.length; i++)
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: isDesktop ? 8 : 5,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (isDesktop) ...[
-                                        const SizedBox(width: 10),
-                                      ],
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).extension<StackColors>()!.popupBG,
-                                          borderRadius: BorderRadius.circular(
-                                            Constants.size.circularBorderRadius,
-                                          ),
-                                        ),
-                                        child: MaterialButton(
-                                          splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                          padding: isDesktop
-                                              ? const EdgeInsets.symmetric(
-                                            vertical: 18,
-                                            horizontal: 12,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Monero Gift Wallet Redeem",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "Verify recovery phrase",
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      isDesktop
+                                          ? STextStyles.desktopH2(context)
+                                          : STextStyles.label(
+                                            context,
+                                          ).copyWith(fontSize: 12),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  isDesktop
+                                      ? "Select word number"
+                                      : "Tap word number ",
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      isDesktop
+                                          ? STextStyles.desktopSubtitleH1(
+                                            context,
                                           )
-                                              : const EdgeInsets.all(12),
-                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(Constants.size.circularBorderRadius),
-                                          ),
-                                          onPressed: () {
-                                            final word = words.item1[i];
-                                            final wordIndex = mnemonic.indexOf(word);
-                                            if (wordIndex == chosenIndex) {
-                                              Navigator.of(context).pop(true);
-                                            } else {
-                                              Navigator.of(context).pop(false);
-                                            }
-                                          },
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                words.item1[i],
-                                                textAlign: TextAlign.center,
-                                                style: isDesktop
-                                                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                                    : STextStyles.baseXS(context).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ],
+                                          : STextStyles.pageTitleH1(context),
+                                ),
+                                const SizedBox(height: 16),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textFieldDefaultBG,
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 12,
+                                    ),
+                                    child: Text(
+                                      "${chosenIndex + 1}",
+                                      textAlign: TextAlign.center,
+                                      style: STextStyles.subtitle600(
+                                        context,
+                                      ).copyWith(
+                                        fontSize: 32,
+                                        letterSpacing: 0.25,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  );
-                }) ?? false;
+                                const SizedBox(height: 16),
+                                Column(
+                                  children: [
+                                    for (int i = 0; i < words.item1.length; i++)
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: isDesktop ? 8 : 5,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            if (isDesktop) ...[
+                                              const SizedBox(width: 10),
+                                            ],
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .popupBG,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      Constants
+                                                          .size
+                                                          .circularBorderRadius,
+                                                    ),
+                                              ),
+                                              child: MaterialButton(
+                                                splashColor:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .highlight,
+                                                padding:
+                                                    isDesktop
+                                                        ? const EdgeInsets.symmetric(
+                                                          vertical: 18,
+                                                          horizontal: 12,
+                                                        )
+                                                        : const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                materialTapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        Constants
+                                                            .size
+                                                            .circularBorderRadius,
+                                                      ),
+                                                ),
+                                                onPressed: () {
+                                                  final word = words.item1[i];
+                                                  final wordIndex = mnemonic
+                                                      .indexOf(word);
+                                                  if (wordIndex ==
+                                                      chosenIndex) {
+                                                    Navigator.of(
+                                                      context,
+                                                    ).pop(true);
+                                                  } else {
+                                                    Navigator.of(
+                                                      context,
+                                                    ).pop(false);
+                                                  }
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      words.item1[i],
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style:
+                                                          isDesktop
+                                                              ? STextStyles.desktopTextExtraSmall(
+                                                                context,
+                                                              ).copyWith(
+                                                                color:
+                                                                    Theme.of(
+                                                                          context,
+                                                                        )
+                                                                        .extension<
+                                                                          StackColors
+                                                                        >()!
+                                                                        .textDark,
+                                                              )
+                                                              : STextStyles.baseXS(
+                                                                context,
+                                                              ).copyWith(
+                                                                color:
+                                                                    Theme.of(
+                                                                          context,
+                                                                        )
+                                                                        .extension<
+                                                                          StackColors
+                                                                        >()!
+                                                                        .textDark,
+                                                              ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ) ??
+                    false;
                 if (hasVerified) {
                   if (mounted) {
                     final wallet = await showLoading(
-                      whileFuture: (() async {
-                        await newWallet.info.setMnemonicVerified(isar: ref
-                            .read(mainDBProvider)
-                            .isar);
-                        ref.read(pWallets).addWallet(newWallet);
-                        await newWallet.open();
-                        await newWallet.generateNewReceivingAddress();
-                        return importPaperWallet(results, newWallet: newWallet);
-                      })(),
+                      whileFuture:
+                          (() async {
+                            await newWallet.info.setMnemonicVerified(
+                              isar: ref.read(mainDBProvider).isar,
+                            );
+                            ref.read(pWallets).addWallet(newWallet);
+                            await newWallet.open();
+                            await newWallet.generateNewReceivingAddress();
+                            return importPaperWallet(
+                              results,
+                              newWallet: newWallet,
+                            );
+                          })(),
                       context: context,
                       message: "Importing paper wallet...",
                     );
                     if (wallet == null) {
                       await newWallet.exit();
-                      await ref.read(pWallets).deleteWallet(newWallet.info, ref.read(secureStoreProvider));
+                      await ref
+                          .read(pWallets)
+                          .deleteWallet(
+                            newWallet.info,
+                            ref.read(secureStoreProvider),
+                          );
                       if (mounted) {
                         unawaited(
-                            showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Failed to import gift wallet for ${results.coin.prettyName}. Please try again.",
-                                context: context)
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message:
+                                "Failed to import gift wallet for ${results.coin.prettyName}. Please try again.",
+                            context: context,
+                          ),
                         );
                       }
                       return;
@@ -556,7 +692,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                     unawaited(
                       showFloatingFlushBar(
                         type: FlushBarType.warning,
-                        message: "Failed to verify mnemonic phrase for the new wallet. Please try again.",
+                        message:
+                            "Failed to verify mnemonic phrase for the new wallet. Please try again.",
                         context: context,
                       ),
                     );
@@ -579,7 +716,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                 unawaited(
                   showFloatingFlushBar(
                     type: FlushBarType.warning,
-                    message: "Failed to import paper wallet for ${results.coin.prettyName}. Please try again.",
+                    message:
+                        "Failed to import paper wallet for ${results.coin.prettyName}. Please try again.",
                     context: context,
                   ),
                 );
@@ -588,10 +726,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
             }
             if (mounted) {
               Navigator.pop(context);
-              await Navigator.of(context).pushNamed(
-                WalletView.routeName,
-                arguments: wallet.walletId,
-              );
+              await Navigator.of(
+                context,
+              ).pushNamed(WalletView.routeName, arguments: wallet.walletId);
             }
           }
         }
@@ -827,29 +964,25 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
                     semanticsLabel:
-                    "Paper Wallet Import Button. Imports your paper wallet to Stack Wallet.",
+                        "Paper Wallet Import Button. Imports your paper wallet to Stack Wallet.",
                     key: const Key("restoreWalletImportPaperWalletButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
                       Assets.svg.paperWallet,
                       width: 20,
                       height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                     onPressed: scanPaperWalletQr,
                   ),
