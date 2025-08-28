@@ -1,9 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:bech32/bech32.dart';
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:flutter/foundation.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -229,6 +228,17 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
     return addr.startsWith("q") /*|| addr.startsWith("p")*/;
     // Do not validate "p" (P2SH) addresses.
+  }
+
+  @override
+  AddressType? getAddressType(String address) {
+    final format = bitbox.Address.detectFormat(address);
+
+    return super.getAddressType(
+      format == bitbox.Address.formatCashAddr
+          ? bitbox.Address.toLegacyAddress(address)
+          : address,
+    );
   }
 
   @override

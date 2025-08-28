@@ -151,7 +151,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),
@@ -491,7 +491,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
-          recipients: [(address: _address!, amount: amount, isChange: false)],
+          recipients: [
+            TxRecipient(
+              address: _address!,
+              amount: amount,
+              isChange: false,
+              addressType:
+                  tokenWallet.cryptoCurrency.getAddressType(_address!)!,
+            ),
+          ],
           feeRateType: ref.read(feeRateTypeMobileStateProvider),
           note: noteController.text,
           ethEIP1559Fee: ethFee,

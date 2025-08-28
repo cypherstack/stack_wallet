@@ -21,6 +21,8 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../widgets/coin_ticker_tag.dart';
+import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../sub_widgets/tx_icon.dart';
 import 'transaction_v2_details_view.dart';
@@ -235,9 +237,28 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                           Flexible(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
-                              child: Text(
-                                whatIsIt(coin, currentHeight),
-                                style: STextStyles.itemSubtitle12(context),
+                              child: ConditionalParent(
+                                condition:
+                                    coin is Firo &&
+                                    _transaction.isInstantLock &&
+                                    !_transaction.isConfirmed(
+                                      currentHeight,
+                                      coin.minConfirms,
+                                      coin.minCoinbaseConfirms,
+                                    ),
+                                builder:
+                                    (child) => Row(
+                                      children: [
+                                        child,
+
+                                        const SizedBox(width: 10),
+                                        const CoinTickerTag(ticker: "INSTANT"),
+                                      ],
+                                    ),
+                                child: Text(
+                                  whatIsIt(coin, currentHeight),
+                                  style: STextStyles.itemSubtitle12(context),
+                                ),
                               ),
                             ),
                           ),

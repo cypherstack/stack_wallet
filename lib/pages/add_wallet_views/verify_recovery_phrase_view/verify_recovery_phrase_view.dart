@@ -95,11 +95,6 @@ class _VerifyRecoveryPhraseViewState
     super.initState();
   }
 
-  @override
-  dispose() {
-    super.dispose();
-  }
-
   Future<bool> _verifyMnemonicPassphrase() async {
     final result = await showDialog<String?>(
       context: context,
@@ -391,12 +386,15 @@ class _VerifyRecoveryPhraseViewState
               ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
             );
             if (_coin is Ethereum) {
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  EditWalletTokensView.routeName,
-                  arguments: widget.wallet.walletId,
-                ),
-              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref
+                    .read(pNavKey)
+                    .currentState
+                    ?.pushNamed(
+                      EditWalletTokensView.routeName,
+                      arguments: widget.wallet.walletId,
+                    );
+              });
             }
           }
         }

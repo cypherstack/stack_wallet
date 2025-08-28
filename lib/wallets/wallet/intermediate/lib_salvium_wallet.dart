@@ -9,6 +9,7 @@ import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
 import '../../../models/balance.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
@@ -480,9 +481,10 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     final host =
         node.host.endsWith(".onion") ? node.host : Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
-    proxy = prefs.useTor && !node.forceNoTor
-        ? TorService.sharedInstance.getProxyInfo()
-        : null;
+    proxy =
+        prefs.useTor && !node.forceNoTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null;
 
     _setSyncStatus(ConnectingSyncStatus());
     try {
@@ -956,7 +958,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   bool _torNodeMismatchGuard(NodeModel node) {
     _canPing = true; // Reset.
 
-    final bool mismatch = (prefs.useTor  && node.clearnetEnabled && !node.torEnabled) ||
+    final bool mismatch =
+        (prefs.useTor && node.clearnetEnabled && !node.torEnabled) ||
         (!prefs.useTor && !node.clearnetEnabled && node.torEnabled);
 
     if (mismatch) {
@@ -1255,7 +1258,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           } else {
             final totalInputsValue = txData.utxos!
                 .map((e) => e.value)
-                .fold(BigInt.zero, (p, e) => p + BigInt.from(e));
+                .fold(BigInt.zero, (p, e) => p + e);
             sweep = txData.amount!.raw == totalInputsValue;
           }
 
@@ -1282,22 +1285,23 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           final height = await chainHeight;
           final inputs =
               txData.utxos
-                  ?.map(
+                  ?.whereType<StandardInput>()
+                  .map(
                     (e) => lib_salvium.Output(
-                      address: e.address!,
-                      hash: e.txid,
-                      keyImage: e.keyImage!,
-                      value: BigInt.from(e.value),
-                      isFrozen: e.isBlocked,
+                      address: e.utxo.address!,
+                      hash: e.utxo.txid,
+                      keyImage: e.utxo.keyImage!,
+                      value: e.value,
+                      isFrozen: e.utxo.isBlocked,
                       isUnlocked:
-                          e.blockHeight != null &&
-                          (height - (e.blockHeight ?? 0)) >=
+                          e.utxo.blockHeight != null &&
+                          (height - (e.utxo.blockHeight ?? 0)) >=
                               cryptoCurrency.minConfirms,
-                      height: e.blockHeight ?? 0,
-                      vout: e.vout,
-                      spent: e.used ?? false,
+                      height: e.utxo.blockHeight ?? 0,
+                      vout: e.utxo.vout,
+                      spent: e.utxo.used ?? false,
                       spentHeight: null, // doesn't matter here
-                      coinbase: e.isCoinbase,
+                      coinbase: e.utxo.isCoinbase,
                     ),
                   )
                   .toList();

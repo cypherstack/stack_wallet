@@ -813,7 +813,10 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch blockchain.transaction.get...");
     await checkElectrumAdapter();
-    final dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
+    final dynamic response = await getElectrumAdapter()!.request(
+      'blockchain.transaction.get',
+      [txHash, verbose],
+    );
     Logging.instance.d("Fetching blockchain.transaction.get finished");
 
     if (!verbose) {
@@ -1033,7 +1036,7 @@ class ElectrumXClient {
     }
   }
 
-  /// Returns the txids of the current transactions found in the mempool
+  /// Returns the txids of the current spark transactions found in the mempool
   Future<Set<String>> getMempoolTxids({String? requestID}) async {
     try {
       final start = DateTime.now();
@@ -1086,6 +1089,7 @@ class ElectrumXClient {
             // the space after lTags is required lol
             lTags: List<String>.from(entry.value["lTags "] as List),
             coins: List<String>.from(entry.value["coins"] as List),
+            isLocked: entry.value["isLocked"] as bool,
           ),
         );
       }
@@ -1125,7 +1129,7 @@ class ElectrumXClient {
         "Duration=${DateTime.now().difference(start)}",
       );
 
-      return tags;
+      return tags.reversed.toList();
     } catch (e, s) {
       Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;

@@ -22,7 +22,6 @@ import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
-import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -31,6 +30,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -41,6 +41,7 @@ import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -72,6 +73,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool supportsSpark;
+  late bool supportsMweb;
   late final bool showMultiType;
 
   int _currentIndex = 0;
@@ -91,10 +93,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .overlay
-                    .withOpacity(0.5),
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -109,8 +110,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
         DerivePathType? type;
         if (wallet.isViewOnly && wallet is ExtendedKeysInterface) {
-          final voData = await wallet.getViewOnlyWalletData()
-              as ExtendedKeysViewOnlyWalletData;
+          final voData =
+              await wallet.getViewOnlyWalletData()
+                  as ExtendedKeysViewOnlyWalletData;
           for (final t in wallet.cryptoCurrency.supportedDerivationPathTypes) {
             final testPath = wallet.cryptoCurrency.constructDerivePath(
               derivePathType: t,
@@ -168,10 +170,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .overlay
-                    .withOpacity(0.5),
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -198,18 +199,50 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     }
   }
 
+  Future<Address> _generateNewMwebAddress() async {
+    final wallet = ref.read(pWallets).getWallet(walletId) as MwebInterface;
+
+    final address = await wallet.generateNextMwebAddress();
+    await ref.read(mainDBProvider).isar.writeTxn(() async {
+      await ref.read(mainDBProvider).isar.addresses.put(address);
+    });
+
+    return address;
+  }
+
+  Future<void> generateNewMwebAddress() async {
+    final address = await showLoading<Address>(
+      whileFuture: _generateNewMwebAddress(),
+      context: context,
+      message: "Generating address",
+      rootNavigator: Util.isDesktop,
+    );
+
+    if (mounted && address != null) {
+      setState(() {
+        _addressMap[AddressType.mweb] = address.value;
+      });
+    }
+  }
+
   @override
   void initState() {
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
-    supportsSpark = ref.read(pWallets).getWallet(walletId) is SparkInterface;
+    supportsSpark = wallet is SparkInterface;
+    supportsMweb =
+        wallet is MwebInterface &&
+        !wallet.info.isViewOnly &&
+        wallet.info.isMwebEnabled;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       showMultiType = false;
     } else {
-      showMultiType = supportsSpark ||
+      showMultiType =
+          supportsSpark ||
+          supportsMweb ||
           (wallet is! BCashInterface &&
               wallet is Bip39HDWallet &&
               wallet.supportedAddressTypes.length > 1);
@@ -222,10 +255,14 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         _walletAddressTypes.insert(0, AddressType.spark);
       } else {
         _walletAddressTypes.addAll(
-          (wallet as Bip39HDWallet)
-              .supportedAddressTypes
-              .where((e) => e != wallet.info.mainAddressType),
+          (wallet as Bip39HDWallet).supportedAddressTypes.where(
+            (e) => e != wallet.info.mainAddressType,
+          ),
         );
+
+        if (supportsMweb) {
+          _walletAddressTypes.insert(0, AddressType.mweb);
+        }
       }
     }
 
@@ -233,8 +270,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
     }
 
-    _addressMap[_walletAddressTypes[_currentIndex]] =
-        ref.read(pWalletReceivingAddress(walletId));
+    _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
+      pWalletReceivingAddress(walletId),
+    );
 
     if (showMultiType) {
       for (final type in _walletAddressTypes) {
@@ -246,19 +284,22 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             .walletIdEqualTo(walletId)
             .filter()
             .typeEqualTo(type)
+            .and()
+            .not()
+            .subTypeEqualTo(AddressSubType.change)
             .sortByDerivationIndexDesc()
             .findFirst()
             .asStream()
             .listen((event) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _addressMap[type] =
-                    event?.value ?? _addressMap[type] ?? "[No address yet]";
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _addressMap[type] =
+                        event?.value ?? _addressMap[type] ?? "[No address yet]";
+                  });
+                }
               });
-            }
-          });
-        });
+            });
       }
     }
 
@@ -277,6 +318,57 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    ref.listen(pWalletInfo(walletId), (prev, next) {
+      if (prev?.isMwebEnabled != next.isMwebEnabled) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              supportsMweb = next.isMwebEnabled;
+
+              if (supportsMweb &&
+                  !_walletAddressTypes.contains(AddressType.mweb)) {
+                _walletAddressTypes.insert(0, AddressType.mweb);
+                _addressSubMap[AddressType.mweb] = ref
+                    .read(mainDBProvider)
+                    .isar
+                    .addresses
+                    .where()
+                    .walletIdEqualTo(walletId)
+                    .filter()
+                    .typeEqualTo(AddressType.mweb)
+                    .and()
+                    .not()
+                    .subTypeEqualTo(AddressSubType.change)
+                    .sortByDerivationIndexDesc()
+                    .findFirst()
+                    .asStream()
+                    .listen((event) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {
+                            _addressMap[AddressType.mweb] =
+                                event?.value ??
+                                _addressMap[AddressType.mweb] ??
+                                "[No address yet]";
+                          });
+                        }
+                      });
+                    });
+              } else {
+                _walletAddressTypes.remove(AddressType.mweb);
+                _addressSubMap[AddressType.mweb]?.cancel();
+                _addressSubMap.remove(AddressType.mweb);
+              }
+
+              if (_currentIndex >= _walletAddressTypes.length) {
+                _currentIndex = _walletAddressTypes.length - 1;
+              }
+            });
+          }
+        });
+      }
+    });
+
     final String address;
     if (showMultiType) {
       address = _addressMap[_walletAddressTypes[_currentIndex]]!;
@@ -284,8 +376,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       address = ref.watch(pWalletReceivingAddress(walletId));
     }
 
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(walletId)),
+    );
 
     final bool canGen;
     if (wallet is ViewOnlyOptionInterface &&
@@ -293,7 +386,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
       canGen = false;
     } else {
-      canGen = (wallet is MultiAddressInterface || supportsSpark);
+      canGen =
+          (wallet is MultiAddressInterface || supportsSpark || supportsMweb);
     }
 
     return Column(
@@ -301,91 +395,90 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       children: [
         ConditionalParent(
           condition: showMultiType,
-          builder: (child) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              DropdownButtonHideUnderline(
-                child: DropdownButton2<int>(
-                  value: _currentIndex,
-                  items: [
-                    for (int i = 0; i < _walletAddressTypes.length; i++)
-                      DropdownMenuItem(
-                        value: i,
-                        child: Text(
-                          supportsSpark &&
-                                  _walletAddressTypes[i] == AddressType.p2pkh
-                              ? "Transparent address"
-                              : "${_walletAddressTypes[i].readableName} address",
-                          style: STextStyles.w500_14(context),
+          builder:
+              (child) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton2<int>(
+                      value: _currentIndex,
+                      items: [
+                        for (int i = 0; i < _walletAddressTypes.length; i++)
+                          DropdownMenuItem(
+                            value: i,
+                            child: Text(
+                              supportsSpark &&
+                                      _walletAddressTypes[i] ==
+                                          AddressType.p2pkh
+                                  ? "Transparent address"
+                                  : "${_walletAddressTypes[i].readableName} address",
+                              style: STextStyles.w500_14(context),
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null && value != _currentIndex) {
+                          setState(() {
+                            _currentIndex = value;
+                          });
+                        }
+                      },
+                      isExpanded: true,
+                      iconStyleData: IconStyleData(
+                        icon: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: SvgPicture.asset(
+                            Assets.svg.chevronDown,
+                            width: 12,
+                            height: 6,
+                            color:
+                                Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveSearchIconRight,
+                          ),
                         ),
                       ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null && value != _currentIndex) {
-                      setState(() {
-                        _currentIndex = value;
-                      });
-                    }
-                  },
-                  isExpanded: true,
-                  iconStyleData: IconStyleData(
-                    icon: Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 12,
-                        height: 6,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveSearchIconRight,
+                      buttonStyleData: ButtonStyleData(
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                      ),
+                      dropdownStyleData: DropdownStyleData(
+                        offset: const Offset(0, -10),
+                        elevation: 0,
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                      ),
+                      menuItemStyleData: const MenuItemStyleData(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                       ),
                     ),
                   ),
-                  buttonStyleData: ButtonStyleData(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                  ),
-                  dropdownStyleData: DropdownStyleData(
-                    offset: const Offset(0, -10),
-                    elevation: 0,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                  ),
-                  menuItemStyleData: const MenuItemStyleData(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
+                  const SizedBox(height: 12),
+                  child,
+                ],
               ),
-              const SizedBox(
-                height: 12,
-              ),
-              child,
-            ],
-          ),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               onTap: () {
-                clipboard.setData(
-                  ClipboardData(
-                    text: address,
-                  ),
-                );
+                clipboard.setData(ClipboardData(text: address));
                 showFloatingFlushBar(
                   type: FlushBarType.info,
                   message: "Copied to clipboard",
@@ -396,9 +489,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .backgroundAppBar,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar,
                     width: 1,
                   ),
                   borderRadius: BorderRadius.circular(
@@ -411,11 +505,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                       Row(
                         children: [
                           Text(
-                            "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(
-                                pCurrentTokenWallet.select(
-                                  (value) => value!.tokenContract.symbol,
-                                ),
-                              )} address",
+                            "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract.symbol))} address",
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
@@ -425,24 +515,18 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                 Assets.svg.copy,
                                 width: 15,
                                 height: 15,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .infoItemIcons,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.infoItemIcons,
                               ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              Text(
-                                "Copy",
-                                style: STextStyles.link2(context),
-                              ),
+                              const SizedBox(width: 4),
+                              Text("Copy", style: STextStyles.link2(context)),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Expanded(
@@ -451,9 +535,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
                               ),
                             ),
                           ),
@@ -467,85 +552,78 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           ),
         ),
 
-        if (canGen)
-          const SizedBox(
-            height: 20,
-          ),
+        if (canGen) const SizedBox(height: 20),
 
         if (canGen)
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
-            onPressed: supportsSpark &&
-                    _walletAddressTypes[_currentIndex] == AddressType.spark
-                ? generateNewSparkAddress
-                : generateNewAddress,
+            onPressed:
+                supportsMweb &&
+                        _walletAddressTypes[_currentIndex] == AddressType.mweb
+                    ? generateNewMwebAddress
+                    : supportsSpark &&
+                        _walletAddressTypes[_currentIndex] == AddressType.spark
+                    ? generateNewSparkAddress
+                    : generateNewAddress,
             label: "Generate new address",
           ),
-        const SizedBox(
-          height: 32,
-        ),
+        const SizedBox(height: 32),
         Center(
           child: QR(
-            data: AddressUtils.buildUriString(
-              coin.uriScheme,
-              address,
-              {},
-            ),
+            data: AddressUtils.buildUriString(coin.uriScheme, address, {}),
             size: 200,
           ),
         ),
-        const SizedBox(
-          height: 32,
-        ),
+        const SizedBox(height: 32),
         // TODO: create transparent button class to account for hover
         GestureDetector(
           onTap: () async {
             if (Util.isDesktop) {
               await showDialog<void>(
                 context: context,
-                builder: (context) => DesktopDialog(
-                  maxHeight: double.infinity,
-                  maxWidth: 580,
-                  child: Column(
-                    children: [
-                      Row(
+                builder:
+                    (context) => DesktopDialog(
+                      maxHeight: double.infinity,
+                      maxWidth: 580,
+                      child: Column(
                         children: [
-                          const AppBarBackButton(
-                            size: 40,
-                            iconSize: 24,
+                          Row(
+                            children: [
+                              const AppBarBackButton(size: 40, iconSize: 24),
+                              Text(
+                                "Generate QR code",
+                                style: STextStyles.desktopH3(context),
+                              ),
+                            ],
                           ),
-                          Text(
-                            "Generate QR code",
-                            style: STextStyles.desktopH3(context),
+                          IntrinsicHeight(
+                            child: Navigator(
+                              onGenerateRoute: RouteGenerator.generateRoute,
+                              onGenerateInitialRoutes:
+                                  (_, __) => [
+                                    RouteGenerator.generateRoute(
+                                      RouteSettings(
+                                        name: GenerateUriQrCodeView.routeName,
+                                        arguments: Tuple2(coin, address),
+                                      ),
+                                    ),
+                                  ],
+                            ),
                           ),
                         ],
                       ),
-                      IntrinsicHeight(
-                        child: Navigator(
-                          onGenerateRoute: RouteGenerator.generateRoute,
-                          onGenerateInitialRoutes: (_, __) => [
-                            RouteGenerator.generateRoute(
-                              RouteSettings(
-                                name: GenerateUriQrCodeView.routeName,
-                                arguments: Tuple2(coin, address),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
               );
             } else {
               unawaited(
                 Navigator.of(context).push(
                   RouteGenerator.getRoute(
                     shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                    builder: (_) => GenerateUriQrCodeView(
-                      coin: coin,
-                      receivingAddress: address,
-                    ),
+                    builder:
+                        (_) => GenerateUriQrCodeView(
+                          coin: coin,
+                          receivingAddress: address,
+                        ),
                     settings: const RouteSettings(
                       name: GenerateUriQrCodeView.routeName,
                     ),
@@ -564,21 +642,21 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   Assets.svg.qrcode,
                   width: 14,
                   height: 16,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorBlue,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorBlue,
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
+                const SizedBox(width: 8),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Text(
                     "Create new QR code",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorBlue,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorBlue,
                     ),
                   ),
                 ),

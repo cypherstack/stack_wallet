@@ -89,7 +89,7 @@ class Banano extends NanoCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://www.bananolooker.com/block/$txid");
+        return Uri.parse("https://creeper.banano.cc/hash/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
@@ -102,4 +102,12 @@ class Banano extends NanoCurrency {
       throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.banano;
+    }
+    return null;
+  }
 }

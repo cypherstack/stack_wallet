@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -247,4 +248,21 @@ class BitcoinFrost extends FrostCurrency {
   // @override
   BigInt get defaultFeeRate => BigInt.from(1000);
   // https://github.com/bitcoin/bitcoin/blob/feab35189bc00bc4cf15e9dcb5cf6b34ff3a1e91/test/functional/mempool_limit.py#L259
+
+  @override
+  AddressType? getAddressType(String address) {
+    try {
+      final clAddress = cl.Address.fromString(address, networkParams);
+
+      return switch (clAddress) {
+        cl.P2TRAddress() => AddressType.p2tr,
+        cl.P2PKHAddress() => AddressType.p2pkh,
+        cl.P2WSHAddress() => AddressType.p2sh,
+        cl.P2WPKHAddress() => AddressType.p2wpkh,
+        _ => null,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
 }

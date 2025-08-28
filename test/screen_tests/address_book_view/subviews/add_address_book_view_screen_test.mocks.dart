@@ -3,14 +3,14 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
+import 'dart:async' as _i4;
 import 'dart:ui' as _i7;
 
-import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
+import 'package:flutter/material.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i3;
 import 'package:stackwallet/services/address_book_service.dart' as _i6;
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i4;
+import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -49,29 +49,28 @@ class _FakeContactEntry_1 extends _i1.SmartFake implements _i3.ContactEntry {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockBarcodeScannerWrapper extends _i1.Mock
-    implements _i4.BarcodeScannerWrapper {
+    implements _i2.BarcodeScannerWrapper {
   MockBarcodeScannerWrapper() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.ScanResult> scan(
-          {_i2.ScanOptions? options = const _i2.ScanOptions()}) =>
+  _i4.Future<_i2.ScanResult> scan({required _i5.BuildContext? context}) =>
       (super.noSuchMethod(
         Invocation.method(
           #scan,
           [],
-          {#options: options},
+          {#context: context},
         ),
-        returnValue: _i5.Future<_i2.ScanResult>.value(_FakeScanResult_0(
+        returnValue: _i4.Future<_i2.ScanResult>.value(_FakeScanResult_0(
           this,
           Invocation.method(
             #scan,
             [],
-            {#options: options},
+            {#context: context},
           ),
         )),
-      ) as _i5.Future<_i2.ScanResult>);
+      ) as _i4.Future<_i2.ScanResult>);
 }
 
 /// A class which mocks [AddressBookService].
@@ -111,15 +110,15 @@ class MockAddressBookService extends _i1.Mock
       ) as _i3.ContactEntry);
 
   @override
-  _i5.Future<List<_i3.ContactEntry>> search(String? text) =>
+  _i4.Future<List<_i3.ContactEntry>> search(String? text) =>
       (super.noSuchMethod(
         Invocation.method(
           #search,
           [text],
         ),
         returnValue:
-            _i5.Future<List<_i3.ContactEntry>>.value(<_i3.ContactEntry>[]),
-      ) as _i5.Future<List<_i3.ContactEntry>>);
+            _i4.Future<List<_i3.ContactEntry>>.value(<_i3.ContactEntry>[]),
+      ) as _i4.Future<List<_i3.ContactEntry>>);
 
   @override
   bool matches(
@@ -138,33 +137,33 @@ class MockAddressBookService extends _i1.Mock
       ) as bool);
 
   @override
-  _i5.Future<bool> addContact(_i3.ContactEntry? contact) => (super.noSuchMethod(
+  _i4.Future<bool> addContact(_i3.ContactEntry? contact) => (super.noSuchMethod(
         Invocation.method(
           #addContact,
           [contact],
         ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 
   @override
-  _i5.Future<bool> editContact(_i3.ContactEntry? editedContact) =>
+  _i4.Future<bool> editContact(_i3.ContactEntry? editedContact) =>
       (super.noSuchMethod(
         Invocation.method(
           #editContact,
           [editedContact],
         ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 
   @override
-  _i5.Future<void> removeContact(String? id) => (super.noSuchMethod(
+  _i4.Future<void> removeContact(String? id) => (super.noSuchMethod(
         Invocation.method(
           #removeContact,
           [id],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
   void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(

@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:compat/compat.dart' as lib_monero_compat;
@@ -59,6 +60,7 @@ import 'providers/providers.dart';
 import 'route_generator.dart';
 import 'services/exchange/exchange_data_loading_service.dart';
 import 'services/locale_service.dart';
+import 'services/mwebd_service.dart';
 import 'services/node_service.dart';
 import 'services/notifications_api.dart';
 import 'services/notifications_service.dart';
@@ -73,6 +75,7 @@ import 'utilities/logger.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
+import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
@@ -214,6 +217,25 @@ void main(List<String> args) async {
     await CampfireMigration.init();
   }
 
+  if (kDebugMode && !Platform.isIOS) {
+    unawaited(
+      MwebdService.instance
+          .logsStream(CryptoCurrencyNetwork.main)
+          .then(
+            (stream) =>
+                stream.listen((line) => print("[MWEBD: MAINNET]: $line")),
+          ),
+    );
+    unawaited(
+      MwebdService.instance
+          .logsStream(CryptoCurrencyNetwork.test)
+          .then(
+            (stream) =>
+                stream.listen((line) => print("[MWEBD: TESTNET]: $line")),
+          ),
+    );
+  }
+
   // TODO:
   // This should be moved to happen during the loading animation instead of
   // showing a blank screen for 4-10 seconds.
@@ -322,7 +344,6 @@ class MaterialAppWithTheme extends ConsumerStatefulWidget {
 class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     with WidgetsBindingObserver {
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   // late final Wallets _wallets;
   // late final Prefs _prefs;
@@ -600,6 +621,21 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
   }
 
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    debugPrint("didRequestAppExit called");
+    if (Platform.isMacOS) {
+      // On macOS, mwebd fails to shut down, hanging the app on close.
+      //
+      // Exiting is a hack fix for this issue.
+
+      // await ref.read(pMwebService).shutdown();
+      // Something like the above would probably be prudent to make.
+      exit(0);
+    }
+    return AppExitResponse.exit;
+  }
+
   /// should only be called on android currently
   Future<void> getOpenFile() async {
     // update provider with new file content state
@@ -622,10 +658,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   Future<void> goToRestoreSWB(String encrypted) async {
     if (!ref.read(prefsChangeNotifierProvider).hasPin) {
       await Navigator.of(
-        navigatorKey.currentContext!,
+        ref.read(pNavKey).currentContext!,
       ).pushNamed(CreatePinView.routeName, arguments: true).then((value) {
         if (value is! bool || value == false) {
-          Navigator.of(navigatorKey.currentContext!).pushNamed(
+          Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
             RestoreFromEncryptedStringView.routeName,
             arguments: encrypted,
           );
@@ -634,7 +670,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     } else {
       unawaited(
         Navigator.push(
-          navigatorKey.currentContext!,
+          ref.read(pNavKey).currentContext!,
           RouteGenerator.getRoute(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder:
@@ -674,7 +710,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     return MaterialApp(
       key: GlobalKey(),
-      navigatorKey: navigatorKey,
+      navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(

@@ -329,6 +329,10 @@ class TransactionV2 {
   bool isCoinbase() =>
       type == TransactionType.incoming && inputs.any((e) => e.coinbase != null);
 
+  @ignore
+  bool get isInstantLock =>
+      _getFromOtherData(key: TxV2OdKeys.isInstantLock) == true;
+
   @override
   String toString() {
     return 'TransactionV2(\n'
@@ -362,4 +366,5 @@ abstract final class TxV2OdKeys {
   static const moneroAmount = "moneroAmount";
   static const moneroAccountIndex = "moneroAccountIndex";
   static const isMoneroTransaction = "isMoneroTransaction";
+  static const isInstantLock = "isInstantLock";
 }

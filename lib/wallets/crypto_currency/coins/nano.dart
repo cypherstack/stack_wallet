@@ -95,11 +95,19 @@ class Nano extends NanoCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://www.nanolooker.com/block/$txid");
+        return Uri.parse("https://nanexplorer.com/nano/blocks/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
         );
     }
+  }
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.nano;
+    }
+    return null;
   }
 }

@@ -631,8 +631,7 @@ class EpiccashWallet extends Bip39Wallet {
         throw Exception("Epic cash prepare send requires a single recipient!");
       }
 
-      ({String address, Amount amount, bool isChange}) recipient =
-          txData.recipients!.first;
+      TxRecipient recipient = txData.recipients!.first;
 
       final int realFee = await _nativeFee(recipient.amount.raw.toInt());
       final feeAmount = Amount(
@@ -647,11 +646,7 @@ class EpiccashWallet extends Bip39Wallet {
       }
 
       if (info.cachedBalance.spendable == recipient.amount) {
-        recipient = (
-          address: recipient.address,
-          amount: recipient.amount - feeAmount,
-          isChange: recipient.isChange,
-        );
+        recipient = recipient.copyWith(amount: recipient.amount - feeAmount);
       }
 
       return txData.copyWith(recipients: [recipient], fee: feeAmount);

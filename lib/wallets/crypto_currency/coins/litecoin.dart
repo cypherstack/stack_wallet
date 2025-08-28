@@ -91,6 +91,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "ltc",
+          mwebBech32Hrp: "ltcmweb",
           messagePrefix: '\x19Litecoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -104,6 +105,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tltc",
+          mwebBech32Hrp: "tmweb",
           messagePrefix: "\x19Litecoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently

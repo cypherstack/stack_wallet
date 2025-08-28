@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
@@ -127,6 +128,25 @@ class _ConfirmSparkNameTransactionViewState
               TransactionNote(walletId: walletId, txid: txid, value: note),
             );
       }
+
+      final address = txData.sparkNameInfo?.sparkAddress;
+      final currentReceiving = await wallet.getCurrentReceivingSparkAddress();
+      if (currentReceiving?.value == address?.value) {
+        final address = await wallet.generateNextSparkAddress();
+        await ref.read(mainDBProvider).isar.writeTxn(() async {
+          await ref.read(mainDBProvider).isar.addresses.put(address);
+        });
+      }
+
+      final db = ref.read(pDrift(walletId));
+      await db.upsertSparkNames([
+        (
+          name: txData.sparkNameInfo!.name,
+          address: txData.sparkNameInfo!.sparkAddress.value,
+          validUntil: -99999,
+          additionalInfo: txData.sparkNameInfo!.additionalInfo,
+        ),
+      ]);
 
       unawaited(wallet.refresh());
 

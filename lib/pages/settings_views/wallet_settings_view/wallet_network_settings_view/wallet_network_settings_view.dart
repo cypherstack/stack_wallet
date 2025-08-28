@@ -33,13 +33,16 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../../../wallets/crypto_currency/coins/litecoin.dart';
 import '../../../../wallets/crypto_currency/coins/monero.dart';
+import '../../../../wallets/crypto_currency/coins/salvium.dart';
 import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../wallets/wallet/impl/salvium_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -269,7 +272,13 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.read(pWalletCoin(widget.walletId));
 
-    if (coin is Monero || coin is Wownero || coin is Epiccash) {
+    // TODO: handle isMwebEnabled toggled
+    if (coin is Monero ||
+        coin is Wownero ||
+        coin is Epiccash ||
+        coin is Salvium ||
+        (coin is Litecoin &&
+            ref.read(pWalletInfo(widget.walletId)).isMwebEnabled)) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -329,16 +338,23 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    if (coin is Monero) {
+    if (coin is Salvium) {
       final double highestPercent =
-          (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
+          (ref.read(pWallets).getWallet(widget.walletId) as SalviumWallet)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
-    } else if (coin is Wownero) {
+    } else if (coin is Monero || coin is Wownero) {
       final double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
+          (ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet)
+              .highestPercentCached;
+      if (_percent < highestPercent) {
+        _percent = highestPercent.clamp(0.0, 1.0);
+      }
+    } else if (coin is Litecoin) {
+      final double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as MwebInterface)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
@@ -637,7 +653,14 @@ class _WalletNetworkSettingsViewState
                                 ),
                                 if (coin is Monero ||
                                     coin is Wownero ||
-                                    coin is Epiccash)
+                                    coin is Epiccash ||
+                                    coin is Salvium ||
+                                    (coin is Litecoin &&
+                                        ref.watch(
+                                          pWalletInfo(
+                                            widget.walletId,
+                                          ).select((s) => s.isMwebEnabled),
+                                        )))
                                   Text(
                                     " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
                                     style: STextStyles.syncPercent(

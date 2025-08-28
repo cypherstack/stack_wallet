@@ -69,7 +69,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   void _onRefundQrTapped() async {
     try {
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
@@ -122,7 +122,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   void _onToQrTapped() async {
     try {
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,

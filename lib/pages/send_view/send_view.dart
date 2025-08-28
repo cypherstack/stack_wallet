@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
@@ -52,6 +53,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/animated_text.dart';
@@ -73,7 +75,7 @@ import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
-import 'sub_widgets/firo_balance_selection_sheet.dart';
+import 'sub_widgets/dual_balance_selection_sheet.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
@@ -141,7 +143,7 @@ class _SendViewState extends ConsumerState<SendView> {
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
-  Set<UTXO> selectedUTXOs = {};
+  Set<StandardInput> selectedUTXOs = {};
 
   void _applyUri(PaymentUriData paymentData) {
     try {
@@ -268,7 +270,7 @@ class _SendViewState extends ConsumerState<SendView> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),
@@ -479,7 +481,8 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(pIsExchangeAddress.state).state = (coin as Firo)
             .isExchangeAddress(address ?? "");
 
-        if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
+        if (ref.read(publicPrivateBalanceStateProvider) ==
+                BalanceType.private &&
             ref.read(pIsExchangeAddress) &&
             !_isFiroExWarningDisplayed) {
           _isFiroExWarningDisplayed = true;
@@ -508,12 +511,12 @@ class _SendViewState extends ConsumerState<SendView> {
 
     if (isFiro) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           if (cachedFiroPublicFees[amount] != null) {
             return cachedFiroPublicFees[amount]!;
           }
           break;
-        case FiroType.spark:
+        case BalanceType.private:
           if (cachedFiroSparkFees[amount] != null) {
             return cachedFiroSparkFees[amount]!;
           }
@@ -572,14 +575,14 @@ class _SendViewState extends ConsumerState<SendView> {
       final firoWallet = wallet as FiroWallet;
 
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           fee = await firoWallet.estimateFeeFor(amount, feeRate);
           cachedFiroPublicFees[amount] = ref
               .read(pAmountFormatter(coin))
               .format(fee, withUnitName: true, indicatePrecisionLoss: false);
           return cachedFiroPublicFees[amount]!;
 
-        case FiroType.spark:
+        case BalanceType.private:
           fee = await firoWallet.estimateFeeForSpark(amount);
           cachedFiroSparkFees[amount] = ref
               .read(pAmountFormatter(coin))
@@ -604,13 +607,16 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
-    if (isFiro) {
+    if (isFiro || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
-        case FiroType.spark:
-          availableBalance = wallet.info.cachedBalanceTertiary.spendable;
+        case BalanceType.private:
+          availableBalance =
+              isFiro
+                  ? wallet.info.cachedBalanceTertiary.spendable
+                  : wallet.info.cachedBalanceSecondary.spendable;
           break;
       }
     } else {
@@ -691,7 +697,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 isSpark:
                     wallet is FiroWallet &&
                     ref.read(publicPrivateBalanceStateProvider.state).state ==
-                        FiroType.spark,
+                        BalanceType.private,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -713,10 +719,11 @@ class _SendViewState extends ConsumerState<SendView> {
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
             recipients: [
-              (
+              TxRecipient(
                 address: widget.accountLite!.code,
                 amount: amount,
                 isChange: false,
+                addressType: AddressType.unknown,
               ),
             ],
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
@@ -731,7 +738,7 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-          case FiroType.public:
+          case BalanceType.public:
             if (ref.read(pValidSparkSendToAddress)) {
               txDataFuture = wallet.prepareSparkMintTransaction(
                 txData: TxData(
@@ -755,7 +762,13 @@ class _SendViewState extends ConsumerState<SendView> {
               txDataFuture = wallet.prepareSend(
                 txData: TxData(
                   recipients: [
-                    (address: _address!, amount: amount, isChange: false),
+                    TxRecipient(
+                      address: _address!,
+                      amount: amount,
+                      isChange: false,
+                      addressType:
+                          wallet.cryptoCurrency.getAddressType(_address!)!,
+                    ),
                   ],
                   feeRateType: ref.read(feeRateTypeMobileStateProvider),
                   satsPerVByte: isCustomFee.value ? customFeeRate : null,
@@ -768,14 +781,22 @@ class _SendViewState extends ConsumerState<SendView> {
             }
             break;
 
-          case FiroType.spark:
+          case BalanceType.private:
             txDataFuture = wallet.prepareSendSpark(
               txData: TxData(
                 recipients:
                     ref.read(pValidSparkSendToAddress)
                         ? null
                         : [
-                          (address: _address!, amount: amount, isChange: false),
+                          TxRecipient(
+                            address: _address!,
+                            amount: amount,
+                            isChange: false,
+                            addressType:
+                                wallet.cryptoCurrency.getAddressType(
+                                  _address!,
+                                )!,
+                          ),
                         ],
                 sparkRecipients:
                     ref.read(pValidSparkSendToAddress)
@@ -792,11 +813,43 @@ class _SendViewState extends ConsumerState<SendView> {
             );
             break;
         }
+      } else if (wallet is MwebInterface &&
+          ref.read(pWalletInfo(walletId)).isMwebEnabled &&
+          ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
+        txDataFuture = wallet.prepareSendMweb(
+          txData: TxData(
+            recipients: [
+              TxRecipient(
+                address: _address!,
+                amount: amount,
+                isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              ),
+            ],
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+            satsPerVByte: isCustomFee.value ? customFeeRate : null,
+
+            // these will need to be mweb utxos
+            // utxos:
+            //     (wallet is CoinControlInterface &&
+            //             coinControlEnabled &&
+            //             ref.read(pDesktopUseUTXOs).isNotEmpty)
+            //         ? ref.read(pDesktopUseUTXOs)
+            //         : null,
+          ),
+        );
       } else {
         final memo = coin is Stellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: _address!, amount: amount, isChange: false)],
+            recipients: [
+              TxRecipient(
+                address: _address!,
+                amount: amount,
+                isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              ),
+            ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
@@ -905,7 +958,10 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
-  String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
+  String _getSendAllTitle(
+    bool showCoinControl,
+    Set<StandardInput> selectedUTXOs,
+  ) {
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
       return "Send all selected";
     }
@@ -913,8 +969,8 @@ class _SendViewState extends ConsumerState<SendView> {
     return "Send all ${coin.ticker}";
   }
 
-  Amount _selectedUtxosAmount(Set<UTXO> utxos) => Amount(
-    rawValue: utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
+  Amount _selectedUtxosAmount(Set<StandardInput> utxos) => Amount(
+    rawValue: utxos.map((e) => e.value).reduce((v, e) => v += e),
     fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
   );
 
@@ -923,14 +979,17 @@ class _SendViewState extends ConsumerState<SendView> {
 
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
       amount = _selectedUtxosAmount(selectedUTXOs);
-    } else if (isFiro) {
+    } else if (isFiro || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
 
-        case FiroType.spark:
-          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
+        case BalanceType.private:
+          amount =
+              isFiro
+                  ? ref.read(pWalletBalanceTertiary(walletId)).spendable
+                  : ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
       }
     } else {
@@ -1028,7 +1087,10 @@ class _SendViewState extends ConsumerState<SendView> {
       ref.refresh(pIsExchangeAddress);
     });
     isCustomFee.addListener(() {
-      if (!isCustomFee.value) ethFee = null;
+      if (!isCustomFee.value) {
+        customFeeRate = 1;
+        ethFee = null;
+      }
     });
     hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
@@ -1146,54 +1208,56 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final wallet = ref.watch(pWallets).getWallet(walletId);
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
+    final balType = ref.watch(publicPrivateBalanceStateProvider);
+
+    final isMwebEnabled = ref.watch(
+      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+    );
+    final showPrivateBalance = coin is Firo || isMwebEnabled;
+
     final showCoinControl =
-        wallet is CoinControlInterface &&
         ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
         ) &&
-        (coin is Firo
-            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
-            : true);
+        ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
+        (showPrivateBalance ? balType == BalanceType.public : true);
 
-    if (isFiro) {
-      final isExchangeAddress = ref.watch(pIsExchangeAddress);
+    final isExchangeAddress = ref.watch(pIsExchangeAddress);
 
-      ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-        selectedUTXOs = {};
+    ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+      selectedUTXOs = {};
 
-        if (ref.read(pSendAmount) == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-              0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
-            );
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture = calculateFees(ref.read(pSendAmount)!);
-          });
-        }
-
-        if (previous != next &&
-            next == FiroType.spark &&
-            isExchangeAddress &&
-            !_isFiroExWarningDisplayed) {
-          _isFiroExWarningDisplayed = true;
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => showFiroExchangeAddressWarning(
-              context,
-              () => _isFiroExWarningDisplayed = false,
-            ),
+      if (ref.read(pSendAmount) == null) {
+        setState(() {
+          _calculateFeesFuture = calculateFees(
+            0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
           );
-        }
-      });
-    }
+        });
+      } else {
+        setState(() {
+          _calculateFeesFuture = calculateFees(ref.read(pSendAmount)!);
+        });
+      }
+
+      if (previous != next &&
+          next == BalanceType.private &&
+          isExchangeAddress &&
+          !_isFiroExWarningDisplayed) {
+        _isFiroExWarningDisplayed = true;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          ),
+        );
+      }
+    });
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin is Epiccash) {
@@ -1294,9 +1358,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         // const SizedBox(
                                         //   height: 2,
                                         // ),
-                                        if (isFiro)
+                                        if (isFiro || isMwebEnabled)
                                           Text(
-                                            "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
+                                            "${balType.name.capitalize()} balance",
                                             style: STextStyles.label(
                                               context,
                                             ).copyWith(fontSize: 10),
@@ -1314,14 +1378,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                     Builder(
                                       builder: (context) {
                                         final Amount amount;
-                                        if (isFiro) {
-                                          switch (ref
-                                              .watch(
-                                                publicPrivateBalanceStateProvider
-                                                    .state,
-                                              )
-                                              .state) {
-                                            case FiroType.public:
+                                        if (showPrivateBalance) {
+                                          switch (balType) {
+                                            case BalanceType.public:
                                               amount =
                                                   ref
                                                       .read(
@@ -1332,13 +1391,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       .spendable;
                                               break;
 
-                                            case FiroType.spark:
+                                            case BalanceType.private:
                                               amount =
                                                   ref
                                                       .read(
-                                                        pWalletBalanceTertiary(
-                                                          walletId,
-                                                        ),
+                                                        isMwebEnabled
+                                                            ? pWalletBalanceSecondary(
+                                                              walletId,
+                                                            )
+                                                            : pWalletBalanceTertiary(
+                                                              walletId,
+                                                            ),
                                                       )
                                                       .spendable;
                                               break;
@@ -1719,15 +1782,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                 }
                               },
                             ),
-                            if (isFiro) const SizedBox(height: 12),
-                            if (isFiro)
+                            if (isFiro || isMwebEnabled)
+                              const SizedBox(height: 12),
+                            if (isFiro || isMwebEnabled)
                               Text(
                                 "Send from",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                            if (isFiro) const SizedBox(height: 8),
-                            if (isFiro)
+                            if (isFiro || isMwebEnabled)
+                              const SizedBox(height: 8),
+                            if (isFiro || isMwebEnabled)
                               Stack(
                                 children: [
                                   TextField(
@@ -1761,7 +1826,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             ),
                                           ),
                                           builder:
-                                              (_) => FiroBalanceSelectionSheet(
+                                              (_) => DualBalanceSelectionSheet(
                                                 walletId: walletId,
                                               ),
                                         );
@@ -1789,7 +1854,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             .state,
                                                       )
                                                       .state) {
-                                                    case FiroType.public:
+                                                    case BalanceType.public:
                                                       amount =
                                                           ref
                                                               .watch(
@@ -1799,13 +1864,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               )
                                                               .spendable;
                                                       break;
-                                                    case FiroType.spark:
+                                                    case BalanceType.private:
                                                       amount =
                                                           ref
                                                               .watch(
-                                                                pWalletBalanceTertiary(
-                                                                  walletId,
-                                                                ),
+                                                                isFiro
+                                                                    ? pWalletBalanceTertiary(
+                                                                      walletId,
+                                                                    )
+                                                                    : pWalletBalanceSecondary(
+                                                                      walletId,
+                                                                    ),
                                                               )
                                                               .spendable;
                                                       break;
@@ -2064,13 +2133,20 @@ class _SendViewState extends ConsumerState<SendView> {
                                               walletId,
                                               CoinControlViewType.use,
                                               amount,
-                                              selectedUTXOs,
+                                              selectedUTXOs
+                                                  .map((e) => e.utxo)
+                                                  .toSet(),
                                             ),
                                           );
 
                                           if (result is Set<UTXO>) {
                                             setState(() {
-                                              selectedUTXOs = result;
+                                              selectedUTXOs =
+                                                  result
+                                                      .map(
+                                                        (e) => StandardInput(e),
+                                                      )
+                                                      .toSet();
                                             });
                                           }
                                         }
@@ -2229,7 +2305,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                 .state,
                                                           )
                                                           .state !=
-                                                      FiroType.public
+                                                      BalanceType.public
                                               ? null
                                               : _onFeeSelectPressed,
                                       child:
@@ -2240,7 +2316,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                 .state,
                                                           )
                                                           .state !=
-                                                      FiroType.public)
+                                                      BalanceType.public)
                                               ? Row(
                                                 children: [
                                                   FutureBuilder(

@@ -3,12 +3,12 @@ import 'dart:typed_data';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:isar/isar.dart';
 
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../../models/signing_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/impl/uint8_list.dart';
@@ -352,8 +352,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> buildTransaction({
     required TxData txData,
-    required List<SigningData> utxoSigningData,
+    required List<BaseInput> inputsWithKeys,
   }) async {
+    final insAndKeys = inputsWithKeys.cast<StandardInput>();
+
     Logging.instance.d("Starting Particl buildTransaction ----------");
 
     // TODO: use coinlib (For this we need coinlib to support particl)
@@ -371,10 +373,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     );
 
     final List<({Uint8List? output, Uint8List? redeem})> extraData = [];
-    for (int i = 0; i < utxoSigningData.length; i++) {
-      final sd = utxoSigningData[i];
+    for (int i = 0; i < insAndKeys.length; i++) {
+      final sd = insAndKeys[i];
 
-      final pubKey = sd.keyPair!.publicKey.data;
+      final pubKey = sd.key!.publicKey.data;
       final bitcoindart.PaymentData? data;
       Uint8List? redeem, output;
 
@@ -448,11 +450,11 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final List<OutputV2> tempOutputs = [];
 
     // Add inputs.
-    for (var i = 0; i < utxoSigningData.length; i++) {
-      final txid = utxoSigningData[i].utxo.txid;
+    for (var i = 0; i < insAndKeys.length; i++) {
+      final txid = insAndKeys[i].utxo.txid;
       txb.addInput(
         txid,
-        utxoSigningData[i].utxo.vout,
+        insAndKeys[i].utxo.vout,
         null,
         extraData[i].output!,
         cryptoCurrency.networkParams.bech32Hrp,
@@ -464,14 +466,14 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: utxoSigningData[i].utxo.txid,
-            vout: utxoSigningData[i].utxo.vout,
+            txid: insAndKeys[i].utxo.txid,
+            vout: insAndKeys[i].utxo.vout,
           ),
           addresses:
-              utxoSigningData[i].utxo.address == null
+              insAndKeys[i].utxo.address == null
                   ? []
-                  : [utxoSigningData[i].utxo.address!],
-          valueStringSats: utxoSigningData[i].utxo.value.toString(),
+                  : [insAndKeys[i].utxo.address!],
+          valueStringSats: insAndKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
           coinbase: null,
@@ -508,15 +510,15 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
     // Sign.
     try {
-      for (var i = 0; i < utxoSigningData.length; i++) {
+      for (var i = 0; i < insAndKeys.length; i++) {
         txb.sign(
           vin: i,
           keyPair: bitcoindart.ECPair.fromPrivateKey(
-            utxoSigningData[i].keyPair!.privateKey.data,
+            insAndKeys[i].key!.privateKey!.data,
             network: convertedNetwork,
-            compressed: utxoSigningData[i].keyPair!.privateKey.compressed,
+            compressed: insAndKeys[i].key!.privateKey!.compressed,
           ),
-          witnessValue: utxoSigningData[i].utxo.value,
+          witnessValue: insAndKeys[i].utxo.value,
           redeemScript: extraData[i].redeem,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );

@@ -202,6 +202,17 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
         amount: Value(coin: totalBalance - (txData.amount!.raw)),
       );
+
+      final outputAddress = ADAAddress.fromAddress(
+        txData.recipients!.first.address,
+      );
+      if (!(outputAddress is ADABaseAddress ||
+          outputAddress is ADAEnterpriseAddress)) {
+        throw Exception(
+          "Address of type ${outputAddress.runtimeType} currently not supported.",
+        );
+      }
+
       final body = TransactionBody(
         inputs:
             listOfUtxosToBeUsed
@@ -215,7 +226,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         outputs: [
           change,
           TransactionOutput(
-            address: ADABaseAddress(txData.recipients!.first.address),
+            address: outputAddress,
             amount: Value(coin: txData.amount!.raw - exampleFee),
           ),
         ],
@@ -235,13 +246,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       // Check if we are sending all balance, which means no change and only one output for recipient.
       if (totalBalance == txData.amount!.raw) {
         final List<TxRecipient> newRecipients = [
-          (
-            address: txData.recipients!.first.address,
+          txData.recipients!.first.copyWith(
             amount: Amount(
               rawValue: txData.amount!.raw - fee,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            isChange: txData.recipients!.first.isChange,
           ),
         ];
         return txData.copyWith(
@@ -325,11 +334,22 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw),
         ),
       );
+
+      final outputAddress = ADAAddress.fromAddress(
+        txData.recipients!.first.address,
+      );
+      if (!(outputAddress is ADABaseAddress ||
+          outputAddress is ADAEnterpriseAddress)) {
+        throw Exception(
+          "Address of type ${outputAddress.runtimeType} currently not supported.",
+        );
+      }
+
       List<TransactionOutput> outputs = [];
       if (totalBalance == (txData.amount!.raw + txData.fee!.raw)) {
         outputs = [
           TransactionOutput(
-            address: ADABaseAddress(txData.recipients!.first.address),
+            address: outputAddress,
             amount: Value(coin: txData.amount!.raw),
           ),
         ];
@@ -337,7 +357,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         outputs = [
           change,
           TransactionOutput(
-            address: ADABaseAddress(txData.recipients!.first.address),
+            address: outputAddress,
             amount: Value(coin: txData.amount!.raw),
           ),
         ];

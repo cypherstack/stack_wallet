@@ -56,6 +56,7 @@ import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -357,16 +358,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
       );
     } else {
       Future<Currency?> _future;
+      final isar = await ExchangeDataLoadingService.instance.isar;
       try {
         _future =
-            ExchangeDataLoadingService.instance.isar.currencies
+            isar.currencies
                 .where()
                 .tickerEqualToAnyExchangeNameName(coin.ticker)
                 .findFirst();
       } catch (_) {
         _future = ExchangeDataLoadingService.instance.loadAll().then(
           (_) =>
-              ExchangeDataLoadingService.instance.isar.currencies
+              isar.currencies
                   .where()
                   .tickerEqualToAnyExchangeNameName(coin.ticker)
                   .findFirst(),
@@ -432,9 +434,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
             ),
       ),
     );
-    final firoWallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
+    final wallet = ref.read(pWallets).getWallet(walletId);
 
-    final Amount publicBalance = firoWallet.info.cachedBalance.spendable;
+    final Amount publicBalance = wallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {
@@ -444,7 +446,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
-            message: "No funds available to anonymize!",
+            message: "No funds available to privatize!",
             context: context,
           ),
         );
@@ -453,7 +455,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      await firoWallet.anonymizeAllSpark();
+      if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
+        await wallet.anonymizeAllMweb();
+      } else {
+        await (wallet as FiroWallet).anonymizeAllSpark();
+      }
       shouldPop = true;
       if (mounted) {
         Navigator.of(
@@ -462,7 +468,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
+            message: "Privatize transaction submitted",
             context: context,
           ),
         );
@@ -477,7 +483,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
           context: context,
           builder:
               (_) => StackOkDialog(
-                title: "Anonymize all failed",
+                title: "Privatize all failed",
                 message: "Reason: $e",
               ),
         );
@@ -811,8 +817,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if (isSparkWallet) const SizedBox(height: 10),
-                        if (isSparkWallet)
+                        if (isSparkWallet ||
+                            ref.watch(pWalletInfo(walletId)).isMwebEnabled)
+                          const SizedBox(height: 10),
+                        if (isSparkWallet ||
+                            ref.watch(pWalletInfo(walletId)).isMwebEnabled)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
@@ -831,7 +840,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                             (context) => StackDialog(
                                               title: "Attention!",
                                               message:
-                                                  "You're about to anonymize all of your public funds.",
+                                                  "You're about to privatize all of your public funds.",
                                               leftButton: TextButton(
                                                 onPressed: () {
                                                   Navigator.of(context).pop();
@@ -872,7 +881,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       );
                                     },
                                     child: Text(
-                                      "Anonymize funds",
+                                      "Privatize funds",
                                       style: STextStyles.button(
                                         context,
                                       ).copyWith(
@@ -989,267 +998,273 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   ),
                 ),
               ),
-              WalletNavigationBar(
-                items: [
-                  WalletNavigationBarItemData(
-                    label: "Receive",
-                    icon: const ReceiveNavIcon(),
-                    onTap: () {
-                      if (mounted) {
-                        unawaited(
-                          Navigator.of(context).pushNamed(
-                            ReceiveView.routeName,
-                            arguments: walletId,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                  if (ref.watch(pWalletCoin(walletId)) is FrostCurrency)
+              SafeArea(
+                child: WalletNavigationBar(
+                  items: [
                     WalletNavigationBarItemData(
-                      label: "Sign",
-                      icon: const FrostSignNavIcon(),
-                      onTap: () => _onFrostSignPressed(context),
-                    ),
-                  if (!viewOnly)
-                    WalletNavigationBarItemData(
-                      label: "Send",
-                      icon: const SendNavIcon(),
+                      label: "Receive",
+                      icon: const ReceiveNavIcon(),
                       onTap: () {
-                        // not sure what this is supposed to accomplish?
-                        // switch (ref
-                        //     .read(walletBalanceToggleStateProvider.state)
-                        //     .state) {
-                        //   case WalletBalanceToggleState.full:
-                        //     ref
-                        //         .read(publicPrivateBalanceStateProvider.state)
-                        //         .state = "Public";
-                        //     break;
-                        //   case WalletBalanceToggleState.available:
-                        //     ref
-                        //         .read(publicPrivateBalanceStateProvider.state)
-                        //         .state = "Private";
-                        //     break;
-                        // }
-                        Navigator.of(context).pushNamed(
-                          wallet is BitcoinFrostWallet
-                              ? FrostSendView.routeName
-                              : SendView.routeName,
-                          arguments: (walletId: walletId, coin: coin),
-                        );
-                      },
-                    ),
-                  if (!viewOnly &&
-                      Constants.enableExchange &&
-                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
-                      AppConfig.hasFeature(AppFeature.swap) &&
-                      showExchange)
-                    WalletNavigationBarItemData(
-                      label: "Swap",
-                      icon: const ExchangeNavIcon(),
-                      onTap: () => _onExchangePressed(context),
-                    ),
-                  if (Constants.enableExchange &&
-                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
-                      AppConfig.hasFeature(AppFeature.buy) &&
-                      showExchange)
-                    WalletNavigationBarItemData(
-                      label: "Buy",
-                      icon: const BuyNavIcon(),
-                      onTap: () => _onBuyPressed(context),
-                    ),
-                ],
-                moreItems: [
-                  if (ref.watch(
-                    pWallets.select(
-                      (value) =>
-                          value
-                              .getWallet(widget.walletId)
-                              .cryptoCurrency
-                              .hasTokenSupport,
-                    ),
-                  ))
-                    WalletNavigationBarItemData(
-                      label: "Tokens",
-                      icon: const CoinControlNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          MyTokensView.routeName,
-                          arguments: walletId,
-                        );
-                      },
-                    ),
-                  if (coin is Banano)
-                    WalletNavigationBarItemData(
-                      icon: SvgPicture.asset(
-                        Assets.svg.monkey,
-                        height: 20,
-                        width: 20,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.bottomNavIconIcon,
-                      ),
-                      label: "MonKey",
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          MonkeyView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  if (wallet is CoinControlInterface &&
-                      ref.watch(
-                        prefsChangeNotifierProvider.select(
-                          (value) => value.enableCoinControl,
-                        ),
-                      ))
-                    WalletNavigationBarItemData(
-                      label: "Coin control",
-                      icon: const CoinControlNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          CoinControlView.routeName,
-                          arguments: Tuple2(
-                            widget.walletId,
-                            CoinControlViewType.manage,
-                          ),
-                        );
-                      },
-                    ),
-                  if (wallet is FiroWallet &&
-                      ref.watch(
-                        prefsChangeNotifierProvider.select(
-                          (value) => value.advancedFiroFeatures,
-                        ),
-                      ))
-                    WalletNavigationBarItemData(
-                      label: "Spark coins",
-                      icon: const CoinControlNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          SparkCoinsView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  if (wallet is NamecoinWallet)
-                    WalletNavigationBarItemData(
-                      label: "Domains",
-                      icon: const PaynymNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          NamecoinNamesHomeView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  if (wallet is SparkInterface)
-                    WalletNavigationBarItemData(
-                      label: "Names",
-                      icon: const PaynymNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          SparkNamesHomeView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  if (!viewOnly && wallet is PaynymInterface)
-                    WalletNavigationBarItemData(
-                      label: "PayNym",
-                      icon: const PaynymNavIcon(),
-                      onTap: () async {
-                        unawaited(
-                          showDialog(
-                            context: context,
-                            builder:
-                                (context) => const LoadingIndicator(width: 100),
-                          ),
-                        );
-
-                        final wallet = ref
-                            .read(pWallets)
-                            .getWallet(widget.walletId);
-
-                        final paynymInterface = wallet as PaynymInterface;
-
-                        final code = await paynymInterface.getPaymentCode(
-                          isSegwit: false,
-                        );
-
-                        final account = await ref
-                            .read(paynymAPIProvider)
-                            .nym(code.toString());
-
-                        Logging.instance.d("my nym account: $account");
-
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-
-                          // check if account exists and for matching code to see if claimed
-                          if (account.value != null &&
-                              account.value!.nonSegwitPaymentCode.claimed
-                          // &&
-                          // account.value!.segwit
-                          ) {
-                            ref.read(myPaynymAccountStateProvider.state).state =
-                                account.value!;
-
-                            await Navigator.of(context).pushNamed(
-                              PaynymHomeView.routeName,
-                              arguments: widget.walletId,
-                            );
-                          } else {
-                            await Navigator.of(context).pushNamed(
-                              PaynymClaimView.routeName,
-                              arguments: widget.walletId,
-                            );
-                          }
+                        if (mounted) {
+                          unawaited(
+                            Navigator.of(context).pushNamed(
+                              ReceiveView.routeName,
+                              arguments: walletId,
+                            ),
+                          );
                         }
                       },
                     ),
-                  if (ref.watch(
-                    pWallets.select(
-                      (value) =>
-                          value.getWallet(widget.walletId) is OrdinalsInterface,
-                    ),
-                  ))
-                    WalletNavigationBarItemData(
-                      label: "Ordinals",
-                      icon: const OrdinalsNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          OrdinalsView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  if (wallet is CashFusionInterface && !viewOnly)
-                    WalletNavigationBarItemData(
-                      label: "Fusion",
-                      icon: const FusionNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          CashFusionView.routeName,
-                          arguments: walletId,
-                        );
-                      },
-                    ),
-                  if ((wallet is LibMoneroWallet ||
-                          wallet is LibSalviumWallet) &&
-                      !viewOnly)
-                    WalletNavigationBarItemData(
-                      label: "Churn",
-                      icon: const ChurnNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          ChurningView.routeName,
-                          arguments: walletId,
-                        );
-                      },
-                    ),
-                ],
+                    if (ref.watch(pWalletCoin(walletId)) is FrostCurrency)
+                      WalletNavigationBarItemData(
+                        label: "Sign",
+                        icon: const FrostSignNavIcon(),
+                        onTap: () => _onFrostSignPressed(context),
+                      ),
+                    if (!viewOnly)
+                      WalletNavigationBarItemData(
+                        label: "Send",
+                        icon: const SendNavIcon(),
+                        onTap: () {
+                          // not sure what this is supposed to accomplish?
+                          // switch (ref
+                          //     .read(walletBalanceToggleStateProvider.state)
+                          //     .state) {
+                          //   case WalletBalanceToggleState.full:
+                          //     ref
+                          //         .read(publicPrivateBalanceStateProvider.state)
+                          //         .state = "Public";
+                          //     break;
+                          //   case WalletBalanceToggleState.available:
+                          //     ref
+                          //         .read(publicPrivateBalanceStateProvider.state)
+                          //         .state = "Private";
+                          //     break;
+                          // }
+                          Navigator.of(context).pushNamed(
+                            wallet is BitcoinFrostWallet
+                                ? FrostSendView.routeName
+                                : SendView.routeName,
+                            arguments: (walletId: walletId, coin: coin),
+                          );
+                        },
+                      ),
+                    if (!viewOnly &&
+                        Constants.enableExchange &&
+                        ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                        AppConfig.hasFeature(AppFeature.swap) &&
+                        showExchange)
+                      WalletNavigationBarItemData(
+                        label: "Swap",
+                        icon: const ExchangeNavIcon(),
+                        onTap: () => _onExchangePressed(context),
+                      ),
+                    if (Constants.enableExchange &&
+                        ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                        wallet is! FiroWallet &&
+                        AppConfig.hasFeature(AppFeature.buy) &&
+                        showExchange)
+                      WalletNavigationBarItemData(
+                        label: "Buy",
+                        icon: const BuyNavIcon(),
+                        onTap: () => _onBuyPressed(context),
+                      ),
+                    if (wallet is SparkInterface)
+                      WalletNavigationBarItemData(
+                        label: "Names",
+                        icon: const PaynymNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            SparkNamesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                  ],
+                  moreItems: [
+                    if (ref.watch(
+                      pWallets.select(
+                        (value) =>
+                            value
+                                .getWallet(widget.walletId)
+                                .cryptoCurrency
+                                .hasTokenSupport,
+                      ),
+                    ))
+                      WalletNavigationBarItemData(
+                        label: "Tokens",
+                        icon: const CoinControlNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MyTokensView.routeName,
+                            arguments: walletId,
+                          );
+                        },
+                      ),
+                    if (coin is Banano)
+                      WalletNavigationBarItemData(
+                        icon: SvgPicture.asset(
+                          Assets.svg.monkey,
+                          height: 20,
+                          width: 20,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.bottomNavIconIcon,
+                        ),
+                        label: "MonKey",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MonkeyView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (wallet is CoinControlInterface &&
+                        ref.watch(
+                          prefsChangeNotifierProvider.select(
+                            (value) => value.enableCoinControl,
+                          ),
+                        ))
+                      WalletNavigationBarItemData(
+                        label: "Coin control",
+                        icon: const CoinControlNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            CoinControlView.routeName,
+                            arguments: Tuple2(
+                              widget.walletId,
+                              CoinControlViewType.manage,
+                            ),
+                          );
+                        },
+                      ),
+                    if (wallet is FiroWallet &&
+                        ref.watch(
+                          prefsChangeNotifierProvider.select(
+                            (value) => value.advancedFiroFeatures,
+                          ),
+                        ))
+                      WalletNavigationBarItemData(
+                        label: "Spark coins",
+                        icon: const CoinControlNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            SparkCoinsView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (wallet is NamecoinWallet)
+                      WalletNavigationBarItemData(
+                        label: "Domains",
+                        icon: const PaynymNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            NamecoinNamesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (!viewOnly && wallet is PaynymInterface)
+                      WalletNavigationBarItemData(
+                        label: "PayNym",
+                        icon: const PaynymNavIcon(),
+                        onTap: () async {
+                          unawaited(
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) =>
+                                      const LoadingIndicator(width: 100),
+                            ),
+                          );
+
+                          final wallet = ref
+                              .read(pWallets)
+                              .getWallet(widget.walletId);
+
+                          final paynymInterface = wallet as PaynymInterface;
+
+                          final code = await paynymInterface.getPaymentCode(
+                            isSegwit: false,
+                          );
+
+                          final account = await ref
+                              .read(paynymAPIProvider)
+                              .nym(code.toString());
+
+                          Logging.instance.d("my nym account: $account");
+
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+
+                            // check if account exists and for matching code to see if claimed
+                            if (account.value != null &&
+                                account.value!.nonSegwitPaymentCode.claimed
+                            // &&
+                            // account.value!.segwit
+                            ) {
+                              ref
+                                  .read(myPaynymAccountStateProvider.state)
+                                  .state = account.value!;
+
+                              await Navigator.of(context).pushNamed(
+                                PaynymHomeView.routeName,
+                                arguments: widget.walletId,
+                              );
+                            } else {
+                              await Navigator.of(context).pushNamed(
+                                PaynymClaimView.routeName,
+                                arguments: widget.walletId,
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    if (ref.watch(
+                      pWallets.select(
+                        (value) =>
+                            value.getWallet(widget.walletId)
+                                is OrdinalsInterface,
+                      ),
+                    ))
+                      WalletNavigationBarItemData(
+                        label: "Ordinals",
+                        icon: const OrdinalsNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            OrdinalsView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (wallet is CashFusionInterface && !viewOnly)
+                      WalletNavigationBarItemData(
+                        label: "Fusion",
+                        icon: const FusionNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            CashFusionView.routeName,
+                            arguments: walletId,
+                          );
+                        },
+                      ),
+                    if ((wallet is LibMoneroWallet ||
+                            wallet is LibSalviumWallet) &&
+                        !viewOnly)
+                      WalletNavigationBarItemData(
+                        label: "Churn",
+                        icon: const ChurnNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            ChurningView.routeName,
+                            arguments: walletId,
+                          );
+                        },
+                      ),
+                  ],
+                ),
               ),
             ],
           ),

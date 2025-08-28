@@ -85,10 +85,6 @@ class WalletSummaryInfo extends ConsumerWidget {
       );
     }
 
-    final priceTuple = ref.watch(
-      priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
-    );
-
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider) ==
         WalletBalanceToggleState.available;
@@ -98,18 +94,21 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     final bool toggleBalance;
 
-    if (coin is Firo) {
+    if (coin is Firo || ref.watch(pWalletInfo(walletId)).isMwebEnabled) {
       toggleBalance = false;
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
       switch (type) {
-        case FiroType.spark:
-          final balance = ref.watch(pWalletBalanceTertiary(walletId));
+        case BalanceType.private:
+          final balance =
+              coin is Firo
+                  ? ref.watch(pWalletBalanceTertiary(walletId))
+                  : ref.watch(pWalletBalanceSecondary(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
-        case FiroType.public:
+        case BalanceType.public:
           final balance = ref.watch(pWalletBalance(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;

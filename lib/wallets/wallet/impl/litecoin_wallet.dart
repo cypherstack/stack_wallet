@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 
+import '../../../db/drift/database.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -13,9 +14,11 @@ import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../intermediate/external_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../wallet_mixin_interfaces/mweb_interface.dart';
 import '../wallet_mixin_interfaces/ordinals_interface.dart';
 import '../wallet_mixin_interfaces/rbf_interface.dart';
 
@@ -26,7 +29,9 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         ExtendedKeysInterface<T>,
         CoinControlInterface<T>,
         RbfInterface<T>,
-        OrdinalsInterface<T> {
+        OrdinalsInterface<T>,
+        MwebInterface<T>
+    implements ExternalWallet<T> {
   @override
   int get isarTransactionVersion => 2;
 
@@ -51,6 +56,8 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
             .not()
             .group(
               (q) => q
+                  .typeEqualTo(AddressType.mweb)
+                  .or()
                   .typeEqualTo(AddressType.nonWallet)
                   .or()
                   .subTypeEqualTo(AddressSubType.nonWallet),
@@ -201,30 +208,52 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
       // Parse outputs.
       final List<OutputV2> outputs = [];
       for (final outputJson in txData["vout"] as List) {
-        OutputV2 output = OutputV2.fromElectrumXJson(
-          Map<String, dynamic>.from(outputJson as Map),
-          decimalPlaces: cryptoCurrency.fractionDigits,
-          isFullAmountNotSats: true,
-          // Need addresses before we can know if the wallet owns this input.
-          walletOwns: false,
-        );
+        try {
+          OutputV2 output = OutputV2.fromElectrumXJson(
+            Map<String, dynamic>.from(outputJson as Map),
+            decimalPlaces: cryptoCurrency.fractionDigits,
+            isFullAmountNotSats: true,
+            // Need addresses before we can know if the wallet owns this input.
+            walletOwns: false,
+          );
 
-        // If output was to my wallet, add value to amount received.
-        if (receivingAddresses
-            .intersection(output.addresses.toSet())
-            .isNotEmpty) {
-          wasReceivedInThisWallet = true;
-          amountReceivedInThisWallet += output.value;
-          output = output.copyWith(walletOwns: true);
-        } else if (changeAddresses
-            .intersection(output.addresses.toSet())
-            .isNotEmpty) {
-          wasReceivedInThisWallet = true;
-          changeAmountReceivedInThisWallet += output.value;
-          output = output.copyWith(walletOwns: true);
+          // If output was to my wallet, add value to amount received.
+          if (receivingAddresses
+              .intersection(output.addresses.toSet())
+              .isNotEmpty) {
+            wasReceivedInThisWallet = true;
+            amountReceivedInThisWallet += output.value;
+            output = output.copyWith(walletOwns: true);
+          } else if (changeAddresses
+              .intersection(output.addresses.toSet())
+              .isNotEmpty) {
+            wasReceivedInThisWallet = true;
+            changeAmountReceivedInThisWallet += output.value;
+            output = output.copyWith(walletOwns: true);
+          }
+
+          outputs.add(output);
+        } catch (_) {
+          if (outputJson["ismweb"] == true) {
+            final outputId = outputJson["output_id"] as String;
+
+            final db = Drift.get(walletId);
+
+            final mwebUtxo =
+                await (db.select(
+                  db.mwebUtxos,
+                )..where((e) => e.outputId.equals(outputId))).getSingleOrNull();
+
+            final output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "mweb",
+              scriptPubKeyAsm: null,
+              valueStringSats: mwebUtxo?.value.toString() ?? "0",
+              addresses: [outputId],
+              walletOwns: mwebUtxo != null,
+            );
+            outputs.add(output);
+          }
         }
-
-        outputs.add(output);
       }
 
       final totalOut = outputs
@@ -263,6 +292,10 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
                   .isNotEmpty();
           if (hasOrdinal) {
             subType = TransactionSubType.ordinal;
+          } else {
+            if (outputs.any((e) => e.scriptPubKeyHex == "mweb")) {
+              subType = TransactionSubType.mweb;
+            }
           }
 
           // making API calls for every output in every transaction is too expensive
@@ -328,6 +361,10 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
     }
 
     await mainDB.updateOrPutTransactionV2s(txns);
+
+    if (info.isMwebEnabled) {
+      await checkMwebSpends();
+    }
   }
 
   @override

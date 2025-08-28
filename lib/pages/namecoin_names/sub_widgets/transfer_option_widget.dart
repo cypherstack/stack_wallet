@@ -133,13 +133,14 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         txData: TxData(
           feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
           recipients: [
-            (
+            TxRecipient(
               address: _address!,
               isChange: false,
               amount: Amount(
                 rawValue: BigInt.from(kNameAmountSats),
                 fractionDigits: wallet.cryptoCurrency.fractionDigits,
               ),
+              addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
             ),
           ],
           note: "Transfer ${opName.constructedName}",
@@ -236,7 +237,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
       final coin = ref.read(pWalletCoin(walletId));
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");

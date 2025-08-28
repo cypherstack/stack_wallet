@@ -21,6 +21,7 @@ import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
+import '../../../services/wallets.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -34,6 +35,8 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
@@ -65,6 +68,7 @@ class Step4View extends ConsumerStatefulWidget {
 }
 
 class _Step4ViewState extends ConsumerState<Step4View> {
+  late final bool isWalletCoinAndCanSend;
   late final IncompleteExchangeModel model;
   late final ClipboardInterface clipboard;
 
@@ -72,13 +76,20 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   Timer? _statusTimer;
 
-  bool _isWalletCoinAndHasWallet(String ticker, WidgetRef ref) {
+  bool isWalletCoinAndCanSendWithoutWalletOpened(
+    String ticker,
+    Wallets walletsInstance,
+  ) {
     try {
       final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      return ref
-          .read(pWallets)
-          .wallets
-          .where((e) => e.info.coin == coin)
+      return walletsInstance.wallets
+          .where(
+            (e) =>
+                e.info.coin == coin &&
+                (e is! ExternalWallet ||
+                    e is MwebInterface), // ltc mweb is external but swaps
+            // should not use mweb, hence the odd logic check here
+          )
           .isNotEmpty;
     } catch (_) {
       return false;
@@ -110,6 +121,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   void initState() {
     model = widget.model;
     clipboard = widget.clipboard;
+
+    isWalletCoinAndCanSend = isWalletCoinAndCanSendWithoutWalletOpened(
+      model.trade!.payInCurrency,
+      ref.read(pWallets),
+    );
 
     _statusTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       _updateStatus();
@@ -230,10 +246,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
       Future<TxData> txDataFuture;
 
+      final recipient = TxRecipient(
+        address: address,
+        amount: amount,
+        isChange: false,
+        addressType: wallet.cryptoCurrency.getAddressType(address)!,
+      );
+
       if (wallet is FiroWallet && !firoPublicSend) {
         txDataFuture = wallet.prepareSendSpark(
           txData: TxData(
-            recipients: [(address: address, amount: amount, isChange: false)],
+            recipients: [recipient],
             note:
                 "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
@@ -248,7 +271,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                 : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: address, amount: amount, isChange: false)],
+            recipients: [recipient],
             memo: memo,
             feeRateType: FeeRateType.average,
             note:
@@ -332,10 +355,6 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isWalletCoin = _isWalletCoinAndHasWallet(
-      model.trade!.payInCurrency,
-      ref,
-    );
     return WillPopScope(
       onWillPop: () async {
         await _close();
@@ -784,8 +803,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                   style: STextStyles.button(context),
                                 ),
                               ),
-                              if (isWalletCoin) const SizedBox(height: 12),
-                              if (isWalletCoin)
+                              if (isWalletCoinAndCanSend)
+                                const SizedBox(height: 12),
+                              if (isWalletCoinAndCanSend)
                                 Builder(
                                   builder: (context) {
                                     String buttonTitle =

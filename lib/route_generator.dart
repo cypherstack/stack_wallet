@@ -113,6 +113,7 @@ import 'pages/settings_views/global_settings_view/manage_nodes_views/add_edit_no
 import 'pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import 'pages/settings_views/global_settings_view/security_views/auto_lock_timeout_settings_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/create_duress_pin_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/security_view.dart';
@@ -178,6 +179,7 @@ import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
+import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -993,6 +995,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const CreateDuressPinView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case AutoLockTimeoutSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AutoLockTimeoutSettingsView(),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -2222,6 +2231,16 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SparkCoinsView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case MwebUtxosView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MwebUtxosView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }

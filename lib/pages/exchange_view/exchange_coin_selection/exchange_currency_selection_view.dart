@@ -100,8 +100,9 @@ class _ExchangeCurrencySelectionViewState
 
   Future<List<AggregateCurrency>> _loadCurrencies() async {
     await ExchangeDataLoadingService.instance.initDB();
+    final isar = await ExchangeDataLoadingService.instance.isar;
     final currencies =
-        await ExchangeDataLoadingService.instance.isar.currencies
+        await isar.currencies
             .where()
             .filter()
             .isFiatEqualTo(false)

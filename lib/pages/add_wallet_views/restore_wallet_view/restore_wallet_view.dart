@@ -596,7 +596,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   Future<void> scanMnemonicQr() async {
     try {
-      final qrResult = await ref.read(pBarcodeScanner).scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
 

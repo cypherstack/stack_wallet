@@ -139,6 +139,10 @@ class WalletInfo implements IsarId {
   bool get isDuressVisible =>
       otherData[WalletInfoKeys.duressMarkedVisibleWalletKey] as bool? ?? false;
 
+  @ignore
+  bool get isMwebEnabled =>
+      otherData[WalletInfoKeys.mwebEnabled] as bool? ?? false;
+
   //============================================================================
   //=============    Updaters   ================================================
 
@@ -392,6 +396,16 @@ class WalletInfo implements IsarId {
     );
   }
 
+  Future<void> setMwebEnabled({
+    required bool newValue,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {WalletInfoKeys.mwebEnabled: newValue},
+      isar: isar,
+    );
+  }
+
   //============================================================================
 
   WalletInfo({
@@ -505,4 +519,8 @@ abstract class WalletInfoKeys {
   static const String viewOnlyTypeIndexKey = "viewOnlyTypeIndexKey";
   static const String duressMarkedVisibleWalletKey =
       "duressMarkedVisibleWalletKey";
+  static const String mwebEnabled = "mwebEnabledKey";
+  static const String mwebScanHeight = "mwebScanHeightKey";
+  static const String firoSparkUsedTagsCacheResetVersion =
+      "firoSparkUsedTagsCacheResetVersionKey";
 }

@@ -140,7 +140,7 @@ class _ConfirmTransactionViewState
       } else {
         if (wallet is FiroWallet) {
           switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-            case FiroType.public:
+            case BalanceType.public:
               if (widget.txData.sparkMints == null) {
                 txDataFuture = wallet.confirmSend(txData: widget.txData);
               } else {
@@ -150,7 +150,7 @@ class _ConfirmTransactionViewState
               }
               break;
 
-            case FiroType.spark:
+            case BalanceType.private:
               txDataFuture = wallet.confirmSendSpark(txData: widget.txData);
               break;
           }
@@ -346,7 +346,7 @@ class _ConfirmTransactionViewState
 
     if (wallet is FiroWallet) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.public:
+        case BalanceType.public:
           if (widget.txData.sparkMints != null) {
             fee = widget.txData.sparkMints!
                 .map((e) => e.fee!)
@@ -360,7 +360,7 @@ class _ConfirmTransactionViewState
           }
           break;
 
-        case FiroType.spark:
+        case BalanceType.private:
           fee = widget.txData.fee;
           amountWithoutChange =
               (widget.txData.amountWithoutChange ??

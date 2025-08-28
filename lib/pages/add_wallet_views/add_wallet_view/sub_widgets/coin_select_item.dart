@@ -28,39 +28,61 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 
-class CoinSelectItem extends ConsumerWidget {
+class CoinSelectItem extends ConsumerStatefulWidget {
   const CoinSelectItem({super.key, required this.entity});
 
   final AddWalletListEntity entity;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: CoinSelectItem for ${entity.name}");
+  ConsumerState<CoinSelectItem> createState() => _CoinSelectItemState();
+}
+
+class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
+  String? tokenImageUri;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.entity is EthTokenEntity) {
+      ExchangeDataLoadingService.instance.isar.then((isar) async {
+        final currency =
+            await isar.currencies
+                .where()
+                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+                .filter()
+                .tokenContractEqualTo(
+                  (widget.entity as EthTokenEntity).token.address,
+                  caseSensitive: false,
+                )
+                .and()
+                .imageIsNotEmpty()
+                .findFirst();
+
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                tokenImageUri = currency?.image;
+              });
+            }
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    debugPrint("BUILD: CoinSelectItem for ${widget.entity.name}");
     final selectedEntity = ref.watch(addWalletSelectedEntityStateProvider);
 
     final isDesktop = Util.isDesktop;
 
-    String? tokenImageUri;
-    if (entity is EthTokenEntity) {
-      final currency =
-          ExchangeDataLoadingService.instance.isar.currencies
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .filter()
-              .tokenContractEqualTo(
-                (entity as EthTokenEntity).token.address,
-                caseSensitive: false,
-              )
-              .and()
-              .imageIsNotEmpty()
-              .findFirstSync();
-      tokenImageUri = currency?.image;
-    }
-
     return Container(
       decoration: BoxDecoration(
         color:
-            selectedEntity == entity
+            selectedEntity == widget.entity
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: BorderRadius.circular(
@@ -68,7 +90,9 @@ class CoinSelectItem extends ConsumerWidget {
         ),
       ),
       child: MaterialButton(
-        key: Key("coinSelectItemButtonKey_${entity.name}${entity.ticker}"),
+        key: Key(
+          "coinSelectItemButtonKey_${widget.entity.name}${widget.entity.ticker}",
+        ),
         padding:
             isDesktop
                 ? const EdgeInsets.only(left: 24)
@@ -84,15 +108,17 @@ class CoinSelectItem extends ConsumerWidget {
           child: Row(
             children: [
               tokenImageUri != null
-                  ? SvgPicture.network(tokenImageUri, width: 26, height: 26)
+                  ? SvgPicture.network(tokenImageUri!, width: 26, height: 26)
                   : SvgPicture.file(
-                    File(ref.watch(coinIconProvider(entity.cryptoCurrency))),
+                    File(
+                      ref.watch(coinIconProvider(widget.entity.cryptoCurrency)),
+                    ),
                     width: 26,
                     height: 26,
                   ),
               SizedBox(width: isDesktop ? 12 : 10),
               Text(
-                "${entity.name} (${entity.ticker})",
+                "${widget.entity.name} (${widget.entity.ticker})",
                 style:
                     isDesktop
                         ? STextStyles.desktopTextMedium(context)
@@ -100,8 +126,8 @@ class CoinSelectItem extends ConsumerWidget {
                           context,
                         ).copyWith(fontSize: 14),
               ),
-              if (isDesktop && selectedEntity == entity) const Spacer(),
-              if (isDesktop && selectedEntity == entity)
+              if (isDesktop && selectedEntity == widget.entity) const Spacer(),
+              if (isDesktop && selectedEntity == widget.entity)
                 Padding(
                   padding: const EdgeInsets.only(right: 18),
                   child: SizedBox(
@@ -120,7 +146,8 @@ class CoinSelectItem extends ConsumerWidget {
           ),
         ),
         onPressed: () {
-          ref.read(addWalletSelectedEntityStateProvider.state).state = entity;
+          ref.read(addWalletSelectedEntityStateProvider.state).state =
+              widget.entity;
         },
       ),
     );

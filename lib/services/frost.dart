@@ -12,12 +12,11 @@ import '../utilities/amount/amount.dart';
 import '../utilities/extensions/extensions.dart';
 import '../utilities/logger.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/models/tx_recipient.dart';
 
 abstract class Frost {
   //==================== utility ===============================================
-  static List<String> getParticipants({
-    required String multisigConfig,
-  }) {
+  static List<String> getParticipants({required String multisigConfig}) {
     try {
       final numberOfParticipants = multisigParticipants(
         multisigConfig: multisigConfig,
@@ -26,10 +25,7 @@ abstract class Frost {
       final List<String> participants = [];
       for (int i = 0; i < numberOfParticipants; i++) {
         participants.add(
-          multisigParticipant(
-            multisigConfig: multisigConfig,
-            index: i,
-          ),
+          multisigParticipant(multisigConfig: multisigConfig, index: i),
         );
       }
 
@@ -45,18 +41,18 @@ abstract class Frost {
       decodeMultisigConfig(multisigConfig: encodedConfig);
       return true;
     } catch (e, s) {
-      Logging.instance.f("validateEncodedMultisigConfig failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "validateEncodedMultisigConfig failed: ",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
 
-  static int getThreshold({
-    required String multisigConfig,
-  }) {
+  static int getThreshold({required String multisigConfig}) {
     try {
-      final threshold = multisigThreshold(
-        multisigConfig: multisigConfig,
-      );
+      final threshold = multisigThreshold(multisigConfig: multisigConfig);
 
       return threshold;
     } catch (e, s) {
@@ -70,7 +66,8 @@ abstract class Frost {
     String changeAddress,
     int feePerWeight,
     List<Output> inputs,
-  }) extractDataFromSignConfig({
+  })
+  extractDataFromSignConfig({
     required String serializedKeys,
     required String signConfig,
     required CryptoCurrency coin,
@@ -85,8 +82,9 @@ abstract class Frost {
       );
 
       // get various data from config
-      final feePerWeight =
-          signFeePerWeight(signConfigPointer: signConfigPointer);
+      final feePerWeight = signFeePerWeight(
+        signConfigPointer: signConfigPointer,
+      );
       final changeAddress = signChange(signConfigPointer: signConfigPointer);
       final recipientsCount = signPayments(
         signConfigPointer: signConfigPointer,
@@ -103,15 +101,13 @@ abstract class Frost {
           signConfigPointer: signConfigPointer,
           index: i,
         );
-        recipients.add(
-          (
-            address: address,
-            amount: Amount(
-              rawValue: BigInt.from(amount),
-              fractionDigits: coin.fractionDigits,
-            ),
+        recipients.add((
+          address: address,
+          amount: Amount(
+            rawValue: BigInt.from(amount),
+            fractionDigits: coin.fractionDigits,
           ),
-        );
+        ));
       }
 
       // get utxos
@@ -135,7 +131,11 @@ abstract class Frost {
         inputs: outputs,
       );
     } catch (e, s) {
-      Logging.instance.f("extractDataFromSignConfig failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "extractDataFromSignConfig failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -156,7 +156,11 @@ abstract class Frost {
 
       return config;
     } catch (e, s) {
-      Logging.instance.f("createMultisigConfig failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "createMultisigConfig failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -166,10 +170,8 @@ abstract class Frost {
     String commitments,
     Pointer<MultisigConfigWithName> multisigConfigWithNamePtr,
     Pointer<SecretShareMachineWrapper> secretShareMachineWrapperPtr,
-  }) startKeyGeneration({
-    required String multisigConfig,
-    required String myName,
-  }) {
+  })
+  startKeyGeneration({required String multisigConfig, required String myName}) {
     try {
       final startKeyGenResPtr = startKeyGen(
         multisigConfig: multisigConfig,
@@ -189,15 +191,17 @@ abstract class Frost {
         secretShareMachineWrapperPtr: machinePtr,
       );
     } catch (e, s) {
-      Logging.instance.f("startKeyGeneration failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "startKeyGeneration failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
-  static ({
-    String share,
-    Pointer<SecretSharesRes> secretSharesResPtr,
-  }) generateSecretShares({
+  static ({String share, Pointer<SecretSharesRes> secretSharesResPtr})
+  generateSecretShares({
     required Pointer<MultisigConfigWithName> multisigConfigWithNamePtr,
     required String mySeed,
     required Pointer<SecretShareMachineWrapper> secretShareMachineWrapperPtr,
@@ -216,16 +220,17 @@ abstract class Frost {
 
       return (share: share, secretSharesResPtr: secretSharesResPtr);
     } catch (e, s) {
-      Logging.instance.f("generateSecretShares failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "generateSecretShares failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
-  static ({
-    Uint8List multisigId,
-    String recoveryString,
-    String serializedKeys,
-  }) completeKeyGeneration({
+  static ({Uint8List multisigId, String recoveryString, String serializedKeys})
+  completeKeyGeneration({
     required Pointer<MultisigConfigWithName> multisigConfigWithNamePtr,
     required Pointer<SecretSharesRes> secretSharesResPtr,
     required List<String> shares,
@@ -254,7 +259,11 @@ abstract class Frost {
         serializedKeys: serializedKeys,
       );
     } catch (e, s) {
-      Logging.instance.f("completeKeyGeneration failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "completeKeyGeneration failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -265,13 +274,14 @@ abstract class Frost {
     required String serializedKeys,
     required int network,
     required List<
-            ({
-              UTXO utxo,
-              Uint8List scriptPubKey,
-              AddressDerivationData addressDerivationData
-            })>
-        inputs,
-    required List<({String address, Amount amount, bool isChange})> outputs,
+      ({
+        UTXO utxo,
+        Uint8List scriptPubKey,
+        AddressDerivationData addressDerivationData,
+      })
+    >
+    inputs,
+    required List<TxRecipient> outputs,
     required String changeAddress,
     required int feePerWeight,
   }) {
@@ -279,17 +289,18 @@ abstract class Frost {
       final signConfig = newSignConfig(
         thresholdKeysWrapperPointer: deserializeKeys(keys: serializedKeys),
         network: network,
-        outputs: inputs
-            .map(
-              (e) => Output(
-                hash: e.utxo.txid.toUint8ListFromHex,
-                vout: e.utxo.vout,
-                value: e.utxo.value,
-                scriptPubKey: e.scriptPubKey,
-                addressDerivationData: e.addressDerivationData,
-              ),
-            )
-            .toList(),
+        outputs:
+            inputs
+                .map(
+                  (e) => Output(
+                    hash: e.utxo.txid.toUint8ListFromHex,
+                    vout: e.utxo.vout,
+                    value: e.utxo.value,
+                    scriptPubKey: e.scriptPubKey,
+                    addressDerivationData: e.addressDerivationData,
+                  ),
+                )
+                .toList(),
         paymentAddresses: outputs.map((e) => e.address).toList(),
         paymentAmounts: outputs.map((e) => e.amount.raw.toInt()).toList(),
         change: changeAddress,
@@ -306,7 +317,8 @@ abstract class Frost {
   static ({
     Pointer<TransactionSignMachineWrapper> machinePtr,
     String preprocess,
-  }) attemptSignConfig({
+  })
+  attemptSignConfig({
     required int network,
     required String config,
     required String serializedKeys,
@@ -333,7 +345,8 @@ abstract class Frost {
   static ({
     Pointer<TransactionSignatureMachineWrapper> machinePtr,
     String share,
-  }) continueSigning({
+  })
+  continueSigning({
     required Pointer<TransactionSignMachineWrapper> machinePtr,
     required List<String> preprocesses,
   }) {
@@ -358,10 +371,7 @@ abstract class Frost {
     required List<String> shares,
   }) {
     try {
-      final rawTransaction = completeSign(
-        machine: machinePtr,
-        shares: shares,
-      );
+      final rawTransaction = completeSign(machine: machinePtr, shares: shares);
 
       return rawTransaction;
     } catch (e, s) {
@@ -404,28 +414,24 @@ abstract class Frost {
 
       return config;
     } catch (e, s) {
-      Logging.instance.f("createResharerConfig failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "createResharerConfig failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
-  static ({
-    String resharerStart,
-    Pointer<StartResharerRes> machine,
-  }) beginResharer({
-    required String serializedKeys,
-    required String config,
-  }) {
+  static ({String resharerStart, Pointer<StartResharerRes> machine})
+  beginResharer({required String serializedKeys, required String config}) {
     try {
       final result = startResharer(
         serializedKeys: serializedKeys,
         config: config,
       );
 
-      return (
-        resharerStart: result.encoded,
-        machine: result.machine,
-      );
+      return (resharerStart: result.encoded, machine: result.machine);
     } catch (e, s) {
       Logging.instance.f("beginResharer failed: ", error: e, stackTrace: s);
       rethrow;
@@ -433,10 +439,8 @@ abstract class Frost {
   }
 
   /// expects [resharerStarts] of length equal to resharers.
-  static ({
-    String resharedStart,
-    Pointer<StartResharedRes> prior,
-  }) beginReshared({
+  static ({String resharedStart, Pointer<StartResharedRes> prior})
+  beginReshared({
     required String myName,
     required String resharerConfig,
     required List<String> resharerStarts,
@@ -448,10 +452,7 @@ abstract class Frost {
         resharerConfig: resharerConfig,
         resharerStarts: resharerStarts,
       );
-      return (
-        resharedStart: result.encoded,
-        prior: result.machine,
-      );
+      return (resharedStart: result.encoded, prior: result.machine);
     } catch (e, s) {
       Logging.instance.f("beginReshared failed: ", error: e, stackTrace: s);
       rethrow;
@@ -476,11 +477,8 @@ abstract class Frost {
   }
 
   /// expects [resharerCompletes] of length equal to resharers
-  static ({
-    String multisigConfig,
-    String serializedKeys,
-    String resharedId,
-  }) finishReshared({
+  static ({String multisigConfig, String serializedKeys, String resharedId})
+  finishReshared({
     required StartResharedRes prior,
     required List<String> resharerCompletes,
   }) {
@@ -504,7 +502,11 @@ abstract class Frost {
 
       return config;
     } catch (e, s) {
-      Logging.instance.f("decodedResharerConfig failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "decodedResharerConfig failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -513,9 +515,8 @@ abstract class Frost {
     int newThreshold,
     Map<String, int> resharers,
     List<String> newParticipants,
-  }) extractResharerConfigData({
-    required String rConfig,
-  }) {
+  })
+  extractResharerConfigData({required String rConfig}) {
     final decoded = _decodeRConfigWithResharers(rConfig);
     final resharerConfig = decoded.config;
 
@@ -564,8 +565,9 @@ abstract class Frost {
 
       for (final resharer in resharers) {
         resharersMap[decoded.resharers.entries
-            .firstWhere((e) => e.value == resharer)
-            .key] = resharer;
+                .firstWhere((e) => e.value == resharer)
+                .key] =
+            resharer;
       }
 
       return (
@@ -574,28 +576,25 @@ abstract class Frost {
         newParticipants: newParticipants,
       );
     } catch (e, s) {
-      Logging.instance.f("extractResharerConfigData failed: ", error: e, stackTrace: s);
+      Logging.instance.f(
+        "extractResharerConfigData failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
-  static String encodeRConfig(
-    String config,
-    Map<String, int> resharers,
-  ) {
+  static String encodeRConfig(String config, Map<String, int> resharers) {
     return base64Encode("$config@${jsonEncode(resharers)}".toUint8ListFromUtf8);
   }
 
-  static String decodeRConfig(
-    String rConfig,
-  ) {
+  static String decodeRConfig(String rConfig) {
     return base64Decode(rConfig).toUtf8String.split("@").first;
   }
 
   static ({Map<String, int> resharers, String config})
-      _decodeRConfigWithResharers(
-    String rConfig,
-  ) {
+  _decodeRConfigWithResharers(String rConfig) {
     final parts = base64Decode(rConfig).toUtf8String.split("@");
 
     final config = parts[0];
