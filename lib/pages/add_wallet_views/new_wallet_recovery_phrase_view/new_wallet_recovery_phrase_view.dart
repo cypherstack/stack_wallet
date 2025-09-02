@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
@@ -44,6 +43,7 @@ class NewWalletRecoveryPhraseView extends ConsumerStatefulWidget {
     required this.wallet,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
+    this.importedPaperWallet,
   });
 
   static const routeName = "/newWalletRecoveryPhrase";
@@ -52,6 +52,7 @@ class NewWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   final List<String> mnemonic;
 
   final ClipboardInterface clipboardInterface;
+  final Wallet? importedPaperWallet;
 
   @override
   ConsumerState<NewWalletRecoveryPhraseView> createState() =>
@@ -108,76 +109,79 @@ class _NewWalletRecoveryPhraseViewState
       onWillPop: onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
-        appBar: isDesktop
-            ? DesktopAppBar(
-                isCompactHeight: false,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    await delete();
+        appBar:
+            isDesktop
+                ? DesktopAppBar(
+                  isCompactHeight: false,
+                  leading: AppBarBackButton(
+                    onPressed: () async {
+                      await delete();
 
-                    if (mounted) {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(
-                          NewWalletRecoveryPhraseWarningView.routeName,
-                        ),
-                      );
-                    }
-                    // Navigator.of(context).pop();
-                  },
-                ),
-                trailing: ExitToMyStackButton(
-                  onPressed: () async {
-                    await delete();
-                    if (mounted) {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(DesktopHomeView.routeName),
-                      );
-                    }
-                  },
-                ),
-              )
-            : AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    await delete();
+                      if (mounted) {
+                        Navigator.of(context).popUntil(
+                          ModalRoute.withName(
+                            NewWalletRecoveryPhraseWarningView.routeName,
+                          ),
+                        );
+                      }
+                      // Navigator.of(context).pop();
+                    },
+                  ),
+                  trailing: ExitToMyStackButton(
+                    onPressed: () async {
+                      await delete();
+                      if (mounted) {
+                        Navigator.of(context).popUntil(
+                          ModalRoute.withName(DesktopHomeView.routeName),
+                        );
+                      }
+                    },
+                  ),
+                )
+                : AppBar(
+                  leading: AppBarBackButton(
+                    onPressed: () async {
+                      await delete();
 
-                    if (mounted) {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(
-                          NewWalletRecoveryPhraseWarningView.routeName,
+                      if (mounted) {
+                        Navigator.of(context).popUntil(
+                          ModalRoute.withName(
+                            NewWalletRecoveryPhraseWarningView.routeName,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: AppBarIconButton(
+                          semanticsLabel:
+                              "Copy Button. Copies The Recovery Phrase To Clipboard.",
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                          shadows: const [],
+                          icon: SvgPicture.asset(
+                            Assets.svg.copy,
+                            width: 24,
+                            height: 24,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.topNavIconPrimary,
+                          ),
+                          onPressed: () async {
+                            await _copy();
+                          },
                         ),
-                      );
-                    }
-                  },
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        semanticsLabel:
-                            "Copy Button. Copies The Recovery Phrase To Clipboard.",
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                        shadows: const [],
-                        icon: SvgPicture.asset(
-                          Assets.svg.copy,
-                          width: 24,
-                          height: 24,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                        ),
-                        onPressed: () async {
-                          await _copy();
-                        },
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
         body: Container(
           color: Theme.of(context).extension<StackColors>()!.background,
           width: isDesktop ? 600 : null,
@@ -186,83 +190,75 @@ class _NewWalletRecoveryPhraseViewState
                 isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(16),
             child: ConditionalParent(
               condition: Util.isDesktop,
-              builder: (child) => LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
-              ),
+              builder:
+                  (child) => LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(child: child),
+                        ),
+                      );
+                    },
+                  ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (isDesktop)
-                    const Spacer(
-                      flex: 10,
-                    ),
-                  if (!isDesktop)
-                    const SizedBox(
-                      height: 4,
-                    ),
+                  if (isDesktop) const Spacer(flex: 10),
+                  if (!isDesktop) const SizedBox(height: 4),
                   if (!isDesktop)
                     Text(
                       ref.watch(pWalletName(_wallet.walletId)),
                       textAlign: TextAlign.center,
-                      style: STextStyles.label(context).copyWith(
-                        fontSize: 12,
-                      ),
+                      style: STextStyles.label(context).copyWith(fontSize: 12),
                     ),
-                  SizedBox(
-                    height: isDesktop ? 24 : 4,
-                  ),
+                  SizedBox(height: isDesktop ? 24 : 4),
                   Text(
                     "Recovery Phrase",
                     textAlign: TextAlign.center,
-                    style: isDesktop
-                        ? STextStyles.desktopH2(context)
-                        : STextStyles.pageTitleH1(context),
+                    style:
+                        isDesktop
+                            ? STextStyles.desktopH2(context)
+                            : STextStyles.pageTitleH1(context),
                   ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDesktop
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .background
-                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                      color:
+                          isDesktop
+                              ? Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background
+                              : Theme.of(
+                                context,
+                              ).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
                     ),
                     child: Padding(
-                      padding: isDesktop
-                          ? const EdgeInsets.all(0)
-                          : const EdgeInsets.all(12),
+                      padding:
+                          isDesktop
+                              ? const EdgeInsets.all(0)
+                              : const EdgeInsets.all(12),
                       child: Text(
                         "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
                         textAlign: TextAlign.center,
-                        style: isDesktop
-                            ? STextStyles.desktopSubtitleH2(context)
-                            : STextStyles.label(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
-                              ),
+                        style:
+                            isDesktop
+                                ? STextStyles.desktopSubtitleH2(context)
+                                : STextStyles.label(context).copyWith(
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                ),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: isDesktop ? 21 : 8,
-                  ),
+                  SizedBox(height: isDesktop ? 21 : 8),
                   if (!isDesktop)
                     Expanded(
                       child: SingleChildScrollView(
@@ -273,13 +269,8 @@ class _NewWalletRecoveryPhraseViewState
                       ),
                     ),
                   if (isDesktop)
-                    MnemonicTable(
-                      words: _mnemonic,
-                      isDesktop: isDesktop,
-                    ),
-                  SizedBox(
-                    height: isDesktop ? 24 : 16,
-                  ),
+                    MnemonicTable(words: _mnemonic, isDesktop: isDesktop),
+                  SizedBox(height: isDesktop ? 24 : 16),
                   if (isDesktop)
                     SizedBox(
                       height: 70,
@@ -294,13 +285,12 @@ class _NewWalletRecoveryPhraseViewState
                               Assets.svg.copy,
                               width: 20,
                               height: 20,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .buttonTextSecondary,
+                              color:
+                                  Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextSecondary,
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             Text(
                               "Copy to clipboard",
                               style: STextStyles.desktopButtonSecondaryEnabled(
@@ -311,14 +301,9 @@ class _NewWalletRecoveryPhraseViewState
                         ),
                       ),
                     ),
-                  if (isDesktop)
-                    const SizedBox(
-                      height: 16,
-                    ),
+                  if (isDesktop) const SizedBox(height: 16),
                   ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: isDesktop ? 70 : 0,
-                    ),
+                    constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
                     child: TextButton(
                       onPressed: () async {
                         final int next = Random().nextInt(_mnemonic.length);
@@ -333,7 +318,11 @@ class _NewWalletRecoveryPhraseViewState
                         unawaited(
                           Navigator.of(context).pushNamed(
                             VerifyRecoveryPhraseView.routeName,
-                            arguments: Tuple2(_wallet, _mnemonic),
+                            arguments: (
+                              wallet: _wallet,
+                              mnemonic: _mnemonic,
+                              importedPaperWallet: widget.importedPaperWallet,
+                            ),
                           ),
                         );
                       },
@@ -342,16 +331,14 @@ class _NewWalletRecoveryPhraseViewState
                           .getPrimaryEnabledButtonStyle(context),
                       child: Text(
                         "I saved my recovery phrase",
-                        style: isDesktop
-                            ? STextStyles.desktopButtonEnabled(context)
-                            : STextStyles.button(context),
+                        style:
+                            isDesktop
+                                ? STextStyles.desktopButtonEnabled(context)
+                                : STextStyles.button(context),
                       ),
                     ),
                   ),
-                  if (isDesktop)
-                    const Spacer(
-                      flex: 15,
-                    ),
+                  if (isDesktop) const Spacer(flex: 15),
                 ],
               ),
             ),

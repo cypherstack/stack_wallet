@@ -30,6 +30,7 @@ import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
@@ -37,6 +38,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
@@ -65,12 +67,14 @@ class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
     super.key,
     required this.wallet,
     required this.mnemonic,
+    this.importedPaperWallet,
   });
 
   static const routeName = "/verifyRecoveryPhrase";
 
   final Wallet wallet;
   final List<String> mnemonic;
+  final Wallet? importedPaperWallet;
 
   @override
   ConsumerState<VerifyRecoveryPhraseView> createState() =>
@@ -102,6 +106,43 @@ class _VerifyRecoveryPhraseViewState
     );
 
     return result == "verified";
+  }
+
+  Future<void> _sweepImported() async {
+    try {
+      // assume paper wallet is libmonero based
+      final imported = widget.importedPaperWallet as LibMoneroWallet;
+
+      // init should already have been called...
+      await widget.wallet.init();
+      // again assume that the wallet is libmonero based due to previous assumption
+      await (widget.wallet as LibMoneroWallet).open();
+
+      // init call above should ensure this will never be null, so force unwrap optional here
+      final receivingAddress =
+          (await widget.wallet.getCurrentReceivingAddress())!;
+
+      // imported wallet should be fully synced at this point so sending should be fine
+      final balance = await imported.availableBalance;
+      final txData = await imported.prepareSend(
+        txData: TxData(
+          feeRateType: FeeRateType.average,
+          recipients: [
+            TxRecipient(
+              address: receivingAddress.value,
+              amount: balance,
+              isChange: false,
+              addressType: receivingAddress.type,
+            ),
+          ],
+        ),
+      );
+      await imported.confirmSend(txData: txData);
+
+      await imported.exit();
+    } finally {
+      unawaited(widget.importedPaperWallet?.exit());
+    }
   }
 
   Future<void> _convertToViewOnly() async {
@@ -380,33 +421,72 @@ class _VerifyRecoveryPhraseViewState
               context,
             ).popUntil(ModalRoute.withName(SelectWalletForTokenView.routeName));
           } else {
-            unawaited(
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
-            );
-            if (_coin is Ethereum) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ref
-                    .read(pNavKey)
-                    .currentState
-                    ?.pushNamed(
-                      EditWalletTokensView.routeName,
-                      arguments: widget.wallet.walletId,
+            Exception? ex;
+            if (widget.importedPaperWallet != null) {
+              await showLoading(
+                whileFuture: _sweepImported(),
+                context: context,
+                message: "Sweeping gift wallet...",
+                onException: (e) => ex = e,
+              );
+
+              if (ex != null && mounted) {
+                await showDialog<void>(
+                  context: context,
+                  builder: (context) {
+                    return StackOkDialog(
+                      title: "Sweep gift wallet failed",
+                      message: ex?.toString(),
                     );
-              });
+                  },
+                );
+
+                final secStore = ref.read(secureStoreProvider);
+                final wallets = ref.read(pWallets);
+
+                unawaited(wallets.deleteWallet(widget.wallet.info, secStore));
+              }
+            }
+
+            if (mounted) {
+              unawaited(
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
+              );
+
+              if (ex != null) {
+                return;
+              }
+
+              if (_coin is Ethereum) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ref
+                      .read(pNavKey)
+                      .currentState
+                      ?.pushNamed(
+                        EditWalletTokensView.routeName,
+                        arguments: widget.wallet.walletId,
+                      );
+                });
+              }
             }
           }
         }
 
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Correct! Your wallet is set up.",
-            iconAsset: Assets.svg.check,
-            context: context,
-          ),
-        );
+        if (widget.importedPaperWallet != null) {
+          // TODO: maybe show something?
+          // leaving for now as there is already an error dialog being shown
+        } else {
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.success,
+              message: "Correct! Your wallet is set up.",
+              iconAsset: Assets.svg.check,
+              context: context,
+            ),
+          );
+        }
       }
     } else {
       unawaited(

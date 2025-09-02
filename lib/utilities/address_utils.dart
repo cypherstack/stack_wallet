@@ -174,39 +174,34 @@ class AddressUtils {
     }
   }
 
-  /// Parses a wallet URI and returns a WalletUriData object.
+  /// Parses a wallet URI and returns a Map.
   ///
   /// Returns null on failure to parse.
-  static WalletUriData? parseWalletUri(String uri) {
-    String scheme = "";
-    Map<String, String> parsedData = {};
-    if (uri.split(":")[0].contains("_")) { // We need to check if the uri is compatible because RFC 3986 does not allow underscores in the scheme
+  static Map<String, dynamic>? _parseWalletUri(String uri) {
+    final String scheme;
+    final Map<String, dynamic> parsedData = {};
+    if (uri.split(":")[0].contains("_")) {
+      // We need to check if the uri is compatible because RFC 3986 does not allow underscores in the scheme
       final String compatibleUri = uri.replaceFirst("_", "");
       scheme = uri.split(":")[0];
-      parsedData = _parseUri(compatibleUri);
-      parsedData.remove("scheme");
+      parsedData.addAll(_parseUri(compatibleUri));
     } else {
-      parsedData = _parseUri(uri);
-      scheme = parsedData['scheme'] ?? '';
-      parsedData.remove('scheme');
+      parsedData.addAll(_parseUri(uri));
+      scheme = parsedData['scheme'] as String? ?? '';
     }
 
-    final CryptoCurrency? coin = AppConfig.coins.map((e) => "${e.uriScheme}_wallet").toSet().contains(scheme) ?
-    AppConfig.coins.firstWhere((e) => "${e.uriScheme}_wallet".contains(scheme)) : null;
+    // not sure this is the best way to handle this but will leave as is for now
+    final possibleCoins = AppConfig.coins.where(
+      (e) => "${e.uriScheme}_wallet".contains(scheme),
+    );
 
-    if (coin == null) {
+    if (possibleCoins.length != 1) {
       return null;
     }
 
-    return WalletUriData(
-      coin: coin,
-      address: parsedData['address']?.trim(),
-      seed: parsedData['seed'] ?? parsedData['mnemonic'],
-      spendKey: parsedData['spend_key'],
-      viewKey: parsedData['view_key'],
-      height: int.tryParse(parsedData['height'] ?? ''),
-      txids: parsedData['txids']?.split(',') ?? parsedData['txid']?.split(','),
-    );
+    parsedData["coin"] = possibleCoins.first;
+
+    return parsedData;
   }
 
   /// Builds a uri string with the given address and query parameters (if any)
@@ -353,6 +348,91 @@ class WalletUriData {
     this.height,
     this.txids,
   });
+
+  factory WalletUriData.fromUriString(String uri) {
+    final map = AddressUtils._parseWalletUri(uri);
+
+    if (map == null) {
+      throw Exception("Invalid wallet URI");
+    }
+
+    return WalletUriData.fromJson(map, map["coin"] as CryptoCurrency);
+  }
+
+  /// Factory constructor with validation logic according to the spec:
+  /// https://github.com/monero-project/monero/wiki/URI-Formatting#wallet-definition-scheme
+  factory WalletUriData.fromJson(
+    Map<String, dynamic> json,
+    CryptoCurrency coin,
+  ) {
+    final address = json["address"] as String?;
+    final spendKey = json["spend_key"] as String?;
+    final viewKey = json["view_key"] as String?;
+    final seed = json["seed"] as String?;
+    final height =
+        json["height"] != null ? int.tryParse(json["height"].toString()) : null;
+    final txid = json["txid"] as String?;
+
+    // Rule: address is required
+    if (address == null || address.isEmpty) {
+      throw const FormatException("Missing required field: address");
+    }
+
+    // Rule: Only one of seed OR (spend_key + view_key) may/must be specified
+    final hasSeed = seed != null;
+    final hasKeyPair = spendKey != null && viewKey != null;
+
+    if (hasSeed && hasKeyPair) {
+      throw const FormatException(
+        "Invalid: cannot specify both seed and (spend_key, view_key).",
+      );
+    }
+    if (!hasSeed && !hasKeyPair) {
+      throw const FormatException(
+        "Invalid: must specify either seed OR (spend_key, view_key).",
+      );
+    }
+
+    // Rule: spend_key requires address + view_key
+    if (spendKey != null && viewKey == null) {
+      throw const FormatException("Invalid: spend_key requires view_key.");
+    }
+
+    // Rule: view_key requires address (already required anyway) and absence of seed
+    if (viewKey != null && hasSeed) {
+      throw const FormatException(
+        "Invalid: view_key cannot be specified together with seed.",
+      );
+    }
+
+    // Rule: height requires absence of txid
+    if (height != null && txid != null) {
+      throw const FormatException(
+        "Invalid: cannot specify both height and txid.",
+      );
+    }
+
+    // Parse txids if present
+    List<String>? txids;
+    if (txid != null && txid.isNotEmpty) {
+      txids =
+          txid
+              .split(";")
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
+    }
+
+    return WalletUriData(
+      coin: coin,
+      address: address,
+      spendKey: spendKey,
+      viewKey: viewKey,
+      seed: seed,
+      height: height,
+      txids: txids,
+    );
+  }
 
   @override
   String toString() {

@@ -15,7 +15,6 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -49,12 +48,14 @@ class NewWalletRecoveryPhraseWarningView extends ConsumerStatefulWidget {
     super.key,
     required this.coin,
     required this.walletName,
+    this.importedPaperWallet,
   });
 
   static const routeName = "/newWalletRecoveryPhraseWarning";
 
   final CryptoCurrency coin;
   final String walletName;
+  final Wallet? importedPaperWallet;
 
   @override
   ConsumerState<NewWalletRecoveryPhraseWarningView> createState() =>
@@ -96,7 +97,11 @@ class _NewWalletRecoveryPhraseWarningViewState
         unawaited(
           nav.pushNamed(
             NewWalletRecoveryPhraseView.routeName,
-            arguments: Tuple2(result.$1, result.$2),
+            arguments: (
+              wallet: result.$1,
+              mnemonic: result.$2,
+              importedPaperWallet: widget.importedPaperWallet,
+            ),
           ),
         );
       }

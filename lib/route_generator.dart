@@ -1487,6 +1487,22 @@ class RouteGenerator {
                 ),
             settings: RouteSettings(name: settings.name),
           );
+        } else if (args
+            is ({
+              String walletName,
+              CryptoCurrency coin,
+              Wallet importedPaperWallet,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder:
+                (_) => NewWalletRecoveryPhraseWarningView(
+                  walletName: args.walletName,
+                  coin: args.coin,
+                  importedPaperWallet: args.importedPaperWallet,
+                ),
+            settings: RouteSettings(name: settings.name),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1566,6 +1582,22 @@ class RouteGenerator {
                 ),
             settings: RouteSettings(name: settings.name),
           );
+        } else if (args
+            is ({
+              Wallet wallet,
+              List<String> mnemonic,
+              Wallet? importedPaperWallet,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder:
+                (_) => NewWalletRecoveryPhraseView(
+                  wallet: args.wallet,
+                  mnemonic: args.mnemonic,
+                  importedPaperWallet: args.importedPaperWallet,
+                ),
+            settings: RouteSettings(name: settings.name),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1577,6 +1609,22 @@ class RouteGenerator {
                 (_) => VerifyRecoveryPhraseView(
                   wallet: args.item1,
                   mnemonic: args.item2,
+                ),
+            settings: RouteSettings(name: settings.name),
+          );
+        } else if (args
+            is ({
+              Wallet wallet,
+              List<String> mnemonic,
+              Wallet? importedPaperWallet,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder:
+                (_) => VerifyRecoveryPhraseView(
+                  wallet: args.wallet,
+                  mnemonic: args.mnemonic,
+                  importedPaperWallet: args.importedPaperWallet,
                 ),
             settings: RouteSettings(name: settings.name),
           );
