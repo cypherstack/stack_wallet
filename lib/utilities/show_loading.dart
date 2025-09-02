@@ -16,16 +16,8 @@ import '../themes/stack_colors.dart';
 import '../widgets/custom_loading_overlay.dart';
 import 'logger.dart';
 
-Future<T> minWaitFuture<T>(
-  Future<T> future, {
-  required Duration delay,
-}) async {
-  final results = await Future.wait(
-    [
-      future,
-      Future<dynamic>.delayed(delay),
-    ],
-  );
+Future<T> minWaitFuture<T>(Future<T> future, {required Duration delay}) async {
+  final results = await Future.wait([future, Future<dynamic>.delayed(delay)]);
 
   return results.first as T;
 }
@@ -39,25 +31,27 @@ Future<T?> showLoading<T>({
   bool opaqueBG = false,
   void Function(Exception)? onException,
   Duration? delay,
+  Stream<double>? progressStream,
 }) async {
   unawaited(
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
-        child: Container(
-          color: Theme.of(context)
-              .extension<StackColors>()!
-              .overlay
-              .withOpacity(opaqueBG ? 1.0 : 0.6),
-          child: CustomLoadingOverlay(
-            message: message,
-            subMessage: subMessage,
-            eventBus: null,
+      builder:
+          (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(opaqueBG ? 1.0 : 0.6),
+              child: CustomLoadingOverlay(
+                message: message,
+                subMessage: subMessage,
+                progressStream: progressStream,
+              ),
+            ),
           ),
-        ),
-      ),
     ),
   );
 

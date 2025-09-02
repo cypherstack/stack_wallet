@@ -426,10 +426,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         context: context,
         builder:
             (context) => WillPopScope(
-              child: const CustomLoadingOverlay(
-                message: "Anonymizing balance",
-                eventBus: null,
-              ),
+              child: const CustomLoadingOverlay(message: "Anonymizing balance"),
               onWillPop: () async => shouldPop,
             ),
       ),
@@ -517,7 +514,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   message:
                       "Migration in progress\nThis could take a while\nPlease don't leave this screen",
                   subMessage: "This only needs to run once per wallet",
-                  eventBus: null,
                   textColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
                   actionButton: SecondaryButton(

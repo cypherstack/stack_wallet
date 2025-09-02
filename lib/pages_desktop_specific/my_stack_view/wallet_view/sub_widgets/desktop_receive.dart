@@ -98,7 +98,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 ).extension<StackColors>()!.overlay.withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
-                  eventBus: null,
                 ),
               ),
             );
@@ -175,7 +174,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 ).extension<StackColors>()!.overlay.withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
-                  eventBus: null,
                 ),
               ),
             );

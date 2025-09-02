@@ -94,14 +94,12 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           children: [
             child,
             Material(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.overlay.withOpacity(0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
-                eventBus: null,
               ),
             ),
           ],
@@ -113,15 +111,12 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverOverlapAbsorber(
-                handle:
-                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                  context,
+                ),
                 sliver: const SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 16,
-                    ),
+                    padding: EdgeInsets.only(left: 16, right: 16, top: 16),
                     child: ExchangeForm(),
                   ),
                 ),
@@ -130,8 +125,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           },
           body: Builder(
             builder: (buildContext) {
-              final trades = ref
-                  .watch(tradesServiceProvider.select((value) => value.trades));
+              final trades = ref.watch(
+                tradesServiceProvider.select((value) => value.trades),
+              );
               final tradeCount = trades.length;
               final hasHistory = tradeCount > 0;
 
@@ -150,98 +146,94 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(
-                              height: 12,
-                            ),
+                            const SizedBox(height: 12),
                             Text(
                               "Trades",
                               style: STextStyles.itemSubtitle(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
                               ),
                             ),
-                            const SizedBox(
-                              height: 12,
-                            ),
+                            const SizedBox(height: 12),
                           ],
                         ),
                       ),
                     ),
                     if (hasHistory)
                       SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: TradeCard(
-                                key: Key("tradeCard_${trades[index].uuid}"),
-                                trade: trades[index],
-                                onTap: () async {
-                                  final String tradeId = trades[index].tradeId;
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: TradeCard(
+                              key: Key("tradeCard_${trades[index].uuid}"),
+                              trade: trades[index],
+                              onTap: () async {
+                                final String tradeId = trades[index].tradeId;
 
-                                  final lookup = ref
-                                      .read(tradeSentFromStackLookupProvider)
-                                      .all;
+                                final lookup =
+                                    ref
+                                        .read(tradeSentFromStackLookupProvider)
+                                        .all;
+
+                                //todo: check if print needed
+                                // debugPrint("ALL: $lookup");
+
+                                final String? txid = ref
+                                    .read(tradeSentFromStackLookupProvider)
+                                    .getTxidForTradeId(tradeId);
+                                final List<String>? walletIds = ref
+                                    .read(tradeSentFromStackLookupProvider)
+                                    .getWalletIdsForTradeId(tradeId);
+
+                                if (txid != null &&
+                                    walletIds != null &&
+                                    walletIds.isNotEmpty) {
+                                  final wallet = ref
+                                      .read(pWallets)
+                                      .getWallet(walletIds.first);
 
                                   //todo: check if print needed
-                                  // debugPrint("ALL: $lookup");
+                                  // debugPrint("name: ${manager.walletName}");
 
-                                  final String? txid = ref
-                                      .read(tradeSentFromStackLookupProvider)
-                                      .getTxidForTradeId(tradeId);
-                                  final List<String>? walletIds = ref
-                                      .read(tradeSentFromStackLookupProvider)
-                                      .getWalletIdsForTradeId(tradeId);
+                                  final tx =
+                                      await MainDB.instance
+                                          .getTransactions(walletIds.first)
+                                          .filter()
+                                          .txidEqualTo(txid)
+                                          .findFirst();
 
-                                  if (txid != null &&
-                                      walletIds != null &&
-                                      walletIds.isNotEmpty) {
-                                    final wallet = ref
-                                        .read(pWallets)
-                                        .getWallet(walletIds.first);
-
-                                    //todo: check if print needed
-                                    // debugPrint("name: ${manager.walletName}");
-
-                                    final tx = await MainDB.instance
-                                        .getTransactions(walletIds.first)
-                                        .filter()
-                                        .txidEqualTo(txid)
-                                        .findFirst();
-
-                                    if (mounted) {
-                                      unawaited(
-                                        Navigator.of(context).pushNamed(
-                                          TradeDetailsView.routeName,
-                                          arguments: Tuple4(
-                                            tradeId,
-                                            tx,
-                                            walletIds.first,
-                                            wallet.info.name,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  } else {
+                                  if (mounted) {
                                     unawaited(
                                       Navigator.of(context).pushNamed(
                                         TradeDetailsView.routeName,
                                         arguments: Tuple4(
                                           tradeId,
-                                          null,
-                                          walletIds?.first,
-                                          null,
+                                          tx,
+                                          walletIds.first,
+                                          wallet.info.name,
                                         ),
                                       ),
                                     );
                                   }
-                                },
-                              ),
-                            );
-                          },
-                          childCount: tradeCount,
-                        ),
+                                } else {
+                                  unawaited(
+                                    Navigator.of(context).pushNamed(
+                                      TradeDetailsView.routeName,
+                                      arguments: Tuple4(
+                                        tradeId,
+                                        null,
+                                        walletIds?.first,
+                                        null,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          );
+                        }, childCount: tradeCount),
                       ),
                     if (!hasHistory)
                       SliverToBoxAdapter(
@@ -249,9 +241,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG,
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
                               ),

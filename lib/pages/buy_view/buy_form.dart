@@ -167,7 +167,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               (context) => WillPopScope(
                 child: const CustomLoadingOverlay(
                   message: "Loading currency data",
-                  eventBus: null,
                 ),
                 onWillPop: () async => shouldPop,
               ),
@@ -276,7 +275,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               (context) => WillPopScope(
                 child: const CustomLoadingOverlay(
                   message: "Loading currency data",
-                  eventBus: null,
                 ),
                 onWillPop: () async => shouldPop,
               ),
@@ -408,10 +406,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         context: context,
         builder:
             (context) => WillPopScope(
-              child: const CustomLoadingOverlay(
-                message: "Loading quote data",
-                eventBus: null,
-              ),
+              child: const CustomLoadingOverlay(message: "Loading quote data"),
               onWillPop: () async => shouldPop,
             ),
       ),

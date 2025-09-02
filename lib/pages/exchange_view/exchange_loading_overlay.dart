@@ -18,10 +18,7 @@ import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/stack_dialog.dart';
 
 class ExchangeLoadingOverlayView extends ConsumerStatefulWidget {
-  const ExchangeLoadingOverlayView({
-    super.key,
-    required this.unawaitedLoad,
-  });
+  const ExchangeLoadingOverlayView({super.key, required this.unawaitedLoad});
 
   final VoidCallback unawaitedLoad;
 
@@ -52,48 +49,41 @@ class _ExchangeLoadingOverlayViewState
     debugPrint("BUILD: $runtimeType");
 
     ref.listen(
-        changeNowEstimatedInitialLoadStatusStateProvider
-            .select((value) => value), (previous, next) {
-      if (next is ChangeNowLoadStatus) {
+      changeNowEstimatedInitialLoadStatusStateProvider.select((value) => value),
+      (previous, next) {
         setState(() {
           _statusEst = next;
         });
-      }
-    });
+      },
+    );
 
     ref.listen(
-        changeNowFixedInitialLoadStatusStateProvider.select((value) => value),
-        (previous, next) {
-      if (next is ChangeNowLoadStatus) {
+      changeNowFixedInitialLoadStatusStateProvider.select((value) => value),
+      (previous, next) {
         setState(() {
           _statusFixed = next;
         });
-      }
-    });
+      },
+    );
 
     return Stack(
       children: [
         if (_statusEst == ChangeNowLoadStatus.loading ||
             (_statusFixed == ChangeNowLoadStatus.loading && userReloaded))
           Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.7),
-            child: const CustomLoadingOverlay(
-              message: "Loading Exchange data",
-              eventBus: null,
-            ),
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.overlay.withOpacity(0.7),
+            child: const CustomLoadingOverlay(message: "Loading Exchange data"),
           ),
         if ((_statusEst == ChangeNowLoadStatus.failed ||
                 _statusFixed == ChangeNowLoadStatus.failed) &&
             _statusEst != ChangeNowLoadStatus.loading &&
             _statusFixed != ChangeNowLoadStatus.loading)
           Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.7),
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.overlay.withOpacity(0.7),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -108,9 +98,10 @@ class _ExchangeLoadingOverlayViewState
                     child: Text(
                       "OK",
                       style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonTextSecondary,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.buttonTextSecondary,
                       ),
                     ),
                     onPressed: () {

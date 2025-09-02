@@ -207,10 +207,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         context: context,
         builder:
             (context) => WillPopScope(
-              child: const CustomLoadingOverlay(
-                message: "Privatizing balance",
-                eventBus: null,
-              ),
+              child: const CustomLoadingOverlay(message: "Privatizing balance"),
               onWillPop: () async => shouldPop,
             ),
       ),

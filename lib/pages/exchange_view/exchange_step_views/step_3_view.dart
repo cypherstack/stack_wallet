@@ -236,7 +236,6 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                       const CustomLoadingOverlay(
                                                         message:
                                                             "Creating a trade",
-                                                        eventBus: null,
                                                       ),
                                                 ),
                                               ),

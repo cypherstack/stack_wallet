@@ -113,7 +113,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 ).extension<StackColors>()!.overlay.withOpacity(0.6),
                 child: const CustomLoadingOverlay(
                   message: "Updating exchange rate",
-                  eventBus: null,
                 ),
               ),
             ),

@@ -82,7 +82,6 @@ class _ExchangeCurrencySelectionViewState
                 ).extension<StackColors>()!.overlay.withOpacity(0.6),
                 child: const CustomLoadingOverlay(
                   message: "Loading currencies",
-                  eventBus: null,
                 ),
               ),
             ),

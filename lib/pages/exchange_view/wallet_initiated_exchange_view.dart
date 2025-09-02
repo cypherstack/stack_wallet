@@ -117,7 +117,6 @@ class _WalletInitiatedExchangeViewState
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
-                eventBus: null,
               ),
             ),
           ],
