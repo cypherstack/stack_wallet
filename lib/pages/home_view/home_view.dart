@@ -56,6 +56,7 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView> {
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+  late final Prefs _prefs;
 
   late final PageController _pageController;
   late final RotateIconController _rotateIconController;
@@ -96,9 +97,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   late AutoLockInfo _autoLockInfo;
   void _prefsTimeoutListener() {
-    final prefs = ref.read(prefsChangeNotifierProvider);
-    if (mounted && prefs.autoLockInfo != _autoLockInfo) {
-      _autoLockInfo = prefs.autoLockInfo;
+    if (mounted && _prefs.autoLockInfo != _autoLockInfo) {
+      _autoLockInfo = _prefs.autoLockInfo;
       if (_autoLockInfo.enabled) {
         _idleMonitor?.detach();
         _idleMonitor = IdleMonitor(
@@ -209,7 +209,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   void initState() {
-    _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
+    _prefs = ref.read(prefsChangeNotifierProvider);
+    _autoLockInfo = _prefs.autoLockInfo;
     if (_autoLockInfo.enabled) {
       _idleMonitor = IdleMonitor(
         timeout: Duration(minutes: _autoLockInfo.minutes),
@@ -235,14 +236,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     _idleMonitor?.attach();
 
-    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
+    _prefs.addListener(_prefsTimeoutListener);
 
     super.initState();
   }
 
   @override
   dispose() {
-    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _prefs.removeListener(_prefsTimeoutListener);
     _idleMonitor?.detach();
     _pageController.dispose();
     _rotateIconController.forward = null;
@@ -494,7 +495,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         previous,
                         next,
                       ) {
-                        if (next is int && next >= 0 && next <= 2) {
+                        if (next >= 0 && next <= 2) {
                           // if (next == 1) {
                           //   _exchangeDataLoadingService.loadAll(ref);
                           // }
