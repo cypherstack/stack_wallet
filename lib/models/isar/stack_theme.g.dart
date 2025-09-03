@@ -18148,153 +18148,138 @@ const ThemeAssetsSchema = Schema(
       name: r'loadingGif',
       type: IsarType.string,
     ),
-    r'mimblewimblecoin': PropertySchema(
-      id: 26,
-      name: r'mimblewimblecoin',
-      type: IsarType.string,
-    ),
-    r'mimblewimblecoinImage': PropertySchema(
-      id: 27,
-      name: r'mimblewimblecoinImage',
-      type: IsarType.string,
-    ),
-    r'mimblewimblecoinImageSecondary': PropertySchema(
-      id: 28,
-      name: r'mimblewimblecoinImageSecondary',
-      type: IsarType.string,
-    ),
     r'monero': PropertySchema(
-      id: 29,
+      id: 26,
       name: r'monero',
       type: IsarType.string,
     ),
     r'moneroImage': PropertySchema(
-      id: 30,
+      id: 27,
       name: r'moneroImage',
       type: IsarType.string,
     ),
     r'moneroImageSecondary': PropertySchema(
-      id: 31,
+      id: 28,
       name: r'moneroImageSecondary',
       type: IsarType.string,
     ),
     r'namecoin': PropertySchema(
-      id: 32,
+      id: 29,
       name: r'namecoin',
       type: IsarType.string,
     ),
     r'namecoinImage': PropertySchema(
-      id: 33,
+      id: 30,
       name: r'namecoinImage',
       type: IsarType.string,
     ),
     r'namecoinImageSecondary': PropertySchema(
-      id: 34,
+      id: 31,
       name: r'namecoinImageSecondary',
       type: IsarType.string,
     ),
     r'particl': PropertySchema(
-      id: 35,
+      id: 32,
       name: r'particl',
       type: IsarType.string,
     ),
     r'particlImage': PropertySchema(
-      id: 36,
+      id: 33,
       name: r'particlImage',
       type: IsarType.string,
     ),
     r'particlImageSecondary': PropertySchema(
-      id: 37,
+      id: 34,
       name: r'particlImageSecondary',
       type: IsarType.string,
     ),
     r'personaEasy': PropertySchema(
-      id: 38,
+      id: 35,
       name: r'personaEasy',
       type: IsarType.string,
     ),
     r'personaIncognito': PropertySchema(
-      id: 39,
+      id: 36,
       name: r'personaIncognito',
       type: IsarType.string,
     ),
     r'receive': PropertySchema(
-      id: 40,
+      id: 37,
       name: r'receive',
       type: IsarType.string,
     ),
     r'receiveCancelled': PropertySchema(
-      id: 41,
+      id: 38,
       name: r'receiveCancelled',
       type: IsarType.string,
     ),
     r'receivePending': PropertySchema(
-      id: 42,
+      id: 39,
       name: r'receivePending',
       type: IsarType.string,
     ),
     r'send': PropertySchema(
-      id: 43,
+      id: 40,
       name: r'send',
       type: IsarType.string,
     ),
     r'sendCancelled': PropertySchema(
-      id: 44,
+      id: 41,
       name: r'sendCancelled',
       type: IsarType.string,
     ),
     r'sendPending': PropertySchema(
-      id: 45,
+      id: 42,
       name: r'sendPending',
       type: IsarType.string,
     ),
     r'stack': PropertySchema(
-      id: 46,
+      id: 43,
       name: r'stack',
       type: IsarType.string,
     ),
     r'stackIcon': PropertySchema(
-      id: 47,
+      id: 44,
       name: r'stackIcon',
       type: IsarType.string,
     ),
     r'themePreview': PropertySchema(
-      id: 48,
+      id: 45,
       name: r'themePreview',
       type: IsarType.string,
     ),
     r'themeSelector': PropertySchema(
-      id: 49,
+      id: 46,
       name: r'themeSelector',
       type: IsarType.string,
     ),
     r'txExchange': PropertySchema(
-      id: 50,
+      id: 47,
       name: r'txExchange',
       type: IsarType.string,
     ),
     r'txExchangeFailed': PropertySchema(
-      id: 51,
+      id: 48,
       name: r'txExchangeFailed',
       type: IsarType.string,
     ),
     r'txExchangePending': PropertySchema(
-      id: 52,
+      id: 49,
       name: r'txExchangePending',
       type: IsarType.string,
     ),
     r'wownero': PropertySchema(
-      id: 53,
+      id: 50,
       name: r'wownero',
       type: IsarType.string,
     ),
     r'wowneroImage': PropertySchema(
-      id: 54,
+      id: 51,
       name: r'wowneroImage',
       type: IsarType.string,
     ),
     r'wowneroImageSecondary': PropertySchema(
-      id: 55,
+      id: 52,
       name: r'wowneroImageSecondary',
       type: IsarType.string,
     )
@@ -18347,9 +18332,6 @@ int _themeAssetsEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.mimblewimblecoin.length * 3;
-  bytesCount += 3 + object.mimblewimblecoinImage.length * 3;
-  bytesCount += 3 + object.mimblewimblecoinImageSecondary.length * 3;
   bytesCount += 3 + object.monero.length * 3;
   bytesCount += 3 + object.moneroImage.length * 3;
   bytesCount += 3 + object.moneroImageSecondary.length * 3;
@@ -18412,36 +18394,33 @@ void _themeAssetsSerialize(
   writer.writeString(offsets[23], object.litecoinImage);
   writer.writeString(offsets[24], object.litecoinImageSecondary);
   writer.writeString(offsets[25], object.loadingGif);
-  writer.writeString(offsets[26], object.mimblewimblecoin);
-  writer.writeString(offsets[27], object.mimblewimblecoinImage);
-  writer.writeString(offsets[28], object.mimblewimblecoinImageSecondary);
-  writer.writeString(offsets[29], object.monero);
-  writer.writeString(offsets[30], object.moneroImage);
-  writer.writeString(offsets[31], object.moneroImageSecondary);
-  writer.writeString(offsets[32], object.namecoin);
-  writer.writeString(offsets[33], object.namecoinImage);
-  writer.writeString(offsets[34], object.namecoinImageSecondary);
-  writer.writeString(offsets[35], object.particl);
-  writer.writeString(offsets[36], object.particlImage);
-  writer.writeString(offsets[37], object.particlImageSecondary);
-  writer.writeString(offsets[38], object.personaEasy);
-  writer.writeString(offsets[39], object.personaIncognito);
-  writer.writeString(offsets[40], object.receive);
-  writer.writeString(offsets[41], object.receiveCancelled);
-  writer.writeString(offsets[42], object.receivePending);
-  writer.writeString(offsets[43], object.send);
-  writer.writeString(offsets[44], object.sendCancelled);
-  writer.writeString(offsets[45], object.sendPending);
-  writer.writeString(offsets[46], object.stack);
-  writer.writeString(offsets[47], object.stackIcon);
-  writer.writeString(offsets[48], object.themePreview);
-  writer.writeString(offsets[49], object.themeSelector);
-  writer.writeString(offsets[50], object.txExchange);
-  writer.writeString(offsets[51], object.txExchangeFailed);
-  writer.writeString(offsets[52], object.txExchangePending);
-  writer.writeString(offsets[53], object.wownero);
-  writer.writeString(offsets[54], object.wowneroImage);
-  writer.writeString(offsets[55], object.wowneroImageSecondary);
+  writer.writeString(offsets[26], object.monero);
+  writer.writeString(offsets[27], object.moneroImage);
+  writer.writeString(offsets[28], object.moneroImageSecondary);
+  writer.writeString(offsets[29], object.namecoin);
+  writer.writeString(offsets[30], object.namecoinImage);
+  writer.writeString(offsets[31], object.namecoinImageSecondary);
+  writer.writeString(offsets[32], object.particl);
+  writer.writeString(offsets[33], object.particlImage);
+  writer.writeString(offsets[34], object.particlImageSecondary);
+  writer.writeString(offsets[35], object.personaEasy);
+  writer.writeString(offsets[36], object.personaIncognito);
+  writer.writeString(offsets[37], object.receive);
+  writer.writeString(offsets[38], object.receiveCancelled);
+  writer.writeString(offsets[39], object.receivePending);
+  writer.writeString(offsets[40], object.send);
+  writer.writeString(offsets[41], object.sendCancelled);
+  writer.writeString(offsets[42], object.sendPending);
+  writer.writeString(offsets[43], object.stack);
+  writer.writeString(offsets[44], object.stackIcon);
+  writer.writeString(offsets[45], object.themePreview);
+  writer.writeString(offsets[46], object.themeSelector);
+  writer.writeString(offsets[47], object.txExchange);
+  writer.writeString(offsets[48], object.txExchangeFailed);
+  writer.writeString(offsets[49], object.txExchangePending);
+  writer.writeString(offsets[50], object.wownero);
+  writer.writeString(offsets[51], object.wowneroImage);
+  writer.writeString(offsets[52], object.wowneroImageSecondary);
 }
 
 ThemeAssets _themeAssetsDeserialize(
@@ -18477,36 +18456,33 @@ ThemeAssets _themeAssetsDeserialize(
   object.litecoinImage = reader.readString(offsets[23]);
   object.litecoinImageSecondary = reader.readString(offsets[24]);
   object.loadingGif = reader.readStringOrNull(offsets[25]);
-  object.mimblewimblecoin = reader.readString(offsets[26]);
-  object.mimblewimblecoinImage = reader.readString(offsets[27]);
-  object.mimblewimblecoinImageSecondary = reader.readString(offsets[28]);
-  object.monero = reader.readString(offsets[29]);
-  object.moneroImage = reader.readString(offsets[30]);
-  object.moneroImageSecondary = reader.readString(offsets[31]);
-  object.namecoin = reader.readString(offsets[32]);
-  object.namecoinImage = reader.readString(offsets[33]);
-  object.namecoinImageSecondary = reader.readString(offsets[34]);
-  object.particl = reader.readString(offsets[35]);
-  object.particlImage = reader.readString(offsets[36]);
-  object.particlImageSecondary = reader.readString(offsets[37]);
-  object.personaEasy = reader.readString(offsets[38]);
-  object.personaIncognito = reader.readString(offsets[39]);
-  object.receive = reader.readString(offsets[40]);
-  object.receiveCancelled = reader.readString(offsets[41]);
-  object.receivePending = reader.readString(offsets[42]);
-  object.send = reader.readString(offsets[43]);
-  object.sendCancelled = reader.readString(offsets[44]);
-  object.sendPending = reader.readString(offsets[45]);
-  object.stack = reader.readString(offsets[46]);
-  object.stackIcon = reader.readString(offsets[47]);
-  object.themePreview = reader.readString(offsets[48]);
-  object.themeSelector = reader.readString(offsets[49]);
-  object.txExchange = reader.readString(offsets[50]);
-  object.txExchangeFailed = reader.readString(offsets[51]);
-  object.txExchangePending = reader.readString(offsets[52]);
-  object.wownero = reader.readString(offsets[53]);
-  object.wowneroImage = reader.readString(offsets[54]);
-  object.wowneroImageSecondary = reader.readString(offsets[55]);
+  object.monero = reader.readString(offsets[26]);
+  object.moneroImage = reader.readString(offsets[27]);
+  object.moneroImageSecondary = reader.readString(offsets[28]);
+  object.namecoin = reader.readString(offsets[29]);
+  object.namecoinImage = reader.readString(offsets[30]);
+  object.namecoinImageSecondary = reader.readString(offsets[31]);
+  object.particl = reader.readString(offsets[32]);
+  object.particlImage = reader.readString(offsets[33]);
+  object.particlImageSecondary = reader.readString(offsets[34]);
+  object.personaEasy = reader.readString(offsets[35]);
+  object.personaIncognito = reader.readString(offsets[36]);
+  object.receive = reader.readString(offsets[37]);
+  object.receiveCancelled = reader.readString(offsets[38]);
+  object.receivePending = reader.readString(offsets[39]);
+  object.send = reader.readString(offsets[40]);
+  object.sendCancelled = reader.readString(offsets[41]);
+  object.sendPending = reader.readString(offsets[42]);
+  object.stack = reader.readString(offsets[43]);
+  object.stackIcon = reader.readString(offsets[44]);
+  object.themePreview = reader.readString(offsets[45]);
+  object.themeSelector = reader.readString(offsets[46]);
+  object.txExchange = reader.readString(offsets[47]);
+  object.txExchangeFailed = reader.readString(offsets[48]);
+  object.txExchangePending = reader.readString(offsets[49]);
+  object.wownero = reader.readString(offsets[50]);
+  object.wowneroImage = reader.readString(offsets[51]);
+  object.wowneroImageSecondary = reader.readString(offsets[52]);
   return object;
 }
 
@@ -18622,12 +18598,6 @@ P _themeAssetsDeserializeProp<P>(
     case 51:
       return (reader.readString(offset)) as P;
     case 52:
-      return (reader.readString(offset)) as P;
-    case 53:
-      return (reader.readString(offset)) as P;
-    case 54:
-      return (reader.readString(offset)) as P;
-    case 55:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -22195,417 +22165,6 @@ extension ThemeAssetsQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'loadingGif',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'mimblewimblecoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'mimblewimblecoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'mimblewimblecoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'mimblewimblecoin',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'mimblewimblecoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'mimblewimblecoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'mimblewimblecoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'mimblewimblecoin',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'mimblewimblecoin',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'mimblewimblecoin',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'mimblewimblecoinImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'mimblewimblecoinImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'mimblewimblecoinImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'mimblewimblecoinImage',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'mimblewimblecoinImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'mimblewimblecoinImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'mimblewimblecoinImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageMatches(String pattern,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'mimblewimblecoinImage',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'mimblewimblecoinImage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'mimblewimblecoinImage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'mimblewimblecoinImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'mimblewimblecoinImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'mimblewimblecoinImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'mimblewimblecoinImageSecondary',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'mimblewimblecoinImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'mimblewimblecoinImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryContains(String value,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'mimblewimblecoinImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryMatches(String pattern,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'mimblewimblecoinImageSecondary',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'mimblewimblecoinImageSecondary',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      mimblewimblecoinImageSecondaryIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'mimblewimblecoinImageSecondary',
         value: '',
       ));
     });

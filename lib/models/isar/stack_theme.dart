@@ -13,6 +13,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+
 import '../../app_config.dart';
 import '../../utilities/extensions/impl/box_shadow.dart';
 import '../../utilities/extensions/impl/gradient.dart';
@@ -1884,10 +1885,7 @@ class StackTheme {
           (map[mainNetId] as String).toBigIntFromHex.toInt(),
         );
       } else {
-        Logging.instance.log(
-          "Color not found in theme for $mainNetId",
-          level: LogLevel.Error,
-        );
+        Logging.instance.w("Color not found in theme for $mainNetId");
       }
     }
 
@@ -1939,7 +1937,6 @@ class ThemeAssets implements IThemeAssets {
   late final String bitcoincash;
   late final String dogecoin;
   late final String epicCash;
-  late final String mimblewimblecoin;
   late final String ethereum;
   late final String firo;
   late final String monero;
@@ -1950,7 +1947,6 @@ class ThemeAssets implements IThemeAssets {
   late final String bitcoincashImage;
   late final String dogecoinImage;
   late final String epicCashImage;
-  late final String mimblewimblecoinImage;
   late final String ethereumImage;
   late final String firoImage;
   late final String litecoinImage;
@@ -1962,7 +1958,6 @@ class ThemeAssets implements IThemeAssets {
   late final String bitcoincashImageSecondary;
   late final String dogecoinImageSecondary;
   late final String epicCashImageSecondary;
-  late final String mimblewimblecoinImageSecondary;
   late final String ethereumImageSecondary;
   late final String firoImageSecondary;
   late final String litecoinImageSecondary;
@@ -2009,8 +2004,6 @@ class ThemeAssets implements IThemeAssets {
       ..bitcoincash = "$themeId/assets/${json["bitcoincash"] as String}"
       ..dogecoin = "$themeId/assets/${json["dogecoin"] as String}"
       ..epicCash = "$themeId/assets/${json["epicCash"] as String}"
-      ..mimblewimblecoin =
-          "$themeId/assets/${json["mimblewimblecoin"] as String}"
       ..ethereum = "$themeId/assets/${json["ethereum"] as String}"
       ..firo = "$themeId/assets/${json["firo"] as String}"
       ..monero = "$themeId/assets/${json["monero"] as String}"
@@ -2022,8 +2015,6 @@ class ThemeAssets implements IThemeAssets {
           "$themeId/assets/${json["bitcoincash_image"] as String}"
       ..dogecoinImage = "$themeId/assets/${json["dogecoin_image"] as String}"
       ..epicCashImage = "$themeId/assets/${json["epicCash_image"] as String}"
-      ..mimblewimblecoinImage =
-          "$themeId/assets/${json["mimblewimblecoin_image"] as String}"
       ..ethereumImage = "$themeId/assets/${json["ethereum_image"] as String}"
       ..firoImage = "$themeId/assets/${json["firo_image"] as String}"
       ..litecoinImage = "$themeId/assets/${json["litecoin_image"] as String}"
@@ -2039,8 +2030,6 @@ class ThemeAssets implements IThemeAssets {
           "$themeId/assets/${json["dogecoin_image_secondary"] as String}"
       ..epicCashImageSecondary =
           "$themeId/assets/${json["epicCash_image_secondary"] as String}"
-      ..mimblewimblecoinImageSecondary =
-          "$themeId/assets/${json["mimblewimblecoin_image_secondary"] as String}"
       ..ethereumImageSecondary =
           "$themeId/assets/${json["ethereum_image_secondary"] as String}"
       ..firoImageSecondary =
