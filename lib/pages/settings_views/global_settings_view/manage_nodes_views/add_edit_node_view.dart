@@ -95,13 +95,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     } else if (coin is CryptonoteCurrency) {
       ref.read(nodeFormDataProvider).host = data.host;
     }
-    if (coin is Mimblewimblecoin) {
-      ref.read(nodeFormDataProvider).host = data.host;
-      ref.read(nodeFormDataProvider).port = data.port;
-      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-    } else if (coin is CryptonoteCurrency) {
-      ref.read(nodeFormDataProvider).host = data.host;
-    }
   }
 
   Future<void> attemptSave() async {
