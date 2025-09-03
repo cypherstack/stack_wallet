@@ -62,6 +62,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Dogecoin(CryptoCurrencyNetwork.main),
   Ecash(CryptoCurrencyNetwork.main),
   Epiccash(CryptoCurrencyNetwork.main),
+  Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Ethereum(CryptoCurrencyNetwork.main),
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),

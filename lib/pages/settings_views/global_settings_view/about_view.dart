@@ -204,6 +204,7 @@ class AboutView extends ConsumerWidget {
                                         "Epic Cash Build Commit",
                                         style: STextStyles.titleBold12(context),
                                       ),
+<<<<<<<
                                       const SizedBox(height: 4),
                                       SelectableText(
                                         GitStatus.epicCashCommit,
@@ -218,6 +219,136 @@ class AboutView extends ConsumerWidget {
                               },
                             ),
                           const SizedBox(height: 12),
+=======
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        if (AppConfig.coins
+                            .whereType<Mimblewimblecoin>()
+                            .isNotEmpty)
+                          const SizedBox(
+                            height: 12,
+                          ),
+                        if (AppConfig.coins
+                            .whereType<Mimblewimblecoin>()
+                            .isNotEmpty)
+                          FutureBuilder(
+                            future: GitStatus.getMimblewimblecoinCommitStatus(),
+                            builder: (
+                              context,
+                              AsyncSnapshot<CommitStatus> snapshot,
+                            ) {
+                              CommitStatus stateOfCommit =
+                                  CommitStatus.notLoaded;
+
+                              if (snapshot.connectionState ==
+                                      ConnectionState.done &&
+                                  snapshot.hasData) {
+                                stateOfCommit = snapshot.data!;
+                              }
+
+                              return RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      "Mimblewimblecoin Build Commit",
+                                      style: STextStyles.titleBold12(context),
+                                    ),
+                                    const SizedBox(
+                                      height: 4,
+                                    ),
+                                    SelectableText(
+                                      GitStatus.mimblewimblecoinCommit,
+                                      style: GitStatus.styleForStatus(
+                                        stateOfCommit,
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        if (AppConfig.coins.whereType<Monero>().isNotEmpty)
+                          const SizedBox(
+                            height: 12,
+                          ),
+                        // if (AppConfig.coins.whereType<Monero>().isNotEmpty)
+                        //   FutureBuilder(
+                        //     future: GitStatus.getMoneroCommitStatus(),
+                        //     builder: (
+                        //       context,
+                        //       AsyncSnapshot<CommitStatus> snapshot,
+                        //     ) {
+                        //       CommitStatus stateOfCommit =
+                        //           CommitStatus.notLoaded;
+                        //
+                        //       if (snapshot.connectionState ==
+                        //               ConnectionState.done &&
+                        //           snapshot.hasData) {
+                        //         stateOfCommit = snapshot.data!;
+                        //       }
+                        //       return RoundedWhiteContainer(
+                        //         child: Column(
+                        //           crossAxisAlignment:
+                        //               CrossAxisAlignment.stretch,
+                        //           children: [
+                        //             Text(
+                        //               "Monero Build Commit",
+                        //               style: STextStyles.titleBold12(context),
+                        //             ),
+                        //             const SizedBox(
+                        //               height: 4,
+                        //             ),
+                        //             SelectableText(
+                        //               GitStatus.moneroCommit,
+                        //               style: GitStatus.styleForStatus(
+                        //                 stateOfCommit,
+                        //                 context,
+                        //               ),
+                        //             ),
+                        //           ],
+                        //         ),
+                        //       );
+                        //     },
+                        //   ),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
+                        RoundedWhiteContainer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Website",
+                                style: STextStyles.titleBold12(context),
+                              ),
+                              const SizedBox(
+                                height: 4,
+                              ),
+                              CustomTextButton(
+                                text: "https://stackwallet.com",
+                                onTap: () {
+                                  launchUrl(
+                                    Uri.parse("https://stackwallet.com"),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (AppConfig.coins.whereType<Tezos>().isNotEmpty)
+                          const SizedBox(
+                            height: 12,
+                          ),
+                        if (AppConfig.coins.whereType<Tezos>().isNotEmpty)
+>>>>>>>
                           RoundedWhiteContainer(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

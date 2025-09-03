@@ -408,7 +408,9 @@ class _SendViewState extends ConsumerState<SendView> {
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin is! Epiccash && !_baseFocus.hasFocus) {
+        if (coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees(
               amount ?? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
@@ -427,7 +429,9 @@ class _SendViewState extends ConsumerState<SendView> {
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin is! Epiccash && !_cryptoFocus.hasFocus) {
+      if (coin is! Epiccash &&
+          coin is! Mimblewimblecoin &&
+          !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees(
             ref.read(pSendAmount) == null
@@ -1277,6 +1281,7 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
+<<<<<<<
     Decimal? price;
     if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
       price = ref.watch(
@@ -1286,6 +1291,23 @@ class _SendViewState extends ConsumerState<SendView> {
       );
     }
 
+=======
+    if (coin is Mimblewimblecoin) {
+      sendToController.addListener(() {
+        _address = sendToController.text.trim();
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = AddressUtils().formatAddress(_address!);
+        }
+      });
+    }
+
+>>>>>>>
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -1599,6 +1621,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   key: const Key(
                                                     "sendViewPasteAddressFieldButtonKey",
                                                   ),
+<<<<<<<
                                                   onTap: _pasteAddress,
                                                   child:
                                                       sendToController
@@ -1606,6 +1629,63 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               .isEmpty
                                                           ? const ClipboardIcon()
                                                           : const XIcon(),
+=======
+                                                  onTap: () async {
+                                                    final ClipboardData? data =
+                                                        await clipboard.getData(
+                                                      Clipboard.kTextPlain,
+                                                    );
+                                                    if (data?.text != null &&
+                                                        data!
+                                                            .text!.isNotEmpty) {
+                                                      String content =
+                                                          data.text!.trim();
+                                                      if (content
+                                                          .contains("\n")) {
+                                                        content =
+                                                            content.substring(
+                                                          0,
+                                                          content.indexOf(
+                                                            "\n",
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      if (coin is Epiccash) {
+                                                        // strip http:// and https:// if content contains @
+                                                        content = AddressUtils()
+                                                            .formatAddress(
+                                                          content,
+                                                        );
+                                                      }
+                                                      if (coin
+                                                          is Mimblewimblecoin) {
+                                                        // strip http:// and https:// if content contains @
+                                                        content = AddressUtils()
+                                                            .formatAddress(
+                                                          content,
+                                                        );
+                                                      }
+                                                      sendToController.text =
+                                                          content.trim();
+                                                      _address = content.trim();
+
+                                                      _setValidAddressProviders(
+                                                        _address,
+                                                      );
+                                                      setState(() {
+                                                        _addressToggleFlag =
+                                                            sendToController
+                                                                .text
+                                                                .isNotEmpty;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: sendToController
+                                                          .text.isEmpty
+                                                      ? const ClipboardIcon()
+                                                      : const XIcon(),
+>>>>>>>
                                                 ),
                                             if (sendToController.text.isEmpty)
                                               TextFieldIconButton(
@@ -2208,7 +2288,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 ),
                               ),
+<<<<<<<
                             if (coin is Epiccash) const SizedBox(height: 12),
+=======
+                            ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
+>>>>>>>
                             Text(
                               (coin is Epiccash)
                                   ? "Local Note (optional)"
@@ -2216,7 +2304,15 @@ class _SendViewState extends ConsumerState<SendView> {
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
+<<<<<<<
                             const SizedBox(height: 8),
+=======
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
+>>>>>>>
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -2260,6 +2356,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
+<<<<<<<
                             const SizedBox(height: 12),
                             if (hasFees)
                               Text(
@@ -2270,7 +2367,60 @@ class _SendViewState extends ConsumerState<SendView> {
                                     : "(estimated)"}",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
+=======
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
+                            const SizedBox(
+                              height: 12,
+                            ),
+                          Text(
+                            (coin is Epiccash || coin is Mimblewimblecoin)
+                                ? "Local Note (optional)"
+                                : "Note (optional)",
+                            style: STextStyles.smallMed12(context),
+                            textAlign: TextAlign.left,
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                            child: TextField(
+                              autocorrect: Util.isDesktop ? false : true,
+                              enableSuggestions: Util.isDesktop ? false : true,
+                              controller: noteController,
+                              focusNode: _noteFocusNode,
+                              style: STextStyles.field(context),
+                              onChanged: (_) => setState(() {}),
+                              decoration: standardInputDecoration(
+                                "Type something...",
+                                _noteFocusNode,
+                                context,
+                              ).copyWith(
+                                suffixIcon: noteController.text.isNotEmpty
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 0),
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    noteController.text = "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    : null,
+>>>>>>>
                               ),
+<<<<<<<
                             if (hasFees) const SizedBox(height: 8),
                             if (hasFees)
                               Stack(
@@ -2282,6 +2432,46 @@ class _SendViewState extends ConsumerState<SendView> {
                                     controller: feeController,
                                     readOnly: true,
                                     textInputAction: TextInputAction.none,
+=======
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          if (coin is! Epiccash &&
+                              coin is! Mimblewimblecoin &&
+                              coin is! NanoCurrency &&
+                              coin is! Tezos)
+                            Text(
+                              "Transaction fee (estimated)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                          if (coin is! Epiccash &&
+                              coin is! Mimblewimblecoin &&
+                              coin is! NanoCurrency &&
+                              coin is! Tezos)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (coin is! Epiccash &&
+                              coin is! Mimblewimblecoin &&
+                              coin is! NanoCurrency &&
+                              coin is! Tezos)
+                            Stack(
+                              children: [
+                                TextField(
+                                  autocorrect: Util.isDesktop ? false : true,
+                                  enableSuggestions:
+                                      Util.isDesktop ? false : true,
+                                  controller: feeController,
+                                  readOnly: true,
+                                  textInputAction: TextInputAction.none,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+>>>>>>>
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(

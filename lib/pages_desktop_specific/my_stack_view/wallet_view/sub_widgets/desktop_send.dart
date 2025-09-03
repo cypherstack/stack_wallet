@@ -40,6 +40,12 @@ import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+<<<<<<<
+
+=======
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/enums/txs_method_mwc_enum.dart';
+>>>>>>>
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
@@ -71,7 +77,12 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
+<<<<<<<
 import 'desktop_send_fee_form.dart';
+=======
+import 'desktop_fee_dropdown.dart';
+import 'desktop_mwc_txs_method_toggle.dart';
+>>>>>>>
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -103,6 +114,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController memoController;
   late TextEditingController nonceController;
 
+
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
@@ -112,7 +124,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _nonceFocusNode = FocusNode();
 
   late final bool isStellar;
+  late final bool isMimblewimblecoin;
 
+  String? _selectedMethodMwc; 
   String? _note;
   String? _onChainNote;
 
@@ -477,6 +491,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           if (coin is Epiccash) {
             txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
           }
+          if (coin is Mimblewimblecoin) {
+            txData = txData.copyWith(
+              noteOnChain: _onChainNote ?? "",
+            );
+          }
         }
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
@@ -775,6 +794,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
+          if (coin is Mimblewimblecoin) {
+            content = AddressUtils().formatAddressMwc(content);
+          }
 
           sendToController.text = content;
           _address = content;
@@ -789,6 +811,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
           content = AddressUtils().formatEpicCashAddress(content);
+        }
+        if (coin is Mimblewimblecoin) {
+          // strip http:// and https:// if content contains @
+          content = AddressUtils().formatAddressMwc(content);
         }
 
         await _checkSparkNameAndOrSetAddress(content);
@@ -932,6 +958,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     clipboard = widget.clipboard;
 
     isStellar = coin is Stellar;
+    isMimblewimblecoin = coin is Mimblewimblecoin;
+    if (isMimblewimblecoin) {
+      _selectedMethodMwc = "Slatepack";
+    }
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1024,7 +1054,26 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       });
     }
 
+<<<<<<<
     final balType = ref.watch(publicPrivateBalanceStateProvider);
+=======
+    if (coin is Mimblewimblecoin) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddressMwc(_address!);
+        }
+      });
+    }
+
+    final firoType = ref.watch(publicPrivateBalanceStateProvider);
+>>>>>>>
 
     final isMwebEnabled = ref.watch(
       pWalletInfo(walletId).select((s) => s.isMwebEnabled),
@@ -1058,8 +1107,41 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+<<<<<<<
         const SizedBox(height: 4),
         if (showPrivateBalance)
+=======
+        const SizedBox(
+          height: 4,
+        ),
+        if (isMimblewimblecoin)
+          Padding(
+            padding: const EdgeInsets.all(0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).extension<StackColors>()?.textFieldDefaultBG ?? Colors.white, // Fallback color
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).extension<StackColors>()?.backgroundAppBar ?? Colors.grey, // Fallback color
+                  width: 1,
+                ),
+              ),
+              child: SizedBox(
+                height: 50, // Provide an explicit height to avoid infinite constraints
+                child: MwcTxsMethodToggle(
+                  onChanged: (TxsMethodMwcType type) {
+                    setState(() {
+                      _selectedMethodMwc = type == TxsMethodMwcType.automatic ? 'Slatepack' : 'Automatic';
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+        if (isMimblewimblecoin)
+
+        if (coin is Firo)
+>>>>>>>
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1161,7 +1243,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
+<<<<<<<
         if (showPrivateBalance) const SizedBox(height: 20),
+=======
+        if (coin is Firo || isMimblewimblecoin)
+          const SizedBox(
+            height: 20,
+          ),
+>>>>>>>
         if (isPaynymSend)
           Text(
             "Send to PayNym address",
@@ -1658,6 +1747,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
+<<<<<<<
         if (!isPaynymSend) const SizedBox(height: 20),
         if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
           DesktopSendFeeForm(
@@ -1680,6 +1770,59 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   Theme.of(
                     context,
                   ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+=======
+        if (!isPaynymSend)
+          const SizedBox(
+            height: 20,
+          ),
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
+          ConditionalParent(
+            condition: ref.watch(pWallets).getWallet(walletId)
+                    is ElectrumXInterface &&
+                !(((coin is Firo) &&
+                    (ref.watch(publicPrivateBalanceStateProvider.state).state ==
+                            FiroType.lelantus ||
+                        ref
+                                .watch(publicPrivateBalanceStateProvider.state)
+                                .state ==
+                            FiroType.spark))),
+            builder: (child) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                child,
+                CustomTextButton(
+                  text: "Edit",
+                  onTap: () async {
+                    feeSelectionResult = await showDialog<
+                        (
+                          FeeRateType,
+                          String?,
+                          String?,
+                        )?>(
+                      context: context,
+                      builder: (_) => DesktopFeeDialog(
+                        walletId: walletId,
+                      ),
+                    );
+
+                    if (feeSelectionResult != null) {
+                      if (isCustomFee &&
+                          feeSelectionResult!.$1 != FeeRateType.custom) {
+                        isCustomFee = false;
+                      } else if (!isCustomFee &&
+                          feeSelectionResult!.$1 == FeeRateType.custom) {
+                        isCustomFee = true;
+                      }
+                    }
+
+                    setState(() {});
+                  },
+                ),
+              ],
+>>>>>>>
             ),
             textAlign: TextAlign.left,
           ),
@@ -1721,7 +1864,195 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
+<<<<<<<
         const SizedBox(height: 36),
+=======
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
+          const SizedBox(
+            height: 10,
+          ),
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
+          if (!isCustomFee)
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: (feeSelectionResult?.$2 == null)
+                  ? FutureBuilder(
+                      future: ref.watch(
+                        pWallets.select(
+                          (value) => value.getWallet(walletId).fees,
+                        ),
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          return DesktopFeeItem(
+                            feeObject: snapshot.data,
+                            feeRateType: FeeRateType.average,
+                            walletId: walletId,
+                            isButton: false,
+                            feeFor: ({
+                              required Amount amount,
+                              required FeeRateType feeRateType,
+                              required int feeRate,
+                              required CryptoCurrency coin,
+                            }) async {
+                              if (ref
+                                      .read(feeSheetSessionCacheProvider)
+                                      .average[amount] ==
+                                  null) {
+                                final wallet =
+                                    ref.read(pWallets).getWallet(walletId);
+
+                                if (coin is Monero || coin is Wownero) {
+                                  final fee = await wallet.estimateFeeFor(
+                                    amount,
+                                    lib_monero.TransactionPriority.medium.value,
+                                  );
+                                  ref
+                                      .read(feeSheetSessionCacheProvider)
+                                      .average[amount] = fee;
+                                } else if ((coin is Firo) &&
+                                    ref
+                                            .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state,
+                                            )
+                                            .state !=
+                                        FiroType.public) {
+                                  final firoWallet = wallet as FiroWallet;
+
+                                  if (ref
+                                          .read(
+                                            publicPrivateBalanceStateProvider
+                                                .state,
+                                          )
+                                          .state ==
+                                      FiroType.lelantus) {
+                                    ref
+                                            .read(feeSheetSessionCacheProvider)
+                                            .average[amount] =
+                                        await firoWallet
+                                            .estimateFeeForLelantus(amount);
+                                  } else if (ref
+                                          .read(
+                                            publicPrivateBalanceStateProvider
+                                                .state,
+                                          )
+                                          .state ==
+                                      FiroType.spark) {
+                                    ref
+                                            .read(feeSheetSessionCacheProvider)
+                                            .average[amount] =
+                                        await firoWallet
+                                            .estimateFeeForSpark(amount);
+                                  }
+                                } else {
+                                  ref
+                                          .read(feeSheetSessionCacheProvider)
+                                          .average[amount] =
+                                      await wallet.estimateFeeFor(
+                                    amount,
+                                    feeRate,
+                                  );
+                                }
+                              }
+                              return ref
+                                  .read(feeSheetSessionCacheProvider)
+                                  .average[amount]!;
+                            },
+                            isSelected: true,
+                          );
+                        } else {
+                          return Row(
+                            children: [
+                              AnimatedText(
+                                stringsToLoopThrough: stringsToLoopThrough,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveText,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    )
+                  : (coin is Firo) &&
+                          ref
+                                  .watch(
+                                    publicPrivateBalanceStateProvider.state,
+                                  )
+                                  .state ==
+                              FiroType.lelantus
+                      ? Text(
+                          "~${ref.watch(pAmountFormatter(coin)).format(
+                                Amount(
+                                  rawValue: BigInt.parse("3794"),
+                                  fractionDigits: coin.fractionDigits,
+                                ),
+                                indicatePrecisionLoss: false,
+                              )}",
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveText,
+                          ),
+                          textAlign: TextAlign.left,
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              feeSelectionResult?.$2 ?? "",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveText,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                            Text(
+                              feeSelectionResult?.$3 ?? "",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveSearchIconRight,
+                              ),
+                            ),
+                          ],
+                        ),
+            ),
+        if (isCustomFee)
+          Padding(
+            padding: const EdgeInsets.only(
+              bottom: 12,
+              top: 16,
+            ),
+            child: FeeSlider(
+              coin: coin,
+              onSatVByteChanged: (rate) {
+                customFeeRate = rate;
+              },
+            ),
+          ),
+        const SizedBox(
+          height: 36,
+        ),
+>>>>>>>
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
           label: "Preview send",
@@ -1751,4 +2082,26 @@ String formatAddress(String epicAddress) {
     epicAddress = epicAddress.substring(0, epicAddress.length - 1);
   }
   return epicAddress;
+}
+
+String formatAddressMwc(String mimblewimblecoinAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
+  if ((mimblewimblecoinAddress.startsWith("http://") ||
+          mimblewimblecoinAddress.startsWith("https://")) &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("http://", "");
+    mimblewimblecoinAddress =
+        mimblewimblecoinAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (mimblewimblecoinAddress.startsWith("mailto:")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
+  if (mimblewimblecoinAddress.endsWith("/") &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
+        0, mimblewimblecoinAddress.length - 1);
+  }
+  return mimblewimblecoinAddress;
 }

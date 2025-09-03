@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1769,6 +1770,7 @@ class _TransactionDetailsViewState
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+<<<<<<<
         floatingActionButton:
             (coin is Epiccash &&
                     _transaction.getConfirmations(currentHeight) < 1 &&
@@ -1782,6 +1784,26 @@ class _TransactionDetailsViewState
                           vertical: 16,
                         ),
                         child: child,
+=======
+        floatingActionButton: ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                _transaction.getConfirmations(currentHeight) < 1 &&
+                _transaction.isCancelled == false)
+            ? ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  child: child,
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Theme.of(context).extension<StackColors>()!.textError,
+>>>>>>>
                       ),
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width - 32,
@@ -1860,11 +1882,81 @@ class _TransactionDetailsViewState
                           );
                           return;
                         }
+<<<<<<<
                       },
                       child: Text(
                         "Cancel Transaction",
                         style: STextStyles.button(context),
                       ),
+=======
+                      } else if (wallet is MimblewimblecoinWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: "Could not find MWC transaction ID",
+                              context: context,
+                            ),
+                          );
+                          return;
+                        }
+
+                        unawaited(
+                          showDialog<dynamic>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
+                        if (mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                onOkPressed: (_) {
+                                  wallet.refresh();
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(
+                                      WalletView.routeName,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
+                            context: context,
+                          ),
+                        );
+                        return;
+                      }
+                    },
+                    child: Text(
+                      "Cancel Transaction",
+                      style: STextStyles.button(context),
+>>>>>>>
                     ),
                   ),
                 )

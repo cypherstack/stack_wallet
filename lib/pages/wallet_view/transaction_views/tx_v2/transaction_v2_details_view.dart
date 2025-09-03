@@ -44,6 +44,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
@@ -255,7 +256,36 @@ class _TransactionV2DetailsViewState
                   ),
                 ),
               )
-              .toList();
+            ),
+          )
+          .toList();
+    } else if (_transaction.isMimblewimblecoinTransaction) {
+      switch (_transaction.type) {
+        case TransactionType.outgoing:
+        case TransactionType.unknown:
+          amount = _transaction.getAmountSentFromThisWallet(
+            fractionDigits: fractionDigits,
+          );
+          break;
+
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          amount = _transaction.getAmountReceivedInThisWallet(
+            fractionDigits: fractionDigits,
+          );
+          break;
+      }
+      data = _transaction.outputs
+          .map(
+            (e) => (
+              addresses: e.addresses,
+              amount: Amount(
+                rawValue: e.value,
+                fractionDigits: coin.fractionDigits,
+              )
+            ),
+          )
+          .toList();
     } else if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(
         fractionDigits: fractionDigits,
@@ -1118,6 +1148,7 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
+<<<<<<<
                               if (coin is Epiccash)
                                 isDesktop
                                     ? const _Divider()
@@ -1179,9 +1210,20 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
+=======
+                              ),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+>>>>>>>
                               isDesktop
                                   ? const _Divider()
+<<<<<<<
                                   : const SizedBox(height: 12),
+=======
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+>>>>>>>
                               RoundedWhiteContainer(
                                 padding:
                                     isDesktop
@@ -1206,9 +1248,72 @@ class _TransactionV2DetailsViewState
                                                   : STextStyles.itemSubtitle(
                                                     context,
                                                   ),
+<<<<<<<
                                         ),
                                         isDesktop
                                             ? IconPencilButton(
+=======
+                                          ),
+                                          const SizedBox(
+                                            height: 8,
+                                          ),
+                                          SelectableText(
+                                            _transaction.onChainNote ?? "",
+                                            style: isDesktop
+                                                ? STextStyles
+                                                    .desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textDark,
+                                                  )
+                                                : STextStyles.itemSubtitle12(
+                                                    context,
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isDesktop)
+                                      IconCopyButton(
+                                        data: _transaction.onChainNote ?? "",
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            isDesktop
+                                ? const _Divider()
+                                : const SizedBox(
+                                    height: 12,
+                                  ),
+                            RoundedWhiteContainer(
+                              padding: isDesktop
+                                  ? const EdgeInsets.all(16)
+                                  : const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        (coin is Epiccash ||
+                                                coin is Mimblewimblecoin)
+                                            ? "Local Note"
+                                            : "Note ",
+                                        style: isDesktop
+                                            ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                context,
+                                              )
+                                            : STextStyles.itemSubtitle(context),
+                                      ),
+                                      isDesktop
+                                          ? IconPencilButton(
+>>>>>>>
                                               onPressed: () {
                                                 showDialog<void>(
                                                   context: context,
@@ -1258,6 +1363,73 @@ class _TransactionV2DetailsViewState
                                                 ],
                                               ),
                                             ),
+<<<<<<<
+
+=======
+                                    ],
+                                  ),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  SelectableText(
+                                    ref
+                                            .watch(
+                                              pTransactionNote(
+                                                (
+                                                  txid: (coin is Epiccash ||
+                                                          coin
+                                                              is Mimblewimblecoin)
+                                                      ? _transaction.slateId
+                                                          .toString()
+                                                      : _transaction.txid,
+                                                  walletId: walletId
+                                                ),
+                                              ),
+                                            )
+                                            ?.value ??
+                                        "",
+                                    style: isDesktop
+                                        ? STextStyles
+                                            .desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          )
+                                        : STextStyles.itemSubtitle12(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (_sparkMemo != null)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (_sparkMemo != null)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Memo",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                  context,
+                                                )
+                                              : STextStyles.itemSubtitle(
+                                                  context,
+                                                ),
+                                        ),
+>>>>>>>
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -1428,6 +1600,7 @@ class _TransactionV2DetailsViewState
                                   ],
                                 ),
                               ),
+<<<<<<<
                               if (coin is! NanoCurrency &&
                                   !(coin is Xelis &&
                                       _transaction.type ==
@@ -1442,6 +1615,56 @@ class _TransactionV2DetailsViewState
                                 RoundedWhiteContainer(
                                   padding:
                                       isDesktop
+=======
+                            isDesktop
+                                ? const _Divider()
+                                : const SizedBox(
+                                    height: 12,
+                                  ),
+                            Builder(
+                              builder: (context) {
+                                final String height;
+                                final String confirmations;
+                                final confirms = _transaction.getConfirmations(
+                                  currentHeight,
+                                );
+
+                                if (widget.coin is Bitcoincash ||
+                                    widget.coin is Ecash) {
+                                  height = _transaction.height != null &&
+                                          _transaction.height! > 0
+                                      ? "${_transaction.height!}"
+                                      : "Pending";
+                                  confirmations = confirms.toString();
+                                } else if (widget.coin is Epiccash ||
+                                    coin is Mimblewimblecoin &&
+                                        _transaction.slateId == null) {
+                                  confirmations = "Unknown";
+                                  height = "Unknown";
+                                } else {
+                                  final confirmed = _transaction.isConfirmed(
+                                      currentHeight,
+                                      minConfirms,
+                                      coin.minCoinbaseConfirms);
+                                  if (widget.coin is! Epiccash &&
+                                      widget.coin is! Mimblewimblecoin &&
+                                      confirmed) {
+                                    height =
+                                        "${_transaction.height == 0 ? "Unknown" : _transaction.height}";
+                                  } else {
+                                    height = confirms > 0
+                                        ? "${_transaction.height}"
+                                        : "Pending";
+                                  }
+
+                                  confirmations = confirms.toString();
+                                }
+
+                                return Column(
+                                  children: [
+                                    RoundedWhiteContainer(
+                                      padding: isDesktop
+>>>>>>>
                                           ? const EdgeInsets.all(16)
                                           : const EdgeInsets.all(12),
                                   child: Builder(
@@ -2000,9 +2223,90 @@ class _TransactionV2DetailsViewState
                                                   "mweb_outputId_",
                                                   "",
                                                 ),
+<<<<<<<
+
+=======
+                                        ),
+                                        if (coin is! Epiccash &&
+                                            coin is! Mimblewimblecoin)
+                                          const SizedBox(
+                                            height: 8,
+>>>>>>>
                                           ),
+<<<<<<<
+
+=======
+                                        if (coin is! Epiccash &&
+                                            coin is! Mimblewimblecoin)
+                                          CustomTextButton(
+                                            text: "Open in block explorer",
+                                            onTap: () async {
+                                              final uri =
+                                                  getBlockExplorerTransactionUrlFor(
+                                                coin: coin,
+                                                txid: _transaction.txid,
+                                              );
+
+                                              if (ref
+                                                      .read(
+                                                        prefsChangeNotifierProvider,
+                                                      )
+                                                      .hideBlockExplorerWarning ==
+                                                  false) {
+                                                final shouldContinue =
+                                                    await showExplorerWarning(
+                                                  "${uri.scheme}://${uri.host}",
+                                                );
+
+                                                if (!shouldContinue) {
+                                                  return;
+                                                }
+                                              }
+
+                                              // ref
+                                              //     .read(
+                                              //         shouldShowLockscreenOnResumeStateProvider
+                                              //             .state)
+                                              //     .state = false;
+                                              try {
+                                                await launchUrl(
+                                                  uri,
+                                                  mode: LaunchMode
+                                                      .externalApplication,
+                                                );
+                                              } catch (_) {
+                                                if (mounted) {
+                                                  unawaited(
+                                                    showDialog<void>(
+                                                      context: context,
+                                                      builder: (_) =>
+                                                          StackOkDialog(
+                                                        title:
+                                                            "Could not open in block explorer",
+                                                        message:
+                                                            "Failed to open \"${uri.toString()}\"",
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              } finally {
+                                                // Future<void>.delayed(
+                                                //   const Duration(seconds: 1),
+                                                //   () => ref
+                                                //       .read(
+                                                //           shouldShowLockscreenOnResumeStateProvider
+                                                //               .state)
+                                                //       .state = true,
+                                                // );
+                                              }
+                                            },
+                                          ),
+                                        //   ),
+                                        // ),
+>>>>>>>
                                       ],
                                     ),
+<<<<<<<
                                   )
                                   : RoundedWhiteContainer(
                                     padding:
@@ -2010,6 +2314,114 @@ class _TransactionV2DetailsViewState
                                             ? const EdgeInsets.all(16)
                                             : const EdgeInsets.all(12),
                                     child: Row(
+=======
+                                  ),
+                                  if (isDesktop)
+                                    const SizedBox(
+                                      width: 12,
+                                    ),
+                                  if (isDesktop)
+                                    IconCopyButton(
+                                      data: _transaction.txid,
+                                    ),
+                                ],
+                              ),
+                            ),
+                            // if ((coin is FiroTestNet || coin is Firo) &&
+                            //     _transaction.subType == "mint")
+                            //   const SizedBox(
+                            //     height: 12,
+                            //   ),
+                            // if ((coin is FiroTestNet || coin is Firo) &&
+                            //     _transaction.subType == "mint")
+                            //   RoundedWhiteContainer(
+                            //     child: Column(
+                            //       crossAxisAlignment: CrossAxisAlignment.start,
+                            //       children: [
+                            //         Row(
+                            //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //           children: [
+                            //             Text(
+                            //               "Mint Transaction ID",
+                            //               style: STextStyles.itemSubtitle(context),
+                            //             ),
+                            //           ],
+                            //         ),
+                            //         const SizedBox(
+                            //           height: 8,
+                            //         ),
+                            //         // Flexible(
+                            //         //   child: FittedBox(
+                            //         //     fit: BoxFit.scaleDown,
+                            //         //     child:
+                            //         SelectableText(
+                            //           _transaction.otherData ?? "Unknown",
+                            //           style: STextStyles.itemSubtitle12(context),
+                            //         ),
+                            //         //   ),
+                            //         // ),
+                            //         const SizedBox(
+                            //           height: 8,
+                            //         ),
+                            //         BlueTextButton(
+                            //           text: "Open in block explorer",
+                            //           onTap: () async {
+                            //             final uri = getBlockExplorerTransactionUrlFor(
+                            //               coin: coin,
+                            //               txid: _transaction.otherData ?? "Unknown",
+                            //             );
+                            //             // ref
+                            //             //     .read(
+                            //             //         shouldShowLockscreenOnResumeStateProvider
+                            //             //             .state)
+                            //             //     .state = false;
+                            //             try {
+                            //               await launchUrl(
+                            //                 uri,
+                            //                 mode: LaunchMode.externalApplication,
+                            //               );
+                            //             } catch (_) {
+                            //               unawaited(showDialog<void>(
+                            //                 context: context,
+                            //                 builder: (_) => StackOkDialog(
+                            //                   title: "Could not open in block explorer",
+                            //                   message:
+                            //                       "Failed to open \"${uri.toString()}\"",
+                            //                 ),
+                            //               ));
+                            //             } finally {
+                            //               // Future<void>.delayed(
+                            //               //   const Duration(seconds: 1),
+                            //               //   () => ref
+                            //               //       .read(
+                            //               //           shouldShowLockscreenOnResumeStateProvider
+                            //               //               .state)
+                            //               //       .state = true,
+                            //               // );
+                            //             }
+                            //           },
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+>>>>>>>
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       mainAxisAlignment:
@@ -2318,6 +2730,7 @@ class _TransactionV2DetailsViewState
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+<<<<<<<
         floatingActionButton:
             (coin is Epiccash &&
                     _transaction.getConfirmations(currentHeight) < 1 &&
@@ -2331,6 +2744,27 @@ class _TransactionV2DetailsViewState
                           vertical: 16,
                         ),
                         child: child,
+=======
+        floatingActionButton: (coin is Epiccash ||
+                coin is Mimblewimblecoin &&
+                    _transaction.getConfirmations(currentHeight) < 1 &&
+                    _transaction.isCancelled == false)
+            ? ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  child: child,
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Theme.of(context).extension<StackColors>()!.textError,
+>>>>>>>
                       ),
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width - 32,
@@ -2409,11 +2843,82 @@ class _TransactionV2DetailsViewState
                           );
                           return;
                         }
+<<<<<<<
                       },
                       child: Text(
                         "Cancel Transaction",
                         style: STextStyles.button(context),
                       ),
+=======
+                      } else if (wallet is MimblewimblecoinWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message:
+                                  "Could not find Mimblewimblecoin transaction ID",
+                              context: context,
+                            ),
+                          );
+                          return;
+                        }
+
+                        unawaited(
+                          showDialog<void>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
+                        if (mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                onOkPressed: (_) {
+                                  wallet.refresh();
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(
+                                      WalletView.routeName,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
+                            context: context,
+                          ),
+                        );
+                        return;
+                      }
+                    },
+                    child: Text(
+                      "Cancel Transaction",
+                      style: STextStyles.button(context),
+>>>>>>>
                     ),
                   ),
                 )

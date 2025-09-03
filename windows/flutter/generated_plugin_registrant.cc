@@ -12,6 +12,7 @@
 #include <cs_salvium_flutter_libs_windows/cs_salvium_flutter_libs_windows_plugin_c_api.h>
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <flutter_libepiccash/flutter_libepiccash_plugin_c_api.h>
+#include <flutter_libmwc/flutter_libmwc_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
 #include <local_auth_windows/local_auth_plugin.h>
@@ -35,6 +36,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("DesktopDropPlugin"));
   FlutterLibepiccashPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterLibepiccashPluginCApi"));
+  FlutterLibmwcPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterLibmwcPluginCApi"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   IsarFlutterLibsPluginRegisterWithRegistrar(
