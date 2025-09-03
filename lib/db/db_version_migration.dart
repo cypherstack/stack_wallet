@@ -532,71 +532,6 @@ class DbVersionMigrator with WalletDB {
         await MainDB.instance.addNewTransactionData(transactionsData, walletId);
       }
 
-      // we need to manually migrate mimblewimblecoin transactions as they are not
-      // stored on the mimblewimblecoin blockchain
-      final mimblewimblecoin = Mimblewimblecoin(CryptoCurrencyNetwork.main);
-      if (info.coinIdentifier == mimblewimblecoin.identifier) {
-        final txnData = walletBox.get("latest_tx_model") as TransactionData?;
-
-        // we ever only used index 0 in the past
-        const rcvIndex = 0;
-
-        final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
-            transactionsData = [];
-        if (txnData != null) {
-          final txns = txnData.getAllTransactions();
-
-          for (final tx in txns.values) {
-            final bool isIncoming = tx.txType == "Received";
-
-            final iTx = isar_models.Transaction(
-              walletId: walletId,
-              txid: tx.txid,
-              timestamp: tx.timestamp,
-              type: isIncoming
-                  ? isar_models.TransactionType.incoming
-                  : isar_models.TransactionType.outgoing,
-              subType: isar_models.TransactionSubType.none,
-              amount: tx.amount,
-              amountString: Amount(
-                rawValue: BigInt.from(tx.amount),
-                fractionDigits: mimblewimblecoin.fractionDigits,
-              ).toJsonString(),
-              fee: tx.fees,
-              height: tx.height,
-              isCancelled: tx.isCancelled,
-              isLelantus: false,
-              slateId: tx.slateId,
-              otherData: tx.otherData,
-              nonce: null,
-              inputs: [],
-              outputs: [],
-              numberOfMessages: tx.numberOfMessages,
-            );
-
-            if (tx.address.isEmpty) {
-              transactionsData.add(Tuple2(iTx, null));
-            } else {
-              final address = isar_models.Address(
-                walletId: walletId,
-                value: tx.address,
-                publicKey: [],
-                derivationIndex: isIncoming ? rcvIndex : -1,
-                derivationPath: null,
-                type: isIncoming
-                    ? isar_models.AddressType.mimbleWimble
-                    : isar_models.AddressType.unknown,
-                subType: isIncoming
-                    ? isar_models.AddressSubType.receiving
-                    : isar_models.AddressSubType.unknown,
-              );
-              transactionsData.add(Tuple2(iTx, address));
-            }
-          }
-        }
-        await MainDB.instance.addNewTransactionData(transactionsData, walletId);
-      }
-
       // delete data from hive
       await walletBox.delete(receiveAddressesPrefix);
       await walletBox.delete("${receiveAddressesPrefix}P2PKH");
@@ -618,13 +553,9 @@ class DbVersionMigrator with WalletDB {
         );
       }
 
-      // doing this for epiccash/mimblewimblecoin will delete transaction history as it is not
-      // stored on the epiccash/mimblewimblecoin blockchain
-      final excludedIdentifiers = [
-        epic.identifier,
-        mimblewimblecoin.identifier
-      ];
-      if ((!excludedIdentifiers.contains(info.coinIdentifier))) {
+      // doing this for epic cash will delete transaction history as it is not
+      // stored on the epic cash blockchain
+      if (info.coinIdentifier != epic.identifier) {
         // set flag to initiate full rescan on opening wallet
         await DB.instance.put<dynamic>(
           boxName: DB.boxNameDBInfo,
