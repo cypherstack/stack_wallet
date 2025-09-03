@@ -95,8 +95,11 @@ class TransactionV2 {
 
   bool get isEpiccashTransaction =>
       _getFromOtherData(key: TxV2OdKeys.isEpiccashTransaction) == true;
+
+  @ignore
   bool get isMimblewimblecoinTransaction =>
       _getFromOtherData(key: TxV2OdKeys.isMimblewimblecoinTransaction) == true;
+
   int? get numberOfMessages =>
       _getFromOtherData(key: TxV2OdKeys.numberOfMessages) as int?;
   String? get slateId => _getFromOtherData(key: TxV2OdKeys.slateId) as String?;
