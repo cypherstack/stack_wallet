@@ -66,12 +66,14 @@ class _WFiroDesktopWalletSummaryState
     if (ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     )) {
-      final priceTuple = ref.watch(
-        priceAnd24hChangeNotifierProvider.select(
-          (value) => value.getPrice(coin),
-        ),
-      );
-      price = priceTuple.item1;
+      price =
+          ref
+              .watch(
+                priceAnd24hChangeNotifierProvider.select(
+                  (value) => value.getPrice(coin),
+                ),
+              )
+              ?.value;
     }
 
     final _showAvailable =
@@ -83,8 +85,6 @@ class _WFiroDesktopWalletSummaryState
         _showAvailable ? balance0.spendable : balance0.total;
 
     final balance1 = ref.watch(pWalletBalanceSecondary(walletId));
-    final balanceToShowLelantus =
-        _showAvailable ? balance1.spendable : balance1.total;
 
     final balance2 = ref.watch(pWalletBalance(walletId));
     final balanceToShowPublic =
@@ -104,7 +104,7 @@ class _WFiroDesktopWalletSummaryState
               children: [
                 TableRow(
                   children: [
-                    const _Prefix(type: FiroType.spark),
+                    const _Prefix(type: BalanceType.private),
                     _Balance(coin: coin, amount: balanceToShowSpark),
                     if (price != null)
                       _Price(
@@ -114,22 +114,10 @@ class _WFiroDesktopWalletSummaryState
                       ),
                   ],
                 ),
-                if (balanceToShowLelantus.raw > BigInt.zero)
-                  TableRow(
-                    children: [
-                      const _Prefix(type: FiroType.lelantus),
-                      _Balance(coin: coin, amount: balanceToShowLelantus),
-                      if (price != null)
-                        _Price(
-                          coin: coin,
-                          amount: balanceToShowLelantus,
-                          price: price,
-                        ),
-                    ],
-                  ),
+
                 TableRow(
                   children: [
-                    const _Prefix(type: FiroType.public),
+                    const _Prefix(type: BalanceType.public),
                     _Balance(coin: coin, amount: balanceToShowPublic),
                     if (price != null)
                       _Price(
@@ -159,15 +147,13 @@ class _WFiroDesktopWalletSummaryState
 class _Prefix extends StatelessWidget {
   const _Prefix({super.key, required this.type});
 
-  final FiroType type;
+  final BalanceType type;
 
   String get asset {
     switch (type) {
-      case FiroType.public:
+      case BalanceType.public:
         return Assets.png.glasses;
-      case FiroType.lelantus:
-        return Assets.png.glasses;
-      case FiroType.spark:
+      case BalanceType.private:
         return Assets.svg.spark;
     }
   }

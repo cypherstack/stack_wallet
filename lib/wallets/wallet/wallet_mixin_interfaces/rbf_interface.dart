@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../utilities/amount/amount.dart';
@@ -46,14 +47,15 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
     required TransactionV2 oldTransaction,
     required int newRate,
   }) async {
-    final note = await mainDB.isar.transactionNotes
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .txidEqualTo(oldTransaction.txid)
-        .findFirst();
+    final note =
+        await mainDB.isar.transactionNotes
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .txidEqualTo(oldTransaction.txid)
+            .findFirst();
 
-    final Set<UTXO> utxos = {};
+    final Set<StandardInput> utxos = {};
     for (final input in oldTransaction.inputs) {
       final utxo = UTXO(
         walletId: walletId,
@@ -71,7 +73,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         address: input.addresses.first,
       );
 
-      utxos.add(utxo);
+      utxos.add(StandardInput(utxo));
     }
 
     final List<TxRecipient> recipients = [];
@@ -86,43 +88,44 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
       final isChange = addressModel?.subType == AddressSubType.change;
 
       recipients.add(
-        (
+        TxRecipient(
           address: address,
           amount: Amount(
-              rawValue: output.value,
-              fractionDigits: cryptoCurrency.fractionDigits),
+            rawValue: output.value,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
           isChange: isChange,
+          addressType: cryptoCurrency.getAddressType(address)!,
         ),
       );
     }
 
-    final oldFee = oldTransaction
-        .getFee(fractionDigits: cryptoCurrency.fractionDigits)
-        .raw;
-    final inSum = utxos
-        .map((e) => BigInt.from(e.value))
-        .fold(BigInt.zero, (p, e) => p + e);
+    final oldFee =
+        oldTransaction
+            .getFee(fractionDigits: cryptoCurrency.fractionDigits)
+            .raw;
+    final inSum = utxos.map((e) => e.value).fold(BigInt.zero, (p, e) => p + e);
 
     final noChange =
         recipients.map((e) => e.isChange).fold(false, (p, e) => p || e) ==
-            false;
-    final otherAvailableUtxos = await mainDB
-        .getUTXOs(walletId)
-        .filter()
-        .isBlockedEqualTo(false)
-        .and()
-        .group(
-          (q) => q.usedIsNull().or().usedEqualTo(false),
-        )
-        .findAll();
+        false;
+    final otherAvailableUtxos =
+        await mainDB
+            .getUTXOs(walletId)
+            .filter()
+            .isBlockedEqualTo(false)
+            .and()
+            .group((q) => q.usedIsNull().or().usedEqualTo(false))
+            .findAll();
 
     final height = await chainHeight;
     otherAvailableUtxos.removeWhere(
-      (e) => !e.isConfirmed(
-        height,
-        cryptoCurrency.minConfirms,
-        cryptoCurrency.minCoinbaseConfirms,
-      ),
+      (e) =>
+          !e.isConfirmed(
+            height,
+            cryptoCurrency.minConfirms,
+            cryptoCurrency.minCoinbaseConfirms,
+          ),
     );
 
     TxData txData = TxData(
@@ -138,13 +141,14 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
       // safe to assume send all?
       txData = txData.copyWith(
         recipients: [
-          (
+          TxRecipient(
             address: recipients.first.address,
             amount: Amount(
               rawValue: inSum,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
             isChange: false,
+            addressType: recipients.first.addressType,
           ),
         ],
       );
@@ -159,8 +163,9 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("New fee in RBF has not changed at all");
       }
 
-      final indexOfChangeOutput =
-          txData.recipients!.indexWhere((e) => e.isChange);
+      final indexOfChangeOutput = txData.recipients!.indexWhere(
+        (e) => e.isChange,
+      );
 
       final removed = txData.recipients!.removeAt(indexOfChangeOutput);
 
@@ -172,13 +177,11 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           // update recipients
           txData.recipients!.insert(
             indexOfChangeOutput,
-            (
-              address: removed.address,
+            removed.copyWith(
               amount: Amount(
                 rawValue: newChangeAmount,
                 fractionDigits: cryptoCurrency.fractionDigits,
               ),
-              isChange: removed.isChange,
             ),
           );
           Logging.instance.d(
@@ -206,7 +209,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
           ),
-          utxoSigningData: await fetchBuildTxData(txData.utxos!.toList()),
+          inputsWithKeys: await addSigningKeys(txData.utxos!.toList()),
         );
 
         // if change amount is negative
@@ -232,19 +235,17 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         }
         txData.recipients!.insert(
           indexOfChangeOutput,
-          (
-            address: removed.address,
+          removed.copyWith(
             amount: Amount(
               rawValue: newChangeAmount,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            isChange: removed.isChange,
           ),
         );
 
         final newUtxoSet = {
-          ...txData.utxos!,
-          ...extraUtxos,
+          ...txData.utxos!.whereType<StandardInput>(),
+          ...extraUtxos.map((e) => StandardInput(e)),
         };
 
         // TODO: remove assert
@@ -264,7 +265,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
           ),
-          utxoSigningData: await fetchBuildTxData(newUtxoSet.toList()),
+          inputsWithKeys: await addSigningKeys(newUtxoSet.toList()),
         );
       }
     } else {

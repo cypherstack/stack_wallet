@@ -4,7 +4,7 @@ class NCurrency {
   final String name;
   final String image;
   final String network;
-  final bool hasExternalId;
+  final bool? hasExternalId;
   final bool feeLess;
 
   NCurrency({
@@ -24,7 +24,7 @@ class NCurrency {
       name: json['name'] as String,
       image: json['image'] as String,
       network: json['network'] as String,
-      hasExternalId: json['hasExternalId'] as bool,
+      hasExternalId: json['hasExternalId'] as bool?,
       feeLess: json['feeless'] as bool,
     );
   }

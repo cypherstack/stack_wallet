@@ -48,10 +48,9 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
   Color _colorBG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        Theme.of(context)
-            .extension<StackColors>()!
-            .switchBGOn
-            .withOpacity(alpha),
+        Theme.of(
+          context,
+        ).extension<StackColors>()!.switchBGOn.withOpacity(alpha),
         Theme.of(context).extension<StackColors>()!.switchBGOff,
       );
     }
@@ -61,10 +60,9 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
   Color _colorFG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        Theme.of(context)
-            .extension<StackColors>()!
-            .switchCircleOn
-            .withOpacity(alpha),
+        Theme.of(
+          context,
+        ).extension<StackColors>()!.switchCircleOn.withOpacity(alpha),
         Theme.of(context).extension<StackColors>()!.switchCircleOff,
       );
     }
@@ -190,15 +188,11 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                   children: [
                     SizedBox(
                       width: constraint.maxWidth / 2,
-                      child: Center(
-                        child: widget.onItem,
-                      ),
+                      child: Center(child: widget.onItem),
                     ),
                     SizedBox(
                       width: constraint.maxWidth / 2,
-                      child: Center(
-                        child: widget.offItem,
-                      ),
+                      child: Center(child: widget.offItem),
                     ),
                   ],
                 ),
@@ -214,4 +208,86 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
 class DSBController {
   VoidCallback? activate;
   bool Function()? isOn;
+}
+
+// new and improved(ish) version
+class DraggableSwitch extends StatefulWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const DraggableSwitch({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  State<DraggableSwitch> createState() => _DraggableSwitchState();
+}
+
+class _DraggableSwitchState extends State<DraggableSwitch> {
+  final _duration = const Duration(milliseconds: 150);
+
+  double _dragOffset = 0.0;
+
+  void _handleDragEnd(DragEndDetails details) {
+    if (_dragOffset.abs() > 10) {
+      final shouldTurnOn = _dragOffset > 0;
+      if (widget.value != shouldTurnOn) {
+        widget.onChanged(shouldTurnOn);
+      }
+    }
+    _dragOffset = 0.0;
+  }
+
+  void _toggle() {
+    widget.onChanged(!widget.value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isOn = widget.value;
+
+    final colors = Theme.of(context).extension<StackColors>()!;
+
+    final colorBG = isOn ? colors.switchBGOn : colors.switchBGOff;
+    final colorFG = isOn ? colors.switchCircleOn : colors.switchCircleOff;
+
+    return GestureDetector(
+      onTap: _toggle,
+      onHorizontalDragUpdate: (details) {
+        _dragOffset += details.primaryDelta!;
+      },
+      onHorizontalDragEnd: _handleDragEnd,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return AnimatedContainer(
+            duration: _duration,
+            curve: Curves.easeInOut,
+            width: constraints.maxWidth,
+            height: constraints.maxHeight,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: colorBG,
+              borderRadius: BorderRadius.circular(constraints.maxHeight / 2),
+            ),
+            child: AnimatedAlign(
+              duration: _duration,
+              curve: Curves.easeInOut,
+              alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
+              child: AnimatedContainer(
+                duration: _duration,
+                height: constraints.maxHeight - 4,
+                width: constraints.maxWidth / 2 - 4,
+                decoration: BoxDecoration(
+                  color: colorFG,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

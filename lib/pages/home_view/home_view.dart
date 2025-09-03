@@ -20,12 +20,16 @@ import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
+import '../../route_generator.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/idle_monitor.dart';
+import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/background.dart';
@@ -35,6 +39,7 @@ import '../../widgets/stack_dialog.dart';
 import '../buy_view/buy_view.dart';
 import '../exchange_view/exchange_view.dart';
 import '../notification_views/notifications_view.dart';
+import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
 import '../settings_views/global_settings_view/hidden_settings.dart';
 import '../wallets_view/wallets_view.dart';
@@ -63,6 +68,51 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   late TorConnectionStatus _currentSyncStatus;
 
+  IdleMonitor? _idleMonitor;
+
+  void _onIdle() async {
+    final context = _key.currentContext;
+    if (context != null) {
+      await Navigator.push(
+        context,
+        RouteGenerator.getRoute(
+          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+          builder:
+              (_) => const LockscreenView(
+                showBackButton: false,
+                popOnSuccess: true,
+                routeOnSuccessArguments: true,
+                routeOnSuccess: "",
+                biometricsCancelButtonString: "CANCEL",
+                biometricsLocalizedReason:
+                    "Authenticate to unlock ${AppConfig.appName}",
+                biometricsAuthenticationTitle: "Unlock ${AppConfig.appName}",
+              ),
+          settings: const RouteSettings(name: "/unlockTimedOutAppScreen"),
+        ),
+      );
+    }
+  }
+
+  late AutoLockInfo _autoLockInfo;
+  void _prefsTimeoutListener() {
+    final prefs = ref.read(prefsChangeNotifierProvider);
+    if (mounted && prefs.autoLockInfo != _autoLockInfo) {
+      _autoLockInfo = prefs.autoLockInfo;
+      if (_autoLockInfo.enabled) {
+        _idleMonitor?.detach();
+        _idleMonitor = IdleMonitor(
+          timeout: Duration(minutes: _autoLockInfo.minutes),
+          onIdle: _onIdle,
+        );
+        _idleMonitor!.attach();
+      } else {
+        _idleMonitor?.detach();
+        _idleMonitor = null;
+      }
+    }
+  }
+
   // final _buyDataLoadingService = BuyDataLoadingService();
 
   Future<bool> _onWillPop() async {
@@ -83,13 +133,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
       await showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            _exitEnabled = true;
-            return true;
-          },
-          child: const StackDialog(title: "Tap back again to exit"),
-        ),
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async {
+                _exitEnabled = true;
+                return true;
+              },
+              child: const StackDialog(title: "Tap back again to exit"),
+            ),
       ).timeout(
         timeout,
         onTimeout: () {
@@ -121,8 +172,51 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
+  Future<void> precacheSettingsIcons(BuildContext context) async {
+    if (Util.isDesktop) return;
+
+    final icons = [
+      Assets.svg.addressBook,
+      Assets.svg.downloadFolder,
+      Assets.svg.lock,
+      Assets.svg.dollarSign,
+      Assets.svg.language,
+      Assets.svg.node,
+      Assets.svg.arrowRotate,
+      Assets.svg.arrowUpRight,
+      Assets.svg.sun,
+      Assets.svg.circleAlert,
+      Assets.svg.ellipsis,
+      Assets.svg.solidSliders,
+      Assets.svg.questionMessage,
+    ];
+
+    for (final asset in icons) {
+      final loader = SvgAssetLoader(asset);
+      await svg.cache.putIfAbsent(
+        loader.cacheKey(context),
+        () => loader.loadBytes(context),
+      );
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    precacheSettingsIcons(context);
+  }
+
   @override
   void initState() {
+    _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
+    if (_autoLockInfo.enabled) {
+      _idleMonitor = IdleMonitor(
+        timeout: Duration(minutes: _autoLockInfo.minutes),
+        onIdle: _onIdle,
+      );
+    }
+
     _pageController = PageController();
     _rotateIconController = RotateIconController();
     _children = [
@@ -139,11 +233,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
     // });
 
+    _idleMonitor?.attach();
+
+    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
+
     super.initState();
   }
 
   @override
   dispose() {
+    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _idleMonitor?.detach();
     _pageController.dispose();
     _rotateIconController.forward = null;
     _rotateIconController.reverse = null;
@@ -176,16 +276,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     // dirty hack
     ref.listen(
-        prefsChangeNotifierProvider.select((value) => value.enableExchange),
-        (prev, next) {
-      if (next == false &&
-          mounted &&
-          ref.read(homeViewPageIndexStateProvider) != 0) {
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => ref.read(homeViewPageIndexStateProvider.state).state = 0,
-        );
-      }
-    });
+      prefsChangeNotifierProvider.select((value) => value.enableExchange),
+      (prev, next) {
+        if (next == false &&
+            mounted &&
+            ref.read(homeViewPageIndexStateProvider) != 0) {
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => ref.read(homeViewPageIndexStateProvider.state).state = 0,
+          );
+        }
+      },
+    );
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -202,18 +303,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 GestureDetector(
                   onTap: _hiddenOptions,
                   child: RotateIcon(
-                    icon: const AppIcon(
-                      width: 24,
-                      height: 24,
-                    ),
+                    icon: const AppIcon(width: 24, height: 24),
                     curve: Curves.easeInOutCubic,
                     rotationPercent: 1.0,
                     controller: _rotateIconController,
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Text(
                   "My ${AppConfig.prefix}",
                   style: STextStyles.navBarTitle(context),
@@ -222,22 +318,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
             ),
             actions: [
               const Padding(
-                padding: EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: SmallTorIcon(),
-                ),
+                padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                child: AspectRatio(aspectRatio: 1, child: SmallTorIcon()),
               ),
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
@@ -246,65 +331,77 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewAlertsButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .backgroundAppBar,
-                    icon: ref.watch(
-                      notificationsProvider
-                          .select((value) => value.hasUnreadNotifications),
-                    )
-                        ? SvgPicture.file(
-                            File(
-                              ref.watch(
-                                themeProvider.select(
-                                  (value) => value.assets.bellNew,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar,
+                    icon:
+                        ref.watch(
+                              notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications,
+                              ),
+                            )
+                            ? SvgPicture.file(
+                              File(
+                                ref.watch(
+                                  themeProvider.select(
+                                    (value) => value.assets.bellNew,
+                                  ),
                                 ),
                               ),
+                              width: 20,
+                              height: 20,
+                              color:
+                                  ref.watch(
+                                        notificationsProvider.select(
+                                          (value) =>
+                                              value.hasUnreadNotifications,
+                                        ),
+                                      )
+                                      ? null
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .topNavIconPrimary,
+                            )
+                            : SvgPicture.asset(
+                              Assets.svg.bell,
+                              width: 20,
+                              height: 20,
+                              color:
+                                  ref.watch(
+                                        notificationsProvider.select(
+                                          (value) =>
+                                              value.hasUnreadNotifications,
+                                        ),
+                                      )
+                                      ? null
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .topNavIconPrimary,
                             ),
-                            width: 20,
-                            height: 20,
-                            color: ref.watch(
-                              notificationsProvider.select(
-                                (value) => value.hasUnreadNotifications,
-                              ),
-                            )
-                                ? null
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .topNavIconPrimary,
-                          )
-                        : SvgPicture.asset(
-                            Assets.svg.bell,
-                            width: 20,
-                            height: 20,
-                            color: ref.watch(
-                              notificationsProvider.select(
-                                (value) => value.hasUnreadNotifications,
-                              ),
-                            )
-                                ? null
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .topNavIconPrimary,
-                          ),
                     onPressed: () {
                       // reset unread state
                       ref.refresh(unreadNotificationsStateProvider);
 
-                      Navigator.of(context)
-                          .pushNamed(NotificationsView.routeName)
-                          .then((_) {
-                        final Set<int> unreadNotificationIds = ref
-                            .read(unreadNotificationsStateProvider.state)
-                            .state;
+                      Navigator.of(
+                        context,
+                      ).pushNamed(NotificationsView.routeName).then((_) {
+                        final Set<int> unreadNotificationIds =
+                            ref
+                                .read(unreadNotificationsStateProvider.state)
+                                .state;
                         if (unreadNotificationIds.isEmpty) return;
 
                         final List<Future<void>> futures = [];
-                        for (int i = 0;
-                            i < unreadNotificationIds.length - 1;
-                            i++) {
+                        for (
+                          int i = 0;
+                          i < unreadNotificationIds.length - 1;
+                          i++
+                        ) {
                           futures.add(
-                            ref.read(notificationsProvider).markAsRead(
+                            ref
+                                .read(notificationsProvider)
+                                .markAsRead(
                                   unreadNotificationIds.elementAt(i),
                                   false,
                                 ),
@@ -324,11 +421,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
@@ -336,89 +429,99 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewSettingsButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .backgroundAppBar,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar,
                     icon: SvgPicture.asset(
                       Assets.svg.gear,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
                     onPressed: () {
                       //todo: check if print needed
                       // debugPrint("main view settings tapped");
-                      Navigator.of(context)
-                          .pushNamed(GlobalSettingsView.routeName);
+                      Navigator.of(
+                        context,
+                      ).pushNamed(GlobalSettingsView.routeName);
                     },
                   ),
                 ),
               ),
             ],
           ),
-          body: Column(
-            children: [
-              if (_children.length > 1 &&
-                  ref.watch(prefsChangeNotifierProvider).enableExchange)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .backgroundAppBar,
-                    boxShadow: Theme.of(context)
-                                .extension<StackColors>()!
-                                .homeViewButtonBarBoxShadow !=
-                            null
-                        ? [
-                            Theme.of(context)
-                                .extension<StackColors>()!
-                                .homeViewButtonBarBoxShadow!,
-                          ]
-                        : null,
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      bottom: 12,
-                      right: 16,
-                      top: 0,
+          body: SafeArea(
+            child: Column(
+              children: [
+                if (_children.length > 1 &&
+                    ref.watch(prefsChangeNotifierProvider).enableExchange)
+                  Container(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar,
+                      boxShadow:
+                          Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .homeViewButtonBarBoxShadow !=
+                                  null
+                              ? [
+                                Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .homeViewButtonBarBoxShadow!,
+                              ]
+                              : null,
                     ),
-                    child: HomeViewButtonBar(),
+                    child: const Padding(
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        bottom: 12,
+                        right: 16,
+                        top: 0,
+                      ),
+                      child: HomeViewButtonBar(),
+                    ),
+                  ),
+                Expanded(
+                  child: Consumer(
+                    builder: (_, _ref, __) {
+                      _ref.listen(homeViewPageIndexStateProvider, (
+                        previous,
+                        next,
+                      ) {
+                        if (next is int && next >= 0 && next <= 2) {
+                          // if (next == 1) {
+                          //   _exchangeDataLoadingService.loadAll(ref);
+                          // }
+                          // if (next == 2) {
+                          //   _buyDataLoadingService.loadAll(ref);
+                          // }
+
+                          _lock = true;
+                          _animateToPage(next).then((value) => _lock = false);
+                        }
+                      });
+                      return PageView(
+                        controller: _pageController,
+                        children: _children,
+                        onPageChanged: (pageIndex) {
+                          if (!_lock) {
+                            ref
+                                .read(homeViewPageIndexStateProvider.state)
+                                .state = pageIndex;
+                          }
+                        },
+                      );
+                    },
                   ),
                 ),
-              Expanded(
-                child: Consumer(
-                  builder: (_, _ref, __) {
-                    _ref.listen(homeViewPageIndexStateProvider,
-                        (previous, next) {
-                      if (next is int && next >= 0 && next <= 2) {
-                        // if (next == 1) {
-                        //   _exchangeDataLoadingService.loadAll(ref);
-                        // }
-                        // if (next == 2) {
-                        //   _buyDataLoadingService.loadAll(ref);
-                        // }
-
-                        _lock = true;
-                        _animateToPage(next).then((value) => _lock = false);
-                      }
-                    });
-                    return PageView(
-                      controller: _pageController,
-                      children: _children,
-                      onPageChanged: (pageIndex) {
-                        if (!_lock) {
-                          ref.read(homeViewPageIndexStateProvider.state).state =
-                              pageIndex;
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

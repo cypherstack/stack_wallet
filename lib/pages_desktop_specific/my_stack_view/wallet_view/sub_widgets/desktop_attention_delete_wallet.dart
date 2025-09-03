@@ -10,12 +10,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stack_wallet_backup/secure_storage.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../app_config.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
+import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -24,13 +27,11 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/rounded_white_container.dart';
 import 'delete_wallet_keys_popup.dart';
 
 class DesktopAttentionDeleteWallet extends ConsumerStatefulWidget {
-  const DesktopAttentionDeleteWallet({
-    super.key,
-    required this.walletId,
-  });
+  const DesktopAttentionDeleteWallet({super.key, required this.walletId});
 
   final String walletId;
 
@@ -55,10 +56,7 @@ class _DesktopAttentionDeleteWallet
             children: [
               DesktopDialogCloseButton(
                 onPressedOverride: () {
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
                 },
               ),
             ],
@@ -67,17 +65,13 @@ class _DesktopAttentionDeleteWallet
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 26),
             child: Column(
               children: [
-                Text(
-                  "Attention!",
-                  style: STextStyles.desktopH2(context),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
+                Text("Attention!", style: STextStyles.desktopH2(context)),
+                const SizedBox(height: 16),
                 RoundedContainer(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .snackBarBackError,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.snackBarBackError,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
@@ -85,11 +79,13 @@ class _DesktopAttentionDeleteWallet
                       "the only way you can have access to your funds is by using your backup key."
                       "\n\n${AppConfig.appName} does not keep nor is able to restore your backup key or your wallet."
                       "\n\nPLEASE SAVE YOUR BACKUP KEY.",
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .snackBarTextError,
+                      style: STextStyles.desktopTextExtraExtraSmall(
+                        context,
+                      ).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.snackBarTextError,
                       ),
                     ),
                   ),
@@ -103,10 +99,7 @@ class _DesktopAttentionDeleteWallet
                       buttonHeight: ButtonHeight.xl,
                       label: "Cancel",
                       onPressed: () {
-                        Navigator.of(
-                          context,
-                          rootNavigator: true,
-                        ).pop();
+                        Navigator.of(context, rootNavigator: true).pop();
                       },
                     ),
                     const SizedBox(width: 16),
@@ -115,71 +108,96 @@ class _DesktopAttentionDeleteWallet
                       buttonHeight: ButtonHeight.xl,
                       label: "View Backup Key",
                       onPressed: () async {
-                        final wallet =
-                            ref.read(pWallets).getWallet(widget.walletId);
+                        try {
+                          final wallet = ref
+                              .read(pWallets)
+                              .getWallet(widget.walletId);
 
-                        if (wallet is ViewOnlyOptionInterface &&
-                            wallet.isViewOnly) {
-                          final data = await wallet.getViewOnlyWalletData();
-                          if (context.mounted) {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (builder) => DesktopDialog(
-                                  maxWidth: 614,
-                                  maxHeight: double.infinity,
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 32,
+                          if (wallet is ViewOnlyOptionInterface &&
+                              wallet.isViewOnly) {
+                            final data = await wallet.getViewOnlyWalletData();
+                            if (context.mounted) {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder:
+                                      (builder) => DesktopDialog(
+                                        maxWidth: 614,
+                                        maxHeight: double.infinity,
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 32,
+                                                      ),
+                                                  child: Text(
+                                                    "Wallet keys",
+                                                    style:
+                                                        STextStyles.desktopH3(
+                                                          context,
+                                                        ),
+                                                  ),
+                                                ),
+                                                DesktopDialogCloseButton(
+                                                  onPressedOverride: () {
+                                                    Navigator.of(
+                                                      context,
+                                                      rootNavigator: true,
+                                                    ).pop();
+                                                  },
+                                                ),
+                                              ],
                                             ),
-                                            child: Text(
-                                              "Wallet keys",
-                                              style: STextStyles.desktopH3(
-                                                context,
-                                              ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(32),
+                                              child:
+                                                  DeleteViewOnlyWalletKeysView(
+                                                    walletId: widget.walletId,
+                                                    data: data,
+                                                  ),
                                             ),
-                                          ),
-                                          DesktopDialogCloseButton(
-                                            onPressedOverride: () {
-                                              Navigator.of(
-                                                context,
-                                                rootNavigator: true,
-                                              ).pop();
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(32),
-                                        child: DeleteViewOnlyWalletKeysView(
-                                          walletId: widget.walletId,
-                                          data: data,
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                        } else
+                              );
+                            }
+                          } else
+                          // TODO: [prio=med] handle other types wallet deletion
+                          // All wallets currently are mnemonic based
+                          if (wallet is MnemonicInterface) {
+                            final words = await wallet.getMnemonicAsWords();
 
-                        // TODO: [prio=med] handle other types wallet deletion
-                        // All wallets currently are mnemonic based
-                        if (wallet is MnemonicInterface) {
-                          final words = await wallet.getMnemonicAsWords();
+                            if (context.mounted) {
+                              await Navigator.of(context).pushNamed(
+                                DeleteWalletKeysPopup.routeName,
+                                arguments: Tuple2(widget.walletId, words),
+                              );
+                            }
+                          }
+                        } on BadDecryption catch (e, s) {
+                          Logging.instance.f(
+                            "Desktop wallet delete error. Showing decryption error continue dialog.",
+                            error: e,
+                            stackTrace: s,
+                          );
 
                           if (context.mounted) {
-                            await Navigator.of(context).pushNamed(
-                              DeleteWalletKeysPopup.routeName,
-                              arguments: Tuple2(
-                                widget.walletId,
-                                words,
+                            await Navigator.of(context).push(
+                              RouteGenerator.getRoute(
+                                builder: (context) {
+                                  return ErrorLoadingKeysDialog(
+                                    walletId: widget.walletId,
+                                  );
+                                },
+                                settings: const RouteSettings(
+                                  name: "/desktopErrorLoadingKeysDialog",
+                                ),
                               ),
                             );
                           }
@@ -187,6 +205,72 @@ class _DesktopAttentionDeleteWallet
                       },
                     ),
                   ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ErrorLoadingKeysDialog extends StatelessWidget {
+  const ErrorLoadingKeysDialog({super.key, required this.walletId});
+
+  final String walletId;
+
+  @override
+  Widget build(BuildContext context) {
+    return DesktopDialog(
+      maxWidth: 614,
+      maxHeight: double.infinity,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(
+                  "Decryption error",
+                  style: STextStyles.desktopH3(context),
+                ),
+              ),
+              DesktopDialogCloseButton(
+                onPressedOverride: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                },
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                RoundedWhiteContainer(
+                  child: Text(
+                    "Could not retrieve wallet keys/mnemonic phrase/seed.\n\n"
+                    "Are you certain you would like to continue with wallet deletion?",
+                    style: STextStyles.label(context).copyWith(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(height: 40),
+                PrimaryButton(
+                  label: "Continue",
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      RouteGenerator.getRoute(
+                        builder: (context) {
+                          return ConfirmDelete(walletId: walletId);
+                        },
+                        settings: const RouteSettings(
+                          name: "/desktopConfirmDelete",
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

@@ -20,31 +20,26 @@ final pValidSparkSendToAddress = StateProvider.autoDispose<bool>((_) => false);
 
 final pIsExchangeAddress = StateProvider<bool>((_) => false);
 
-final pPreviewTxButtonEnabled =
-    Provider.autoDispose.family<bool, CryptoCurrency>((ref, coin) {
-  final amount = ref.watch(pSendAmount) ?? Amount.zero;
+final pPreviewTxButtonEnabled = Provider.autoDispose
+    .family<bool, CryptoCurrency>((ref, coin) {
+      final amount = ref.watch(pSendAmount) ?? Amount.zero;
 
-  if (coin is Firo) {
-    final firoType = ref.watch(publicPrivateBalanceStateProvider);
-    switch (firoType) {
-      case FiroType.lelantus:
-        return ref.watch(pValidSendToAddress) &&
-            !ref.watch(pValidSparkSendToAddress) &&
-            amount > Amount.zero;
+      if (coin is Firo) {
+        final firoType = ref.watch(publicPrivateBalanceStateProvider);
+        switch (firoType) {
+          case BalanceType.private:
+            return (ref.watch(pValidSendToAddress) ||
+                    ref.watch(pValidSparkSendToAddress)) &&
+                !ref.watch(pIsExchangeAddress) &&
+                amount > Amount.zero;
 
-      case FiroType.spark:
-        return (ref.watch(pValidSendToAddress) ||
-                ref.watch(pValidSparkSendToAddress)) &&
-            !ref.watch(pIsExchangeAddress) &&
-            amount > Amount.zero;
-
-      case FiroType.public:
+          case BalanceType.public:
+            return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+        }
+      } else {
         return ref.watch(pValidSendToAddress) && amount > Amount.zero;
-    }
-  } else {
-    return ref.watch(pValidSendToAddress) && amount > Amount.zero;
-  }
-});
+      }
+    });
 
 final previewTokenTxButtonStateProvider = StateProvider.autoDispose<bool>((_) {
   return false;

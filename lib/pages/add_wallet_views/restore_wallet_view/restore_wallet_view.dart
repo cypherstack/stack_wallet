@@ -17,18 +17,16 @@ import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
-import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
-    as cs_monero_deprecated;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:xelis_flutter/src/api/seed_search_engine.dart' as x_seed;
 
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../services/transaction_notification_tracker.dart';
@@ -47,8 +45,10 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -76,9 +76,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.coin,
     required this.seedWordsLength,
     required this.mnemonicPassphrase,
-    required this.restoreFromDate,
-    this.enableLelantusScanning = false,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+    required this.restoreBlockHeight,
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -88,10 +86,8 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final String mnemonicPassphrase;
   final int seedWordsLength;
-  final DateTime? restoreFromDate;
-  final bool enableLelantusScanning;
+  final int restoreBlockHeight;
 
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override
@@ -103,14 +99,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   late final int _seedWordCount;
   late final bool isDesktop;
 
+  x_seed.SearchEngine? _xelisSeedSearch;
   final HashSet<String> _wordListHashSet = HashSet.from(bip39wordlist.WORDLIST);
   final ScrollController controller = ScrollController();
 
   final List<TextEditingController> _controllers = [];
   final List<FormInputStatus> _inputStatuses = [];
   // final List<FocusNode> _focusNodes = [];
-
-  late final BarcodeScannerInterface scanner;
 
   late final TextSelectionControls textSelectionControls;
 
@@ -156,15 +151,21 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     _seedWordCount = widget.seedWordsLength;
     isDesktop = Util.isDesktop;
 
-    textSelectionControls = Platform.isIOS
-        ? CustomCupertinoTextSelectionControls(onPaste: onControlsPaste)
-        : CustomMaterialTextSelectionControls(onPaste: onControlsPaste);
+    textSelectionControls =
+        Platform.isIOS
+            ? CustomCupertinoTextSelectionControls(onPaste: onControlsPaste)
+            : CustomMaterialTextSelectionControls(onPaste: onControlsPaste);
 
-    scanner = widget.barcodeScanner;
     for (int i = 0; i < _seedWordCount; i++) {
       _controllers.add(TextEditingController());
       _inputStatuses.add(FormInputStatus.empty);
       // _focusNodes.add(FocusNode());
+    }
+
+    if (widget.coin is Xelis) {
+      _xelisSeedSearch = x_seed.SearchEngine.init(
+        languageIndex: BigInt.from(0),
+      );
     }
 
     super.initState();
@@ -182,7 +183,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   // TODO: check for wownero wordlist?
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
-    if (widget.coin is Monero) {
+    if (widget.coin is Monero || widget.coin is Salvium) {
+      // Salvium use's Monero's wordlists.
       switch (widget.seedWordsLength) {
         case 25:
           return lib_monero.getMoneroWordList("English").contains(word);
@@ -199,15 +201,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       );
       return wowneroWordList.contains(word);
     }
+    if (widget.coin is Xelis) {
+      return _xelisSeedSearch!.search(query: word).length > 0;
+    }
     return _wordListHashSet.contains(word);
   }
 
   OutlineInputBorder _buildOutlineInputBorder(Color color) {
     return OutlineInputBorder(
-      borderSide: BorderSide(
-        width: 1,
-        color: color,
-      ),
+      borderSide: BorderSide(width: 1, color: color),
       borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
     );
   }
@@ -222,71 +224,32 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
       mnemonic = mnemonic.trim();
 
-      int height = 0;
+      final int height = widget.restoreBlockHeight;
       String? otherDataJsonString;
-
-      if (widget.restoreFromDate != null) {
-        if (widget.coin is Monero) {
-          height = cs_monero_deprecated.getMoneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (widget.coin is Wownero) {
-          height = cs_monero_deprecated.getWowneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (height < 0) {
-          height = 0;
-        }
-      }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin is Epiccash) {
-        if (widget.restoreFromDate != null) {
-          final int secondsSinceEpoch =
-              widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
-          const int epicCashFirstBlock = 1565370278;
-          const double overestimateSecondsPerBlock = 61;
-          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-          final int approximateHeight =
-              chosenSeconds ~/ overestimateSecondsPerBlock;
-
-          height = approximateHeight;
-        }
-        if (height < 0) {
-          height = 0;
-        }
-
-        otherDataJsonString = jsonEncode(
-          {
-            WalletInfoKeys.epiccashData: jsonEncode(
-              ExtraEpiccashWalletInfo(
-                receivingIndex: 0,
-                changeIndex: 0,
-                slatesToAddresses: {},
-                slatesToCommits: {},
-                lastScannedBlock: height,
-                restoreHeight: height,
-                creationHeight: height,
-              ).toMap(),
-            ),
-          },
-        );
-      } else if (widget.coin is Firo) {
-        otherDataJsonString = jsonEncode(
-          {
-            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-            WalletInfoKeys.enableLelantusScanning:
-                widget.enableLelantusScanning,
-          },
-        );
+        otherDataJsonString = jsonEncode({
+          WalletInfoKeys.epiccashData: jsonEncode(
+            ExtraEpiccashWalletInfo(
+              receivingIndex: 0,
+              changeIndex: 0,
+              slatesToAddresses: {},
+              slatesToCommits: {},
+              lastScannedBlock: height,
+              restoreHeight: height,
+              creationHeight: height,
+            ).toMap(),
+          ),
+        });
       }
 
-      // TODO: do actual check to make sure it is a valid mnemonic for monero
+      // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin is Monero || widget.coin is Wownero)) {
-        if (mounted) setState(() => _hideSeedWords = false);
+          !(widget.coin is Monero ||
+              widget.coin is Wownero ||
+              widget.coin is Salvium ||
+              widget.coin is Xelis)) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -320,10 +283,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
                     if (mounted) setState(() => _hideSeedWords = false);
 
-                    await ref.read(pWallets).deleteWallet(
-                          info,
-                          ref.read(secureStoreProvider),
-                        );
+                    await ref
+                        .read(pWallets)
+                        .deleteWallet(info, ref.read(secureStoreProvider));
                   },
                 );
               },
@@ -336,15 +298,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             .getPrimaryNodeFor(currency: widget.coin);
 
         if (node == null) {
-          node = widget.coin.defaultNode;
-          await ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
-                coin: widget.coin,
-                node: node,
-              );
+          node = widget.coin.defaultNode(isPrimary: true);
+          await ref
+              .read(nodeServiceChangeNotifierProvider)
+              .save(node, null, false);
         }
 
-        final txTracker =
-            TransactionNotificationTracker(walletId: info.walletId);
+        final txTracker = TransactionNotificationTracker(
+          walletId: info.walletId,
+        );
 
         try {
           final wallet = await Wallet.create(
@@ -371,13 +333,21 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               await (wallet as WowneroWallet).init(isRestore: true);
               break;
 
+            case const (SalviumWallet):
+              await (wallet as SalviumWallet).init(isRestore: true);
+              break;
+
+            case const (XelisWallet):
+              await (wallet as XelisWallet).init(isRestore: true);
+              break;
+
             default:
               await wallet.init();
           }
 
           await wallet.recover(isRescan: false);
 
-          if (wallet is LibMoneroWallet) {
+          if (wallet is ExternalWallet) {
             await wallet.exit();
           }
 
@@ -387,15 +357,24 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               isar: ref.read(mainDBProvider).isar,
             );
 
+            if (ref.read(pDuress)) {
+              await wallet.info.updateDuressVisibilityStatus(
+                isDuressVisible: true,
+                isar: ref.read(mainDBProvider).isar,
+              );
+            }
+
             ref.read(pWallets).addWallet(wallet);
 
-            final isCreateSpecialEthWallet =
-                ref.read(createSpecialEthWalletRoutingFlag);
+            final isCreateSpecialEthWallet = ref.read(
+              createSpecialEthWalletRoutingFlag,
+            );
             if (isCreateSpecialEthWallet) {
               ref.read(createSpecialEthWalletRoutingFlag.notifier).state =
                   false;
-              ref.read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state).state =
-                  !ref
+              ref
+                  .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                  .state = !ref
                       .read(
                         newEthWalletTriggerTempUntilHiveCompletelyDeleted.state,
                       )
@@ -404,17 +383,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             if (mounted) {
               if (isDesktop) {
-                Navigator.of(context).popUntil(
-                  ModalRoute.withName(
-                    DesktopHomeView.routeName,
-                  ),
-                );
+                Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
               } else {
                 if (isCreateSpecialEthWallet) {
                   Navigator.of(context).popUntil(
-                    ModalRoute.withName(
-                      SelectWalletForTokenView.routeName,
-                    ),
+                    ModalRoute.withName(SelectWalletForTokenView.routeName),
                   );
                 } else {
                   unawaited(
@@ -507,57 +482,54 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
-        prefixColor = Theme.of(context)
-            .extension<StackColors>()!
-            .textFieldErrorSearchIconLeft;
+        prefixColor =
+            Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldErrorSearchIconLeft;
         borderColor =
             Theme.of(context).extension<StackColors>()!.textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
           height: 16,
-          color: Theme.of(context)
-              .extension<StackColors>()!
-              .textFieldErrorSearchIconRight,
+          color:
+              Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldErrorSearchIconRight,
         );
         break;
       case FormInputStatus.valid:
         color = Theme.of(context).extension<StackColors>()!.textFieldSuccessBG;
-        prefixColor = Theme.of(context)
-            .extension<StackColors>()!
-            .textFieldSuccessSearchIconLeft;
+        prefixColor =
+            Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldSuccessSearchIconLeft;
         borderColor =
             Theme.of(context).extension<StackColors>()!.textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
           height: 16,
-          color: Theme.of(context)
-              .extension<StackColors>()!
-              .textFieldSuccessSearchIconRight,
+          color:
+              Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldSuccessSearchIconRight,
         );
         break;
     }
     return InputDecoration(
       fillColor: color,
       filled: true,
-      contentPadding: const EdgeInsets.symmetric(
-        vertical: 12,
-        horizontal: 16,
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       prefixIcon: Align(
         alignment: Alignment.centerLeft,
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 12,
-            bottom: 2,
-          ),
+          padding: const EdgeInsets.only(left: 12, bottom: 2),
           child: Text(
             prefix,
-            style: STextStyles.fieldLabel(context).copyWith(
-              color: prefixColor,
-              fontSize: Util.isDesktop ? 16 : 14,
-            ),
+            style: STextStyles.fieldLabel(
+              context,
+            ).copyWith(color: prefixColor, fontSize: Util.isDesktop ? 16 : 14),
           ),
         ),
       ),
@@ -624,7 +596,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   Future<void> scanMnemonicQr() async {
     try {
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
 
@@ -641,19 +613,35 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
     } on PlatformException catch (e, s) {
       // likely failed to get camera permissions
-      Logging.instance.e(
-        "Restore wallet qr scan failed: $e",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.e(
+          "Restore wallet qr scan failed: $e",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
   Future<void> pasteMnemonic() async {
     //todo: check if print needed
     // debugPrint("restoreWalletPasteButton tapped");
-    final ClipboardData? data =
-        await widget.clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? data = await widget.clipboard.getData(
+      Clipboard.kTextPlain,
+    );
 
     if (data?.text != null && data!.text!.isNotEmpty) {
       final content = data.text!.trim();
@@ -665,9 +653,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   Future<void> requestRestore() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 100),
-    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     if (mounted) {
       await showDialog<dynamic>(
@@ -675,9 +661,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return ConfirmRecoveryDialog(
-            onConfirm: attemptRestore,
-          );
+          return ConfirmRecoveryDialog(onConfirm: attemptRestore);
         },
       );
     }
@@ -688,85 +672,90 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     final isDesktop = Util.isDesktop;
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? const DesktopAppBar(
-              isCompactHeight: false,
-              leading: AppBarBackButton(),
-              trailing: ExitToMyStackButton(),
-            )
-          : AppBar(
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (FocusScope.of(context).hasFocus) {
-                    FocusScope.of(context).unfocus();
-                    await Future<void>.delayed(
-                      const Duration(milliseconds: 50),
-                    );
-                  }
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
+      appBar:
+          isDesktop
+              ? const DesktopAppBar(
+                isCompactHeight: false,
+                leading: AppBarBackButton(),
+                trailing: ExitToMyStackButton(),
+              )
+              : AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 50),
+                      );
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        semanticsLabel:
+                            "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
+                        key: const Key("restoreWalletViewQrCodeButton"),
+                        size: 36,
+                        shadows: const [],
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
+                        icon: QrCodeIcon(
+                          width: 20,
+                          height: 20,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
+                        ),
+                        onPressed: scanMnemonicQr,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        semanticsLabel:
+                            "Paste Button. Pastes From Clipboard For Restoring Wallet.",
+                        key: const Key("restoreWalletPasteButton"),
+                        size: 36,
+                        shadows: const [],
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
+                        icon: ClipboardIcon(
+                          width: 20,
+                          height: 20,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
+                        ),
+                        onPressed: pasteMnemonic,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      semanticsLabel:
-                          "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
-                      key: const Key("restoreWalletViewQrCodeButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: QrCodeIcon(
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      onPressed: scanMnemonicQr,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      semanticsLabel:
-                          "Paste Button. Pastes From Clipboard For Restoring Wallet.",
-                      key: const Key("restoreWalletPasteButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: ClipboardIcon(
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      onPressed: pasteMnemonic,
-                    ),
-                  ),
-                ),
-              ],
-            ),
       body: Container(
         color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
@@ -784,27 +773,23 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     widget.walletName,
                     style: STextStyles.itemSubtitle(context),
                   ),
-                SizedBox(
-                  height: isDesktop ? 0 : 4,
-                ),
+                SizedBox(height: isDesktop ? 0 : 4),
                 Text(
                   "Recovery phrase",
-                  style: isDesktop
-                      ? STextStyles.desktopH2(context)
-                      : STextStyles.pageTitleH1(context),
+                  style:
+                      isDesktop
+                          ? STextStyles.desktopH2(context)
+                          : STextStyles.pageTitleH1(context),
                 ),
-                SizedBox(
-                  height: isDesktop ? 16 : 8,
-                ),
+                SizedBox(height: isDesktop ? 16 : 8),
                 Text(
                   "Enter your $_seedWordCount-word recovery phrase.",
-                  style: isDesktop
-                      ? STextStyles.desktopSubtitleH2(context)
-                      : STextStyles.subtitle(context),
+                  style:
+                      isDesktop
+                          ? STextStyles.desktopSubtitleH2(context)
+                          : STextStyles.subtitle(context),
                 ),
-                SizedBox(
-                  height: isDesktop ? 16 : 10,
-                ),
+                SizedBox(height: isDesktop ? 16 : 10),
                 if (isDesktop)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -822,19 +807,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                 Assets.svg.clipboard,
                                 width: 22,
                                 height: 22,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextSecondary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                               ),
-                              const SizedBox(
-                                width: 8,
-                              ),
+                              const SizedBox(width: 8),
                               Text(
                                 "Paste",
-                                style: STextStyles
-                                    .desktopButtonSmallSecondaryEnabled(
-                                  context,
-                                ),
+                                style:
+                                    STextStyles.desktopButtonSmallSecondaryEnabled(
+                                      context,
+                                    ),
                               ),
                             ],
                           ),
@@ -842,15 +826,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       ),
                     ],
                   ),
-                if (isDesktop)
-                  const SizedBox(
-                    height: 20,
-                  ),
+                if (isDesktop) const SizedBox(height: 20),
                 if (isDesktop)
                   ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: 1008,
-                    ),
+                    constraints: const BoxConstraints(maxWidth: 1008),
                     child: Builder(
                       builder: (BuildContext context) {
                         const cols = 4;
@@ -887,24 +866,23 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   ),
                                                   decoration:
                                                       _getInputDecorationFor(
-                                                    _inputStatuses[
-                                                        i * 4 + j - 1],
-                                                    "${i * 4 + j}",
-                                                  ),
+                                                        _inputStatuses[i * 4 +
+                                                            j -
+                                                            1],
+                                                        "${i * 4 + j}",
+                                                      ),
                                                   autovalidateMode:
                                                       AutovalidateMode
                                                           .onUserInteraction,
-                                                  selectionControls: i * 4 +
-                                                              j -
-                                                              1 ==
-                                                          1
-                                                      ? textSelectionControls
-                                                      : null,
+                                                  selectionControls:
+                                                      i * 4 + j - 1 == 1
+                                                          ? textSelectionControls
+                                                          : null,
                                                   // focusNode:
                                                   //     _focusNodes[i * 4 + j - 1],
                                                   onChanged: (value) {
                                                     final FormInputStatus
-                                                        formInputStatus;
+                                                    formInputStatus;
 
                                                     if (value.isEmpty) {
                                                       formInputStatus =
@@ -936,25 +914,31 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     // }
                                                     setState(() {
                                                       _inputStatuses[i * 4 +
-                                                          j -
-                                                          1] = formInputStatus;
+                                                              j -
+                                                              1] =
+                                                          formInputStatus;
                                                     });
                                                   },
-                                                  controller: _controllers[
-                                                      i * 4 + j - 1],
-                                                  style:
-                                                      STextStyles.field(context)
-                                                          .copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textRestore,
+                                                  controller:
+                                                      _controllers[i * 4 +
+                                                          j -
+                                                          1],
+                                                  style: STextStyles.field(
+                                                    context,
+                                                  ).copyWith(
+                                                    color:
+                                                        Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textRestore,
                                                     fontSize:
                                                         isDesktop ? 16 : 14,
                                                   ),
                                                 ),
-                                                if (_inputStatuses[
-                                                        i * 4 + j - 1] ==
+                                                if (_inputStatuses[i * 4 +
+                                                        j -
+                                                        1] ==
                                                     FormInputStatus.invalid)
                                                   Align(
                                                     alignment:
@@ -962,23 +946,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     child: Padding(
                                                       padding:
                                                           const EdgeInsets.only(
-                                                        left: 12.0,
-                                                        bottom: 4.0,
-                                                      ),
+                                                            left: 12.0,
+                                                            bottom: 4.0,
+                                                          ),
                                                       child: Text(
                                                         "Please check spelling",
                                                         textAlign:
                                                             TextAlign.left,
-                                                        style:
-                                                            STextStyles.label(
+                                                        style: STextStyles.label(
                                                           context,
                                                         ).copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          )
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textError,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textError,
                                                         ),
                                                       ),
                                                     ),
@@ -993,19 +976,23 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     TableViewRow(
                                       spacing: 16,
                                       cells: [
-                                        for (int i = rows * cols;
-                                            i < _seedWordCount - remainder;
-                                            i++) ...[
+                                        for (
+                                          int i = rows * cols;
+                                          i < _seedWordCount - remainder;
+                                          i++
+                                        ) ...[
                                           const TableViewCell(
                                             flex: 1,
                                             child: Column(
-                                                // ... (existing code for input field)
-                                                ),
+                                              // ... (existing code for input field)
+                                            ),
                                           ),
                                         ],
-                                        for (int i = _seedWordCount - remainder;
-                                            i < _seedWordCount;
-                                            i++) ...[
+                                        for (
+                                          int i = _seedWordCount - remainder;
+                                          i < _seedWordCount;
+                                          i++
+                                        ) ...[
                                           TableViewCell(
                                             flex: 1,
                                             child: Column(
@@ -1021,18 +1008,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   ),
                                                   decoration:
                                                       _getInputDecorationFor(
-                                                    _inputStatuses[i],
-                                                    "${i + 1}",
-                                                  ),
+                                                        _inputStatuses[i],
+                                                        "${i + 1}",
+                                                      ),
                                                   autovalidateMode:
                                                       AutovalidateMode
                                                           .onUserInteraction,
-                                                  selectionControls: i == 1
-                                                      ? textSelectionControls
-                                                      : null,
+                                                  selectionControls:
+                                                      i == 1
+                                                          ? textSelectionControls
+                                                          : null,
                                                   onChanged: (value) {
                                                     final FormInputStatus
-                                                        formInputStatus;
+                                                    formInputStatus;
 
                                                     if (value.isEmpty) {
                                                       formInputStatus =
@@ -1056,13 +1044,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     });
                                                   },
                                                   controller: _controllers[i],
-                                                  style:
-                                                      STextStyles.field(context)
-                                                          .copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .overlay,
+                                                  style: STextStyles.field(
+                                                    context,
+                                                  ).copyWith(
+                                                    color:
+                                                        Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .overlay,
                                                     fontSize:
                                                         isDesktop ? 16 : 14,
                                                   ),
@@ -1075,23 +1065,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     child: Padding(
                                                       padding:
                                                           const EdgeInsets.only(
-                                                        left: 12.0,
-                                                        bottom: 4.0,
-                                                      ),
+                                                            left: 12.0,
+                                                            bottom: 4.0,
+                                                          ),
                                                       child: Text(
                                                         "Please check spelling",
                                                         textAlign:
                                                             TextAlign.left,
-                                                        style:
-                                                            STextStyles.label(
+                                                        style: STextStyles.label(
                                                           context,
                                                         ).copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          )
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textError,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textError,
                                                         ),
                                                       ),
                                                     ),
@@ -1100,9 +1089,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             ),
                                           ),
                                         ],
-                                        for (int i = 0;
-                                            i < cols - remainder;
-                                            i++) ...[
+                                        for (
+                                          int i = 0;
+                                          i < cols - remainder;
+                                          i++
+                                        ) ...[
                                           TableViewCell(
                                             flex: 1,
                                             child: Container(),
@@ -1114,9 +1105,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              height: 32,
-                            ),
+                            const SizedBox(height: 32),
                             PrimaryButton(
                               label: "Restore wallet",
                               width: 480,
@@ -1143,8 +1132,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                             Column(
                               children: [
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
                                   child: TextFormField(
                                     obscureText: _hideSeedWords,
                                     autocorrect: !isDesktop,
@@ -1188,9 +1178,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     },
                                     controller: _controllers[i - 1],
                                     style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textRestore,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textRestore,
                                       fontSize: isDesktop ? 16 : 14,
                                     ),
                                   ),
@@ -1207,11 +1198,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       child: Text(
                                         "Please check spelling",
                                         textAlign: TextAlign.left,
-                                        style:
-                                            STextStyles.label(context).copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textError,
+                                        style: STextStyles.label(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textError,
                                         ),
                                       ),
                                     ),
@@ -1219,9 +1212,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                               ],
                             ),
                           Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8.0,
-                            ),
+                            padding: const EdgeInsets.only(top: 8.0),
                             child: PrimaryButton(
                               onPressed: requestRestore,
                               label: "Restore",

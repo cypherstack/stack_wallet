@@ -70,60 +70,60 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
   void _showDesktopAddressQrCode() {
     showDialog<void>(
       context: context,
-      builder: (context) => DesktopDialog(
-        maxWidth: 480,
-        maxHeight: 400,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder:
+          (context) => DesktopDialog(
+            maxWidth: 480,
+            maxHeight: 400,
+            child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "Address QR code",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Center(
-                    child: RepaintBoundary(
-                      key: _qrKey,
-                      child: QR(
-                        data: AddressUtils.buildUriString(
-                          ref.watch(pWalletCoin(widget.walletId)).uriScheme,
-                          address.value,
-                          {},
-                        ),
-                        size: 220,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Address QR code",
+                        style: STextStyles.desktopH3(context),
                       ),
                     ),
+                    const DesktopDialogCloseButton(),
+                  ],
+                ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: RepaintBoundary(
+                          key: _qrKey,
+                          child: QR(
+                            data: AddressUtils.buildUriString(
+                              ref.watch(pWalletCoin(widget.walletId)).uriScheme,
+                              address.value,
+                              {},
+                            ),
+                            size: 220,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
-            const SizedBox(
-              height: 32,
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
   @override
   void initState() {
-    address = MainDB.instance.isar.addresses
-        .where()
-        .idEqualTo(widget.addressId)
-        .findFirstSync()!;
+    address =
+        MainDB.instance.isar.addresses
+            .where()
+            .idEqualTo(widget.addressId)
+            .findFirstSync()!;
 
     label = MainDB.instance.getAddressLabelSync(widget.walletId, address.value);
     Id? id = label?.id;
@@ -132,9 +132,10 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
         walletId: widget.walletId,
         addressString: address.value,
         value: "",
-        tags: address.subType == AddressSubType.receiving
-            ? ["receiving"]
-            : address.subType == AddressSubType.change
+        tags:
+            address.subType == AddressSubType.receiving
+                ? ["receiving"]
+                : address.subType == AddressSubType.change
                 ? ["change"]
                 : null,
       );
@@ -151,43 +152,46 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            titleSpacing: 0,
-            title: Text(
-              "Address details",
-              style: STextStyles.navBarTitle(context),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.backgroundAppBar,
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                titleSpacing: 0,
+                title: Text(
+                  "Address details",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (builderContext, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (builderContext, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: child,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
       child: StreamBuilder<AddressLabel?>(
         stream: stream,
         builder: (context, snapshot) {
@@ -200,9 +204,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
             builder: (child) {
               return Column(
                 children: [
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(24),
                     child: Column(
@@ -215,9 +217,10 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle1,
                               ),
                             ),
                             CustomTextButton(
@@ -226,19 +229,16 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 4,
-                        ),
+                        const SizedBox(height: 4),
                         RoundedWhiteContainer(
                           padding: EdgeInsets.zero,
-                          borderColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .backgroundAppBar,
+                          borderColor:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.backgroundAppBar,
                           child: child,
                         ),
-                        const SizedBox(
-                          height: 16,
-                        ),
+                        const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -247,34 +247,35 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle1,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 8,
-                        ),
+                        const SizedBox(height: 8),
                         RoundedWhiteContainer(
                           padding: EdgeInsets.zero,
-                          borderColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .backgroundAppBar,
-                          child: ref
-                                      .watch(pWallets)
-                                      .getWallet(widget.walletId)
-                                      .isarTransactionVersion ==
-                                  2
-                              ? _AddressDetailsTxV2List(
-                                  walletId: widget.walletId,
-                                  address: address,
-                                )
-                              : _AddressDetailsTxList(
-                                  walletId: widget.walletId,
-                                  address: address,
-                                ),
+                          borderColor:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.backgroundAppBar,
+                          child:
+                              ref
+                                          .watch(pWallets)
+                                          .getWallet(widget.walletId)
+                                          .isarTransactionVersion ==
+                                      2
+                                  ? _AddressDetailsTxV2List(
+                                    walletId: widget.walletId,
+                                    address: address,
+                                  )
+                                  : _AddressDetailsTxList(
+                                    walletId: widget.walletId,
+                                    address: address,
+                                  ),
                         ),
                       ],
                     ),
@@ -299,24 +300,16 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       ),
                     ),
                   ),
-                if (!isDesktop)
-                  const SizedBox(
-                    height: 16,
-                  ),
+                if (!isDesktop) const SizedBox(height: 16),
                 DetailItem(
                   title: "Address",
                   detail: address.value,
-                  button: isDesktop
-                      ? IconCopyButton(
-                          data: address.value,
-                        )
-                      : SimpleCopyButton(
-                          data: address.value,
-                        ),
+                  button:
+                      isDesktop
+                          ? IconCopyButton(data: address.value)
+                          : SimpleCopyButton(data: address.value),
                 ),
-                const _Div(
-                  height: 12,
-                ),
+                const _Div(height: 12),
                 DetailItem(
                   title: "Label",
                   detail: label!.value,
@@ -325,59 +318,47 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     editLabel: 'label',
                     onValueChanged: (value) {
                       MainDB.instance.putAddressLabel(
-                        label!.copyWith(
-                          label: value,
-                        ),
+                        label!.copyWith(label: value),
                       );
                     },
                   ),
                 ),
-                const _Div(
-                  height: 12,
-                ),
-                _Tags(
-                  tags: label!.tags,
-                ),
-                if (address.derivationPath != null)
-                  const _Div(
-                    height: 12,
-                  ),
+                const _Div(height: 12),
+                _Tags(tags: label!.tags),
+                if (address.derivationPath != null) const _Div(height: 12),
                 if (address.derivationPath != null)
                   DetailItem(
                     title: "Derivation path",
                     detail: address.derivationPath!.value,
                     button: Container(),
                   ),
-                if (address.type == AddressType.spark)
-                  const _Div(
-                    height: 12,
-                  ),
+                if (address.type == AddressType.spark) const _Div(height: 12),
                 if (address.type == AddressType.spark)
                   DetailItem(
                     title: "Diversifier",
                     detail: address.derivationIndex.toString(),
                     button: Container(),
                   ),
-                const _Div(
-                  height: 12,
-                ),
+                if (address.type == AddressType.mweb) const _Div(height: 12),
+                if (address.type == AddressType.mweb)
+                  DetailItem(
+                    title: "Index",
+                    detail: address.derivationIndex.toString(),
+                    button: Container(),
+                  ),
+                const _Div(height: 12),
                 DetailItem(
                   title: "Type",
                   detail: address.type.readableName,
                   button: Container(),
                 ),
-                const _Div(
-                  height: 12,
-                ),
+                const _Div(height: 12),
                 DetailItem(
                   title: "Sub type",
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
-                if (kDebugMode)
-                  const _Div(
-                    height: 12,
-                  ),
+                if (kDebugMode) const _Div(height: 12),
                 if (kDebugMode)
                   DetailItem(
                     title: "frost secure (kDebugMode)",
@@ -385,18 +366,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     button: Container(),
                   ),
                 if (wallet is Bip39HDWallet && !wallet.isViewOnly)
-                  const _Div(
-                    height: 12,
-                  ),
+                  const _Div(height: 12),
                 if (wallet is Bip39HDWallet && !wallet.isViewOnly)
                   AddressPrivateKey(
                     walletId: widget.walletId,
                     address: address,
                   ),
-                if (!isDesktop)
-                  const SizedBox(
-                    height: 20,
-                  ),
+                if (!isDesktop) const SizedBox(height: 20),
                 if (!isDesktop)
                   Text(
                     "Transactions",
@@ -406,10 +382,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                           Theme.of(context).extension<StackColors>()!.textDark3,
                     ),
                   ),
-                if (!isDesktop)
-                  const SizedBox(
-                    height: 12,
-                  ),
+                if (!isDesktop) const SizedBox(height: 12),
                 if (!isDesktop)
                   ref
                               .watch(pWallets)
@@ -417,13 +390,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                               .isarTransactionVersion ==
                           2
                       ? _AddressDetailsTxV2List(
-                          walletId: widget.walletId,
-                          address: address,
-                        )
+                        walletId: widget.walletId,
+                        address: address,
+                      )
                       : _AddressDetailsTxList(
-                          walletId: widget.walletId,
-                          address: address,
-                        ),
+                        walletId: widget.walletId,
+                        address: address,
+                      ),
               ],
             ),
           );
@@ -458,10 +431,9 @@ class _AddressDetailsTxList extends StatelessWidget {
         return ListView.separated(
           shrinkWrap: true,
           primary: false,
-          itemBuilder: (_, index) => TransactionCard(
-            transaction: txns[index],
-            walletId: walletId,
-          ),
+          itemBuilder:
+              (_, index) =>
+                  TransactionCard(transaction: txns[index], walletId: walletId),
           separatorBuilder: (_, __) => const _Div(height: 1),
           itemCount: count,
         );
@@ -470,15 +442,14 @@ class _AddressDetailsTxList extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: query
-                .findAllSync()
-                .map(
-                  (e) => TransactionCard(
-                    transaction: e,
-                    walletId: walletId,
-                  ),
-                )
-                .toList(),
+            children:
+                query
+                    .findAllSync()
+                    .map(
+                      (e) =>
+                          TransactionCard(transaction: e, walletId: walletId),
+                    )
+                    .toList(),
           ),
         );
       }
@@ -503,40 +474,35 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
     final walletTxFilter =
         ref.watch(pWallets).getWallet(walletId).transactionFilterOperation;
 
-    final query =
-        ref.watch(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
-              whereClauses: [
-                IndexWhereClause.equalTo(
-                  indexName: 'walletId',
-                  value: [walletId],
+    final query = ref
+        .watch(mainDBProvider)
+        .isar
+        .transactionV2s
+        .buildQuery<TransactionV2>(
+          whereClauses: [
+            IndexWhereClause.equalTo(indexName: 'walletId', value: [walletId]),
+          ],
+          filter: FilterGroup.and([
+            if (walletTxFilter != null) walletTxFilter,
+            FilterGroup.or([
+              ObjectFilter(
+                property: 'inputs',
+                filter: FilterCondition.contains(
+                  property: "addresses",
+                  value: address.value,
                 ),
-              ],
-              filter: FilterGroup.and([
-                if (walletTxFilter != null) walletTxFilter,
-                FilterGroup.or([
-                  ObjectFilter(
-                    property: 'inputs',
-                    filter: FilterCondition.contains(
-                      property: "addresses",
-                      value: address.value,
-                    ),
-                  ),
-                  ObjectFilter(
-                    property: 'outputs',
-                    filter: FilterCondition.contains(
-                      property: "addresses",
-                      value: address.value,
-                    ),
-                  ),
-                ]),
-              ]),
-              sortBy: [
-                const SortProperty(
-                  property: "timestamp",
-                  sort: Sort.desc,
+              ),
+              ObjectFilter(
+                property: 'outputs',
+                filter: FilterCondition.contains(
+                  property: "addresses",
+                  value: address.value,
                 ),
-              ],
-            );
+              ),
+            ]),
+          ]),
+          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
+        );
 
     final count = query.countSync();
 
@@ -546,9 +512,8 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
         return ListView.separated(
           shrinkWrap: true,
           primary: false,
-          itemBuilder: (_, index) => TransactionCardV2(
-            transaction: txns[index],
-          ),
+          itemBuilder:
+              (_, index) => TransactionCardV2(transaction: txns[index]),
           separatorBuilder: (_, __) => const _Div(height: 1),
           itemCount: count,
         );
@@ -557,14 +522,11 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
           padding: EdgeInsets.zero,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: query
-                .findAllSync()
-                .map(
-                  (e) => TransactionCardV2(
-                    transaction: e,
-                  ),
-                )
-                .toList(),
+            children:
+                query
+                    .findAllSync()
+                    .map((e) => TransactionCardV2(transaction: e))
+                    .toList(),
           ),
         );
       }
@@ -575,10 +537,7 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 }
 
 class _Div extends StatelessWidget {
-  const _Div({
-    super.key,
-    required this.height,
-  });
+  const _Div({super.key, required this.height});
 
   final double height;
 
@@ -591,18 +550,13 @@ class _Div extends StatelessWidget {
         width: double.infinity,
       );
     } else {
-      return SizedBox(
-        height: height,
-      );
+      return SizedBox(height: height);
     }
   }
 }
 
 class _Tags extends StatelessWidget {
-  const _Tags({
-    super.key,
-    required this.tags,
-  });
+  const _Tags({super.key, required this.tags});
 
   final List<String>? tags;
 
@@ -615,10 +569,7 @@ class _Tags extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Tags",
-                style: STextStyles.itemSubtitle(context),
-              ),
+              Text("Tags", style: STextStyles.itemSubtitle(context)),
               Container(),
               // SimpleEditButton(
               //   onPressedOverride: () {
@@ -627,29 +578,20 @@ class _Tags extends StatelessWidget {
               // ),
             ],
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           tags != null && tags!.isNotEmpty
               ? Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: tags!
-                      .map(
-                        (e) => AddressTag(
-                          tag: e,
-                        ),
-                      )
-                      .toList(),
-                )
+                spacing: 10,
+                runSpacing: 10,
+                children: tags!.map((e) => AddressTag(tag: e)).toList(),
+              )
               : Text(
-                  "Tags will appear here",
-                  style: STextStyles.w500_14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle3,
-                  ),
+                "Tags will appear here",
+                style: STextStyles.w500_14(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle3,
                 ),
+              ),
         ],
       ),
     );

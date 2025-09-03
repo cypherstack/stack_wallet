@@ -44,14 +44,12 @@ class Step2View extends ConsumerStatefulWidget {
     super.key,
     required this.model,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
   });
 
   static const String routeName = "/exchangeStep2";
 
   final IncompleteExchangeModel model;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
 
   @override
   ConsumerState<Step2View> createState() => _Step2ViewState();
@@ -60,7 +58,6 @@ class Step2View extends ConsumerStatefulWidget {
 class _Step2ViewState extends ConsumerState<Step2View> {
   late final IncompleteExchangeModel model;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
 
   late final TextEditingController _toController;
   late final TextEditingController _refundController;
@@ -72,7 +69,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   void _onRefundQrTapped() async {
     try {
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
@@ -85,7 +82,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         model.refundAddress = _refundController.text;
 
         setState(() {
-          enableNext = _toController.text.isNotEmpty &&
+          enableNext =
+              _toController.text.isNotEmpty &&
               _refundController.text.isNotEmpty;
         });
       } else {
@@ -93,22 +91,38 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         model.refundAddress = _refundController.text;
 
         setState(() {
-          enableNext = _toController.text.isNotEmpty &&
+          enableNext =
+              _toController.text.isNotEmpty &&
               _refundController.text.isNotEmpty;
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code in SendView: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code in $runtimeType: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
   void _onToQrTapped() async {
     try {
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
@@ -121,7 +135,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         model.recipientAddress = _toController.text;
 
         setState(() {
-          enableNext = _toController.text.isNotEmpty &&
+          enableNext =
+              _toController.text.isNotEmpty &&
               (_refundController.text.isNotEmpty ||
                   !ref.read(efExchangeProvider).supportsRefundAddress);
         });
@@ -130,17 +145,33 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         model.recipientAddress = _toController.text;
 
         setState(() {
-          enableNext = _toController.text.isNotEmpty &&
+          enableNext =
+              _toController.text.isNotEmpty &&
               (_refundController.text.isNotEmpty ||
                   !!ref.read(efExchangeProvider).supportsRefundAddress);
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code in SendView: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code in $runtimeType: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -148,7 +179,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   void initState() {
     model = widget.model;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
 
     _toController = TextEditingController();
     _refundController = TextEditingController();
@@ -165,9 +195,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             .getWallet(tuple.item1)
             .getCurrentReceivingAddress()
             .then((value) {
-          _toController.text = value!.value;
-          model.recipientAddress = _toController.text;
-        });
+              _toController.text = value!.value;
+              model.recipientAddress = _toController.text;
+            });
       } else {
         if (model.sendTicker.toUpperCase() ==
             tuple.item2.ticker.toUpperCase()) {
@@ -176,9 +206,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
               .getWallet(tuple.item1)
               .getCurrentReceivingAddress()
               .then((value) {
-            _refundController.text = value!.value;
-            model.refundAddress = _refundController.text;
-          });
+                _refundController.text = value!.value;
+                model.refundAddress = _refundController.text;
+              });
         }
       }
     }
@@ -216,162 +246,156 @@ class _Step2ViewState extends ConsumerState<Step2View> {
               }
             },
           ),
-          title: Text(
-            "Swap",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Swap", style: STextStyles.navBarTitle(context)),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = MediaQuery.of(context).size.width - 32;
-            return Padding(
-              padding: const EdgeInsets.all(12),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          StepRow(
-                            count: 4,
-                            current: 1,
-                            width: width,
-                          ),
-                          const SizedBox(
-                            height: 14,
-                          ),
-                          Text(
-                            "Exchange details",
-                            style: STextStyles.pageTitleH1(context),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "Enter your recipient and refund addresses",
-                            style: STextStyles.itemSubtitle(context),
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Recipient Wallet",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              if (AppConfig.isStackCoin(model.receiveTicker))
-                                CustomTextButton(
-                                  text: "Choose from ${AppConfig.prefix}",
-                                  onTap: () {
-                                    try {
-                                      final coin = AppConfig.coins.firstWhere(
-                                        (e) =>
-                                            e.ticker.toLowerCase() ==
-                                            model.receiveTicker.toLowerCase(),
-                                      );
-
-                                      Navigator.of(context)
-                                          .pushNamed(
-                                        ChooseFromStackView.routeName,
-                                        arguments: coin,
-                                      )
-                                          .then((value) async {
-                                        if (value is String) {
-                                          final wallet = ref
-                                              .read(pWallets)
-                                              .getWallet(value);
-
-                                          _toController.text = wallet.info.name;
-                                          model.recipientAddress = (await wallet
-                                                      .getCurrentReceivingAddress())
-                                                  ?.value ??
-                                              wallet
-                                                  .info.cachedReceivingAddress;
-
-                                          setState(() {
-                                            enableNext =
-                                                _toController.text.isNotEmpty &&
-                                                    (_refundController
-                                                            .text.isNotEmpty ||
-                                                        !supportsRefund);
-                                          });
-                                        }
-                                      });
-                                    } catch (e, s) {
-                                      Logging.instance.e(
-                                        "",
-                                        error: e,
-                                        stackTrace: s,
-                                      );
-                                    }
-                                  },
-                                ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 4,
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = MediaQuery.of(context).size.width - 32;
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            StepRow(count: 4, current: 1, width: width),
+                            const SizedBox(height: 14),
+                            Text(
+                              "Exchange details",
+                              style: STextStyles.pageTitleH1(context),
                             ),
-                            child: TextField(
-                              onTap: () {},
-                              key: const Key(
-                                "recipientExchangeStep2ViewAddressFieldKey",
-                              ),
-                              controller: _toController,
-                              readOnly: false,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              // inputFormatters: <TextInputFormatter>[
-                              //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
-                              // ],
-                              toolbarOptions: const ToolbarOptions(
-                                copy: false,
-                                cut: false,
-                                paste: true,
-                                selectAll: false,
-                              ),
-                              focusNode: _toFocusNode,
-                              style: STextStyles.field(context),
-                              onChanged: (value) {
-                                model.recipientAddress = _toController.text;
-                                setState(() {
-                                  enableNext = _toController.text.isNotEmpty &&
-                                      (_refundController.text.isNotEmpty ||
-                                          !supportsRefund);
-                                });
-                              },
-                              decoration: standardInputDecoration(
-                                "Enter the ${model.receiveTicker.toUpperCase()} payout address",
-                                _toFocusNode,
-                                context,
-                              ).copyWith(
-                                contentPadding: const EdgeInsets.only(
-                                  left: 16,
-                                  top: 6,
-                                  bottom: 8,
-                                  right: 5,
+                            const SizedBox(height: 8),
+                            Text(
+                              "Enter your recipient and refund addresses",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Recipient Wallet",
+                                  style: STextStyles.smallMed12(context),
                                 ),
-                                suffixIcon: Padding(
-                                  padding: _toController.text.isEmpty
-                                      ? const EdgeInsets.only(right: 8)
-                                      : const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        _toController.text.isNotEmpty
-                                            ? TextFieldIconButton(
+                                if (AppConfig.isStackCoin(model.receiveTicker))
+                                  CustomTextButton(
+                                    text: "Choose from ${AppConfig.prefix}",
+                                    onTap: () {
+                                      try {
+                                        final coin = AppConfig.coins.firstWhere(
+                                          (e) =>
+                                              e.ticker.toLowerCase() ==
+                                              model.receiveTicker.toLowerCase(),
+                                        );
+
+                                        Navigator.of(context)
+                                            .pushNamed(
+                                              ChooseFromStackView.routeName,
+                                              arguments: coin,
+                                            )
+                                            .then((value) async {
+                                              if (value is String) {
+                                                final wallet = ref
+                                                    .read(pWallets)
+                                                    .getWallet(value);
+
+                                                _toController.text =
+                                                    wallet.info.name;
+                                                model.recipientAddress =
+                                                    (await wallet
+                                                            .getCurrentReceivingAddress())
+                                                        ?.value ??
+                                                    wallet
+                                                        .info
+                                                        .cachedReceivingAddress;
+
+                                                setState(() {
+                                                  enableNext =
+                                                      _toController
+                                                          .text
+                                                          .isNotEmpty &&
+                                                      (_refundController
+                                                              .text
+                                                              .isNotEmpty ||
+                                                          !supportsRefund);
+                                                });
+                                              }
+                                            });
+                                      } catch (e, s) {
+                                        Logging.instance.e(
+                                          "",
+                                          error: e,
+                                          stackTrace: s,
+                                        );
+                                      }
+                                    },
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                onTap: () {},
+                                key: const Key(
+                                  "recipientExchangeStep2ViewAddressFieldKey",
+                                ),
+                                controller: _toController,
+                                readOnly: false,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                // inputFormatters: <TextInputFormatter>[
+                                //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
+                                // ],
+                                toolbarOptions: const ToolbarOptions(
+                                  copy: false,
+                                  cut: false,
+                                  paste: true,
+                                  selectAll: false,
+                                ),
+                                focusNode: _toFocusNode,
+                                style: STextStyles.field(context),
+                                onChanged: (value) {
+                                  model.recipientAddress = _toController.text;
+                                  setState(() {
+                                    enableNext =
+                                        _toController.text.isNotEmpty &&
+                                        (_refundController.text.isNotEmpty ||
+                                            !supportsRefund);
+                                  });
+                                },
+                                decoration: standardInputDecoration(
+                                  "Enter the ${model.receiveTicker.toUpperCase()} payout address",
+                                  _toFocusNode,
+                                  context,
+                                ).copyWith(
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    top: 6,
+                                    bottom: 8,
+                                    right: 5,
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding:
+                                        _toController.text.isEmpty
+                                            ? const EdgeInsets.only(right: 8)
+                                            : const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          _toController.text.isNotEmpty
+                                              ? TextFieldIconButton(
                                                 key: const Key(
                                                   "sendViewClearAddressFieldButtonKey",
                                                 ),
@@ -381,24 +405,27 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                       _toController.text;
 
                                                   setState(() {
-                                                    enableNext = _toController
-                                                            .text.isNotEmpty &&
-                                                        (_refundController.text
+                                                    enableNext =
+                                                        _toController
+                                                            .text
+                                                            .isNotEmpty &&
+                                                        (_refundController
+                                                                .text
                                                                 .isNotEmpty ||
                                                             !supportsRefund);
                                                   });
                                                 },
                                                 child: const XIcon(),
                                               )
-                                            : TextFieldIconButton(
+                                              : TextFieldIconButton(
                                                 key: const Key(
                                                   "sendViewPasteAddressFieldButtonKey",
                                                 ),
                                                 onTap: () async {
                                                   final ClipboardData? data =
                                                       await clipboard.getData(
-                                                    Clipboard.kTextPlain,
-                                                  );
+                                                        Clipboard.kTextPlain,
+                                                      );
                                                   if (data?.text != null &&
                                                       data!.text!.isNotEmpty) {
                                                     final content =
@@ -410,7 +437,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                         _toController.text;
 
                                                     setState(() {
-                                                      enableNext = _toController
+                                                      enableNext =
+                                                          _toController
                                                               .text
                                                               .isNotEmpty &&
                                                           (_refundController
@@ -425,252 +453,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                         ? const ClipboardIcon()
                                                         : const XIcon(),
                                               ),
-                                        if (_toController.text.isEmpty)
-                                          TextFieldIconButton(
-                                            key: const Key(
-                                              "sendViewAddressBookButtonKey",
-                                            ),
-                                            onTap: () {
-                                              ref
-                                                  .read(
-                                                    exchangeFlowIsActiveStateProvider
-                                                        .state,
-                                                  )
-                                                  .state = true;
-                                              Navigator.of(context)
-                                                  .pushNamed(
-                                                AddressBookView.routeName,
-                                              )
-                                                  .then((_) {
-                                                ref
-                                                    .read(
-                                                      exchangeFlowIsActiveStateProvider
-                                                          .state,
-                                                    )
-                                                    .state = false;
-
-                                                final address = ref
-                                                    .read(
-                                                      exchangeFromAddressBookAddressStateProvider
-                                                          .state,
-                                                    )
-                                                    .state;
-                                                if (address.isNotEmpty) {
-                                                  _toController.text = address;
-                                                  model.recipientAddress =
-                                                      _toController.text;
-                                                  ref
-                                                      .read(
-                                                        exchangeFromAddressBookAddressStateProvider
-                                                            .state,
-                                                      )
-                                                      .state = "";
-                                                }
-                                                setState(() {
-                                                  enableNext = _toController
-                                                          .text.isNotEmpty &&
-                                                      (_refundController.text
-                                                              .isNotEmpty ||
-                                                          !supportsRefund);
-                                                });
-                                              });
-                                            },
-                                            child: const AddressBookIcon(),
-                                          ),
-                                        if (_toController.text.isEmpty)
-                                          TextFieldIconButton(
-                                            key: const Key(
-                                              "sendViewScanQrButtonKey",
-                                            ),
-                                            onTap: _onToQrTapped,
-                                            child: const QrCodeIcon(),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 6,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Text(
-                              "This is the wallet where your ${model.receiveTicker.toUpperCase()} will be sent to.",
-                              style: STextStyles.label(context),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          if (supportsRefund)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Refund Wallet (required)",
-                                  style: STextStyles.smallMed12(context),
-                                ),
-                                if (AppConfig.isStackCoin(model.sendTicker))
-                                  CustomTextButton(
-                                    text: "Choose from ${AppConfig.prefix}",
-                                    onTap: () {
-                                      try {
-                                        final coin = AppConfig.coins.firstWhere(
-                                          (e) =>
-                                              e.ticker.toLowerCase() ==
-                                              model.sendTicker.toLowerCase(),
-                                        );
-
-                                        Navigator.of(context)
-                                            .pushNamed(
-                                          ChooseFromStackView.routeName,
-                                          arguments: coin,
-                                        )
-                                            .then((value) async {
-                                          if (value is String) {
-                                            final wallet = ref
-                                                .read(pWallets)
-                                                .getWallet(value);
-
-                                            _refundController.text =
-                                                wallet.info.name;
-                                            model.refundAddress = (await wallet
-                                                    .getCurrentReceivingAddress())!
-                                                .value;
-                                          }
-                                          setState(() {
-                                            enableNext =
-                                                _toController.text.isNotEmpty &&
-                                                    _refundController
-                                                        .text.isNotEmpty;
-                                          });
-                                        });
-                                      } catch (e, s) {
-                                        Logging.instance.i(
-                                          "$e\n$s",
-                                          error: e,
-                                          stackTrace: s,
-                                        );
-                                      }
-                                    },
-                                  ),
-                              ],
-                            ),
-                          if (supportsRefund)
-                            const SizedBox(
-                              height: 4,
-                            ),
-                          if (supportsRefund)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                              child: TextField(
-                                key: const Key(
-                                  "refundExchangeStep2ViewAddressFieldKey",
-                                ),
-                                controller: _refundController,
-                                readOnly: false,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                // inputFormatters: <TextInputFormatter>[
-                                //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
-                                // ],
-                                toolbarOptions: const ToolbarOptions(
-                                  copy: false,
-                                  cut: false,
-                                  paste: true,
-                                  selectAll: false,
-                                ),
-                                focusNode: _refundFocusNode,
-                                style: STextStyles.field(context),
-                                onChanged: (value) {
-                                  model.refundAddress = _refundController.text;
-                                  setState(() {
-                                    enableNext =
-                                        _toController.text.isNotEmpty &&
-                                            _refundController.text.isNotEmpty;
-                                  });
-                                },
-                                decoration: standardInputDecoration(
-                                  "Enter ${model.sendTicker.toUpperCase()} refund address",
-                                  _refundFocusNode,
-                                  context,
-                                ).copyWith(
-                                  contentPadding: const EdgeInsets.only(
-                                    left: 16,
-                                    top: 6,
-                                    bottom: 8,
-                                    right: 5,
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding: _refundController.text.isEmpty
-                                        ? const EdgeInsets.only(right: 16)
-                                        : const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          _refundController.text.isNotEmpty
-                                              ? TextFieldIconButton(
-                                                  key: const Key(
-                                                    "sendViewClearAddressFieldButtonKey",
-                                                  ),
-                                                  onTap: () {
-                                                    _refundController.text = "";
-                                                    model.refundAddress =
-                                                        _refundController.text;
-
-                                                    setState(() {
-                                                      enableNext = _toController
-                                                              .text
-                                                              .isNotEmpty &&
-                                                          _refundController
-                                                              .text.isNotEmpty;
-                                                    });
-                                                  },
-                                                  child: const XIcon(),
-                                                )
-                                              : TextFieldIconButton(
-                                                  key: const Key(
-                                                    "sendViewPasteAddressFieldButtonKey",
-                                                  ),
-                                                  onTap: () async {
-                                                    final ClipboardData? data =
-                                                        await clipboard.getData(
-                                                      Clipboard.kTextPlain,
-                                                    );
-                                                    if (data?.text != null &&
-                                                        data!
-                                                            .text!.isNotEmpty) {
-                                                      final content =
-                                                          data.text!.trim();
-
-                                                      _refundController.text =
-                                                          content;
-                                                      model.refundAddress =
-                                                          _refundController
-                                                              .text;
-
-                                                      setState(() {
-                                                        enableNext = _toController
-                                                                .text
-                                                                .isNotEmpty &&
-                                                            _refundController
-                                                                .text
-                                                                .isNotEmpty;
-                                                      });
-                                                    }
-                                                  },
-                                                  child: _refundController
-                                                          .text.isEmpty
-                                                      ? const ClipboardIcon()
-                                                      : const XIcon(),
-                                                ),
-                                          if (_refundController.text.isEmpty)
+                                          if (_toController.text.isEmpty)
                                             TextFieldIconButton(
                                               key: const Key(
                                                 "sendViewAddressBookButtonKey",
@@ -682,45 +465,57 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                           .state,
                                                     )
                                                     .state = true;
-                                                Navigator.of(context)
-                                                    .pushNamed(
-                                                  AddressBookView.routeName,
-                                                )
-                                                    .then((_) {
+                                                Navigator.of(
+                                                  context,
+                                                ).pushNamed(AddressBookView.routeName).then((
+                                                  _,
+                                                ) {
                                                   ref
                                                       .read(
                                                         exchangeFlowIsActiveStateProvider
                                                             .state,
                                                       )
                                                       .state = false;
-                                                  final address = ref
-                                                      .read(
-                                                        exchangeFromAddressBookAddressStateProvider
-                                                            .state,
-                                                      )
-                                                      .state;
+
+                                                  final address =
+                                                      ref
+                                                          .read(
+                                                            exchangeFromAddressBookAddressStateProvider
+                                                                .state,
+                                                          )
+                                                          .state;
                                                   if (address.isNotEmpty) {
-                                                    _refundController.text =
+                                                    _toController.text =
                                                         address;
-                                                    model.refundAddress =
-                                                        _refundController.text;
+                                                    model.recipientAddress =
+                                                        _toController.text;
+                                                    ref
+                                                        .read(
+                                                          exchangeFromAddressBookAddressStateProvider
+                                                              .state,
+                                                        )
+                                                        .state = "";
                                                   }
                                                   setState(() {
-                                                    enableNext = _toController
-                                                            .text.isNotEmpty &&
-                                                        _refundController
-                                                            .text.isNotEmpty;
+                                                    enableNext =
+                                                        _toController
+                                                            .text
+                                                            .isNotEmpty &&
+                                                        (_refundController
+                                                                .text
+                                                                .isNotEmpty ||
+                                                            !supportsRefund);
                                                   });
                                                 });
                                               },
                                               child: const AddressBookIcon(),
                                             ),
-                                          if (_refundController.text.isEmpty)
+                                          if (_toController.text.isEmpty)
                                             TextFieldIconButton(
                                               key: const Key(
                                                 "sendViewScanQrButtonKey",
                                               ),
-                                              onTap: _onRefundQrTapped,
+                                              onTap: _onToQrTapped,
                                               child: const QrCodeIcon(),
                                             ),
                                         ],
@@ -730,66 +525,318 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 ),
                               ),
                             ),
-                          if (supportsRefund)
-                            const SizedBox(
-                              height: 6,
-                            ),
-                          if (supportsRefund)
+                            const SizedBox(height: 6),
                             RoundedWhiteContainer(
                               child: Text(
-                                "In case something goes wrong during the exchange, we might need a refund address so we can return your coins back to you.",
+                                "This is the wallet where your ${model.receiveTicker.toUpperCase()} will be sent to.",
                                 style: STextStyles.label(context),
                               ),
                             ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
+                            const SizedBox(height: 24),
+                            if (supportsRefund)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Refund Wallet (required)",
+                                    style: STextStyles.smallMed12(context),
+                                  ),
+                                  if (AppConfig.isStackCoin(model.sendTicker))
+                                    CustomTextButton(
+                                      text: "Choose from ${AppConfig.prefix}",
+                                      onTap: () {
+                                        try {
+                                          final coin = AppConfig.coins
+                                              .firstWhere(
+                                                (e) =>
+                                                    e.ticker.toLowerCase() ==
+                                                    model.sendTicker
+                                                        .toLowerCase(),
+                                              );
+
+                                          Navigator.of(context)
+                                              .pushNamed(
+                                                ChooseFromStackView.routeName,
+                                                arguments: coin,
+                                              )
+                                              .then((value) async {
+                                                if (value is String) {
+                                                  final wallet = ref
+                                                      .read(pWallets)
+                                                      .getWallet(value);
+
+                                                  _refundController.text =
+                                                      wallet.info.name;
+                                                  model.refundAddress =
+                                                      (await wallet
+                                                              .getCurrentReceivingAddress())!
+                                                          .value;
+                                                }
+                                                setState(() {
+                                                  enableNext =
+                                                      _toController
+                                                          .text
+                                                          .isNotEmpty &&
+                                                      _refundController
+                                                          .text
+                                                          .isNotEmpty;
+                                                });
+                                              });
+                                        } catch (e, s) {
+                                          Logging.instance.i(
+                                            "$e\n$s",
+                                            error: e,
+                                            stackTrace: s,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                ],
+                              ),
+                            if (supportsRefund) const SizedBox(height: 4),
+                            if (supportsRefund)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  key: const Key(
+                                    "refundExchangeStep2ViewAddressFieldKey",
+                                  ),
+                                  controller: _refundController,
+                                  readOnly: false,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  // inputFormatters: <TextInputFormatter>[
+                                  //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
+                                  // ],
+                                  toolbarOptions: const ToolbarOptions(
+                                    copy: false,
+                                    cut: false,
+                                    paste: true,
+                                    selectAll: false,
+                                  ),
+                                  focusNode: _refundFocusNode,
+                                  style: STextStyles.field(context),
+                                  onChanged: (value) {
+                                    model.refundAddress =
+                                        _refundController.text;
+                                    setState(() {
+                                      enableNext =
+                                          _toController.text.isNotEmpty &&
+                                          _refundController.text.isNotEmpty;
+                                    });
                                   },
-                                  style: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonStyle(context),
-                                  child: Text(
-                                    "Back",
-                                    style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary,
+                                  decoration: standardInputDecoration(
+                                    "Enter ${model.sendTicker.toUpperCase()} refund address",
+                                    _refundFocusNode,
+                                    context,
+                                  ).copyWith(
+                                    contentPadding: const EdgeInsets.only(
+                                      left: 16,
+                                      top: 6,
+                                      bottom: 8,
+                                      right: 5,
+                                    ),
+                                    suffixIcon: Padding(
+                                      padding:
+                                          _refundController.text.isEmpty
+                                              ? const EdgeInsets.only(right: 16)
+                                              : const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            _refundController.text.isNotEmpty
+                                                ? TextFieldIconButton(
+                                                  key: const Key(
+                                                    "sendViewClearAddressFieldButtonKey",
+                                                  ),
+                                                  onTap: () {
+                                                    _refundController.text = "";
+                                                    model.refundAddress =
+                                                        _refundController.text;
+
+                                                    setState(() {
+                                                      enableNext =
+                                                          _toController
+                                                              .text
+                                                              .isNotEmpty &&
+                                                          _refundController
+                                                              .text
+                                                              .isNotEmpty;
+                                                    });
+                                                  },
+                                                  child: const XIcon(),
+                                                )
+                                                : TextFieldIconButton(
+                                                  key: const Key(
+                                                    "sendViewPasteAddressFieldButtonKey",
+                                                  ),
+                                                  onTap: () async {
+                                                    final ClipboardData? data =
+                                                        await clipboard.getData(
+                                                          Clipboard.kTextPlain,
+                                                        );
+                                                    if (data?.text != null &&
+                                                        data!
+                                                            .text!
+                                                            .isNotEmpty) {
+                                                      final content =
+                                                          data.text!.trim();
+
+                                                      _refundController.text =
+                                                          content;
+                                                      model.refundAddress =
+                                                          _refundController
+                                                              .text;
+
+                                                      setState(() {
+                                                        enableNext =
+                                                            _toController
+                                                                .text
+                                                                .isNotEmpty &&
+                                                            _refundController
+                                                                .text
+                                                                .isNotEmpty;
+                                                      });
+                                                    }
+                                                  },
+                                                  child:
+                                                      _refundController
+                                                              .text
+                                                              .isEmpty
+                                                          ? const ClipboardIcon()
+                                                          : const XIcon(),
+                                                ),
+                                            if (_refundController.text.isEmpty)
+                                              TextFieldIconButton(
+                                                key: const Key(
+                                                  "sendViewAddressBookButtonKey",
+                                                ),
+                                                onTap: () {
+                                                  ref
+                                                      .read(
+                                                        exchangeFlowIsActiveStateProvider
+                                                            .state,
+                                                      )
+                                                      .state = true;
+                                                  Navigator.of(context)
+                                                      .pushNamed(
+                                                        AddressBookView
+                                                            .routeName,
+                                                      )
+                                                      .then((_) {
+                                                        ref
+                                                            .read(
+                                                              exchangeFlowIsActiveStateProvider
+                                                                  .state,
+                                                            )
+                                                            .state = false;
+                                                        final address =
+                                                            ref
+                                                                .read(
+                                                                  exchangeFromAddressBookAddressStateProvider
+                                                                      .state,
+                                                                )
+                                                                .state;
+                                                        if (address
+                                                            .isNotEmpty) {
+                                                          _refundController
+                                                              .text = address;
+                                                          model.refundAddress =
+                                                              _refundController
+                                                                  .text;
+                                                        }
+                                                        setState(() {
+                                                          enableNext =
+                                                              _toController
+                                                                  .text
+                                                                  .isNotEmpty &&
+                                                              _refundController
+                                                                  .text
+                                                                  .isNotEmpty;
+                                                        });
+                                                      });
+                                                },
+                                                child: const AddressBookIcon(),
+                                              ),
+                                            if (_refundController.text.isEmpty)
+                                              TextFieldIconButton(
+                                                key: const Key(
+                                                  "sendViewScanQrButtonKey",
+                                                ),
+                                                onTap: _onRefundQrTapped,
+                                                child: const QrCodeIcon(),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                width: 16,
-                              ),
-                              Expanded(
-                                child: PrimaryButton(
-                                  label: "Next",
-                                  enabled: enableNext,
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      Step3View.routeName,
-                                      arguments: model,
-                                    );
-                                  },
+                            if (supportsRefund) const SizedBox(height: 6),
+                            if (supportsRefund)
+                              RoundedWhiteContainer(
+                                child: Text(
+                                  "In case something goes wrong during the exchange, we might need a refund address so we can return your coins back to you.",
+                                  style: STextStyles.label(context),
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            const Spacer(),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    style: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getSecondaryEnabledButtonStyle(
+                                          context,
+                                        ),
+                                    child: Text(
+                                      "Back",
+                                      style: STextStyles.button(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: PrimaryButton(
+                                    label: "Next",
+                                    enabled: enableNext,
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        Step3View.routeName,
+                                        arguments: model,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

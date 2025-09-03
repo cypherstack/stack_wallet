@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 
 import '../../../../frost_route_generator.dart';
+import '../../../../models/input.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
@@ -60,9 +61,9 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
       }
 
       final config = configFieldController.text;
-      final wallet = ref.read(pWallets).getWallet(
-            ref.read(pFrostScaffoldArgs)!.walletId!,
-          ) as BitcoinFrostWallet;
+      final wallet =
+          ref.read(pWallets).getWallet(ref.read(pFrostScaffoldArgs)!.walletId!)
+              as BitcoinFrostWallet;
 
       final data = Frost.extractDataFromSignConfig(
         signConfig: config,
@@ -70,28 +71,38 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
         serializedKeys: (await wallet.getSerializedKeys())!,
       );
 
-      final utxos = await ref
-          .read(mainDBProvider)
-          .getUTXOs(wallet.walletId)
-          .filter()
-          .anyOf(
-            data.inputs,
-            (q, e) => q
-                .txidEqualTo(Format.uint8listToString(e.hash))
-                .and()
-                .valueEqualTo(e.value)
-                .and()
-                .voutEqualTo(e.vout),
-          )
-          .findAll();
+      final utxos =
+          await ref
+              .read(mainDBProvider)
+              .getUTXOs(wallet.walletId)
+              .filter()
+              .anyOf(
+                data.inputs,
+                (q, e) => q
+                    .txidEqualTo(Format.uint8listToString(e.hash))
+                    .and()
+                    .valueEqualTo(e.value)
+                    .and()
+                    .voutEqualTo(e.vout),
+              )
+              .findAll();
 
       // TODO add more data from 'data' and display to user ?
       ref.read(pFrostTxData.notifier).state = TxData(
         frostMSConfig: config,
-        recipients: data.recipients
-            .map((e) => (address: e.address, amount: e.amount, isChange: false))
-            .toList(),
-        utxos: utxos.toSet(),
+        recipients:
+            data.recipients
+                .map(
+                  (e) => TxRecipient(
+                    address: e.address,
+                    amount: e.amount,
+                    isChange: false,
+                    addressType:
+                        wallet.cryptoCurrency.getAddressType(e.address)!,
+                  ),
+                )
+                .toList(),
+        utxos: utxos.map((e) => StandardInput(e)).toSet(),
       );
 
       final attemptSignRes = await wallet.frostAttemptSignConfig(
@@ -112,11 +123,12 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Import and attempt sign config failed",
-            message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "Import and attempt sign config failed",
+                message: e.toString(),
+                desktopPopRootNavigator: Util.isDesktop,
+              ),
         );
       }
     } finally {
@@ -128,9 +140,9 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
   void initState() {
     configFieldController = TextEditingController();
     configFocusNode = FocusNode();
-    final wallet = ref.read(pWallets).getWallet(
-          ref.read(pFrostScaffoldArgs)!.walletId!,
-        ) as BitcoinFrostWallet;
+    final wallet =
+        ref.read(pWallets).getWallet(ref.read(pFrostScaffoldArgs)!.walletId!)
+            as BitcoinFrostWallet;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pFrostMyName.state).state = wallet.frostInfo.myName;
     });
@@ -152,9 +164,7 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
+          const FrostStepUserSteps(userSteps: info),
           const SizedBox(height: 20),
           FrostStepField(
             controller: configFieldController,
@@ -169,11 +179,10 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
             },
           ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           CheckboxTextButton(
-            label: "I have verified that everyone has imported he config and"
+            label:
+                "I have verified that everyone has imported he config and"
                 " is ready to sign",
             onChanged: (value) {
               setState(() {
@@ -181,9 +190,7 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           PrimaryButton(
             label: "Start signing",
             enabled: !_configEmpty && _userVerifyContinue,

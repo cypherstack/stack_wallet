@@ -5,8 +5,10 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
+import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
 
+import '../../../dto/ethereum/eth_tx_dto.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -57,9 +59,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return web3.Web3Client(node.host, client);
   }
 
-  Amount estimateEthFee(int feeRate, int gasLimit, int decimals) {
+  Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
-    final fee = gasLimit.toDecimal() *
+    final fee =
+        gasLimit.toDecimal() *
         gweiAmount.toDecimal(
           scaleOnInfinitePrecision: cryptoCurrency.fractionDigits,
         );
@@ -95,9 +98,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
       scriptPubKeyHex: "00",
       valueStringSats: amount.raw.toString(),
-      addresses: [
-        addressTo,
-      ],
+      addresses: [addressTo],
       walletOwns: addressTo == myAddress,
     );
     final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -132,16 +133,15 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       inputs: List.unmodifiable(inputs),
       outputs: List.unmodifiable(outputs),
       version: -1,
-      type: addressTo == myAddress
-          ? TransactionType.sentToSelf
-          : TransactionType.outgoing,
+      type:
+          addressTo == myAddress
+              ? TransactionType.sentToSelf
+              : TransactionType.outgoing,
       subType: TransactionSubType.none,
       otherData: jsonEncode(otherData),
     );
 
-    return txData.copyWith(
-      tempTx: txn,
-    );
+    return txData.copyWith(tempTx: txn);
   }
 
   // ==================== Overrides ============================================
@@ -151,11 +151,11 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   FilterOperation? get transactionFilterOperation => FilterGroup.not(
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: TransactionSubType.ethToken,
-        ),
-      );
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: TransactionSubType.ethToken,
+    ),
+  );
 
   @override
   FilterOperation? get changeAddressFilterOperation =>
@@ -189,7 +189,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     return estimateEthFee(
       feeRate,
       (cryptoCurrency as Ethereum).gasLimit,
@@ -198,7 +198,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   }
 
   @override
-  Future<FeeObject> get fees => EthereumAPI.getFees();
+  Future<EthFeeObject> get fees => EthereumAPI.getFees();
 
   @override
   Future<bool> pingCheck() async {
@@ -235,10 +235,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
       );
-      await info.updateBalance(
-        newBalance: balance,
-        isar: mainDB.isar,
-      );
+      await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.w(
         "$runtimeType wallet failed to update balance: ",
@@ -254,10 +251,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       final client = getEthClient();
       final height = await client.getBlockNumber();
 
-      await info.updateCachedChainHeight(
-        newHeight: height,
-        isar: mainDB.isar,
-      );
+      await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.w(
         "$runtimeType Exception caught in chainHeight: ",
@@ -279,7 +273,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     int firstBlock = 0;
 
     if (!isRescan) {
-      firstBlock = await mainDB.isar.transactionV2s
+      firstBlock =
+          await mainDB.isar.transactionV2s
               .where()
               .walletIdEqualTo(walletId)
               .heightProperty()
@@ -300,8 +295,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value == null) {
       Logging.instance.w(
-        "Failed to refresh transactions for ${cryptoCurrency.prettyName} ${info.name} "
-        "$walletId: ${response.exception}",
+        "Failed to refresh transactions for ${cryptoCurrency.prettyName}"
+        " ${info.name} $walletId: ${response.exception}",
       );
       return;
     }
@@ -311,108 +306,121 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       return;
     }
 
-    final txsResponse =
-        await EthereumAPI.getEthTransactionNonces(response.value!);
-
-    if (txsResponse.value != null) {
-      final allTxs = txsResponse.value!;
-      final List<TransactionV2> txns = [];
-      for (final tuple in allTxs) {
-        final element = tuple.item1;
-
-        if (element.hasToken && !element.isError) {
-          continue;
-        }
-
-        //Calculate fees (GasLimit * gasPrice)
-        // int txFee = element.gasPrice * element.gasUsed;
-        final Amount txFee = element.gasCost;
-        final transactionAmount = element.value;
-        final addressFrom = checksumEthereumAddress(element.from);
-        final addressTo = checksumEthereumAddress(element.to);
-
-        bool isIncoming;
-        bool txFailed = false;
-        if (addressFrom == thisAddress) {
-          if (element.isError) {
-            txFailed = true;
-          }
-          isIncoming = false;
-        } else if (addressTo == thisAddress) {
-          isIncoming = true;
+    web3.Web3Client? client;
+    final List<EthTxDTO> allTxs = [];
+    for (final dto in response.value!) {
+      if (dto.nonce == null) {
+        client ??= getEthClient();
+        final txInfo = await client.getTransactionByHash(dto.hash);
+        if (txInfo == null) {
+          // Something strange is happening
+          Logging.instance.w(
+            "Could not find transaction via RPC that was found use TrueBlocks "
+            "API.\nOffending tx: $dto",
+          );
         } else {
-          continue;
+          final updated = dto.copyWith(nonce: txInfo.nonce);
+          allTxs.add(updated);
         }
-
-        // hack eth tx data into inputs and outputs
-        final List<OutputV2> outputs = [];
-        final List<InputV2> inputs = [];
-
-        final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptPubKeyHex: "00",
-          valueStringSats: transactionAmount.raw.toString(),
-          addresses: [
-            addressTo,
-          ],
-          walletOwns: addressTo == thisAddress,
-        );
-        final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: null,
-          scriptSigAsm: null,
-          sequence: null,
-          outpoint: null,
-          addresses: [addressFrom],
-          valueStringSats: transactionAmount.raw.toString(),
-          witness: null,
-          innerRedeemScriptAsm: null,
-          coinbase: null,
-          walletOwns: addressFrom == thisAddress,
-        );
-
-        final TransactionType txType;
-        if (isIncoming) {
-          if (addressFrom == addressTo) {
-            txType = TransactionType.sentToSelf;
-          } else {
-            txType = TransactionType.incoming;
-          }
-        } else {
-          txType = TransactionType.outgoing;
-        }
-
-        outputs.add(output);
-        inputs.add(input);
-
-        final otherData = {
-          "nonce": tuple.item2,
-          "isCancelled": txFailed,
-          "overrideFee": txFee.toJsonString(),
-        };
-
-        final txn = TransactionV2(
-          walletId: walletId,
-          blockHash: element.blockHash,
-          hash: element.hash,
-          txid: element.hash,
-          timestamp: element.timestamp,
-          height: element.blockNumber,
-          inputs: List.unmodifiable(inputs),
-          outputs: List.unmodifiable(outputs),
-          version: -1,
-          type: txType,
-          subType: TransactionSubType.none,
-          otherData: jsonEncode(otherData),
-        );
-
-        txns.add(txn);
+      } else {
+        allTxs.add(dto);
       }
-      await mainDB.updateOrPutTransactionV2s(txns);
-    } else {
-      Logging.instance.w(
-        "Failed to refresh transactions with nonces for ${cryptoCurrency.prettyName} "
-        "${info.name} $walletId: ${txsResponse.exception}",
-      );
     }
+
+    final List<TransactionV2> txns = [];
+    for (final element in allTxs) {
+      if (element.hasToken && !element.isError) {
+        continue;
+      }
+
+      //Calculate fees (GasLimit * gasPrice)
+      // int txFee = element.gasPrice * element.gasUsed;
+      final Amount txFee = element.gasCost;
+      final transactionAmount = element.value;
+      final addressFrom = checksumEthereumAddress(element.from);
+      final String addressTo;
+      try {
+        addressTo = checksumEthereumAddress(element.to);
+      } catch (e, s) {
+        Logging.instance.w("Ignoring eth transaction:\n$e\n$s");
+        // temp "fix"
+        continue;
+      }
+
+      bool isIncoming;
+      bool txFailed = false;
+      if (addressFrom == thisAddress) {
+        if (element.isError) {
+          txFailed = true;
+        }
+        isIncoming = false;
+      } else if (addressTo == thisAddress) {
+        isIncoming = true;
+      } else {
+        continue;
+      }
+
+      // hack eth tx data into inputs and outputs
+      final List<OutputV2> outputs = [];
+      final List<InputV2> inputs = [];
+
+      final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptPubKeyHex: "00",
+        valueStringSats: transactionAmount.raw.toString(),
+        addresses: [addressTo],
+        walletOwns: addressTo == thisAddress,
+      );
+      final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptSigHex: null,
+        scriptSigAsm: null,
+        sequence: null,
+        outpoint: null,
+        addresses: [addressFrom],
+        valueStringSats: transactionAmount.raw.toString(),
+        witness: null,
+        innerRedeemScriptAsm: null,
+        coinbase: null,
+        walletOwns: addressFrom == thisAddress,
+      );
+
+      final TransactionType txType;
+      if (isIncoming) {
+        if (addressFrom == addressTo) {
+          txType = TransactionType.sentToSelf;
+        } else {
+          txType = TransactionType.incoming;
+        }
+      } else {
+        txType = TransactionType.outgoing;
+      }
+
+      outputs.add(output);
+      inputs.add(input);
+
+      final otherData = {
+        "nonce": element.nonce,
+        "isCancelled": txFailed,
+        "overrideFee": txFee.toJsonString(),
+      };
+
+      final txn = TransactionV2(
+        walletId: walletId,
+        blockHash: element.blockHash,
+        hash: element.hash,
+        txid: element.hash,
+        timestamp: element.timestamp,
+        height: element.blockNumber,
+        inputs: List.unmodifiable(inputs),
+        outputs: List.unmodifiable(outputs),
+        version: -1,
+        type: txType,
+        subType: TransactionSubType.none,
+        otherData: jsonEncode(otherData),
+      );
+
+      txns.add(txn);
+    }
+    await mainDB.updateOrPutTransactionV2s(txns);
   }
 
   @override
@@ -421,88 +429,128 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return false;
   }
 
-  @override
-  Future<TxData> prepareSend({required TxData txData}) async {
-    final int
-        rate; // TODO: use BigInt for feeObject whenever FeeObject gets redone
-    final feeObject = await fees;
-    switch (txData.feeRateType!) {
-      case FeeRateType.fast:
-        rate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        rate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        rate = feeObject.slow;
-        break;
-      case FeeRateType.custom:
-        throw UnimplementedError("custom eth fees");
-    }
-
-    final feeEstimate = await estimateFeeFor(Amount.zero, rate);
-
-    // bool isSendAll = false;
-    // final availableBalance = balance.spendable;
-    // if (satoshiAmount == availableBalance) {
-    //   isSendAll = true;
-    // }
-    //
-    // if (isSendAll) {
-    //   //Subtract fee amount from send amount
-    //   satoshiAmount -= feeEstimate;
-    // }
-
-    final client = getEthClient();
-
+  Future<web3.EthereumAddress> getMyWeb3Address() async {
     final myAddress = (await getCurrentReceivingAddress())!.value;
     final myWeb3Address = web3.EthereumAddress.fromHex(myAddress);
+    return myWeb3Address;
+  }
 
-    final amount = txData.recipients!.first.amount;
-    final address = txData.recipients!.first.address;
+  Future<
+    ({
+      int nonce,
+      BigInt chainId,
+      BigInt baseFee,
+      BigInt maxBaseFee,
+      BigInt priorityFee,
+    })
+  >
+  internalSharedPrepareSend({
+    required TxData txData,
+    required web3.EthereumAddress myWeb3Address,
+  }) async {
+    if (txData.feeRateType == null) throw Exception("Missing fee rate type.");
+    if (txData.feeRateType == FeeRateType.custom &&
+        txData.ethEIP1559Fee == null) {
+      throw Exception("Missing custom EIP-1559 values.");
+    }
 
-    // final est = await client.estimateGas(
-    //   sender: myWeb3Address,
-    //   to: web3.EthereumAddress.fromHex(address),
-    //   gasPrice: web3.EtherAmount.fromUnitAndValue(
-    //     web3.EtherUnit.wei,
-    //     rate,
-    //   ),
-    //   amountOfGas: BigInt.from((cryptoCurrency as Ethereum).gasLimit),
-    //   value: web3.EtherAmount.inWei(amount.raw),
-    // );
+    await updateBalance();
 
-    final nonce = txData.nonce ??
+    final client = getEthClient();
+    final chainId = await client.getChainId();
+    final nonce =
+        txData.nonce ??
         await client.getTransactionCount(
           myWeb3Address,
           atBlock: const web3.BlockNum.pending(),
         );
 
-    // final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
-    // print("==============================================================");
-    // print("ETH client.estimateGas:  $est");
-    // print("ETH estimateFeeFor    :  $feeEstimate");
-    // print("ETH nonce custom response:  $nResponse");
-    // print("ETH actual nonce         :  $nonce");
-    // print("==============================================================");
+    final feeObject = await fees;
+    final baseFee = feeObject.suggestBaseFee;
+    BigInt maxBaseFee = baseFee;
+    BigInt priorityFee;
+
+    switch (txData.feeRateType!) {
+      case FeeRateType.fast:
+        priorityFee = feeObject.fast - baseFee;
+        if (priorityFee.isNegative) priorityFee = BigInt.zero;
+        break;
+
+      case FeeRateType.average:
+        priorityFee = feeObject.medium - baseFee;
+        if (priorityFee.isNegative) priorityFee = BigInt.zero;
+        break;
+
+      case FeeRateType.slow:
+        priorityFee = feeObject.slow - baseFee;
+        if (priorityFee.isNegative) priorityFee = BigInt.zero;
+        break;
+
+      case FeeRateType.custom:
+        priorityFee = txData.ethEIP1559Fee!.priorityFeeWei;
+        maxBaseFee = txData.ethEIP1559Fee!.maxBaseFeeWei;
+        break;
+    }
+
+    if (baseFee > maxBaseFee) {
+      throw Exception("Base cannot be greater than max base fee");
+    }
+    if (priorityFee > maxBaseFee) {
+      throw Exception("Priority fee cannot be greater than max base fee");
+    }
+
+    return (
+      nonce: nonce,
+      chainId: chainId,
+      baseFee: baseFee,
+      maxBaseFee: maxBaseFee,
+      priorityFee: priorityFee,
+    );
+  }
+
+  @override
+  Future<TxData> prepareSend({required TxData txData}) async {
+    final amount = txData.recipients!.first.amount;
+    final address = txData.recipients!.first.address;
+
+    final myWeb3Address = await getMyWeb3Address();
+
+    final prep = await internalSharedPrepareSend(
+      txData: txData,
+      myWeb3Address: myWeb3Address,
+    );
+
+    // double check balance after internalSharedPrepareSend call to ensure
+    // balance is up to date
+    if (amount > info.cachedBalance.spendable) {
+      throw Exception("Insufficient balance");
+    }
 
     final tx = web3.Transaction(
       to: web3.EthereumAddress.fromHex(address),
-      gasPrice: web3.EtherAmount.fromUnitAndValue(
-        web3.EtherUnit.wei,
-        rate,
-      ),
-      maxGas: (cryptoCurrency as Ethereum).gasLimit,
+      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit,
       value: web3.EtherAmount.inWei(amount.raw),
-      nonce: nonce,
+      nonce: prep.nonce,
+      maxFeePerGas: web3.EtherAmount.fromBigInt(
+        web3.EtherUnit.wei,
+        prep.maxBaseFee,
+      ),
+      maxPriorityFeePerGas: web3.EtherAmount.fromBigInt(
+        web3.EtherUnit.wei,
+        prep.priorityFee,
+      ),
+    );
+
+    final feeEstimate = await estimateFeeFor(
+      Amount.zero,
+      prep.maxBaseFee + prep.priorityFee,
     );
 
     return txData.copyWith(
       nonce: tx.nonce,
       web3dartTransaction: tx,
       fee: feeEstimate,
-      feeInWei: BigInt.from(rate),
-      chainId: (await client.getChainId()),
+      chainId: prep.chainId,
     );
   }
 
@@ -516,21 +564,24 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       await _initCredentials();
     }
 
-    final txid = await client.sendTransaction(
-      _credentials!,
-      txData.web3dartTransaction!,
-      chainId: txData.chainId!.toInt(),
-    );
+    try {
+      final txid = await client.sendTransaction(
+        _credentials!,
+        txData.web3dartTransaction!,
+        chainId: txData.chainId!.toInt(),
+      );
 
-    final data = (prepareTempTx ?? _prepareTempTx)(
-      txData.copyWith(
-        txid: txid,
-        txHash: txid,
-      ),
-      (await getCurrentReceivingAddress())!.value,
-    );
+      final data = (prepareTempTx ?? _prepareTempTx)(
+        txData.copyWith(txid: txid, txHash: txid),
+        (await getCurrentReceivingAddress())!.value,
+      );
 
-    return await updateSentCachedTxData(txData: data);
+      return await updateSentCachedTxData(txData: data);
+    } on RPCError catch (e) {
+      final message =
+          "${e.toString()}${e.data == null ? "" : e.data.toString()}";
+      throw Exception(message);
+    }
   }
 
   @override

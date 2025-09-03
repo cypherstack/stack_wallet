@@ -36,6 +36,8 @@ class SimpleSwapExchange extends Exchange {
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,
+    required String? fromNetwork,
+    required String? toNetwork,
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
@@ -61,28 +63,31 @@ class SimpleSwapExchange extends Exchange {
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
-    final response =
-        await SimpleSwapAPI.instance.getAllCurrencies(fixedRate: fixedRate);
+    final response = await SimpleSwapAPI.instance.getAllCurrencies(
+      fixedRate: fixedRate,
+    );
     if (response.value != null) {
-      final List<Currency> currencies = response.value!
-          .map(
-            (e) => Currency(
-              exchangeName: exchangeName,
-              ticker: e.symbol,
-              name: e.name,
-              network: e.network,
-              image: e.image,
-              externalId: e.extraId,
-              isFiat: false,
-              rateType: fixedRate
-                  ? SupportedRateType.both
-                  : SupportedRateType.estimated,
-              isAvailable: true,
-              isStackCoin: AppConfig.isStackCoin(e.symbol),
-              tokenContract: null,
-            ),
-          )
-          .toList();
+      final List<Currency> currencies =
+          response.value!
+              .map(
+                (e) => Currency(
+                  exchangeName: exchangeName,
+                  ticker: e.symbol,
+                  name: e.name,
+                  network: e.network,
+                  image: e.image,
+                  externalId: e.extraId,
+                  isFiat: false,
+                  rateType:
+                      fixedRate
+                          ? SupportedRateType.both
+                          : SupportedRateType.estimated,
+                  isAvailable: true,
+                  isStackCoin: AppConfig.isStackCoin(e.symbol),
+                  tokenContract: null,
+                ),
+              )
+              .toList();
       return ExchangeResponse<List<Currency>>(
         value: currencies,
         exception: response.exception,
@@ -95,15 +100,17 @@ class SimpleSwapExchange extends Exchange {
     );
   }
 
-  @override
-  Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
-    return await SimpleSwapAPI.instance.getAllPairs(isFixedRate: fixedRate);
-  }
+  // @override
+  // Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
+  //   return await SimpleSwapAPI.instance.getAllPairs(isFixedRate: fixedRate);
+  // }
 
   @override
   Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     Decimal amount,
     bool fixedRate,
     bool reversed,
@@ -115,9 +122,7 @@ class SimpleSwapExchange extends Exchange {
       amount: amount.toString(),
     );
     if (response.exception != null) {
-      return ExchangeResponse(
-        exception: response.exception,
-      );
+      return ExchangeResponse(exception: response.exception);
     }
 
     return ExchangeResponse(
@@ -135,7 +140,9 @@ class SimpleSwapExchange extends Exchange {
   @override
   Future<ExchangeResponse<Range>> getRange(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     bool fixedRate,
   ) async {
     return await SimpleSwapAPI.instance.getRange(
@@ -143,15 +150,6 @@ class SimpleSwapExchange extends Exchange {
       currencyFrom: from,
       currencyTo: to,
     );
-  }
-
-  @override
-  Future<ExchangeResponse<List<Pair>>> getPairsFor(
-    String currency,
-    bool fixedRate,
-  ) async {
-    // return await SimpleSwapAPI.instance.ge
-    throw UnimplementedError();
   }
 
   @override

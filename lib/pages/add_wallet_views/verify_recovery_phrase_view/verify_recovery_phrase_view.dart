@@ -14,6 +14,8 @@ import 'dart:math';
 
 import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
     as cs_monero_deprecated;
+import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
+    as cs_salvium_deprecated;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +25,6 @@ import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -36,11 +37,12 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
-import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -93,11 +95,6 @@ class _VerifyRecoveryPhraseViewState
     super.initState();
   }
 
-  @override
-  dispose() {
-    super.dispose();
-  }
-
   Future<bool> _verifyMnemonicPassphrase() async {
     final result = await showDialog<String?>(
       context: context,
@@ -115,16 +112,9 @@ class _VerifyRecoveryPhraseViewState
 
     final ViewOnlyWalletType viewOnlyWalletType;
     if (widget.wallet is ExtendedKeysInterface) {
-      if (widget.wallet.cryptoCurrency is Firo) {
-        otherDataJson.addAll(
-          {
-            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-            WalletInfoKeys.enableLelantusScanning: false,
-          },
-        );
-      }
       viewOnlyWalletType = ViewOnlyWalletType.xPub;
-    } else if (widget.wallet is LibMoneroWallet) {
+    } else if (widget.wallet is LibMoneroWallet ||
+        widget.wallet is LibSalviumWallet) {
       if (widget.wallet.cryptoCurrency is Monero) {
         height = cs_monero_deprecated.getMoneroHeightByDate(
           date: DateTime.now().subtract(const Duration(days: 7)),
@@ -132,6 +122,11 @@ class _VerifyRecoveryPhraseViewState
       }
       if (widget.wallet.cryptoCurrency is Wownero) {
         height = cs_monero_deprecated.getWowneroHeightByDate(
+          date: DateTime.now().subtract(const Duration(days: 7)),
+        );
+      }
+      if (widget.wallet.cryptoCurrency is Salvium) {
+        height = cs_salvium_deprecated.getSalviumHeightByDate(
           date: DateTime.now().subtract(const Duration(days: 7)),
         );
       }
@@ -183,8 +178,25 @@ class _VerifyRecoveryPhraseViewState
     } else if (widget.wallet is LibMoneroWallet) {
       final w = widget.wallet as LibMoneroWallet;
 
-      final info = await w
-          .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
+      final info =
+          await w
+              .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
+      final address = info.$1;
+      final privateViewKey = info.$2;
+
+      await w.exit();
+
+      viewOnlyData = CryptonoteViewOnlyWalletData(
+        walletId: voInfo.walletId,
+        address: address,
+        privateViewKey: privateViewKey,
+      );
+    } else if (widget.wallet is LibSalviumWallet) {
+      final w = widget.wallet as LibSalviumWallet;
+
+      final info =
+          await w
+              .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
       final address = info.$1;
       final privateViewKey = info.$2;
 
@@ -225,6 +237,10 @@ class _VerifyRecoveryPhraseViewState
           await (voWallet as WowneroWallet).init(isRestore: true);
           break;
 
+        case const (XelisWallet):
+          await (voWallet as XelisWallet).init(isRestore: true);
+          break;
+
         default:
           await voWallet.init();
       }
@@ -236,23 +252,27 @@ class _VerifyRecoveryPhraseViewState
         isar: ref.read(mainDBProvider).isar,
       );
 
+      if (ref.read(pDuress)) {
+        await voWallet.info.updateDuressVisibilityStatus(
+          isDuressVisible: true,
+          isar: ref.read(mainDBProvider).isar,
+        );
+      }
+
       ref.read(pWallets).addWallet(voWallet);
 
       await voWallet.exit();
 
-      await ref.read(pWallets).deleteWallet(
-            widget.wallet.info,
-            ref.read(secureStoreProvider),
-          );
+      await ref
+          .read(pWallets)
+          .deleteWallet(widget.wallet.info, ref.read(secureStoreProvider));
     } catch (e) {
-      await ref.read(pWallets).deleteWallet(
-            widget.wallet.info,
-            ref.read(secureStoreProvider),
-          );
-      await ref.read(pWallets).deleteWallet(
-            voWallet.info,
-            ref.read(secureStoreProvider),
-          );
+      await ref
+          .read(pWallets)
+          .deleteWallet(widget.wallet.info, ref.read(secureStoreProvider));
+      await ref
+          .read(pWallets)
+          .deleteWallet(voWallet.info, ref.read(secureStoreProvider));
 
       rethrow;
     }
@@ -269,20 +289,27 @@ class _VerifyRecoveryPhraseViewState
         }
       }
 
-      await ref.read(pWalletInfo(widget.wallet.walletId)).setMnemonicVerified(
-            isar: ref.read(mainDBProvider).isar,
-          );
+      await widget.wallet.info.setMnemonicVerified(
+        isar: ref.read(mainDBProvider).isar,
+      );
+
+      if (ref.read(pDuress)) {
+        await widget.wallet.info.updateDuressVisibilityStatus(
+          isDuressVisible: true,
+          isar: ref.read(mainDBProvider).isar,
+        );
+      }
 
       ref.read(pWallets).addWallet(widget.wallet);
 
-      final isCreateSpecialEthWallet =
-          ref.read(createSpecialEthWalletRoutingFlag);
+      final isCreateSpecialEthWallet = ref.read(
+        createSpecialEthWalletRoutingFlag,
+      );
       if (isCreateSpecialEthWallet) {
         ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;
         ref
-                .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                .state =
-            !ref
+            .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+            .state = !ref
                 .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
                 .state;
       }
@@ -306,23 +333,22 @@ class _VerifyRecoveryPhraseViewState
             throw ex!;
           }
         } catch (e, s) {
-          Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+          Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
           if (mounted) {
             await showDialog<void>(
               context: context,
-              builder: (_) => StackOkDialog(
-                title: e.toString(),
-                desktopPopRootNavigator: Util.isDesktop,
-              ),
+              builder:
+                  (_) => StackOkDialog(
+                    title: e.toString(),
+                    desktopPopRootNavigator: Util.isDesktop,
+                  ),
             );
           }
 
           if (mounted) {
             Navigator.of(context).popUntil(
-              ModalRoute.withName(
-                NewWalletRecoveryPhraseView.routeName,
-              ),
+              ModalRoute.withName(NewWalletRecoveryPhraseView.routeName),
             );
           }
           return;
@@ -332,17 +358,13 @@ class _VerifyRecoveryPhraseViewState
       if (mounted) {
         if (isDesktop) {
           if (isCreateSpecialEthWallet) {
-            Navigator.of(context).popUntil(
-              ModalRoute.withName(
-                SelectWalletForTokenView.routeName,
-              ),
-            );
+            Navigator.of(
+              context,
+            ).popUntil(ModalRoute.withName(SelectWalletForTokenView.routeName));
           } else {
-            Navigator.of(context).popUntil(
-              ModalRoute.withName(
-                DesktopHomeView.routeName,
-              ),
-            );
+            Navigator.of(
+              context,
+            ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             if (_coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
@@ -354,25 +376,25 @@ class _VerifyRecoveryPhraseViewState
           }
         } else {
           if (isCreateSpecialEthWallet) {
-            Navigator.of(context).popUntil(
-              ModalRoute.withName(
-                SelectWalletForTokenView.routeName,
-              ),
-            );
+            Navigator.of(
+              context,
+            ).popUntil(ModalRoute.withName(SelectWalletForTokenView.routeName));
           } else {
             unawaited(
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                HomeView.routeName,
-                (route) => false,
-              ),
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
             );
             if (_coin is Ethereum) {
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  EditWalletTokensView.routeName,
-                  arguments: widget.wallet.walletId,
-                ),
-              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref
+                    .read(pNavKey)
+                    .currentState
+                    ?.pushNamed(
+                      EditWalletTokensView.routeName,
+                      arguments: widget.wallet.walletId,
+                    );
+              });
             }
           }
         }
@@ -455,10 +477,9 @@ class _VerifyRecoveryPhraseViewState
   }
 
   Future<void> delete() async {
-    await ref.read(pWallets).deleteWallet(
-          widget.wallet.info,
-          ref.read(secureStoreProvider),
-        );
+    await ref
+        .read(pWallets)
+        .deleteWallet(widget.wallet.info, ref.read(secureStoreProvider));
   }
 
   @override
@@ -471,40 +492,41 @@ class _VerifyRecoveryPhraseViewState
       onWillPop: onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
-        appBar: isDesktop
-            ? DesktopAppBar(
-                isCompactHeight: false,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    Navigator.of(context).popUntil(
-                      ModalRoute.withName(
-                        NewWalletRecoveryPhraseView.routeName,
-                      ),
-                    );
-                  },
-                ),
-                trailing: ExitToMyStackButton(
-                  onPressed: () async {
-                    await delete();
-                    if (context.mounted) {
+        appBar:
+            isDesktop
+                ? DesktopAppBar(
+                  isCompactHeight: false,
+                  leading: AppBarBackButton(
+                    onPressed: () async {
                       Navigator.of(context).popUntil(
-                        ModalRoute.withName(DesktopHomeView.routeName),
+                        ModalRoute.withName(
+                          NewWalletRecoveryPhraseView.routeName,
+                        ),
                       );
-                    }
-                  },
+                    },
+                  ),
+                  trailing: ExitToMyStackButton(
+                    onPressed: () async {
+                      await delete();
+                      if (context.mounted) {
+                        Navigator.of(context).popUntil(
+                          ModalRoute.withName(DesktopHomeView.routeName),
+                        );
+                      }
+                    },
+                  ),
+                )
+                : AppBar(
+                  leading: AppBarBackButton(
+                    onPressed: () async {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(
+                          NewWalletRecoveryPhraseView.routeName,
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              )
-            : AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    Navigator.of(context).popUntil(
-                      ModalRoute.withName(
-                        NewWalletRecoveryPhraseView.routeName,
-                      ),
-                    );
-                  },
-                ),
-              ),
         body: SizedBox(
           width: isDesktop ? 410 : null,
           child: Padding(
@@ -513,40 +535,32 @@ class _VerifyRecoveryPhraseViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (isDesktop)
-                  const Spacer(
-                    flex: 10,
-                  ),
-                SizedBox(
-                  height: isDesktop ? 24 : 4,
-                ),
+                if (isDesktop) const Spacer(flex: 10),
+                SizedBox(height: isDesktop ? 24 : 4),
                 Text(
                   "Verify recovery phrase",
                   textAlign: TextAlign.center,
-                  style: isDesktop
-                      ? STextStyles.desktopH2(context)
-                      : STextStyles.label(context).copyWith(
-                          fontSize: 12,
-                        ),
+                  style:
+                      isDesktop
+                          ? STextStyles.desktopH2(context)
+                          : STextStyles.label(context).copyWith(fontSize: 12),
                 ),
-                SizedBox(
-                  height: isDesktop ? 16 : 4,
-                ),
+                SizedBox(height: isDesktop ? 16 : 4),
                 Text(
                   isDesktop ? "Select word number" : "Tap word number ",
                   textAlign: TextAlign.center,
-                  style: isDesktop
-                      ? STextStyles.desktopSubtitleH1(context)
-                      : STextStyles.pageTitleH1(context),
+                  style:
+                      isDesktop
+                          ? STextStyles.desktopSubtitleH1(context)
+                          : STextStyles.pageTitleH1(context),
                 ),
-                SizedBox(
-                  height: isDesktop ? 16 : 12,
-                ),
+                SizedBox(height: isDesktop ? 16 : 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -559,76 +573,79 @@ class _VerifyRecoveryPhraseViewState
                     child: Text(
                       "${correctIndex + 1}",
                       textAlign: TextAlign.center,
-                      style: STextStyles.subtitle600(context).copyWith(
-                        fontSize: 32,
-                        letterSpacing: 0.25,
-                      ),
+                      style: STextStyles.subtitle600(
+                        context,
+                      ).copyWith(fontSize: 32, letterSpacing: 0.25),
                     ),
                   ),
                 ),
-                if (isDesktop)
-                  const SizedBox(
-                    height: 40,
-                  ),
+                if (isDesktop) const SizedBox(height: 40),
                 WordTable(
                   words: randomize(_mnemonic, correctIndex, 9).item1,
                   isDesktop: isDesktop,
                 ),
                 if (!isDesktop) const Spacer(),
-                if (isDesktop)
-                  const SizedBox(
-                    height: 40,
-                  ),
+                if (isDesktop) const SizedBox(height: 40),
                 Row(
                   children: [
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final selectedWord = ref
-                              .watch(
-                                verifyMnemonicSelectedWordStateProvider.state,
-                              )
-                              .state;
-                          final correctWord = ref
-                              .watch(
-                                verifyMnemonicCorrectWordStateProvider.state,
-                              )
-                              .state;
+                          final selectedWord =
+                              ref
+                                  .watch(
+                                    verifyMnemonicSelectedWordStateProvider
+                                        .state,
+                                  )
+                                  .state;
+                          final correctWord =
+                              ref
+                                  .watch(
+                                    verifyMnemonicCorrectWordStateProvider
+                                        .state,
+                                  )
+                                  .state;
 
                           return ConstrainedBox(
                             constraints: BoxConstraints(
                               minHeight: isDesktop ? 70 : 0,
                             ),
                             child: TextButton(
-                              onPressed: selectedWord.isNotEmpty
-                                  ? () async {
-                                      await _continue(
-                                        correctWord == selectedWord,
-                                      );
-                                    }
-                                  : null,
-                              style: selectedWord.isNotEmpty
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonStyle(context)
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getPrimaryDisabledButtonStyle(context),
-                              child: isDesktop
-                                  ? Text(
-                                      "Verify",
-                                      style: selectedWord.isNotEmpty
-                                          ? STextStyles.desktopButtonEnabled(
-                                              context,
-                                            )
-                                          : STextStyles.desktopButtonDisabled(
-                                              context,
-                                            ),
-                                    )
-                                  : Text(
-                                      "Continue",
-                                      style: STextStyles.button(context),
-                                    ),
+                              onPressed:
+                                  selectedWord.isNotEmpty
+                                      ? () async {
+                                        await _continue(
+                                          correctWord == selectedWord,
+                                        );
+                                      }
+                                      : null,
+                              style:
+                                  selectedWord.isNotEmpty
+                                      ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getPrimaryEnabledButtonStyle(context)
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getPrimaryDisabledButtonStyle(
+                                            context,
+                                          ),
+                              child:
+                                  isDesktop
+                                      ? Text(
+                                        "Verify",
+                                        style:
+                                            selectedWord.isNotEmpty
+                                                ? STextStyles.desktopButtonEnabled(
+                                                  context,
+                                                )
+                                                : STextStyles.desktopButtonDisabled(
+                                                  context,
+                                                ),
+                                      )
+                                      : Text(
+                                        "Continue",
+                                        style: STextStyles.button(context),
+                                      ),
                             ),
                           );
                         },
@@ -636,10 +653,7 @@ class _VerifyRecoveryPhraseViewState
                     ),
                   ],
                 ),
-                if (isDesktop)
-                  const Spacer(
-                    flex: 15,
-                  ),
+                if (isDesktop) const Spacer(flex: 15),
               ],
             ),
           ),

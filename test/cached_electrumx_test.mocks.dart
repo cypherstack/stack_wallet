@@ -532,6 +532,67 @@ class MockElectrumXClient extends _i1.Mock implements _i6.ElectrumXClient {
       ) as _i9.Future<List<List<dynamic>>>);
 
   @override
+  _i9.Future<List<({String address, String name})>> getSparkNames(
+          {String? requestID}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkNames,
+          [],
+          {#requestID: requestID},
+        ),
+        returnValue: _i9.Future<List<({String address, String name})>>.value(
+            <({String address, String name})>[]),
+      ) as _i9.Future<List<({String address, String name})>>);
+
+  @override
+  _i9.Future<({String additionalInfo, String address, int validUntil})>
+      getSparkNameData({
+    required String? sparkName,
+    String? requestID,
+  }) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getSparkNameData,
+              [],
+              {
+                #sparkName: sparkName,
+                #requestID: requestID,
+              },
+            ),
+            returnValue: _i9.Future<
+                ({
+                  String additionalInfo,
+                  String address,
+                  int validUntil
+                })>.value((
+              additionalInfo: _i8.dummyValue<String>(
+                this,
+                Invocation.method(
+                  #getSparkNameData,
+                  [],
+                  {
+                    #sparkName: sparkName,
+                    #requestID: requestID,
+                  },
+                ),
+              ),
+              address: _i8.dummyValue<String>(
+                this,
+                Invocation.method(
+                  #getSparkNameData,
+                  [],
+                  {
+                    #sparkName: sparkName,
+                    #requestID: requestID,
+                  },
+                ),
+              ),
+              validUntil: 0
+            )),
+          ) as _i9.Future<
+              ({String additionalInfo, String address, int validUntil})>);
+
+  @override
   _i9.Future<_i3.SparkAnonymitySetMeta> getSparkAnonymitySetMeta({
     String? requestID,
     required int? coinGroupId,
@@ -846,6 +907,36 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
         Invocation.setter(
           #hasPin,
           hasPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get hasDuressPin => (super.noSuchMethod(
+        Invocation.getter(#hasDuressPin),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set hasDuressPin(bool? hasDuressPin) => super.noSuchMethod(
+        Invocation.setter(
+          #hasDuressPin,
+          hasDuressPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get biometricsDuress => (super.noSuchMethod(
+        Invocation.getter(#biometricsDuress),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set biometricsDuress(bool? biometricsDuress) => super.noSuchMethod(
+        Invocation.setter(
+          #biometricsDuress,
+          biometricsDuress,
         ),
         returnValueForMissingStub: null,
       );

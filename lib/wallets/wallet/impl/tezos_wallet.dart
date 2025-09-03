@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:isar/isar.dart';
@@ -115,9 +116,10 @@ class TezosWallet extends Bip39Wallet<Tezos> {
           prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null;
       final tezartClient = tezart.TezartClient(
         server,
-        proxy: proxyInfo != null
-            ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
-            : null,
+        proxy:
+            proxyInfo != null
+                ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
+                : null,
       );
 
       final opList = await tezartClient.transferOperation(
@@ -127,6 +129,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         // customFee: customFee?.raw.toInt(),
         // customGasLimit: customGasLimit,
         // reveal: false,
+        customGasLimit: 10600,
       );
 
       // if (reveal) {
@@ -197,9 +200,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       }
 
       final myAddress = (await getCurrentReceivingAddress())!;
-      final account = await TezosAPI.getAccount(
-        myAddress.value,
-      );
+      final account = await TezosAPI.getAccount(myAddress.value);
 
       // final bool isSendAll = sendAmount == info.cachedBalance.spendable;
       //
@@ -252,23 +253,12 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       await opList.simulate();
 
       return txData.copyWith(
-        recipients: [
-          (
-            amount: sendAmount,
-            address: txData.recipients!.first.address,
-            isChange: txData.recipients!.first.isChange,
-          ),
-        ],
+        recipients: [txData.recipients!.first.copyWith(amount: sendAmount)],
         // fee: fee,
         fee: Amount(
           rawValue: opList.operations
-              .map(
-                (e) => BigInt.from(e.fee),
-              )
-              .fold(
-                BigInt.zero,
-                (p, e) => p + e,
-              ),
+              .map((e) => BigInt.from(e.fee))
+              .fold(BigInt.zero, (p, e) => p + e),
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
         tezosOperationsList: opList,
@@ -280,14 +270,14 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         stackTrace: s,
       );
 
-      if (e
-          .toString()
-          .contains("(_operationResult['errors']): Must not be null")) {
+      if (e.toString().contains(
+        "(_operationResult['errors']): Must not be null",
+      )) {
         throw Exception("Probably insufficient balance");
       } else if (e.toString().contains(
-            "The simulation of the operation: \"transaction\" failed with error(s) :"
-            " contract.balance_too_low, tez.subtraction_underflow.",
-          )) {
+        "The simulation of the operation: \"transaction\" failed with error(s) :"
+        " contract.balance_too_low, tez.subtraction_underflow.",
+      )) {
         throw Exception("Insufficient balance to pay fees");
       }
 
@@ -298,11 +288,39 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     _hackedCheckTorNodePrefs();
+
+    final completer = Completer<void>();
+    final sub = mainDB.isar.transactions
+        .where()
+        .walletIdEqualTo(walletId)
+        .watch(fireImmediately: true)
+        .listen((event) {
+          if (!completer.isCompleted &&
+              event
+                  .where((e) => e.txid == txData.tezosOperationsList!.result.id)
+                  .isNotEmpty) {
+            completer.complete();
+          }
+        });
+
     await txData.tezosOperationsList!.inject();
-    await txData.tezosOperationsList!.monitor();
-    return txData.copyWith(
-      txid: txData.tezosOperationsList!.result.id,
+
+    final completerFuture = completer.future.timeout(
+      const Duration(minutes: 2),
+      onTimeout: () {
+        throw Exception("Tezos confirm send timeout");
+      },
     );
+
+    while (!completer.isCompleted) {
+      await updateTransactions();
+      await Future<void>.delayed(const Duration(seconds: 3));
+    }
+
+    await completerFuture;
+
+    unawaited(sub.cancel());
+    return txData.copyWith(txid: txData.tezosOperationsList!.result.id);
   }
 
   int _estCount = 0;
@@ -350,13 +368,8 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         rethrow;
       } else {
         _estCount++;
-        Logging.instance.e(
-          "_estimate() retry _estCount=$_estCount",
-        );
-        return await _estimate(
-          account,
-          recipientAddress,
-        );
+        Logging.instance.e("_estimate() retry _estCount=$_estCount");
+        return await _estimate(account, recipientAddress);
       }
     }
   }
@@ -364,7 +377,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<Amount> estimateFeeFor(
     Amount amount,
-    int feeRate, {
+    BigInt feeRate, {
     String recipientAddress = "tz1MXvDCyXSqBqXPNDcsdmVZKfoxL9FTHmp2",
   }) async {
     _hackedCheckTorNodePrefs();
@@ -376,9 +389,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     }
 
     final myAddress = (await getCurrentReceivingAddress())!;
-    final account = await TezosAPI.getAccount(
-      myAddress.value,
-    );
+    final account = await TezosAPI.getAccount(myAddress.value);
 
     try {
       final fees = await _estimate(account, recipientAddress);
@@ -402,7 +413,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   /// Not really used (yet)
   @override
   Future<FeeObject> get fees async {
-    const feePerTx = 1;
+    final feePerTx = BigInt.one;
     return FeeObject(
       numberOfBlocksFast: 10,
       numberOfBlocksAverage: 10,
@@ -418,10 +429,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     _hackedCheckTorNodePrefs();
     final currentNode = getCurrentNode();
     return await TezosRpcAPI.testNetworkConnection(
-      nodeInfo: (
-        host: currentNode.host,
-        port: currentNode.port,
-      ),
+      nodeInfo: (host: currentNode.host, port: currentNode.port),
     );
   }
 
@@ -518,16 +526,10 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       _hackedCheckTorNodePrefs();
       final currentNode = _xtzNode ?? getCurrentNode();
       final height = await TezosRpcAPI.getChainHeight(
-        nodeInfo: (
-          host: currentNode.host,
-          port: currentNode.port,
-        ),
+        nodeInfo: (host: currentNode.host, port: currentNode.port),
       );
 
-      await info.updateCachedChainHeight(
-        newHeight: height!,
-        isar: mainDB.isar,
-      );
+      await info.updateCachedChainHeight(newHeight: height!, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.e(
         "Error occurred in tezos_wallet.dart while getting"
@@ -540,9 +542,11 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   Future<void> updateNode() async {
-    _xtzNode = NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+    _xtzNode =
+        NodeService(
+          secureStorageInterface: secureStorageInterface,
+        ).getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode(isPrimary: true);
 
     await refresh();
   }
@@ -550,9 +554,10 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   NodeModel getCurrentNode() {
     return _xtzNode ??=
-        NodeService(secureStorageInterface: secureStorageInterface)
-                .getPrimaryNodeFor(currency: info.coin) ??
-            info.coin.defaultNode;
+        NodeService(
+          secureStorageInterface: secureStorageInterface,
+        ).getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode(isPrimary: true);
   }
 
   @override
@@ -590,10 +595,11 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         type: txType,
         subType: TransactionSubType.none,
         amount: theTx.amountInMicroTez,
-        amountString: Amount(
-          rawValue: BigInt.from(theTx.amountInMicroTez),
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ).toJsonString(),
+        amountString:
+            Amount(
+              rawValue: BigInt.from(theTx.amountInMicroTez),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ).toJsonString(),
         fee: theTx.feeInMicroTez,
         height: theTx.height,
         isCancelled: false,

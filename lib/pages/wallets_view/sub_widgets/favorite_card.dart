@@ -10,6 +10,7 @@
 
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -27,7 +28,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/coin_card.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../wallet_view/wallet_view.dart';
@@ -67,53 +68,63 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     );
 
+    Decimal? price;
+    if (externalCalls) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) => value.getPrice(coin)?.value,
+        ),
+      );
+    }
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder: (child) => MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) {
-          setState(() {
-            _hovering = true;
-          });
-        },
-        onExit: (_) {
-          setState(() {
-            _hovering = false;
-          });
-        },
-        child: AnimatedScale(
-          duration: const Duration(milliseconds: 200),
-          scale: _hovering ? 1.05 : 1,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: _hovering
-                ? BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                    boxShadow: [
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .standardBoxShadow,
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .standardBoxShadow,
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .standardBoxShadow,
-                    ],
-                  )
-                : BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-            child: child,
+      builder:
+          (child) => MouseRegion(
+            cursor: SystemMouseCursors.click,
+            onEnter: (_) {
+              setState(() {
+                _hovering = true;
+              });
+            },
+            onExit: (_) {
+              setState(() {
+                _hovering = false;
+              });
+            },
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 200),
+              scale: _hovering ? 1.05 : 1,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration:
+                    _hovering
+                        ? BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          boxShadow: [
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.standardBoxShadow,
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.standardBoxShadow,
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.standardBoxShadow,
+                          ],
+                        )
+                        : BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                child: child,
+              ),
+            ),
           ),
-        ),
-      ),
       child: GestureDetector(
         onTap: () async {
           final wallet = ref.read(pWallets).getWallet(walletId);
@@ -132,9 +143,10 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
           }
 
           final Future<void> loadFuture;
-          if (wallet is LibMoneroWallet) {
-            loadFuture =
-                wallet.init().then((value) async => await (wallet).open());
+          if (wallet is ExternalWallet) {
+            loadFuture = wallet.init().then(
+              (value) async => await (wallet).open(),
+            );
           } else {
             loadFuture = wallet.init();
           }
@@ -147,15 +159,13 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 
           if (mounted) {
             if (Util.isDesktop) {
-              await Navigator.of(context).pushNamed(
-                DesktopWalletView.routeName,
-                arguments: walletId,
-              );
+              await Navigator.of(
+                context,
+              ).pushNamed(DesktopWalletView.routeName, arguments: walletId);
             } else {
-              await Navigator.of(context).pushNamed(
-                WalletView.routeName,
-                arguments: walletId,
-              );
+              await Navigator.of(
+                context,
+              ).pushNamed(WalletView.routeName, arguments: walletId);
             }
           }
         },
@@ -183,17 +193,16 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           child: Text(
                             ref.watch(pWalletName(walletId)),
                             style: STextStyles.itemSubtitle12(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFavoriteCard,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textFavoriteCard,
                             ),
                             overflow: TextOverflow.fade,
                           ),
                         ),
                         SvgPicture.file(
-                          File(
-                            ref.watch(coinIconProvider(coin)),
-                          ),
+                          File(ref.watch(coinIconProvider(coin))),
                           width: 24,
                           height: 24,
                         ),
@@ -202,36 +211,29 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                   ),
                   Builder(
                     builder: (context) {
-                      final balance = ref.watch(
-                        pWalletBalance(walletId),
-                      );
+                      final balance = ref.watch(pWalletBalance(walletId));
 
                       Amount total = balance.total;
                       if (coin is Firo) {
-                        total += ref
-                            .watch(
-                              pWalletBalanceSecondary(walletId),
-                            )
-                            .total;
-                        total += ref
-                            .watch(
-                              pWalletBalanceTertiary(walletId),
-                            )
-                            .total;
+                        total +=
+                            ref.watch(pWalletBalanceSecondary(walletId)).total;
+                        total +=
+                            ref.watch(pWalletBalanceTertiary(walletId)).total;
+                      } else if (ref.watch(
+                        pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+                      )) {
+                        total +=
+                            ref.watch(pWalletBalanceSecondary(walletId)).total;
                       }
 
                       Amount fiatTotal = Amount.zero;
 
-                      if (externalCalls && total > Amount.zero) {
-                        fiatTotal = (total.decimal *
-                                ref
-                                    .watch(
-                                      priceAnd24hChangeNotifierProvider.select(
-                                        (value) => value.getPrice(coin),
-                                      ),
-                                    )
-                                    .item1)
-                            .toAmount(fractionDigits: 2);
+                      if (externalCalls &&
+                          total > Amount.zero &&
+                          price != null) {
+                        fiatTotal = (total.decimal * price).toAmount(
+                          fractionDigits: 2,
+                        );
                       }
 
                       return Column(
@@ -243,35 +245,26 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                               ref.watch(pAmountFormatter(coin)).format(total),
                               style: STextStyles.titleBold12(context).copyWith(
                                 fontSize: 16,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFavoriteCard,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFavoriteCard,
                               ),
                             ),
                           ),
-                          if (externalCalls)
-                            const SizedBox(
-                              height: 4,
-                            ),
-                          if (externalCalls)
+                          if (externalCalls && price != null)
+                            const SizedBox(height: 4),
+                          if (externalCalls && price != null)
                             Text(
-                              "${fiatTotal.fiatString(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider.select(
-                                    (value) => value.locale,
-                                  ),
-                                ),
-                              )} ${ref.watch(
-                                prefsChangeNotifierProvider.select(
-                                  (value) => value.currency,
-                                ),
-                              )}",
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
+                              "${fiatTotal.fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                              style: STextStyles.itemSubtitle12(
+                                context,
+                              ).copyWith(
                                 fontSize: 10,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFavoriteCard,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFavoriteCard,
                               ),
                             ),
                         ],
@@ -300,11 +293,6 @@ class CardOverlayStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        background,
-        child,
-      ],
-    );
+    return Stack(children: [background, child]);
   }
 }

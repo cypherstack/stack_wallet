@@ -14,7 +14,6 @@ import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/exchange_cache/currency.dart';
-import '../../models/isar/exchange_cache/pair.dart';
 import 'change_now/change_now_exchange.dart';
 import 'exchange_response.dart';
 import 'majestic_bank/majestic_bank_exchange.dart';
@@ -31,8 +30,8 @@ abstract class Exchange {
         return ChangeNowExchange.instance;
       case SimpleSwapExchange.exchangeName:
         return SimpleSwapExchange.instance;
-      case MajesticBankExchange.exchangeName:
-        return MajesticBankExchange.instance;
+      // case MajesticBankExchange.exchangeName:
+      //   return MajesticBankExchange.instance;
       case TrocadorExchange.exchangeName:
         return TrocadorExchange.instance;
       case NanswapExchange.exchangeName:
@@ -53,17 +52,17 @@ abstract class Exchange {
 
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(bool fixedRate);
 
-  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-    String forCurrency,
-    bool fixedRate,
-  );
+  // Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+  //   String forCurrency,
+  //   bool fixedRate,
+  // );
 
-  Future<ExchangeResponse<List<Pair>>> getPairsFor(
-    String currency,
-    bool fixedRate,
-  );
-
-  Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate);
+  // Future<ExchangeResponse<List<Pair>>> getPairsFor(
+  //   String currency,
+  //   bool fixedRate,
+  // );
+  //
+  // Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate);
 
   Future<ExchangeResponse<Trade>> getTrade(String tradeId);
   Future<ExchangeResponse<Trade>> updateTrade(Trade trade);
@@ -72,13 +71,17 @@ abstract class Exchange {
 
   Future<ExchangeResponse<Range>> getRange(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     bool fixedRate,
   );
 
   Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     Decimal amount,
     bool fixedRate,
     bool reversed,
@@ -87,6 +90,8 @@ abstract class Exchange {
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,
+    required String? fromNetwork,
+    required String? toNetwork,
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
@@ -101,10 +106,10 @@ abstract class Exchange {
   ///
   /// Add to this list when adding a new exchange which supports Tor.
   static List<Exchange> get exchangesWithTorSupport => [
-        MajesticBankExchange.instance,
-        TrocadorExchange.instance,
-        NanswapExchange.instance, // Maybe??
-      ];
+    // MajesticBankExchange.instance,
+    TrocadorExchange.instance,
+    NanswapExchange.instance, // Maybe??
+  ];
 
   /// List of exchange names which support Tor.
   ///

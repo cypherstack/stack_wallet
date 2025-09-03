@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:compat/compat.dart' as lib_monero_compat;
@@ -22,8 +23,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
+import 'package:xelis_flutter/src/api/api.dart' as xelis_api;
+import 'package:xelis_flutter/src/api/logger.dart' as xelis_logging;
+import 'package:xelis_flutter/src/frb_generated.dart' as xelis_rust;
 
 import 'app_config.dart';
 import 'db/db_version_migration.dart';
@@ -46,7 +51,6 @@ import 'pages/pinpad_views/create_pin_view.dart';
 import 'pages/pinpad_views/lock_screen_view.dart';
 import 'pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'pages_desktop_specific/password/desktop_login_view.dart';
-import 'providers/db/main_db_provider.dart';
 import 'providers/desktop/storage_crypto_handler_provider.dart';
 import 'providers/global/auto_swb_service_provider.dart';
 import 'providers/global/base_currencies_provider.dart';
@@ -56,6 +60,7 @@ import 'providers/providers.dart';
 import 'route_generator.dart';
 import 'services/exchange/exchange_data_loading_service.dart';
 import 'services/locale_service.dart';
+import 'services/mwebd_service.dart';
 import 'services/node_service.dart';
 import 'services/notifications_api.dart';
 import 'services/notifications_service.dart';
@@ -70,17 +75,49 @@ import 'utilities/logger.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
+import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
 
-final openedFromSWBFileStringStateProvider =
-    StateProvider<String?>((ref) => null);
+final openedFromSWBFileStringStateProvider = StateProvider<String?>(
+  (ref) => null,
+);
+
+void startListeningToRustLogs() {
+  xelis_api.createLogStream().listen(
+    (logEntry) {
+      final Level level;
+      switch (logEntry.level) {
+        case xelis_logging.Level.error:
+          level = Level.error;
+        case xelis_logging.Level.warn:
+          level = Level.warning;
+        case xelis_logging.Level.info:
+          level = Level.info;
+        case xelis_logging.Level.debug:
+          level = Level.debug;
+        case xelis_logging.Level.trace:
+          level = Level.trace;
+      }
+
+      Logging.instance.log(
+        level,
+        "[Xelis Rust Log] ${logEntry.tag}: ${logEntry.msg}",
+      );
+    },
+    onError: (dynamic e) {
+      Logging.instance.e("Error receiving Xelis Rust logs: $e");
+    },
+  );
+}
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
+  // talker.info('initializing Rust lib ...');
+  await xelis_rust.RustLib.init();
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
@@ -108,9 +145,7 @@ void main(List<String> args) async {
     if (screenHeight != null) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
       final height = min<double>(screenHeight * 0.75, 900);
-      setWindowFrame(
-        Rect.fromLTWH(0, 0, 1220, height),
-      );
+      setWindowFrame(Rect.fromLTWH(0, 0, 1220, height));
     }
   }
 
@@ -146,8 +181,9 @@ void main(List<String> args) async {
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
 
-  if (!DB.instance.hive
-      .isAdapterRegistered(lib_monero_compat.WalletInfoAdapter().typeId)) {
+  if (!DB.instance.hive.isAdapterRegistered(
+    lib_monero_compat.WalletInfoAdapter().typeId,
+  )) {
     DB.instance.hive.registerAdapter(lib_monero_compat.WalletInfoAdapter());
   }
 
@@ -166,7 +202,11 @@ void main(List<String> args) async {
   await Logging.instance.initialize(
     (await StackFileSystem.applicationLogsDirectory(Prefs.instance)).path,
     level: Prefs.instance.logLevel,
+    debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
+
+  await xelis_api.setUpRustLogger();
+  startListeningToRustLogs();
 
   // setup lib spark logging
   initSparkLogging(Prefs.instance.logLevel);
@@ -175,6 +215,25 @@ void main(List<String> args) async {
       !Util.isDesktop &&
       !CampfireMigration.didRun) {
     await CampfireMigration.init();
+  }
+
+  if (kDebugMode && !Platform.isIOS) {
+    unawaited(
+      MwebdService.instance
+          .logsStream(CryptoCurrencyNetwork.main)
+          .then(
+            (stream) =>
+                stream.listen((line) => print("[MWEBD: MAINNET]: $line")),
+          ),
+    );
+    unawaited(
+      MwebdService.instance
+          .logsStream(CryptoCurrencyNetwork.test)
+          .then(
+            (stream) =>
+                stream.listen((line) => print("[MWEBD: TESTNET]: $line")),
+          ),
+    );
   }
 
   // TODO:
@@ -194,10 +253,12 @@ void main(List<String> args) async {
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
-    final int dbVersion = DB.instance.get<dynamic>(
-          boxName: DB.boxNameDBInfo,
-          key: "hive_data_version",
-        ) as int? ??
+    final int dbVersion =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNameDBInfo,
+              key: "hive_data_version",
+            )
+            as int? ??
         0;
     if (dbVersion < Constants.currentDataVersion) {
       try {
@@ -232,22 +293,25 @@ void main(List<String> args) async {
 
   // verify current user preference theme and revert to default
   // if problems are found to prevent app being unusable
-  if (!(await ThemeService.instance
-      .verifyInstalled(themeId: Prefs.instance.themeId))) {
+  if (!(await ThemeService.instance.verifyInstalled(
+    themeId: Prefs.instance.themeId,
+  ))) {
     Prefs.instance.themeId = "light";
   }
 
   // verify current user preference light brightness theme and revert to default
   // if problems are found to prevent app being unusable
-  if (!(await ThemeService.instance
-      .verifyInstalled(themeId: Prefs.instance.systemBrightnessLightThemeId))) {
+  if (!(await ThemeService.instance.verifyInstalled(
+    themeId: Prefs.instance.systemBrightnessLightThemeId,
+  ))) {
     Prefs.instance.systemBrightnessLightThemeId = "light";
   }
 
   // verify current user preference dark brightness theme and revert to default
   // if problems are found to prevent app being unusable
-  if (!(await ThemeService.instance
-      .verifyInstalled(themeId: Prefs.instance.systemBrightnessDarkThemeId))) {
+  if (!(await ThemeService.instance.verifyInstalled(
+    themeId: Prefs.instance.systemBrightnessDarkThemeId,
+  ))) {
     Prefs.instance.systemBrightnessDarkThemeId = "dark";
   }
 
@@ -263,18 +327,14 @@ class MyApp extends StatelessWidget {
     final localeService = LocaleService();
     localeService.loadLocale();
 
-    return const KeyboardDismisser(
-      child: MaterialAppWithTheme(),
-    );
+    return const KeyboardDismisser(child: MaterialAppWithTheme());
   }
 }
 
 // Sidenote: MaterialAppWithTheme and InitView are only separated for clarity. No other reason.
 
 class MaterialAppWithTheme extends ConsumerStatefulWidget {
-  const MaterialAppWithTheme({
-    super.key,
-  });
+  const MaterialAppWithTheme({super.key});
 
   @override
   ConsumerState<MaterialAppWithTheme> createState() =>
@@ -284,7 +344,6 @@ class MaterialAppWithTheme extends ConsumerStatefulWidget {
 class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     with WidgetsBindingObserver {
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   // late final Wallets _wallets;
   // late final Prefs _prefs;
@@ -318,7 +377,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
   }
 
-  Future<void> load() async {
+  Future<void> load(bool loadWallets) async {
     try {
       if (didLoad) {
         return;
@@ -348,10 +407,15 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         prefs: ref.read(prefsChangeNotifierProvider),
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await ref.read(pWallets).load(
-            ref.read(prefsChangeNotifierProvider),
-            ref.read(mainDBProvider),
-          );
+      if (loadWallets) {
+        await ref
+            .read(pWallets)
+            .load(
+              ref.read(prefsChangeNotifierProvider),
+              ref.read(mainDBProvider),
+              false,
+            );
+      }
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
@@ -378,7 +442,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
         switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {
           case BackupFrequencyType.everyTenMinutes:
-            ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
+            ref
+                .read(autoSWBServiceProvider)
+                .startPeriodicBackupTimer(
                   duration: const Duration(minutes: 10),
                 );
             break;
@@ -402,6 +468,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
+    if (Util.isDesktop) {
+      // set to false for desktop
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(pDuress.notifier).state = false;
+      });
+    }
+
     String themeId;
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       final brightness = WidgetsBinding.instance.window.platformBrightness;
@@ -411,9 +484,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          themeId = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightThemeId;
+          themeId =
+              ref
+                  .read(prefsChangeNotifierProvider)
+                  .systemBrightnessLightThemeId;
           break;
       }
     } else {
@@ -432,9 +506,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(applicationThemesDirectoryPathProvider.notifier).state =
           StackFileSystem.themesDir!.path;
 
-      ref.read(themeProvider.state).state = ref.read(pThemeService).getTheme(
-            themeId: themeId,
-          )!;
+      ref.read(themeProvider.state).state =
+          ref.read(pThemeService).getTheme(themeId: themeId)!;
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -462,18 +535,17 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          themeId = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightThemeId;
+          themeId =
+              ref
+                  .read(prefsChangeNotifierProvider)
+                  .systemBrightnessLightThemeId;
           break;
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
           ref.read(themeProvider.state).state =
-              ref.read(pThemeService).getTheme(
-                    themeId: themeId,
-                  )!;
+              ref.read(pThemeService).getTheme(themeId: themeId)!;
         }
       });
     };
@@ -549,11 +621,26 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
   }
 
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    debugPrint("didRequestAppExit called");
+    if (Platform.isMacOS) {
+      // On macOS, mwebd fails to shut down, hanging the app on close.
+      //
+      // Exiting is a hack fix for this issue.
+
+      // await ref.read(pMwebService).shutdown();
+      // Something like the above would probably be prudent to make.
+      exit(0);
+    }
+    return AppExitResponse.exit;
+  }
+
   /// should only be called on android currently
   Future<void> getOpenFile() async {
     // update provider with new file content state
-    ref.read(openedFromSWBFileStringStateProvider.state).state =
-        await platform.invokeMethod("getOpenFile");
+    ref.read(openedFromSWBFileStringStateProvider.state).state = await platform
+        .invokeMethod("getOpenFile");
 
     // call reset to clear cached value
     await resetOpenPath();
@@ -570,11 +657,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   Future<void> goToRestoreSWB(String encrypted) async {
     if (!ref.read(prefsChangeNotifierProvider).hasPin) {
-      await Navigator.of(navigatorKey.currentContext!)
-          .pushNamed(CreatePinView.routeName, arguments: true)
-          .then((value) {
+      await Navigator.of(
+        ref.read(pNavKey).currentContext!,
+      ).pushNamed(CreatePinView.routeName, arguments: true).then((value) {
         if (value is! bool || value == false) {
-          Navigator.of(navigatorKey.currentContext!).pushNamed(
+          Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
             RestoreFromEncryptedStringView.routeName,
             arguments: encrypted,
           );
@@ -583,19 +670,20 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     } else {
       unawaited(
         Navigator.push(
-          navigatorKey.currentContext!,
+          ref.read(pNavKey).currentContext!,
           RouteGenerator.getRoute(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-            builder: (_) => LockscreenView(
-              showBackButton: true,
-              routeOnSuccess: RestoreFromEncryptedStringView.routeName,
-              routeOnSuccessArguments: encrypted,
-              biometricsCancelButtonString: "CANCEL",
-              biometricsLocalizedReason:
-                  "Authenticate to restore ${AppConfig.appName} backup",
-              biometricsAuthenticationTitle:
-                  "Restore ${AppConfig.prefix} backup",
-            ),
+            builder:
+                (_) => LockscreenView(
+                  showBackButton: true,
+                  routeOnSuccess: RestoreFromEncryptedStringView.routeName,
+                  routeOnSuccessArguments: encrypted,
+                  biometricsCancelButtonString: "CANCEL",
+                  biometricsLocalizedReason:
+                      "Authenticate to restore ${AppConfig.appName} backup",
+                  biometricsAuthenticationTitle:
+                      "Restore ${AppConfig.prefix} backup",
+                ),
             settings: const RouteSettings(name: "/swbrestorelockscreen"),
           ),
         ),
@@ -605,10 +693,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   InputBorder _buildOutlineInputBorder(Color color) {
     return OutlineInputBorder(
-      borderSide: BorderSide(
-        width: 1,
-        color: color,
-      ),
+      borderSide: BorderSide(width: 1, color: color),
       borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
     );
   }
@@ -625,7 +710,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     return MaterialApp(
       key: GlobalKey(),
-      navigatorKey: navigatorKey,
+      navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
@@ -646,9 +731,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         ),
         // splashFactory: NoSplash.splashFactory,
         splashColor: Colors.transparent,
-        buttonTheme: ButtonThemeData(
-          splashColor: colorScheme.splash,
-        ),
+        buttonTheme: ButtonThemeData(splashColor: colorScheme.splash),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
             // splashFactory: NoSplash.splashFactory,
@@ -656,8 +739,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
             // textStyle: MaterialStateProperty.all<TextStyle>(
             //     STextStyles.button(context)),
-            foregroundColor:
-                MaterialStateProperty.all(colorScheme.buttonTextSecondary),
+            foregroundColor: MaterialStateProperty.all(
+              colorScheme.buttonTextSecondary,
+            ),
             backgroundColor: MaterialStateProperty.all<Color>(
               colorScheme.buttonBackSecondary,
             ),
@@ -674,25 +758,22 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         checkboxTheme: CheckboxThemeData(
           splashRadius: 0,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(Constants.size.checkboxBorderRadius),
+            borderRadius: BorderRadius.circular(
+              Constants.size.checkboxBorderRadius,
+            ),
           ),
-          checkColor: MaterialStateColor.resolveWith(
-            (state) {
-              if (state.contains(MaterialState.selected)) {
-                return colorScheme.checkboxIconChecked;
-              }
+          checkColor: MaterialStateColor.resolveWith((state) {
+            if (state.contains(MaterialState.selected)) {
+              return colorScheme.checkboxIconChecked;
+            }
+            return colorScheme.checkboxBGChecked;
+          }),
+          fillColor: MaterialStateColor.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
               return colorScheme.checkboxBGChecked;
-            },
-          ),
-          fillColor: MaterialStateColor.resolveWith(
-            (states) {
-              if (states.contains(MaterialState.selected)) {
-                return colorScheme.checkboxBGChecked;
-              }
-              return colorScheme.checkboxBorderEmpty;
-            },
-          ),
+            }
+            return colorScheme.checkboxBorderEmpty;
+          }),
         ),
         appBarTheme: AppBarTheme(
           centerTitle: false,
@@ -710,91 +791,101 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
           // labelStyle: STextStyles.fieldLabel(context),
           // hintStyle: STextStyles.fieldLabel(context),
-          enabledBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          focusedBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          enabledBorder: _buildOutlineInputBorder(
+            colorScheme.textFieldDefaultBG,
+          ),
+          focusedBorder: _buildOutlineInputBorder(
+            colorScheme.textFieldDefaultBG,
+          ),
           errorBorder: _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          disabledBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          focusedErrorBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          disabledBorder: _buildOutlineInputBorder(
+            colorScheme.textFieldDefaultBG,
+          ),
+          focusedErrorBorder: _buildOutlineInputBorder(
+            colorScheme.textFieldDefaultBG,
+          ),
         ),
       ),
       home: CryptoNotifications(
-        child: Util.isDesktop
-            ? FutureBuilder(
-                future: loadShared(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (_desktopHasPassword) {
-                      String? startupWalletId;
-                      if (ref
-                          .read(prefsChangeNotifierProvider)
-                          .gotoWalletOnStartup) {
-                        startupWalletId = ref
+        child:
+            Util.isDesktop
+                ? FutureBuilder(
+                  future: loadShared(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (_desktopHasPassword) {
+                        String? startupWalletId;
+                        if (ref
                             .read(prefsChangeNotifierProvider)
-                            .startupWalletId;
-                      }
+                            .gotoWalletOnStartup) {
+                          startupWalletId =
+                              ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .startupWalletId;
+                        }
 
-                      return DesktopLoginView(
-                        startupWalletId: startupWalletId,
-                        load: load,
-                      );
-                    } else {
-                      return const IntroView();
-                    }
-                  } else {
-                    return const LoadingView();
-                  }
-                },
-              )
-            : FutureBuilder(
-                future: load(),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    // FlutterNativeSplash.remove();
-                    if (ref.read(pAllWalletsInfo).isNotEmpty ||
-                        ref.read(prefsChangeNotifierProvider).hasPin) {
-                      // return HomeView();
-
-                      String? startupWalletId;
-                      if (ref
-                          .read(prefsChangeNotifierProvider)
-                          .gotoWalletOnStartup) {
-                        startupWalletId = ref
-                            .read(prefsChangeNotifierProvider)
-                            .startupWalletId;
-                      }
-
-                      return LockscreenView(
-                        isInitialAppLogin: true,
-                        routeOnSuccess: HomeView.routeName,
-                        routeOnSuccessArguments: startupWalletId,
-                        biometricsAuthenticationTitle:
-                            "Unlock ${AppConfig.prefix}",
-                        biometricsLocalizedReason:
-                            "Unlock your ${AppConfig.appName} using biometrics",
-                        biometricsCancelButtonString: "Cancel",
-                      );
-                    } else {
-                      if (AppConfig.appName == "Campfire" &&
-                          !CampfireMigration.didRun &&
-                          CampfireMigration.hasOldWallets) {
-                        return const CampfireMigrateView();
+                        return DesktopLoginView(
+                          startupWalletId: startupWalletId,
+                          load: () => load(true),
+                        );
                       } else {
                         return const IntroView();
                       }
+                    } else {
+                      return const LoadingView();
                     }
-                  } else {
-                    // CURRENTLY DISABLED as cannot be animated
-                    // technically not needed as FlutterNativeSplash will overlay
-                    // anything returned here until the future completes but
-                    // FutureBuilder requires you to return something
-                    return const LoadingView();
-                  }
-                },
-              ),
+                  },
+                )
+                : FutureBuilder(
+                  future: load(false),
+                  builder: (
+                    BuildContext context,
+                    AsyncSnapshot<void> snapshot,
+                  ) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      // FlutterNativeSplash.remove();
+                      if (ref.read(pAllWalletsInfo).isNotEmpty ||
+                          ref.read(prefsChangeNotifierProvider).hasPin) {
+                        // return HomeView();
+
+                        String? startupWalletId;
+                        if (ref
+                            .read(prefsChangeNotifierProvider)
+                            .gotoWalletOnStartup) {
+                          startupWalletId =
+                              ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .startupWalletId;
+                        }
+
+                        return LockscreenView(
+                          isInitialAppLogin: true,
+                          routeOnSuccess: HomeView.routeName,
+                          routeOnSuccessArguments: startupWalletId,
+                          biometricsAuthenticationTitle:
+                              "Unlock ${AppConfig.prefix}",
+                          biometricsLocalizedReason:
+                              "Unlock your ${AppConfig.appName} using biometrics",
+                          biometricsCancelButtonString: "Cancel",
+                        );
+                      } else {
+                        if (AppConfig.appName == "Campfire" &&
+                            !CampfireMigration.didRun &&
+                            CampfireMigration.hasOldWallets) {
+                          return const CampfireMigrateView();
+                        } else {
+                          return const IntroView();
+                        }
+                      }
+                    } else {
+                      // CURRENTLY DISABLED as cannot be animated
+                      // technically not needed as FlutterNativeSplash will overlay
+                      // anything returned here until the future completes but
+                      // FutureBuilder requires you to return something
+                      return const LoadingView();
+                    }
+                  },
+                ),
       ),
     );
   }

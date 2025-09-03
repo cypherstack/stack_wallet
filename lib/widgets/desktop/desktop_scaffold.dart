@@ -14,12 +14,7 @@ import '../../themes/stack_colors.dart';
 import '../background.dart';
 
 class DesktopScaffold extends StatelessWidget {
-  const DesktopScaffold({
-    super.key,
-    this.background,
-    this.appBar,
-    this.body,
-  });
+  const DesktopScaffold({super.key, this.background, this.appBar, this.body});
 
   final Color? background;
   final Widget? appBar;
@@ -35,10 +30,7 @@ class DesktopScaffold extends StatelessWidget {
           // crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (appBar != null) appBar!,
-            if (body != null)
-              Expanded(
-                child: body!,
-              ),
+            if (body != null) Expanded(child: body!),
           ],
         ),
       ),
@@ -73,7 +65,7 @@ class MasterScaffold extends StatelessWidget {
         child: Scaffold(
           backgroundColor: background ?? Colors.transparent,
           appBar: appBar as PreferredSizeWidget?,
-          body: body,
+          body: SafeArea(child: body),
         ),
       );
     }

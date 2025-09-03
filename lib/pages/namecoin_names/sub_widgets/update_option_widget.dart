@@ -9,7 +9,6 @@ import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
@@ -33,14 +32,12 @@ class UpdateOptionWidget extends ConsumerStatefulWidget {
     required this.walletId,
     required this.utxo,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
   });
 
   final String walletId;
   final UTXO utxo;
 
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
 
   @override
   ConsumerState<UpdateOptionWidget> createState() => _BuyDomainWidgetState();
@@ -84,9 +81,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
 
       // wait for keyboard to disappear
       FocusScope.of(context).unfocus();
-      await Future<void>.delayed(
-        const Duration(milliseconds: 100),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final wallet =
           ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
@@ -144,11 +139,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
 
       final opName = wallet.getOpNameDataFrom(widget.utxo)!;
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       final nameScriptHex = scriptNameUpdate(opName.fullname, newValue);
 
@@ -156,13 +147,14 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
         txData: TxData(
           feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
           recipients: [
-            (
+            TxRecipient(
               address: _address!.value,
               isChange: false,
               amount: Amount(
                 rawValue: BigInt.from(kNameAmountSats),
                 fractionDigits: wallet.cryptoCurrency.fractionDigits,
               ),
+              addressType: _address.type,
             ),
           ],
           note: "Update ${opName.constructedName} (${opName.fullname})",
@@ -179,10 +171,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
         ),
       );
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       final txData = results.first as TxData;
 
@@ -194,15 +183,16 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,
-              builder: (context) => SDialog(
-                child: SizedBox(
-                  width: 580,
-                  child: ConfirmNameTransactionView(
-                    txData: txData,
-                    walletId: widget.walletId,
+              builder:
+                  (context) => SDialog(
+                    child: SizedBox(
+                      width: 580,
+                      child: ConfirmNameTransactionView(
+                        txData: txData,
+                        walletId: widget.walletId,
+                      ),
+                    ),
                   ),
-                ),
-              ),
             );
           } else {
             await Navigator.of(context).pushNamed(
@@ -227,12 +217,13 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Update failed",
-            message: err,
-            desktopPopRootNavigator: Util.isDesktop,
-            maxWidth: Util.isDesktop ? 600 : null,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "Update failed",
+                message: err,
+                desktopPopRootNavigator: Util.isDesktop,
+                maxWidth: Util.isDesktop ? 600 : null,
+              ),
         );
       }
     } finally {
@@ -269,17 +260,13 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: Util.isDesktop
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.stretch,
+      crossAxisAlignment:
+          Util.isDesktop
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.stretch,
       children: [
-        Text(
-          "Edit value",
-          style: STextStyles.label(context),
-        ),
-        const SizedBox(
-          height: 6,
-        ),
+        Text("Edit value", style: STextStyles.label(context)),
+        const SizedBox(height: 6),
         TextField(
           controller: _controller,
           maxLines: null,
@@ -296,9 +283,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
             ),
           ],
         ),
-        const SizedBox(
-          height: 4,
-        ),
+        const SizedBox(height: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -308,18 +293,17 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
                 return Text(
                   "$length/$valueMaxLength",
                   style: STextStyles.w500_10(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle2,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle2,
                   ),
                 );
               },
             ),
           ],
         ),
-        SizedBox(
-          height: Util.isDesktop ? 32 : 16,
-        ),
+        SizedBox(height: Util.isDesktop ? 32 : 16),
         if (!Util.isDesktop) const Spacer(),
         Row(
           children: [
@@ -327,15 +311,11 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
               child: SecondaryButton(
                 label: "Cancel",
                 buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                onPressed: Navigator.of(
-                  context,
-                  rootNavigator: Util.isDesktop,
-                ).pop,
+                onPressed:
+                    Navigator.of(context, rootNavigator: Util.isDesktop).pop,
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: PrimaryButton(
                 label: "Update",
@@ -346,10 +326,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
             ),
           ],
         ),
-        if (!Util.isDesktop)
-          const SizedBox(
-            height: 16,
-          ),
+        if (!Util.isDesktop) const SizedBox(height: 16),
       ],
     );
   }

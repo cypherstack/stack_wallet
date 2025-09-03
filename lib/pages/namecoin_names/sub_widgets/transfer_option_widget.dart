@@ -41,14 +41,12 @@ class TransferOptionWidget extends ConsumerStatefulWidget {
     required this.walletId,
     required this.utxo,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
   });
 
   final String walletId;
   final UTXO utxo;
 
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
 
   @override
   ConsumerState<TransferOptionWidget> createState() =>
@@ -58,7 +56,7 @@ class TransferOptionWidget extends ConsumerStatefulWidget {
 class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
   late final String walletId;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
+
   late final TextEditingController _addressController;
   late final FocusNode _addressFocusNode;
 
@@ -71,9 +69,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
 
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 100),
-    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     try {
       final wallet = ref.read(pWallets).getWallet(walletId) as NamecoinWallet;
@@ -129,11 +125,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
 
       final opName = wallet.getOpNameDataFrom(widget.utxo)!;
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       final nameScriptHex = scriptNameUpdate(opName.fullname, opName.value);
 
@@ -141,13 +133,14 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         txData: TxData(
           feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
           recipients: [
-            (
+            TxRecipient(
               address: _address!,
               isChange: false,
               amount: Amount(
                 rawValue: BigInt.from(kNameAmountSats),
                 fractionDigits: wallet.cryptoCurrency.fractionDigits,
               ),
+              addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
             ),
           ],
           note: "Transfer ${opName.constructedName}",
@@ -164,10 +157,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         ),
       );
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       final txData = results.first as TxData;
 
@@ -179,15 +169,16 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,
-              builder: (context) => SDialog(
-                child: SizedBox(
-                  width: 580,
-                  child: ConfirmNameTransactionView(
-                    txData: txData,
-                    walletId: widget.walletId,
+              builder:
+                  (context) => SDialog(
+                    child: SizedBox(
+                      width: 580,
+                      child: ConfirmNameTransactionView(
+                        txData: txData,
+                        walletId: widget.walletId,
+                      ),
+                    ),
                   ),
-                ),
-              ),
             );
           } else {
             await Navigator.of(context).pushNamed(
@@ -212,12 +203,13 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
 
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Error",
-            message: err,
-            desktopPopRootNavigator: Util.isDesktop,
-            maxWidth: Util.isDesktop ? 600 : null,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "Error",
+                message: err,
+                desktopPopRootNavigator: Util.isDesktop,
+                maxWidth: Util.isDesktop ? 600 : null,
+              ),
         );
       }
     } finally {
@@ -245,7 +237,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
       final coin = ref.read(pWalletCoin(walletId));
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
@@ -271,14 +263,27 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         _setValidAddressProviders(_address);
       }
     } on PlatformException catch (e, s) {
-      // here we ignore the exception caused by not giving permission
-      // to use the camera to scan a qr code
-      Logging.instance.e(
-        "Failed to get camera permissions while trying to scan qr code in"
-        " $runtimeType",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.e(
+          "Failed to get camera permissions while trying to scan qr code in"
+          " $runtimeType",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -287,7 +292,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
     super.initState();
     walletId = widget.walletId;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
+
     _addressController = TextEditingController();
     _addressFocusNode = FocusNode();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -345,72 +350,64 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                 right: 5,
               ),
               suffixIcon: Padding(
-                padding: _addressController.text.isEmpty
-                    ? const EdgeInsets.only(right: 8)
-                    : const EdgeInsets.only(right: 0),
+                padding:
+                    _addressController.text.isEmpty
+                        ? const EdgeInsets.only(right: 8)
+                        : const EdgeInsets.only(right: 0),
                 child: UnconstrainedBox(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _addressController.text.isNotEmpty
                           ? TextFieldIconButton(
-                              semanticsLabel:
-                                  "Clear Button. Clears The Address Field Input.",
-                              key: const Key(
-                                "nameTransferClearAddressFieldButtonKey",
-                              ),
-                              onTap: () {
-                                _addressController.text = "";
-                                _address = "";
-                                _setValidAddressProviders(
-                                  _address,
-                                );
-                                setState(() {});
-                              },
-                              child: const XIcon(),
-                            )
+                            semanticsLabel:
+                                "Clear Button. Clears The Address Field Input.",
+                            key: const Key(
+                              "nameTransferClearAddressFieldButtonKey",
+                            ),
+                            onTap: () {
+                              _addressController.text = "";
+                              _address = "";
+                              _setValidAddressProviders(_address);
+                              setState(() {});
+                            },
+                            child: const XIcon(),
+                          )
                           : TextFieldIconButton(
-                              semanticsLabel:
-                                  "Paste Button. Pastes From Clipboard To Address Field Input.",
-                              key: const Key(
-                                "nameTransferPasteAddressFieldButtonKey",
-                              ),
-                              onTap: () async {
-                                final ClipboardData? data =
-                                    await clipboard.getData(
-                                  Clipboard.kTextPlain,
-                                );
-                                if (data?.text != null &&
-                                    data!.text!.isNotEmpty) {
-                                  String content = data.text!.trim();
-                                  if (content.contains("\n")) {
-                                    content = content.substring(
-                                      0,
-                                      content.indexOf(
-                                        "\n",
-                                      ),
-                                    );
-                                  }
-
-                                  _addressController.text = content.trim();
-                                  _address = content.trim();
-
-                                  _setValidAddressProviders(
-                                    _address,
+                            semanticsLabel:
+                                "Paste Button. Pastes From Clipboard To Address Field Input.",
+                            key: const Key(
+                              "nameTransferPasteAddressFieldButtonKey",
+                            ),
+                            onTap: () async {
+                              final ClipboardData? data = await clipboard
+                                  .getData(Clipboard.kTextPlain);
+                              if (data?.text != null &&
+                                  data!.text!.isNotEmpty) {
+                                String content = data.text!.trim();
+                                if (content.contains("\n")) {
+                                  content = content.substring(
+                                    0,
+                                    content.indexOf("\n"),
                                   );
                                 }
-                              },
-                              child: _addressController.text.isEmpty
-                                  ? const ClipboardIcon()
-                                  : const XIcon(),
-                            ),
+
+                                _addressController.text = content.trim();
+                                _address = content.trim();
+
+                                _setValidAddressProviders(_address);
+                              }
+                            },
+                            child:
+                                _addressController.text.isEmpty
+                                    ? const ClipboardIcon()
+                                    : const XIcon(),
+                          ),
                       if (_addressController.text.isEmpty)
                         TextFieldIconButton(
                           semanticsLabel:
                               "Address Book Button. Opens Address Book For Address Field.",
-                          key: const Key(
-                            "nameTransferAddressBookButtonKey",
-                          ),
+                          key: const Key("nameTransferAddressBookButtonKey"),
                           onTap: () {
                             Navigator.of(context).pushNamed(
                               AddressBookView.routeName,
@@ -423,9 +420,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                         TextFieldIconButton(
                           semanticsLabel:
                               "Scan QR Button. Opens Camera For Scanning QR Code.",
-                          key: const Key(
-                            "nameTransferScanQrButtonKey",
-                          ),
+                          key: const Key("nameTransferScanQrButtonKey"),
                           onTap: _scanQr,
                           child: const QrCodeIcon(),
                         ),
@@ -436,32 +431,28 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
             ),
           ),
         ),
-        SizedBox(
-          height: Util.isDesktop ? 42 : 16,
-        ),
+        SizedBox(height: Util.isDesktop ? 42 : 16),
         if (!Util.isDesktop) const Spacer(),
         ConditionalParent(
           condition: Util.isDesktop,
-          builder: (child) => Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: "Cancel",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: Navigator.of(
-                    context,
-                    rootNavigator: Util.isDesktop,
-                  ).pop,
-                ),
+          builder:
+              (child) => Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: "Cancel",
+                      buttonHeight: ButtonHeight.l,
+                      onPressed:
+                          Navigator.of(
+                            context,
+                            rootNavigator: Util.isDesktop,
+                          ).pop,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(child: child),
+                ],
               ),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                child: child,
-              ),
-            ],
-          ),
           child: PrimaryButton(
             label: "Transfer",
             enabled: _enableButton,
@@ -470,10 +461,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
             onPressed: _preview,
           ),
         ),
-        if (!Util.isDesktop)
-          const SizedBox(
-            height: 16,
-          ),
+        if (!Util.isDesktop) const SizedBox(height: 16),
       ],
     );
   }

@@ -45,15 +45,16 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     final seed = CardanoIcarusSeedGenerator(mnemonic).generate();
     final cip1852 = Cip1852.fromSeed(seed, Cip1852Coins.cardanoIcarus);
     final derivationAccount = cip1852.purpose.coin.account(0);
-    final shelley = CardanoShelley.fromCip1852Object(derivationAccount)
-        .change(Bip44Changes.chainExt)
-        .addressIndex(0);
+    final shelley = CardanoShelley.fromCip1852Object(
+      derivationAccount,
+    ).change(Bip44Changes.chainExt).addressIndex(0);
     final paymentPublicKey = shelley.bip44.publicKey.compressed;
     final stakePublicKey = shelley.bip44Sk.publicKey.compressed;
-    final addressStr = ADABaseAddress.fromPublicKey(
-      basePubkeyBytes: paymentPublicKey,
-      stakePubkeyBytes: stakePublicKey,
-    ).address;
+    final addressStr =
+        ADABaseAddress.fromPublicKey(
+          basePubkeyBytes: paymentPublicKey,
+          stakePubkeyBytes: stakePublicKey,
+        ).address;
     return Address(
       walletId: walletId,
       value: addressStr,
@@ -76,7 +77,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         await mainDB.updateOrPutAddresses([address]);
       }
     } catch (e, s) {
-      Logging.instance.e("$runtimeType  checkSaveInitialReceivingAddress() failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType  checkSaveInitialReceivingAddress() failed: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -91,13 +96,17 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       return Future.value(health);
     } catch (e, s) {
-      Logging.instance.e("Error ping checking in cardano_wallet.dart: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error ping checking in cardano_wallet.dart: ",
+        error: e,
+        stackTrace: s,
+      );
       return Future.value(false);
     }
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     await updateProvider();
 
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
@@ -113,10 +122,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
     final fee = params.calculateFee(284);
 
-    return Amount(
-      rawValue: fee,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
+    return Amount(rawValue: fee, fractionDigits: cryptoCurrency.fractionDigits);
   }
 
   @override
@@ -129,7 +135,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       );
 
       // 284 is the size of a basic transaction with one input and two outputs (change and recipient)
-      final fee = params.calculateFee(284).toInt();
+      final fee = params.calculateFee(284);
 
       return FeeObject(
         numberOfBlocksFast: 2,
@@ -140,7 +146,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         slow: fee,
       );
     } catch (e, s) {
-      Logging.instance.e("Error getting fees in cardano_wallet.dart: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error getting fees in cardano_wallet.dart: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -181,51 +191,66 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       }
 
       final bip32 = CardanoIcarusBip32.fromSeed(
-          CardanoIcarusSeedGenerator(await getMnemonic()).generate());
+        CardanoIcarusSeedGenerator(await getMnemonic()).generate(),
+      );
       final spend = bip32.derivePath("1852'/1815'/0'/0/0");
       final privateKey = AdaPrivateKey.fromBytes(spend.privateKey.raw);
 
       // Calculate fees with example tx
       final exampleFee = ADAHelper.toLovelaces("0.10");
       final change = TransactionOutput(
-          address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
-          amount: Value(coin: totalBalance - (txData.amount!.raw)));
+        address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
+        amount: Value(coin: totalBalance - (txData.amount!.raw)),
+      );
+
+      final outputAddress = ADAAddress.fromAddress(
+        txData.recipients!.first.address,
+      );
+      if (!(outputAddress is ADABaseAddress ||
+          outputAddress is ADAEnterpriseAddress)) {
+        throw Exception(
+          "Address of type ${outputAddress.runtimeType} currently not supported.",
+        );
+      }
+
       final body = TransactionBody(
-        inputs: listOfUtxosToBeUsed
-            .map((e) => TransactionInput(
-                transactionId: TransactionHash.fromHex(e.txHash),
-                index: e.outputIndex))
-            .toList(),
+        inputs:
+            listOfUtxosToBeUsed
+                .map(
+                  (e) => TransactionInput(
+                    transactionId: TransactionHash.fromHex(e.txHash),
+                    index: e.outputIndex,
+                  ),
+                )
+                .toList(),
         outputs: [
           change,
           TransactionOutput(
-              address: ADABaseAddress(txData.recipients!.first.address),
-              amount: Value(coin: txData.amount!.raw - exampleFee))
+            address: outputAddress,
+            amount: Value(coin: txData.amount!.raw - exampleFee),
+          ),
         ],
         fee: exampleFee,
       );
       final exampleTx = ADATransaction(
         body: body,
         witnessSet: TransactionWitnessSet(
-          vKeys: [
-            privateKey.createSignatureWitness(body.toHash().data),
-          ],
+          vKeys: [privateKey.createSignatureWitness(body.toHash().data)],
         ),
       );
-      final params = await blockfrostProvider!
-          .request(BlockfrostRequestLatestEpochProtocolParameters());
+      final params = await blockfrostProvider!.request(
+        BlockfrostRequestLatestEpochProtocolParameters(),
+      );
       final fee = params.calculateFee(exampleTx.size);
 
       // Check if we are sending all balance, which means no change and only one output for recipient.
       if (totalBalance == txData.amount!.raw) {
         final List<TxRecipient> newRecipients = [
-          (
-            address: txData.recipients!.first.address,
+          txData.recipients!.first.copyWith(
             amount: Amount(
               rawValue: txData.amount!.raw - fee,
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
-            isChange: txData.recipients!.first.isChange,
           ),
         ];
         return txData.copyWith(
@@ -244,7 +269,8 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         if (totalBalance - (txData.amount!.raw + fee) <
             ADAHelper.toLovelaces("1")) {
           throw Exception(
-              "Not enough balance for change. By network rules, please either send all balance or leave at least 1 ADA change.");
+            "Not enough balance for change. By network rules, please either send all balance or leave at least 1 ADA change.",
+          );
         }
 
         return txData.copyWith(
@@ -255,7 +281,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         );
       }
     } catch (e, s) {
-      Logging.instance.e("$runtimeType Cardano prepareSend failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType Cardano prepareSend failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -293,44 +323,62 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       }
 
       final bip32 = CardanoIcarusBip32.fromSeed(
-          CardanoIcarusSeedGenerator(await getMnemonic()).generate());
+        CardanoIcarusSeedGenerator(await getMnemonic()).generate(),
+      );
       final spend = bip32.derivePath("1852'/1815'/0'/0/0");
       final privateKey = AdaPrivateKey.fromBytes(spend.privateKey.raw);
 
       final change = TransactionOutput(
-          address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
-          amount: Value(
-              coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw)));
+        address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
+        amount: Value(
+          coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw),
+        ),
+      );
+
+      final outputAddress = ADAAddress.fromAddress(
+        txData.recipients!.first.address,
+      );
+      if (!(outputAddress is ADABaseAddress ||
+          outputAddress is ADAEnterpriseAddress)) {
+        throw Exception(
+          "Address of type ${outputAddress.runtimeType} currently not supported.",
+        );
+      }
+
       List<TransactionOutput> outputs = [];
       if (totalBalance == (txData.amount!.raw + txData.fee!.raw)) {
         outputs = [
           TransactionOutput(
-              address: ADABaseAddress(txData.recipients!.first.address),
-              amount: Value(coin: txData.amount!.raw))
+            address: outputAddress,
+            amount: Value(coin: txData.amount!.raw),
+          ),
         ];
       } else {
         outputs = [
           change,
           TransactionOutput(
-              address: ADABaseAddress(txData.recipients!.first.address),
-              amount: Value(coin: txData.amount!.raw))
+            address: outputAddress,
+            amount: Value(coin: txData.amount!.raw),
+          ),
         ];
       }
       final body = TransactionBody(
-        inputs: listOfUtxosToBeUsed
-            .map((e) => TransactionInput(
-                transactionId: TransactionHash.fromHex(e.txHash),
-                index: e.outputIndex))
-            .toList(),
+        inputs:
+            listOfUtxosToBeUsed
+                .map(
+                  (e) => TransactionInput(
+                    transactionId: TransactionHash.fromHex(e.txHash),
+                    index: e.outputIndex,
+                  ),
+                )
+                .toList(),
         outputs: outputs,
         fee: txData.fee!.raw,
       );
       final tx = ADATransaction(
         body: body,
         witnessSet: TransactionWitnessSet(
-          vKeys: [
-            privateKey.createSignatureWitness(body.toHash().data),
-          ],
+          vKeys: [privateKey.createSignatureWitness(body.toHash().data)],
         ),
       );
 
@@ -339,11 +387,13 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           transactionCborBytes: tx.serialize(),
         ),
       );
-      return txData.copyWith(
-        txid: sentTx,
-      );
+      return txData.copyWith(txid: sentTx);
     } catch (e, s) {
-      Logging.instance.e("$runtimeType Cardano confirmSend failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType Cardano confirmSend failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -410,7 +460,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.e("Error getting balance in cardano_wallet.dart: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error getting balance in cardano_wallet.dart: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -428,7 +482,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.e("Error updating transactions in cardano_wallet.dart: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error updating transactions in cardano_wallet.dart: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -446,14 +504,13 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       final txsList = await blockfrostProvider!.request(
         BlockfrostRequestAddressTransactions(
-          ADAAddress.fromAddress(
-            currentAddr,
-          ),
+          ADAAddress.fromAddress(currentAddr),
         ),
       );
 
-      final parsedTxsList =
-          List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
+      final parsedTxsList = List<Tuple2<isar.Transaction, Address>>.empty(
+        growable: true,
+      );
 
       for (final tx in txsList) {
         final txInfo = await blockfrostProvider!.request(
@@ -525,10 +582,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           type: txType,
           subType: isar.TransactionSubType.none,
           amount: amount,
-          amountString: Amount(
-            rawValue: BigInt.from(amount),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          ).toJsonString(),
+          amountString:
+              Amount(
+                rawValue: BigInt.from(amount),
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ).toJsonString(),
           fee: int.parse(txInfo.fees),
           height: txInfo.blockHeight,
           isCancelled: false,
@@ -548,9 +606,10 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           derivationIndex: 0,
           derivationPath: DerivationPath()..value = _addressDerivationPath,
           type: AddressType.cardanoShelley,
-          subType: txType == isar.TransactionType.outgoing
-              ? AddressSubType.unknown
-              : AddressSubType.receiving,
+          subType:
+              txType == isar.TransactionType.outgoing
+                  ? AddressSubType.unknown
+                  : AddressSubType.receiving,
         );
 
         parsedTxsList.add(Tuple2(transaction, txAddress));
@@ -560,7 +619,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     } on NodeTorMismatchConfigException {
       rethrow;
     } catch (e, s) {
-      Logging.instance.e("Error updating transactions in cardano_wallet.dart: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error updating transactions in cardano_wallet.dart: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -576,10 +639,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     final client = HttpClient();
     if (prefs.useTor) {
       final proxyInfo = TorService.sharedInstance.getProxyInfo();
-      final proxySettings = ProxySettings(
-        proxyInfo.host,
-        proxyInfo.port,
-      );
+      final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
       SocksTCPClient.assignToHttpClient(client, [proxySettings]);
     }
     blockfrostProvider = CustomBlockForestProvider(

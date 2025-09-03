@@ -90,7 +90,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -105,6 +105,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -120,6 +121,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -129,10 +131,10 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   Amount get dustLimit => Amount(
-        // TODO should this be 10000 instead of 294 for peercoin?
-        rawValue: BigInt.from(294),
-        fractionDigits: fractionDigits,
-      );
+    // TODO should this be 10000 instead of 294 for peercoin?
+    rawValue: BigInt.from(294),
+    fractionDigits: fractionDigits,
+  );
 
   @override
   String get genesisHash {
@@ -163,10 +165,11 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        ).program.script;
+        final p2wpkhScript =
+            coinlib.P2WPKHAddress.fromPublicKey(
+              publicKey,
+              hrp: networkParams.bech32Hrp,
+            ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
@@ -202,9 +205,9 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-        DerivePathType.bip84,
-      ];
+    DerivePathType.bip44,
+    DerivePathType.bip84,
+  ];
 
   @override
   bool validateAddress(String address) {

@@ -38,14 +38,8 @@ class DesktopAboutView extends ConsumerWidget {
         isCompactHeight: true,
         leading: Row(
           children: [
-            const SizedBox(
-              width: 24,
-              height: 24,
-            ),
-            Text(
-              "About",
-              style: STextStyles.desktopH3(context),
-            ),
+            const SizedBox(width: 24, height: 24),
+            Text("About", style: STextStyles.desktopH3(context)),
           ],
         ),
       ),
@@ -85,55 +79,63 @@ class DesktopAboutView extends ConsumerWidget {
                                     TextSpan(
                                       text:
                                           "By using ${AppConfig.appName}, you agree to the ",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark3,
-                                      ),
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark3,
+                                          ),
                                     ),
                                     TextSpan(
                                       text: "Terms of service",
-                                      style: STextStyles.richLink(context)
-                                          .copyWith(fontSize: 14),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                              "https://stackwallet.com/terms-of-service.html",
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
+                                      style: STextStyles.richLink(
+                                        context,
+                                      ).copyWith(fontSize: 14),
+                                      recognizer:
+                                          TapGestureRecognizer()
+                                            ..onTap = () {
+                                              launchUrl(
+                                                Uri.parse(
+                                                  "https://stackwallet.com/terms-of-service.html",
+                                                ),
+                                                mode:
+                                                    LaunchMode
+                                                        .externalApplication,
+                                              );
+                                            },
                                     ),
                                     TextSpan(
                                       text: " and ",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark3,
-                                      ),
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark3,
+                                          ),
                                     ),
                                     TextSpan(
                                       text: "Privacy policy",
-                                      style: STextStyles.richLink(context)
-                                          .copyWith(fontSize: 14),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                              "https://stackwallet.com/privacy-policy.html",
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
+                                      style: STextStyles.richLink(
+                                        context,
+                                      ).copyWith(fontSize: 14),
+                                      recognizer:
+                                          TapGestureRecognizer()
+                                            ..onTap = () {
+                                              launchUrl(
+                                                Uri.parse(
+                                                  "https://stackwallet.com/privacy-policy.html",
+                                                ),
+                                                mode:
+                                                    LaunchMode
+                                                        .externalApplication,
+                                              );
+                                            },
                                     ),
                                   ],
                                 ),
@@ -142,8 +144,10 @@ class DesktopAboutView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 32),
                           Padding(
-                            padding:
-                                const EdgeInsets.only(right: 10, bottom: 10),
+                            padding: const EdgeInsets.only(
+                              right: 10,
+                              bottom: 10,
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,33 +186,29 @@ class DesktopAboutView extends ConsumerWidget {
                                               children: [
                                                 Text(
                                                   "Version",
-                                                  style: STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ).copyWith(
-                                                    color: Theme.of(
-                                                      context,
-                                                    )
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark,
-                                                  ),
+                                                  style:
+                                                      STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .extension<
+                                                                  StackColors
+                                                                >()!
+                                                                .textDark,
+                                                      ),
                                                 ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
+                                                const SizedBox(height: 2),
                                                 SelectableText(
                                                   version,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(
-                                              width: 16,
-                                            ),
+                                            const SizedBox(width: 16),
                                             Column(
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:
@@ -216,33 +216,29 @@ class DesktopAboutView extends ConsumerWidget {
                                               children: [
                                                 Text(
                                                   "Build number",
-                                                  style: STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ).copyWith(
-                                                    color: Theme.of(
-                                                      context,
-                                                    )
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark,
-                                                  ),
+                                                  style:
+                                                      STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .extension<
+                                                                  StackColors
+                                                                >()!
+                                                                .textDark,
+                                                      ),
                                                 ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
+                                                const SizedBox(height: 2),
                                                 SelectableText(
                                                   build,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(
-                                              width: 16,
-                                            ),
+                                            const SizedBox(width: 16),
                                             Column(
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:
@@ -250,27 +246,25 @@ class DesktopAboutView extends ConsumerWidget {
                                               children: [
                                                 Text(
                                                   "Build commit",
-                                                  style: STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ).copyWith(
-                                                    color: Theme.of(
-                                                      context,
-                                                    )
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark,
-                                                  ),
+                                                  style:
+                                                      STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .extension<
+                                                                  StackColors
+                                                                >()!
+                                                                .textDark,
+                                                      ),
                                                 ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
+                                                const SizedBox(height: 2),
                                                 SelectableText(
                                                   GitStatus.appCommitHash,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 ),
                                               ],
                                             ),
@@ -286,27 +280,25 @@ class DesktopAboutView extends ConsumerWidget {
                                               children: [
                                                 Text(
                                                   "Build signature",
-                                                  style: STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ).copyWith(
-                                                    color: Theme.of(
-                                                      context,
-                                                    )
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark,
-                                                  ),
+                                                  style:
+                                                      STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .extension<
+                                                                  StackColors
+                                                                >()!
+                                                                .textDark,
+                                                      ),
                                                 ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
+                                                const SizedBox(height: 2),
                                                 SelectableText(
                                                   signature,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 ),
                                               ],
                                             ),
@@ -318,73 +310,15 @@ class DesktopAboutView extends ConsumerWidget {
                                           runSpacing: 32,
                                           children: [
                                             if (AppConfig.coins
-                                                .whereType<Firo>()
-                                                .isNotEmpty)
-                                              FutureBuilder(
-                                                future: GitStatus
-                                                    .getFiroCommitStatus(),
-                                                builder: (
-                                                  context,
-                                                  AsyncSnapshot<CommitStatus>
-                                                      snapshot,
-                                                ) {
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
-
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    stateOfCommit =
-                                                        snapshot.data!;
-                                                  }
-
-                                                  return Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Firo Build Commit",
-                                                        style: STextStyles
-                                                            .desktopTextExtraExtraSmall(
-                                                          context,
-                                                        ).copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          )
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        GitStatus.firoCommit,
-                                                        style: GitStatus
-                                                            .styleForStatus(
-                                                          stateOfCommit,
-                                                          context,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              ),
-                                            if (AppConfig.coins
                                                 .whereType<Epiccash>()
                                                 .isNotEmpty)
                                               FutureBuilder(
-                                                future: GitStatus
-                                                    .getEpicCommitStatus(),
+                                                future:
+                                                    GitStatus.getEpicCommitStatus(),
                                                 builder: (
                                                   context,
                                                   AsyncSnapshot<CommitStatus>
-                                                      snapshot,
+                                                  snapshot,
                                                 ) {
                                                   CommitStatus stateOfCommit =
                                                       CommitStatus.notLoaded;
@@ -406,29 +340,26 @@ class DesktopAboutView extends ConsumerWidget {
                                                     children: [
                                                       Text(
                                                         "Epic Cash Build Commit",
-                                                        style: STextStyles
-                                                            .desktopTextExtraExtraSmall(
+                                                        style: STextStyles.desktopTextExtraExtraSmall(
                                                           context,
                                                         ).copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          )
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textDark,
                                                         ),
                                                       ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
+                                                      const SizedBox(height: 2),
                                                       SelectableText(
                                                         GitStatus
                                                             .epicCashCommit,
-                                                        style: GitStatus
-                                                            .styleForStatus(
-                                                          stateOfCommit,
-                                                          context,
-                                                        ),
+                                                        style:
+                                                            GitStatus.styleForStatus(
+                                                              stateOfCommit,
+                                                              context,
+                                                            ),
                                                       ),
                                                     ],
                                                   );
@@ -498,14 +429,17 @@ class DesktopAboutView extends ConsumerWidget {
                                           children: [
                                             Text(
                                               "Website:",
-                                              style: STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                context,
-                                              ).copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              ),
+                                              style:
+                                                  STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color:
+                                                        Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark,
+                                                  ),
                                             ),
                                             CustomTextButton(
                                               text: "https://stackwallet.com",
@@ -514,8 +448,9 @@ class DesktopAboutView extends ConsumerWidget {
                                                   Uri.parse(
                                                     "https://stackwallet.com",
                                                   ),
-                                                  mode: LaunchMode
-                                                      .externalApplication,
+                                                  mode:
+                                                      LaunchMode
+                                                          .externalApplication,
                                                 );
                                               },
                                             ),
@@ -532,14 +467,17 @@ class DesktopAboutView extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 "Tezos functionality:",
-                                                style: STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                  context,
-                                                ).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                ),
+                                                style:
+                                                    STextStyles.desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color:
+                                                          Theme.of(context)
+                                                              .extension<
+                                                                StackColors
+                                                              >()!
+                                                              .textDark,
+                                                    ),
                                               ),
                                               CustomTextButton(
                                                 text: "Powered by TzKT API",
@@ -548,8 +486,9 @@ class DesktopAboutView extends ConsumerWidget {
                                                     Uri.parse(
                                                       "https://tzkt.io",
                                                     ),
-                                                    mode: LaunchMode
-                                                        .externalApplication,
+                                                    mode:
+                                                        LaunchMode
+                                                            .externalApplication,
                                                   );
                                                 },
                                               ),

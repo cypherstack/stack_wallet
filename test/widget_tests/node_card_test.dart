@@ -39,6 +39,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -55,6 +56,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -118,6 +120,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -134,6 +137,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -198,6 +202,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 
@@ -214,6 +219,7 @@ void main() {
         isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
+        isPrimary: true,
       ),
     );
 

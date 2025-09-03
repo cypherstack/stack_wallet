@@ -27,9 +27,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import 'coin_nodes_view.dart';
 
 class ManageNodesView extends ConsumerStatefulWidget {
-  const ManageNodesView({
-    super.key,
-  });
+  const ManageNodesView({super.key});
 
   static const String routeName = "/manageNodes";
 
@@ -43,9 +41,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.removeWhere(
-      (e) => e is Firo && e.network.isTestNet,
-    );
+    _coins.removeWhere((e) => e is Firo && e.network.isTestNet);
     super.initState();
   }
 
@@ -60,9 +56,10 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final coins = showTestNet
-        ? _coins
-        : _coins.where((e) => !e.network.isTestNet).toList();
+    final coins =
+        showTestNet
+            ? _coins
+            : _coins.where((e) => !e.network.isTestNet).toList();
 
     return Background(
       child: Scaffold(
@@ -73,29 +70,24 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Manage nodes",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Manage nodes", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ...coins.map(
-                  (coin) {
-                    final count = ref
-                        .watch(
-                          nodeServiceChangeNotifierProvider
-                              .select((value) => value.getNodesFor(coin)),
-                        )
-                        .length;
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...coins.map((coin) {
+                    final count =
+                        ref
+                            .watch(
+                              nodeServiceChangeNotifierProvider.select(
+                                (value) => value.getNodesFor(coin),
+                              ),
+                            )
+                            .length;
 
                     return Padding(
                       padding: const EdgeInsets.all(4),
@@ -121,17 +113,11 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                             child: Row(
                               children: [
                                 SvgPicture.file(
-                                  File(
-                                    ref.watch(
-                                      coinIconProvider(coin),
-                                    ),
-                                  ),
+                                  File(ref.watch(coinIconProvider(coin))),
                                   width: 24,
                                   height: 24,
                                 ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
+                                const SizedBox(width: 12),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -151,9 +137,9 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                         ),
                       ),
                     );
-                  },
-                ),
-              ],
+                  }),
+                ],
+              ),
             ),
           ),
         ),

@@ -30,7 +30,7 @@ void main() {
         url: Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,bitcoin-cash"
-            ",namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos"
+            ",namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos,xelis"
             "&order=market_cap_desc&per_page=50"
             "&page=1&sparkline=false"),
         headers: {
@@ -93,7 +93,10 @@ void main() {
             'max_supply":null,"ath":0.00013848,"ath_change_percentage":-79.75864'
             ',"ath_date":"2021-12-11T08:39:41.129Z","atl":5.74028e-07,"atl_chang'
             'e_percentage":4783.08078,"atl_date":"2020-03-13T16:55:01.177Z","roi'
-            '":null,"last_updated":"2022-08-22T16:38:32.826Z"}]'),
+            '":null,"last_updated":"2022-08-22T16:38:32.826Z"},{"id":"xelis","sy'
+            'mbol":"xel","name":"Xelis","image":"https://assets.coingecko.com/co'
+            'ins/images/37615/large/green_background_black_logo.png","current_pr'
+            'ice":0.00001234,"price_change_percentage_24h":5.67}]'),
         200));
 
     final priceAPI = PriceAPI(client);
@@ -125,7 +128,8 @@ void main() {
       'Coin.dogecoinTestNet: [0, 0.0], '
       'Coin.firoTestNet: [0, 0.0], '
       'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0]'
+      'Coin.stellarTestnet: [0, 0.0], '
+      'Coin.xelis: [0.00001234, 5.67]'
       '}',
     );
     verify(client.get(
@@ -134,7 +138,7 @@ void main() {
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
           "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
           "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-          ",tezos"
+          ",tezos,xelis"
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
         ),
         headers: {'Content-Type': 'application/json'})).called(1);
@@ -151,7 +155,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&"
             "ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-            ",tezos"
+            ",tezos,xelis"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -213,7 +217,10 @@ void main() {
             '21000000.0,"max_supply":null,"ath":0.00013848,"ath_change_percentag'
             'e":-79.75864,"ath_date":"2021-12-11T08:39:41.129Z","atl":5.74028e-0'
             '7,"atl_change_percentage":4783.08078,"atl_date":"2020-03-13T16:55:01'
-            '.177Z","roi":null,"last_updated":"2022-08-22T16:38:32.826Z"}]'),
+            '.177Z","roi":null,"last_updated":"2022-08-22T16:38:32.826Z"},{"id":'
+            '"xelis","symbol":"xel","name":"Xelis","image":"https://assets.coing'
+            'ecko.com/coins/images/37615/large/green_background_black_logo.png",'
+            '"current_price":0.00001234,"price_change_percentage_24h":5.67}]'),
         200));
 
     final priceAPI = PriceAPI(client);
@@ -247,7 +254,8 @@ void main() {
       'Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], '
       'Coin.firoTestNet: [0, 0.0], '
       'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0]'
+      'Coin.stellarTestnet: [0, 0.0], '
+      'Coin.xelis: [0.00001234, 5.67]'
       '}',
     );
 
@@ -258,7 +266,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-            ",tezos"
+            ",tezos,xelis"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {'Content-Type': 'application/json'})).called(1);
 
@@ -274,7 +282,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-            ",tezos"
+            ",tezos,xelis"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -337,7 +345,9 @@ void main() {
             'y":21000000.0,"max_supply":null,"ath":0.00013848,"ath_change_perce'
             'ntage":-79.75864,"ath_date":"2021-12-11T08:39:41.129Z","atl":5.74'
             '028e-07,"atl_change_percentage":4783.08078,"atl_date":"2020-03-13T'
-            '16:55:01.177Z","roi":null,"last_updated":"2022-08-22T16:38:32.826Z"}]'),
+            '16:55:01.177Z","roi":null,"last_updated":"2022-08-22T16:38:32.826Z"'
+            '},{"id":"xelis","symbol":xel,"name":com/coins/images/37615/large/g'
+            'reen_background_black_logo.png,"image":"https://assets.coingecko'),
         200));
 
     final priceAPI = PriceAPI(client);
@@ -368,7 +378,8 @@ void main() {
       'Coin.dogecoinTestNet: [0, 0.0], '
       'Coin.firoTestNet: [0, 0.0], '
       'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0]'
+      'Coin.stellarTestnet: [0, 0.0], '
+      'Coin.xelis: [0, 0.0]'
       '}',
     );
   });
@@ -382,7 +393,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-            ",tezos"
+            ",tezos,xelis"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -418,7 +429,8 @@ void main() {
       'Coin.dogecoinTestNet: [0, 0.0], '
       'Coin.firoTestNet: [0, 0.0], '
       'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0]'
+      'Coin.stellarTestnet: [0, 0.0], '
+      'Coin.xelis: [0, 0.0]'
       '}',
     );
   });

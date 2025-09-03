@@ -28,7 +28,6 @@ import '../../../pages/wallet_view/sub_widgets/transactions_list.dart';
 import '../../../pages/wallet_view/transaction_views/all_transactions_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
-import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/active_wallet_provider.dart';
 import '../../../providers/global/auto_swb_service_provider.dart';
 import '../../../providers/providers.dart';
@@ -46,6 +45,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
@@ -57,6 +57,7 @@ import '../../coin_control/desktop_coin_control_use_dialog.dart';
 import 'sub_widgets/desktop_wallet_features.dart';
 import 'sub_widgets/desktop_wallet_summary.dart';
 import 'sub_widgets/firo_desktop_wallet_summary.dart';
+import 'sub_widgets/mweb_desktop_wallet_summary.dart';
 import 'sub_widgets/my_wallet.dart';
 import 'sub_widgets/network_info_button.dart';
 import 'sub_widgets/wallet_keys_button.dart';
@@ -423,73 +424,54 @@ class DesktopWalletHeaderRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(20),
-      child:
-          wallet is FiroWallet && MediaQuery.of(context).size.width < 1600
-              ? Column(
-                children: [
-                  Row(
-                    children: [
-                      SvgPicture.file(
-                        File(ref.watch(coinIconProvider(wallet.info.coin))),
-                        width: 40,
-                        height: 40,
-                      ),
-                      const SizedBox(width: 10),
-                      FiroDesktopWalletSummary(
-                        walletId: wallet.walletId,
-                        initialSyncStatus:
-                            wallet.refreshMutex.isLocked
-                                ? WalletSyncStatus.syncing
-                                : WalletSyncStatus.synced,
-                      ),
+      child: Row(
+        children: [
+          if (monke != null)
+            SvgPicture.memory(
+              Uint8List.fromList(monke!),
+              width: 60,
+              height: 60,
+            ),
+          if (monke == null)
+            SvgPicture.file(
+              File(ref.watch(coinIconProvider(wallet.info.coin))),
+              width: 40,
+              height: 40,
+            ),
+          const SizedBox(width: 10),
+          if (wallet is FiroWallet)
+            FiroDesktopWalletSummary(
+              walletId: wallet.walletId,
+              initialSyncStatus:
+                  wallet.refreshMutex.isLocked
+                      ? WalletSyncStatus.syncing
+                      : WalletSyncStatus.synced,
+            ),
 
-                      const Spacer(),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      DesktopWalletFeatures(walletId: wallet.walletId),
-                    ],
-                  ),
-                ],
-              )
-              : Row(
-                children: [
-                  if (monke != null)
-                    SvgPicture.memory(
-                      Uint8List.fromList(monke!),
-                      width: 60,
-                      height: 60,
-                    ),
-                  if (monke == null)
-                    SvgPicture.file(
-                      File(ref.watch(coinIconProvider(wallet.info.coin))),
-                      width: 40,
-                      height: 40,
-                    ),
-                  const SizedBox(width: 10),
-                  if (wallet is FiroWallet)
-                    FiroDesktopWalletSummary(
-                      walletId: wallet.walletId,
-                      initialSyncStatus:
-                          wallet.refreshMutex.isLocked
-                              ? WalletSyncStatus.syncing
-                              : WalletSyncStatus.synced,
-                    ),
-
-                  if (wallet is! FiroWallet)
-                    DesktopWalletSummary(
-                      walletId: wallet.walletId,
-                      initialSyncStatus:
-                          wallet.refreshMutex.isLocked
-                              ? WalletSyncStatus.syncing
-                              : WalletSyncStatus.synced,
-                    ),
-                  const Spacer(),
-                  DesktopWalletFeatures(walletId: wallet.walletId),
-                ],
-              ),
+          if (wallet is! FiroWallet)
+            wallet is MwebInterface &&
+                    ref.watch(
+                      pWalletInfo(
+                        wallet.walletId,
+                      ).select((s) => s.isMwebEnabled),
+                    )
+                ? MwebDesktopWalletSummary(
+                  walletId: wallet.walletId,
+                  initialSyncStatus:
+                      wallet.refreshMutex.isLocked
+                          ? WalletSyncStatus.syncing
+                          : WalletSyncStatus.synced,
+                )
+                : DesktopWalletSummary(
+                  walletId: wallet.walletId,
+                  initialSyncStatus:
+                      wallet.refreshMutex.isLocked
+                          ? WalletSyncStatus.syncing
+                          : WalletSyncStatus.synced,
+                ),
+          Expanded(child: DesktopWalletFeatures(walletId: wallet.walletId)),
+        ],
+      ),
     );
   }
 }

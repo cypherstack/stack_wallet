@@ -62,11 +62,11 @@ class Bitcoin extends Bip39HDCurrency
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-        DerivePathType.bip49,
-        DerivePathType.bip84,
-        DerivePathType.bip86, // P2TR.
-      ];
+    DerivePathType.bip44,
+    DerivePathType.bip49,
+    DerivePathType.bip84,
+    DerivePathType.bip86, // P2TR.
+  ];
 
   @override
   String get genesisHash {
@@ -83,10 +83,8 @@ class Bitcoin extends Bip39HDCurrency
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(294),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(294), fractionDigits: fractionDigits);
 
   @override
   coinlib.Network get networkParams {
@@ -180,10 +178,11 @@ class Bitcoin extends Bip39HDCurrency
 
       // TODO: [prio=high] verify this works similarly to bitcoindart's p2sh or something(!!)
       case DerivePathType.bip49:
-        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        ).program.script;
+        final p2wpkhScript =
+            coinlib.P2WPKHAddress.fromPublicKey(
+              publicKey,
+              hrp: networkParams.bech32Hrp,
+            ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
@@ -226,7 +225,7 @@ class Bitcoin extends Bip39HDCurrency
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -241,6 +240,7 @@ class Bitcoin extends Bip39HDCurrency
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -256,6 +256,7 @@ class Bitcoin extends Bip39HDCurrency
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test4:
@@ -271,6 +272,7 @@ class Bitcoin extends Bip39HDCurrency
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

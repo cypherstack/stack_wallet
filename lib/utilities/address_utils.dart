@@ -33,8 +33,9 @@ class AddressUtils {
   /// Return only recognized parameters.
   static Map<String, String> _filterParams(Map<String, String> params) {
     return Map.fromEntries(
-      params.entries
-          .where((entry) => recognizedParams.contains(entry.key.toLowerCase())),
+      params.entries.where(
+        (entry) => recognizedParams.contains(entry.key.toLowerCase()),
+      ),
     );
   }
 
@@ -52,8 +53,10 @@ class AddressUtils {
           result["address"] = u.path;
         } else if (result["scheme"] == "monero") {
           // Monero addresses can contain '?' which Uri.parse interprets as query start.
-          final addressEnd =
-              uri.indexOf('?', 7); // 7 is the length of "monero:".
+          final addressEnd = uri.indexOf(
+            '?',
+            7,
+          ); // 7 is the length of "monero:".
           if (addressEnd != -1) {
             result["address"] = uri.substring(7, addressEnd);
           } else {
@@ -130,10 +133,21 @@ class AddressUtils {
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
   ///
   /// Returns null on failure to parse
-  static PaymentUriData? parsePaymentUri(
-    String uri, {
-    Logging? logging,
-  }) {
+  static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
+    // hacky check its not just a bcash, ecash, or xel address
+    final parts = uri.split(":");
+    if (parts.length == 2) {
+      if ([
+        "xel",
+        "bitcoincash",
+        "bchtest",
+        "ecash",
+        "ectest",
+      ].contains(parts.first.toLowerCase())) {
+        return null;
+      }
+    }
+
     try {
       final Map<String, String> parsedData = _parseUri(uri);
 
@@ -155,7 +169,7 @@ class AddressUtils {
         additionalParams: filteredParams,
       );
     } catch (e, s) {
-      logging?.e("", error: e, stackTrace: s);
+      logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
       return null;
     }
   }
@@ -229,7 +243,7 @@ class AddressUtils {
   }
 
   /// Formats an address string to remove any unnecessary prefixes or suffixes.
-  String formatAddress(String epicAddress) {
+  String formatEpicCashAddress(String epicAddress) {
     // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
     if ((epicAddress.startsWith("http://") ||
             epicAddress.startsWith("https://")) &&
@@ -259,8 +273,8 @@ class PaymentUriData {
   final Map<String, String> additionalParams;
 
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
-        scheme ?? "", // empty will just return null
-      );
+    scheme ?? "", // empty will just return null
+  );
 
   PaymentUriData({
     required this.address,
@@ -273,7 +287,8 @@ class PaymentUriData {
   });
 
   @override
-  String toString() => "PaymentUriData { "
+  String toString() =>
+      "PaymentUriData { "
       "coin: $coin, "
       "address: $address, "
       "amount: $amount, "

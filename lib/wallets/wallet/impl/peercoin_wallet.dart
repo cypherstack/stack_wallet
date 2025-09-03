@@ -54,13 +54,13 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
   // ===========================================================================
 
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount roughFeeEstimate(int inputCount, int outputCount, BigInt feeRatePerKB) {
     // TODO: actually do this properly for peercoin
     // this is probably wrong for peercoin
     return Amount(
       rawValue: BigInt.from(
         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
@@ -68,8 +68,8 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
 
   /// we can just pretend vSize is size for peercoin
   @override
-  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+  int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
+    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
   }
 
   // ===========================================================================

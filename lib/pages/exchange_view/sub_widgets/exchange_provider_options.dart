@@ -15,7 +15,6 @@ import '../../../models/exchange/aggregate_currency.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange.dart';
-import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
 import '../../../themes/stack_colors.dart';
@@ -70,18 +69,15 @@ class _ExchangeProviderOptionsState
 
   @override
   Widget build(BuildContext context) {
-    final sendCurrency =
-        ref.watch(efCurrencyPairProvider.select((value) => value.send));
-    final receivingCurrency =
-        ref.watch(efCurrencyPairProvider.select((value) => value.receive));
+    final sendCurrency = ref.watch(
+      efCurrencyPairProvider.select((value) => value.send),
+    );
+    final receivingCurrency = ref.watch(
+      efCurrencyPairProvider.select((value) => value.receive),
+    );
 
     final showChangeNow = exchangeSupported(
       exchangeName: ChangeNowExchange.exchangeName,
-      sendCurrency: sendCurrency,
-      receiveCurrency: receivingCurrency,
-    );
-    final showMajesticBank = exchangeSupported(
-      exchangeName: MajesticBankExchange.exchangeName,
       sendCurrency: sendCurrency,
       receiveCurrency: receivingCurrency,
     );
@@ -98,9 +94,10 @@ class _ExchangeProviderOptionsState
 
     return RoundedWhiteContainer(
       padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),
-      borderColor: isDesktop
-          ? Theme.of(context).extension<StackColors>()!.background
-          : null,
+      borderColor:
+          isDesktop
+              ? Theme.of(context).extension<StackColors>()!.background
+              : null,
       child: Column(
         children: [
           if (showChangeNow)
@@ -109,49 +106,26 @@ class _ExchangeProviderOptionsState
               fixedRate: widget.fixedRate,
               reversed: widget.reversed,
             ),
-          if (showChangeNow && showMajesticBank)
+          if (showChangeNow && showTrocador)
             isDesktop
                 ? Container(
-                    height: 1,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                  )
-                : const SizedBox(
-                    height: 16,
-                  ),
-          if (showMajesticBank)
-            ExchangeOption(
-              exchange: MajesticBankExchange.instance,
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-            ),
-          if ((showChangeNow || showMajesticBank) && showTrocador)
-            isDesktop
-                ? Container(
-                    height: 1,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                  )
-                : const SizedBox(
-                    height: 16,
-                  ),
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                )
+                : const SizedBox(height: 16),
           if (showTrocador)
             ExchangeOption(
               fixedRate: widget.fixedRate,
               reversed: widget.reversed,
               exchange: TrocadorExchange.instance,
             ),
-          if ((showChangeNow || showMajesticBank || showTrocador) &&
-              showNanswap)
+          if ((showChangeNow || showTrocador) && showNanswap)
             isDesktop
                 ? Container(
-                    height: 1,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                  )
-                : const SizedBox(
-                    height: 16,
-                  ),
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                )
+                : const SizedBox(height: 16),
           if (showNanswap)
             ExchangeOption(
               fixedRate: widget.fixedRate,

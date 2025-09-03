@@ -93,11 +93,8 @@ class ElectrumXClient {
   // StreamChannel<dynamic>? get electrumAdapterChannel => _electrumAdapterChannel;
   StreamChannel<dynamic>? _electrumAdapterChannel;
 
-  ElectrumClient? getElectrumAdapter() =>
-      ClientManager.sharedInstance.getClient(
-        cryptoCurrency: cryptoCurrency,
-        netType: netType,
-      );
+  ElectrumClient? getElectrumAdapter() => ClientManager.sharedInstance
+      .getClient(cryptoCurrency: cryptoCurrency, netType: netType);
 
   late Prefs _prefs;
   late TorService _torService;
@@ -109,12 +106,10 @@ class ElectrumXClient {
 
   // add finalizer to cancel stream subscription when all references to an
   // instance of ElectrumX becomes inaccessible
-  static final Finalizer<ElectrumXClient> _finalizer = Finalizer(
-    (p0) {
-      p0._torPreferenceListener?.cancel();
-      p0._torStatusListener?.cancel();
-    },
-  );
+  static final Finalizer<ElectrumXClient> _finalizer = Finalizer((p0) {
+    p0._torPreferenceListener?.cancel();
+    p0._torStatusListener?.cancel();
+  });
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
@@ -129,8 +124,9 @@ class ElectrumXClient {
     required this.netType,
     required List<ElectrumXNode> failovers,
     required this.cryptoCurrency,
-    this.connectionTimeoutForSpecialCaseJsonRPCClients =
-        const Duration(seconds: 60),
+    this.connectionTimeoutForSpecialCaseJsonRPCClients = const Duration(
+      seconds: 60,
+    ),
     TorService? torService,
     EventBus? globalEventBusForTesting,
   }) {
@@ -144,46 +140,45 @@ class ElectrumXClient {
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
 
     // Listen for tor status changes.
-    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        switch (event.newStatus) {
-          case TorConnectionStatus.connecting:
-            await _torConnectingLock.acquire();
-            _requireMutex = true;
-            break;
+    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen((
+      event,
+    ) async {
+      switch (event.newStatus) {
+        case TorConnectionStatus.connecting:
+          await _torConnectingLock.acquire();
+          _requireMutex = true;
+          break;
 
-          case TorConnectionStatus.connected:
-          case TorConnectionStatus.disconnected:
-            if (_torConnectingLock.isLocked) {
-              _torConnectingLock.release();
-            }
-            _requireMutex = false;
-            break;
-        }
-      },
-    );
+        case TorConnectionStatus.connected:
+        case TorConnectionStatus.disconnected:
+          if (_torConnectingLock.isLocked) {
+            _torConnectingLock.release();
+          }
+          _requireMutex = false;
+          break;
+      }
+    });
 
     // Listen for tor preference changes.
-    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
-      (event) async {
-        // not sure if we need to do anything specific here
-        // switch (event.status) {
-        //   case TorStatus.enabled:
-        //   case TorStatus.disabled:
-        // }
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen((
+      event,
+    ) async {
+      // not sure if we need to do anything specific here
+      // switch (event.status) {
+      //   case TorStatus.enabled:
+      //   case TorStatus.disabled:
+      // }
 
-        // setting to null should force the creation of a new json rpc client
-        // on the next request sent through this electrumx instance
-        _electrumAdapterChannel = null;
-        await (await ClientManager.sharedInstance
-                .remove(cryptoCurrency: cryptoCurrency))
-            .$1
-            ?.close();
+      // setting to null should force the creation of a new json rpc client
+      // on the next request sent through this electrumx instance
+      _electrumAdapterChannel = null;
+      await (await ClientManager.sharedInstance.remove(
+        cryptoCurrency: cryptoCurrency,
+      )).$1?.close();
 
-        // Also close any chain height services that are currently open.
-        // await ChainHeightServiceManager.dispose();
-      },
-    );
+      // Also close any chain height services that are currently open.
+      // await ChainHeightServiceManager.dispose();
+    });
   }
 
   factory ElectrumXClient.from({
@@ -252,14 +247,16 @@ class ElectrumXClient {
 
       if (netType == TorPlainNetworkOption.clear) {
         _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance
-            .remove(cryptoCurrency: cryptoCurrency);
+        await ClientManager.sharedInstance.remove(
+          cryptoCurrency: cryptoCurrency,
+        );
       }
     } else {
       if (netType == TorPlainNetworkOption.tor) {
         _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance
-            .remove(cryptoCurrency: cryptoCurrency);
+        await ClientManager.sharedInstance.remove(
+          cryptoCurrency: cryptoCurrency,
+        );
       }
     }
 
@@ -338,24 +335,22 @@ class ElectrumXClient {
     }
 
     if (_requireMutex) {
-      await _torConnectingLock
-          .protect(() async => await checkElectrumAdapter());
+      await _torConnectingLock.protect(
+        () async => await checkElectrumAdapter(),
+      );
     } else {
       await checkElectrumAdapter();
     }
 
     try {
-      final response = await getElectrumAdapter()!.request(
-        command,
-        args,
-      );
+      final response = await getElectrumAdapter()!.request(command, args);
 
       if (response is Map &&
           response.keys.contains("error") &&
           response["error"] != null) {
-        if (response["error"]
-            .toString()
-            .contains("No such mempool or blockchain transaction")) {
+        if (response["error"].toString().contains(
+          "No such mempool or blockchain transaction",
+        )) {
           throw NoSuchTransactionException(
             "No such mempool or blockchain transaction",
             args.first.toString(),
@@ -399,11 +394,7 @@ class ElectrumXClient {
       }
     } catch (e, s) {
       final errorMessage = e.toString();
-      Logging.instance.w(
-        "$host $e",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.w("$host $e", error: e, stackTrace: s);
       if (errorMessage.contains("JSON-RPC error")) {
         currentFailoverIndex = _failovers.length;
       }
@@ -437,8 +428,9 @@ class ElectrumXClient {
     }
 
     if (_requireMutex) {
-      await _torConnectingLock
-          .protect(() async => await checkElectrumAdapter());
+      await _torConnectingLock.protect(
+        () async => await checkElectrumAdapter(),
+      );
     } else {
       await checkElectrumAdapter();
     }
@@ -531,18 +523,19 @@ class ElectrumXClient {
       // electrum_adapter returns the result of the request, request() has been
       // updated to return a bool on a server.ping command as a special case.
       return await request(
-        requestID: requestID,
-        command: 'server.ping',
-        requestTimeout: const Duration(seconds: 30),
-        retries: retryCount,
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          Logging.instance.d(
-            "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
-          );
-        },
-      ) as bool;
+            requestID: requestID,
+            command: 'server.ping',
+            requestTimeout: const Duration(seconds: 30),
+            retries: retryCount,
+          ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              Logging.instance.d(
+                "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
+              );
+            },
+          )
+          as bool;
     } catch (e) {
       rethrow;
     }
@@ -609,9 +602,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: 'blockchain.transaction.broadcast',
-        args: [
-          rawTx,
-        ],
+        args: [rawTx],
       );
       return response as String;
     } catch (e) {
@@ -636,9 +627,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: 'blockchain.scripthash.get_balance',
-        args: [
-          scripthash,
-        ],
+        args: [scripthash],
       );
       return Map<String, dynamic>.from(response as Map);
     } catch (e) {
@@ -673,9 +662,7 @@ class ElectrumXClient {
           requestID: requestID,
           command: 'blockchain.scripthash.get_history',
           requestTimeout: const Duration(minutes: 5),
-          args: [
-            scripthash,
-          ],
+          args: [scripthash],
         );
         result = response;
         retryCount--;
@@ -731,9 +718,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: 'blockchain.scripthash.listunspent',
-        args: [
-          scripthash,
-        ],
+        args: [scripthash],
       );
       return List<Map<String, dynamic>>.from(response as List);
     } catch (e) {
@@ -826,14 +811,13 @@ class ElectrumXClient {
     bool verbose = true,
     String? requestID,
   }) async {
-    Logging.instance.d(
-      "attempting to fetch blockchain.transaction.get...",
-    );
+    Logging.instance.d("attempting to fetch blockchain.transaction.get...");
     await checkElectrumAdapter();
-    final dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
-    Logging.instance.d(
-      "Fetching blockchain.transaction.get finished",
+    final dynamic response = await getElectrumAdapter()!.request(
+      'blockchain.transaction.get',
+      [txHash, verbose],
     );
+    Logging.instance.d("Fetching blockchain.transaction.get finished");
 
     if (!verbose) {
       return {"rawtx": response as String};
@@ -861,16 +845,12 @@ class ElectrumXClient {
     String blockhash = "",
     String? requestID,
   }) async {
-    Logging.instance.d(
-      "attempting to fetch lelantus.getanonymityset...",
-    );
+    Logging.instance.d("attempting to fetch lelantus.getanonymityset...");
     await checkElectrumAdapter();
-    final Map<String, dynamic> response =
-        await (getElectrumAdapter() as FiroElectrumClient)
-            .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
-    Logging.instance.d(
-      "Fetching lelantus.getanonymityset finished",
-    );
+    final Map<String, dynamic> response = await (getElectrumAdapter()
+            as FiroElectrumClient)
+        .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
+    Logging.instance.d("Fetching lelantus.getanonymityset finished");
     return response;
   }
 
@@ -882,15 +862,11 @@ class ElectrumXClient {
     dynamic mints,
     String? requestID,
   }) async {
-    Logging.instance.d(
-      "attempting to fetch lelantus.getmintmetadata...",
-    );
+    Logging.instance.d("attempting to fetch lelantus.getmintmetadata...");
     await checkElectrumAdapter();
     final dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
         .getLelantusMintData(mints: mints);
-    Logging.instance.d(
-      "Fetching lelantus.getmintmetadata finished",
-    );
+    Logging.instance.d("Fetching lelantus.getmintmetadata finished");
     return response;
   }
 
@@ -900,9 +876,7 @@ class ElectrumXClient {
     String? requestID,
     required int startNumber,
   }) async {
-    Logging.instance.d(
-      "attempting to fetch lelantus.getusedcoinserials...",
-    );
+    Logging.instance.d("attempting to fetch lelantus.getusedcoinserials...");
     await checkElectrumAdapter();
 
     int retryCount = 3;
@@ -912,9 +886,7 @@ class ElectrumXClient {
       response = await (getElectrumAdapter() as FiroElectrumClient)
           .getLelantusUsedCoinSerials(startNumber: startNumber);
       // TODO add 2 minute timeout.
-      Logging.instance.d(
-        "Fetching lelantus.getusedcoinserials finished",
-      );
+      Logging.instance.d("Fetching lelantus.getusedcoinserials finished");
 
       retryCount--;
     }
@@ -926,15 +898,11 @@ class ElectrumXClient {
   ///
   /// ex: 1
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
-    Logging.instance.d(
-      "attempting to fetch lelantus.getlatestcoinid...",
-    );
+    Logging.instance.d("attempting to fetch lelantus.getlatestcoinid...");
     await checkElectrumAdapter();
     final int response =
         await (getElectrumAdapter() as FiroElectrumClient).getLatestCoinId();
-    Logging.instance.d(
-      "Fetching lelantus.getlatestcoinid finished",
-    );
+    Logging.instance.d("Fetching lelantus.getlatestcoinid finished");
     return response;
   }
 
@@ -961,12 +929,12 @@ class ElectrumXClient {
     try {
       final start = DateTime.now();
       await checkElectrumAdapter();
-      final Map<String, dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getSparkAnonymitySet(
-        coinGroupId: coinGroupId,
-        startBlockHash: startBlockHash,
-      );
+      final Map<String, dynamic> response = await (getElectrumAdapter()
+              as FiroElectrumClient)
+          .getSparkAnonymitySet(
+            coinGroupId: coinGroupId,
+            startBlockHash: startBlockHash,
+          );
       Logging.instance.d(
         "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
         "=$coinGroupId, startBlockHash=$startBlockHash). "
@@ -1053,34 +1021,23 @@ class ElectrumXClient {
   /// Returns the latest Spark set id
   ///
   /// ex: 1
-  Future<int> getSparkLatestCoinId({
-    String? requestID,
-  }) async {
+  Future<int> getSparkLatestCoinId({String? requestID}) async {
     try {
-      Logging.instance.d(
-        "attempting to fetch spark.getsparklatestcoinid...",
-      );
+      Logging.instance.d("attempting to fetch spark.getsparklatestcoinid...");
       await checkElectrumAdapter();
-      final int response = await (getElectrumAdapter() as FiroElectrumClient)
-          .getSparkLatestCoinId();
-      Logging.instance.d(
-        "Fetching spark.getsparklatestcoinid finished",
-      );
+      final int response =
+          await (getElectrumAdapter() as FiroElectrumClient)
+              .getSparkLatestCoinId();
+      Logging.instance.d("Fetching spark.getsparklatestcoinid finished");
       return response;
     } catch (e, s) {
-      Logging.instance.e(
-        e,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
     }
   }
 
-  /// Returns the txids of the current transactions found in the mempool
-  Future<Set<String>> getMempoolTxids({
-    String? requestID,
-  }) async {
+  /// Returns the txids of the current spark transactions found in the mempool
+  Future<Set<String>> getMempoolTxids({String? requestID}) async {
     try {
       final start = DateTime.now();
       final response = await request(
@@ -1088,9 +1045,10 @@ class ElectrumXClient {
         command: "spark.getmempoolsparktxids",
       );
 
-      final txids = List<String>.from(response as List)
-          .map((e) => e.toHexReversedFromBase64)
-          .toSet();
+      final txids =
+          List<String>.from(
+            response as List,
+          ).map((e) => e.toHexReversedFromBase64).toSet();
 
       Logging.instance.d(
         "Finished ElectrumXClient.getMempoolTxids(). "
@@ -1099,11 +1057,7 @@ class ElectrumXClient {
 
       return txids;
     } catch (e, s) {
-      Logging.instance.e(
-        e,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1119,9 +1073,7 @@ class ElectrumXClient {
         requestID: requestID,
         command: "spark.getmempoolsparktxs",
         args: [
-          {
-            "txids": txids,
-          },
+          {"txids": txids},
         ],
       );
 
@@ -1131,11 +1083,13 @@ class ElectrumXClient {
         result.add(
           SparkMempoolData(
             txid: entry.key,
-            serialContext:
-                List<String>.from(entry.value["serial_context"] as List),
+            serialContext: List<String>.from(
+              entry.value["serial_context"] as List,
+            ),
             // the space after lTags is required lol
             lTags: List<String>.from(entry.value["lTags "] as List),
             coins: List<String>.from(entry.value["coins"] as List),
+            isLocked: entry.value["isLocked"] as bool,
           ),
         );
       }
@@ -1163,9 +1117,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: "spark.getusedcoinstagstxhashes",
-        args: [
-          "$startNumber",
-        ],
+        args: ["$startNumber"],
       );
 
       final map = Map<String, dynamic>.from(response as Map);
@@ -1177,16 +1129,87 @@ class ElectrumXClient {
         "Duration=${DateTime.now().difference(start)}",
       );
 
-      return tags;
+      return tags.reversed.toList();
     } catch (e, s) {
-      Logging.instance.e(
-        e,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
     }
   }
+
+  Future<List<({String name, String address})>> getSparkNames({
+    String? requestID,
+  }) async {
+    try {
+      final start = DateTime.now();
+      await checkElectrumAdapter();
+      const command = "spark.getsparknames";
+      Logging.instance.d(
+        "[${getElectrumAdapter()?.host}] => attempting to fetch $command...",
+      );
+
+      final response = await request(requestID: requestID, command: command);
+
+      if (response is List) {
+        Logging.instance.d(
+          "Finished ElectrumXClient.getSparkNames(). "
+          "names.length: ${response.length}"
+          "Duration=${DateTime.now().difference(start)}",
+        );
+
+        return response
+            .map(
+              (e) => (
+                name: e["name"] as String,
+                address: e["address"] as String,
+              ),
+            )
+            .toList();
+      } else if (response["error"] != null) {
+        Logging.instance.d(response);
+        throw Exception(response["error"].toString());
+      } else {
+        throw Exception("Failed to parse getSparkNames response: $response");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<({String address, int validUntil, String additionalInfo})>
+  getSparkNameData({required String sparkName, String? requestID}) async {
+    try {
+      final start = DateTime.now();
+      await checkElectrumAdapter();
+      const command = "spark.getsparknamedata";
+      Logging.instance.d(
+        "[${getElectrumAdapter()?.host}] => attempting to fetch $command...",
+      );
+
+      final response = await request(
+        requestID: requestID,
+        command: command,
+        args: [sparkName],
+      );
+
+      Logging.instance.d(
+        "Finished ElectrumXClient.getSparkNameData(). "
+        "Duration=${DateTime.now().difference(start)}",
+      );
+      if (response["error"] != null) {
+        Logging.instance.d(response);
+        throw Exception(response["error"].toString());
+      }
+
+      return (
+        address: response["address"] as String,
+        validUntil: response["validUntil"] as int,
+        additionalInfo: response["additionalInfo"] as String,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // ======== New Paginated Endpoints ==========================================
 
   Future<SparkAnonymitySetMeta> getSparkAnonymitySetMeta({
@@ -1203,9 +1226,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: command,
-        args: [
-          "$coinGroupId",
-        ],
+        args: ["$coinGroupId"],
       );
 
       final map = Map<String, dynamic>.from(response as Map);
@@ -1227,11 +1248,7 @@ class ElectrumXClient {
 
       return result;
     } catch (e, s) {
-      Logging.instance.e(
-        e,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1250,12 +1267,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: command,
-        args: [
-          "$coinGroupId",
-          latestBlock,
-          "$startIndex",
-          "$endIndex",
-        ],
+        args: ["$coinGroupId", latestBlock, "$startIndex", "$endIndex"],
       );
 
       final map = Map<String, dynamic>.from(response as Map);
@@ -1275,11 +1287,7 @@ class ElectrumXClient {
 
       return result;
     } catch (e, s) {
-      Logging.instance.e(
-        e,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1296,10 +1304,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: "blockchain.checkifmncollateral",
-        args: [
-          txid,
-          index.toString(),
-        ],
+        args: [txid, index.toString()],
       );
 
       Logging.instance.d(
@@ -1310,11 +1315,7 @@ class ElectrumXClient {
 
       return response as bool;
     } catch (e, s) {
-      Logging.instance.e(
-        e,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1344,9 +1345,7 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: 'blockchain.estimatefee',
-        args: [
-          blocks,
-        ],
+        args: [blocks],
       );
       try {
         if (response == null ||
@@ -1371,7 +1370,8 @@ class ElectrumXClient {
         }
         return Decimal.parse(response.toString());
       } catch (e, s) {
-        final String msg = "Error parsing fee rate.  Response: $response"
+        final String msg =
+            "Error parsing fee rate.  Response: $response"
             "\nResult: $response\nError: $e\nStack trace: $s";
         Logging.instance.e(msg, error: e, stackTrace: s);
         throw Exception(msg);

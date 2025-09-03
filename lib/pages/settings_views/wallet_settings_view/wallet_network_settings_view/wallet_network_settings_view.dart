@@ -33,13 +33,16 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../../../wallets/crypto_currency/coins/litecoin.dart';
 import '../../../../wallets/crypto_currency/coins/monero.dart';
+import '../../../../wallets/crypto_currency/coins/salvium.dart';
 import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../wallets/wallet/impl/salvium_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -142,9 +145,7 @@ class _WalletNetworkSettingsViewState
         try {
           final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-          await wallet.recover(
-            isRescan: true,
-          );
+          await wallet.recover(isRescan: true);
 
           if (mounted) {
             // pop rescanning dialog
@@ -155,29 +156,31 @@ class _WalletNetworkSettingsViewState
               context: context,
               useSafeArea: false,
               barrierDismissible: true,
-              builder: (context) => ConditionalParent(
-                condition: isDesktop,
-                builder: (child) => DesktopDialog(
-                  maxHeight: 150,
-                  maxWidth: 500,
-                  child: child,
-                ),
-                child: StackDialog(
-                  title: "Rescan completed",
-                  rightButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getSecondaryEnabledButtonStyle(context),
-                    child: Text(
-                      "Ok",
-                      style: STextStyles.itemSubtitle12(context),
+              builder:
+                  (context) => ConditionalParent(
+                    condition: isDesktop,
+                    builder:
+                        (child) => DesktopDialog(
+                          maxHeight: 150,
+                          maxWidth: 500,
+                          child: child,
+                        ),
+                    child: StackDialog(
+                      title: "Rescan completed",
+                      rightButton: TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getSecondaryEnabledButtonStyle(context),
+                        child: Text(
+                          "Ok",
+                          style: STextStyles.itemSubtitle12(context),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: isDesktop).pop();
+                        },
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: isDesktop).pop();
-                    },
                   ),
-                ),
-              ),
             );
           }
         } catch (e) {
@@ -192,22 +195,23 @@ class _WalletNetworkSettingsViewState
               context: context,
               useSafeArea: false,
               barrierDismissible: true,
-              builder: (context) => StackDialog(
-                title: "Rescan failed",
-                message: e.toString(),
-                rightButton: TextButton(
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context),
-                  child: Text(
-                    "Ok",
-                    style: STextStyles.itemSubtitle12(context),
+              builder:
+                  (context) => StackDialog(
+                    title: "Rescan failed",
+                    message: e.toString(),
+                    rightButton: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getSecondaryEnabledButtonStyle(context),
+                      child: Text(
+                        "Ok",
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context, rootNavigator: isDesktop).pop();
+                      },
+                    ),
                   ),
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: isDesktop).pop();
-                  },
-                ),
-              ),
             );
           }
         }
@@ -246,30 +250,35 @@ class _WalletNetworkSettingsViewState
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          setState(() {
-            _currentSyncStatus = event.newStatus;
-          });
-        }
-      },
-    );
+    _syncStatusSubscription = eventBus
+        .on<WalletSyncStatusChangedEvent>()
+        .listen((event) async {
+          if (event.walletId == widget.walletId) {
+            setState(() {
+              _currentSyncStatus = event.newStatus;
+            });
+          }
+        });
 
-    _refreshSubscription = eventBus.on<RefreshPercentChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          setState(() {
-            _percent = event.percent.clamp(0.0, 1.0);
-          });
-        }
-      },
-    );
+    _refreshSubscription = eventBus.on<RefreshPercentChangedEvent>().listen((
+      event,
+    ) async {
+      if (event.walletId == widget.walletId) {
+        setState(() {
+          _percent = event.percent.clamp(0.0, 1.0);
+        });
+      }
+    });
 
     final coin = ref.read(pWalletCoin(widget.walletId));
 
-    if (coin is Monero || coin is Wownero || coin is Epiccash) {
+    // TODO: handle isMwebEnabled toggled
+    if (coin is Monero ||
+        coin is Wownero ||
+        coin is Epiccash ||
+        coin is Salvium ||
+        (coin is Litecoin &&
+            ref.read(pWalletInfo(widget.walletId)).isMwebEnabled)) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -322,22 +331,30 @@ class _WalletNetworkSettingsViewState
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final progressLength = isDesktop
-        ? 430.0
-        : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
+    final progressLength =
+        isDesktop
+            ? 430.0
+            : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    if (coin is Monero) {
+    if (coin is Salvium) {
       final double highestPercent =
-          (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
+          (ref.read(pWallets).getWallet(widget.walletId) as SalviumWallet)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
-    } else if (coin is Wownero) {
+    } else if (coin is Monero || coin is Wownero) {
       final double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
+          (ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet)
+              .highestPercentCached;
+      if (_percent < highestPercent) {
+        _percent = highestPercent.clamp(0.0, 1.0);
+      }
+    } else if (coin is Litecoin) {
+      final double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as MwebInterface)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
@@ -364,10 +381,7 @@ class _WalletNetworkSettingsViewState
                   Navigator.of(context).pop();
                 },
               ),
-              title: Text(
-                "Network",
-                style: STextStyles.navBarTitle(context),
-              ),
+              title: Text("Network", style: STextStyles.navBarTitle(context)),
               actions: [
                 if (ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
                   Padding(
@@ -384,14 +398,16 @@ class _WalletNetworkSettingsViewState
                         ),
                         size: 36,
                         shadows: const [],
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
                         icon: SvgPicture.asset(
                           Assets.svg.verticalEllipsis,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorDark,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
                           width: 20,
                           height: 20,
                         ),
@@ -408,9 +424,10 @@ class _WalletNetworkSettingsViewState
                                     right: 10,
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .popupBG,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).extension<StackColors>()!.popupBG,
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,
                                         ),
@@ -461,18 +478,18 @@ class _WalletNetworkSettingsViewState
                   ),
               ],
             ),
-            body: Padding(
-              padding: EdgeInsets.only(
-                top: 12,
-                left: _padding,
-                right: _padding,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    child,
-                  ],
+            body: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 12,
+                  left: _padding,
+                  right: _padding,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [child],
+                  ),
                 ),
               ),
             ),
@@ -488,9 +505,10 @@ class _WalletNetworkSettingsViewState
               Text(
                 "Blockchain status",
                 textAlign: TextAlign.left,
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.smallMed12(context),
+                style:
+                    isDesktop
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                        : STextStyles.smallMed12(context),
               ),
               CustomTextButton(
                 text: "Resync",
@@ -500,17 +518,17 @@ class _WalletNetworkSettingsViewState
               ),
             ],
           ),
-          SizedBox(
-            height: isDesktop ? 12 : 9,
-          ),
+          SizedBox(height: isDesktop ? 12 : 9),
           if (_currentSyncStatus == WalletSyncStatus.synced)
             RoundedWhiteContainer(
-              borderColor: isDesktop
-                  ? Theme.of(context).extension<StackColors>()!.background
-                  : null,
-              padding: isDesktop
-                  ? const EdgeInsets.all(16)
-                  : const EdgeInsets.all(12),
+              borderColor:
+                  isDesktop
+                      ? Theme.of(context).extension<StackColors>()!.background
+                      : null,
+              padding:
+                  isDesktop
+                      ? const EdgeInsets.all(16)
+                      : const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
@@ -528,15 +546,14 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.radio,
                         height: isDesktop ? 19 : 14,
                         width: isDesktop ? 19 : 14,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorGreen,
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: _boxPadding,
-                  ),
+                  SizedBox(width: _boxPadding),
                   Column(
                     children: [
                       SizedBox(
@@ -551,18 +568,18 @@ class _WalletNetworkSettingsViewState
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
                       ProgressBar(
                         width: progressLength,
                         height: 5,
-                        fillColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen,
-                        backgroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        fillColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorGreen,
+                        backgroundColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
                         percent: 1,
                       ),
                     ],
@@ -572,12 +589,14 @@ class _WalletNetworkSettingsViewState
             ),
           if (_currentSyncStatus == WalletSyncStatus.syncing)
             RoundedWhiteContainer(
-              borderColor: isDesktop
-                  ? Theme.of(context).extension<StackColors>()!.background
-                  : null,
-              padding: isDesktop
-                  ? const EdgeInsets.all(16)
-                  : const EdgeInsets.all(12),
+              borderColor:
+                  isDesktop
+                      ? Theme.of(context).extension<StackColors>()!.background
+                      : null,
+              padding:
+                  isDesktop
+                      ? const EdgeInsets.all(16)
+                      : const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
@@ -595,15 +614,14 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.radioSyncing,
                         height: 14,
                         width: 14,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorYellow,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorYellow,
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: _boxPadding,
-                  ),
+                  SizedBox(width: _boxPadding),
                   Column(
                     children: [
                       SizedBox(
@@ -624,23 +642,34 @@ class _WalletNetworkSettingsViewState
                               children: [
                                 Text(
                                   _percentString(_percent),
-                                  style:
-                                      STextStyles.syncPercent(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorYellow,
+                                  style: STextStyles.syncPercent(
+                                    context,
+                                  ).copyWith(
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow,
                                   ),
                                 ),
                                 if (coin is Monero ||
                                     coin is Wownero ||
-                                    coin is Epiccash)
+                                    coin is Epiccash ||
+                                    coin is Salvium ||
+                                    (coin is Litecoin &&
+                                        ref.watch(
+                                          pWalletInfo(
+                                            widget.walletId,
+                                          ).select((s) => s.isMwebEnabled),
+                                        )))
                                   Text(
                                     " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
-                                    style: STextStyles.syncPercent(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorYellow,
+                                    style: STextStyles.syncPercent(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorYellow,
                                     ),
                                   ),
                               ],
@@ -648,18 +677,18 @@ class _WalletNetworkSettingsViewState
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
                       ProgressBar(
                         width: progressLength,
                         height: 5,
-                        fillColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorYellow,
-                        backgroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        fillColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorYellow,
+                        backgroundColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
                         percent: _percent,
                       ),
                     ],
@@ -669,12 +698,14 @@ class _WalletNetworkSettingsViewState
             ),
           if (_currentSyncStatus == WalletSyncStatus.unableToSync)
             RoundedWhiteContainer(
-              borderColor: isDesktop
-                  ? Theme.of(context).extension<StackColors>()!.background
-                  : null,
-              padding: isDesktop
-                  ? const EdgeInsets.all(16)
-                  : const EdgeInsets.all(12),
+              borderColor:
+                  isDesktop
+                      ? Theme.of(context).extension<StackColors>()!.background
+                      : null,
+              padding:
+                  isDesktop
+                      ? const EdgeInsets.all(16)
+                      : const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
@@ -692,15 +723,14 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.radioProblem,
                         height: 14,
                         width: 14,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorRed,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorRed,
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: _boxPadding,
-                  ),
+                  SizedBox(width: _boxPadding),
                   Column(
                     children: [
                       SizedBox(
@@ -711,34 +741,36 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Unable to synchronize",
                               style: STextStyles.w600_12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorRed,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorRed,
                               ),
                             ),
                             Text(
                               "0%",
                               style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorRed,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorRed,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
                       ProgressBar(
                         width: progressLength,
                         height: 5,
-                        fillColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorRed,
-                        backgroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        fillColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorRed,
+                        backgroundColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
                         percent: 0,
                       ),
                     ],
@@ -748,30 +780,29 @@ class _WalletNetworkSettingsViewState
             ),
           if (_currentSyncStatus == WalletSyncStatus.unableToSync)
             Padding(
-              padding: const EdgeInsets.only(
-                top: 12,
-              ),
+              padding: const EdgeInsets.only(top: 12),
               child: RoundedContainer(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningBackground,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningBackground,
                 child: Text(
                   "Please check your internet connection and make sure your current node is not having issues.",
                   style: STextStyles.baseXS(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .warningForeground,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
                   ),
                 ),
               ),
             ),
-          SizedBox(
-            height: isDesktop ? 12 : 9,
-          ),
+          SizedBox(height: isDesktop ? 12 : 9),
           RoundedWhiteContainer(
-            borderColor: isDesktop
-                ? Theme.of(context).extension<StackColors>()!.background
-                : null,
+            borderColor:
+                isDesktop
+                    ? Theme.of(context).extension<StackColors>()!.background
+                    : null,
             padding:
                 isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
             child: Row(
@@ -780,9 +811,10 @@ class _WalletNetworkSettingsViewState
                 Text(
                   "Current height",
                   textAlign: TextAlign.left,
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+                  style:
+                      isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.smallMed12(context),
                 ),
                 Text(
                   ref.watch(pWalletChainHeight(widget.walletId)).toString(),
@@ -791,36 +823,37 @@ class _WalletNetworkSettingsViewState
               ],
             ),
           ),
-          SizedBox(
-            height: isDesktop ? 32 : 20,
-          ),
+          SizedBox(height: isDesktop ? 32 : 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 "Tor status",
                 textAlign: TextAlign.left,
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.smallMed12(context),
+                style:
+                    isDesktop
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                        : STextStyles.smallMed12(context),
               ),
               CustomTextButton(
-                text: ref.watch(
-                  prefsChangeNotifierProvider.select((value) => value.useTor),
-                )
-                    ? "Disconnect"
-                    : "Connect",
+                text:
+                    ref.watch(
+                          prefsChangeNotifierProvider.select(
+                            (value) => value.useTor,
+                          ),
+                        )
+                        ? "Disconnect"
+                        : "Connect",
                 onTap: onTorTapped,
               ),
             ],
           ),
-          SizedBox(
-            height: isDesktop ? 12 : 9,
-          ),
+          SizedBox(height: isDesktop ? 12 : 9),
           RoundedWhiteContainer(
-            borderColor: isDesktop
-                ? Theme.of(context).extension<StackColors>()!.background
-                : null,
+            borderColor:
+                isDesktop
+                    ? Theme.of(context).extension<StackColors>()!.background
+                    : null,
             padding:
                 isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
             child: Row(
@@ -843,9 +876,10 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.tor,
                         height: isDesktop ? 19 : 14,
                         width: isDesktop ? 19 : 14,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorGreen,
                       ),
                     ),
                   ),
@@ -856,10 +890,9 @@ class _WalletNetworkSettingsViewState
                     width: _iconSize,
                     height: _iconSize,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textDark
-                          .withOpacity(0.08),
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -867,15 +900,14 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.tor,
                         height: isDesktop ? 19 : 14,
                         width: isDesktop ? 19 : 14,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
                       ),
                     ),
                   ),
-                SizedBox(
-                  width: _boxPadding,
-                ),
+                SizedBox(width: _boxPadding),
                 TorSubscription(
                   onTorStatusChanged: (status) {
                     setState(() {
@@ -887,32 +919,37 @@ class _WalletNetworkSettingsViewState
                     children: [
                       Text(
                         "Tor status",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+                        style: STextStyles.desktopTextExtraExtraSmall(
+                          context,
+                        ).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark,
                         ),
                       ),
                       if (_torConnectionStatus == TorConnectionStatus.connected)
                         Text(
                           "Connected",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                       if (_torConnectionStatus ==
                           TorConnectionStatus.connecting)
                         Text(
                           "Connecting...",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                       if (_torConnectionStatus ==
                           TorConnectionStatus.disconnected)
                         Text(
                           "Disconnected",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                     ],
                   ),
@@ -920,18 +957,17 @@ class _WalletNetworkSettingsViewState
               ],
             ),
           ),
-          SizedBox(
-            height: isDesktop ? 32 : 20,
-          ),
+          SizedBox(height: isDesktop ? 32 : 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 "${ref.watch(pWalletCoin(widget.walletId)).prettyName} nodes",
                 textAlign: TextAlign.left,
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.smallMed12(context),
+                style:
+                    isDesktop
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                        : STextStyles.smallMed12(context),
               ),
               CustomTextButton(
                 text: "Add new node",
@@ -949,22 +985,16 @@ class _WalletNetworkSettingsViewState
               ),
             ],
           ),
-          SizedBox(
-            height: isDesktop ? 12 : 8,
-          ),
+          SizedBox(height: isDesktop ? 12 : 8),
           NodesList(
             coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
           if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
-            const SizedBox(
-              height: 32,
-            ),
+            const SizedBox(height: 32),
           if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
             Padding(
-              padding: const EdgeInsets.only(
-                bottom: 12,
-              ),
+              padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -978,12 +1008,14 @@ class _WalletNetworkSettingsViewState
             ),
           if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
             RoundedWhiteContainer(
-              borderColor: isDesktop
-                  ? Theme.of(context).extension<StackColors>()!.background
-                  : null,
-              padding: isDesktop
-                  ? const EdgeInsets.all(16)
-                  : const EdgeInsets.all(12),
+              borderColor:
+                  isDesktop
+                      ? Theme.of(context).extension<StackColors>()!.background
+                      : null,
+              padding:
+                  isDesktop
+                      ? const EdgeInsets.all(16)
+                      : const EdgeInsets.all(12),
               child: Expandable(
                 onExpandChanged: (state) {
                   setState(() {
@@ -999,24 +1031,24 @@ class _WalletNetworkSettingsViewState
                           width: _iconSize,
                           height: _iconSize,
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldDefaultBG,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(_iconSize),
                           ),
                           child: Center(
                             child: SvgPicture.asset(
                               Assets.svg.networkWired,
                               width: 24,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1026,9 +1058,10 @@ class _WalletNetworkSettingsViewState
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
                               ),
                             ),
                             Text(
@@ -1047,9 +1080,10 @@ class _WalletNetworkSettingsViewState
                           : Assets.svg.chevronDown,
                       width: 12,
                       height: 6,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle1,
                     ),
                   ],
                 ),

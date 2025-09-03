@@ -151,7 +151,8 @@ class Transaction {
   }
 
   @override
-  toString() => "{ "
+  toString() =>
+      "{ "
       "id: $id, "
       "walletId: $walletId, "
       "txid: $txid, "
@@ -217,12 +218,14 @@ class Transaction {
       slateId: json["slateId"] as String?,
       otherData: json["otherData"] as String?,
       nonce: json["nonce"] as int?,
-      inputs: List<String>.from(json["inputs"] as List)
-          .map((e) => Input.fromJsonString(e))
-          .toList(),
-      outputs: List<String>.from(json["outputs"] as List)
-          .map((e) => Output.fromJsonString(e))
-          .toList(),
+      inputs:
+          List<String>.from(
+            json["inputs"] as List,
+          ).map((e) => Input.fromJsonString(e)).toList(),
+      outputs:
+          List<String>.from(
+            json["outputs"] as List,
+          ).map((e) => Output.fromJsonString(e)).toList(),
       numberOfMessages: json["numberOfMessages"] as int,
     );
     if (json["address"] == null) {
@@ -241,7 +244,7 @@ enum TransactionType {
   outgoing,
   incoming,
   sentToSelf, // should we keep this?
-  unknown;
+  unknown,
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
@@ -256,5 +259,6 @@ enum TransactionSubType {
   cashFusion,
   sparkMint, // firo specific
   sparkSpend, // firo specific
-  ordinal;
+  ordinal,
+  mweb,
 }

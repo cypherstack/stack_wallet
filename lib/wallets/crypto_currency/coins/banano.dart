@@ -45,9 +45,7 @@ class Banano extends NanoCurrency {
   int get fractionDigits => 29;
 
   @override
-  BigInt get satsPerCoin => BigInt.parse(
-        "100000000000000000000000000000",
-      ); // 1*10^29
+  BigInt get satsPerCoin => BigInt.parse("100000000000000000000000000000"); // 1*10^29
 
   @override
   int get minConfirms => 1;
@@ -63,7 +61,7 @@ class Banano extends NanoCurrency {
   int get nanoAccountType => NanoAccountType.BANANO;
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -79,6 +77,7 @@ class Banano extends NanoCurrency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:
@@ -90,7 +89,7 @@ class Banano extends NanoCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://www.bananolooker.com/block/$txid");
+        return Uri.parse("https://creeper.banano.cc/hash/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
@@ -99,7 +98,16 @@ class Banano extends NanoCurrency {
   }
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
+
+  @override
+  AddressType? getAddressType(String address) {
+    if (validateAddress(address)) {
+      return AddressType.banano;
+    }
+    return null;
+  }
 }

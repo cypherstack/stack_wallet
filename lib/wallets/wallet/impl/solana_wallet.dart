@@ -55,13 +55,13 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     return addressStruct;
   }
 
-  Future<int> _getCurrentBalanceInLamports() async {
+  Future<BigInt> _getCurrentBalanceInLamports() async {
     _checkClient();
     final balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
-    return balance!.value;
+    return BigInt.from(balance!.value);
   }
 
-  Future<int?> _getEstimatedNetworkFee(Amount transferAmount) async {
+  Future<BigInt?> _getEstimatedNetworkFee(Amount transferAmount) async {
     _checkClient();
     final latestBlockhash = await _rpcClient?.getLatestBlockhash();
     final pubKey = (await _getKeyPair()).publicKey;
@@ -79,9 +79,13 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       feePayer: pubKey,
     );
 
-    return await _rpcClient?.getFeeForMessage(
+    final estimate = await _rpcClient?.getFeeForMessage(
       base64Encode(compiledMessage.toByteArray().toList()),
     );
+
+    if (estimate == null) return null;
+
+    return BigInt.from(estimate);
   }
 
   @override
@@ -99,7 +103,11 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         await mainDB.updateOrPutAddresses([address]);
       }
     } catch (e, s) {
-      Logging.instance.e("$runtimeType  checkSaveInitialReceivingAddress() failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType  checkSaveInitialReceivingAddress() failed: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -133,28 +141,33 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         throw Exception("Account does not appear to exist");
       }
 
-      final int minimumRent =
-          await _rpcClient!.getMinimumBalanceForRentExemption(
-        accInfo.value!.data.toString().length,
+      final BigInt minimumRent = BigInt.from(
+        await _rpcClient!.getMinimumBalanceForRentExemption(
+          accInfo.value!.data.toString().length,
+        ),
       );
       if (minimumRent >
           ((await _getCurrentBalanceInLamports()) -
-              txData.amount!.raw.toInt() -
+              txData.amount!.raw -
               feeAmount)) {
         throw Exception(
           "Insufficient remaining balance for rent exemption, minimum rent: "
-          "${minimumRent / pow(10, cryptoCurrency.fractionDigits)}",
+          "${minimumRent.toInt() / pow(10, cryptoCurrency.fractionDigits)}",
         );
       }
 
       return txData.copyWith(
         fee: Amount(
-          rawValue: BigInt.from(feeAmount),
+          rawValue: feeAmount,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
       );
     } catch (e, s) {
-      Logging.instance.e("$runtimeType Solana prepareSend failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType Solana prepareSend failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -166,8 +179,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
       final keyPair = await _getKeyPair();
       final recipientAccount = txData.recipients!.first;
-      final recipientPubKey =
-          Ed25519HDPublicKey.fromBase58(recipientAccount.address);
+      final recipientPubKey = Ed25519HDPublicKey.fromBase58(
+        recipientAccount.address,
+      );
       final message = Message(
         instructions: [
           SystemInstruction.transfer(
@@ -187,17 +201,19 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
 
       final txid = await _rpcClient?.signAndSendTransaction(message, [keyPair]);
-      return txData.copyWith(
-        txid: txid,
-      );
+      return txData.copyWith(txid: txid);
     } catch (e, s) {
-      Logging.instance.e("$runtimeType Solana confirmSend failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType Solana confirmSend failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     _checkClient();
 
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
@@ -212,10 +228,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       throw Exception("Failed to get fees, please check your node connection.");
     }
 
-    return Amount(
-      rawValue: BigInt.from(fee),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
+    return Amount(rawValue: fee, fractionDigits: cryptoCurrency.fractionDigits);
   }
 
   @override
@@ -250,7 +263,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       health = await _rpcClient?.getHealth();
       return health != null;
     } catch (e, s) {
-      Logging.instance.e("$runtimeType Solana pingCheck failed \"health response=$health\": $e\n$s");
+      Logging.instance.e(
+        "$runtimeType Solana pingCheck failed \"health response=$health\": $e\n$s",
+      );
       return Future.value(false);
     }
   }
@@ -295,10 +310,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         throw Exception("Account does not appear to exist");
       }
 
-      final int minimumRent =
-          await _rpcClient!.getMinimumBalanceForRentExemption(
-        accInfo.value!.data.toString().length,
-      );
+      final int minimumRent = await _rpcClient!
+          .getMinimumBalanceForRentExemption(
+            accInfo.value!.data.toString().length,
+          );
       final spendableBalance = balance!.value - minimumRent;
 
       final newBalance = Balance(
@@ -322,7 +337,11 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
       await info.updateBalance(newBalance: newBalance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.e("Error getting balance in solana_wallet.dart: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error getting balance in solana_wallet.dart: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -339,24 +358,30 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.e("Error occurred in solana_wallet.dart while getting"
-        " chain height for solana: $e\n$s");
+      Logging.instance.e(
+        "Error occurred in solana_wallet.dart while getting"
+        " chain height for solana: $e\n$s",
+      );
     }
   }
 
   @override
   Future<void> updateNode() async {
-    _solNode = NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+    _solNode =
+        NodeService(
+          secureStorageInterface: secureStorageInterface,
+        ).getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode(isPrimary: true);
     await refresh();
   }
 
   @override
   NodeModel getCurrentNode() {
-    _solNode ??= NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+    _solNode ??=
+        NodeService(
+          secureStorageInterface: secureStorageInterface,
+        ).getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode(isPrimary: true);
 
     return _solNode!;
   }
@@ -370,8 +395,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         (await _getKeyPair()).publicKey,
         encoding: Encoding.jsonParsed,
       );
-      final txsList =
-          List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
+      final txsList = List<Tuple2<isar.Transaction, Address>>.empty(
+        growable: true,
+      );
 
       final myAddress = (await getCurrentReceivingAddress())!;
 
@@ -384,8 +410,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
             (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
         var txType = isar.TransactionType.unknown;
         final txAmount = Amount(
-          rawValue:
-              BigInt.from(tx.meta!.postBalances[1] - tx.meta!.preBalances[1]),
+          rawValue: BigInt.from(
+            tx.meta!.postBalances[1] - tx.meta!.preBalances[1],
+          ),
           fractionDigits: cryptoCurrency.fractionDigits,
         );
 
@@ -429,9 +456,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           derivationIndex: 0,
           derivationPath: DerivationPath()..value = _addressDerivationPath,
           type: AddressType.solana,
-          subType: txType == isar.TransactionType.outgoing
-              ? AddressSubType.unknown
-              : AddressSubType.receiving,
+          subType:
+              txType == isar.TransactionType.outgoing
+                  ? AddressSubType.unknown
+                  : AddressSubType.receiving,
         );
 
         txsList.add(Tuple2(transaction, txAddress));
@@ -440,8 +468,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     } on NodeTorMismatchConfigException {
       rethrow;
     } catch (e, s) {
-      Logging.instance.e("Error occurred in solana_wallet.dart while getting"
-        " transactions for solana: $e\n$s");
+      Logging.instance.e(
+        "Error occurred in solana_wallet.dart while getting"
+        " transactions for solana: $e\n$s",
+      );
     }
   }
 

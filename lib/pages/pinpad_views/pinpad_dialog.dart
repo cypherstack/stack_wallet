@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/duress_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -15,6 +16,7 @@ import '../../utilities/text_styles.dart';
 import '../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../widgets/shake/shake.dart';
 import '../../widgets/stack_dialog.dart';
+import 'lock_screen_view.dart';
 
 class PinpadDialog extends ConsumerStatefulWidget {
   const PinpadDialog({
@@ -74,11 +76,14 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
 
     try {
       if (_autoPin && _pinTextController.text.length >= 4) {
-        final storedPin = await _secureStore.read(key: 'stack_pin');
+        final String? storedPin;
+        if (ref.read(pDuress)) {
+          storedPin = await _secureStore.read(key: kDuressPinKey);
+        } else {
+          storedPin = await _secureStore.read(key: kPinKey);
+        }
         if (_pinTextController.text == storedPin) {
-          await Future<void>.delayed(
-            const Duration(milliseconds: 200),
-          );
+          await Future<void>.delayed(const Duration(milliseconds: 200));
           unawaited(_onUnlock());
         }
       }
@@ -181,22 +186,23 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
         ),
       );
 
-      await Future<void>.delayed(
-        const Duration(milliseconds: 100),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       _pinTextController.text = '';
 
       return;
     }
 
-    final storedPin = await _secureStore.read(key: 'stack_pin');
+    final String? storedPin;
+    if (ref.read(pDuress)) {
+      storedPin = await _secureStore.read(key: kDuressPinKey);
+    } else {
+      storedPin = await _secureStore.read(key: kPinKey);
+    }
 
     if (mounted) {
       if (storedPin == pin) {
-        await Future<void>.delayed(
-          const Duration(milliseconds: 200),
-        );
+        await Future<void>.delayed(const Duration(milliseconds: 200));
         unawaited(_onUnlock());
       } else {
         unawaited(_shakeController.shake());
@@ -209,9 +215,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
           ),
         );
 
-        await Future<void>.delayed(
-          const Duration(milliseconds: 100),
-        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
 
         _pinTextController.text = '';
       }
@@ -262,16 +266,12 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
                       style: STextStyles.pageTitleH1(context),
                     ),
                   ),
-                  const SizedBox(
-                    height: 40,
-                  ),
+                  const SizedBox(height: 40),
                   CustomPinPut(
                     fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
-                    textStyle: STextStyles.label(context).copyWith(
-                      fontSize: 1,
-                    ),
+                    textStyle: STextStyles.label(context).copyWith(fontSize: 1),
                     focusNode: _pinFocusNode,
                     controller: _pinTextController,
                     useNativeKeyboard: false,
@@ -296,9 +296,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
                       }
                     },
                   ),
-                  const SizedBox(
-                    height: 32,
-                  ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

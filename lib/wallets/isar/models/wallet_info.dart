@@ -114,9 +114,10 @@ class WalletInfo implements IsarId {
   }
 
   @ignore
-  Map<String, dynamic> get otherData => otherDataJsonString == null
-      ? {}
-      : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
+  Map<String, dynamic> get otherData =>
+      otherDataJsonString == null
+          ? {}
+          : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
 
   @ignore
   bool get isViewOnly =>
@@ -134,8 +135,28 @@ class WalletInfo implements IsarId {
           ?.isMnemonicVerified ==
       true;
 
+  @ignore
+  bool get isDuressVisible =>
+      otherData[WalletInfoKeys.duressMarkedVisibleWalletKey] as bool? ?? false;
+
+  @ignore
+  bool get isMwebEnabled =>
+      otherData[WalletInfoKeys.mwebEnabled] as bool? ?? false;
+
   //============================================================================
   //=============    Updaters   ================================================
+
+  Future<void> updateDuressVisibilityStatus({
+    required bool isDuressVisible,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {
+        WalletInfoKeys.duressMarkedVisibleWalletKey: isDuressVisible,
+      },
+      isar: isar,
+    );
+  }
 
   Future<void> updateBalance({
     required Balance newBalance,
@@ -151,9 +172,7 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            cachedBalanceString: newEncoded,
-          ),
+          thisInfo.copyWith(cachedBalanceString: newEncoded),
         );
       });
     }
@@ -173,9 +192,7 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            cachedBalanceSecondaryString: newEncoded,
-          ),
+          thisInfo.copyWith(cachedBalanceSecondaryString: newEncoded),
         );
       });
     }
@@ -195,9 +212,7 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            cachedBalanceTertiaryString: newEncoded,
-          ),
+          thisInfo.copyWith(cachedBalanceTertiaryString: newEncoded),
         );
       });
     }
@@ -215,9 +230,7 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            cachedChainHeight: newHeight,
-          ),
+          thisInfo.copyWith(cachedChainHeight: newHeight),
         );
       });
     }
@@ -235,11 +248,12 @@ class WalletInfo implements IsarId {
     if (customIndexOverride != null) {
       index = customIndexOverride;
     } else if (flag) {
-      final highest = await isar.walletInfo
-          .where()
-          .sortByFavouriteOrderIndexDesc()
-          .favouriteOrderIndexProperty()
-          .findFirst();
+      final highest =
+          await isar.walletInfo
+              .where()
+              .sortByFavouriteOrderIndexDesc()
+              .favouriteOrderIndexProperty()
+              .findFirst();
       index = (highest ?? 0) + 1;
     } else {
       index = -1;
@@ -253,19 +267,14 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            favouriteOrderIndex: index,
-          ),
+          thisInfo.copyWith(favouriteOrderIndex: index),
         );
       });
     }
   }
 
   /// copies this with a new name and updates the db
-  Future<void> updateName({
-    required String newName,
-    required Isar isar,
-  }) async {
+  Future<void> updateName({required String newName, required Isar isar}) async {
     // don't allow empty names
     if (newName.isEmpty) {
       throw Exception("Empty wallet name not allowed!");
@@ -278,11 +287,7 @@ class WalletInfo implements IsarId {
     if (thisInfo.name != newName) {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
-        await isar.walletInfo.put(
-          thisInfo.copyWith(
-            name: newName,
-          ),
-        );
+        await isar.walletInfo.put(thisInfo.copyWith(name: newName));
       });
     }
   }
@@ -299,9 +304,7 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            cachedReceivingAddress: newAddress,
-          ),
+          thisInfo.copyWith(cachedReceivingAddress: newAddress),
         );
       });
     }
@@ -325,37 +328,27 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            otherDataJsonString: encodedNew,
-          ),
+          thisInfo.copyWith(otherDataJsonString: encodedNew),
         );
       });
     }
   }
 
   /// Can be dangerous. Don't use unless you know the consequences
-  Future<void> setMnemonicVerified({
-    required Isar isar,
-  }) async {
+  Future<void> setMnemonicVerified({required Isar isar}) async {
     final meta =
         await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst();
     if (meta == null) {
       await isar.writeTxn(() async {
         await isar.walletInfoMeta.put(
-          WalletInfoMeta(
-            walletId: walletId,
-            isMnemonicVerified: true,
-          ),
+          WalletInfoMeta(walletId: walletId, isMnemonicVerified: true),
         );
       });
     } else if (meta.isMnemonicVerified == false) {
       await isar.writeTxn(() async {
         await isar.walletInfoMeta.deleteByWalletId(walletId);
         await isar.walletInfoMeta.put(
-          WalletInfoMeta(
-            walletId: walletId,
-            isMnemonicVerified: true,
-          ),
+          WalletInfoMeta(walletId: walletId, isMnemonicVerified: true),
         );
       });
     } else {
@@ -384,9 +377,7 @@ class WalletInfo implements IsarId {
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
-          thisInfo.copyWith(
-            restoreHeight: newRestoreHeight,
-          ),
+          thisInfo.copyWith(restoreHeight: newRestoreHeight),
         );
       });
     }
@@ -401,6 +392,16 @@ class WalletInfo implements IsarId {
       newEntries: {
         WalletInfoKeys.tokenContractAddresses: newContractAddresses.toList(),
       },
+      isar: isar,
+    );
+  }
+
+  Future<void> setMwebEnabled({
+    required bool newValue,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {WalletInfoKeys.mwebEnabled: newValue},
       isar: isar,
     );
   }
@@ -423,9 +424,7 @@ class WalletInfo implements IsarId {
     this.cachedBalanceSecondaryString,
     this.cachedBalanceTertiaryString,
     this.otherDataJsonString,
-  }) : assert(
-          AppConfig.coins.map((e) => e.identifier).contains(coinName),
-        );
+  }) : assert(AppConfig.coins.map((e) => e.identifier).contains(coinName));
 
   WalletInfo copyWith({
     String? name,
@@ -481,9 +480,7 @@ class WalletInfo implements IsarId {
     Map<String, dynamic> jsonObject,
     AddressType mainAddressType,
   ) {
-    final coin = AppConfig.getCryptoCurrencyFor(
-      jsonObject["coin"] as String,
-    )!;
+    final coin = AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String)!;
     return WalletInfo(
       coinName: coin.identifier,
       walletId: jsonObject["id"] as String,
@@ -494,11 +491,7 @@ class WalletInfo implements IsarId {
 
   @Deprecated("Legacy support")
   Map<String, String> toMap() {
-    return {
-      "name": name,
-      "id": walletId,
-      "coin": coin.identifier,
-    };
+    return {"name": name, "id": walletId, "coin": coin.identifier};
   }
 
   @Deprecated("Legacy support")
@@ -517,13 +510,17 @@ abstract class WalletInfoKeys {
   static const String epiccashData = "epiccashDataKey";
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
   static const String tezosDerivationPath = "tezosDerivationPathKey";
-  static const String lelantusCoinIsarRescanRequired =
-      "lelantusCoinIsarRescanRequired";
-  static const String enableLelantusScanning = "enableLelantusScanningKey";
+  static const String xelisDerivationPath = "xelisDerivationPathKey";
   static const String firoSparkCacheSetBlockHashCache =
       "firoSparkCacheSetBlockHashCacheKey";
   static const String enableOptInRbf = "enableOptInRbfKey";
   static const String reuseAddress = "reuseAddressKey";
   static const String isViewOnlyKey = "isViewOnlyKey";
   static const String viewOnlyTypeIndexKey = "viewOnlyTypeIndexKey";
+  static const String duressMarkedVisibleWalletKey =
+      "duressMarkedVisibleWalletKey";
+  static const String mwebEnabled = "mwebEnabledKey";
+  static const String mwebScanHeight = "mwebScanHeightKey";
+  static const String firoSparkUsedTagsCacheResetVersion =
+      "firoSparkUsedTagsCacheResetVersionKey";
 }

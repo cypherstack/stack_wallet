@@ -53,9 +53,10 @@ class _TokenViewState extends ConsumerState<TokenView> {
 
   @override
   void initState() {
-    initialSyncStatus = ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
-        ? WalletSyncStatus.syncing
-        : WalletSyncStatus.synced;
+    initialSyncStatus =
+        ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
+            ? WalletSyncStatus.syncing
+            : WalletSyncStatus.synced;
     super.initState();
   }
 
@@ -108,14 +109,13 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         ),
                         size: 24,
                       ),
-                      const SizedBox(
-                        width: 10,
-                      ),
+                      const SizedBox(width: 10),
                       Flexible(
                         child: Text(
                           ref.watch(
-                            pCurrentTokenWallet
-                                .select((value) => value!.tokenContract.name),
+                            pCurrentTokenWallet.select(
+                              (value) => value!.tokenContract.name,
+                            ),
                           ),
                           style: STextStyles.navBarTitle(context),
                           overflow: TextOverflow.ellipsis,
@@ -135,9 +135,10 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   child: AppBarIconButton(
                     icon: SvgPicture.asset(
                       Assets.svg.verticalEllipsis,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.topNavIconPrimary,
                     ),
                     onPressed: () {
                       // todo: context menu
@@ -146,7 +147,8 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         arguments: Tuple2(
                           ref.watch(
                             pCurrentTokenWallet.select(
-                                (value) => value!.tokenContract.address),
+                              (value) => value!.tokenContract.address,
+                            ),
                           ),
                           widget.walletId,
                         ),
@@ -157,93 +159,90 @@ class _TokenViewState extends ConsumerState<TokenView> {
               ),
             ],
           ),
-          body: Container(
-            color: Theme.of(context).extension<StackColors>()!.background,
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 10,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TokenSummary(
-                    walletId: widget.walletId,
-                    initialSyncStatus: initialSyncStatus,
+          body: SafeArea(
+            child: Container(
+              color: Theme.of(context).extension<StackColors>()!.background,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TokenSummary(
+                      walletId: widget.walletId,
+                      initialSyncStatus: initialSyncStatus,
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Transactions",
-                        style: STextStyles.itemSubtitle(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Transactions",
+                          style: STextStyles.itemSubtitle(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark3,
+                          ),
                         ),
-                      ),
-                      CustomTextButton(
-                        text: "See all",
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            AllTransactionsV2View.routeName,
-                            arguments: (
-                              walletId: widget.walletId,
-                              contractAddress: ref.watch(
-                                pCurrentTokenWallet.select(
-                                  (value) => value!.tokenContract.address,
+                        CustomTextButton(
+                          text: "See all",
+                          onTap: () {
+                            Navigator.of(context).pushNamed(
+                              AllTransactionsV2View.routeName,
+                              arguments: (
+                                walletId: widget.walletId,
+                                contractAddress: ref.watch(
+                                  pCurrentTokenWallet.select(
+                                    (value) => value!.tokenContract.address,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        bottom: Radius.circular(
-                          // TokenView.navBarHeight / 2.0,
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          bottom: Radius.circular(
+                            // TokenView.navBarHeight / 2.0,
                             Constants.size.circularBorderRadius,
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: TokenTransactionsList(
-                                walletId: widget.walletId,
-                              ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
                             ),
-                          ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: TokenTransactionsList(
+                                  walletId: widget.walletId,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -3,11 +3,11 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i3;
 
-import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
+import 'package:flutter/material.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i3;
+import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -36,27 +36,26 @@ class _FakeScanResult_0 extends _i1.SmartFake implements _i2.ScanResult {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockBarcodeScannerWrapper extends _i1.Mock
-    implements _i3.BarcodeScannerWrapper {
+    implements _i2.BarcodeScannerWrapper {
   MockBarcodeScannerWrapper() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.ScanResult> scan(
-          {_i2.ScanOptions? options = const _i2.ScanOptions()}) =>
+  _i3.Future<_i2.ScanResult> scan({required _i4.BuildContext? context}) =>
       (super.noSuchMethod(
         Invocation.method(
           #scan,
           [],
-          {#options: options},
+          {#context: context},
         ),
-        returnValue: _i4.Future<_i2.ScanResult>.value(_FakeScanResult_0(
+        returnValue: _i3.Future<_i2.ScanResult>.value(_FakeScanResult_0(
           this,
           Invocation.method(
             #scan,
             [],
-            {#options: options},
+            {#context: context},
           ),
         )),
-      ) as _i4.Future<_i2.ScanResult>);
+      ) as _i3.Future<_i2.ScanResult>);
 }

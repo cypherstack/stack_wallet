@@ -28,39 +28,37 @@ class StackDialogBase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: 16,
-        left: 16,
-        right: 16,
-        bottom: 16 + keyboardPaddingAmount,
-      ),
-      child: Column(
-        mainAxisAlignment:
-            !Util.isDesktop ? MainAxisAlignment.end : MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: SingleChildScrollView(
-              child: Material(
-                borderRadius: BorderRadius.circular(
-                  20,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.popupBG,
-                    borderRadius: BorderRadius.circular(
-                      20,
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: 16,
+          left: 16,
+          right: 16,
+          bottom: 16 + keyboardPaddingAmount,
+        ),
+        child: Column(
+          mainAxisAlignment:
+              !Util.isDesktop
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: SingleChildScrollView(
+                child: Material(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ),
-                  child: Padding(
-                    padding: padding,
-                    child: child,
+                    child: Padding(padding: padding, child: child),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -102,10 +100,7 @@ class StackDialog extends StatelessWidget {
               icon != null ? icon! : Container(),
             ],
           ),
-          if (message != null)
-            const SizedBox(
-              height: 8,
-            ),
+          if (message != null) const SizedBox(height: 8),
           if (message != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,18 +112,14 @@ class StackDialog extends StatelessWidget {
               ],
             ),
           if (leftButton != null || rightButton != null)
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
           if (leftButton != null || rightButton != null)
             Row(
               children: [
                 leftButton == null
                     ? const Spacer()
                     : Expanded(child: leftButton!),
-                const SizedBox(
-                  width: 8,
-                ),
+                const SizedBox(width: 8),
                 rightButton == null
                     ? const Spacer()
                     : Expanded(child: rightButton!),
@@ -174,23 +165,18 @@ class StackOkDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
-                  child: Text(
-                    title,
-                    style: STextStyles.pageTitleH2(context),
-                  ),
+                  child: Text(title, style: STextStyles.pageTitleH2(context)),
                 ),
                 icon != null ? icon! : Container(),
               ],
             ),
           ),
-          if (message != null)
-            const SizedBox(
-              height: 8,
-            ),
+          if (message != null) const SizedBox(height: 8),
           if (message != null)
             ConstrainedBox(
-              constraints:
-                  BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+              constraints: BoxConstraints(
+                maxWidth: maxWidth ?? double.infinity,
+              ),
               child: Row(
                 children: [
                   Flexible(
@@ -202,9 +188,7 @@ class StackOkDialog extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
             child: Row(
@@ -212,33 +196,33 @@ class StackOkDialog extends StatelessWidget {
                 leftButton == null
                     ? const Spacer()
                     : Expanded(child: leftButton!),
-                const SizedBox(
-                  width: 8,
-                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextButton(
-                    onPressed: !Util.isDesktop
-                        ? () {
-                            Navigator.of(context).pop();
-                            onOkPressed?.call("OK");
-                          }
-                        : () {
-                            if (desktopPopRootNavigator) {
-                              Navigator.of(context, rootNavigator: true).pop();
-                            } else {
-                              int count = 0;
-                              Navigator.of(context)
-                                  .popUntil((_) => count++ >= 2);
-                              // onOkPressed?.call("OK");
+                    onPressed:
+                        !Util.isDesktop
+                            ? () {
+                              Navigator.of(context).pop();
+                              onOkPressed?.call("OK");
                             }
-                          },
+                            : () {
+                              if (desktopPopRootNavigator) {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                              } else {
+                                int count = 0;
+                                Navigator.of(
+                                  context,
+                                ).popUntil((_) => count++ >= 2);
+                                // onOkPressed?.call("OK");
+                              }
+                            },
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    child: Text(
-                      "Ok",
-                      style: STextStyles.button(context),
-                    ),
+                    child: Text("Ok", style: STextStyles.button(context)),
                   ),
                 ),
               ],

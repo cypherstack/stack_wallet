@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -77,6 +77,7 @@ class ExchangeTransaction {
   // @HiveField(14)
   final ExchangeTransactionStatus? statusObject;
 
+  @Deprecated("Only kept for legacy reasons")
   ExchangeTransaction({
     required this.id,
     required this.payinAddress,
@@ -96,6 +97,7 @@ class ExchangeTransaction {
   });
 
   /// Important to pass a "date": DateTime in or it will default to 1970
+  @Deprecated("Only kept for legacy reasons")
   factory ExchangeTransaction.fromJson(Map<String, dynamic> json) {
     try {
       return ExchangeTransaction(
@@ -111,14 +113,16 @@ class ExchangeTransaction {
         refundExtraId: json["refundExtraId"] as String? ?? "",
         payoutExtraIdName: json["payoutExtraIdName"] as String? ?? "",
         uuid: json["uuid"] as String? ?? const Uuid().v1(),
-        date: DateTime.tryParse(json["date"] as String? ?? "") ??
+        date:
+            DateTime.tryParse(json["date"] as String? ?? "") ??
             DateTime.fromMillisecondsSinceEpoch(0),
         statusString: json["statusString"] as String? ?? "",
-        statusObject: json["statusObject"] is Map<String, dynamic>
-            ? ExchangeTransactionStatus.fromJson(
-                json["statusObject"] as Map<String, dynamic>,
-              )
-            : null,
+        statusObject:
+            json["statusObject"] is Map<String, dynamic>
+                ? ExchangeTransactionStatus.fromJson(
+                  json["statusObject"] as Map<String, dynamic>,
+                )
+                : null,
       );
     } catch (e) {
       rethrow;

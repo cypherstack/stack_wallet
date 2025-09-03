@@ -15,6 +15,5 @@ export 'blockchain_data/output.dart';
 export 'blockchain_data/transaction.dart';
 export 'blockchain_data/utxo.dart';
 export 'ethereum/eth_contract.dart';
-export 'firo_specific/lelantus_coin.dart';
 export 'log.dart';
 export 'transaction_note.dart';

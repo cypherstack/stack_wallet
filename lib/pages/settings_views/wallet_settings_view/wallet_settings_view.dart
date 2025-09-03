@@ -38,6 +38,7 @@ import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -115,27 +116,26 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == walletId) {
-          switch (event.newStatus) {
-            case WalletSyncStatus.unableToSync:
-              // TODO: Handle this case.
-              break;
-            case WalletSyncStatus.synced:
-              // TODO: Handle this case.
-              break;
-            case WalletSyncStatus.syncing:
-              // TODO: Handle this case.
-              break;
+    _syncStatusSubscription = eventBus
+        .on<WalletSyncStatusChangedEvent>()
+        .listen((event) async {
+          if (event.walletId == walletId) {
+            switch (event.newStatus) {
+              case WalletSyncStatus.unableToSync:
+                // TODO: Handle this case.
+                break;
+              case WalletSyncStatus.synced:
+                // TODO: Handle this case.
+                break;
+              case WalletSyncStatus.syncing:
+                // TODO: Handle this case.
+                break;
+            }
+            setState(() {
+              _currentSyncStatus = event.newStatus;
+            });
           }
-          setState(() {
-            _currentSyncStatus = event.newStatus;
-          });
-        }
-      },
-    );
+        });
 
     // _nodeStatusSubscription =
     //     eventBus.on<NodeConnectionStatusChangedEvent>().listen(
@@ -189,331 +189,327 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Settings",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Settings", style: STextStyles.navBarTitle(context)),
         ),
-        body: LayoutBuilder(
-          builder: (builderContext, constraints) {
-            return Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                top: 12,
-                right: 12,
-              ),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          RoundedWhiteContainer(
-                            padding: const EdgeInsets.all(4),
-                            child: Column(
-                              children: [
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.addressBook,
-                                  iconSize: 16,
-                                  title: "Address book",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      AddressBookView.routeName,
-                                      arguments: coin,
-                                    );
-                                  },
-                                ),
-                                if (coin is FrostCurrency)
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                if (coin is FrostCurrency)
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (builderContext, constraints) {
+              return Padding(
+                padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            RoundedWhiteContainer(
+                              padding: const EdgeInsets.all(4),
+                              child: Column(
+                                children: [
                                   SettingsListButton(
-                                    iconAssetName: Assets.svg.addressBook2,
+                                    iconAssetName: Assets.svg.addressBook,
                                     iconSize: 16,
-                                    title: "FROST Multisig settings",
+                                    title: "Address book",
                                     onPressed: () {
                                       Navigator.of(context).pushNamed(
-                                        FrostMSWalletOptionsView.routeName,
-                                        arguments: walletId,
+                                        AddressBookView.routeName,
+                                        arguments: coin,
                                       );
                                     },
                                   ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.node,
-                                  iconSize: 16,
-                                  title: "Network",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      WalletNetworkSettingsView.routeName,
-                                      arguments: Tuple3(
-                                        walletId,
-                                        _currentSyncStatus,
-                                        widget.initialNodeStatus,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                if (canBackup)
-                                  const SizedBox(
-                                    height: 8,
+                                  if (coin is FrostCurrency)
+                                    const SizedBox(height: 8),
+                                  if (coin is FrostCurrency)
+                                    SettingsListButton(
+                                      iconAssetName: Assets.svg.addressBook2,
+                                      iconSize: 16,
+                                      title: "FROST Multisig settings",
+                                      onPressed: () {
+                                        Navigator.of(context).pushNamed(
+                                          FrostMSWalletOptionsView.routeName,
+                                          arguments: walletId,
+                                        );
+                                      },
+                                    ),
+                                  const SizedBox(height: 8),
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.node,
+                                    iconSize: 16,
+                                    title: "Network",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        WalletNetworkSettingsView.routeName,
+                                        arguments: Tuple3(
+                                          walletId,
+                                          _currentSyncStatus,
+                                          widget.initialNodeStatus,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                if (canBackup)
-                                  Consumer(
-                                    builder: (_, ref, __) {
-                                      return SettingsListButton(
-                                        iconAssetName: Assets.svg.lock,
-                                        iconSize: 16,
-                                        title: "Wallet backup",
-                                        onPressed: () async {
-                                          // TODO: [prio=med] take wallets that don't have a mnemonic into account
+                                  if (canBackup) const SizedBox(height: 8),
+                                  if (canBackup)
+                                    Consumer(
+                                      builder: (_, ref, __) {
+                                        return SettingsListButton(
+                                          iconAssetName: Assets.svg.lock,
+                                          iconSize: 16,
+                                          title: "Wallet backup",
+                                          onPressed: () async {
+                                            // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
-                                          List<String>? mnemonic;
-                                          ({
-                                            String myName,
-                                            String config,
-                                            String keys,
+                                            List<String>? mnemonic;
                                             ({
+                                              String myName,
                                               String config,
-                                              String keys
-                                            })? prevGen,
-                                          })? frostWalletData;
-                                          if (wallet is BitcoinFrostWallet) {
-                                            final futures = [
-                                              wallet.getSerializedKeys(),
-                                              wallet.getMultisigConfig(),
-                                              wallet.getSerializedKeysPrevGen(),
-                                              wallet.getMultisigConfigPrevGen(),
-                                            ];
+                                              String keys,
+                                              ({String config, String keys})?
+                                              prevGen,
+                                            })?
+                                            frostWalletData;
+                                            if (wallet is BitcoinFrostWallet) {
+                                              final futures = [
+                                                wallet.getSerializedKeys(),
+                                                wallet.getMultisigConfig(),
+                                                wallet
+                                                    .getSerializedKeysPrevGen(),
+                                                wallet
+                                                    .getMultisigConfigPrevGen(),
+                                              ];
 
-                                            final results =
-                                                await Future.wait(futures);
-
-                                            if (results.length == 4) {
-                                              frostWalletData = (
-                                                myName: wallet.frostInfo.myName,
-                                                config: results[1]!,
-                                                keys: results[0]!,
-                                                prevGen: results[2] == null ||
-                                                        results[3] == null
-                                                    ? null
-                                                    : (
-                                                        config: results[3]!,
-                                                        keys: results[2]!,
-                                                      ),
+                                              final results = await Future.wait(
+                                                futures,
                                               );
-                                            }
-                                          } else {
-                                            if (wallet is MnemonicInterface) {
-                                              if (wallet
-                                                      is ViewOnlyOptionInterface &&
-                                                  (wallet as ViewOnlyOptionInterface)
-                                                      .isViewOnly) {
-                                                // TODO: is something needed here?
-                                              } else {
-                                                mnemonic = await wallet
-                                                    .getMnemonicAsWords();
+
+                                              if (results.length == 4) {
+                                                frostWalletData = (
+                                                  myName:
+                                                      wallet.frostInfo.myName,
+                                                  config: results[1]!,
+                                                  keys: results[0]!,
+                                                  prevGen:
+                                                      results[2] == null ||
+                                                              results[3] == null
+                                                          ? null
+                                                          : (
+                                                            config: results[3]!,
+                                                            keys: results[2]!,
+                                                          ),
+                                                );
+                                              }
+                                            } else {
+                                              if (wallet is MnemonicInterface) {
+                                                if (wallet
+                                                        is ViewOnlyOptionInterface &&
+                                                    (wallet as ViewOnlyOptionInterface)
+                                                        .isViewOnly) {
+                                                  // TODO: is something needed here?
+                                                } else {
+                                                  mnemonic =
+                                                      await wallet
+                                                          .getMnemonicAsWords();
+                                                }
                                               }
                                             }
-                                          }
 
                                           KeyDataInterface? keyData;
                                           if (wallet
                                                   is ViewOnlyOptionInterface &&
                                               wallet.isViewOnly) {
-                                            keyData = await wallet
-                                                .getViewOnlyWalletData();
+                                            keyData =
+                                                await wallet
+                                                    .getViewOnlyWalletData();
                                           } else if (wallet
                                               is ExtendedKeysInterface) {
                                             keyData = await wallet.getXPrivs();
                                           } else if (wallet
                                               is LibMoneroWallet) {
                                             keyData = await wallet.getKeys();
+                                          } else if (wallet
+                                          is LibSalviumWallet) {
+                                            keyData = await wallet.getKeys();
                                           }
 
-                                          if (context.mounted) {
-                                            if (keyData != null &&
-                                                wallet
-                                                    is ViewOnlyOptionInterface &&
-                                                wallet.isViewOnly) {
-                                              await Navigator.push(
-                                                context,
-                                                RouteGenerator.getRoute(
-                                                  shouldUseMaterialRoute:
-                                                      RouteGenerator
-                                                          .useMaterialPageRoute,
-                                                  builder: (_) =>
-                                                      LockscreenView(
-                                                    routeOnSuccessArguments: (
-                                                      walletId: walletId,
-                                                      keyData: keyData,
+                                            if (context.mounted) {
+                                              if (keyData != null &&
+                                                  wallet
+                                                      is ViewOnlyOptionInterface &&
+                                                  wallet.isViewOnly) {
+                                                await Navigator.push(
+                                                  context,
+                                                  RouteGenerator.getRoute(
+                                                    shouldUseMaterialRoute:
+                                                        RouteGenerator
+                                                            .useMaterialPageRoute,
+                                                    builder:
+                                                        (_) => LockscreenView(
+                                                          routeOnSuccessArguments:
+                                                              (
+                                                                walletId:
+                                                                    walletId,
+                                                                keyData:
+                                                                    keyData,
+                                                              ),
+                                                          showBackButton: true,
+                                                          routeOnSuccess:
+                                                              MobileKeyDataView
+                                                                  .routeName,
+                                                          biometricsCancelButtonString:
+                                                              "CANCEL",
+                                                          biometricsLocalizedReason:
+                                                              "Authenticate to view recovery data",
+                                                          biometricsAuthenticationTitle:
+                                                              "View recovery data",
+                                                        ),
+                                                    settings: const RouteSettings(
+                                                      name:
+                                                          "/viewRecoveryDataLockscreen",
                                                     ),
-                                                    showBackButton: true,
-                                                    routeOnSuccess:
-                                                        MobileKeyDataView
-                                                            .routeName,
-                                                    biometricsCancelButtonString:
-                                                        "CANCEL",
-                                                    biometricsLocalizedReason:
-                                                        "Authenticate to view recovery data",
-                                                    biometricsAuthenticationTitle:
-                                                        "View recovery data",
                                                   ),
-                                                  settings: const RouteSettings(
-                                                    name:
-                                                        "/viewRecoveryDataLockscreen",
-                                                  ),
-                                                ),
-                                              );
-                                            } else {
-                                              await Navigator.push(
-                                                context,
-                                                RouteGenerator.getRoute(
-                                                  shouldUseMaterialRoute:
-                                                      RouteGenerator
-                                                          .useMaterialPageRoute,
-                                                  builder: (_) =>
-                                                      LockscreenView(
-                                                    routeOnSuccessArguments: (
-                                                      walletId: walletId,
-                                                      mnemonic: mnemonic ?? [],
-                                                      frostWalletData:
-                                                          frostWalletData,
-                                                      keyData: keyData,
+                                                );
+                                              } else {
+                                                await Navigator.push(
+                                                  context,
+                                                  RouteGenerator.getRoute(
+                                                    shouldUseMaterialRoute:
+                                                        RouteGenerator
+                                                            .useMaterialPageRoute,
+                                                    builder:
+                                                        (_) => LockscreenView(
+                                                          routeOnSuccessArguments: (
+                                                            walletId: walletId,
+                                                            mnemonic:
+                                                                mnemonic ?? [],
+                                                            frostWalletData:
+                                                                frostWalletData,
+                                                            keyData: keyData,
+                                                          ),
+                                                          showBackButton: true,
+                                                          routeOnSuccess:
+                                                              WalletBackupView
+                                                                  .routeName,
+                                                          biometricsCancelButtonString:
+                                                              "CANCEL",
+                                                          biometricsLocalizedReason:
+                                                              "Authenticate to view recovery phrase",
+                                                          biometricsAuthenticationTitle:
+                                                              "View recovery phrase",
+                                                        ),
+                                                    settings: const RouteSettings(
+                                                      name:
+                                                          "/viewRecoverPhraseLockscreen",
                                                     ),
-                                                    showBackButton: true,
-                                                    routeOnSuccess:
-                                                        WalletBackupView
-                                                            .routeName,
-                                                    biometricsCancelButtonString:
-                                                        "CANCEL",
-                                                    biometricsLocalizedReason:
-                                                        "Authenticate to view recovery phrase",
-                                                    biometricsAuthenticationTitle:
-                                                        "View recovery phrase",
                                                   ),
-                                                  settings: const RouteSettings(
-                                                    name:
-                                                        "/viewRecoverPhraseLockscreen",
-                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  const SizedBox(height: 8),
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.downloadFolder,
+                                    title: "Wallet settings",
+                                    iconSize: 16,
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        WalletSettingsWalletSettingsView
+                                            .routeName,
+                                        arguments: walletId,
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.arrowRotate,
+                                    title: "Syncing preferences",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        SyncingPreferencesView.routeName,
+                                      );
+                                    },
+                                  ),
+                                  if (xPubEnabled) const SizedBox(height: 8),
+                                  if (xPubEnabled)
+                                    Consumer(
+                                      builder: (_, ref, __) {
+                                        return SettingsListButton(
+                                          iconAssetName: Assets.svg.eye,
+                                          title: "Wallet xPub",
+                                          onPressed: () async {
+                                            final xpubData = await showLoading(
+                                              delay: const Duration(
+                                                milliseconds: 800,
+                                              ),
+                                              whileFuture:
+                                                  (ref
+                                                              .read(pWallets)
+                                                              .getWallet(
+                                                                walletId,
+                                                              )
+                                                          as ExtendedKeysInterface)
+                                                      .getXPubs(),
+                                              context: context,
+                                              message: "Loading xpubs",
+                                              rootNavigator: Util.isDesktop,
+                                            );
+                                            if (context.mounted) {
+                                              await Navigator.of(
+                                                context,
+                                              ).pushNamed(
+                                                XPubView.routeName,
+                                                arguments: (
+                                                  widget.walletId,
+                                                  xpubData,
                                                 ),
                                               );
                                             }
-                                          }
-                                        },
-                                      );
-                                    },
-                                  ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.downloadFolder,
-                                  title: "Wallet settings",
-                                  iconSize: 16,
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      WalletSettingsWalletSettingsView
-                                          .routeName,
-                                      arguments: walletId,
-                                    );
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowRotate,
-                                  title: "Syncing preferences",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      SyncingPreferencesView.routeName,
-                                    );
-                                  },
-                                ),
-                                if (xPubEnabled)
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                if (xPubEnabled)
-                                  Consumer(
-                                    builder: (_, ref, __) {
-                                      return SettingsListButton(
-                                        iconAssetName: Assets.svg.eye,
-                                        title: "Wallet xPub",
-                                        onPressed: () async {
-                                          final xpubData = await showLoading(
-                                            delay: const Duration(
-                                              milliseconds: 800,
-                                            ),
-                                            whileFuture: (ref
-                                                        .read(pWallets)
-                                                        .getWallet(walletId)
-                                                    as ExtendedKeysInterface)
-                                                .getXPubs(),
-                                            context: context,
-                                            message: "Loading xpubs",
-                                            rootNavigator: Util.isDesktop,
-                                          );
-                                          if (context.mounted) {
-                                            await Navigator.of(context)
-                                                .pushNamed(
-                                              XPubView.routeName,
-                                              arguments: (
-                                                widget.walletId,
-                                                xpubData
-                                              ),
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  if (coin is Firo) const SizedBox(height: 8),
+                                  if (coin is Firo)
+                                    Consumer(
+                                      builder: (_, ref, __) {
+                                        return SettingsListButton(
+                                          iconAssetName: Assets.svg.eye,
+                                          title: "Clear electrumx cache",
+                                          onPressed: () async {
+                                            String? result;
+                                            await showDialog<void>(
+                                              useSafeArea: false,
+                                              barrierDismissible: true,
+                                              context: context,
+                                              builder:
+                                                  (_) => StackOkDialog(
+                                                    title:
+                                                        "Are you sure you want to clear "
+                                                        "${coin.prettyName} electrumx cache?",
+                                                    onOkPressed: (value) {
+                                                      result = value;
+                                                    },
+                                                    leftButton: SecondaryButton(
+                                                      label: "Cancel",
+                                                      onPressed: () {
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop();
+                                                      },
+                                                    ),
+                                                  ),
                                             );
-                                          }
-                                        },
-                                      );
-                                    },
-                                  ),
-                                if (coin is Firo)
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                if (coin is Firo)
-                                  Consumer(
-                                    builder: (_, ref, __) {
-                                      return SettingsListButton(
-                                        iconAssetName: Assets.svg.eye,
-                                        title: "Clear electrumx cache",
-                                        onPressed: () async {
-                                          String? result;
-                                          await showDialog<void>(
-                                            useSafeArea: false,
-                                            barrierDismissible: true,
-                                            context: context,
-                                            builder: (_) => StackOkDialog(
-                                              title:
-                                                  "Are you sure you want to clear "
-                                                  "${coin.prettyName} electrumx cache?",
-                                              onOkPressed: (value) {
-                                                result = value;
-                                              },
-                                              leftButton: SecondaryButton(
-                                                label: "Cancel",
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                            ),
-                                          );
 
-                                          if (result == "OK" &&
-                                              context.mounted) {
-                                            await showLoading(
-                                              whileFuture: Future.wait<void>(
-                                                [
+                                            if (result == "OK" &&
+                                                context.mounted) {
+                                              await showLoading(
+                                                whileFuture: Future.wait<void>([
                                                   Future.delayed(
                                                     const Duration(
                                                       milliseconds: 1500,
@@ -521,99 +517,96 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                   ),
                                                   DB.instance
                                                       .clearSharedTransactionCache(
-                                                    currency: coin,
-                                                  ),
+                                                        currency: coin,
+                                                      ),
                                                   if (coin is Firo)
-                                                    FiroCacheCoordinator
-                                                        .clearSharedCache(
+                                                    FiroCacheCoordinator.clearSharedCache(
                                                       coin.network,
                                                     ),
-                                                ],
-                                              ),
-                                              context: context,
-                                              message: "Clearing cache...",
+                                                ]),
+                                                context: context,
+                                                message: "Clearing cache...",
+                                              );
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  if (coin is NanoCurrency)
+                                    const SizedBox(height: 8),
+                                  if (coin is NanoCurrency)
+                                    Consumer(
+                                      builder: (_, ref, __) {
+                                        return SettingsListButton(
+                                          iconAssetName: Assets.svg.eye,
+                                          title: "Change representative",
+                                          onPressed: () {
+                                            Navigator.of(context).pushNamed(
+                                              ChangeRepresentativeView
+                                                  .routeName,
+                                              arguments: widget.walletId,
                                             );
-                                          }
-                                        },
-                                      );
-                                    },
-                                  ),
-                                if (coin is NanoCurrency)
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                if (coin is NanoCurrency)
-                                  Consumer(
-                                    builder: (_, ref, __) {
-                                      return SettingsListButton(
-                                        iconAssetName: Assets.svg.eye,
-                                        title: "Change representative",
-                                        onPressed: () {
-                                          Navigator.of(context).pushNamed(
-                                            ChangeRepresentativeView.routeName,
-                                            arguments: widget.walletId,
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                // const SizedBox(
-                                //   height: 8,
-                                // ),
-                                // SettingsListButton(
-                                //   iconAssetName: Assets.svg.ellipsis,
-                                //   title: "Debug Info",
-                                //   onPressed: () {
-                                //     Navigator.of(context)
-                                //         .pushNamed(DebugView.routeName);
-                                //   },
-                                // ),
-                              ],
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  // const SizedBox(
+                                  //   height: 8,
+                                  // ),
+                                  // SettingsListButton(
+                                  //   iconAssetName: Assets.svg.ellipsis,
+                                  //   title: "Debug Info",
+                                  //   onPressed: () {
+                                  //     Navigator.of(context)
+                                  //         .pushNamed(DebugView.routeName);
+                                  //   },
+                                  // ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          const Spacer(),
-                          Consumer(
-                            builder: (_, ref, __) {
-                              return TextButton(
-                                onPressed: () {
-                                  // TODO: [prio=med] needs more thought if this is still required
-                                  // ref
-                                  //     .read(pWallets)
-                                  //     .getWallet(walletId)
-                                  //     .isActiveWallet = false;
-                                  ref
-                                      .read(transactionFilterProvider.state)
-                                      .state = null;
+                            const SizedBox(height: 12),
+                            const Spacer(),
+                            Consumer(
+                              builder: (_, ref, __) {
+                                return TextButton(
+                                  onPressed: () {
+                                    // TODO: [prio=med] needs more thought if this is still required
+                                    // ref
+                                    //     .read(pWallets)
+                                    //     .getWallet(walletId)
+                                    //     .isActiveWallet = false;
+                                    ref
+                                        .read(transactionFilterProvider.state)
+                                        .state = null;
 
-                                  Navigator.of(context).popUntil(
-                                    ModalRoute.withName(HomeView.routeName),
-                                  );
-                                },
-                                style: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .getSecondaryEnabledButtonStyle(context),
-                                child: Text(
-                                  "Log out",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
+                                    Navigator.of(context).popUntil(
+                                      ModalRoute.withName(HomeView.routeName),
+                                    );
+                                  },
+                                  style: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .getSecondaryEnabledButtonStyle(context),
+                                  child: Text(
+                                    "Log out",
+                                    style: STextStyles.button(context).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -621,10 +614,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 }
 
 class EpicBoxInfoForm extends ConsumerStatefulWidget {
-  const EpicBoxInfoForm({
-    super.key,
-    required this.walletId,
-  });
+  const EpicBoxInfoForm({super.key, required this.walletId});
 
   final String walletId;
 
@@ -668,9 +658,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             controller: hostController,
             decoration: const InputDecoration(hintText: "Host"),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           TextField(
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
@@ -679,9 +667,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             keyboardType:
                 Util.isDesktop ? null : const TextInputType.numberWithOptions(),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: () async {
               try {

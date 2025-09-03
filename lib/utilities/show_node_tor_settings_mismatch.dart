@@ -20,7 +20,8 @@ Future<bool> checkShowNodeTorSettingsMismatch({
   bool rootNavigator = false,
 }) async {
   final node =
-      nodeService.getPrimaryNodeFor(currency: currency) ?? currency.defaultNode;
+      nodeService.getPrimaryNodeFor(currency: currency) ??
+      currency.defaultNode(isPrimary: true);
   if (prefs.useTor) {
     if (node.torEnabled) {
       return true;
@@ -34,63 +35,57 @@ Future<bool> checkShowNodeTorSettingsMismatch({
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (context) => ConditionalParent(
-      condition: Util.isDesktop,
-      builder: (child) => DesktopDialog(
-        maxHeight: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: child,
-        ),
-      ),
-      child: ConditionalParent(
-        condition: !Util.isDesktop,
-        builder: (child) => StackDialogBase(
-          child: child,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "Attention! Node connection issue detected. "
-              "The current node will not sync due to its connectivity settings. "
-              "Please adjust the node settings or enable/disable TOR.",
-              style: STextStyles.w600_16(context),
-            ),
-            SizedBox(
-              height: Util.isDesktop ? 32 : 24,
-            ),
-            Row(
+    builder:
+        (context) => ConditionalParent(
+          condition: Util.isDesktop,
+          builder:
+              (child) => DesktopDialog(
+                maxHeight: double.infinity,
+                child: Padding(padding: const EdgeInsets.all(32), child: child),
+              ),
+          child: ConditionalParent(
+            condition: !Util.isDesktop,
+            builder: (child) => StackDialogBase(child: child),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                allowCancel
-                    ? Expanded(
-                        child: SecondaryButton(
-                          buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                          label: "Cancel",
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                        ),
-                      )
-                    : const Spacer(),
-                SizedBox(
-                  width: Util.isDesktop ? 24 : 16,
+                Text(
+                  "Attention! Node connection issue detected. "
+                  "The current node will not sync due to its connectivity settings. "
+                  "Please adjust the node settings or enable/disable TOR.",
+                  style: STextStyles.w600_16(context),
                 ),
-                Expanded(
-                  child: PrimaryButton(
-                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                    label: "Continue",
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
+                SizedBox(height: Util.isDesktop ? 32 : 24),
+                Row(
+                  children: [
+                    allowCancel
+                        ? Expanded(
+                          child: SecondaryButton(
+                            buttonHeight:
+                                Util.isDesktop ? ButtonHeight.l : null,
+                            label: "Cancel",
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
+                        )
+                        : const Spacer(),
+                    SizedBox(width: Util.isDesktop ? 24 : 16),
+                    Expanded(
+                      child: PrimaryButton(
+                        buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                        label: "Continue",
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
   );
 
   return result ?? true;
