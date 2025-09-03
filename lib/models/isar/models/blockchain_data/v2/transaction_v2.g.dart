@@ -53,71 +53,66 @@ const TransactionV2Schema = CollectionSchema(
       name: r'isEpiccashTransaction',
       type: IsarType.bool,
     ),
-    r'isMimblewimblecoinTransaction': PropertySchema(
-      id: 7,
-      name: r'isMimblewimblecoinTransaction',
-      type: IsarType.bool,
-    ),
     r'nonce': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'nonce',
       type: IsarType.long,
     ),
     r'numberOfMessages': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'numberOfMessages',
       type: IsarType.long,
     ),
     r'onChainNote': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'onChainNote',
       type: IsarType.string,
     ),
     r'otherData': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'outputs': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'outputs',
       type: IsarType.objectList,
       target: r'OutputV2',
     ),
     r'slateId': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 14,
+      id: 13,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionV2subTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 15,
+      id: 14,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 16,
+      id: 15,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 17,
+      id: 16,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionV2typeEnumValueMap,
     ),
     r'version': PropertySchema(
-      id: 18,
+      id: 17,
       name: r'version',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 19,
+      id: 18,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -261,24 +256,23 @@ void _transactionV2Serialize(
   );
   writer.writeBool(offsets[5], object.isCancelled);
   writer.writeBool(offsets[6], object.isEpiccashTransaction);
-  writer.writeBool(offsets[7], object.isMimblewimblecoinTransaction);
-  writer.writeLong(offsets[8], object.nonce);
-  writer.writeLong(offsets[9], object.numberOfMessages);
-  writer.writeString(offsets[10], object.onChainNote);
-  writer.writeString(offsets[11], object.otherData);
+  writer.writeLong(offsets[7], object.nonce);
+  writer.writeLong(offsets[8], object.numberOfMessages);
+  writer.writeString(offsets[9], object.onChainNote);
+  writer.writeString(offsets[10], object.otherData);
   writer.writeObjectList<OutputV2>(
-    offsets[12],
+    offsets[11],
     allOffsets,
     OutputV2Schema.serialize,
     object.outputs,
   );
-  writer.writeString(offsets[13], object.slateId);
-  writer.writeByte(offsets[14], object.subType.index);
-  writer.writeLong(offsets[15], object.timestamp);
-  writer.writeString(offsets[16], object.txid);
-  writer.writeByte(offsets[17], object.type.index);
-  writer.writeLong(offsets[18], object.version);
-  writer.writeString(offsets[19], object.walletId);
+  writer.writeString(offsets[12], object.slateId);
+  writer.writeByte(offsets[13], object.subType.index);
+  writer.writeLong(offsets[14], object.timestamp);
+  writer.writeString(offsets[15], object.txid);
+  writer.writeByte(offsets[16], object.type.index);
+  writer.writeLong(offsets[17], object.version);
+  writer.writeString(offsets[18], object.walletId);
 }
 
 TransactionV2 _transactionV2Deserialize(
@@ -298,23 +292,23 @@ TransactionV2 _transactionV2Deserialize(
           InputV2(),
         ) ??
         [],
-    otherData: reader.readStringOrNull(offsets[11]),
+    otherData: reader.readStringOrNull(offsets[10]),
     outputs: reader.readObjectList<OutputV2>(
-          offsets[12],
+          offsets[11],
           OutputV2Schema.deserialize,
           allOffsets,
           OutputV2(),
         ) ??
         [],
     subType:
-        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
+        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[15]),
-    txid: reader.readString(offsets[16]),
-    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[17])] ??
+    timestamp: reader.readLong(offsets[14]),
+    txid: reader.readString(offsets[15]),
+    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[16])] ??
         TransactionType.outgoing,
-    version: reader.readLong(offsets[18]),
-    walletId: reader.readString(offsets[19]),
+    version: reader.readLong(offsets[17]),
+    walletId: reader.readString(offsets[18]),
   );
   object.id = id;
   return object;
@@ -348,16 +342,14 @@ P _transactionV2DeserializeProp<P>(
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
       return (reader.readLongOrNull(offset)) as P;
     case 9:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readStringOrNull(offset)) as P;
-    case 12:
       return (reader.readObjectList<OutputV2>(
             offset,
             OutputV2Schema.deserialize,
@@ -365,22 +357,22 @@ P _transactionV2DeserializeProp<P>(
             OutputV2(),
           ) ??
           []) as P;
-    case 13:
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
-    case 14:
+    case 13:
       return (_TransactionV2subTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 15:
+    case 14:
       return (reader.readLong(offset)) as P;
-    case 16:
+    case 15:
       return (reader.readString(offset)) as P;
-    case 17:
+    case 16:
       return (_TransactionV2typeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 18:
+    case 17:
       return (reader.readLong(offset)) as P;
-    case 19:
+    case 18:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1516,16 +1508,6 @@ extension TransactionV2QueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isEpiccashTransaction',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
-      isMimblewimblecoinTransactionEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isMimblewimblecoinTransaction',
         value: value,
       ));
     });
@@ -2825,20 +2807,6 @@ extension TransactionV2QuerySortBy
     });
   }
 
-  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
-      sortByIsMimblewimblecoinTransaction() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMimblewimblecoinTransaction', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
-      sortByIsMimblewimblecoinTransactionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMimblewimblecoinTransaction', Sort.desc);
-    });
-  }
-
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByNonce() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nonce', Sort.asc);
@@ -3070,20 +3038,6 @@ extension TransactionV2QuerySortThenBy
     });
   }
 
-  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
-      thenByIsMimblewimblecoinTransaction() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMimblewimblecoinTransaction', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
-      thenByIsMimblewimblecoinTransactionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMimblewimblecoinTransaction', Sort.desc);
-    });
-  }
-
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByNonce() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nonce', Sort.asc);
@@ -3267,13 +3221,6 @@ extension TransactionV2QueryWhereDistinct
     });
   }
 
-  QueryBuilder<TransactionV2, TransactionV2, QDistinct>
-      distinctByIsMimblewimblecoinTransaction() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isMimblewimblecoinTransaction');
-    });
-  }
-
   QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctByNonce() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'nonce');
@@ -3397,13 +3344,6 @@ extension TransactionV2QueryProperty
       isEpiccashTransactionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isEpiccashTransaction');
-    });
-  }
-
-  QueryBuilder<TransactionV2, bool, QQueryOperations>
-      isMimblewimblecoinTransactionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isMimblewimblecoinTransaction');
     });
   }
 
