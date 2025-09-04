@@ -50,18 +50,19 @@ class Mimblewimblecoin extends Bip39Currency {
   // change this to change the number of confirms a tx needs in order to show as confirmed
   int get minConfirms => 3;
 
- @override
-bool validateAddress(String address) {
-  Uri? uri = Uri.tryParse(address);
-  if (uri != null &&
-      (uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "mwcmqs") &&
-      uri.host.isNotEmpty &&
-      !uri.host.endsWith(".onion")) {
-    return true;
+  @override
+  bool validateAddress(String address) {
+    Uri? uri = Uri.tryParse(address);
+    if (uri != null &&
+        (uri.scheme == "http" ||
+            uri.scheme == "https" ||
+            uri.scheme == "mwcmqs") &&
+        uri.host.isNotEmpty &&
+        !uri.host.endsWith(".onion")) {
+      return true;
+    }
+    return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
   }
-  return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
-}
-
 
   @override
   NodeModel defaultNode({required bool isPrimary}) {
@@ -79,7 +80,7 @@ bool validateAddress(String address) {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
-          isPrimary: isPrimary,
+          isPrimary: true,
         );
 
       default:
@@ -112,7 +113,8 @@ bool validateAddress(String address) {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType =>
+      throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 
@@ -124,5 +126,11 @@ bool validateAddress(String address) {
           "Unsupported network for defaultBlockExplorer(): $network",
         );
     }
+  }
+
+  @override
+  AddressType? getAddressType(String address) {
+    // TODO: implement getAddressType.
+    throw UnimplementedError();
   }
 }
