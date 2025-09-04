@@ -18,10 +18,8 @@ import 'prefs.dart';
 
 Future<bool> _testMwcMqsNodeConnection(Uri uri) async {
   final HTTP client = HTTP();
-    try {
-      final headers = {
-      'Content-Type': 'application/json',
-    };
+  try {
+    final headers = {'Content-Type': 'application/json'};
 
     if (uri.toString() == 'https://mwc713.mwc.mw/v1/version') {
       const username = 'mwcmain';
@@ -33,9 +31,10 @@ Future<bool> _testMwcMqsNodeConnection(Uri uri) async {
         .get(
           url: uri,
           headers: headers,
-          proxyInfo: Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null,
+          proxyInfo:
+              Prefs.instance.useTor
+                  ? TorService.sharedInstance.getProxyInfo()
+                  : null,
         )
         .timeout(
           const Duration(milliseconds: 2000),
@@ -50,7 +49,7 @@ Future<bool> _testMwcMqsNodeConnection(Uri uri) async {
       return false;
     }
   } catch (e, s) {
-    Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+    Logging.instance.w("$e\n$s");
     return false;
   }
 }
@@ -77,7 +76,7 @@ Future<NodeFormData?> testMwcNodeConnection(NodeFormData data) async {
   Uri uri = Uri.parse(data.host! + path_postfix);
 
   uri = uri.replace(port: data.port);
-  
+
   try {
     if (await _testMwcMqsNodeConnection(uri)) {
       return data;
@@ -85,7 +84,7 @@ Future<NodeFormData?> testMwcNodeConnection(NodeFormData data) async {
       return null;
     }
   } catch (e, s) {
-    Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+    Logging.instance.w("$e\n$s");
     return null;
   }
 }

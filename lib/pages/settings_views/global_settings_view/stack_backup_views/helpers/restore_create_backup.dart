@@ -476,7 +476,7 @@ abstract class SWB {
         case const (EpiccashWallet):
           await (wallet as EpiccashWallet).init(isRestore: true);
           break;
-        
+
         case const (MimblewimblecoinWallet):
           await (wallet as MimblewimblecoinWallet).init(isRestore: true);
           break;
@@ -499,13 +499,10 @@ abstract class SWB {
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
-<<<<<<<
         if (wallet is EpiccashWallet ||
             wallet is LibMoneroWallet ||
-            wallet is LibSalviumWallet) {
-=======
-        if (wallet is EpiccashWallet  || wallet is MimblewimblecoinWallet || wallet is LibMoneroWallet) {
->>>>>>>
+            wallet is LibSalviumWallet ||
+            wallet is MimblewimblecoinWallet) {
           restoreHeight = 0;
         } else {
           restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;

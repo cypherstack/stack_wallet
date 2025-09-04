@@ -33,26 +33,18 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/coins/epiccash.dart';
-<<<<<<<
 import '../../../../wallets/crypto_currency/coins/litecoin.dart';
-=======
 import '../../../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
->>>>>>>
 import '../../../../wallets/crypto_currency/coins/monero.dart';
 import '../../../../wallets/crypto_currency/coins/salvium.dart';
 import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-<<<<<<<
+import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
-=======
-import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../../wallets/wallet/impl/wownero_wallet.dart';
->>>>>>>
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -282,20 +274,14 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.read(pWalletCoin(widget.walletId));
 
-<<<<<<<
     // TODO: handle isMwebEnabled toggled
     if (coin is Monero ||
         coin is Wownero ||
         coin is Epiccash ||
         coin is Salvium ||
+        coin is Mimblewimblecoin ||
         (coin is Litecoin &&
             ref.read(pWalletInfo(widget.walletId)).isMwebEnabled)) {
-=======
-    if (coin is Monero ||
-        coin is Wownero ||
-        coin is Epiccash ||
-        coin is Mimblewimblecoin) {
->>>>>>>
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -384,10 +370,10 @@ class _WalletNetworkSettingsViewState
         _percent = highestPercent.clamp(0.0, 1.0);
       }
     } else if (coin is Mimblewimblecoin) {
-      final double highestPercent = (ref
-              .watch(pWallets)
-              .getWallet(widget.walletId) as MimblewimblecoinWallet)
-          .highestPercent;
+      final double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId)
+                  as MimblewimblecoinWallet)
+              .highestPercent;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
@@ -682,19 +668,15 @@ class _WalletNetworkSettingsViewState
                                 ),
                                 if (coin is Monero ||
                                     coin is Wownero ||
-<<<<<<<
                                     coin is Epiccash ||
                                     coin is Salvium ||
+                                    coin is Mimblewimblecoin ||
                                     (coin is Litecoin &&
                                         ref.watch(
                                           pWalletInfo(
                                             widget.walletId,
                                           ).select((s) => s.isMwebEnabled),
                                         )))
-=======
-                                    coin is Mimblewimblecoin ||
-                                    coin is Epiccash)
->>>>>>>
                                   Text(
                                     " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
                                     style: STextStyles.syncPercent(
@@ -1024,21 +1006,13 @@ class _WalletNetworkSettingsViewState
             coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
-<<<<<<<
-          if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
+          if (isDesktop &&
+              ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
+              ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
             const SizedBox(height: 32),
-          if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
-=======
           if (isDesktop &&
               ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
               ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
-            const SizedBox(
-              height: 32,
-            ),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
->>>>>>>
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(

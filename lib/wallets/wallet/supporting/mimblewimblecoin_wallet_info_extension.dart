@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
+
 import '../../../utilities/logger.dart';
 import '../../isar/models/wallet_info.dart';
 
@@ -13,14 +14,11 @@ extension MimblewimblecoinWalletInfoExtension on WalletInfo {
     }
     try {
       return ExtraMimblewimblecoinWalletInfo.fromMap(
-        Map<String, dynamic>.from(
-          jsonDecode(data) as Map,
-        ),
+        Map<String, dynamic>.from(jsonDecode(data) as Map),
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.e(
         "ExtraMimblewimblecoinWalletInfo.fromMap failed: $e\n$s",
-        level: LogLevel.Error,
       );
       return null;
     }
@@ -32,7 +30,9 @@ extension MimblewimblecoinWalletInfoExtension on WalletInfo {
   }) async {
     await updateOtherData(
       newEntries: {
-        WalletInfoKeys.mimblewimblecoinData: jsonEncode(mimblewimblecoinData.toMap()),
+        WalletInfoKeys.mimblewimblecoinData: jsonEncode(
+          mimblewimblecoinData.toMap(),
+        ),
       },
       isar: isar,
     );
@@ -76,13 +76,13 @@ class ExtraMimblewimblecoinWalletInfo {
   }
 
   ExtraMimblewimblecoinWalletInfo.fromMap(Map<String, dynamic> json)
-      : receivingIndex = json['receivingIndex'] as int,
-        changeIndex = json['changeIndex'] as int,
-        slatesToAddresses = json['slatesToAddresses'] as Map,
-        slatesToCommits = json['slatesToCommits'] as Map,
-        lastScannedBlock = json['lastScannedBlock'] as int,
-        restoreHeight = json['restoreHeight'] as int,
-        creationHeight = json['creationHeight'] as int;
+    : receivingIndex = json['receivingIndex'] as int,
+      changeIndex = json['changeIndex'] as int,
+      slatesToAddresses = json['slatesToAddresses'] as Map,
+      slatesToCommits = json['slatesToCommits'] as Map,
+      lastScannedBlock = json['lastScannedBlock'] as int,
+      restoreHeight = json['restoreHeight'] as int,
+      creationHeight = json['creationHeight'] as int;
 
   ExtraMimblewimblecoinWalletInfo copyWith({
     int? receivingIndex,

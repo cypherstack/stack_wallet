@@ -64,7 +64,7 @@ bool validateAddress(String address) {
 
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -79,6 +79,7 @@ bool validateAddress(String address) {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

@@ -13,12 +13,12 @@ import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../../models/balance.dart';
-import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -28,41 +28,42 @@ import '../../../services/event_bus/events/global/refresh_percent_changed_event.
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
-import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/test_mwcmqs_connection.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
 
-
 class MimblewimblecoinWallet extends Bip39Wallet {
   MimblewimblecoinWallet(CryptoCurrencyNetwork network)
-      : super(Mimblewimblecoin(network));
+    : super(Mimblewimblecoin(network));
 
   final syncMutex = Mutex();
   NodeModel? _mimblewimblecoinNode;
   Timer? timer;
   bool _logsInitialized = false;
-  
+
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
     final int lastScannedBlock =
         info.mimblewimblecoinData?.lastScannedBlock ?? 0;
     final _chainHeight = await chainHeight;
     final double restorePercent = lastScannedBlock / _chainHeight;
-    GlobalEventBus.instance
-        .fire(RefreshPercentChangedEvent(highestPercent, walletId));
+    GlobalEventBus.instance.fire(
+      RefreshPercentChangedEvent(highestPercent, walletId),
+    );
     if (restorePercent > highestPercent) {
       highestPercent = restorePercent;
     }
 
     final int blocksRemaining = _chainHeight - lastScannedBlock;
-    GlobalEventBus.instance
-        .fire(BlocksRemainingEvent(blocksRemaining, walletId));
+    GlobalEventBus.instance.fire(
+      BlocksRemainingEvent(blocksRemaining, walletId),
+    );
 
     return restorePercent < 0 ? 0.0 : restorePercent;
   }
@@ -70,7 +71,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   Future<void> updateMwcmqsConfig(String host, int port) async {
     final String stringConfig = jsonEncode({
       "mwcmqs_domain": host,
-      "mwcmqs_port": port
+      "mwcmqs_port": port,
     });
     await secureStorageInterface.write(
       key: '${walletId}_mwcmqsConfig',
@@ -82,21 +83,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// returns an empty String on success, error message on failure
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
-      final String wallet = (await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      ))!;
+      final String wallet =
+          (await secureStorageInterface.read(key: '${walletId}_wallet'))!;
 
       final result = await mimblewimblecoin.Libmwc.cancelTransaction(
         wallet: wallet,
         transactionId: txSlateId,
       );
-      Logging.instance.log(
-        "cancel $txSlateId result: $result",
-        level: LogLevel.Info,
-      );
+      Logging.instance.i("cancel $txSlateId result: $result");
       return result;
     } catch (e, s) {
-      Logging.instance.log("$e, $s", level: LogLevel.Error);
+      Logging.instance.e("$e, $s");
       return e.toString();
     }
   }
@@ -187,13 +184,13 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       }
       return realFee;
     } catch (e, s) {
-      Logging.instance.log("Error getting fees $e - $s", level: LogLevel.Error);
+      Logging.instance.e("Error getting fees $e - $s");
       rethrow;
     }
   }
 
   Future<void> _startSync() async {
-    Logging.instance.log("request start sync", level: LogLevel.Info);
+    Logging.instance.i("request start sync");
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     const int refreshFromNode = 1;
     if (!syncMutex.isLocked) {
@@ -206,17 +203,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
       });
     } else {
-      Logging.instance.log("request start sync denied", level: LogLevel.Info);
+      Logging.instance.i("request start sync denied");
     }
   }
 
   Future<
-      ({
-        double awaitingFinalization,
-        double pending,
-        double spendable,
-        double total
-      })> _allWalletBalances() async {
+    ({
+      double awaitingFinalization,
+      double pending,
+      double spendable,
+      double total,
+    })
+  >
+  _allWalletBalances() async {
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     const refreshFromNode = 0;
     return await mimblewimblecoin.Libmwc.getWalletBalances(
@@ -233,9 +232,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     try {
       final uri = Uri.parse('wss://$host:$port');
 
-      channel = WebSocketChannel.connect(
-        uri,
-      );
+      channel = WebSocketChannel.connect(uri);
 
       await channel.ready;
 
@@ -245,10 +242,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       return response is String && response.contains("Challenge");
     } catch (_) {
-      Logging.instance.log(
-        "_testMwcmqsConnection failed on \"$host:$port\"",
-        level: LogLevel.Info,
-      );
+      Logging.instance.i("_testMwcmqsConnection failed on \"$host:$port\"");
       return false;
     } finally {
       await channel?.sink.close();
@@ -276,8 +270,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       );
       return true;
     } catch (e, s) {
-      Logging.instance
-          .log("ERROR STORING ADDRESS $e $s", level: LogLevel.Error);
+      Logging.instance.e("ERROR STORING ADDRESS $e $s");
       return false;
     }
   }
@@ -289,14 +282,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       //  of the last one that has not been processed, or the index after the one most recently processed;
       return receivingIndex;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance.e("$e $s");
       return 0;
     }
   }
 
-  Future<Address> _generateAndStoreReceivingAddressForIndex(
-    int index,
-  ) async {
+  Future<Address> _generateAndStoreReceivingAddressForIndex(int index) async {
     Address? address = await getCurrentReceivingAddress();
 
     if (address == null) {
@@ -321,13 +312,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
     final walletAddress = await mimblewimblecoin.Libmwc.getAddressInfo(
       wallet: wallet!,
-      index: index
+      index: index,
     );
 
-    Logging.instance.log(
-      "WALLET_ADDRESS_IS $walletAddress",
-      level: LogLevel.Info,
-    );
+    Logging.instance.i("WALLET_ADDRESS_IS $walletAddress");
 
     final address = Address(
       walletId: walletId,
@@ -346,8 +334,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     try {
       //First stop the current listener
       mimblewimblecoin.Libmwc.stopMwcMqsListener();
-      final wallet =
-          await secureStorageInterface.read(key: '${walletId}_wallet');
+      final wallet = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
 
       // max number of blocks to scan per loop iteration
       const scanChunkSize = 10000;
@@ -362,9 +351,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       // loop while scanning in chain in chunks (of blocks?)
       while (lastScannedBlock < chainHeight) {
-        Logging.instance.log(
+        Logging.instance.i(
           "chainHeight: $chainHeight, lastScannedBlock: $lastScannedBlock",
-          level: LogLevel.Info,
         );
 
         final int nextScannedBlock = await mimblewimblecoin.Libmwc.scanOutputs(
@@ -389,23 +377,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         lastScannedBlock = nextScannedBlock;
       }
 
-      Logging.instance.log(
-        "_startScans successfully at the tip",
-        level: LogLevel.Info,
-      );
+      Logging.instance.i("_startScans successfully at the tip");
       //Once scanner completes restart listener
       await _listenToMwcmqs();
     } catch (e, s) {
-      Logging.instance.log(
-        "_startScans failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("_startScans failed: $e\n$s");
       rethrow;
     }
   }
 
   Future<void> _listenToMwcmqs() async {
-    Logging.instance.log("STARTING WALLET LISTENER ....", level: LogLevel.Info);
+    Logging.instance.i("STARTING WALLET LISTENER ....");
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
     mimblewimblecoin.Libmwc.startMwcMqsListener(
@@ -462,10 +444,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<void> init({bool? isRestore}) async {
-    
     if (isRestore != true) {
-      String? encodedWallet =
-          await secureStorageInterface.read(key: "${walletId}_wallet");
+      String? encodedWallet = await secureStorageInterface.read(
+        key: "${walletId}_wallet",
+      );
 
       // check if should create a new wallet
       if (encodedWallet == null) {
@@ -539,8 +521,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           //  await mimblewimblecoin.Libmwc.initLogs(config: config);
           //  _logsInitialized = true; // Set flag to true after initializing
           //}
-          final password =
-              await secureStorageInterface.read(key: '${walletId}_password');
+          final password = await secureStorageInterface.read(
+            key: '${walletId}_password',
+          );
 
           final walletOpen = await mimblewimblecoin.Libmwc.openWallet(
             config: config,
@@ -554,10 +537,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           await updateNode();
         } catch (e, s) {
           // do nothing, still allow user into wallet
-          Logging.instance.log(
-            "$runtimeType init() failed: $e\n$s",
-            level: LogLevel.Error,
-          );
+          Logging.instance.e("$runtimeType init() failed: $e\n$s");
         }
       }
     }
@@ -568,8 +548,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      final wallet =
-          await secureStorageInterface.read(key: '${walletId}_wallet');
+      final wallet = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
       final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
 
       // TODO determine whether it is worth sending change to a change address.
@@ -609,12 +590,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           minimumConfirmations: cryptoCurrency.minConfirms,
           note: txData.noteOnChain!,
         );
-        
       } else {
         throw Exception(
           "Unsupported address format: $receiverAddress. Please use a valid address.",
         );
-        
       }
 
       final Map<String, String> txAddressInfo = {};
@@ -622,14 +601,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       txAddressInfo['to'] = txData.recipients!.first.address;
       await _putSendToAddresses(transaction, txAddressInfo);
 
-      return txData.copyWith(
-        txid: transaction.slateId,
-      );
+      return txData.copyWith(txid: transaction.slateId);
     } catch (e, s) {
-      Logging.instance.log(
-        "Mimblewimblecoin confirmSend: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Mimblewimblecoin confirmSend: $e\n$s");
       rethrow;
     }
   }
@@ -639,11 +613,11 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     try {
       if (txData.recipients?.length != 1) {
         throw Exception(
-            "Mimblewimblecoin prepare send requires a single recipient!");
+          "Mimblewimblecoin prepare send requires a single recipient!",
+        );
       }
 
-      ({String address, Amount amount, bool isChange}) recipient =
-          txData.recipients!.first;
+      TxRecipient recipient = txData.recipients!.first;
 
       final int realFee = await _nativeFee(recipient.amount.raw.toInt());
       final feeAmount = Amount(
@@ -658,20 +632,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       }
 
       if (info.cachedBalance.spendable == recipient.amount) {
-        recipient = (
+        recipient = TxRecipient(
           address: recipient.address,
           amount: recipient.amount - feeAmount,
           isChange: recipient.isChange,
+          addressType: AddressType.mimbleWimble,
         );
       }
 
-      return txData.copyWith(
-        recipients: [recipient],
-        fee: feeAmount,
-      );
+      return txData.copyWith(recipients: [recipient], fee: feeAmount);
     } catch (e, s) {
-      Logging.instance
-          .log("Mimblewimblecoin prepareSend: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e("Mimblewimblecoin prepareSend: $e\n$s");
       rethrow;
     }
   }
@@ -745,7 +716,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             key: '${walletId}_wallet',
             value: walletOpen,
           );
-          
+
           await _generateAndStoreReceivingAddressForIndex(
             mimblewimblecoinData.receivingIndex,
           );
@@ -754,9 +725,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.i(
         "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-        level: LogLevel.Info,
       );
 
       rethrow;
@@ -869,9 +839,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           cryptoCurrency,
         ),
       );
-      Logging.instance.log(
+      Logging.instance.e(
         "Caught exception in refreshWalletData(): $error\n$strace",
-        level: LogLevel.Error,
       );
     } finally {
       refreshMutex.release();
@@ -901,14 +870,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         ),
       );
 
-      await info.updateBalance(
-        newBalance: balance,
-        isar: mainDB.isar,
-      );
+      await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.e(
         "Mimblewimblecoin wallet failed to update balance: $e\n$s",
-        level: LogLevel.Warning,
       );
     }
   }
@@ -916,20 +881,22 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<void> updateTransactions() async {
     try {
-      final wallet =
-          await secureStorageInterface.read(key: '${walletId}_wallet');
+      final wallet = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
       const refreshFromNode = 1;
 
-      final myAddresses = await mainDB
-          .getAddresses(walletId)
-          .filter()
-          .typeEqualTo(AddressType.mimbleWimble)
-          .and()
-          .subTypeEqualTo(AddressSubType.receiving)
-          .and()
-          .valueIsNotEmpty()
-          .valueProperty()
-          .findAll();
+      final myAddresses =
+          await mainDB
+              .getAddresses(walletId)
+              .filter()
+              .typeEqualTo(AddressType.mimbleWimble)
+              .and()
+              .subTypeEqualTo(AddressSubType.receiving)
+              .and()
+              .valueIsNotEmpty()
+              .valueProperty()
+              .findAll();
       final myAddressesSet = myAddresses.toSet();
 
       final transactions = await mimblewimblecoin.Libmwc.getTransactions(
@@ -942,12 +909,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       final slatesToCommits = info.mimblewimblecoinData?.slatesToCommits ?? {};
 
       for (final tx in transactions) {
-        Logging.instance.log("tx: $tx", level: LogLevel.Info);
+        Logging.instance.i("tx: $tx");
 
         final isIncoming =
             tx.txType == mimblewimblecoin_models.TransactionType.TxReceived ||
-                tx.txType ==
-                    mimblewimblecoin_models.TransactionType.TxReceivedCancelled;
+            tx.txType ==
+                mimblewimblecoin_models.TransactionType.TxReceivedCancelled;
         final slateId = tx.txSlateId;
         final commitId = slatesToCommits[slateId]?['commitId'] as String?;
         final numberOfMessages = tx.messages?.messages.length;
@@ -968,9 +935,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "00",
           valueStringSats: credit.toString(),
-          addresses: [
-            if (addressFrom != null) addressFrom,
-          ],
+          addresses: [if (addressFrom != null) addressFrom],
           walletOwns: true,
         );
         final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -1012,14 +977,16 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           "numberOfMessages": numberOfMessages,
           "slateId": slateId,
           "onChainNote": onChainNote,
-          "isCancelled": tx.txType ==
+          "isCancelled":
+              tx.txType ==
                   mimblewimblecoin_models.TransactionType.TxSentCancelled ||
               tx.txType ==
                   mimblewimblecoin_models.TransactionType.TxReceivedCancelled,
-          "overrideFee": Amount(
-            rawValue: BigInt.from(fee),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          ).toJsonString(),
+          "overrideFee":
+              Amount(
+                rawValue: BigInt.from(fee),
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ).toJsonString(),
         };
 
         final txn = TransactionV2(
@@ -1049,10 +1016,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         await mainDB.isar.transactionV2s.putAll(txns);
       });
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.w(
         "${cryptoCurrency.runtimeType} ${cryptoCurrency.network} net wallet"
         " \"${info.name}\"_${info.walletId} updateTransactions() failed: $e\n$s",
-        level: LogLevel.Warning,
       );
     }
   }
@@ -1089,7 +1055,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           ) !=
           null;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Info);
+      Logging.instance.i("$e\n$s");
       return false;
     }
   }
@@ -1097,8 +1063,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<void> updateChainHeight() async {
     final config = await _getRealConfig();
-    final latestHeight =
-        await mimblewimblecoin.Libmwc.getChainHeight(config: config);
+    final latestHeight = await mimblewimblecoin.Libmwc.getChainHeight(
+      config: config,
+    );
     await info.updateCachedChainHeight(
       newHeight: latestHeight,
       isar: mainDB.isar,
@@ -1106,7 +1073,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     // setting ifErrorEstimateFee doesn't do anything as its not used in the nativeFee function?????
     final int currentFee = await _nativeFee(
       amount.raw.toInt(),
@@ -1126,9 +1093,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       numberOfBlocksFast: 10,
       numberOfBlocksAverage: 10,
       numberOfBlocksSlow: 10,
-      fast: 1,
-      medium: 1,
-      slow: 1,
+      fast: BigInt.one,
+      medium: BigInt.one,
+      slow: BigInt.one,
     );
   }
 
@@ -1143,8 +1110,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     timer?.cancel();
     timer = null;
     await super.exit();
-    Logging.instance
-        .log("Mimblewimblecoin_wallet exit finished", level: LogLevel.Info);
+    Logging.instance.i("Mimblewimblecoin_wallet exit finished");
   }
 }
 
@@ -1176,7 +1142,7 @@ Future<String> deleteMimblewimblecoinWallet({
         config: config!,
       );
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s");
       return "deleteMimblewimblecoinWallet($walletId) failed...";
     }
   }

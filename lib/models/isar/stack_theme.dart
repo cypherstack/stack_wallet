@@ -1943,6 +1943,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wownero;
   late final String namecoin;
   late final String particl;
+  late final String mimblewimblecoin;
   late final String bitcoinImage;
   late final String bitcoincashImage;
   late final String dogecoinImage;

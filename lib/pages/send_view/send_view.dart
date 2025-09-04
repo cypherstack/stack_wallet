@@ -242,9 +242,11 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         }
       } catch (e) {
+        // strip http:// and https:// if content contains @
         if (coin is Epiccash) {
-          // strip http:// and https:// if content contains @
           content = AddressUtils().formatEpicCashAddress(content);
+        } else if (coin is Mimblewimblecoin) {
+          content = AddressUtils().formatAddressMwc(content);
         }
 
         await _checkSparkNameAndOrSetAddress(content);
@@ -1281,7 +1283,6 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
-<<<<<<<
     Decimal? price;
     if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
       price = ref.watch(
@@ -1291,23 +1292,22 @@ class _SendViewState extends ConsumerState<SendView> {
       );
     }
 
-=======
-    if (coin is Mimblewimblecoin) {
-      sendToController.addListener(() {
-        _address = sendToController.text.trim();
+    // Probably not be needed.
+    // if (coin is Mimblewimblecoin) {
+    //   sendToController.addListener(() {
+    //     _address = sendToController.text.trim();
+    //
+    //     if (_address != null && _address!.isNotEmpty) {
+    //       _address = _address!.trim();
+    //       if (_address!.contains("\n")) {
+    //         _address = _address!.substring(0, _address!.indexOf("\n"));
+    //       }
+    //
+    //       sendToController.text = AddressUtils().formatAddressMwc(_address!);
+    //     }
+    //   });
+    // }
 
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = AddressUtils().formatAddress(_address!);
-        }
-      });
-    }
-
->>>>>>>
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -1621,7 +1621,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   key: const Key(
                                                     "sendViewPasteAddressFieldButtonKey",
                                                   ),
-<<<<<<<
                                                   onTap: _pasteAddress,
                                                   child:
                                                       sendToController
@@ -1629,63 +1628,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               .isEmpty
                                                           ? const ClipboardIcon()
                                                           : const XIcon(),
-=======
-                                                  onTap: () async {
-                                                    final ClipboardData? data =
-                                                        await clipboard.getData(
-                                                      Clipboard.kTextPlain,
-                                                    );
-                                                    if (data?.text != null &&
-                                                        data!
-                                                            .text!.isNotEmpty) {
-                                                      String content =
-                                                          data.text!.trim();
-                                                      if (content
-                                                          .contains("\n")) {
-                                                        content =
-                                                            content.substring(
-                                                          0,
-                                                          content.indexOf(
-                                                            "\n",
-                                                          ),
-                                                        );
-                                                      }
-
-                                                      if (coin is Epiccash) {
-                                                        // strip http:// and https:// if content contains @
-                                                        content = AddressUtils()
-                                                            .formatAddress(
-                                                          content,
-                                                        );
-                                                      }
-                                                      if (coin
-                                                          is Mimblewimblecoin) {
-                                                        // strip http:// and https:// if content contains @
-                                                        content = AddressUtils()
-                                                            .formatAddress(
-                                                          content,
-                                                        );
-                                                      }
-                                                      sendToController.text =
-                                                          content.trim();
-                                                      _address = content.trim();
-
-                                                      _setValidAddressProviders(
-                                                        _address,
-                                                      );
-                                                      setState(() {
-                                                        _addressToggleFlag =
-                                                            sendToController
-                                                                .text
-                                                                .isNotEmpty;
-                                                      });
-                                                    }
-                                                  },
-                                                  child: sendToController
-                                                          .text.isEmpty
-                                                      ? const ClipboardIcon()
-                                                      : const XIcon(),
->>>>>>>
                                                 ),
                                             if (sendToController.text.isEmpty)
                                               TextFieldIconButton(
@@ -2288,15 +2230,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 ),
                               ),
-<<<<<<<
-                            if (coin is Epiccash) const SizedBox(height: 12),
-=======
-                            ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          if (coin is Epiccash || coin is Mimblewimblecoin)
->>>>>>>
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              const SizedBox(height: 12),
                             Text(
                               (coin is Epiccash)
                                   ? "Local Note (optional)"
@@ -2304,15 +2239,62 @@ class _SendViewState extends ConsumerState<SendView> {
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-<<<<<<<
-                            const SizedBox(height: 8),
-=======
-                          if (coin is Epiccash || coin is Mimblewimblecoin)
-                            const SizedBox(
-                              height: 8,
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              const SizedBox(height: 8),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  autocorrect: Util.isDesktop ? false : true,
+                                  enableSuggestions:
+                                      Util.isDesktop ? false : true,
+                                  controller: noteController,
+                                  focusNode: _noteFocusNode,
+                                  style: STextStyles.field(context),
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: standardInputDecoration(
+                                    "Type something...",
+                                    _noteFocusNode,
+                                    context,
+                                  ).copyWith(
+                                    suffixIcon:
+                                        noteController.text.isNotEmpty
+                                            ? Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 0,
+                                              ),
+                                              child: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    TextFieldIconButton(
+                                                      child: const XIcon(),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          noteController.text =
+                                                              "";
+                                                        });
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                            : null,
+                                  ),
+                                ),
+                              ),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              const SizedBox(height: 12),
+                            Text(
+                              (coin is Epiccash || coin is Mimblewimblecoin)
+                                  ? "Local Note (optional)"
+                                  : "Note (optional)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
                             ),
-                          if (coin is Epiccash || coin is Mimblewimblecoin)
->>>>>>>
+                            const SizedBox(height: 8),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -2356,73 +2338,25 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
-<<<<<<<
                             const SizedBox(height: 12),
-                            if (hasFees)
+                            if (coin is! Epiccash &&
+                                coin is! Mimblewimblecoin &&
+                                coin is! NanoCurrency &&
+                                coin is! Tezos)
                               Text(
-                                "Transaction fee ${isEth
-                                    ? isCustomFee.value
-                                        ? ""
-                                        : "(max)"
-                                    : "(estimated)"}",
+                                "Transaction fee (estimated)",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
-=======
-                          if (coin is Epiccash || coin is Mimblewimblecoin)
-                            const SizedBox(
-                              height: 12,
-                            ),
-                          Text(
-                            (coin is Epiccash || coin is Mimblewimblecoin)
-                                ? "Local Note (optional)"
-                                : "Note (optional)",
-                            style: STextStyles.smallMed12(context),
-                            textAlign: TextAlign.left,
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                            child: TextField(
-                              autocorrect: Util.isDesktop ? false : true,
-                              enableSuggestions: Util.isDesktop ? false : true,
-                              controller: noteController,
-                              focusNode: _noteFocusNode,
-                              style: STextStyles.field(context),
-                              onChanged: (_) => setState(() {}),
-                              decoration: standardInputDecoration(
-                                "Type something...",
-                                _noteFocusNode,
-                                context,
-                              ).copyWith(
-                                suffixIcon: noteController.text.isNotEmpty
-                                    ? Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 0),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    noteController.text = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    : null,
->>>>>>>
                               ),
-<<<<<<<
-                            if (hasFees) const SizedBox(height: 8),
-                            if (hasFees)
+                            if (coin is! Epiccash &&
+                                coin is! Mimblewimblecoin &&
+                                coin is! NanoCurrency &&
+                                coin is! Tezos)
+                              const SizedBox(height: 8),
+                            if (coin is! Epiccash &&
+                                coin is! Mimblewimblecoin &&
+                                coin is! NanoCurrency &&
+                                coin is! Tezos)
                               Stack(
                                 children: [
                                   TextField(
@@ -2432,192 +2366,160 @@ class _SendViewState extends ConsumerState<SendView> {
                                     controller: feeController,
                                     readOnly: true,
                                     textInputAction: TextInputAction.none,
-=======
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          if (coin is! Epiccash &&
-                              coin is! Mimblewimblecoin &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
-                            Text(
-                              "Transaction fee (estimated)",
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                          if (coin is! Epiccash &&
-                              coin is! Mimblewimblecoin &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
-                            const SizedBox(
-                              height: 8,
-                            ),
-                          if (coin is! Epiccash &&
-                              coin is! Mimblewimblecoin &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
-                            Stack(
-                              children: [
-                                TextField(
-                                  autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
-                                  controller: feeController,
-                                  readOnly: true,
-                                  textInputAction: TextInputAction.none,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
->>>>>>>
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                     ),
-                                    child: RawMaterialButton(
-                                      splashColor:
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.highlight,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
                                       ),
-                                      onPressed:
-                                          isFiro &&
-                                                  ref
-                                                          .watch(
-                                                            publicPrivateBalanceStateProvider
-                                                                .state,
-                                                          )
-                                                          .state !=
-                                                      BalanceType.public
-                                              ? null
-                                              : _onFeeSelectPressed,
-                                      child:
-                                          (isFiro &&
-                                                  ref
-                                                          .watch(
-                                                            publicPrivateBalanceStateProvider
-                                                                .state,
-                                                          )
-                                                          .state !=
-                                                      BalanceType.public)
-                                              ? Row(
-                                                children: [
-                                                  FutureBuilder(
-                                                    future:
-                                                        _calculateFeesFuture,
-                                                    builder: (
-                                                      context,
-                                                      snapshot,
-                                                    ) {
-                                                      if (snapshot.connectionState ==
-                                                              ConnectionState
-                                                                  .done &&
-                                                          snapshot.hasData) {
-                                                        _setCurrentFee(
-                                                          snapshot.data!,
-                                                          false,
-                                                        );
-                                                        return Text(
-                                                          "~${snapshot.data!}",
-                                                          style:
-                                                              STextStyles.itemSubtitle(
-                                                                context,
-                                                              ),
-                                                        );
-                                                      } else {
-                                                        return AnimatedText(
-                                                          stringsToLoopThrough:
-                                                              stringsToLoopThrough,
-                                                          style:
-                                                              STextStyles.itemSubtitle(
-                                                                context,
-                                                              ),
-                                                        );
-                                                      }
-                                                    },
-                                                  ),
-                                                ],
-                                              )
-                                              : Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Text(
-                                                        ref
+                                      child: RawMaterialButton(
+                                        splashColor:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .highlight,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            Constants.size.circularBorderRadius,
+                                          ),
+                                        ),
+                                        onPressed:
+                                            isFiro &&
+                                                    ref
                                                             .watch(
-                                                              feeRateTypeMobileStateProvider
+                                                              publicPrivateBalanceStateProvider
                                                                   .state,
                                                             )
-                                                            .state
-                                                            .prettyName,
-                                                        style:
-                                                            STextStyles.itemSubtitle12(
-                                                              context,
-                                                            ),
-                                                      ),
-                                                      const SizedBox(width: 10),
-                                                      FutureBuilder(
-                                                        future:
-                                                            _calculateFeesFuture,
-                                                        builder: (
-                                                          context,
-                                                          snapshot,
-                                                        ) {
-                                                          if (snapshot.connectionState ==
-                                                                  ConnectionState
-                                                                      .done &&
-                                                              snapshot
-                                                                  .hasData) {
-                                                            _setCurrentFee(
-                                                              snapshot.data!,
-                                                              false,
-                                                            );
-                                                            return Text(
-                                                              isCustomFee.value
-                                                                  ? ""
-                                                                  : "~${snapshot.data!}",
-                                                              style:
-                                                                  STextStyles.itemSubtitle(
-                                                                    context,
-                                                                  ),
-                                                            );
-                                                          } else {
-                                                            return AnimatedText(
-                                                              stringsToLoopThrough:
-                                                                  stringsToLoopThrough,
-                                                              style:
-                                                                  STextStyles.itemSubtitle(
-                                                                    context,
-                                                                  ),
-                                                            );
-                                                          }
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SvgPicture.asset(
-                                                    Assets.svg.chevronDown,
-                                                    width: 8,
-                                                    height: 4,
-                                                    color:
-                                                        Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .textSubtitle2,
-                                                  ),
-                                                ],
-                                              ),
+                                                            .state !=
+                                                        BalanceType.public
+                                                ? null
+                                                : _onFeeSelectPressed,
+                                        child:
+                                            (isFiro &&
+                                                    ref
+                                                            .watch(
+                                                              publicPrivateBalanceStateProvider
+                                                                  .state,
+                                                            )
+                                                            .state !=
+                                                        BalanceType.public)
+                                                ? Row(
+                                                  children: [
+                                                    FutureBuilder(
+                                                      future:
+                                                          _calculateFeesFuture,
+                                                      builder: (
+                                                        context,
+                                                        snapshot,
+                                                      ) {
+                                                        if (snapshot.connectionState ==
+                                                                ConnectionState
+                                                                    .done &&
+                                                            snapshot.hasData) {
+                                                          _setCurrentFee(
+                                                            snapshot.data!,
+                                                            false,
+                                                          );
+                                                          return Text(
+                                                            "~${snapshot.data!}",
+                                                            style:
+                                                                STextStyles.itemSubtitle(
+                                                                  context,
+                                                                ),
+                                                          );
+                                                        } else {
+                                                          return AnimatedText(
+                                                            stringsToLoopThrough:
+                                                                stringsToLoopThrough,
+                                                            style:
+                                                                STextStyles.itemSubtitle(
+                                                                  context,
+                                                                ),
+                                                          );
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
+                                                )
+                                                : Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          ref
+                                                              .watch(
+                                                                feeRateTypeMobileStateProvider
+                                                                    .state,
+                                                              )
+                                                              .state
+                                                              .prettyName,
+                                                          style:
+                                                              STextStyles.itemSubtitle12(
+                                                                context,
+                                                              ),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 10,
+                                                        ),
+                                                        FutureBuilder(
+                                                          future:
+                                                              _calculateFeesFuture,
+                                                          builder: (
+                                                            context,
+                                                            snapshot,
+                                                          ) {
+                                                            if (snapshot.connectionState ==
+                                                                    ConnectionState
+                                                                        .done &&
+                                                                snapshot
+                                                                    .hasData) {
+                                                              _setCurrentFee(
+                                                                snapshot.data!,
+                                                                false,
+                                                              );
+                                                              return Text(
+                                                                isCustomFee
+                                                                        .value
+                                                                    ? ""
+                                                                    : "~${snapshot.data!}",
+                                                                style:
+                                                                    STextStyles.itemSubtitle(
+                                                                      context,
+                                                                    ),
+                                                              );
+                                                            } else {
+                                                              return AnimatedText(
+                                                                stringsToLoopThrough:
+                                                                    stringsToLoopThrough,
+                                                                style:
+                                                                    STextStyles.itemSubtitle(
+                                                                      context,
+                                                                    ),
+                                                              );
+                                                            }
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SvgPicture.asset(
+                                                      Assets.svg.chevronDown,
+                                                      width: 8,
+                                                      height: 4,
+                                                      color:
+                                                          Theme.of(context)
+                                                              .extension<
+                                                                StackColors
+                                                              >()!
+                                                              .textSubtitle2,
+                                                    ),
+                                                  ],
+                                                ),
+                                      ),
                                     ),
                                   ),
                                 ],

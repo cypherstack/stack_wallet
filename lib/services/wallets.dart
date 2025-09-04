@@ -26,9 +26,9 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
+import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
-import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/wallet.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
@@ -138,9 +138,8 @@ class Wallets {
         walletId: walletId,
         secureStore: secureStorage,
       );
-      Logging.instance.log(
+      Logging.instance.i(
         "Mimblewimblecoin wallet: $walletId deleted with result: $deleteResult",
-        level: LogLevel.Info,
       );
     }
 

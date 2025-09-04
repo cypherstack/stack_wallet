@@ -165,7 +165,8 @@ import 'pages/wallet_view/transaction_views/transaction_search_filter_view.dart'
 import 'pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/boost_transaction_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
-import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tvd;
 import 'pages/wallet_view/wallet_view.dart';
 import 'pages/wallets_view/wallets_overview.dart';
 import 'pages/wallets_view/wallets_view.dart';
@@ -1614,13 +1615,13 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case TransactionV2DetailsView.routeName:
+      case tvd.TransactionV2DetailsView.routeName:
         if (args
             is ({TransactionV2 tx, CryptoCurrency coin, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder:
-                (_) => TransactionV2DetailsView(
+                (_) => tvd.TransactionV2DetailsView(
                   transaction: args.tx,
                   coin: args.coin,
                   walletId: args.walletId,

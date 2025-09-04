@@ -1228,7 +1228,7 @@ class _TransactionV2DetailsViewState
                                 padding:
                                     isDesktop
                                         ? const EdgeInsets.all(16)
-                                        : const EdgeInsets.all(12),
+e                                        : const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
