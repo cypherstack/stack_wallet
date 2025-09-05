@@ -61,7 +61,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
     coin = wallet.info.coin;
     isFrost = wallet is BitcoinFrostWallet;
     isEth = coin is Ethereum;
-
+    isMimblewimblecoin = coin is Mimblewimblecoin;
 
     if (isMimblewimblecoin) {
       titles.add("Finalize");
