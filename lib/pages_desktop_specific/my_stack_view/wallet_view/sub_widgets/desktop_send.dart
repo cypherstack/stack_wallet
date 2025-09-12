@@ -571,18 +571,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             recipients: [
               TxRecipient(
-                address:
-                    coin is Mimblewimblecoin &&
-                            _selectedMethodMwc == "Slatepack"
-                        ? "BEGINSLATEPACK. .ENDSLATEPACK" // TODO: This is a hack so that the address validation does not fail.  Need to handle this better.
-                        : _address!,
+                address: _address!,
                 amount: amount,
                 isChange: false,
-                addressType:
-                    coin is Mimblewimblecoin &&
-                            _selectedMethodMwc == "Slatepack"
-                        ? AddressType.mimbleWimble
-                        : wallet.cryptoCurrency.getAddressType(_address!)!,
+                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
             memo: memo,
