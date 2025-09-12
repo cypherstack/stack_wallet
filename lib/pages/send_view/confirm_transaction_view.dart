@@ -162,6 +162,13 @@ class _ConfirmTransactionViewState
       Logging.instance.e('Failed to create MWC slatepack: $e\n$s');
 
       if (context.mounted) {
+        // Show user-friendly error message.
+        final errorMessage = e.toString().contains('insufficient funds')
+            ? 'Insufficient funds for this transaction'
+            : e.toString().contains('wallet not open')
+            ? 'Wallet not accessible. Please restart the app.'
+            : 'Failed to create slatepack: ${e.toString()}';
+
         await showDialog<void>(
           context: context,
           builder:
