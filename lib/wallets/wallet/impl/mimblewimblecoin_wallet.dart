@@ -280,7 +280,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       }
 
       final mwcmqsConfig = await getMwcMqsConfig();
-      await MwcWalletService.startMwcqsListener(
+      await MwcWalletService.startMwcmqsListener(
         walletId: walletId,
         config: mwcmqsConfig,
       );
@@ -293,7 +293,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Stop MWCMQS listener.
   Future<void> stopSlatepackListener() async {
     try {
-      await MwcWalletService.stopMwcqsListener();
+      await MwcWalletService.stopMwcmqsListener();
     } catch (e, s) {
       Logging.instance.e('Failed to stop slatepack listener: $e\n$s');
     }
@@ -359,8 +359,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       final String slateId = "${slateData['id'] ?? ''}";
       final String? amountStr = slateData['amount']?.toString();
 
-      print(121212);
-      print(slateData);
+      Logging.instance.d('Analyzed slatepack with ID: $slateId');
 
       // Determine slate status from the slate structure
       String status = 'Unknown';

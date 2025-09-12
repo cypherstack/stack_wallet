@@ -348,7 +348,7 @@ class MwcWalletService {
   }
 
   /// Start MWCMQS listener.
-  static Future<void> startMwcqsListener({
+  static Future<void> startMwcmqsListener({
     required String walletId,
     MwcMqsConfigModel? config,
   }) async {
@@ -377,7 +377,7 @@ class MwcWalletService {
   }
 
   /// Stop MWCMQS listener.
-  static Future<void> stopMwcqsListener() async {
+  static Future<void> stopMwcmqsListener() async {
     try {
       Logging.instance.i('Stopping MWCMQS listener');
 
@@ -390,7 +390,7 @@ class MwcWalletService {
   }
 
   /// Get MWCMQS address for wallet.
-  static Future<String> getMwcqsAddress({
+  static Future<String> getMwcmqsAddress({
     required String walletId,
     int index = 0,
   }) async {
@@ -404,6 +404,10 @@ class MwcWalletService {
         wallet: handle,
         index: index,
       );
+
+      if (address.isEmpty) {
+        throw Exception('Failed to generate MWCMQS address');
+      }
 
       return address;
     } catch (e, s) {
