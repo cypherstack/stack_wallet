@@ -290,8 +290,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     // Handle MWC slatepack transactions directly.
-    if (isMimblewimblecoin && 
-        ref.read(pSelectedMwcTransactionMethod) == TransactionMethod.slatepack) {
+    if (isMimblewimblecoin &&
+        ref.read(pSelectedMwcTransactionMethod) ==
+            TransactionMethod.slatepack) {
       await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
       return;
     }
@@ -1632,7 +1633,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 height: 1.8,
               ),
               decoration: standardInputDecoration(
-                ref.watch(pSelectedMwcTransactionMethod) == TransactionMethod.slatepack
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                        TransactionMethod.slatepack
                     ? "Enter ${coin.ticker} address (optional)"
                     : "Enter ${coin.ticker} address",
                 _addressFocusNode,
@@ -1933,7 +1935,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
-          label: "Preview send",
+          label:
+              ref.read(pSelectedMwcTransactionMethod) ==
+                      TransactionMethod.slatepack
+                  ? "Create slatepack"
+                  : "Preview send",
           enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
           onPressed:
               ref.watch(pPreviewTxButtonEnabled(coin)) ? previewSend : null,
