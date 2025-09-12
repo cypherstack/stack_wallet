@@ -7,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../notifications/show_flush_bar.dart';
-import '../../../services/mwc_wallet_service.dart';
+import '../../../models/mwc_slatepack_models.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';

@@ -26,7 +26,7 @@ import '../../../services/event_bus/events/global/node_connection_status_changed
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
-import '../../../services/mwc_wallet_service.dart';
+import '../../../models/mwc_slatepack_models.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
@@ -77,9 +77,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       value: stringConfig,
     );
     
-    // Restart MWCMQS listener with new configuration if wallet is active.
+    // Restart MWCMQS listener with new configuration if wallet has a handle.
     try {
-      if (MwcWalletService.isWalletOpen(walletId)) {
+      final handle = await secureStorageInterface.read(key: '${walletId}_wallet');
+      if (handle != null && handle.isNotEmpty) {
         await stopSlatepackListener();
         await startSlatepackListener();
         Logging.instance.i('Restarted MWCMQS listener with new config: $host:$port');
@@ -87,6 +88,23 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     } catch (e, s) {
       Logging.instance.e('Failed to restart MWCMQS listener after config update: $e\n$s');
     }
+  }
+
+  Future<String> _ensureWalletOpen() async {
+    final existing = await secureStorageInterface.read(key: '${walletId}_wallet');
+    if (existing != null && existing.isNotEmpty) return existing;
+
+    final config = await _getRealConfig();
+    final password = await secureStorageInterface.read(key: '${walletId}_password');
+    if (password == null) {
+      throw Exception('Wallet password not found');
+    }
+    final opened = await mimblewimblecoin.Libmwc.openWallet(
+      config: config,
+      password: password,
+    );
+    await secureStorageInterface.write(key: '${walletId}_wallet', value: opened);
+    return opened;
   }
 
   /// Returns an empty String on success, error message on failure.
@@ -145,35 +163,32 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     int? minimumConfirmations,
   }) async {
     try {
-      await MwcWalletService.initialize();
+      final handle = await _ensureWalletOpen();
 
-      // Ensure wallet is open in service.
-      if (!MwcWalletService.isWalletOpen(walletId)) {
-        final password = await secureStorageInterface.read(
-          key: '${walletId}_password',
-        );
-        if (password == null) {
-          throw Exception('Wallet password not found');
-        }
-
-        final openResult = await MwcWalletService.openWallet(
-          walletId: walletId,
-          password: password,
-        );
-
-        if (!openResult.success) {
-          throw Exception(openResult.error ?? 'Failed to open wallet');
-        }
-      }
-
-      return await MwcWalletService.createSlatepack(
-        walletId: walletId,
-        amount: amount,
-        recipientAddress: recipientAddress,
-        message: message,
-        encrypt: encrypt,
+      // Generate S1 slate JSON.
+      final s1Json = await mimblewimblecoin.Libmwc.txInit(
+        wallet: handle,
+        amount: amount.raw.toInt(),
         minimumConfirmations:
             minimumConfirmations ?? cryptoCurrency.minConfirms,
+        selectionStrategyIsAll: false,
+        message: message ?? '',
+      );
+
+      // Encode to slatepack.
+      final encoded = await mimblewimblecoin.Libmwc.encodeSlatepack(
+        slateJson: s1Json,
+        recipientAddress: recipientAddress,
+        encrypt: encrypt,
+        wallet: handle,
+      );
+
+      return SlatepackResult(
+        success: true,
+        slatepack: encoded.slatepack,
+        slateJson: s1Json,
+        wasEncrypted: encoded.wasEncrypted,
+        recipientAddress: encoded.recipientAddress,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
@@ -184,10 +199,20 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Decode a slatepack.
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
     try {
-      await MwcWalletService.initialize();
-      return await MwcWalletService.decodeSlatepack(
-        slatepack: slatepack,
-        walletId: MwcWalletService.isWalletOpen(walletId) ? walletId : null,
+      final handle = await secureStorageInterface.read(key: '${walletId}_wallet');
+      final result = handle != null
+          ? await mimblewimblecoin.Libmwc.decodeSlatepackWithWallet(
+              wallet: handle,
+              slatepack: slatepack,
+            )
+          : await mimblewimblecoin.Libmwc.decodeSlatepack(slatepack: slatepack);
+
+      return SlatepackDecodeResult(
+        success: true,
+        slateJson: result.slateJson,
+        wasEncrypted: result.wasEncrypted,
+        senderAddress: result.senderAddress,
+        recipientAddress: result.recipientAddress,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to decode slatepack: $e\n$s');
@@ -198,30 +223,35 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Receive a slatepack and return response slatepack.
   Future<ReceiveResult> receiveSlatepack(String slatepack) async {
     try {
-      await MwcWalletService.initialize();
+      final handle = await _ensureWalletOpen();
 
-      // Ensure wallet is open in service.
-      if (!MwcWalletService.isWalletOpen(walletId)) {
-        final password = await secureStorageInterface.read(
-          key: '${walletId}_password',
-        );
-        if (password == null) {
-          throw Exception('Wallet password not found');
-        }
-
-        final openResult = await MwcWalletService.openWallet(
-          walletId: walletId,
-          password: password,
-        );
-
-        if (!openResult.success) {
-          throw Exception(openResult.error ?? 'Failed to open wallet');
-        }
-      }
-
-      return await MwcWalletService.receiveSlatepack(
-        walletId: walletId,
+      // Decode to get slate JSON and sender address.
+      final decoded = await mimblewimblecoin.Libmwc.decodeSlatepackWithWallet(
+        wallet: handle,
         slatepack: slatepack,
+      );
+
+      // Receive and get updated slate JSON.
+      final received = await mimblewimblecoin.Libmwc.txReceiveDetailed(
+        wallet: handle,
+        slateJson: decoded.slateJson!,
+      );
+
+      // Encode response back to sender if address available.
+      final encoded = await mimblewimblecoin.Libmwc.encodeSlatepack(
+        slateJson: received.slateJson,
+        recipientAddress: decoded.senderAddress,
+        encrypt: decoded.senderAddress != null,
+        wallet: handle,
+      );
+
+      return ReceiveResult(
+        success: true,
+        slateId: received.slateId,
+        commitId: received.commitId,
+        responseSlatepack: encoded.slatepack,
+        wasEncrypted: encoded.wasEncrypted,
+        recipientAddress: decoded.senderAddress,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to receive slatepack: $e\n$s');
@@ -232,30 +262,24 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Finalize a slatepack (sender step 3).
   Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
     try {
-      await MwcWalletService.initialize();
+      final handle = await _ensureWalletOpen();
 
-      // Ensure wallet is open in service.
-      if (!MwcWalletService.isWalletOpen(walletId)) {
-        final password = await secureStorageInterface.read(
-          key: '${walletId}_password',
-        );
-        if (password == null) {
-          throw Exception('Wallet password not found');
-        }
-
-        final openResult = await MwcWalletService.openWallet(
-          walletId: walletId,
-          password: password,
-        );
-
-        if (!openResult.success) {
-          throw Exception(openResult.error ?? 'Failed to open wallet');
-        }
-      }
-
-      return await MwcWalletService.finalizeSlatepack(
-        walletId: walletId,
+      // Decode to get slate JSON.
+      final decoded = await mimblewimblecoin.Libmwc.decodeSlatepackWithWallet(
+        wallet: handle,
         slatepack: slatepack,
+      );
+
+      // Finalize transaction.
+      final finalized = await mimblewimblecoin.Libmwc.txFinalize(
+        wallet: handle,
+        slateJson: decoded.slateJson!,
+      );
+
+      return FinalizeResult(
+        success: true,
+        slateId: finalized.slateId,
+        commitId: finalized.commitId,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');
@@ -266,30 +290,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Start MWCMQS listener for automatic transaction processing.
   Future<void> startSlatepackListener() async {
     try {
-      await MwcWalletService.initialize();
-
-      if (!MwcWalletService.isWalletOpen(walletId)) {
-        final password = await secureStorageInterface.read(
-          key: '${walletId}_password',
-        );
-        if (password == null) {
-          throw Exception('Wallet password not found');
-        }
-
-        final openResult = await MwcWalletService.openWallet(
-          walletId: walletId,
-          password: password,
-        );
-
-        if (!openResult.success) {
-          throw Exception(openResult.error ?? 'Failed to open wallet');
-        }
-      }
-
+      await _ensureWalletOpen();
       final mwcmqsConfig = await getMwcMqsConfig();
-      await MwcWalletService.startMwcmqsListener(
-        walletId: walletId,
-        config: mwcmqsConfig,
+      final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+      mimblewimblecoin.Libmwc.startMwcMqsListener(
+        wallet: wallet!,
+        mwcmqsConfig: mwcmqsConfig.toString(),
       );
     } catch (e, s) {
       Logging.instance.e('Failed to start slatepack listener: $e\n$s');
@@ -300,7 +306,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Stop MWCMQS listener.
   Future<void> stopSlatepackListener() async {
     try {
-      await MwcWalletService.stopMwcmqsListener();
+      mimblewimblecoin.Libmwc.stopMwcMqsListener();
     } catch (e, s) {
       Logging.instance.e('Failed to stop slatepack listener: $e\n$s');
     }
@@ -308,7 +314,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   /// Validate MWC address.
   bool validateMwcAddress(String address) {
-    return MwcWalletService.validateAddress(address);
+    return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
   }
 
   /// Detect if an address is a slatepack.
@@ -792,8 +798,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<void> init({bool? isRestore}) async {
-    // Initialize MWC wallet service.
-    await MwcWalletService.initialize();
 
     if (isRestore != true) {
       String? encodedWallet = await secureStorageInterface.read(
