@@ -30,10 +30,13 @@ class MwcTxsMethodToggle extends ConsumerWidget {
 
     return Toggle(
       onValueChanged: (value) {
+        // Align visual labels with callback semantics:
+        // When the toggle shows "Slatepack" (on), emit slatepack.
+        // When it shows "Automatic" (off), emit automatic.
         if (value) {
-          onChanged?.call(TxsMethodMwcType.automatic);
-        } else {
           onChanged?.call(TxsMethodMwcType.slatepack);
+        } else {
+          onChanged?.call(TxsMethodMwcType.automatic);
         }
       },
       isOn: false,

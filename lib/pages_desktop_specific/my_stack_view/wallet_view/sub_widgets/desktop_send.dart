@@ -1078,10 +1078,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     isMimblewimblecoin = coin is Mimblewimblecoin;
     if (isMimblewimblecoin) {
       _selectedMethodMwc = "Slatepack";
-      // Initialize provider to MWCMQS (automatic method).
+      // Initialize provider to match the UI (slatepack method).
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(pSelectedMwcTransactionMethod.notifier).state =
-            TransactionMethod.mwcmqs;
+            TransactionMethod.slatepack;
       });
     }
 
@@ -1255,14 +1255,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     setState(() {
                       _selectedMethodMwc =
                           type == TxsMethodMwcType.slatepack
-                              ? 'Slatepack'
-                              : 'Automatic';
+                              ? 'Automatic'
+                              : 'Slatepack';
                     });
                     // Update the provider as well.
                     ref.read(pSelectedMwcTransactionMethod.notifier).state =
                         type == TxsMethodMwcType.slatepack
-                            ? TransactionMethod.slatepack
-                            : TransactionMethod.mwcmqs;
+                            ? TransactionMethod.mwcmqs
+                            : TransactionMethod.slatepack;
                   },
                 ),
               ),
@@ -1568,9 +1568,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         const SizedBox(height: 20),
-        // Hide "Send to" field for MWC slatepack transactions.
-        if (!isPaynymSend &&
-            !(isMimblewimblecoin && _selectedMethodMwc == 'Slatepack'))
+        if (!isPaynymSend)
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1581,11 +1579,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (!isPaynymSend &&
-            !(isMimblewimblecoin && _selectedMethodMwc == 'Slatepack'))
-          const SizedBox(height: 10),
-        if (!isPaynymSend &&
-            !(isMimblewimblecoin && _selectedMethodMwc == 'Slatepack'))
+        if (!isPaynymSend) const SizedBox(height: 10),
+        if (!isPaynymSend)
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1643,7 +1638,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 height: 1.8,
               ),
               decoration: standardInputDecoration(
-                "Enter ${coin.ticker} address",
+                _selectedMethodMwc == "Slatepack" ||
+                        _selectedMethodMwc == null ||
+                        _selectedMethodMwc == ""
+                    ? "Enter ${coin.ticker} address (optional)"
+                    : "Enter ${coin.ticker} address",
                 _addressFocusNode,
                 context,
                 desktopMed: true,

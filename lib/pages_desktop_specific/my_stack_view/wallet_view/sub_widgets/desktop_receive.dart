@@ -496,7 +496,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   onChanged: (TxsMethodMwcType type) {
                     setState(() {
                       _selectedMethodMwc =
-                          type == TxsMethodMwcType.automatic
+                          type == TxsMethodMwcType.slatepack
                               ? 'Slatepack'
                               : 'Automatic';
                     });
