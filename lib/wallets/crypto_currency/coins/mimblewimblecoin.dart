@@ -64,8 +64,7 @@ class Mimblewimblecoin extends Bip39Currency {
         (uri.scheme == "http" ||
             uri.scheme == "https" ||
             uri.scheme == "mwcmqs") &&
-        uri.host.isNotEmpty &&
-        !uri.host.endsWith(".onion")) {
+        uri.host.isNotEmpty) {
       return true;
     }
 
