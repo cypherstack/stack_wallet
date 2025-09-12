@@ -20,10 +20,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
+import '../../../../models/mwc_transaction_method.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../../../pages/send_view/sub_widgets/mwc_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
@@ -50,6 +52,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -116,7 +119,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final bool isStellar;
   late final bool isMimblewimblecoin;
 
-  String? _selectedMethodMwc;
+  String? _selectedMethodMwc = 'Slatepack';
   String? _note;
   String? _onChainNote;
 
@@ -164,8 +167,134 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  /// Handle MWC slatepack creation for desktop.
+  Future<void> _handleDesktopSlatepackCreation(
+    MimblewimblecoinWallet wallet,
+  ) async {
+    try {
+      final amount = ref.read(pSendAmount)!;
+
+      // Show building dialog.
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => BuildingTransactionDialog(
+                coin: coin,
+                onCancel:
+                    () => Navigator.of(context, rootNavigator: true).pop(),
+                isSpark: false,
+              ),
+        ),
+      );
+
+      // Create slatepack.
+      final slatepackResult = await wallet.createSlatepack(
+        amount: amount,
+        recipientAddress: null, // No specific recipient for manual slatepack.
+        message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
+        encrypt: false, // No encryption without recipient address.
+      );
+
+      // Close building dialog.
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (!slatepackResult.success || slatepackResult.slatepack == null) {
+        throw Exception(slatepackResult.error ?? 'Failed to create slatepack');
+      }
+
+      // Show slatepack dialog.
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => DesktopDialog(
+                maxHeight: MediaQuery.of(context).size.height - 64,
+                maxWidth: 700,
+                child: MwcSlatepackDialog(slatepackResult: slatepackResult),
+              ),
+        );
+
+        // Clear form after slatepack dialog is closed.
+        clearSendForm();
+      }
+    } catch (e, s) {
+      Logging.instance.e('Failed to create MWC slatepack on desktop: $e\n$s');
+
+      // Close building dialog if still open.
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder:
+              (context) => DesktopDialog(
+                maxWidth: 450,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 32, bottom: 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Slatepack Creation Failed',
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 32),
+                        child: Text(
+                          'Failed to create slatepack: $e',
+                          textAlign: TextAlign.left,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ).copyWith(fontSize: 18),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 32),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: PrimaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                label: 'OK',
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        );
+      }
+    }
+  }
+
   Future<void> previewSend() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
+
+    // Handle MWC slatepack transactions directly.
+    if (isMimblewimblecoin && _selectedMethodMwc == 'Slatepack') {
+      await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
+      return;
+    }
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
@@ -442,10 +571,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: _address!,
+                address:
+                    coin is Mimblewimblecoin &&
+                            _selectedMethodMwc == "Slatepack"
+                        ? "BEGINSLATEPACK. .ENDSLATEPACK" // TODO: This is a hack so that the address validation does not fail.  Need to handle this better.
+                        : _address!,
                 amount: amount,
                 isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+                addressType:
+                    coin is Mimblewimblecoin &&
+                            _selectedMethodMwc == "Slatepack"
+                        ? AddressType.mimbleWimble
+                        : wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
             memo: memo,
@@ -949,6 +1086,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     isMimblewimblecoin = coin is Mimblewimblecoin;
     if (isMimblewimblecoin) {
       _selectedMethodMwc = "Slatepack";
+      // Initialize provider to MWCMQS (automatic method).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(pSelectedMwcTransactionMethod.notifier).state =
+            TransactionMethod.mwcmqs;
+      });
     }
 
     sendToController = TextEditingController();
@@ -1120,10 +1262,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   onChanged: (TxsMethodMwcType type) {
                     setState(() {
                       _selectedMethodMwc =
-                          type == TxsMethodMwcType.automatic
+                          type == TxsMethodMwcType.slatepack
                               ? 'Slatepack'
                               : 'Automatic';
                     });
+                    // Update the provider as well.
+                    ref.read(pSelectedMwcTransactionMethod.notifier).state =
+                        type == TxsMethodMwcType.slatepack
+                            ? TransactionMethod.slatepack
+                            : TransactionMethod.mwcmqs;
                   },
                 ),
               ),
@@ -1429,7 +1576,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         const SizedBox(height: 20),
-        if (!isPaynymSend)
+        // Hide "Send to" field for MWC slatepack transactions.
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin && _selectedMethodMwc == 'Slatepack'))
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1440,8 +1589,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (!isPaynymSend) const SizedBox(height: 10),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin && _selectedMethodMwc == 'Slatepack'))
+          const SizedBox(height: 10),
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin && _selectedMethodMwc == 'Slatepack'))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,

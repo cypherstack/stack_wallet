@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
@@ -21,6 +22,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
+import '../../models/mwc_transaction_method.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
@@ -76,6 +78,7 @@ import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
+import 'sub_widgets/mwc_transaction_method_selector.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
@@ -144,6 +147,9 @@ class _SendViewState extends ConsumerState<SendView> {
   late VoidCallback onCryptoAmountChanged;
 
   Set<StandardInput> selectedUTXOs = {};
+
+  // MWC transaction method selection.
+  TransactionMethod? _selectedTransactionMethod;
 
   void _applyUri(PaymentUriData paymentData) {
     try {
@@ -846,6 +852,40 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       } else {
         final memo = coin is Stellar ? memoController.text : null;
+
+        // For MWC, determine transaction method and add it to otherData.
+        Map<String, dynamic>? otherData;
+        if (coin is Mimblewimblecoin) {
+          String transactionMethod = 'slatepack'; // Default to slatepack.
+
+          if (_selectedTransactionMethod != null) {
+            switch (_selectedTransactionMethod!) {
+              case TransactionMethod.slatepack:
+                transactionMethod = 'slatepack';
+                break;
+              case TransactionMethod.mwcmqs:
+                transactionMethod = 'mwcmqs';
+                break;
+              case TransactionMethod.http:
+                transactionMethod = 'http';
+                break;
+              case TransactionMethod.unknown:
+                // Auto-detect from address format.
+                final mwcCoin = coin as Mimblewimblecoin;
+                final method = mwcCoin.getTransactionMethod(_address!);
+                transactionMethod = method.toString().split('.').last;
+                break;
+            }
+          } else {
+            // Auto-detect from address format if no method selected.
+            final mwcCoin = coin as Mimblewimblecoin;
+            final method = mwcCoin.getTransactionMethod(_address!);
+            transactionMethod = method.toString().split('.').last;
+          }
+
+          otherData = {'transactionMethod': transactionMethod};
+        }
+
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -860,6 +900,10 @@ class _SendViewState extends ConsumerState<SendView> {
             feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
             ethEIP1559Fee: ethFee,
+            otherData:
+                otherData != null
+                    ? jsonEncode(otherData)
+                    : null, // Include MWC transaction method info.
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
@@ -1091,6 +1135,12 @@ class _SendViewState extends ConsumerState<SendView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
+
+      // Initialize MWC transaction method to default (non-slatepack).
+      if (coin is Mimblewimblecoin) {
+        ref.read(pSelectedMwcTransactionMethod.notifier).state =
+            null; // No method selected initially.
+      }
     });
     isCustomFee.addListener(() {
       if (!isCustomFee.value) {
@@ -1483,186 +1533,222 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  isPaynymSend
-                                      ? "Send to PayNym address"
-                                      : "Send to",
-                                  style: STextStyles.smallMed12(context),
-                                  textAlign: TextAlign.left,
-                                ),
-                                // if (coin is Monero)
-                                //   CustomTextButton(
-                                //     text: "Use OpenAlias",
-                                //     onTap: () async {
-                                //       await showModalBottomSheet(
-                                //         context: context,
-                                //         builder: (context) =>
-                                //             OpenAliasBottomSheet(
-                                //           onSelected: (address) {
-                                //             sendToController.text = address;
-                                //           },
-                                //         ),
-                                //       );
-                                //     },
-                                //   ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            if (isPaynymSend)
-                              TextField(
-                                key: const Key("sendViewPaynymAddressFieldKey"),
-                                controller: sendToController,
-                                enabled: false,
-                                readOnly: true,
-                                style: STextStyles.fieldLabel(context),
-                              ),
-                            if (!isPaynymSend)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                                child: TextField(
-                                  key: const Key("sendViewAddressFieldKey"),
-                                  controller: sendToController,
-                                  readOnly: false,
-                                  autocorrect: false,
-                                  enableSuggestions: false,
-                                  // inputFormatters: <TextInputFormatter>[
-                                  //   FilteringTextInputFormatter.allow(
-                                  //       RegExp("[a-zA-Z0-9]{34}")),
-                                  // ],
-                                  toolbarOptions: const ToolbarOptions(
-                                    copy: false,
-                                    cut: false,
-                                    paste: true,
-                                    selectAll: false,
-                                  ),
-                                  onChanged: (newValue) async {
-                                    final trimmed = newValue.trim();
 
-                                    if ((trimmed.length -
-                                                (_address?.length ?? 0))
-                                            .abs() >
-                                        1) {
-                                      final parsed =
-                                          AddressUtils.parsePaymentUri(
-                                            trimmed,
-                                            logging: Logging.instance,
+                            // MWC Transaction Method Selector (moved before "Send to" field).
+                            if (coin is Mimblewimblecoin) ...[
+                              MwcTransactionMethodSelector(
+                                onMethodSelected: (method) {
+                                  setState(() {
+                                    _selectedTransactionMethod = method;
+                                  });
+                                  // Update the provider as well.
+                                  ref
+                                      .read(
+                                        pSelectedMwcTransactionMethod.notifier,
+                                      )
+                                      .state = method;
+                                },
+                                selectedMethod: _selectedTransactionMethod,
+                                addressText: sendToController.text.trim(),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
+                            // Hide "Send to" field for MWC slatepack transactions.
+                            if (!(coin is Mimblewimblecoin &&
+                                _selectedTransactionMethod ==
+                                    TransactionMethod.slatepack)) ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    isPaynymSend
+                                        ? "Send to PayNym address"
+                                        : "Send to",
+                                    style: STextStyles.smallMed12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  // if (coin is Monero)
+                                  //   CustomTextButton(
+                                  //     text: "Use OpenAlias",
+                                  //     onTap: () async {
+                                  //       await showModalBottomSheet(
+                                  //         context: context,
+                                  //         builder: (context) =>
+                                  //             OpenAliasBottomSheet(
+                                  //           onSelected: (address) {
+                                  //             sendToController.text = address;
+                                  //           },
+                                  //         ),
+                                  //       );
+                                  //     },
+                                  //   ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              if (isPaynymSend)
+                                TextField(
+                                  key: const Key(
+                                    "sendViewPaynymAddressFieldKey",
+                                  ),
+                                  controller: sendToController,
+                                  enabled: false,
+                                  readOnly: true,
+                                  style: STextStyles.fieldLabel(context),
+                                ),
+                              if (!isPaynymSend)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                  child: TextField(
+                                    key: const Key("sendViewAddressFieldKey"),
+                                    controller: sendToController,
+                                    readOnly: false,
+                                    autocorrect: false,
+                                    enableSuggestions: false,
+                                    // inputFormatters: <TextInputFormatter>[
+                                    //   FilteringTextInputFormatter.allow(
+                                    //       RegExp("[a-zA-Z0-9]{34}")),
+                                    // ],
+                                    toolbarOptions: const ToolbarOptions(
+                                      copy: false,
+                                      cut: false,
+                                      paste: true,
+                                      selectAll: false,
+                                    ),
+                                    onChanged: (newValue) async {
+                                      final trimmed = newValue.trim();
+
+                                      if ((trimmed.length -
+                                                  (_address?.length ?? 0))
+                                              .abs() >
+                                          1) {
+                                        final parsed =
+                                            AddressUtils.parsePaymentUri(
+                                              trimmed,
+                                              logging: Logging.instance,
+                                            );
+                                        if (parsed != null) {
+                                          _applyUri(parsed);
+                                        } else {
+                                          await _checkSparkNameAndOrSetAddress(
+                                            newValue,
                                           );
-                                      if (parsed != null) {
-                                        _applyUri(parsed);
+                                        }
                                       } else {
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
+                                          setController: false,
                                         );
                                       }
-                                    } else {
-                                      await _checkSparkNameAndOrSetAddress(
-                                        newValue,
-                                        setController: false,
-                                      );
-                                    }
 
-                                    _setValidAddressProviders(_address);
+                                      _setValidAddressProviders(_address);
 
-                                    setState(() {
-                                      _addressToggleFlag = newValue.isNotEmpty;
-                                    });
-                                  },
-                                  focusNode: _addressFocusNode,
-                                  style: STextStyles.field(context),
-                                  decoration: standardInputDecoration(
-                                    "Enter ${coin.ticker} address",
-                                    _addressFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    contentPadding: const EdgeInsets.only(
-                                      left: 16,
-                                      top: 6,
-                                      bottom: 8,
-                                      right: 5,
-                                    ),
-                                    suffixIcon: Padding(
-                                      padding:
-                                          sendToController.text.isEmpty
-                                              ? const EdgeInsets.only(right: 8)
-                                              : const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            _addressToggleFlag
-                                                ? TextFieldIconButton(
+                                      setState(() {
+                                        _addressToggleFlag =
+                                            newValue.isNotEmpty;
+                                      });
+                                    },
+                                    focusNode: _addressFocusNode,
+                                    style: STextStyles.field(context),
+                                    decoration: standardInputDecoration(
+                                      "Enter ${coin.ticker} address",
+                                      _addressFocusNode,
+                                      context,
+                                    ).copyWith(
+                                      contentPadding: const EdgeInsets.only(
+                                        left: 16,
+                                        top: 6,
+                                        bottom: 8,
+                                        right: 5,
+                                      ),
+                                      suffixIcon: Padding(
+                                        padding:
+                                            sendToController.text.isEmpty
+                                                ? const EdgeInsets.only(
+                                                  right: 8,
+                                                )
+                                                : const EdgeInsets.only(
+                                                  right: 0,
+                                                ),
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              _addressToggleFlag
+                                                  ? TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "Clear Button. Clears The Address Field Input.",
+                                                    key: const Key(
+                                                      "sendViewClearAddressFieldButtonKey",
+                                                    ),
+                                                    onTap: () {
+                                                      sendToController.text =
+                                                          "";
+                                                      _address = "";
+                                                      _setValidAddressProviders(
+                                                        _address,
+                                                      );
+                                                      setState(() {
+                                                        _addressToggleFlag =
+                                                            false;
+                                                      });
+                                                    },
+                                                    child: const XIcon(),
+                                                  )
+                                                  : TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                    key: const Key(
+                                                      "sendViewPasteAddressFieldButtonKey",
+                                                    ),
+                                                    onTap: _pasteAddress,
+                                                    child:
+                                                        sendToController
+                                                                .text
+                                                                .isEmpty
+                                                            ? const ClipboardIcon()
+                                                            : const XIcon(),
+                                                  ),
+                                              if (sendToController.text.isEmpty)
+                                                TextFieldIconButton(
                                                   semanticsLabel:
-                                                      "Clear Button. Clears The Address Field Input.",
+                                                      "Address Book Button. Opens Address Book For Address Field.",
                                                   key: const Key(
-                                                    "sendViewClearAddressFieldButtonKey",
+                                                    "sendViewAddressBookButtonKey",
                                                   ),
                                                   onTap: () {
-                                                    sendToController.text = "";
-                                                    _address = "";
-                                                    _setValidAddressProviders(
-                                                      _address,
+                                                    Navigator.of(
+                                                      context,
+                                                    ).pushNamed(
+                                                      AddressBookView.routeName,
+                                                      arguments: widget.coin,
                                                     );
-                                                    setState(() {
-                                                      _addressToggleFlag =
-                                                          false;
-                                                    });
                                                   },
-                                                  child: const XIcon(),
-                                                )
-                                                : TextFieldIconButton(
-                                                  semanticsLabel:
-                                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
-                                                  key: const Key(
-                                                    "sendViewPasteAddressFieldButtonKey",
-                                                  ),
-                                                  onTap: _pasteAddress,
                                                   child:
-                                                      sendToController
-                                                              .text
-                                                              .isEmpty
-                                                          ? const ClipboardIcon()
-                                                          : const XIcon(),
+                                                      const AddressBookIcon(),
                                                 ),
-                                            if (sendToController.text.isEmpty)
-                                              TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Address Book Button. Opens Address Book For Address Field.",
-                                                key: const Key(
-                                                  "sendViewAddressBookButtonKey",
+                                              if (sendToController.text.isEmpty)
+                                                TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                                  key: const Key(
+                                                    "sendViewScanQrButtonKey",
+                                                  ),
+                                                  onTap: _scanQr,
+                                                  child: const QrCodeIcon(),
                                                 ),
-                                                onTap: () {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pushNamed(
-                                                    AddressBookView.routeName,
-                                                    arguments: widget.coin,
-                                                  );
-                                                },
-                                                child: const AddressBookIcon(),
-                                              ),
-                                            if (sendToController.text.isEmpty)
-                                              TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
-                                                key: const Key(
-                                                  "sendViewScanQrButtonKey",
-                                                ),
-                                                onTap: _scanQr,
-                                                child: const QrCodeIcon(),
-                                              ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
+                            ], // End of conditional hiding "Send to" field for MWC slatepack
                             const SizedBox(height: 10),
                             if (isStellar ||
                                 ref.watch(pValidSparkSendToAddress))

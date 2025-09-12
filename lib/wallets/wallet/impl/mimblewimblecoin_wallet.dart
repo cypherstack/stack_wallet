@@ -10,7 +10,6 @@ import 'package:flutter_libmwc/models/transaction.dart'
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -27,6 +26,7 @@ import '../../../services/event_bus/events/global/node_connection_status_changed
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/mwc_wallet_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
@@ -45,7 +45,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   final syncMutex = Mutex();
   NodeModel? _mimblewimblecoinNode;
   Timer? timer;
-  bool _logsInitialized = false;
 
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
@@ -126,6 +125,373 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     // }
 
     return _mwcMqsConfig;
+  }
+
+  // ================= Slatepack Operations ===================================
+
+  /// Create a slatepack for sending MWC.
+  Future<SlatepackResult> createSlatepack({
+    required Amount amount,
+    String? recipientAddress,
+    String? message,
+    bool encrypt = false,
+    int? minimumConfirmations,
+  }) async {
+    try {
+      await MwcWalletService.initialize();
+
+      // Ensure wallet is open in service.
+      if (!MwcWalletService.isWalletOpen(walletId)) {
+        final password = await secureStorageInterface.read(
+          key: '${walletId}_password',
+        );
+        if (password == null) {
+          throw Exception('Wallet password not found');
+        }
+
+        final openResult = await MwcWalletService.openWallet(
+          walletId: walletId,
+          password: password,
+        );
+
+        if (!openResult.success) {
+          throw Exception(openResult.error ?? 'Failed to open wallet');
+        }
+      }
+
+      return await MwcWalletService.createSlatepack(
+        walletId: walletId,
+        amount: amount,
+        recipientAddress: recipientAddress,
+        message: message,
+        encrypt: encrypt,
+        minimumConfirmations:
+            minimumConfirmations ?? cryptoCurrency.minConfirms,
+      );
+    } catch (e, s) {
+      Logging.instance.e('Failed to create slatepack: $e\n$s');
+      return SlatepackResult(success: false, error: e.toString());
+    }
+  }
+
+  /// Decode a slatepack.
+  Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
+    try {
+      await MwcWalletService.initialize();
+      return await MwcWalletService.decodeSlatepack(
+        slatepack: slatepack,
+        walletId: MwcWalletService.isWalletOpen(walletId) ? walletId : null,
+      );
+    } catch (e, s) {
+      Logging.instance.e('Failed to decode slatepack: $e\n$s');
+      return SlatepackDecodeResult(success: false, error: e.toString());
+    }
+  }
+
+  /// Receive a slatepack and return response slatepack.
+  Future<ReceiveResult> receiveSlatepack(String slatepack) async {
+    try {
+      await MwcWalletService.initialize();
+
+      // Ensure wallet is open in service.
+      if (!MwcWalletService.isWalletOpen(walletId)) {
+        final password = await secureStorageInterface.read(
+          key: '${walletId}_password',
+        );
+        if (password == null) {
+          throw Exception('Wallet password not found');
+        }
+
+        final openResult = await MwcWalletService.openWallet(
+          walletId: walletId,
+          password: password,
+        );
+
+        if (!openResult.success) {
+          throw Exception(openResult.error ?? 'Failed to open wallet');
+        }
+      }
+
+      return await MwcWalletService.receiveSlatepack(
+        walletId: walletId,
+        slatepack: slatepack,
+      );
+    } catch (e, s) {
+      Logging.instance.e('Failed to receive slatepack: $e\n$s');
+      return ReceiveResult(success: false, error: e.toString());
+    }
+  }
+
+  /// Finalize a slatepack (sender step 3).
+  Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
+    try {
+      await MwcWalletService.initialize();
+
+      // Ensure wallet is open in service.
+      if (!MwcWalletService.isWalletOpen(walletId)) {
+        final password = await secureStorageInterface.read(
+          key: '${walletId}_password',
+        );
+        if (password == null) {
+          throw Exception('Wallet password not found');
+        }
+
+        final openResult = await MwcWalletService.openWallet(
+          walletId: walletId,
+          password: password,
+        );
+
+        if (!openResult.success) {
+          throw Exception(openResult.error ?? 'Failed to open wallet');
+        }
+      }
+
+      return await MwcWalletService.finalizeSlatepack(
+        walletId: walletId,
+        slatepack: slatepack,
+      );
+    } catch (e, s) {
+      Logging.instance.e('Failed to finalize slatepack: $e\n$s');
+      return FinalizeResult(success: false, error: e.toString());
+    }
+  }
+
+  /// Start MWCMQS listener for automatic transaction processing.
+  Future<void> startSlatepackListener() async {
+    try {
+      await MwcWalletService.initialize();
+
+      if (!MwcWalletService.isWalletOpen(walletId)) {
+        final password = await secureStorageInterface.read(
+          key: '${walletId}_password',
+        );
+        if (password == null) {
+          throw Exception('Wallet password not found');
+        }
+
+        final openResult = await MwcWalletService.openWallet(
+          walletId: walletId,
+          password: password,
+        );
+
+        if (!openResult.success) {
+          throw Exception(openResult.error ?? 'Failed to open wallet');
+        }
+      }
+
+      final mwcmqsConfig = await getMwcMqsConfig();
+      await MwcWalletService.startMwcqsListener(
+        walletId: walletId,
+        config: mwcmqsConfig,
+      );
+    } catch (e, s) {
+      Logging.instance.e('Failed to start slatepack listener: $e\n$s');
+      rethrow;
+    }
+  }
+
+  /// Stop MWCMQS listener.
+  Future<void> stopSlatepackListener() async {
+    try {
+      await MwcWalletService.stopMwcqsListener();
+    } catch (e, s) {
+      Logging.instance.e('Failed to stop slatepack listener: $e\n$s');
+    }
+  }
+
+  /// Validate MWC address.
+  bool validateMwcAddress(String address) {
+    return MwcWalletService.validateAddress(address);
+  }
+
+  /// Detect if an address is a slatepack.
+  bool isSlatepack(String data) {
+    return data.trim().startsWith('BEGINSLATE') &&
+        (data.trim().endsWith('ENDSLATEPACK') ||
+            data.trim().endsWith('ENDSLATEPACK.') ||
+            data.trim().endsWith('ENDSLATE_BIN') ||
+            data.trim().endsWith('ENDSLATE_BIN.'));
+  }
+
+  /// Detect if an address is MWCMQS format.
+  bool isMwcmqsAddress(String address) {
+    return address.startsWith('mwcmqs://');
+  }
+
+  /// Detect if an address is HTTP format.
+  bool isHttpAddress(String address) {
+    return address.startsWith('http://') || address.startsWith('https://');
+  }
+
+  /// Analyze a slatepack and determine transaction type and metadata.
+  /// Returns a record with transaction type and slate information.
+  Future<
+    ({
+      String type,
+      String status,
+      String? amount,
+      bool wasEncrypted,
+      String? senderAddress,
+      String? recipientAddress,
+      String slateId,
+    })
+  >
+  analyzeSlatepack(String slatepack) async {
+    try {
+      // Get wallet handle if available
+      final wallet = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
+
+      // Decode the slatepack
+      final decoded =
+          wallet != null
+              ? await mimblewimblecoin.Libmwc.decodeSlatepackWithWallet(
+                wallet: wallet,
+                slatepack: slatepack,
+              )
+              : await mimblewimblecoin.Libmwc.decodeSlatepack(
+                slatepack: slatepack,
+              );
+
+      // Parse the slate JSON to extract metadata
+      final slateData = jsonDecode(decoded.slateJson);
+      final String slateId = "${slateData['id'] ?? ''}";
+      final String? amountStr = slateData['amount']?.toString();
+
+      print(121212);
+      print(slateData);
+
+      // Determine slate status from the slate structure
+      String status = 'Unknown';
+      String type = 'Unknown';
+
+      // Check participant data to determine slate status
+      final List<dynamic>? participants =
+          slateData['participant_data'] as List<dynamic>?;
+      if (participants != null && participants.isNotEmpty) {
+        // Count how many participants have signatures
+        int signedParticipants = 0;
+        for (final participant in participants) {
+          if (participant['part_sig'] != null) {
+            signedParticipants++;
+          }
+        }
+
+        // Determine status based on signatures and participant count
+        if (signedParticipants == 0) {
+          status = 'S1';
+          type = 'Outgoing'; // Initial send slate - this is outgoing
+        } else if (signedParticipants == 1) {
+          status = 'S2';
+          type = 'Incoming'; // Response slate - this means we're receiving
+        } else if (signedParticipants >= participants.length) {
+          status = 'S3';
+          type = 'Outgoing'; // Finalized slate - completed outgoing transaction
+        }
+      }
+
+      // Fallback: check for explicit 'sta' field (some slates may have this)
+      if (status == 'Unknown' && slateData['sta'] != null) {
+        status = "${slateData['sta']}";
+        if (status == 'S1') {
+          type = 'Outgoing';
+        } else if (status == 'S2') {
+          type = 'Incoming';
+        } else if (status == 'S3') {
+          type = 'Outgoing';
+        }
+      }
+
+      return (
+        type: type,
+        status: status,
+        amount: amountStr,
+        wasEncrypted: decoded.wasEncrypted,
+        senderAddress: decoded.senderAddress,
+        recipientAddress: decoded.recipientAddress,
+        slateId: slateId,
+      );
+    } catch (e) {
+      // If we can't decode it, return unknown
+      return (
+        type: 'Unknown',
+        status: 'Unknown',
+        amount: null,
+        wasEncrypted: false,
+        senderAddress: null,
+        recipientAddress: null,
+        slateId: '',
+      );
+    }
+  }
+
+  /// Improved transaction type detection for slatepacks.
+  /// This replaces "Unknown" types with better determined types based on slate analysis.
+  Future<String> getSlatepackTransactionType(String address) async {
+    try {
+      // Check if the address is actually a slatepack
+      if (!isSlatepack(address)) {
+        return 'Unknown';
+      }
+
+      // Analyze the slatepack to determine the actual transaction type
+      final analysis = await analyzeSlatepack(address);
+
+      // Map slate status to meaningful transaction types
+      switch (analysis.status) {
+        case 'S1':
+          return 'Outgoing'; // Initial send slate - this is outgoing
+        case 'S2':
+          return 'Incoming'; // Response slate - this means we're receiving
+        case 'S3':
+          return 'Outgoing'; // Finalized slate - completed outgoing transaction
+        default:
+          return analysis.type; // Fall back to our basic analysis
+      }
+    } catch (e) {
+      // If analysis fails, return Unknown
+      return 'Unknown';
+    }
+  }
+
+  /// Enhanced transaction type detection that can analyze slatepack transactions.
+  /// Use this method to improve "Unknown" transaction types after they're loaded.
+  Future<TransactionType> getEnhancedTransactionType(
+    TransactionV2 transaction,
+  ) async {
+    try {
+      // If transaction is already properly typed, return as-is
+      if (transaction.type != TransactionType.unknown) {
+        return transaction.type;
+      }
+
+      // Check if this is a MWC transaction with slatepack data
+      if (transaction.isMimblewimblecoinTransaction) {
+        // Try to analyze any slatepack addresses in the transaction
+        for (final output in transaction.outputs) {
+          for (final address in output.addresses) {
+            if (isSlatepack(address)) {
+              final slatepackType = await getSlatepackTransactionType(address);
+              switch (slatepackType) {
+                case 'Outgoing':
+                  return TransactionType.outgoing;
+                case 'Incoming':
+                  return TransactionType.incoming;
+                default:
+                  continue;
+              }
+            }
+          }
+        }
+      }
+
+      // If we can't determine a better type, return unknown
+      return TransactionType.unknown;
+    } catch (e) {
+      Logging.instance.w("Failed to enhance transaction type: $e");
+      return transaction.type;
+    }
   }
 
   // ================= Private =================================================
@@ -223,30 +589,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       refreshFromNode: refreshFromNode,
       minimumConfirmations: cryptoCurrency.minConfirms,
     );
-  }
-
-  Future<bool> _testMwcmqsServer(MwcMqsConfigModel mwcmqsConfig) async {
-    final host = mwcmqsConfig.host;
-    final port = mwcmqsConfig.port ?? 443;
-    WebSocketChannel? channel;
-    try {
-      final uri = Uri.parse('wss://$host:$port');
-
-      channel = WebSocketChannel.connect(uri);
-
-      await channel.ready;
-
-      final response = await channel.stream.first.timeout(
-        const Duration(seconds: 2),
-      );
-
-      return response is String && response.contains("Challenge");
-    } catch (_) {
-      Logging.instance.i("_testMwcmqsConnection failed on \"$host:$port\"");
-      return false;
-    } finally {
-      await channel?.sink.close();
-    }
   }
 
   Future<bool> _putSendToAddresses(
@@ -444,6 +786,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<void> init({bool? isRestore}) async {
+    // Initialize MWC wallet service.
+    await MwcWalletService.initialize();
+
     if (isRestore != true) {
       String? encodedWallet = await secureStorageInterface.read(
         key: "${walletId}_wallet",
@@ -618,7 +963,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       }
 
       TxRecipient recipient = txData.recipients!.first;
+      final String receiverAddress = recipient.address;
 
+      // Check if this is a slatepack being provided instead of an address.
+      if (isSlatepack(receiverAddress)) {
+        // For slatepack input, we need different handling
+        // This would be used for receiving/finalizing slatepacks.
+        return txData.copyWith(
+          fee: Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
+          otherData: jsonEncode({'isSlatepackInput': true}),
+        );
+      }
+
+      // For regular address-based sends, calculate fee
       final int realFee = await _nativeFee(recipient.amount.raw.toInt());
       final feeAmount = Amount(
         rawValue: BigInt.from(realFee),
@@ -640,7 +997,21 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
       }
 
-      return txData.copyWith(recipients: [recipient], fee: feeAmount);
+      // Determine transaction method based on address format.
+      String txMethod = 'unknown';
+      if (isMwcmqsAddress(receiverAddress)) {
+        txMethod = 'mwcmqs';
+      } else if (isHttpAddress(receiverAddress)) {
+        txMethod = 'http';
+      } else if (validateMwcAddress(receiverAddress)) {
+        txMethod = 'slatepack'; // Manual slatepack exchange.
+      }
+
+      return txData.copyWith(
+        recipients: [recipient],
+        fee: feeAmount,
+        otherData: jsonEncode({'transactionMethod': txMethod}),
+      );
     } catch (e, s) {
       Logging.instance.e("Mimblewimblecoin prepareSend: $e\n$s");
       rethrow;
@@ -966,7 +1337,30 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             walletOwns: true,
           );
         } else {
-          txType = TransactionType.outgoing;
+          // For outgoing transactions, check if we have a slatepack address to analyze
+          TransactionType determinedType = TransactionType.outgoing;
+
+          // Try to get better type determination for slatepack transactions
+          if (addressTo != null) {
+            try {
+              final slatepackType = await getSlatepackTransactionType(
+                addressTo,
+              );
+              if (slatepackType == 'Incoming') {
+                determinedType = TransactionType.incoming;
+              } else if (slatepackType == 'Outgoing') {
+                determinedType = TransactionType.outgoing;
+              }
+              // If slatepackType is 'Unknown', we keep the original outgoing type
+            } catch (e) {
+              // If analysis fails, keep original type determination
+              Logging.instance.w(
+                "Failed to analyze slatepack for better type detection: $e",
+              );
+            }
+          }
+
+          txType = determinedType;
         }
 
         outputs.add(output);

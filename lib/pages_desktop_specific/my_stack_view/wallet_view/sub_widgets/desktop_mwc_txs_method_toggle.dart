@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
@@ -18,10 +19,7 @@ import '../../../../utilities/util.dart';
 import '../../../../widgets/toggle.dart';
 
 class MwcTxsMethodToggle extends ConsumerWidget {
-  const MwcTxsMethodToggle({
-    super.key,
-    this.onChanged,
-  });
+  const MwcTxsMethodToggle({super.key, this.onChanged});
 
   final void Function(TxsMethodMwcType)? onChanged;
 
@@ -33,22 +31,28 @@ class MwcTxsMethodToggle extends ConsumerWidget {
     return Toggle(
       onValueChanged: (value) {
         if (value) {
-          onChanged?.call(TxsMethodMwcType.slatepack);
-        } else {
           onChanged?.call(TxsMethodMwcType.automatic);
+        } else {
+          onChanged?.call(TxsMethodMwcType.slatepack);
         }
       },
       isOn: false,
-      onColor: isDesktop
-          ? Theme.of(context)
-              .extension<StackColors>()!
-              .rateTypeToggleDesktopColorOn
-          : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOn,
-      offColor: isDesktop
-          ? Theme.of(context)
-              .extension<StackColors>()!
-              .rateTypeToggleDesktopColorOff
-          : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOff,
+      onColor:
+          isDesktop
+              ? Theme.of(
+                context,
+              ).extension<StackColors>()!.rateTypeToggleDesktopColorOn
+              : Theme.of(
+                context,
+              ).extension<StackColors>()!.rateTypeToggleColorOn,
+      offColor:
+          isDesktop
+              ? Theme.of(
+                context,
+              ).extension<StackColors>()!.rateTypeToggleDesktopColorOff
+              : Theme.of(
+                context,
+              ).extension<StackColors>()!.rateTypeToggleColorOff,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,

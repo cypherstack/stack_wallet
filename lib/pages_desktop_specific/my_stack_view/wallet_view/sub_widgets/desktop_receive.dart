@@ -22,6 +22,7 @@ import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
+import '../../../../pages/receive_view/sub_widgets/mwc_slatepack_import_dialog.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -114,7 +115,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
           _address = paymentData.address;
-          receiveSlateController.text = _address!;
+          receiveSlateController.text =
+              _selectedMethodMwc == "Slatepack" ? "" : _address!;
           setState(() {
             _addressToggleFlag = receiveSlateController.text.isNotEmpty;
           });
@@ -819,11 +821,21 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: PrimaryButton(
               buttonHeight: ButtonHeight.l,
-              label: "Preview Receive Slatepack",
+              label: "Receive Slatepack",
               enabled: true,
-              onPressed: () {
-                debugPrint(
-                  'Submit button pressed for Mimblewimblecoin Slatepack',
+              onPressed: () async {
+                final wallet = ref.read(pWallets).getWallet(walletId);
+                await showDialog<void>(
+                  context: context,
+                  builder:
+                      (context) => DesktopDialog(
+                        maxHeight: MediaQuery.of(context).size.height - 64,
+                        maxWidth: 700,
+                        child: MwcSlatepackImportDialog(
+                          wallet: wallet as MimblewimblecoinWallet,
+                          clipboard: widget.clipboard,
+                        ),
+                      ),
                 );
               },
             ),

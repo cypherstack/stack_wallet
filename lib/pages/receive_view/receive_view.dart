@@ -33,6 +33,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_wallet.dart';
+import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -51,6 +52,7 @@ import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
+import 'sub_widgets/mwc_slatepack_import_dialog.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
@@ -692,6 +694,26 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                 ? generateNewSparkAddress
                                 : generateNewAddress,
                       ),
+                    // MWC Slatepack import button.
+                    if (coin is Mimblewimblecoin) ...[
+                      const SizedBox(height: 12),
+                      SecondaryButton(
+                        label: "Import Slatepack",
+                        onPressed: () async {
+                          final wallet = ref.read(pWallets).getWallet(walletId);
+                          if (wallet is MimblewimblecoinWallet) {
+                            await showDialog<void>(
+                              context: context,
+                              builder:
+                                  (context) => MwcSlatepackImportDialog(
+                                    wallet: wallet,
+                                    clipboard: clipboard,
+                                  ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 30),
                     RoundedWhiteContainer(
                       child: Padding(

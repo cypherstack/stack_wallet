@@ -1,6 +1,7 @@
 import 'package:flutter_libmwc/lib.dart' as mimblewimblecoin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/mwc_transaction_method.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
@@ -52,7 +53,13 @@ class Mimblewimblecoin extends Bip39Currency {
 
   @override
   bool validateAddress(String address) {
-    Uri? uri = Uri.tryParse(address);
+    // Check if it's a slatepack first.
+    if (isSlatepack(address)) {
+      return true;
+    }
+
+    // Check URI schemes (HTTP, HTTPS, MWCMQS).
+    final Uri? uri = Uri.tryParse(address);
     if (uri != null &&
         (uri.scheme == "http" ||
             uri.scheme == "https" ||
@@ -61,7 +68,87 @@ class Mimblewimblecoin extends Bip39Currency {
         !uri.host.endsWith(".onion")) {
       return true;
     }
+
+    // Use libmwc for other address validation.
     return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
+  }
+
+  /// Check if data is a slatepack.
+  bool isSlatepack(String data) {
+    return data.trim().startsWith('BEGINSLATE') &&
+        (data.trim().endsWith('ENDSLATEPACK') ||
+            data.trim().endsWith('ENDSLATEPACK.') ||
+            data.trim().endsWith('ENDSLATE_BIN') ||
+            data.trim().endsWith('ENDSLATE_BIN.'));
+  }
+
+  /// Check if address is MWCMQS format.
+  bool isMwcmqsAddress(String address) {
+    return address.startsWith('mwcmqs://');
+  }
+
+  /// Check if address is HTTP format.
+  bool isHttpAddress(String address) {
+    return address.startsWith('http://') || address.startsWith('https://');
+  }
+
+  /// Detect transaction type based on address/data format.
+  TransactionMethod getTransactionMethod(String addressOrData) {
+    if (isSlatepack(addressOrData)) {
+      return TransactionMethod.slatepack;
+    } else if (isMwcmqsAddress(addressOrData)) {
+      return TransactionMethod.mwcmqs;
+    } else if (isHttpAddress(addressOrData)) {
+      return TransactionMethod.http;
+    } else {
+      return TransactionMethod.unknown;
+    }
+  }
+
+  /// Validate slatepack format.
+  bool validateSlatepack(String slatepack) {
+    try {
+      final trimmed = slatepack.trim();
+      if (!isSlatepack(trimmed)) {
+        return false;
+      }
+
+      // Basic structure validation.
+      final lines = trimmed.split('\n');
+      if (lines.length < 3) {
+        return false;
+      }
+
+      // Should have header, content, and footer.
+      return lines.first.startsWith('BEGINSLATEPACK.') &&
+          lines.last.endsWith('.ENDSLATEPACK') &&
+          lines.length > 2;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get expected slatepack type from content (S1, S2, S3).
+  String? getSlatepackType(String slatepack) {
+    if (!validateSlatepack(slatepack)) {
+      return null;
+    }
+
+    try {
+      // This is a simplified approach - in reality you'd need to decode
+      // the slatepack content to determine the exact type.
+      final lines = slatepack.trim().split('\n');
+      final header = lines.first;
+
+      // Basic heuristic based on header format.
+      if (header.contains('BEGINSLATEPACK.')) {
+        return 'unknown'; // Would need proper decoding to determine S1/S2/S3.
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
@@ -130,7 +217,6 @@ class Mimblewimblecoin extends Bip39Currency {
 
   @override
   AddressType? getAddressType(String address) {
-    // TODO: implement getAddressType.
-    throw UnimplementedError();
+    return AddressType.mimbleWimble;
   }
 }
