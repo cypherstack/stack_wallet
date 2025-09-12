@@ -119,7 +119,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final bool isStellar;
   late final bool isMimblewimblecoin;
 
-  String? _selectedMethodMwc = 'Slatepack';
   String? _note;
   String? _onChainNote;
 
@@ -291,7 +290,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     // Handle MWC slatepack transactions directly.
-    if (isMimblewimblecoin && _selectedMethodMwc == 'Slatepack') {
+    if (isMimblewimblecoin && 
+        ref.read(pSelectedMwcTransactionMethod) == TransactionMethod.slatepack) {
       await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
       return;
     }
@@ -1077,8 +1077,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     isStellar = coin is Stellar;
     isMimblewimblecoin = coin is Mimblewimblecoin;
     if (isMimblewimblecoin) {
-      _selectedMethodMwc = "Slatepack";
-      // Initialize provider to match the UI (slatepack method).
+      // Initialize provider to slatepack method.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(pSelectedMwcTransactionMethod.notifier).state =
             TransactionMethod.slatepack;
@@ -1252,17 +1251,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     50, // Provide an explicit height to avoid infinite constraints
                 child: MwcTxsMethodToggle(
                   onChanged: (TxsMethodMwcType type) {
-                    setState(() {
-                      _selectedMethodMwc =
-                          type == TxsMethodMwcType.slatepack
-                              ? 'Automatic'
-                              : 'Slatepack';
-                    });
-                    // Update the provider as well.
+                    // Update the provider directly.
                     ref.read(pSelectedMwcTransactionMethod.notifier).state =
                         type == TxsMethodMwcType.slatepack
                             ? TransactionMethod.mwcmqs
                             : TransactionMethod.slatepack;
+                    setState(() {}); // Trigger rebuild
                   },
                 ),
               ),
@@ -1638,9 +1632,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 height: 1.8,
               ),
               decoration: standardInputDecoration(
-                _selectedMethodMwc == "Slatepack" ||
-                        _selectedMethodMwc == null ||
-                        _selectedMethodMwc == ""
+                ref.watch(pSelectedMwcTransactionMethod) == TransactionMethod.slatepack
                     ? "Enter ${coin.ticker} address (optional)"
                     : "Enter ${coin.ticker} address",
                 _addressFocusNode,
