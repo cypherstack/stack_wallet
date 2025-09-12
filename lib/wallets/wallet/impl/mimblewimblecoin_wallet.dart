@@ -234,7 +234,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       // Receive and get updated slate JSON.
       final received = await mimblewimblecoin.Libmwc.txReceiveDetailed(
         wallet: handle,
-        slateJson: decoded.slateJson!,
+        slateJson: decoded.slateJson,
       );
 
       // Encode response back to sender if address available.
@@ -273,7 +273,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       // Finalize transaction.
       final finalized = await mimblewimblecoin.Libmwc.txFinalize(
         wallet: handle,
-        slateJson: decoded.slateJson!,
+        slateJson: decoded.slateJson,
       );
 
       return FinalizeResult(
