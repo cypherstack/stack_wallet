@@ -76,10 +76,20 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       key: '${walletId}_mwcmqsConfig',
       value: stringConfig,
     );
-    // TODO: refresh anything that needs to be refreshed/updated due to mwcmqs info changed
+    
+    // Restart MWCMQS listener with new configuration if wallet is active.
+    try {
+      if (MwcWalletService.isWalletOpen(walletId)) {
+        await stopSlatepackListener();
+        await startSlatepackListener();
+        Logging.instance.i('Restarted MWCMQS listener with new config: $host:$port');
+      }
+    } catch (e, s) {
+      Logging.instance.e('Failed to restart MWCMQS listener after config update: $e\n$s');
+    }
   }
 
-  /// returns an empty String on success, error message on failure
+  /// Returns an empty String on success, error message on failure.
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
       final String wallet =
@@ -98,33 +108,30 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   Future<MwcMqsConfigModel> getMwcMqsConfig() async {
-    final MwcMqsConfigModel _mwcMqsConfig = MwcMqsConfigModel.fromServer(
-      DefaultMwcMqs.defaultMwcMqsServer,
+    // Check if there's a custom MWCMQS config stored.
+    final customConfigJson = await secureStorageInterface.read(
+      key: '${walletId}_mwcmqsConfig',
     );
 
-    //Get the default mwcmqs server and check if it's conected
-    // bool ismwcmqsConnected = await _testmwcmqsServer(
-    //     Defaultmwcmqses.defaultmwcmqsServer.host, Defaultmwcmqses.defaultmwcmqsServer.port ?? 443);
+    if (customConfigJson != null) {
+      try {
+        final customConfig = jsonDecode(customConfigJson) as Map<String, dynamic>;
+        final host = customConfig['mwcmqs_domain'] as String?;
+        final port = customConfig['mwcmqs_port'] as int?;
+        
+        if (host != null && port != null) {
+          return MwcMqsConfigModel(
+            host: host,
+            port: port,
+          );
+        }
+      } catch (e) {
+        Logging.instance.w('Failed to parse custom MWCMQS config: $e');
+      }
+    }
 
-    // if (ismwcmqsConnected) {
-    //Use default server for as mwcmqs config
-
-    // }
-    // else {
-    //   //Use Europe config
-    //   _mwcmqsConfig = mwcmqsConfigModel.fromServer(Defaultmwcmqses.europe);
-    // }
-    //   // example of selecting another random server from the default list
-    //   // alternative servers: copy list of all default EB servers but remove the default default
-    //   // List<mwcmqsServerModel> alternativeServers = Defaultmwcmqses.all;
-    //   // alternativeServers.removeWhere((opt) => opt.name == Defaultmwcmqses.defaultmwcmqsServer.name);
-    //   // alternativeServers.shuffle(); // randomize which server is used
-    //   // _mwcmqsConfig = mwcmqsConfigModel.fromServer(alternativeServers.first);
-    //
-    //   // TODO test this connection before returning it
-    // }
-
-    return _mwcMqsConfig;
+    // Fall back to default server.
+    return MwcMqsConfigModel.fromServer(DefaultMwcMqs.defaultMwcMqsServer);
   }
 
   // ================= Slatepack Operations ===================================
