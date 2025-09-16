@@ -923,21 +923,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                           ).extension<StackColors>()!.accentColorBlue,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      "Create new QR code",
-                      style: STextStyles.desktopTextExtraSmall(
-                        context,
-                      ).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorBlue,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
