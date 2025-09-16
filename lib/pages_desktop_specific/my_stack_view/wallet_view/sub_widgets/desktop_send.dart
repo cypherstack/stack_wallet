@@ -1551,7 +1551,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         const SizedBox(height: 20),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1562,8 +1565,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (!isPaynymSend) const SizedBox(height: 10),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
+          const SizedBox(height: 10),
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1742,7 +1752,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
           Builder(
             builder: (_) {
               final String? error;
@@ -1760,6 +1773,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 }
               } else {
                 if (_data != null && _data.contactLabel == _address) {
+                  error = null;
+                } else if (coin is Mimblewimblecoin &&
+                    ref.watch(pSelectedMwcTransactionMethod) ==
+                        MwcTransactionMethod.slatepack) {
+                  // For MWC slatepack transactions, address validation is not required.
+                  // TODO: When implementing encrypted slatepacks, address validation will be required.
                   error = null;
                 } else if (!ref.watch(pValidSendToAddress)) {
                   error = "Invalid address";
