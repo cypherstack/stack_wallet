@@ -55,6 +55,7 @@ import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/dialogs/s_dialog.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/qr.dart';
@@ -822,12 +823,13 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 await showDialog<void>(
                   context: context,
                   builder:
-                      (context) => DesktopDialog(
-                        maxHeight: MediaQuery.of(context).size.height - 64,
-                        maxWidth: 700,
-                        child: MwcSlatepackImportDialog(
-                          wallet: wallet as MimblewimblecoinWallet,
-                          clipboard: widget.clipboard,
+                      (context) => SDialog(
+                        child: SizedBox(
+                          width: 700,
+                          child: MwcSlatepackImportDialog(
+                            wallet: wallet as MimblewimblecoinWallet,
+                            clipboard: widget.clipboard,
+                          ),
                         ),
                       ),
                 );

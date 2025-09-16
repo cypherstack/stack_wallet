@@ -1,19 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../notifications/show_flush_bar.dart';
 import '../../../models/mwc_slatepack_models.dart';
+import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/simple_paste_button.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -58,11 +60,10 @@ class _MwcSlatepackImportDialogState
     super.dispose();
   }
 
-  void _pasteFromClipboard() async {
+  void _pasteFromClipboard(String? content) async {
     try {
-      final data = await widget.clipboard.getData(Clipboard.kTextPlain);
-      if (data?.text != null) {
-        slatepackController.text = data!.text!;
+      if (content != null) {
+        slatepackController.text = content;
         _validateSlatepack();
       }
     } catch (e) {
@@ -106,7 +107,7 @@ class _MwcSlatepackImportDialogState
 
         final String slatepackType = switch (analysis.status) {
           'S1' => "S1 (Initial Send)",
-          'S2' => "S2 (Response)", 
+          'S2' => "S2 (Response)",
           'S3' => "S3 (Finalized)",
           _ => _determineSlatepackType(decoded), // Fallback.
         };
@@ -218,211 +219,190 @@ class _MwcSlatepackImportDialogState
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop =
-        Platform.isLinux || Platform.isMacOS || Platform.isWindows;
+    final isDesktop = Util.isDesktop;
     final canProcess = _decodedSlatepack != null && !_isProcessing;
 
-    return StackDialogBase(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header with title and close button.
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Import Slatepack", style: STextStyles.pageTitleH2(context)),
-              AppBarIconButton(
-                size: 36,
-                color: Theme.of(context).extension<StackColors>()!.background,
-                shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.x,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
-                  width: 24,
-                  height: 24,
-                ),
-                onPressed:
-                    _isProcessing ? null : () => Navigator.of(context).pop(),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Header with title and close button.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Text(
+                "Import Slatepack",
+                style: STextStyles.pageTitleH2(context),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  "Paste or enter a slatepack to process the transaction.",
-                  style: STextStyles.subtitle(context),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-
-                // Slatepack input field.
-                Container(
-                  decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color:
-                          Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldDefaultSearchIconLeft,
-                    ),
+            ),
+            DesktopDialogCloseButton(
+              onPressedOverride: () async {
+                if (!_isProcessing) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Enter a slatepack to process the transaction.",
+                    style: STextStyles.subtitle(context),
+                    textAlign: TextAlign.center,
                   ),
-                  child: TextField(
-                    controller: slatepackController,
-                    focusNode: slatepackFocusNode,
-                    maxLines: 8,
-                    onChanged: (_) => _validateSlatepack(),
-                    decoration: InputDecoration(
-                      hintText: "BEGINSLATEPACK...",
-                      labelText: "Slatepack",
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.all(12),
-                      suffixIcon: IconButton(
-                        onPressed: _pasteFromClipboard,
-                        icon: SvgPicture.asset(
-                          Assets.svg.clipboard,
-                          width: 16,
-                          height: 16,
+                  SimplePasteButton(
+                    onPaste: _pasteFromClipboard,
+                    clipboard: widget.clipboard,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Slatepack input field.
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  controller: slatepackController,
+                  focusNode: slatepackFocusNode,
+                  maxLines: 8,
+                  onChanged: (_) => _validateSlatepack(),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.all(16),
+                    hintStyle: STextStyles.fieldLabel(context),
+                    hintText: "BEGINSLATEPACK...",
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+              ),
+
+              // Validation status.
+              if (_validationError != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 16,
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textError,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _validationError!,
+                        style: STextStyles.w400_14(context).copyWith(
                           color:
-                              Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldActiveSearchIconRight,
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textError,
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-
-                // Validation status.
-                if (_validationError != null) ...[
-                  const SizedBox(height: 8),
-                  Row(
+              ] else if (_decodedSlatepack != null) ...[
+                const SizedBox(height: 8),
+                RoundedWhiteContainer(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 16,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textError,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _validationError!,
-                          style: STextStyles.w400_14(context).copyWith(
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 16,
                             color:
                                 Theme.of(
                                   context,
-                                ).extension<StackColors>()!.textError,
+                                ).extension<StackColors>()!.accentColorGreen,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ] else if (_decodedSlatepack != null) ...[
-                  const SizedBox(height: 8),
-                  RoundedWhiteContainer(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle_outline,
-                              size: 16,
+                          const SizedBox(width: 8),
+                          Text(
+                            "Valid Slatepack",
+                            style: STextStyles.label(context).copyWith(
                               color:
                                   Theme.of(
                                     context,
                                   ).extension<StackColors>()!.accentColorGreen,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Valid Slatepack",
-                              style: STextStyles.label(context).copyWith(
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorGreen,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Type: $_slatepackType",
+                        style: STextStyles.w400_14(context),
+                      ),
+                      if (_decodedSlatepack!.wasEncrypted == true)
                         Text(
-                          "Type: $_slatepackType",
+                          "Encrypted: Yes",
                           style: STextStyles.w400_14(context),
                         ),
-                        if (_decodedSlatepack!.wasEncrypted == true)
-                          Text(
-                            "Encrypted: Yes",
-                            style: STextStyles.w400_14(context),
-                          ),
-                        if (_decodedSlatepack!.senderAddress != null)
-                          Text(
-                            "From: ${_decodedSlatepack!.senderAddress}",
-                            style: STextStyles.w400_14(context),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 24),
-
-                // Action buttons.
-                if (isDesktop) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          label: "Cancel",
-                          onPressed:
-                              _isProcessing
-                                  ? null
-                                  : () => Navigator.of(context).pop(),
+                      if (_decodedSlatepack!.senderAddress != null)
+                        Text(
+                          "From: ${_decodedSlatepack!.senderAddress}",
+                          style: STextStyles.w400_14(context),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: PrimaryButton(
-                          label: _isProcessing ? "Processing..." : "Process",
-                          onPressed: canProcess ? _processSlatepack : null,
-                        ),
-                      ),
                     ],
                   ),
-                ] else ...[
-                  PrimaryButton(
-                    label:
-                        _isProcessing ? "Processing..." : "Process Slatepack",
-                    onPressed: canProcess ? _processSlatepack : null,
-                  ),
-                  const SizedBox(height: 12),
-                  SecondaryButton(
-                    label: "Cancel",
-                    onPressed:
-                        _isProcessing
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                  ),
-                ],
+                ),
               ],
-            ),
+
+              const SizedBox(height: 24),
+
+              // Action buttons.
+              if (isDesktop) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        label: "Cancel",
+                        onPressed:
+                            _isProcessing
+                                ? null
+                                : () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: PrimaryButton(
+                        label: _isProcessing ? "Processing..." : "Process",
+                        onPressed: canProcess ? _processSlatepack : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                PrimaryButton(
+                  label: _isProcessing ? "Processing..." : "Process Slatepack",
+                  onPressed: canProcess ? _processSlatepack : null,
+                ),
+                const SizedBox(height: 12),
+                SecondaryButton(
+                  label: "Cancel",
+                  onPressed:
+                      _isProcessing ? null : () => Navigator.of(context).pop(),
+                ),
+              ],
+            ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 32),
+      ],
     );
   }
 }
