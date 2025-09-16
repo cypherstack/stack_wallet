@@ -170,6 +170,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<void> _handleDesktopSlatepackCreation(
     MimblewimblecoinWallet wallet,
   ) async {
+    bool buildingDialogDismissed = false;
+
     try {
       final amount = ref.read(pSendAmount)!;
 
@@ -199,6 +201,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       // Close building dialog.
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
+        buildingDialogDismissed = true;
       }
 
       if (!slatepackResult.success || slatepackResult.slatepack == null) {
@@ -224,8 +227,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     } catch (e, s) {
       Logging.instance.e('Failed to create MWC slatepack on desktop: $e\n$s');
 
-      // Close building dialog if still open.
-      if (mounted) {
+      // Close building dialog if still open and not already dismissed.
+      if (mounted && !buildingDialogDismissed) {
         Navigator.of(context, rootNavigator: true).pop();
       }
 
