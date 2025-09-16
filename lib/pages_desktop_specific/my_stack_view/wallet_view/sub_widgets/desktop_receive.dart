@@ -33,7 +33,6 @@ import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../../utilities/enums/mwc_transaction_method.dart';
-import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -88,69 +87,25 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late bool supportsMweb;
   late final bool showMultiType;
   late final bool isMimblewimblecoin;
-  late TextEditingController receiveSlateController;
-  String? _address;
-  bool _addressToggleFlag = false;
-  final _addressFocusNode = FocusNode();
+  late TextEditingController _receiveSlateController;
+  String? _slate;
+  bool _slateToggleFlag = false;
+  final _slateFocusNode = FocusNode();
 
   int _currentIndex = 0;
-  String? _note;
 
   final List<AddressType> _walletAddressTypes = [];
   final Map<AddressType, String> _addressMap = {};
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
 
-  Future<void> pasteAddress() async {
+  Future<void> _pasteSlatepack() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
-      String content = data.text!.trim();
-      if (content.contains("\n")) {
-        content = content.substring(0, content.indexOf("\n"));
-      }
-
-      try {
-        final paymentData = AddressUtils.parsePaymentUri(
-          content,
-          logging: Logging.instance,
-        );
-        if (paymentData != null &&
-            paymentData.coin?.uriScheme == coin.uriScheme) {
-          _address = paymentData.address;
-          receiveSlateController.text =
-              ref.read(pSelectedMwcTransactionMethod) ==
-                      MwcTransactionMethod.slatepack
-                  ? ""
-                  : _address!;
-          setState(() {
-            _addressToggleFlag = receiveSlateController.text.isNotEmpty;
-          });
-        } else {
-          content = content.split("\n").first.trim();
-          if (coin is Mimblewimblecoin) {
-            content = AddressUtils().formatAddressMwc(content);
-          }
-
-          receiveSlateController.text = content;
-          _address = content;
-
-          //_setValidAddressProviders(_address);
-          setState(() {
-            _addressToggleFlag = receiveSlateController.text.isNotEmpty;
-          });
-        }
-      } catch (e) {
-        if (coin is Mimblewimblecoin) {
-          // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddressMwc(content);
-        }
-        receiveSlateController.text = content;
-        _address = content;
-        // Trigger validation after pasting.
-        //_setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = receiveSlateController.text.isNotEmpty;
-        });
-      }
+      _slate = data.text;
+      _receiveSlateController.text = _slate!;
+      setState(() {
+        _slateToggleFlag = _receiveSlateController.text.isNotEmpty;
+      });
     }
   }
 
@@ -299,7 +254,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
   @override
   void initState() {
-    receiveSlateController = TextEditingController();
+    _receiveSlateController = TextEditingController();
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
@@ -383,6 +338,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
   @override
   void dispose() {
+    _receiveSlateController.dispose();
     for (final subscription in _addressSubMap.values) {
       subscription.cancel();
     }
@@ -697,8 +653,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 child: TextField(
                   minLines: 1,
                   maxLines: 5,
-                  key: const Key("sendViewAddressFieldKey"),
-                  controller: receiveSlateController,
+                  key: const Key("receiveViewSlatepackFieldKey"),
+                  controller: _receiveSlateController,
                   readOnly: false,
                   autocorrect: false,
                   enableSuggestions: false,
@@ -709,14 +665,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     selectAll: false,
                   ),
                   onChanged: (newValue) {
-                    _address = newValue;
-                    //_setValidAddressProviders(_address);
-
+                    _slate = newValue;
                     setState(() {
-                      _addressToggleFlag = newValue.isNotEmpty;
+                      _slateToggleFlag = newValue.isNotEmpty;
                     });
                   },
-                  focusNode: _addressFocusNode,
+                  focusNode: _slateFocusNode,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color:
                         Theme.of(
@@ -726,7 +680,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   ),
                   decoration: standardInputDecoration(
                     "Enter Slatepack Message",
-                    _addressFocusNode,
+                    _slateFocusNode,
                     context,
                     desktopMed: true,
                   ).copyWith(
@@ -737,34 +691,34 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     ),
                     suffixIcon: Padding(
                       padding:
-                          receiveSlateController.text.isEmpty
+                          _receiveSlateController.text.isEmpty
                               ? const EdgeInsets.only(right: 8)
                               : const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _addressToggleFlag
+                            _slateToggleFlag
                                 ? TextFieldIconButton(
                                   key: const Key(
-                                    "sendViewClearAddressFieldButtonKey",
+                                    "receiveViewClearSlatepackFieldButtonKey",
                                   ),
                                   onTap: () {
-                                    receiveSlateController.text = "";
-                                    _address = "";
+                                    _receiveSlateController.text = "";
+                                    _slate = "";
                                     setState(() {
-                                      _addressToggleFlag = false;
+                                      _slateToggleFlag = false;
                                     });
                                   },
                                   child: const XIcon(),
                                 )
                                 : TextFieldIconButton(
                                   key: const Key(
-                                    "sendViewPasteAddressFieldButtonKey",
+                                    "receiveViewPasteSlatepackFieldButtonKey",
                                   ),
-                                  onTap: pasteAddress,
+                                  onTap: _pasteSlatepack,
                                   child:
-                                      receiveSlateController.text.isEmpty
+                                      _receiveSlateController.text.isEmpty
                                           ? const ClipboardIcon()
                                           : const XIcon(),
                                 ),
@@ -817,23 +771,26 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             child: PrimaryButton(
               buttonHeight: ButtonHeight.l,
               label: "Receive Slatepack",
-              enabled: true,
-              onPressed: () async {
-                final wallet = ref.read(pWallets).getWallet(walletId);
-                await showDialog<void>(
-                  context: context,
-                  builder:
-                      (context) => SDialog(
-                        child: SizedBox(
-                          width: 700,
-                          child: MwcSlatepackImportDialog(
-                            wallet: wallet as MimblewimblecoinWallet,
-                            clipboard: widget.clipboard,
-                          ),
-                        ),
-                      ),
-                );
-              },
+              enabled: _slateToggleFlag,
+              onPressed:
+                  _slateToggleFlag
+                      ? () async {
+                        final wallet = ref.read(pWallets).getWallet(walletId);
+                        await showDialog<void>(
+                          context: context,
+                          builder:
+                              (context) => SDialog(
+                                child: SizedBox(
+                                  width: 700,
+                                  child: MwcSlatepackImportDialog(
+                                    wallet: wallet as MimblewimblecoinWallet,
+                                    clipboard: widget.clipboard,
+                                  ),
+                                ),
+                              ),
+                        );
+                      }
+                      : null,
             ),
           )
         else
