@@ -22,7 +22,6 @@ import 'package:tuple/tuple.dart';
 
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
-import '../../models/mwc_transaction_method.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
@@ -43,6 +42,7 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/enums/mwc_transaction_method.dart';
 import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
@@ -149,7 +149,7 @@ class _SendViewState extends ConsumerState<SendView> {
   Set<StandardInput> selectedUTXOs = {};
 
   // MWC transaction method selection.
-  TransactionMethod? _selectedTransactionMethod;
+  MwcTransactionMethod? _selectedTransactionMethod;
 
   void _applyUri(PaymentUriData paymentData) {
     try {
@@ -860,21 +860,21 @@ class _SendViewState extends ConsumerState<SendView> {
 
           if (_selectedTransactionMethod != null) {
             switch (_selectedTransactionMethod!) {
-              case TransactionMethod.slatepack:
+              case MwcTransactionMethod.slatepack:
                 transactionMethod = 'slatepack';
                 break;
-              case TransactionMethod.mwcmqs:
+              case MwcTransactionMethod.mwcmqs:
                 transactionMethod = 'mwcmqs';
                 break;
-              case TransactionMethod.http:
-                transactionMethod = 'http';
-                break;
-              case TransactionMethod.unknown:
-                // Auto-detect from address format.
-                final mwcCoin = coin as Mimblewimblecoin;
-                final method = mwcCoin.getTransactionMethod(_address!);
-                transactionMethod = method.toString().split('.').last;
-                break;
+              // case MwcTransactionMethod.http:
+              //   transactionMethod = 'http';
+              //   break;
+              // case MwcTransactionMethod.unknown:
+              //   // Auto-detect from address format.
+              //   final mwcCoin = coin as Mimblewimblecoin;
+              //   final method = mwcCoin.getTransactionMethod(_address!);
+              //   transactionMethod = method.toString().split('.').last;
+              //   break;
             }
           } else {
             // Auto-detect from address format if no method selected.
@@ -1136,11 +1136,11 @@ class _SendViewState extends ConsumerState<SendView> {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
 
-      // Initialize MWC transaction method to default (non-slatepack).
-      if (coin is Mimblewimblecoin) {
-        ref.read(pSelectedMwcTransactionMethod.notifier).state =
-            null; // No method selected initially.
-      }
+      // // Initialize MWC transaction method to default (non-slatepack).
+      // if (coin is Mimblewimblecoin) {
+      //   ref.read(pSelectedMwcTransactionMethod.notifier).state =
+      //       null; // No method selected initially.
+      // }
     });
     isCustomFee.addListener(() {
       if (!isCustomFee.value) {
@@ -1650,7 +1650,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   decoration: standardInputDecoration(
                                     coin is Mimblewimblecoin &&
                                                 _selectedTransactionMethod ==
-                                                    TransactionMethod
+                                                    MwcTransactionMethod
                                                         .slatepack ||
                                             _selectedTransactionMethod == null
                                         ? "Enter ${coin.ticker} address (optional)"

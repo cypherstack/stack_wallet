@@ -20,7 +20,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
-import '../../../../models/mwc_transaction_method.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
@@ -42,7 +41,7 @@ import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/txs_method_mwc_enum.dart';
+import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
@@ -297,7 +296,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     // Handle MWC slatepack transactions directly.
     if (isMimblewimblecoin &&
         ref.read(pSelectedMwcTransactionMethod) ==
-            TransactionMethod.slatepack) {
+            MwcTransactionMethod.slatepack) {
       await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
       return;
     }
@@ -1082,13 +1081,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     isStellar = coin is Stellar;
     isMimblewimblecoin = coin is Mimblewimblecoin;
-    if (isMimblewimblecoin) {
-      // Initialize provider to slatepack method.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(pSelectedMwcTransactionMethod.notifier).state =
-            TransactionMethod.slatepack;
-      });
-    }
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1234,7 +1226,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (showPrivateBalance) const SizedBox(height: 4),
         if (isMimblewimblecoin)
           Padding(
-            padding: const EdgeInsets.all(0),
+            padding: const EdgeInsets.only(bottom: 16),
             child: Container(
               decoration: BoxDecoration(
                 color:
@@ -1252,19 +1244,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   width: 1,
                 ),
               ),
-              child: SizedBox(
+              child: const SizedBox(
                 height:
-                    50, // Provide an explicit height to avoid infinite constraints
-                child: MwcTxsMethodToggle(
-                  onChanged: (TxsMethodMwcType type) {
-                    // Update the provider directly.
-                    ref.read(pSelectedMwcTransactionMethod.notifier).state =
-                        type == TxsMethodMwcType.slatepack
-                            ? TransactionMethod.mwcmqs
-                            : TransactionMethod.slatepack;
-                    setState(() {}); // Trigger rebuild
-                  },
-                ),
+                    60, // Provide an explicit height to avoid infinite constraints
+                child: MwcTxsMethodToggle(),
               ),
             ),
           ),
@@ -1639,7 +1622,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               decoration: standardInputDecoration(
                 ref.watch(pSelectedMwcTransactionMethod) ==
-                        TransactionMethod.slatepack
+                        MwcTransactionMethod.slatepack
                     ? "Enter ${coin.ticker} address (optional)"
                     : "Enter ${coin.ticker} address",
                 _addressFocusNode,
@@ -1942,7 +1925,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           buttonHeight: ButtonHeight.l,
           label:
               ref.read(pSelectedMwcTransactionMethod) ==
-                      TransactionMethod.slatepack
+                      MwcTransactionMethod.slatepack
                   ? "Create slatepack"
                   : "Preview send",
           enabled: ref.watch(pPreviewTxButtonEnabled(coin)),

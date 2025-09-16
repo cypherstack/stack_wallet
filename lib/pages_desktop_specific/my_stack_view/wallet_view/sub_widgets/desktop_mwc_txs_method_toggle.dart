@@ -11,17 +11,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/txs_method_mwc_enum.dart';
+import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/toggle.dart';
 
 class MwcTxsMethodToggle extends ConsumerWidget {
-  const MwcTxsMethodToggle({super.key, this.onChanged});
-
-  final void Function(TxsMethodMwcType)? onChanged;
+  const MwcTxsMethodToggle({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,13 +32,19 @@ class MwcTxsMethodToggle extends ConsumerWidget {
         // Align visual labels with callback semantics:
         // When the toggle shows "Slatepack" (on), emit slatepack.
         // When it shows "Automatic" (off), emit automatic.
-        if (value) {
-          onChanged?.call(TxsMethodMwcType.slatepack);
-        } else {
-          onChanged?.call(TxsMethodMwcType.automatic);
-        }
+        // if (value) {
+        //   onChanged?.call(TxsMethodMwcType.slatepack);
+        // } else {
+        //   onChanged?.call(TxsMethodMwcType.automatic);
+        // }
+        ref.read(pSelectedMwcTransactionMethod.notifier).state =
+            value
+                ? MwcTransactionMethod.mwcmqs
+                : MwcTransactionMethod.slatepack;
       },
-      isOn: false,
+      isOn:
+          ref.watch(pSelectedMwcTransactionMethod) ==
+          MwcTransactionMethod.mwcmqs,
       onColor:
           isDesktop
               ? Theme.of(
@@ -62,9 +67,9 @@ class MwcTxsMethodToggle extends ConsumerWidget {
         ),
       ),
       onIcon: Assets.svg.gear,
-      onText: TxsMethodMwcType.slatepack.value,
+      onText: "Slatepack",
       offIcon: Assets.svg.radioSyncing,
-      offText: TxsMethodMwcType.automatic.value,
+      offText: "Automatic",
     );
   }
 }

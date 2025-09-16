@@ -10,8 +10,8 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/mwc_transaction_method.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/enums/mwc_transaction_method.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../wallet/public_private_balance_state_provider.dart';
 
@@ -22,8 +22,9 @@ final pValidSparkSendToAddress = StateProvider.autoDispose<bool>((_) => false);
 final pIsExchangeAddress = StateProvider<bool>((_) => false);
 
 // MWC Transaction Method Provider.
-final pSelectedMwcTransactionMethod =
-    StateProvider.autoDispose<TransactionMethod?>((_) => null);
+final pSelectedMwcTransactionMethod = StateProvider<MwcTransactionMethod>(
+  (_) => MwcTransactionMethod.slatepack,
+);
 
 final pPreviewTxButtonEnabled = Provider.autoDispose
     .family<bool, CryptoCurrency>((ref, coin) {
@@ -32,7 +33,7 @@ final pPreviewTxButtonEnabled = Provider.autoDispose
       // For MWC slatepack transactions, address validation is not required.
       if (coin is Mimblewimblecoin) {
         final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
-        if (selectedMethod == TransactionMethod.slatepack) {
+        if (selectedMethod == MwcTransactionMethod.slatepack) {
           return amount > Amount.zero;
         }
       }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../models/mwc_transaction_method.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
+import '../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/rounded_white_container.dart';
 
@@ -16,8 +16,8 @@ class MwcTransactionMethodSelector extends ConsumerStatefulWidget {
     this.addressText,
   });
 
-  final void Function(TransactionMethod) onMethodSelected;
-  final TransactionMethod? selectedMethod;
+  final void Function(MwcTransactionMethod) onMethodSelected;
+  final MwcTransactionMethod? selectedMethod;
   final String? addressText;
 
   @override
@@ -27,7 +27,7 @@ class MwcTransactionMethodSelector extends ConsumerStatefulWidget {
 
 class _MwcTransactionMethodSelectorState
     extends ConsumerState<MwcTransactionMethodSelector> {
-  TransactionMethod? _selectedMethod;
+  MwcTransactionMethod? _selectedMethod;
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class _MwcTransactionMethodSelectorState
     _selectedMethod = widget.selectedMethod;
   }
 
-  void _selectMethod(TransactionMethod method) {
+  void _selectMethod(MwcTransactionMethod method) {
     setState(() {
       _selectedMethod = method;
     });
@@ -43,7 +43,7 @@ class _MwcTransactionMethodSelectorState
   }
 
   Widget _buildMethodTile({
-    required TransactionMethod method,
+    required MwcTransactionMethod method,
     required String title,
     required String subtitle,
     required IconData icon,
@@ -197,7 +197,7 @@ class _MwcTransactionMethodSelectorState
             children: [
               // Slatepack method.
               _buildMethodTile(
-                method: TransactionMethod.slatepack,
+                method: MwcTransactionMethod.slatepack,
                 title: "Slatepack (Manual)",
                 subtitle: "Copy/paste, QR codes, or files",
                 icon: Icons.qr_code,
@@ -207,24 +207,24 @@ class _MwcTransactionMethodSelectorState
 
               // MWCMQS method.
               _buildMethodTile(
-                method: TransactionMethod.mwcmqs,
+                method: MwcTransactionMethod.mwcmqs,
                 title: "MWCMQS (Automatic)",
                 subtitle: "Direct messaging to recipient",
                 icon: Icons.message,
                 available: true,
                 unavailableReason: "Requires MWCMQS address",
               ),
-              const SizedBox(height: 12),
-
-              // HTTP method.
-              _buildMethodTile(
-                method: TransactionMethod.http,
-                title: "HTTP (Direct)",
-                subtitle: "Direct connection to wallet",
-                icon: Icons.http,
-                available: true,
-                unavailableReason: "Requires HTTP address",
-              ),
+              // const SizedBox(height: 12),
+              //
+              // // HTTP method.
+              // _buildMethodTile(
+              //   method: MwcTransactionMethod.http,
+              //   title: "HTTP (Direct)",
+              //   subtitle: "Direct connection to wallet",
+              //   icon: Icons.http,
+              //   available: true,
+              //   unavailableReason: "Requires HTTP address",
+              // ),
             ],
           ),
 

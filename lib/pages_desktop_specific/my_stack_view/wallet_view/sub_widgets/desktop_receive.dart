@@ -24,6 +24,7 @@ import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import '../../../../pages/receive_view/sub_widgets/mwc_slatepack_import_dialog.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -31,7 +32,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../../utilities/enums/txs_method_mwc_enum.dart';
+import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
@@ -92,7 +93,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   final _addressFocusNode = FocusNode();
 
   int _currentIndex = 0;
-  late TxsMethodMwcType _selectedMethodMwc;
   String? _note;
 
   final List<AddressType> _walletAddressTypes = [];
@@ -116,7 +116,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             paymentData.coin?.uriScheme == coin.uriScheme) {
           _address = paymentData.address;
           receiveSlateController.text =
-              _selectedMethodMwc == "Slatepack" ? "" : _address!;
+              ref.read(pSelectedMwcTransactionMethod) ==
+                      MwcTransactionMethod.slatepack
+                  ? ""
+                  : _address!;
           setState(() {
             _addressToggleFlag = receiveSlateController.text.isNotEmpty;
           });
@@ -307,10 +310,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         wallet.info.isMwebEnabled;
 
     isMimblewimblecoin = wallet is MimblewimblecoinWallet;
-    if (isMimblewimblecoin) {
-      _selectedMethodMwc = TxsMethodMwcType.slatepack;
-    }
-    debugPrint("Address generated: $isMimblewimblecoin");
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       showMultiType = false;
@@ -489,16 +488,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   width: 1,
                 ),
               ),
-              child: SizedBox(
+              child: const SizedBox(
                 height:
-                    50, // Provide an explicit height to avoid infinite constraints
-                child: MwcTxsMethodToggle(
-                  onChanged: (TxsMethodMwcType type) {
-                    setState(() {
-                      _selectedMethodMwc = type;
-                    });
-                  },
-                ),
+                    60, // Provide an explicit height to avoid infinite constraints
+                child: MwcTxsMethodToggle(),
               ),
             ),
           ),
@@ -679,7 +672,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           ),
         const SizedBox(height: 20),
         if (isMimblewimblecoin &&
-            _selectedMethodMwc == TxsMethodMwcType.slatepack)
+            ref.watch(pSelectedMwcTransactionMethod) ==
+                MwcTransactionMethod.slatepack)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -815,7 +809,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         // TODO: create transparent button class to account for hover
         // Conditional logic for 'Submit' button or QR code
         if (isMimblewimblecoin &&
-            _selectedMethodMwc == TxsMethodMwcType.slatepack)
+            ref.watch(pSelectedMwcTransactionMethod) ==
+                MwcTransactionMethod.slatepack)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: PrimaryButton(

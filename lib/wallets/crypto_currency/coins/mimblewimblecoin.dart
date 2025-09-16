@@ -1,10 +1,10 @@
 import 'package:flutter_libmwc/lib.dart' as mimblewimblecoin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
-import '../../../models/mwc_transaction_method.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/enums/mwc_transaction_method.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
 
@@ -92,15 +92,16 @@ class Mimblewimblecoin extends Bip39Currency {
   }
 
   /// Detect transaction type based on address/data format.
-  TransactionMethod getTransactionMethod(String addressOrData) {
+  MwcTransactionMethod getTransactionMethod(String addressOrData) {
     if (isSlatepack(addressOrData)) {
-      return TransactionMethod.slatepack;
+      return MwcTransactionMethod.slatepack;
     } else if (isMwcmqsAddress(addressOrData)) {
-      return TransactionMethod.mwcmqs;
-    } else if (isHttpAddress(addressOrData)) {
-      return TransactionMethod.http;
+      return MwcTransactionMethod.mwcmqs;
+      // } else if (isHttpAddress(addressOrData)) {
+      //   return MwcTransactionMethod.http;
     } else {
-      return TransactionMethod.unknown;
+      throw Exception("Unknown MwcTransactionMethod found!");
+      // return MwcTransactionMethod.unknown;
     }
   }
 
