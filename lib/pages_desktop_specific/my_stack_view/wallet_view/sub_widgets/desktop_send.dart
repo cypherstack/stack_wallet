@@ -170,8 +170,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<void> _handleDesktopSlatepackCreation(
     MimblewimblecoinWallet wallet,
   ) async {
-    bool buildingDialogDismissed = false;
-
     try {
       final amount = ref.read(pSendAmount)!;
 
@@ -183,8 +181,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           builder:
               (context) => BuildingTransactionDialog(
                 coin: coin,
-                onCancel:
-                    () => Navigator.of(context, rootNavigator: true).pop(),
+                onCancel: () {
+                  // Use maybePop so we never accidentally pop the base route
+                  // if the dialog hasn't fully mounted yet.
+                  Navigator.of(context, rootNavigator: true).maybePop();
+                },
                 isSpark: false,
               ),
         ),
@@ -198,10 +199,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         encrypt: false, // No encryption without recipient address.
       );
 
-      // Close building dialog.
+      // Close building dialog if present. Use maybePop to avoid popping the
+      // underlying page route in case the dialog hasn't mounted yet.
       if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        buildingDialogDismissed = true;
+        await Navigator.of(context, rootNavigator: true).maybePop();
       }
 
       if (!slatepackResult.success || slatepackResult.slatepack == null) {
@@ -227,9 +228,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     } catch (e, s) {
       Logging.instance.e('Failed to create MWC slatepack on desktop: $e\n$s');
 
-      // Close building dialog if still open and not already dismissed.
-      if (mounted && !buildingDialogDismissed) {
-        Navigator.of(context, rootNavigator: true).pop();
+      // Close building dialog if still open. maybePop prevents popping the
+      // page route if the dialog wasn't pushed yet.
+      if (mounted) {
+        await Navigator.of(context, rootNavigator: true).maybePop();
       }
 
       if (mounted) {
@@ -618,8 +620,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
           }
         }
-        // pop building dialog
-        Navigator.of(context, rootNavigator: true).pop();
+        // Close building dialog if present without risking popping the page.
+        await Navigator.of(context, rootNavigator: true).maybePop();
 
         unawaited(
           showDialog(
@@ -642,8 +644,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     } catch (e, s) {
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted) {
-        // pop building dialog
-        Navigator.of(context, rootNavigator: true).pop();
+        // Close building dialog if present without risking popping the page.
+        await Navigator.of(context, rootNavigator: true).maybePop();
 
         unawaited(
           showDialog<void>(
