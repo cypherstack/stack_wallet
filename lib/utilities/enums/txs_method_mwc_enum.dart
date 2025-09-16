@@ -8,7 +8,11 @@
  *
  */
 
-enum TxsMethodMwcType { 
-  slatepack, 
-  automatic 
+enum TxsMethodMwcType {
+  slatepack("Slatepack"),
+  automatic("Automatic");
+
+  final String value;
+
+  const TxsMethodMwcType(this.value);
 }

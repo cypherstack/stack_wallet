@@ -62,9 +62,9 @@ class MwcTxsMethodToggle extends ConsumerWidget {
         ),
       ),
       onIcon: Assets.svg.gear,
-      onText: "Slatepack",
+      onText: TxsMethodMwcType.slatepack.value,
       offIcon: Assets.svg.radioSyncing,
-      offText: "Automatic",
+      offText: TxsMethodMwcType.automatic.value,
     );
   }
 }

@@ -92,7 +92,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   final _addressFocusNode = FocusNode();
 
   int _currentIndex = 0;
-  String? _selectedMethodMwc; // Variable to store selected dropdown value
+  late TxsMethodMwcType _selectedMethodMwc;
   String? _note;
 
   final List<AddressType> _walletAddressTypes = [];
@@ -308,7 +308,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
     isMimblewimblecoin = wallet is MimblewimblecoinWallet;
     if (isMimblewimblecoin) {
-      _selectedMethodMwc = "Slatepack";
+      _selectedMethodMwc = TxsMethodMwcType.slatepack;
     }
     debugPrint("Address generated: $isMimblewimblecoin");
 
@@ -495,10 +495,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 child: MwcTxsMethodToggle(
                   onChanged: (TxsMethodMwcType type) {
                     setState(() {
-                      _selectedMethodMwc =
-                          type == TxsMethodMwcType.slatepack
-                              ? 'Slatepack'
-                              : 'Automatic';
+                      _selectedMethodMwc = type;
                     });
                   },
                 ),
@@ -681,7 +678,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             label: "Generate new address",
           ),
         const SizedBox(height: 20),
-        if (isMimblewimblecoin && _selectedMethodMwc == 'Slatepack')
+        if (isMimblewimblecoin &&
+            _selectedMethodMwc == TxsMethodMwcType.slatepack)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -816,7 +814,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
         // TODO: create transparent button class to account for hover
         // Conditional logic for 'Submit' button or QR code
-        if (isMimblewimblecoin && _selectedMethodMwc == 'Slatepack')
+        if (isMimblewimblecoin &&
+            _selectedMethodMwc == TxsMethodMwcType.slatepack)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: PrimaryButton(
