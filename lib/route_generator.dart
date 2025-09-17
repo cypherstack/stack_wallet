@@ -132,6 +132,7 @@ import 'pages/settings_views/global_settings_view/syncing_preferences_views/sync
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
 import 'pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
+import 'pages/testing/testing_view.dart';
 import 'pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import 'pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
 import 'pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/complete_reshare_config_view.dart';
@@ -1189,6 +1190,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: false,
           builder: (_) => const HiddenSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case TestingView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const TestingView(),
           settings: RouteSettings(name: settings.name),
         );
 
