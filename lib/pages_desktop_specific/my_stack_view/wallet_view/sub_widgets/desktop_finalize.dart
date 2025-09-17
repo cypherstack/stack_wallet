@@ -13,29 +13,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 
-import '../../../../models/isar/models/isar_models.dart';
-import '../../../../pages/receive_view/sub_widgets/mwc_slatepack_import_dialog.dart';
+import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
-import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
+import '../../../../utilities/util.dart';
 import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
-import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
@@ -43,12 +34,10 @@ class DesktopFinalize extends ConsumerStatefulWidget {
   const DesktopFinalize({
     super.key,
     required this.walletId,
-    this.contractAddress,
     this.clipboard = const ClipboardWrapper(),
   });
 
   final String walletId;
-  final String? contractAddress;
   final ClipboardInterface clipboard;
 
   @override
@@ -56,173 +45,100 @@ class DesktopFinalize extends ConsumerStatefulWidget {
 }
 
 class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
-  late final CryptoCurrency coin;
-  late final String walletId;
-  late final ClipboardInterface clipboard;
-  late final bool supportsSpark;
-  late final bool showMultiType;
-  late final bool isMimblewimblecoin;
-  late TextEditingController receiveSlateController;
-  String? _address;
-  bool _addressToggleFlag = false;
-  final _addressFocusNode = FocusNode();
+  late TextEditingController _slateController;
+  final _slateFocusNode = FocusNode();
+  bool _slateToggleFlag = false;
 
-  int _currentIndex = 0;
-  String? _selectedMethodMwc; // Variable to store selected dropdown value
-  String? _note;
-
-  final List<AddressType> _walletAddressTypes = [];
-  final Map<AddressType, String> _addressMap = {};
-  final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
-
-  Future<void> pasteAddress() async {
-    final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
+  Future<void> _pasteSlatepack() async {
+    final ClipboardData? data = await widget.clipboard.getData(
+      Clipboard.kTextPlain,
+    );
     if (data?.text != null && data!.text!.isNotEmpty) {
-      String content = data.text!.trim();
-      if (content.contains("\n")) {
-        content = content.substring(0, content.indexOf("\n"));
-      }
+      _slateController.text = data.text!;
+      setState(() {
+        _slateToggleFlag = _slateController.text.isNotEmpty;
+      });
+    }
+  }
 
-      try {
-        final paymentData = AddressUtils.parsePaymentUri(
-          content,
-          logging: Logging.instance,
+  Future<void> _finalize() async {
+    // add delay for showloading exception catching hack fix
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
+
+    final decoded = await wallet.decodeSlatepack(_slateController.text);
+    if (!decoded.success) {
+      throw Exception(decoded.error ?? "Failed to decode slatepack");
+    }
+
+    final analysis = await wallet.analyzeSlatepack(_slateController.text);
+    if (analysis.status != "S2") {
+      throw Exception("Invalid slatepack type: ${analysis.status}");
+    }
+
+    final result = await wallet.finalizeSlatepack(_slateController.text);
+
+    if (!result.success) {
+      throw Exception(
+        result.error ?? "Finalize failed without providing an error???",
+      );
+    }
+  }
+
+  Future<void> _finalizePressed() async {
+    Exception? ex;
+    await showLoading(
+      whileFuture: _finalize(),
+      context: context,
+      message: "Finalizing slatepack...",
+      rootNavigator: Util.isDesktop,
+      onException: (e) => ex = e,
+    );
+
+    if (mounted) {
+      if (ex != null) {
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: true,
+          builder:
+              (context) => StackOkDialog(
+                desktopPopRootNavigator: true,
+                title: "Slatepack finalize error",
+                message:
+                    ex?.toString() ?? "Unexpected result without exception",
+                maxWidth: 400,
+              ),
         );
-        if (paymentData != null &&
-            paymentData.coin?.uriScheme == coin.uriScheme) {
-          _address = paymentData.address;
-          receiveSlateController.text = _address!;
-          setState(() {
-            _addressToggleFlag = receiveSlateController.text.isNotEmpty;
-          });
-        } else {
-          content = content.split("\n").first.trim();
-          if (coin is Mimblewimblecoin) {
-            content = AddressUtils().formatAddressMwc(content);
-          }
-
-          receiveSlateController.text = content;
-          _address = content;
-
-          //_setValidAddressProviders(_address);
-          setState(() {
-            _addressToggleFlag = receiveSlateController.text.isNotEmpty;
-          });
-        }
-      } catch (e) {
-        if (coin is Mimblewimblecoin) {
-          // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddressMwc(content);
-        }
-        receiveSlateController.text = content;
-        _address = content;
-        // Trigger validation after pasting.
-        //_setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = receiveSlateController.text.isNotEmpty;
-        });
+      } else {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Transaction finalized and broadcast successfully!",
+            context: context,
+          ),
+        );
       }
     }
   }
 
   @override
   void initState() {
-    receiveSlateController = TextEditingController();
-    walletId = widget.walletId;
-    coin = ref.read(pWalletInfo(walletId)).coin;
-    clipboard = widget.clipboard;
-    final wallet = ref.read(pWallets).getWallet(walletId);
-    supportsSpark = ref.read(pWallets).getWallet(walletId) is SparkInterface;
-
-    isMimblewimblecoin = wallet is MimblewimblecoinWallet;
-    if (isMimblewimblecoin) {
-      _selectedMethodMwc = "Slatepack";
-    }
-    debugPrint("Address generated: $isMimblewimblecoin");
-
-    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
-      showMultiType = false;
-    } else {
-      showMultiType =
-          supportsSpark ||
-          (wallet is! BCashInterface &&
-              wallet is Bip39HDWallet &&
-              wallet.supportedAddressTypes.length > 1);
-    }
-
-    _walletAddressTypes.add(wallet.info.mainAddressType);
-
-    if (showMultiType) {
-      if (supportsSpark) {
-        _walletAddressTypes.insert(0, AddressType.spark);
-      } else {
-        _walletAddressTypes.addAll(
-          (wallet as Bip39HDWallet).supportedAddressTypes.where(
-            (e) => e != wallet.info.mainAddressType,
-          ),
-        );
-      }
-    }
-
-    if (_walletAddressTypes.length > 1 && wallet is BitcoinWallet) {
-      _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
-    }
-
-    _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
-      pWalletReceivingAddress(walletId),
-    );
-
-    if (showMultiType) {
-      for (final type in _walletAddressTypes) {
-        _addressSubMap[type] = ref
-            .read(mainDBProvider)
-            .isar
-            .addresses
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .typeEqualTo(type)
-            .sortByDerivationIndexDesc()
-            .findFirst()
-            .asStream()
-            .listen((event) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() {
-                    _addressMap[type] =
-                        event?.value ?? _addressMap[type] ?? "[No address yet]";
-                  });
-                }
-              });
-            });
-      }
-    }
-
+    _slateController = TextEditingController();
     super.initState();
   }
 
   @override
   void dispose() {
-    for (final subscription in _addressSubMap.values) {
-      subscription.cancel();
-    }
+    _slateController.dispose();
+    _slateFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-
-    final String address;
-    if (showMultiType) {
-      address = _addressMap[_walletAddressTypes[_currentIndex]]!;
-    } else {
-      address = ref.watch(pWalletReceivingAddress(walletId));
-    }
-
-    final wallet = ref.watch(
-      pWallets.select((value) => value.getWallet(walletId)),
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -232,7 +148,6 @@ class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Label Text
             Text(
               "Finalize Slatepack",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -251,8 +166,8 @@ class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
               child: TextField(
                 minLines: 1,
                 maxLines: 5,
-                key: const Key("sendViewAddressFieldKey"),
-                controller: receiveSlateController,
+                key: const Key("finalizeSlatepackFieldKey"),
+                controller: _slateController,
                 readOnly: false,
                 autocorrect: false,
                 enableSuggestions: false,
@@ -263,14 +178,11 @@ class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
                   selectAll: false,
                 ),
                 onChanged: (newValue) {
-                  _address = newValue;
-                  //_setValidAddressProviders(_address);
-
                   setState(() {
-                    _addressToggleFlag = newValue.isNotEmpty;
+                    _slateToggleFlag = newValue.isNotEmpty;
                   });
                 },
-                focusNode: _addressFocusNode,
+                focusNode: _slateFocusNode,
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
                   color:
                       Theme.of(
@@ -280,7 +192,7 @@ class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
                 ),
                 decoration: standardInputDecoration(
                   "Enter Final Slatepack Message",
-                  _addressFocusNode,
+                  _slateFocusNode,
                   context,
                   desktopMed: true,
                 ).copyWith(
@@ -291,34 +203,33 @@ class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
                   ),
                   suffixIcon: Padding(
                     padding:
-                        receiveSlateController.text.isEmpty
+                        _slateController.text.isEmpty
                             ? const EdgeInsets.only(right: 8)
                             : const EdgeInsets.only(right: 0),
                     child: UnconstrainedBox(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _addressToggleFlag
+                          _slateToggleFlag
                               ? TextFieldIconButton(
                                 key: const Key(
-                                  "sendViewClearAddressFieldButtonKey",
+                                  "slateFinalizeClearFieldButtonKey",
                                 ),
                                 onTap: () {
-                                  receiveSlateController.text = "";
-                                  _address = "";
+                                  _slateController.text = "";
                                   setState(() {
-                                    _addressToggleFlag = false;
+                                    _slateToggleFlag = false;
                                   });
                                 },
                                 child: const XIcon(),
                               )
                               : TextFieldIconButton(
                                 key: const Key(
-                                  "sendViewPasteAddressFieldButtonKey",
+                                  "slateFinalizePasteFieldButtonKey",
                                 ),
-                                onTap: pasteAddress,
+                                onTap: _pasteSlatepack,
                                 child:
-                                    receiveSlateController.text.isEmpty
+                                    _slateController.text.isEmpty
                                         ? const ClipboardIcon()
                                         : const XIcon(),
                               ),
@@ -338,20 +249,7 @@ class _DesktopFinalizeState extends ConsumerState<DesktopFinalize> {
             buttonHeight: ButtonHeight.l,
             label: "Finalize Slatepack",
             enabled: true,
-            onPressed: () async {
-              final wallet = ref.read(pWallets).getWallet(walletId);
-              await showDialog<void>(
-                context: context,
-                builder:
-                    (context) => DesktopDialog(
-                      maxHeight: MediaQuery.of(context).size.height - 64,
-                      maxWidth: 700,
-                      child: MwcSlatepackImportDialog(
-                        wallet: wallet as MimblewimblecoinWallet,
-                      ),
-                    ),
-              );
-            },
+            onPressed: _finalizePressed,
           ),
         ),
       ],
