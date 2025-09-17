@@ -1587,6 +1587,10 @@ class _TransactionDetailsViewState
                                                                   "Could not open in block explorer",
                                                               message:
                                                                   "Failed to open \"${uri.toString()}\"",
+                                                              maxWidth:
+                                                                  Util.isDesktop
+                                                                      ? 400
+                                                                      : null,
                                                             ),
                                                       ),
                                                     );
@@ -1820,6 +1824,7 @@ class _TransactionDetailsViewState
 
                           final result = await wallet
                               .cancelPendingTransactionAndPost(id);
+
                           if (context.mounted) {
                             // pop progress dialog
                             Navigator.of(context).pop();
@@ -1830,8 +1835,8 @@ class _TransactionDetailsViewState
                                 builder:
                                     (_) => StackOkDialog(
                                       title: "Transaction cancelled",
+                                      maxWidth: Util.isDesktop ? 400 : null,
                                       onOkPressed: (_) {
-                                        wallet.refresh();
                                         Navigator.of(context).popUntil(
                                           ModalRoute.withName(
                                             WalletView.routeName,
@@ -1847,6 +1852,7 @@ class _TransactionDetailsViewState
                                     (_) => StackOkDialog(
                                       title: "Failed to cancel transaction",
                                       message: result,
+                                      maxWidth: Util.isDesktop ? 400 : null,
                                     ),
                               );
                             }
@@ -1876,7 +1882,8 @@ class _TransactionDetailsViewState
 
                           final result = await wallet
                               .cancelPendingTransactionAndPost(id);
-                          if (mounted) {
+
+                          if (context.mounted) {
                             // pop progress dialog
                             Navigator.of(context).pop();
 
@@ -1886,8 +1893,8 @@ class _TransactionDetailsViewState
                                 builder:
                                     (_) => StackOkDialog(
                                       title: "Transaction cancelled",
+                                      maxWidth: Util.isDesktop ? 400 : null,
                                       onOkPressed: (_) {
-                                        wallet.refresh();
                                         Navigator.of(context).popUntil(
                                           ModalRoute.withName(
                                             WalletView.routeName,
@@ -1903,6 +1910,7 @@ class _TransactionDetailsViewState
                                     (_) => StackOkDialog(
                                       title: "Failed to cancel transaction",
                                       message: result,
+                                      maxWidth: Util.isDesktop ? 400 : null,
                                     ),
                               );
                             }
