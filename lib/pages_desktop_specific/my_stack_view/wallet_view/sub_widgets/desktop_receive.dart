@@ -111,7 +111,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     }
   }
 
-  Future<({SlatepackDecodeResult result, String type})?>
+  Future<({SlatepackDecodeResult result, String type, String raw})?>
   _decodeSlatepack() async {
     // add delay for showloading exception catching hack fix
     await Future<void>.delayed(const Duration(seconds: 1));
@@ -154,7 +154,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         _ => _determineSlatepackType(decoded), // Fallback.
       };
 
-      return (result: decoded, type: slatepackType);
+      return (result: decoded, type: slatepackType, raw: text);
     } else {
       throw Exception(decoded.error ?? "Failed to decode slatepack");
     }
@@ -198,6 +198,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 child: MwcSlatepackImportDialog(
                   walletId: widget.walletId,
                   clipboard: widget.clipboard,
+                  rawSlatepack: result.raw,
                   decoded: result.result,
                   slatepackType: result.type,
                 ),

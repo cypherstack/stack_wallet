@@ -26,12 +26,14 @@ class MwcSlatepackImportDialog extends ConsumerStatefulWidget {
   const MwcSlatepackImportDialog({
     super.key,
     required this.walletId,
+    required this.rawSlatepack,
     required this.decoded,
     required this.slatepackType,
     this.clipboard = const ClipboardWrapper(),
   });
 
   final String walletId;
+  final String rawSlatepack;
   final SlatepackDecodeResult decoded;
   final String slatepackType;
   final ClipboardInterface clipboard;
@@ -48,15 +50,13 @@ class _MwcSlatepackImportDialogState
     // add delay for showloading exception catching hack fix
     await Future<void>.delayed(const Duration(seconds: 1));
 
-    final slatepackText = widget.decoded.slateJson!;
-
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
 
     // Determine action based on slatepack type.
     if (widget.slatepackType.contains("S1")) {
       // This is an initial slatepack - receive it and create response.
-      final result = await wallet.receiveSlatepack(slatepackText);
+      final result = await wallet.receiveSlatepack(widget.rawSlatepack);
 
       if (result.success && result.responseSlatepack != null) {
         return (
