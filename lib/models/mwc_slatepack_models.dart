@@ -14,6 +14,18 @@ class SlatepackResult {
     this.wasEncrypted,
     this.recipientAddress,
   });
+
+  @override
+  String toString() {
+    return "SlatepackResult("
+        "success: $success, "
+        "error: $error, "
+        "slatepack: $slatepack, "
+        "slateJson: $slateJson, "
+        "wasEncrypted: $wasEncrypted, "
+        "recipientAddress: $recipientAddress"
+        ")";
+  }
 }
 
 class SlatepackDecodeResult {
@@ -32,6 +44,18 @@ class SlatepackDecodeResult {
     this.senderAddress,
     this.recipientAddress,
   });
+
+  @override
+  String toString() {
+    return "SlatepackDecodeResult("
+        "success: $success, "
+        "error: $error, "
+        "slateJson: $slateJson, "
+        "wasEncrypted: $wasEncrypted, "
+        "senderAddress: $senderAddress, "
+        "recipientAddress: $recipientAddress"
+        ")";
+  }
 }
 
 class ReceiveResult {
@@ -52,6 +76,19 @@ class ReceiveResult {
     this.wasEncrypted,
     this.recipientAddress,
   });
+
+  @override
+  String toString() {
+    return "ReceiveResult("
+        "success: $success, "
+        "error: $error, "
+        "slateId: $slateId, "
+        "commitId: $commitId, "
+        "responseSlatepack: $responseSlatepack, "
+        "wasEncrypted: $wasEncrypted, "
+        "recipientAddress: $recipientAddress"
+        ")";
+  }
 }
 
 class FinalizeResult {
@@ -66,5 +103,14 @@ class FinalizeResult {
     this.slateId,
     this.commitId,
   });
-}
 
+  @override
+  String toString() {
+    return "FinalizeResult("
+        "success: $success, "
+        "error: $error, "
+        "slateId: $slateId, "
+        "commitId: $commitId"
+        ")";
+  }
+}
