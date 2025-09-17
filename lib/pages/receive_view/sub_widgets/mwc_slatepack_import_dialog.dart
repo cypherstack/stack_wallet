@@ -5,30 +5,35 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../models/mwc_slatepack_models.dart';
 import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
-import '../../../utilities/constants.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../widgets/custom_buttons/simple_paste_button.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/detail_item.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class MwcSlatepackImportDialog extends ConsumerStatefulWidget {
   const MwcSlatepackImportDialog({
     super.key,
-    required this.wallet,
+    required this.walletId,
+    required this.decoded,
+    required this.slatepackType,
     this.clipboard = const ClipboardWrapper(),
   });
 
-  final MimblewimblecoinWallet wallet;
+  final String walletId;
+  final SlatepackDecodeResult decoded;
+  final String slatepackType;
   final ClipboardInterface clipboard;
 
   @override
@@ -38,189 +43,78 @@ class MwcSlatepackImportDialog extends ConsumerStatefulWidget {
 
 class _MwcSlatepackImportDialogState
     extends ConsumerState<MwcSlatepackImportDialog> {
-  late final TextEditingController slatepackController;
-  late final FocusNode slatepackFocusNode;
+  Future<({String responseSlatepack, bool wasEncrypted})>
+  _processSlatepack() async {
+    // add delay for showloading exception catching hack fix
+    await Future<void>.delayed(const Duration(seconds: 1));
 
-  bool _isProcessing = false;
-  String? _validationError;
-  SlatepackDecodeResult? _decodedSlatepack;
-  String? _slatepackType;
+    final slatepackText = widget.decoded.slateJson!;
 
-  @override
-  void initState() {
-    super.initState();
-    slatepackController = TextEditingController();
-    slatepackFocusNode = FocusNode();
-  }
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
 
-  @override
-  void dispose() {
-    slatepackController.dispose();
-    slatepackFocusNode.dispose();
-    super.dispose();
-  }
+    // Determine action based on slatepack type.
+    if (widget.slatepackType.contains("S1")) {
+      // This is an initial slatepack - receive it and create response.
+      final result = await wallet.receiveSlatepack(slatepackText);
 
-  void _pasteFromClipboard(String? content) async {
-    try {
-      if (content != null) {
-        slatepackController.text = content;
-        _validateSlatepack();
-      }
-    } catch (e) {
-      showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Failed to paste from clipboard",
-        context: context,
-      );
-    }
-  }
-
-  void _validateSlatepack() async {
-    final text = slatepackController.text.trim();
-
-    if (text.isEmpty) {
-      setState(() {
-        _validationError = null;
-        _decodedSlatepack = null;
-        _slatepackType = null;
-      });
-      return;
-    }
-
-    // Basic format validation.
-    final coin = widget.wallet.cryptoCurrency as Mimblewimblecoin;
-    if (!coin.isSlatepack(text)) {
-      setState(() {
-        _validationError = "Invalid slatepack format";
-        _decodedSlatepack = null;
-        _slatepackType = null;
-      });
-      return;
-    }
-
-    try {
-      // Attempt to decode.
-      final decoded = await widget.wallet.decodeSlatepack(text);
-
-      if (decoded.success) {
-        final analysis = await widget.wallet.analyzeSlatepack(text);
-
-        final String slatepackType = switch (analysis.status) {
-          'S1' => "S1 (Initial Send)",
-          'S2' => "S2 (Response)",
-          'S3' => "S3 (Finalized)",
-          _ => _determineSlatepackType(decoded), // Fallback.
-        };
-
-        setState(() {
-          _validationError = null;
-          _decodedSlatepack = decoded;
-          _slatepackType = slatepackType;
-        });
+      if (result.success && result.responseSlatepack != null) {
+        return (
+          responseSlatepack: result.responseSlatepack!,
+          wasEncrypted: result.wasEncrypted ?? false,
+        );
       } else {
-        setState(() {
-          _validationError = decoded.error ?? "Failed to decode slatepack";
-          _decodedSlatepack = null;
-          _slatepackType = null;
-        });
+        throw Exception(result.error ?? 'Failed to process slatepack');
       }
-    } catch (e) {
-      setState(() {
-        _validationError = "Error decoding slatepack: $e";
-        _decodedSlatepack = null;
-        _slatepackType = null;
-      });
-    }
-  }
-
-  String _determineSlatepackType(SlatepackDecodeResult decoded) {
-    // Fallback analysis based on sender/recipient addresses.
-    if (decoded.senderAddress != null && decoded.recipientAddress != null) {
-      return "S2 (Response)";
-    } else if (decoded.senderAddress != null) {
-      return "S1 (Initial)";
     } else {
-      return "Unknown";
+      throw Exception('Unsupported slatepack type: ${widget.slatepackType}');
     }
   }
 
-  void _processSlatepack() async {
-    if (_decodedSlatepack == null || slatepackController.text.trim().isEmpty) {
-      return;
-    }
+  Future<void> _processPressed() async {
+    Exception? ex;
+    final result = await showLoading(
+      whileFuture: _processSlatepack(),
+      context: context,
+      message: "Processing slatepack...",
+      onException: (e) => ex = e,
+    );
 
-    setState(() {
-      _isProcessing = true;
-    });
-
-    try {
-      final slatepackText = slatepackController.text.trim();
-
-      // Determine action based on slatepack type.
-      if (_slatepackType?.contains("S1") == true) {
-        // This is an initial slatepack - receive it and create response.
-        final result = await widget.wallet.receiveSlatepack(slatepackText);
-
-        if (result.success && result.responseSlatepack != null) {
-          // Show response slatepack.
-          if (mounted) {
-            Navigator.of(context).pop(); // Close this dialog.
-
-            await showDialog<void>(
-              context: context,
-              barrierDismissible: false,
-              builder:
-                  (context) => _SlatepackResponseDialog(
-                    responseSlatepack: result.responseSlatepack!,
-                    wasEncrypted: result.wasEncrypted ?? false,
-                    clipboard: widget.clipboard,
-                  ),
-            );
-          }
-        } else {
-          throw Exception(result.error ?? 'Failed to process slatepack');
-        }
-      } else if (_slatepackType?.contains("S2") == true) {
-        // This is a response slatepack - finalize it.
-        final result = await widget.wallet.finalizeSlatepack(slatepackText);
-
-        if (result.success) {
-          if (mounted) {
-            Navigator.of(context).pop(); // Close this dialog.
-
-            showFloatingFlushBar(
-              type: FlushBarType.success,
-              message: "Transaction finalized and broadcast successfully!",
-              context: context,
-            );
-          }
-        } else {
-          throw Exception(result.error ?? 'Failed to finalize slatepack');
-        }
-      } else {
-        throw Exception('Unsupported slatepack type: $_slatepackType');
-      }
-    } catch (e) {
+    if (result == null || ex != null) {
       if (mounted) {
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Failed to process slatepack: $e",
+        await showDialog<void>(
           context: context,
+          useRootNavigator: true,
+          builder:
+              (context) => StackOkDialog(
+                desktopPopRootNavigator: true,
+                maxWidth: Util.isDesktop ? 400 : null,
+                title: "Slatepack receive error",
+                message:
+                    ex?.toString() ?? "Unexpected result without exception",
+              ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
+      return;
+    }
+
+    if (mounted) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => _SlatepackResponseDialog(
+              responseSlatepack: result.responseSlatepack,
+              wasEncrypted: result.wasEncrypted,
+              clipboard: widget.clipboard,
+            ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final canProcess = _decodedSlatepack != null && !_isProcessing;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -236,13 +130,7 @@ class _MwcSlatepackImportDialogState
                 style: STextStyles.pageTitleH2(context),
               ),
             ),
-            DesktopDialogCloseButton(
-              onPressedOverride: () async {
-                if (!_isProcessing) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
+            const DesktopDialogCloseButton(),
           ],
         ),
         Padding(
@@ -251,153 +139,63 @@ class _MwcSlatepackImportDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Enter a slatepack to process the transaction.",
-                    style: STextStyles.subtitle(context),
-                    textAlign: TextAlign.center,
-                  ),
-                  SimplePasteButton(
-                    onPaste: _pasteFromClipboard,
-                    clipboard: widget.clipboard,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Slatepack input field.
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  controller: slatepackController,
-                  focusNode: slatepackFocusNode,
-                  maxLines: 8,
-                  onChanged: (_) => _validateSlatepack(),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.all(16),
-                    hintStyle: STextStyles.fieldLabel(context),
-                    hintText: "BEGINSLATEPACK...",
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                  ),
-                ),
-              ),
-
-              // Validation status.
-              if (_validationError != null) ...[
-                const SizedBox(height: 8),
-                Row(
+              ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => RoundedWhiteContainer(child: child),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 16,
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textError,
+                    DetailItem(title: "Type", detail: widget.slatepackType),
+                    const DetailDivider(),
+                    DetailItem(
+                      title: "Encrypted",
+                      detail: (widget.decoded.wasEncrypted ?? false).toString(),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _validationError!,
-                        style: STextStyles.w400_14(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textError,
-                        ),
+                    if (widget.decoded.senderAddress != null)
+                      const DetailDivider(),
+                    if (widget.decoded.senderAddress != null)
+                      DetailItem(
+                        title: "From",
+                        detail: widget.decoded.senderAddress!,
                       ),
+                    if (widget.decoded.recipientAddress != null)
+                      const DetailDivider(),
+                    if (widget.decoded.recipientAddress != null)
+                      DetailItem(
+                        title: "To",
+                        detail: widget.decoded.recipientAddress!,
+                      ),
+                    const DetailDivider(),
+                    DetailItem(
+                      title: "Slatepack",
+                      detail: widget.decoded.slateJson!,
                     ),
                   ],
                 ),
-              ] else if (_decodedSlatepack != null) ...[
-                const SizedBox(height: 8),
-                RoundedWhiteContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline,
-                            size: 16,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorGreen,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Valid Slatepack",
-                            style: STextStyles.label(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorGreen,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Type: $_slatepackType",
-                        style: STextStyles.w400_14(context),
-                      ),
-                      if (_decodedSlatepack!.wasEncrypted == true)
-                        Text(
-                          "Encrypted: Yes",
-                          style: STextStyles.w400_14(context),
-                        ),
-                      if (_decodedSlatepack!.senderAddress != null)
-                        Text(
-                          "From: ${_decodedSlatepack!.senderAddress}",
-                          style: STextStyles.w400_14(context),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-
+              ),
               const SizedBox(height: 24),
+              ConditionalParent(
+                condition: isDesktop,
+                builder:
+                    (child) => Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [child],
+                    ),
+                child: PrimaryButton(
+                  width: isDesktop ? 220 : null,
 
-              // Action buttons.
-              if (isDesktop) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: SecondaryButton(
-                        label: "Cancel",
-                        onPressed:
-                            _isProcessing
-                                ? null
-                                : () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: PrimaryButton(
-                        label: _isProcessing ? "Processing..." : "Process",
-                        onPressed: canProcess ? _processSlatepack : null,
-                      ),
-                    ),
-                  ],
+                  buttonHeight: isDesktop ? ButtonHeight.l : null,
+                  label: "Process",
+                  onPressed: _processPressed,
                 ),
-              ] else ...[
-                PrimaryButton(
-                  label: _isProcessing ? "Processing..." : "Process Slatepack",
-                  onPressed: canProcess ? _processSlatepack : null,
-                ),
-                const SizedBox(height: 12),
+              ),
+              if (!isDesktop) const SizedBox(height: 12),
+              if (!isDesktop)
                 SecondaryButton(
                   label: "Cancel",
-                  onPressed:
-                      _isProcessing ? null : () => Navigator.of(context).pop(),
+                  onPressed: Navigator.of(context).pop,
                 ),
-              ],
             ],
           ),
         ),

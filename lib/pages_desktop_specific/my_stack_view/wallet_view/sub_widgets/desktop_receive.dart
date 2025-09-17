@@ -20,6 +20,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import '../../../../pages/receive_view/sub_widgets/mwc_slatepack_import_dialog.dart';
@@ -59,6 +60,7 @@ import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import 'desktop_mwc_txs_method_toggle.dart';
@@ -106,6 +108,102 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       setState(() {
         _slateToggleFlag = _receiveSlateController.text.isNotEmpty;
       });
+    }
+  }
+
+  Future<({SlatepackDecodeResult result, String type})?>
+  _decodeSlatepack() async {
+    // add delay for showloading exception catching hack fix
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    final wallet =
+        ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
+    final text = _receiveSlateController.text.trim();
+
+    if (text.isEmpty) {
+      return null;
+    }
+
+    // Basic format validation.
+    final coin = wallet.cryptoCurrency as Mimblewimblecoin;
+    if (!coin.isSlatepack(text)) {
+      throw Exception("Invalid slatepack format");
+    }
+
+    // Attempt to decode.
+    final decoded = await wallet.decodeSlatepack(text);
+
+    if (decoded.success) {
+      final analysis = await wallet.analyzeSlatepack(text);
+
+      String _determineSlatepackType(SlatepackDecodeResult decoded) {
+        // Fallback analysis based on sender/recipient addresses.
+        if (decoded.senderAddress != null && decoded.recipientAddress != null) {
+          return "S2 (Response)";
+        } else if (decoded.senderAddress != null) {
+          return "S1 (Initial)";
+        } else {
+          return "Unknown";
+        }
+      }
+
+      final String slatepackType = switch (analysis.status) {
+        'S1' => "S1 (Initial Send)",
+        'S2' => "S2 (Response)",
+        'S3' => "S3 (Finalized)",
+        _ => _determineSlatepackType(decoded), // Fallback.
+      };
+
+      return (result: decoded, type: slatepackType);
+    } else {
+      throw Exception(decoded.error ?? "Failed to decode slatepack");
+    }
+  }
+
+  Future<void> _onReceiveSlatePressed() async {
+    Exception? ex;
+    final result = await showLoading(
+      whileFuture: _decodeSlatepack(),
+      context: context,
+      message: "Decoding slatepack...",
+      rootNavigator: Util.isDesktop,
+      onException: (e) => ex = e,
+    );
+
+    if (result == null || ex != null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: true,
+          builder:
+              (context) => StackOkDialog(
+                desktopPopRootNavigator: true,
+                title: "Slatepack receive error",
+                message:
+                    ex?.toString() ?? "Unexpected result without exception",
+                maxWidth: 400,
+              ),
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      await showDialog<void>(
+        context: context,
+        builder:
+            (context) => SDialog(
+              child: SizedBox(
+                width: 700,
+                child: MwcSlatepackImportDialog(
+                  walletId: widget.walletId,
+                  clipboard: widget.clipboard,
+                  decoded: result.result,
+                  slatepackType: result.type,
+                ),
+              ),
+            ),
+      );
     }
   }
 
@@ -452,165 +550,171 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               ),
             ),
           ),
-        const SizedBox(height: 20),
-        ConditionalParent(
-          condition: showMultiType,
-          builder:
-              (child) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  DropdownButtonHideUnderline(
-                    child: DropdownButton2<int>(
-                      value: _currentIndex,
-                      items: [
-                        for (int i = 0; i < _walletAddressTypes.length; i++)
-                          DropdownMenuItem(
-                            value: i,
-                            child: Text(
-                              supportsSpark &&
-                                      _walletAddressTypes[i] ==
-                                          AddressType.p2pkh
-                                  ? "Transparent address"
-                                  : "${_walletAddressTypes[i].readableName} address",
-                              style: STextStyles.w500_14(context),
+        if (!(isMimblewimblecoin &&
+            ref.watch(pSelectedMwcTransactionMethod) ==
+                MwcTransactionMethod.slatepack))
+          const SizedBox(height: 20),
+        if (!(isMimblewimblecoin &&
+            ref.watch(pSelectedMwcTransactionMethod) ==
+                MwcTransactionMethod.slatepack))
+          ConditionalParent(
+            condition: showMultiType,
+            builder:
+                (child) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton2<int>(
+                        value: _currentIndex,
+                        items: [
+                          for (int i = 0; i < _walletAddressTypes.length; i++)
+                            DropdownMenuItem(
+                              value: i,
+                              child: Text(
+                                supportsSpark &&
+                                        _walletAddressTypes[i] ==
+                                            AddressType.p2pkh
+                                    ? "Transparent address"
+                                    : "${_walletAddressTypes[i].readableName} address",
+                                style: STextStyles.w500_14(context),
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null && value != _currentIndex) {
+                            setState(() {
+                              _currentIndex = value;
+                            });
+                          }
+                        },
+                        isExpanded: true,
+                        iconStyleData: IconStyleData(
+                          icon: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: SvgPicture.asset(
+                              Assets.svg.chevronDown,
+                              width: 12,
+                              height: 6,
+                              color:
+                                  Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveSearchIconRight,
                             ),
                           ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null && value != _currentIndex) {
-                          setState(() {
-                            _currentIndex = value;
-                          });
-                        }
-                      },
-                      isExpanded: true,
-                      iconStyleData: IconStyleData(
-                        icon: Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: SvgPicture.asset(
-                            Assets.svg.chevronDown,
-                            width: 12,
-                            height: 6,
+                        ),
+                        buttonStyleData: ButtonStyleData(
+                          decoration: BoxDecoration(
                             color:
-                                Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveSearchIconRight,
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textFieldDefaultBG,
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
                           ),
                         ),
-                      ),
-                      buttonStyleData: ButtonStyleData(
-                        decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
+                        dropdownStyleData: DropdownStyleData(
+                          offset: const Offset(0, -10),
+                          elevation: 0,
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textFieldDefaultBG,
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
                           ),
                         ),
-                      ),
-                      dropdownStyleData: DropdownStyleData(
-                        offset: const Offset(0, -10),
-                        elevation: 0,
-                        decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
+                        menuItemStyleData: const MenuItemStyleData(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
                           ),
-                        ),
-                      ),
-                      menuItemStyleData: const MenuItemStyleData(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  child,
-                ],
-              ),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () {
-                clipboard.setData(ClipboardData(text: address));
-                showFloatingFlushBar(
-                  type: FlushBarType.info,
-                  message: "Copied to clipboard",
-                  iconAsset: Assets.svg.copy,
-                  context: context,
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
+                    const SizedBox(height: 12),
+                    child,
+                  ],
                 ),
-                child: RoundedWhiteContainer(
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract.symbol))} address",
-                            style: STextStyles.itemSubtitle(context),
-                          ),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              SvgPicture.asset(
-                                Assets.svg.copy,
-                                width: 15,
-                                height: 15,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemIcons,
-                              ),
-                              const SizedBox(width: 4),
-                              Text("Copy", style: STextStyles.link2(context)),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              address,
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  clipboard.setData(ClipboardData(text: address));
+                  showFloatingFlushBar(
+                    type: FlushBarType.info,
+                    message: "Copied to clipboard",
+                    iconAsset: Assets.svg.copy,
+                    context: context,
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                  child: RoundedWhiteContainer(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract.symbol))} address",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                            const Spacer(),
+                            Row(
+                              children: [
+                                SvgPicture.asset(
+                                  Assets.svg.copy,
+                                  width: 15,
+                                  height: 15,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.infoItemIcons,
+                                ),
+                                const SizedBox(width: 4),
+                                Text("Copy", style: STextStyles.link2(context)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                address,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
 
         if (canGen) const SizedBox(height: 20),
 
@@ -772,25 +876,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               buttonHeight: ButtonHeight.l,
               label: "Receive Slatepack",
               enabled: _slateToggleFlag,
-              onPressed:
-                  _slateToggleFlag
-                      ? () async {
-                        final wallet = ref.read(pWallets).getWallet(walletId);
-                        await showDialog<void>(
-                          context: context,
-                          builder:
-                              (context) => SDialog(
-                                child: SizedBox(
-                                  width: 700,
-                                  child: MwcSlatepackImportDialog(
-                                    wallet: wallet as MimblewimblecoinWallet,
-                                    clipboard: widget.clipboard,
-                                  ),
-                                ),
-                              ),
-                        );
-                      }
-                      : null,
+              onPressed: _slateToggleFlag ? _onReceiveSlatePressed : null,
             ),
           )
         else
