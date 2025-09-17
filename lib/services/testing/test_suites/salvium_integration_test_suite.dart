@@ -9,13 +9,16 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
+import 'package:tuple/tuple.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../test_suite_interface.dart';
 import '../testing_models.dart';
 
@@ -46,7 +49,9 @@ class SalviumIntegrationTestSuite implements TestSuiteInterface {
       Logging.instance.log(Level.info, "Starting Salvium integration test suite...");
 
       await _testSalviumMnemonicGeneration();
-      
+
+      await _testSalviumStackWalletBackupRoundTrip();
+
       stopwatch.stop();
       _updateStatus(TestSuiteStatus.passed);
       
@@ -184,6 +189,252 @@ class SalviumIntegrationTestSuite implements TestSuiteInterface {
         Logging.instance.log(Level.info, "Cleaned up test Salvium wallet: $walletPath");
       } catch (e) {
         Logging.instance.log(Level.warning, "Failed to cleanup Salvium wallet $walletPath: $e");
+      }
+    }
+  }
+
+  /// Tests Stack Wallet Backup round-trip functionality.
+  ///
+  /// Creates Salvium wallets with 25-word mnemonics, saves the mnemonics,
+  /// creates backups, restores the backups, and verifies the restored mnemonics match the originals.
+  Future<void> _testSalviumStackWalletBackupRoundTrip() async {
+    Logging.instance.log(Level.info, "Testing Stack Wallet Backup round-trip for Salvium...");
+
+    final tempDir = await StackFileSystem.applicationRootDirectory();
+    final testId = Random().nextInt(10000);
+
+    try {
+      // Test 25-word mnemonic backup (Salvium only supports 25-word mnemonics).
+      await _testSalviumBackupWithSeedType(
+        tempDir: tempDir,
+        testId: testId,
+        seedType: lib_salvium.SalviumSeedType.twentyFive,
+        expectedWordCount: 25,
+        suffix: "25",
+      );
+
+      Logging.instance.log(Level.info, "✓ Salvium Stack Wallet Backup round-trip test passed successfully!");
+    } catch (e) {
+      Logging.instance.log(Level.error, "Salvium Stack Wallet Backup round-trip test failed: $e");
+      rethrow;
+    }
+  }
+
+  /// Tests Stack Wallet Backup round-trip functionality for Salvium.
+  Future<void> _testSalviumBackupWithSeedType({
+    required Directory tempDir,
+    required int testId,
+    required lib_salvium.SalviumSeedType seedType,
+    required int expectedWordCount,
+    required String suffix,
+  }) async {
+    Logging.instance.log(Level.info, "Testing ${expectedWordCount}-word Salvium mnemonic backup...");
+
+    final walletName = "test_salvium_backup_${testId}_$suffix";
+    final walletPath = "${tempDir.path}/$walletName";
+    final backupPath = "${tempDir.path}/${walletName}_backup.swb";
+    const walletPassword = "testpass123";
+    const backupPassword = "backuppass456";
+
+    lib_salvium.Wallet? originalWallet;
+    String? originalMnemonic;
+
+    try {
+      // Step 1: Create a new Salvium wallet using lib_salvium directly.
+      Logging.instance.log(Level.info, "Step 1: Creating new ${expectedWordCount}-word Salvium wallet...");
+
+      originalWallet = await lib_salvium.SalviumWallet.create(
+        path: walletPath,
+        password: walletPassword,
+        seedType: seedType,
+        seedOffset: "",
+      );
+
+      // Step 2: Save the original mnemonic out-of-band.
+      Logging.instance.log(Level.info, "Step 2: Saving original mnemonic...");
+      originalMnemonic = originalWallet.getSeed();
+
+      if (originalMnemonic.isEmpty) {
+        throw Exception("Failed to retrieve mnemonic from created Salvium wallet");
+      }
+
+      final originalWords = originalMnemonic.split(' ');
+      Logging.instance.log(Level.info, "Original Salvium mnemonic has ${originalWords.length} words");
+
+      // Validate the mnemonic format.
+      if (originalWords.length != expectedWordCount) {
+        throw Exception("Expected ${expectedWordCount}-word mnemonic, got ${originalWords.length} words");
+      }
+
+      // Step 3: Create a Stack Wallet Backup.
+      Logging.instance.log(Level.info, "Step 3: Creating Stack Wallet Backup...");
+
+      // Create a minimal backup JSON with just our test wallet.
+      final backupJson = {
+        "wallets": [
+          {
+            "name": walletName,
+            "id": "test_salvium_wallet_${testId}_$suffix",
+            "mnemonic": originalMnemonic,
+            "mnemonicPassphrase": "",
+            "coinName": "salvium",
+            "storedChainHeight": 0,
+            "restoreHeight": 0,
+            "notes": {},
+            "isFavorite": false,
+            "otherDataJsonString": null,
+          }
+        ],
+        "prefs": {
+          "currency": "USD",
+          "useBiometrics": false,
+          "hasPin": false,
+          "language": "en",
+          "showFavoriteWallets": true,
+          "wifiOnly": false,
+          "syncType": "allWalletsOnStartup",
+          "walletIdsSyncOnStartup": [],
+          "showTestNetCoins": false,
+          "isAutoBackupEnabled": false,
+          "autoBackupLocation": null,
+          "backupFrequencyType": "BackupFrequencyType.everyAppStart",
+          "lastAutoBackup": DateTime.now().toString(),
+        },
+        "nodes": [],
+        "addressBookEntries": [],
+        "tradeHistory": [],
+        "tradeTxidLookupData": [],
+        "tradeNotes": {},
+      };
+
+      final jsonString = jsonEncode(backupJson);
+
+      // Encrypt and save the backup.
+      final success = await SWB.encryptStackWalletWithPassphrase(
+        backupPath,
+        backupPassword,
+        jsonString,
+      );
+
+      if (!success) {
+        throw Exception("Failed to create Stack Wallet Backup for Salvium");
+      }
+
+      Logging.instance.log(Level.info, "Backup created successfully at: $backupPath");
+
+      // Step 4: Restore the Stack Wallet Backup.
+      Logging.instance.log(Level.info, "Step 4: Restoring Stack Wallet Backup...");
+
+      final restoredJsonString = await SWB.decryptStackWalletWithPassphrase(
+        Tuple2(backupPath, backupPassword),
+      );
+
+      if (restoredJsonString == null) {
+        throw Exception("Failed to decrypt Stack Wallet Backup for Salvium");
+      }
+
+      final restoredJson = jsonDecode(restoredJsonString) as Map<String, dynamic>;
+      final restoredWallets = restoredJson["wallets"] as List<dynamic>;
+
+      if (restoredWallets.isEmpty) {
+        throw Exception("No wallets found in restored Salvium backup");
+      }
+
+      final restoredWalletData = restoredWallets.first as Map<String, dynamic>;
+      final restoredMnemonic = restoredWalletData["mnemonic"] as String;
+
+      // Step 5: Verify that the restored mnemonic matches the original.
+      Logging.instance.log(Level.info, "Step 5: Verifying Salvium mnemonic integrity...");
+
+      if (restoredMnemonic != originalMnemonic) {
+        throw Exception(
+          "Salvium mnemonic mismatch!\n"
+          "Original:  $originalMnemonic\n"
+          "Restored:  $restoredMnemonic"
+        );
+      }
+
+      // Additional verification: check word count.
+      final restoredWords = restoredMnemonic.split(' ');
+
+      if (originalWords.length != restoredWords.length) {
+        throw Exception(
+          "Word count mismatch: original ${originalWords.length}, restored ${restoredWords.length}"
+        );
+      }
+
+      // Verify each word matches.
+      for (int i = 0; i < originalWords.length; i++) {
+        if (originalWords[i] != restoredWords[i]) {
+          throw Exception(
+            "Word mismatch at position $i: '${originalWords[i]}' != '${restoredWords[i]}'"
+          );
+        }
+      }
+
+      // Step 6: Additional test - verify we can recreate the wallet from the restored mnemonic.
+      Logging.instance.log(Level.info, "Step 6: Testing Salvium wallet restoration with recovered mnemonic...");
+
+      final testWalletPath = "${tempDir.path}/test_salvium_restore_${testId}_$suffix";
+      lib_salvium.Wallet? restoredWallet;
+
+      try {
+        restoredWallet = await lib_salvium.SalviumWallet.restoreWalletFromSeed(
+          path: testWalletPath,
+          password: walletPassword,
+          seed: restoredMnemonic,
+          restoreHeight: 0,
+          seedOffset: "",
+        );
+
+        final restoredMnemonicFromWallet = restoredWallet.getSeed();
+
+        if (restoredMnemonicFromWallet != originalMnemonic) {
+          throw Exception(
+            "Restored Salvium wallet mnemonic doesn't match original!\n"
+            "Original: $originalMnemonic\n"
+            "From restored wallet: $restoredMnemonicFromWallet"
+          );
+        }
+
+        Logging.instance.log(Level.info, "✓ Successfully restored ${expectedWordCount}-word Salvium wallet from backup mnemonic");
+
+      } finally {
+        await restoredWallet?.close();
+        // Clean up restored wallet files.
+        final testWalletFile = File(testWalletPath);
+        final testKeysFile = File("$testWalletPath.keys");
+        final testAddressFile = File("$testWalletPath.address.txt");
+
+        if (await testWalletFile.exists()) await testWalletFile.delete();
+        if (await testKeysFile.exists()) await testKeysFile.delete();
+        if (await testAddressFile.exists()) await testAddressFile.delete();
+      }
+
+      Logging.instance.log(Level.info, "✓ ${expectedWordCount}-word Salvium Stack Wallet Backup round-trip test passed!");
+      Logging.instance.log(Level.info, "✓ Original and restored Salvium mnemonics match perfectly");
+      Logging.instance.log(Level.info, "✓ Verified ${originalWords.length}-word Salvium mnemonic integrity");
+      Logging.instance.log(Level.info, "✓ Confirmed ${expectedWordCount}-word Salvium wallet can be restored from backup mnemonic");
+
+    } finally {
+      // Cleanup.
+      try {
+        await originalWallet?.close();
+
+        // Clean up test files.
+        final walletFile = File(walletPath);
+        final keysFile = File("$walletPath.keys");
+        final addressFile = File("$walletPath.address.txt");
+        final backupFile = File(backupPath);
+
+        if (await walletFile.exists()) await walletFile.delete();
+        if (await keysFile.exists()) await keysFile.delete();
+        if (await addressFile.exists()) await addressFile.delete();
+        if (await backupFile.exists()) await backupFile.delete();
+
+        Logging.instance.log(Level.info, "Cleaned up test files for ${expectedWordCount}-word Salvium backup test");
+      } catch (e) {
+        Logging.instance.log(Level.warning, "Cleanup error for ${expectedWordCount}-word Salvium test: $e");
       }
     }
   }
