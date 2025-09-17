@@ -141,7 +141,17 @@ class _MwcSlatepackImportDialogState
             children: [
               ConditionalParent(
                 condition: isDesktop,
-                builder: (child) => RoundedWhiteContainer(child: child),
+                builder:
+                    (child) => RoundedWhiteContainer(
+                      borderColor:
+                          isDesktop
+                              ? Theme.of(
+                                context,
+                              ).extension<StackColors>()!.backgroundAppBar
+                              : null,
+                      padding: const EdgeInsets.all(0),
+                      child: child,
+                    ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
