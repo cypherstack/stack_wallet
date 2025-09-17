@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
@@ -55,6 +56,15 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
       )) {
         rethrow;
       }
+      final db = ref.read(pDrift(widget.walletId));
+      final results =
+          await (db.select(db.sparkNames)
+            ..where((e) => e.name.lower().equals(name))).get();
+
+      if (results.isNotEmpty) {
+        return false;
+      }
+
       // name not found
       return true;
     }

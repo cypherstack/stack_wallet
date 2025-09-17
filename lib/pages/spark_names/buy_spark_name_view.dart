@@ -69,11 +69,22 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
     try {
       final wallet =
           ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
-      final myAddress = await wallet.getCurrentReceivingSparkAddress();
+      Address? myAddress = await wallet.getCurrentReceivingSparkAddress();
       if (myAddress == null) {
         throw Exception("No spark address found");
       }
-      addressController.text = myAddress.value;
+
+      final db = ref.read(pDrift(widget.walletId));
+      final myNames = await db.select(db.sparkNames).get();
+      while (myNames.where((e) => e.address == myAddress!.value).isNotEmpty) {
+        Logging.instance.t(
+          "Found address that already has a spark name. Generating next address...",
+        );
+        myAddress = await wallet.generateNextSparkAddress();
+        await ref.read(mainDBProvider).updateOrPutAddresses([myAddress]);
+      }
+
+      addressController.text = myAddress!.value;
     } catch (e, s) {
       Logging.instance.e("_fillCurrentReceiving", error: e, stackTrace: s);
     } finally {

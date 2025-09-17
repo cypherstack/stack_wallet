@@ -1129,7 +1129,7 @@ class ElectrumXClient {
         "Duration=${DateTime.now().difference(start)}",
       );
 
-      return tags;
+      return tags.reversed.toList();
     } catch (e, s) {
       Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;

@@ -35,7 +35,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: f5fd2238fca4ffe82f7e14646a613a04d2c243d6
+      ref: 5f0dde009c969bf6425da35382305b2c0b65bc46
 
   # cs_monero compat (unpublished)
   compat:
@@ -65,12 +65,12 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 752f054b65c500adb9cad578bf183a978e012502
+      ref: 16c9e709e984ec89e8715ce378b038c93ad7add3
 
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: afaad488f5215a9c2c211e5e2f8460237eef60f1
+      ref: 540d0bc7dc27a97d45d63f412f26818a7f3b8b51
 
   # Utility plugins
   http: ^0.13.0
@@ -181,7 +181,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: f0b1300140d45c13e7722f8f8d20308efeba8449
+      ref: 794ab2d7b88b34d64a89518f9b9f41dcc235aca1
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.

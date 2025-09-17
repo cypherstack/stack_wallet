@@ -13,15 +13,12 @@ class FCResult {
 /// update the sqlite cache
 /// Expected json format:
 /// returns true if successful, otherwise some exception
-FCResult _updateSparkUsedTagsWith(
-  Database db,
-  List<List<dynamic>> tags,
-) {
+FCResult _updateSparkUsedTagsWith(Database db, List<List<dynamic>> tags) {
   // hash the tags here since this function is called in a background isolate
-  final hashedTags = LibSpark.hashTags(
-    base64Tags: tags.map((e) => e[0] as String).toSet(),
-  ).toList();
-
+  final hashedTags =
+      LibSpark.hashTags(
+        base64Tags: tags.map((e) => e[0] as String).toList(),
+      ).toList();
   if (hashedTags.isEmpty) {
     // nothing to add, return early
     return FCResult(success: true);
@@ -70,11 +67,7 @@ FCResult _updateSparkAnonSetCoinsWith(
       FROM SparkSet
       WHERE blockHash = ? AND setHash = ? AND groupId = ?;
     """,
-    [
-      meta.blockHash,
-      meta.setHash,
-      meta.coinGroupId,
-    ],
+    [meta.blockHash, meta.setHash, meta.coinGroupId],
   );
 
   if (checkResult.isNotEmpty) {
