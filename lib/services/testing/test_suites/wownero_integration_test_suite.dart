@@ -24,7 +24,7 @@ import '../test_suite_interface.dart';
 import '../testing_models.dart';
 
 class WowneroIntegrationTestSuite implements TestSuiteInterface {
-  final StreamController<TestSuiteStatus> _statusController = 
+  StreamController<TestSuiteStatus> _statusController =
       StreamController<TestSuiteStatus>.broadcast();
   TestSuiteStatus _status = TestSuiteStatus.waiting;
 
@@ -38,7 +38,12 @@ class WowneroIntegrationTestSuite implements TestSuiteInterface {
   TestSuiteStatus get status => _status;
 
   @override
-  Stream<TestSuiteStatus> get statusStream => _statusController.stream;
+  Stream<TestSuiteStatus> get statusStream {
+    if (_statusController.isClosed) {
+      _statusController = StreamController<TestSuiteStatus>.broadcast();
+    }
+    return _statusController.stream;
+  }
 
   @override
   Future<TestResult> runTests() async {
@@ -460,6 +465,9 @@ class WowneroIntegrationTestSuite implements TestSuiteInterface {
 
   void _updateStatus(TestSuiteStatus newStatus) {
     _status = newStatus;
+    if (_statusController.isClosed) {
+      _statusController = StreamController<TestSuiteStatus>.broadcast();
+    }
     _statusController.add(newStatus);
   }
 

@@ -25,7 +25,7 @@ import '../../../electrumx_rpc/electrumx_client.dart';
 import '../../../utilities/tor_plain_net_option_enum.dart';
 
 class TorTestSuite implements TestSuiteInterface {
-  final StreamController<TestSuiteStatus> _statusController = StreamController<TestSuiteStatus>.broadcast();
+  StreamController<TestSuiteStatus> _statusController = StreamController<TestSuiteStatus>.broadcast();
   TestSuiteStatus _status = TestSuiteStatus.waiting;
 
   @override
@@ -38,7 +38,12 @@ class TorTestSuite implements TestSuiteInterface {
   TestSuiteStatus get status => _status;
 
   @override
-  Stream<TestSuiteStatus> get statusStream => _statusController.stream;
+  Stream<TestSuiteStatus> get statusStream {
+    if (_statusController.isClosed) {
+      _statusController = StreamController<TestSuiteStatus>.broadcast();
+    }
+    return _statusController.stream;
+  }
 
   @override
   Future<TestResult> runTests() async {
@@ -296,6 +301,9 @@ class TorTestSuite implements TestSuiteInterface {
 
   void _updateStatus(TestSuiteStatus newStatus) {
     _status = newStatus;
+    if (_statusController.isClosed) {
+      _statusController = StreamController<TestSuiteStatus>.broadcast();
+    }
     _statusController.add(_status);
   }
 
