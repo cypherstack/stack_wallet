@@ -20,6 +20,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
+import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
@@ -44,6 +45,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -172,41 +174,46 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     try {
       final amount = ref.read(pSendAmount)!;
 
-      // Show building dialog.
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (context) => BuildingTransactionDialog(
-                coin: coin,
-                onCancel: () {
-                  // Use maybePop so we never accidentally pop the base route
-                  // if the dialog hasn't fully mounted yet.
-                  Navigator.of(context, rootNavigator: true).maybePop();
-                },
-                isSpark: false,
-              ),
-        ),
-      );
+      Future<SlatepackResult> wrappedFutureWithDelay() async {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        return wallet.createSlatepack(
+          amount: amount,
+          recipientAddress: null, // No specific recipient for manual slatepack.
+          message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
+          encrypt: false, // No encryption without recipient address.
+        );
+      }
 
       // Create slatepack.
-      final slatepackResult = await wallet.createSlatepack(
-        amount: amount,
-        recipientAddress: null, // No specific recipient for manual slatepack.
-        message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
-        encrypt: false, // No encryption without recipient address.
+      Exception? ex;
+      final slatepackResult = await showLoading(
+        whileFuture: wrappedFutureWithDelay(),
+        context: context,
+        rootNavigator: true,
+        message: "Building slatepack...",
+        delay: const Duration(seconds: 2),
+        onException: (e) => ex = e,
       );
 
-      // Close building dialog if present. Use maybePop to avoid popping the
-      // underlying page route in case the dialog hasn't mounted yet.
-      if (mounted) {
-        await Navigator.of(context, rootNavigator: true).maybePop();
+      if (slatepackResult == null ||
+          !slatepackResult.success ||
+          slatepackResult.slatepack == null ||
+          ex != null) {
+        String error =
+            ex?.toString() ??
+            slatepackResult?.error ??
+            'Failed to create slatepack';
+        if (error.startsWith("Exception:")) {
+          error = error.replaceFirst("Exception:", "").trim();
+        }
+        throw Exception(error);
       }
 
-      if (!slatepackResult.success || slatepackResult.slatepack == null) {
-        throw Exception(slatepackResult.error ?? 'Failed to create slatepack');
-      }
+      // refresh asap to show the pending slate tx in history
+      unawaited(() async {
+        await Future<void>.delayed(Duration.zero);
+        await wallet.refresh();
+      }());
 
       // Show slatepack dialog.
       if (mounted) {
@@ -215,7 +222,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           barrierDismissible: false,
           builder:
               (context) => DesktopDialog(
-                maxHeight: MediaQuery.of(context).size.height - 64,
+                maxHeight: double.infinity,
                 maxWidth: 700,
                 child: MwcSlatepackDialog(slatepackResult: slatepackResult),
               ),
@@ -225,13 +232,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         clearSendForm();
       }
     } catch (e, s) {
-      Logging.instance.e('Failed to create MWC slatepack on desktop: $e\n$s');
-
-      // Close building dialog if still open. maybePop prevents popping the
-      // page route if the dialog wasn't pushed yet.
-      if (mounted) {
-        await Navigator.of(context, rootNavigator: true).maybePop();
-      }
+      Logging.instance.e(
+        'Failed to create MWC slatepack on desktop',
+        error: e,
+        stackTrace: s,
+      );
 
       if (mounted) {
         await showDialog<void>(
@@ -619,8 +624,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
           }
         }
-        // Close building dialog if present without risking popping the page.
-        await Navigator.of(context, rootNavigator: true).maybePop();
+        // pop building dialog
+        Navigator.of(context, rootNavigator: true).pop();
 
         unawaited(
           showDialog(
@@ -643,8 +648,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     } catch (e, s) {
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted) {
-        // Close building dialog if present without risking popping the page.
-        await Navigator.of(context, rootNavigator: true).maybePop();
+        // pop building dialog
+        Navigator.of(context, rootNavigator: true).pop();
 
         unawaited(
           showDialog<void>(
