@@ -52,7 +52,6 @@ import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
-import 'sub_widgets/mwc_slatepack_import_dialog.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
@@ -702,14 +701,14 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                         onPressed: () async {
                           final wallet = ref.read(pWallets).getWallet(walletId);
                           if (wallet is MimblewimblecoinWallet) {
-                            await showDialog<void>(
-                              context: context,
-                              builder:
-                                  (context) => MwcSlatepackImportDialog(
-                                    wallet: wallet,
-                                    clipboard: clipboard,
-                                  ),
-                            );
+                            // await showDialog<void>(
+                            //   context: context,
+                            //   builder:
+                            //       (context) => MwcSlatepackImportDialog(
+                            //         wallet: wallet,
+                            //         clipboard: clipboard,
+                            //       ),
+                            // );
                           }
                         },
                       ),
