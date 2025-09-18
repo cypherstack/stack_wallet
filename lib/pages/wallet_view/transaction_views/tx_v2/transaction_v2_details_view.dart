@@ -2352,6 +2352,10 @@ class _TransactionV2DetailsViewState
                     ),
                   ),
                 ),
+                if ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                    _transaction.getConfirmations(currentHeight) < 1 &&
+                    _transaction.isCancelled == false)
+                  const SizedBox(height: 40),
               ],
             ),
           ),
