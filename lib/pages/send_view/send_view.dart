@@ -62,6 +62,7 @@ import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop_mwc_txs_method_toggle.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
@@ -78,7 +79,6 @@ import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
-import 'sub_widgets/mwc_transaction_method_selector.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
@@ -1135,12 +1135,6 @@ class _SendViewState extends ConsumerState<SendView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
-
-      // // Initialize MWC transaction method to default (non-slatepack).
-      // if (coin is Mimblewimblecoin) {
-      //   ref.read(pSelectedMwcTransactionMethod.notifier).state =
-      //       null; // No method selected initially.
-      // }
     });
     isCustomFee.addListener(() {
       if (!isCustomFee.value) {
@@ -1342,21 +1336,10 @@ class _SendViewState extends ConsumerState<SendView> {
       );
     }
 
-    // Probably not be needed.
-    // if (coin is Mimblewimblecoin) {
-    //   sendToController.addListener(() {
-    //     _address = sendToController.text.trim();
-    //
-    //     if (_address != null && _address!.isNotEmpty) {
-    //       _address = _address!.trim();
-    //       if (_address!.contains("\n")) {
-    //         _address = _address!.substring(0, _address!.indexOf("\n"));
-    //       }
-    //
-    //       sendToController.text = AddressUtils().formatAddressMwc(_address!);
-    //     }
-    //   });
-    // }
+    final isMwcSlatepack =
+        coin is Mimblewimblecoin &&
+        ref.watch(pSelectedMwcTransactionMethod) ==
+            MwcTransactionMethod.slatepack;
 
     return Background(
       child: Scaffold(
@@ -1536,54 +1519,43 @@ class _SendViewState extends ConsumerState<SendView> {
 
                             // MWC Transaction Method Selector.
                             if (coin is Mimblewimblecoin) ...[
-                              MwcTransactionMethodSelector(
-                                onMethodSelected: (method) {
-                                  setState(() {
-                                    _selectedTransactionMethod = method;
-                                  });
-                                  // Update the provider as well.
-                                  ref
-                                      .read(
-                                        pSelectedMwcTransactionMethod.notifier,
-                                      )
-                                      .state = method;
-                                },
-                                selectedMethod: _selectedTransactionMethod,
-                                addressText: sendToController.text.trim(),
+                              const SizedBox(
+                                height: 40,
+                                child: MwcTxsMethodToggle(),
                               ),
                               const SizedBox(height: 16),
                             ],
 
-                            // "Send to" field - optional for MWC slatepack transactions.
-                            // Always show the field, but make it optional for slatepack.
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  isPaynymSend
-                                      ? "Send to PayNym address"
-                                      : "Send to",
-                                  style: STextStyles.smallMed12(context),
-                                  textAlign: TextAlign.left,
-                                ),
-                                // if (coin is Monero)
-                                //   CustomTextButton(
-                                //     text: "Use OpenAlias",
-                                //     onTap: () async {
-                                //       await showModalBottomSheet(
-                                //         context: context,
-                                //         builder: (context) =>
-                                //             OpenAliasBottomSheet(
-                                //           onSelected: (address) {
-                                //             sendToController.text = address;
-                                //           },
-                                //         ),
-                                //       );
-                                //     },
-                                //   ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
+                            if (!isMwcSlatepack)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    isPaynymSend
+                                        ? "Send to PayNym address"
+                                        : "Send to",
+                                    style: STextStyles.smallMed12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  // if (coin is Monero)
+                                  //   CustomTextButton(
+                                  //     text: "Use OpenAlias",
+                                  //     onTap: () async {
+                                  //       await showModalBottomSheet(
+                                  //         context: context,
+                                  //         builder: (context) =>
+                                  //             OpenAliasBottomSheet(
+                                  //           onSelected: (address) {
+                                  //             sendToController.text = address;
+                                  //           },
+                                  //         ),
+                                  //       );
+                                  //     },
+                                  //   ),
+                                ],
+                              ),
+                            if (!isMwcSlatepack) const SizedBox(height: 8),
                             if (isPaynymSend)
                               TextField(
                                 key: const Key("sendViewPaynymAddressFieldKey"),
@@ -1592,7 +1564,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 readOnly: true,
                                 style: STextStyles.fieldLabel(context),
                               ),
-                            if (!isPaynymSend)
+                            if (!isPaynymSend && !isMwcSlatepack)
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
@@ -2641,7 +2613,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                             context,
                                           ),
                               child: Text(
-                                "Preview",
+                                ref.watch(pSelectedMwcTransactionMethod) ==
+                                        MwcTransactionMethod.slatepack
+                                    ? "Create slatepack"
+                                    : "Preview",
                                 style: STextStyles.button(context),
                               ),
                             ),

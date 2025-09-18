@@ -55,6 +55,7 @@ import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/desktop_mwc_txs_method_toggle.dart';
 import '../../../../widgets/dialogs/s_dialog.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
@@ -63,7 +64,6 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
-import 'desktop_mwc_txs_method_toggle.dart';
 
 class DesktopReceive extends ConsumerStatefulWidget {
   const DesktopReceive({

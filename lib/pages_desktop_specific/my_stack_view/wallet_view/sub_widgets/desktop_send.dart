@@ -64,6 +64,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/desktop_mwc_txs_method_toggle.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
@@ -76,7 +77,6 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_mwc_txs_method_toggle.dart';
 import 'desktop_send_fee_form.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
@@ -1948,7 +1948,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
           label:
-              ref.read(pSelectedMwcTransactionMethod) ==
+              ref.watch(pSelectedMwcTransactionMethod) ==
                       MwcTransactionMethod.slatepack
                   ? "Create slatepack"
                   : "Preview send",
