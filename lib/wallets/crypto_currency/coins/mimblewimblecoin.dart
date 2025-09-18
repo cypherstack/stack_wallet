@@ -105,52 +105,6 @@ class Mimblewimblecoin extends Bip39Currency {
     }
   }
 
-  /// Validate slatepack format.
-  bool validateSlatepack(String slatepack) {
-    try {
-      final trimmed = slatepack.trim();
-      if (!isSlatepack(trimmed)) {
-        return false;
-      }
-
-      // Basic structure validation.
-      final lines = trimmed.split('\n');
-      if (lines.length < 3) {
-        return false;
-      }
-
-      // Should have header, content, and footer.
-      return lines.first.startsWith('BEGINSLATEPACK.') &&
-          lines.last.endsWith('.ENDSLATEPACK') &&
-          lines.length > 2;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Get expected slatepack type from content (S1, S2, S3).
-  String? getSlatepackType(String slatepack) {
-    if (!validateSlatepack(slatepack)) {
-      return null;
-    }
-
-    try {
-      // This is a simplified approach - in reality you'd need to decode
-      // the slatepack content to determine the exact type.
-      final lines = slatepack.trim().split('\n');
-      final header = lines.first;
-
-      // Basic heuristic based on header format.
-      if (header.contains('BEGINSLATEPACK.')) {
-        return 'unknown'; // Would need proper decoding to determine S1/S2/S3.
-      }
-
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
   @override
   NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
