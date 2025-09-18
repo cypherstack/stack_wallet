@@ -68,6 +68,7 @@ import 'pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'pages/exchange_view/send_from_view.dart';
 import 'pages/exchange_view/trade_details_view.dart';
 import 'pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'pages/finalize_view/finalize_view.dart';
 import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -1707,6 +1708,16 @@ class RouteGenerator {
                   walletId: args.item1,
                   tokenContract: args.item2,
                 ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FinalizeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FinalizeView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }
