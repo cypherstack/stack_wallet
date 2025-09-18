@@ -53,11 +53,6 @@ class Mimblewimblecoin extends Bip39Currency {
 
   @override
   bool validateAddress(String address) {
-    // Check if it's a slatepack first.
-    if (isSlatepack(address)) {
-      return true;
-    }
-
     // Check URI schemes (HTTP, HTTPS, MWCMQS).
     final Uri? uri = Uri.tryParse(address);
     if (uri != null &&
