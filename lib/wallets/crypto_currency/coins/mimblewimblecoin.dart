@@ -55,15 +55,12 @@ class Mimblewimblecoin extends Bip39Currency {
   bool validateAddress(String address) {
     // Check URI schemes (HTTP, HTTPS, MWCMQS).
     final Uri? uri = Uri.tryParse(address);
-    if (uri != null &&
-        (uri.scheme == "http" ||
-            uri.scheme == "https" ||
-            uri.scheme == "mwcmqs") &&
-        uri.host.isNotEmpty) {
-      return true;
+    if (uri != null && uri.scheme == "mwcmqs" && uri.host.isNotEmpty) {
+      // Use libmwc for address validation.
+      return mimblewimblecoin.Libmwc.validateSendAddress(address: uri.host);
     }
 
-    // Use libmwc for other address validation.
+    // Use libmwc for address validation.
     return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
   }
 
@@ -79,11 +76,6 @@ class Mimblewimblecoin extends Bip39Currency {
   /// Check if address is MWCMQS format.
   bool isMwcmqsAddress(String address) {
     return address.startsWith('mwcmqs://');
-  }
-
-  /// Check if address is HTTP format.
-  bool isHttpAddress(String address) {
-    return address.startsWith('http://') || address.startsWith('https://');
   }
 
   /// Detect transaction type based on address/data format.
