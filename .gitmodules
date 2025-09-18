@@ -6,4 +6,4 @@
 	url = https://github.com/cypherstack/frostdart
 [submodule "crypto_plugins/flutter_libmwc"]
 	path = crypto_plugins/flutter_libmwc
-	url = https://github.com/vekamo/flutter_libmwc
+	url = https://github.com/cypherstack/flutter_libmwc
