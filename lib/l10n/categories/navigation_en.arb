@@ -1,0 +1,73 @@
+{
+  "@@locale": "en",
+  "@@context": "Navigation labels and menu items",
+  
+  "walletsTab": "Wallets",
+  "@walletsTab": {
+    "description": "Bottom navigation tab label for wallets view"
+  },
+  "exchangeTab": "Exchange", 
+  "@exchangeTab": {
+    "description": "Bottom navigation tab label for exchange view"
+  },
+  "buyTab": "Buy",
+  "@buyTab": {
+    "description": "Bottom navigation tab label for buy view"
+  },
+  "settingsTab": "Settings",
+  "@settingsTab": {
+    "description": "Bottom navigation tab label for settings view"
+  },
+  "notificationsTitle": "Notifications",
+  "@notificationsTitle": {
+    "description": "AppBar title for notifications screen"
+  },
+  "sendFromTitle": "Send from",
+  "@sendFromTitle": {
+    "description": "AppBar title for send from screen"
+  },
+  "swapTitle": "Swap",
+  "@swapTitle": {
+    "description": "AppBar title for swap screen"
+  },
+  "fusionTitle": "Fusion",
+  "@fusionTitle": {
+    "description": "AppBar title for fusion screen"
+  },
+  "churnTitle": "Churn",
+  "@churnTitle": {
+    "description": "AppBar title for churn screen"
+  },
+  "addressBookTitle": "Address Book",
+  "@addressBookTitle": {
+    "description": "AppBar title for address book screen"
+  },
+  "homeTitle": "Home",
+  "@homeTitle": {
+    "description": "AppBar title for home screen"
+  },
+  "walletViewTitle": "Wallet",
+  "@walletViewTitle": {
+    "description": "AppBar title for wallet details screen"
+  },
+  "ordinalViewTitle": "Ordinals",
+  "@ordinalViewTitle": {
+    "description": "AppBar title for ordinals screen"
+  },
+  "tokensTitle": "Tokens",
+  "@tokensTitle": {
+    "description": "AppBar title for tokens screen"
+  },
+  "backButton": "Back",
+  "@backButton": {
+    "description": "Back navigation button label"
+  },
+  "menuButton": "Menu",
+  "@menuButton": {
+    "description": "Menu navigation button label"
+  },
+  "searchHint": "Search...",
+  "@searchHint": {
+    "description": "Search field placeholder text"
+  }
+}

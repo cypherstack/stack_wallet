@@ -1,0 +1,357 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2024-08-19T00:00:00.000Z",
+  
+  "appTitle": "Stack Wallet",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  
+  "walletsTab": "Wallets",
+  "@walletsTab": {
+    "description": "Bottom navigation tab label for wallets view"
+  },
+  "exchangeTab": "Exchange", 
+  "@exchangeTab": {
+    "description": "Bottom navigation tab label for exchange view"
+  },
+  "buyTab": "Buy",
+  "@buyTab": {
+    "description": "Bottom navigation tab label for buy view"
+  },
+  "settingsTab": "Settings",
+  "@settingsTab": {
+    "description": "Bottom navigation tab label for settings view"
+  },
+  "notificationsTitle": "Notifications",
+  "@notificationsTitle": {
+    "description": "AppBar title for notifications screen"
+  },
+  "addressBookTitle": "Address Book",
+  "@addressBookTitle": {
+    "description": "AppBar title for address book screen"
+  },
+  "homeTitle": "Home",
+  "@homeTitle": {
+    "description": "AppBar title for home screen"
+  },
+  "walletViewTitle": "Wallet",
+  "@walletViewTitle": {
+    "description": "AppBar title for wallet details screen"
+  },
+  "sendTitle": "Send",
+  "@sendTitle": {
+    "description": "AppBar title for send screen"
+  },
+  "sendFromTitle": "Send from",
+  "@sendFromTitle": {
+    "description": "AppBar title for send from screen"
+  },
+  "receiveTitle": "Receive",
+  "@receiveTitle": {
+    "description": "AppBar title for receive screen"
+  },
+  "swapTitle": "Swap",
+  "@swapTitle": {
+    "description": "AppBar title for swap screen"
+  },
+  "tokensTitle": "Tokens",
+  "@tokensTitle": {
+    "description": "AppBar title for tokens screen"
+  },
+  
+  "saveButton": "Save",
+  "@saveButton": {
+    "description": "Generic save button label used across forms"
+  },
+  "cancelButton": "Cancel",
+  "@cancelButton": {
+    "description": "Generic cancel button label used across dialogs"
+  },
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button text for multi-step processes"
+  },
+  "editButton": "Edit",
+  "@editButton": {
+    "description": "Edit button label"
+  },
+  "deleteButton": "Delete",
+  "@deleteButton": {
+    "description": "Delete button label"
+  },
+  "nextButton": "Next",
+  "@nextButton": {
+    "description": "Next button for navigation"
+  },
+  "closeButton": "Close",
+  "@closeButton": {
+    "description": "Close button for dialogs and modals"
+  },
+  "okButton": "OK",
+  "@okButton": {
+    "description": "OK button for confirmation dialogs"
+  },
+  "yesButton": "Yes",
+  "@yesButton": {
+    "description": "Yes button for confirmation dialogs"
+  },
+  "noButton": "No",
+  "@noButton": {
+    "description": "No button for confirmation dialogs"
+  },
+  "copyButton": "Copy",
+  "@copyButton": {
+    "description": "Copy button for copying text to clipboard"
+  },
+  "sendButton": "Send",
+  "@sendButton": {
+    "description": "Send button for transactions"
+  },
+  "receiveButton": "Receive",
+  "@receiveButton": {
+    "description": "Receive button for receiving transactions"
+  },
+  "addButton": "Add",
+  "@addButton": {
+    "description": "Add button for creating new items"
+  },
+  
+  "nameLabel": "Name",
+  "@nameLabel": {
+    "description": "Label for name input fields"
+  },
+  "amountLabel": "Amount",
+  "@amountLabel": {
+    "description": "Label for amount input fields"
+  },
+  "addressLabel": "Address",
+  "@addressLabel": {
+    "description": "Label for address input fields"
+  },
+  "feeLabel": "Fee",
+  "@feeLabel": {
+    "description": "Label for fee input fields"
+  },
+  "noteLabel": "Note",
+  "@noteLabel": {
+    "description": "Label for note input fields"
+  },
+  "passwordLabel": "Password",
+  "@passwordLabel": {
+    "description": "Label for password input fields"
+  },
+  "searchHint": "Search...",
+  "@searchHint": {
+    "description": "Placeholder text for search fields"
+  },
+  "enterPasswordHint": "Enter password",
+  "@enterPasswordHint": {
+    "description": "Placeholder text for password fields"
+  },
+  "enterAmountHint": "0.00",
+  "@enterAmountHint": {
+    "description": "Placeholder text for amount fields"
+  },
+  "optionalHint": "Optional",
+  "@optionalHint": {
+    "description": "Hint text for optional fields"
+  },
+  
+  "requiredFieldError": "This field is required",
+  "@requiredFieldError": {
+    "description": "Error message for required fields that are empty"
+  },
+  "invalidEmailError": "Please enter a valid email address",
+  "@invalidEmailError": {
+    "description": "Error message for invalid email format"
+  },
+  "invalidAddressError": "Please enter a valid address",
+  "@invalidAddressError": {
+    "description": "Error message for invalid address format"
+  },
+  "insufficientFundsError": "Insufficient funds",
+  "@insufficientFundsError": {
+    "description": "Error message when user has insufficient funds"
+  },
+  "networkError": "Network connection failed",
+  "@networkError": {
+    "description": "Error message for network connection failures"
+  },
+  "transactionFailed": "Transaction failed",
+  "@transactionFailed": {
+    "description": "Error message for failed transactions"
+  },
+  
+  "loadingStatus": "Loading...",
+  "@loadingStatus": {
+    "description": "Status message while loading"
+  },
+  "processingStatus": "Processing...",
+  "@processingStatus": {
+    "description": "Status message while processing"
+  },
+  "syncingStatus": "Syncing...",
+  "@syncingStatus": {
+    "description": "Status message while syncing"
+  },
+  "completedStatus": "Completed",
+  "@completedStatus": {
+    "description": "Status message when operation is completed"
+  },
+  "pendingStatus": "Pending",
+  "@pendingStatus": {
+    "description": "Status message when operation is pending"
+  },
+  "confirmedStatus": "Confirmed",
+  "@confirmedStatus": {
+    "description": "Status message when transaction is confirmed"
+  },
+  
+  "wallets": "Wallets",
+  "@wallets": {
+    "description": "Label for the wallets section"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Label for the settings section"
+  },
+  "exchange": "Exchange",
+  "@exchange": {
+    "description": "Label for the exchange section"
+  },
+  "buy": "Buy",
+  "@buy": {
+    "description": "Label for the buy section"
+  },
+  "notifications": "Notifications",
+  "@notifications": {
+    "description": "Label for the notifications section"
+  },
+  "saveChanges": "Save changes",
+  "@saveChanges": {
+    "description": "Save changes button text"
+  },
+  "contractDetails": "Contract details",
+  "@contractDetails": {
+    "description": "Contract details page title"
+  },
+  "contractAddress": "Contract address",
+  "@contractAddress": {
+    "description": "Label for contract address field"
+  },
+  "symbolLabel": "Symbol",
+  "@symbolLabel": {
+    "description": "Label for symbol field"
+  },
+  "typeLabel": "Type",
+  "@typeLabel": {
+    "description": "Label for type field"
+  },
+  "decimalsLabel": "Decimals",
+  "@decimalsLabel": {
+    "description": "Label for decimals field"
+  },
+  "name": "Name",
+  "@name": {
+    "description": "Label for name field"
+  },
+  "youCanChangeItLaterInSettings": "You can change it later in Settings",
+  "@youCanChangeItLaterInSettings": {
+    "description": "Informational text about changing settings later"
+  },
+  "easyCrypto": "Easy Crypto",
+  "@easyCrypto": {
+    "description": "Easy Crypto option label"
+  },
+  "recommended": "Recommended",
+  "@recommended": {
+    "description": "Recommended option label"
+  },
+  "incognito": "Incognito",
+  "@incognito": {
+    "description": "Incognito option label"
+  },
+  "privacyConscious": "Privacy conscious",
+  "@privacyConscious": {
+    "description": "Privacy conscious option label"
+  },
+
+  "welcomeTagline": "An open-source, multicoin wallet for everyone",
+  "@welcomeTagline": {
+    "description": "Main tagline shown on welcome/intro screen"
+  },
+  "getStartedButton": "Get started",
+  "@getStartedButton": {
+    "description": "Button text for starting wallet setup on mobile"
+  },
+  "createNewWalletButton": "Create new {appPrefix}",
+  "@createNewWalletButton": {
+    "description": "Button text for creating new wallet on desktop",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String",
+        "description": "Application prefix (e.g., Stack)"
+      }
+    }
+  },
+  "restoreFromBackupButton": "Restore from {appPrefix} backup",
+  "@restoreFromBackupButton": {
+    "description": "Button text for restoring from backup on desktop",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String",
+        "description": "Application prefix (e.g., Stack)"
+      }
+    }
+  },
+  "privacyAgreementText": "By using {appName}, you agree to the ",
+  "@privacyAgreementText": {
+    "description": "First part of privacy agreement text",
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "description": "Application name"
+      }
+    }
+  },
+  "termsOfServiceLinkText": "Terms of service",
+  "@termsOfServiceLinkText": {
+    "description": "Link text for terms of service"
+  },
+  "privacyAgreementConjunction": " and ",
+  "@privacyAgreementConjunction": {
+    "description": "Conjunction between terms and privacy policy links"
+  },
+  "privacyPolicyLinkText": "Privacy policy",
+  "@privacyPolicyLinkText": {
+    "description": "Link text for privacy policy"
+  },
+
+  "enterPinTitle": "Enter PIN",
+  "@enterPinTitle": {
+    "description": "Title text for PIN entry screen"
+  },
+  "useBiometricsButton": "Use biometrics",
+  "@useBiometricsButton": {
+    "description": "Button text for using biometric authentication"
+  },
+  "loadingWalletsMessage": "Loading wallets...",
+  "@loadingWalletsMessage": {
+    "description": "Loading message while wallets are being loaded"
+  },
+  "incorrectPinTryAgainError": "Incorrect PIN. Please try again",
+  "@incorrectPinTryAgainError": {
+    "description": "Error message for incorrect PIN entry"
+  },
+  "incorrectPinThrottleError": "Incorrect PIN entered too many times. Please wait {waitTime}",
+  "@incorrectPinThrottleError": {
+    "description": "Error message when PIN attempts are throttled",
+    "placeholders": {
+      "waitTime": {
+        "type": "String",
+        "description": "Time to wait before trying again"
+      }
+    }
+  }
+}

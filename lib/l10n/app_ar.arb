@@ -1,0 +1,75 @@
+{
+  "@@locale": "ar",
+  "appTitle": "Stack Wallet",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "wallets": "المحافظ",
+  "@wallets": {
+    "description": "Label for the wallets section"
+  },
+  "settings": "الإعدادات",
+  "@settings": {
+    "description": "Label for the settings section"
+  },
+  "exchange": "التبادل",
+  "@exchange": {
+    "description": "Label for the exchange section"
+  },
+  "buy": "شراء",
+  "@buy": {
+    "description": "Label for the buy section"
+  },
+  "notifications": "الإشعارات",
+  "@notifications": {
+    "description": "Label for the notifications section"
+  },
+  "continueButton": "متابعة",
+  "@continueButton": {
+    "description": "Continue button text"
+  },
+  "welcomeTagline": "محفظة متعددة العملات مفتوحة المصدر للجميع",
+  "@welcomeTagline": {
+    "description": "Main tagline shown on welcome/intro screen"
+  },
+  "getStartedButton": "ابدأ",
+  "@getStartedButton": {
+    "description": "Button text for starting wallet setup on mobile"
+  },
+  "saveChanges": "حفظ التغييرات",
+  "@saveChanges": {
+    "description": "Save changes button text"
+  },
+  "contractDetails": "تفاصيل العقد",
+  "@contractDetails": {
+    "description": "Contract details page title"
+  },
+  "contractAddress": "عنوان العقد",
+  "@contractAddress": {
+    "description": "Label for contract address field"
+  },
+  "name": "الاسم",
+  "@name": {
+    "description": "Label for name field"
+  },
+  "youCanChangeItLaterInSettings": "يمكنك تغييره لاحقاً في الإعدادات",
+  "@youCanChangeItLaterInSettings": {
+    "description": "Informational text about changing settings later"
+  },
+  "easyCrypto": "العملة المشفرة السهلة",
+  "@easyCrypto": {
+    "description": "Easy Crypto option label"
+  },
+  "recommended": "موصى به",
+  "@recommended": {
+    "description": "Recommended option label"
+  },
+  "incognito": "مجهول",
+  "@incognito": {
+    "description": "Incognito option label"
+  },
+  "privacyConscious": "واعي بالخصوصية",
+  "@privacyConscious": {
+    "description": "Privacy conscious option label"
+  }
+}

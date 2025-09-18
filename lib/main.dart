@@ -19,6 +19,7 @@ import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,6 +37,7 @@ import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
 import 'db/special_migrations.dart';
 import 'db/sqlite/firo_cache.dart';
+import 'l10n/app_localizations.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
 import 'models/exchange/response_objects/trade.dart';
@@ -707,12 +709,21 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     // });
 
     final colorScheme = ref.watch(colorProvider.state).state;
+    final localeService = ref.watch(localeServiceChangeNotifierProvider);
 
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
+      locale: localeService.currentLocale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
