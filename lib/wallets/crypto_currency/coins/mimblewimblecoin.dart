@@ -53,13 +53,6 @@ class Mimblewimblecoin extends Bip39Currency {
 
   @override
   bool validateAddress(String address) {
-    // Check URI schemes (HTTP, HTTPS, MWCMQS).
-    final Uri? uri = Uri.tryParse(address);
-    if (uri != null && uri.scheme == "mwcmqs" && uri.host.isNotEmpty) {
-      // Use libmwc for address validation.
-      return mimblewimblecoin.Libmwc.validateSendAddress(address: uri.host);
-    }
-
     // Use libmwc for address validation.
     return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
   }
