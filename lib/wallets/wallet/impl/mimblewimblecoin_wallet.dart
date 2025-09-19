@@ -207,6 +207,53 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     }
   }
 
+  // this isn't nearly the best way to handle this but better than copy pasting
+  // this function in two places (mobile and desktop widgets)...
+  Future<({SlatepackDecodeResult result, String type, String raw})?>
+  fullDecodeSlatepack(String slatepack) async {
+    // add delay for showloading exception catching hack fix
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    if (slatepack.isEmpty) {
+      return null;
+    }
+
+    // Basic format validation.
+    final coin = cryptoCurrency as Mimblewimblecoin;
+    if (!coin.isSlatepack(slatepack)) {
+      throw Exception("Invalid slatepack format");
+    }
+
+    // Attempt to decode.
+    final decoded = await decodeSlatepack(slatepack);
+
+    if (decoded.success) {
+      final analysis = await analyzeSlatepack(slatepack);
+
+      String _determineSlatepackType(SlatepackDecodeResult decoded) {
+        // Fallback analysis based on sender/recipient addresses.
+        if (decoded.senderAddress != null && decoded.recipientAddress != null) {
+          return "S2 (Response)";
+        } else if (decoded.senderAddress != null) {
+          return "S1 (Initial)";
+        } else {
+          return "Unknown";
+        }
+      }
+
+      final String slatepackType = switch (analysis.status) {
+        'S1' => "S1 (Initial Send)",
+        'S2' => "S2 (Response)",
+        'S3' => "S3 (Finalized)",
+        _ => _determineSlatepackType(decoded), // Fallback.
+      };
+
+      return (result: decoded, type: slatepackType, raw: slatepack);
+    } else {
+      throw Exception(decoded.error ?? "Failed to decode slatepack");
+    }
+  }
+
   /// Decode a slatepack.
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
     try {

@@ -20,7 +20,6 @@ import 'package:tuple/tuple.dart';
 
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
-import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import '../../../../pages/receive_view/sub_widgets/mwc_slatepack_import_dialog.dart';
@@ -111,59 +110,13 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     }
   }
 
-  Future<({SlatepackDecodeResult result, String type, String raw})?>
-  _decodeSlatepack() async {
-    // add delay for showloading exception catching hack fix
-    await Future<void>.delayed(const Duration(seconds: 1));
-
+  Future<void> _onReceiveSlatePressed() async {
     final wallet =
         ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
-    final text = _receiveSlateController.text.trim();
 
-    if (text.isEmpty) {
-      return null;
-    }
-
-    // Basic format validation.
-    final coin = wallet.cryptoCurrency as Mimblewimblecoin;
-    if (!coin.isSlatepack(text)) {
-      throw Exception("Invalid slatepack format");
-    }
-
-    // Attempt to decode.
-    final decoded = await wallet.decodeSlatepack(text);
-
-    if (decoded.success) {
-      final analysis = await wallet.analyzeSlatepack(text);
-
-      String _determineSlatepackType(SlatepackDecodeResult decoded) {
-        // Fallback analysis based on sender/recipient addresses.
-        if (decoded.senderAddress != null && decoded.recipientAddress != null) {
-          return "S2 (Response)";
-        } else if (decoded.senderAddress != null) {
-          return "S1 (Initial)";
-        } else {
-          return "Unknown";
-        }
-      }
-
-      final String slatepackType = switch (analysis.status) {
-        'S1' => "S1 (Initial Send)",
-        'S2' => "S2 (Response)",
-        'S3' => "S3 (Finalized)",
-        _ => _determineSlatepackType(decoded), // Fallback.
-      };
-
-      return (result: decoded, type: slatepackType, raw: text);
-    } else {
-      throw Exception(decoded.error ?? "Failed to decode slatepack");
-    }
-  }
-
-  Future<void> _onReceiveSlatePressed() async {
     Exception? ex;
     final result = await showLoading(
-      whileFuture: _decodeSlatepack(),
+      whileFuture: wallet.fullDecodeSlatepack(_receiveSlateController.text),
       context: context,
       message: "Decoding slatepack...",
       rootNavigator: Util.isDesktop,
