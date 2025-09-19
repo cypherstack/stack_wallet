@@ -17,6 +17,7 @@ import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/mwc_slatepack_models.dart';
 import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
@@ -26,7 +27,6 @@ import '../../../services/event_bus/events/global/node_connection_status_changed
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
-import '../../../models/mwc_slatepack_models.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
@@ -76,26 +76,36 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       key: '${walletId}_mwcmqsConfig',
       value: stringConfig,
     );
-    
+
     // Restart MWCMQS listener with new configuration if wallet has a handle.
     try {
-      final handle = await secureStorageInterface.read(key: '${walletId}_wallet');
+      final handle = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
       if (handle != null && handle.isNotEmpty) {
         await stopSlatepackListener();
         await startSlatepackListener();
-        Logging.instance.i('Restarted MWCMQS listener with new config: $host:$port');
+        Logging.instance.i(
+          'Restarted MWCMQS listener with new config: $host:$port',
+        );
       }
     } catch (e, s) {
-      Logging.instance.e('Failed to restart MWCMQS listener after config update: $e\n$s');
+      Logging.instance.e(
+        'Failed to restart MWCMQS listener after config update: $e\n$s',
+      );
     }
   }
 
   Future<String> _ensureWalletOpen() async {
-    final existing = await secureStorageInterface.read(key: '${walletId}_wallet');
+    final existing = await secureStorageInterface.read(
+      key: '${walletId}_wallet',
+    );
     if (existing != null && existing.isNotEmpty) return existing;
 
     final config = await _getRealConfig();
-    final password = await secureStorageInterface.read(key: '${walletId}_password');
+    final password = await secureStorageInterface.read(
+      key: '${walletId}_password',
+    );
     if (password == null) {
       throw Exception('Wallet password not found');
     }
@@ -103,7 +113,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       config: config,
       password: password,
     );
-    await secureStorageInterface.write(key: '${walletId}_wallet', value: opened);
+    await secureStorageInterface.write(
+      key: '${walletId}_wallet',
+      value: opened,
+    );
     return opened;
   }
 
@@ -133,15 +146,13 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
     if (customConfigJson != null) {
       try {
-        final customConfig = jsonDecode(customConfigJson) as Map<String, dynamic>;
+        final customConfig =
+            jsonDecode(customConfigJson) as Map<String, dynamic>;
         final host = customConfig['mwcmqs_domain'] as String?;
         final port = customConfig['mwcmqs_port'] as int?;
-        
+
         if (host != null && port != null) {
-          return MwcMqsConfigModel(
-            host: host,
-            port: port,
-          );
+          return MwcMqsConfigModel(host: host, port: port);
         }
       } catch (e) {
         Logging.instance.w('Failed to parse custom MWCMQS config: $e');
@@ -199,13 +210,18 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Decode a slatepack.
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
     try {
-      final handle = await secureStorageInterface.read(key: '${walletId}_wallet');
-      final result = handle != null
-          ? await mimblewimblecoin.Libmwc.decodeSlatepackWithWallet(
-              wallet: handle,
-              slatepack: slatepack,
-            )
-          : await mimblewimblecoin.Libmwc.decodeSlatepack(slatepack: slatepack);
+      final handle = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
+      final result =
+          handle != null
+              ? await mimblewimblecoin.Libmwc.decodeSlatepackWithWallet(
+                wallet: handle,
+                slatepack: slatepack,
+              )
+              : await mimblewimblecoin.Libmwc.decodeSlatepack(
+                slatepack: slatepack,
+              );
 
       return SlatepackDecodeResult(
         success: true,
@@ -292,7 +308,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     try {
       await _ensureWalletOpen();
       final mwcmqsConfig = await getMwcMqsConfig();
-      final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+      final wallet = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
       mimblewimblecoin.Libmwc.startMwcMqsListener(
         wallet: wallet!,
         mwcmqsConfig: mwcmqsConfig.toString(),
@@ -798,7 +816,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<void> init({bool? isRestore}) async {
-
     if (isRestore != true) {
       String? encodedWallet = await secureStorageInterface.read(
         key: "${walletId}_wallet",
