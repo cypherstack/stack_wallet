@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
@@ -22,6 +21,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
+import '../../models/mwc_slatepack_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
@@ -47,6 +47,7 @@ import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -54,6 +55,7 @@ import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -79,6 +81,7 @@ import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
+import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
@@ -611,6 +614,97 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
+  Future<void> _createSlatepack() async {
+    // wait for keyboard to disappear
+    FocusScope.of(context).unfocus();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    try {
+      if (mounted) {
+        final wallet =
+            ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
+
+        final amount = ref.read(pSendAmount)!;
+
+        Future<SlatepackResult> wrappedFutureWithDelay() async {
+          await Future<void>.delayed(const Duration(seconds: 1));
+          return wallet.createSlatepack(
+            amount: amount,
+            recipientAddress: null,
+            // No specific recipient for manual slatepack.
+            message:
+                onChainNoteController.text.isNotEmpty == true
+                    ? onChainNoteController.text
+                    : null,
+            encrypt: false, // No encryption without recipient address.
+          );
+        }
+
+        // Create slatepack.
+        Exception? ex;
+        final slatepackResult = await showLoading(
+          whileFuture: wrappedFutureWithDelay(),
+          context: context,
+          message: "Building slatepack...",
+          delay: const Duration(seconds: 2),
+          onException: (e) => ex = e,
+        );
+
+        if (slatepackResult == null ||
+            !slatepackResult.success ||
+            slatepackResult.slatepack == null ||
+            ex != null) {
+          String error =
+              ex?.toString() ??
+              slatepackResult?.error ??
+              'Failed to create slatepack';
+          if (error.startsWith("Exception:")) {
+            error = error.replaceFirst("Exception:", "").trim();
+          }
+          throw Exception(error);
+        }
+
+        // refresh asap to show the pending slate tx in history
+        unawaited(() async {
+          await Future<void>.delayed(Duration.zero);
+          await wallet.refresh();
+        }());
+
+        // Show slatepack dialog.
+        if (mounted) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder:
+                (context) => StackDialogBase(
+                  child: MwcSlatepackDialog(slatepackResult: slatepackResult),
+                ),
+          );
+
+          // Clear form after slatepack dialog is closed.
+          clearSendForm();
+        }
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        'Failed to create MWC slatepack on mobile',
+        error: e,
+        stackTrace: s,
+      );
+
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder:
+              (context) => StackOkDialog(
+                title: "Slatepack Creation Failed",
+                message: e.toString(),
+              ),
+        );
+      }
+    }
+  }
+
   Future<void> _previewTransaction() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
@@ -852,40 +946,6 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       } else {
         final memo = coin is Stellar ? memoController.text : null;
-
-        // For MWC, determine transaction method and add it to otherData.
-        Map<String, dynamic>? otherData;
-        if (coin is Mimblewimblecoin) {
-          String transactionMethod = 'slatepack'; // Default to slatepack.
-
-          if (_selectedTransactionMethod != null) {
-            switch (_selectedTransactionMethod!) {
-              case MwcTransactionMethod.slatepack:
-                transactionMethod = 'slatepack';
-                break;
-              case MwcTransactionMethod.mwcmqs:
-                transactionMethod = 'mwcmqs';
-                break;
-              // case MwcTransactionMethod.http:
-              //   transactionMethod = 'http';
-              //   break;
-              // case MwcTransactionMethod.unknown:
-              //   // Auto-detect from address format.
-              //   final mwcCoin = coin as Mimblewimblecoin;
-              //   final method = mwcCoin.getTransactionMethod(_address!);
-              //   transactionMethod = method.toString().split('.').last;
-              //   break;
-            }
-          } else {
-            // Auto-detect from address format if no method selected.
-            final mwcCoin = coin as Mimblewimblecoin;
-            final method = mwcCoin.getTransactionMethod(_address!);
-            transactionMethod = method.toString().split('.').last;
-          }
-
-          otherData = {'transactionMethod': transactionMethod};
-        }
-
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -900,10 +960,6 @@ class _SendViewState extends ConsumerState<SendView> {
             feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
             ethEIP1559Fee: ethFee,
-            otherData:
-                otherData != null
-                    ? jsonEncode(otherData)
-                    : null, // Include MWC transaction method info.
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
@@ -2600,7 +2656,12 @@ class _SendViewState extends ConsumerState<SendView> {
                             TextButton(
                               onPressed:
                                   ref.watch(pPreviewTxButtonEnabled(coin))
-                                      ? _previewTransaction
+                                      ? ref.watch(
+                                                pSelectedMwcTransactionMethod,
+                                              ) ==
+                                              MwcTransactionMethod.slatepack
+                                          ? _createSlatepack
+                                          : _previewTransaction
                                       : null,
                               style:
                                   ref.watch(pPreviewTxButtonEnabled(coin))
