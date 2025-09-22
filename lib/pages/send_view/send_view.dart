@@ -151,9 +151,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Set<StandardInput> selectedUTXOs = {};
 
-  // MWC transaction method selection.
-  MwcTransactionMethod? _selectedTransactionMethod;
-
   void _applyUri(PaymentUriData paymentData) {
     try {
       // auto fill address
@@ -1676,11 +1673,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   focusNode: _addressFocusNode,
                                   style: STextStyles.field(context),
                                   decoration: standardInputDecoration(
-                                    coin is Mimblewimblecoin &&
-                                                _selectedTransactionMethod ==
-                                                    MwcTransactionMethod
-                                                        .slatepack ||
-                                            _selectedTransactionMethod == null
+                                    isMwcSlatepack
                                         ? "Enter ${coin.ticker} address (optional)"
                                         : "Enter ${coin.ticker} address",
                                     _addressFocusNode,
