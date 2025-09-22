@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,11 +9,14 @@ import '../../../models/mwc_slatepack_models.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -112,6 +117,37 @@ class _MwcSlatepackImportDialogState
     }
   }
 
+  late final Amount? _amount;
+
+  // late final Amount? _fee;
+
+  @override
+  void initState() {
+    final map = jsonDecode(widget.decoded.slateJson!) as Map;
+
+    final rawAmount = BigInt.tryParse(map["amount"].toString());
+    _amount =
+        rawAmount == null
+            ? null
+            : Amount(
+              rawValue: rawAmount,
+              fractionDigits:
+                  ref.read(pWalletCoin(widget.walletId)).fractionDigits,
+            );
+
+    // final rawFee = BigInt.tryParse(map["fee"].toString());
+    // _fee =
+    //     rawFee == null
+    //         ? null
+    //         : Amount(
+    //           rawValue: rawFee,
+    //           fractionDigits:
+    //               ref.read(pWalletCoin(widget.walletId)).fractionDigits,
+    //         );
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -119,22 +155,23 @@ class _MwcSlatepackImportDialogState
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Header with title and close button.
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 32),
-              child: Text(
-                "Import Slatepack",
-                style: STextStyles.pageTitleH2(context),
+        if (isDesktop)
+          // Header with title and close button.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(
+                  "Import Slatepack",
+                  style: STextStyles.pageTitleH2(context),
+                ),
               ),
-            ),
-            const DesktopDialogCloseButton(),
-          ],
-        ),
+              const DesktopDialogCloseButton(),
+            ],
+          ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -156,31 +193,59 @@ class _MwcSlatepackImportDialogState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DetailItem(title: "Type", detail: widget.slatepackType),
-                    const DetailDivider(),
-                    DetailItem(
-                      title: "Encrypted",
-                      detail: (widget.decoded.wasEncrypted ?? false).toString(),
-                    ),
-                    if (widget.decoded.senderAddress != null)
-                      const DetailDivider(),
-                    if (widget.decoded.senderAddress != null)
-                      DetailItem(
-                        title: "From",
-                        detail: widget.decoded.senderAddress!,
+                    if (!isDesktop)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 24),
+                        child: Text(
+                          "Import slatepack",
+                          style: STextStyles.pageTitleH2(context),
+                        ),
                       ),
-                    if (widget.decoded.recipientAddress != null)
-                      const DetailDivider(),
-                    if (widget.decoded.recipientAddress != null)
+
+                    // DetailItem(title: "Type", detail: widget.slatepackType),
+                    // const DetailDivider(),
+                    // DetailItem(
+                    //   title: "Encrypted",
+                    //   detail: (widget.decoded.wasEncrypted ?? false).toString(),
+                    // ),
+                    // if (widget.decoded.senderAddress != null)
+                    //   const DetailDivider(),
+                    // if (widget.decoded.senderAddress != null)
+                    //   DetailItem(
+                    //     title: "From",
+                    //     detail: widget.decoded.senderAddress!,
+                    //   ),
+                    // if (widget.decoded.recipientAddress != null)
+                    //   const DetailDivider(),
+                    // if (widget.decoded.recipientAddress != null)
+                    //   DetailItem(
+                    //     title: "To",
+                    //     detail: widget.decoded.recipientAddress!,
+                    //   ),
+                    // if (_amount != null) const DetailDivider(),
+                    if (_amount != null)
                       DetailItem(
-                        title: "To",
-                        detail: widget.decoded.recipientAddress!,
+                        title: "Amount",
+                        detail: ref
+                            .watch(
+                              pAmountFormatter(
+                                ref.watch(pWalletCoin(widget.walletId)),
+                              ),
+                            )
+                            .format(_amount),
                       ),
-                    const DetailDivider(),
-                    DetailItem(
-                      title: "Slatepack",
-                      detail: widget.decoded.slateJson!,
-                    ),
+                    // if (_fee != null) const DetailDivider(),
+                    // if (_fee != null)
+                    //   DetailItem(
+                    //     title: "Fee",
+                    //     detail: ref
+                    //         .watch(
+                    //           pAmountFormatter(
+                    //             ref.watch(pWalletCoin(widget.walletId)),
+                    //           ),
+                    //         )
+                    //         .format(_fee),
+                    //   ),
                   ],
                 ),
               ),
@@ -209,7 +274,7 @@ class _MwcSlatepackImportDialogState
             ],
           ),
         ),
-        const SizedBox(height: 32),
+        isDesktop ? const SizedBox(height: 32) : const SizedBox(height: 16),
       ],
     );
   }
