@@ -17,7 +17,7 @@ import 'dart:core';
 // import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 // import 'package:flutter_libmonero/wownero/wownero.dart';
 // import 'package:flutter_test/flutter_test.dart';
-// import 'package:hive/hive.dart';
+// import 'package:hive_ce/hive.dart';
 // import 'package:hive_test/hive_test.dart';
 // import 'package:path_provider/path_provider.dart';
 // import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';

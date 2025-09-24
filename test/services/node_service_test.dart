@@ -1,7 +1,7 @@
 // TODO MWC
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
@@ -242,8 +242,9 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
-      final defaults =
-          AppConfig.coins.map((e) => e.defaultNode(isPrimary: true)).toList();
+      final defaults = AppConfig.coins
+          .map((e) => e.defaultNode(isPrimary: true))
+          .toList();
 
       nodes.sort((a, b) => a.id.compareTo(b.id));
       defaults.sort((a, b) => a.id.compareTo(b.id));

@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:hive/hive.dart' show Box;
+import 'package:hive_ce/hive.dart' show Box;
 import 'package:stack_wallet_backup/secure_storage.dart';
 
 import '../db/hive/db.dart';
@@ -68,7 +68,11 @@ class DPS {
       await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
       await _updateStoredKeyBlobVersion(kLatestBlobVersion);
     } catch (e, s) {
-      Logging.instance.e("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s);
+      Logging.instance.e(
+        "${_getMessageFromException(e)}\n$s",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -101,7 +105,11 @@ class DPS {
         await _updateStoredKeyBlobVersion(kLatestBlobVersion);
       }
     } catch (e, s) {
-      Logging.instance.e("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s);
+      Logging.instance.e(
+        "${_getMessageFromException(e)}\n$s",
+        error: e,
+        stackTrace: s,
+      );
       throw Exception(_getMessageFromException(e));
     }
   }
@@ -119,7 +127,11 @@ class DPS {
       // existing passphrase matches key blob
       return true;
     } catch (e, s) {
-      Logging.instance.w("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s,);
+      Logging.instance.w(
+        "${_getMessageFromException(e)}\n$s",
+        error: e,
+        stackTrace: s,
+      );
       // password is wrong or some other error
       return false;
     }
@@ -143,16 +155,17 @@ class DPS {
 
       final blobVersion = await _getStoredKeyBlobVersion();
       await _handler!.resetPassphrase(passphraseNew, blobVersion);
-      await _put(
-        key: _kKeyBlobKey,
-        value: await _handler!.getKeyBlob(),
-      );
+      await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
       await _updateStoredKeyBlobVersion(blobVersion);
 
       // successfully updated passphrase
       return true;
     } catch (e, s) {
-      Logging.instance.w("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s,);
+      Logging.instance.w(
+        "${_getMessageFromException(e)}\n$s",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
