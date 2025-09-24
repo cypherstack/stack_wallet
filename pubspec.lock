@@ -348,8 +348,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
-      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
+      resolved-ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
     version: "4.1.0"
@@ -357,8 +357,8 @@ packages:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
-      resolved-ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
+      resolved-ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
     version: "4.0.0"
