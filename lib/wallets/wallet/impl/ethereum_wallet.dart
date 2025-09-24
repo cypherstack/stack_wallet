@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
 

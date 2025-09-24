@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../dto/ordinals/inscription_data.dart';
@@ -15,10 +15,7 @@ class Ordinal {
   @Index(
     unique: true,
     replace: true,
-    composite: [
-      CompositeIndex("utxoTXID"),
-      CompositeIndex("utxoVOUT"),
-    ],
+    composite: [CompositeIndex("utxoTXID"), CompositeIndex("utxoVOUT")],
   )
   final String inscriptionId;
 
@@ -45,8 +42,10 @@ class Ordinal {
       inscriptionId: data.inscriptionId,
       inscriptionNumber: data.inscriptionNumber,
       content: data.content,
-      utxoTXID: data.output.split(':')[
-          0], // "output": "062f32e21aa04246b8873b5d9a929576addd0339881e1ea478b406795d6b6c47:0"
+      utxoTXID:
+          data.output.split(
+            ':',
+          )[0], // "output": "062f32e21aa04246b8873b5d9a929576addd0339881e1ea478b406795d6b6c47:0"
       utxoVOUT: int.parse(data.output.split(':')[1]),
     );
   }

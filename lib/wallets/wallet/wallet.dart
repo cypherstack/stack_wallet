@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 
@@ -34,11 +34,11 @@ import 'impl/dash_wallet.dart';
 import 'impl/dogecoin_wallet.dart';
 import 'impl/ecash_wallet.dart';
 import 'impl/epiccash_wallet.dart';
-import 'impl/mimblewimblecoin_wallet.dart';
 import 'impl/ethereum_wallet.dart';
 import 'impl/fact0rn_wallet.dart';
 import 'impl/firo_wallet.dart';
 import 'impl/litecoin_wallet.dart';
+import 'impl/mimblewimblecoin_wallet.dart';
 import 'impl/monero_wallet.dart';
 import 'impl/namecoin_wallet.dart';
 import 'impl/nano_wallet.dart';

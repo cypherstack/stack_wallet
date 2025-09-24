@@ -11,7 +11,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../utilities/amount/amount.dart';

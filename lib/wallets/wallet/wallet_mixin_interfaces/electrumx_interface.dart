@@ -3,7 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 
 import '../../../db/drift/database.dart';

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../db/drift/database.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';

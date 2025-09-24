@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'spark_coin.g.dart';
 

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../providers/providers.dart';
 import '../../../utilities/amount/amount.dart';

@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/receive_view/addresses/address_details_view.dart';
@@ -27,10 +27,7 @@ import 'sub_widgets/desktop_address_list.dart';
 final desktopSelectedAddressId = StateProvider.autoDispose<Id?>((ref) => null);
 
 class DesktopWalletAddressesView extends ConsumerStatefulWidget {
-  const DesktopWalletAddressesView({
-    super.key,
-    required this.walletId,
-  });
+  const DesktopWalletAddressesView({super.key, required this.walletId});
 
   static const String routeName = "/desktopWalletAddressesView";
 
@@ -82,32 +79,27 @@ class _DesktopWalletAddressesViewState
         leading: Expanded(
           child: Row(
             children: [
-              const SizedBox(
-                width: 32,
-              ),
+              const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                "Address list",
-                style: STextStyles.desktopH3(context),
-              ),
+              const SizedBox(width: 12),
+              Text("Address list", style: STextStyles.desktopH3(context)),
               const Spacer(),
             ],
           ),
@@ -129,15 +121,11 @@ class _DesktopWalletAddressesViewState
                       walletId: widget.walletId,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       children: [
-                        const SizedBox(
-                          height: _headerHeight,
-                        ),
+                        const SizedBox(height: _headerHeight),
                         if (ref.watch(desktopSelectedAddressId.state).state !=
                             null)
                           Expanded(
@@ -147,9 +135,10 @@ class _DesktopWalletAddressesViewState
                                   "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}",
                                 ),
                                 walletId: widget.walletId,
-                                addressId: ref
-                                    .watch(desktopSelectedAddressId.state)
-                                    .state!,
+                                addressId:
+                                    ref
+                                        .watch(desktopSelectedAddressId.state)
+                                        .state!,
                               ),
                             ),
                           ),

@@ -14,7 +14,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:frostdart/frostdart.dart' as frost;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';

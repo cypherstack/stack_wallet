@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/receive_view/addresses/address_card.dart';
@@ -87,24 +87,25 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           .findAllSync();
     }
 
-    final labels = ref
-        .read(mainDBProvider)
-        .getAddressLabels(widget.walletId)
-        .filter()
-        .group(
-          (q) => q
-              .valueContains(term, caseSensitive: false)
-              .or()
-              .addressStringContains(term, caseSensitive: false)
-              .or()
-              .group(
-                (q) => q
-                    .tagsIsNotNull()
-                    .and()
-                    .tagsElementContains(term, caseSensitive: false),
-              ),
-        )
-        .findAllSync();
+    final labels =
+        ref
+            .read(mainDBProvider)
+            .getAddressLabels(widget.walletId)
+            .filter()
+            .group(
+              (q) => q
+                  .valueContains(term, caseSensitive: false)
+                  .or()
+                  .addressStringContains(term, caseSensitive: false)
+                  .or()
+                  .group(
+                    (q) => q.tagsIsNotNull().and().tagsElementContains(
+                      term,
+                      caseSensitive: false,
+                    ),
+                  ),
+            )
+            .findAllSync();
 
     if (labels.isEmpty) {
       return [];
@@ -188,14 +189,16 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
                     _searchString = value;
                   });
                 },
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveText,
-                        height: 1.8,
-                      )
-                    : STextStyles.field(context),
+                style:
+                    isDesktop
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldActiveText,
+                          height: 1.8,
+                        )
+                        : STextStyles.field(context),
                 decoration: standardInputDecoration(
                   "Search...",
                   searchFieldFocusNode,
@@ -213,58 +216,61 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
                       height: isDesktop ? 20 : 16,
                     ),
                   ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                      _searchString = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                  suffixIcon:
+                      _searchController.text.isNotEmpty
+                          ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchString = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
-                      : null,
+                          )
+                          : null,
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         Expanded(
           child: RoundedWhiteContainer(
             padding: EdgeInsets.zero,
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: ids.length,
-              separatorBuilder: (_, __) => Container(
-                height: 1,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .backgroundAppBar,
-              ),
-              itemBuilder: (_, index) => Padding(
-                padding: const EdgeInsets.all(4),
-                child: AddressCard(
-                  key: Key("addressCardDesktop_key_${ids[index]}"),
-                  walletId: widget.walletId,
-                  addressId: ids[index],
-                  coin: coin,
-                  onPressed: () {
-                    ref.read(desktopSelectedAddressId.state).state = ids[index];
-                  },
-                ),
-              ),
+              separatorBuilder:
+                  (_, __) => Container(
+                    height: 1,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar,
+                  ),
+              itemBuilder:
+                  (_, index) => Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: AddressCard(
+                      key: Key("addressCardDesktop_key_${ids[index]}"),
+                      walletId: widget.walletId,
+                      addressId: ids[index],
+                      coin: coin,
+                      onPressed: () {
+                        ref.read(desktopSelectedAddressId.state).state =
+                            ids[index];
+                      },
+                    ),
+                  ),
             ),
           ),
         ),
