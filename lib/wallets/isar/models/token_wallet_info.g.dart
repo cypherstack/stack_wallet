@@ -36,8 +36,9 @@ const TokenWalletInfoSchema = CollectionSchema(
       id: 3,
       name: r'walletId',
       type: IsarType.string,
-    )
+    ),
   },
+
   estimateSize: _tokenWalletInfoEstimateSize,
   serialize: _tokenWalletInfoSerialize,
   deserialize: _tokenWalletInfoDeserialize,
@@ -59,16 +60,17 @@ const TokenWalletInfoSchema = CollectionSchema(
           name: r'tokenAddress',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _tokenWalletInfoGetId,
   getLinks: _tokenWalletInfoGetLinks,
   attach: _tokenWalletInfoAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _tokenWalletInfoEstimateSize(
@@ -145,36 +147,51 @@ List<IsarLinkBase<dynamic>> _tokenWalletInfoGetLinks(TokenWalletInfo object) {
 }
 
 void _tokenWalletInfoAttach(
-    IsarCollection<dynamic> col, Id id, TokenWalletInfo object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  TokenWalletInfo object,
+) {
   object.id = id;
 }
 
 extension TokenWalletInfoByIndex on IsarCollection<TokenWalletInfo> {
   Future<TokenWalletInfo?> getByWalletIdTokenAddress(
-      String walletId, String tokenAddress) {
+    String walletId,
+    String tokenAddress,
+  ) {
     return getByIndex(r'walletId_tokenAddress', [walletId, tokenAddress]);
   }
 
   TokenWalletInfo? getByWalletIdTokenAddressSync(
-      String walletId, String tokenAddress) {
+    String walletId,
+    String tokenAddress,
+  ) {
     return getByIndexSync(r'walletId_tokenAddress', [walletId, tokenAddress]);
   }
 
   Future<bool> deleteByWalletIdTokenAddress(
-      String walletId, String tokenAddress) {
+    String walletId,
+    String tokenAddress,
+  ) {
     return deleteByIndex(r'walletId_tokenAddress', [walletId, tokenAddress]);
   }
 
   bool deleteByWalletIdTokenAddressSync(String walletId, String tokenAddress) {
-    return deleteByIndexSync(
-        r'walletId_tokenAddress', [walletId, tokenAddress]);
+    return deleteByIndexSync(r'walletId_tokenAddress', [
+      walletId,
+      tokenAddress,
+    ]);
   }
 
   Future<List<TokenWalletInfo?>> getAllByWalletIdTokenAddress(
-      List<String> walletIdValues, List<String> tokenAddressValues) {
+    List<String> walletIdValues,
+    List<String> tokenAddressValues,
+  ) {
     final len = walletIdValues.length;
-    assert(tokenAddressValues.length == len,
-        'All index values must have the same length');
+    assert(
+      tokenAddressValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], tokenAddressValues[i]]);
@@ -184,10 +201,14 @@ extension TokenWalletInfoByIndex on IsarCollection<TokenWalletInfo> {
   }
 
   List<TokenWalletInfo?> getAllByWalletIdTokenAddressSync(
-      List<String> walletIdValues, List<String> tokenAddressValues) {
+    List<String> walletIdValues,
+    List<String> tokenAddressValues,
+  ) {
     final len = walletIdValues.length;
-    assert(tokenAddressValues.length == len,
-        'All index values must have the same length');
+    assert(
+      tokenAddressValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], tokenAddressValues[i]]);
@@ -197,10 +218,14 @@ extension TokenWalletInfoByIndex on IsarCollection<TokenWalletInfo> {
   }
 
   Future<int> deleteAllByWalletIdTokenAddress(
-      List<String> walletIdValues, List<String> tokenAddressValues) {
+    List<String> walletIdValues,
+    List<String> tokenAddressValues,
+  ) {
     final len = walletIdValues.length;
-    assert(tokenAddressValues.length == len,
-        'All index values must have the same length');
+    assert(
+      tokenAddressValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], tokenAddressValues[i]]);
@@ -210,10 +235,14 @@ extension TokenWalletInfoByIndex on IsarCollection<TokenWalletInfo> {
   }
 
   int deleteAllByWalletIdTokenAddressSync(
-      List<String> walletIdValues, List<String> tokenAddressValues) {
+    List<String> walletIdValues,
+    List<String> tokenAddressValues,
+  ) {
     final len = walletIdValues.length;
-    assert(tokenAddressValues.length == len,
-        'All index values must have the same length');
+    assert(
+      tokenAddressValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], tokenAddressValues[i]]);
@@ -226,20 +255,30 @@ extension TokenWalletInfoByIndex on IsarCollection<TokenWalletInfo> {
     return putByIndex(r'walletId_tokenAddress', object);
   }
 
-  Id putByWalletIdTokenAddressSync(TokenWalletInfo object,
-      {bool saveLinks = true}) {
-    return putByIndexSync(r'walletId_tokenAddress', object,
-        saveLinks: saveLinks);
+  Id putByWalletIdTokenAddressSync(
+    TokenWalletInfo object, {
+    bool saveLinks = true,
+  }) {
+    return putByIndexSync(
+      r'walletId_tokenAddress',
+      object,
+      saveLinks: saveLinks,
+    );
   }
 
   Future<List<Id>> putAllByWalletIdTokenAddress(List<TokenWalletInfo> objects) {
     return putAllByIndex(r'walletId_tokenAddress', objects);
   }
 
-  List<Id> putAllByWalletIdTokenAddressSync(List<TokenWalletInfo> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'walletId_tokenAddress', objects,
-        saveLinks: saveLinks);
+  List<Id> putAllByWalletIdTokenAddressSync(
+    List<TokenWalletInfo> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(
+      r'walletId_tokenAddress',
+      objects,
+      saveLinks: saveLinks,
+    );
   }
 }
 
@@ -255,17 +294,15 @@ extension TokenWalletInfoQueryWhereSort
 extension TokenWalletInfoQueryWhere
     on QueryBuilder<TokenWalletInfo, TokenWalletInfo, QWhereClause> {
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause> idEqualTo(
-      Id id) {
+    Id id,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause>
-      idNotEqualTo(Id id) {
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -288,7 +325,7 @@ extension TokenWalletInfoQueryWhere
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -297,8 +334,9 @@ extension TokenWalletInfoQueryWhere
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause> idLessThan(
-      Id id,
-      {bool include = false}) {
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -313,102 +351,123 @@ extension TokenWalletInfoQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause>
-      walletIdEqualToAnyTokenAddress(String walletId) {
+  walletIdEqualToAnyTokenAddress(String walletId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId_tokenAddress',
-        value: [walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'walletId_tokenAddress',
+          value: [walletId],
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause>
-      walletIdNotEqualToAnyTokenAddress(String walletId) {
+  walletIdNotEqualToAnyTokenAddress(String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause>
-      walletIdTokenAddressEqualTo(String walletId, String tokenAddress) {
+  walletIdTokenAddressEqualTo(String walletId, String tokenAddress) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId_tokenAddress',
-        value: [walletId, tokenAddress],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'walletId_tokenAddress',
+          value: [walletId, tokenAddress],
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterWhereClause>
-      walletIdEqualToTokenAddressNotEqualTo(
-          String walletId, String tokenAddress) {
+  walletIdEqualToTokenAddressNotEqualTo(String walletId, String tokenAddress) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [walletId],
-              upper: [walletId, tokenAddress],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [walletId, tokenAddress],
-              includeLower: false,
-              upper: [walletId],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [walletId],
+                upper: [walletId, tokenAddress],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [walletId, tokenAddress],
+                includeLower: false,
+                upper: [walletId],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [walletId, tokenAddress],
-              includeLower: false,
-              upper: [walletId],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_tokenAddress',
-              lower: [walletId],
-              upper: [walletId, tokenAddress],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [walletId, tokenAddress],
+                includeLower: false,
+                upper: [walletId],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_tokenAddress',
+                lower: [walletId],
+                upper: [walletId, tokenAddress],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -417,71 +476,74 @@ extension TokenWalletInfoQueryWhere
 extension TokenWalletInfoQueryFilter
     on QueryBuilder<TokenWalletInfo, TokenWalletInfo, QFilterCondition> {
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringIsNull() {
+  cachedBalanceJsonStringIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'cachedBalanceJsonString',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'cachedBalanceJsonString'),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringIsNotNull() {
+  cachedBalanceJsonStringIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'cachedBalanceJsonString',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'cachedBalanceJsonString'),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+  cachedBalanceJsonStringEqualTo(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'cachedBalanceJsonString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'cachedBalanceJsonString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'cachedBalanceJsonString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringLessThan(
+  cachedBalanceJsonStringGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'cachedBalanceJsonString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'cachedBalanceJsonString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringBetween(
+  cachedBalanceJsonStringLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'cachedBalanceJsonString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
+  cachedBalanceJsonStringBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -489,193 +551,201 @@ extension TokenWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'cachedBalanceJsonString',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'cachedBalanceJsonString',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  cachedBalanceJsonStringStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'cachedBalanceJsonString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'cachedBalanceJsonString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  cachedBalanceJsonStringEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'cachedBalanceJsonString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'cachedBalanceJsonString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringContains(String value,
-          {bool caseSensitive = true}) {
+  cachedBalanceJsonStringContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'cachedBalanceJsonString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'cachedBalanceJsonString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringMatches(String pattern,
-          {bool caseSensitive = true}) {
+  cachedBalanceJsonStringMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'cachedBalanceJsonString',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'cachedBalanceJsonString',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringIsEmpty() {
+  cachedBalanceJsonStringIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'cachedBalanceJsonString',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'cachedBalanceJsonString',
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      cachedBalanceJsonStringIsNotEmpty() {
+  cachedBalanceJsonStringIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'cachedBalanceJsonString',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'cachedBalanceJsonString',
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      idEqualTo(Id value) {
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      idBetween(
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  tokenAddressEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tokenAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'tokenAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'tokenAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressLessThan(
+  tokenAddressGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'tokenAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'tokenAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressBetween(
+  tokenAddressLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'tokenAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
+  tokenAddressBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -683,191 +753,195 @@ extension TokenWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'tokenAddress',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'tokenAddress',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  tokenAddressStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'tokenAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'tokenAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  tokenAddressEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'tokenAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'tokenAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressContains(String value, {bool caseSensitive = true}) {
+  tokenAddressContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'tokenAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'tokenAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressMatches(String pattern, {bool caseSensitive = true}) {
+  tokenAddressMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'tokenAddress',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'tokenAddress',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressIsEmpty() {
+  tokenAddressIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tokenAddress',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'tokenAddress', value: ''),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenAddressIsNotEmpty() {
+  tokenAddressIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'tokenAddress',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'tokenAddress', value: ''),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenFractionDigitsEqualTo(int value) {
+  tokenFractionDigitsEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tokenFractionDigits',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'tokenFractionDigits', value: value),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenFractionDigitsGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  tokenFractionDigitsGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'tokenFractionDigits',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'tokenFractionDigits',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenFractionDigitsLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  tokenFractionDigitsLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'tokenFractionDigits',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'tokenFractionDigits',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      tokenFractionDigitsBetween(
+  tokenFractionDigitsBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'tokenFractionDigits',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'tokenFractionDigits',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  walletIdEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdLessThan(
+  walletIdGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdBetween(
+  walletIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
+  walletIdBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -875,84 +949,86 @@ extension TokenWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'walletId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  walletIdStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  walletIdEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdContains(String value, {bool caseSensitive = true}) {
+  walletIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdMatches(String pattern, {bool caseSensitive = true}) {
+  walletIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'walletId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdIsEmpty() {
+  walletIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterFilterCondition>
-      walletIdIsNotEmpty() {
+  walletIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'walletId', value: ''),
+      );
     });
   }
 }
@@ -966,56 +1042,56 @@ extension TokenWalletInfoQueryLinks
 extension TokenWalletInfoQuerySortBy
     on QueryBuilder<TokenWalletInfo, TokenWalletInfo, QSortBy> {
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByCachedBalanceJsonString() {
+  sortByCachedBalanceJsonString() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedBalanceJsonString', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByCachedBalanceJsonStringDesc() {
+  sortByCachedBalanceJsonStringDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedBalanceJsonString', Sort.desc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByTokenAddress() {
+  sortByTokenAddress() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenAddress', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByTokenAddressDesc() {
+  sortByTokenAddressDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenAddress', Sort.desc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByTokenFractionDigits() {
+  sortByTokenFractionDigits() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenFractionDigits', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByTokenFractionDigitsDesc() {
+  sortByTokenFractionDigitsDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenFractionDigits', Sort.desc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByWalletId() {
+  sortByWalletId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      sortByWalletIdDesc() {
+  sortByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
     });
@@ -1025,14 +1101,14 @@ extension TokenWalletInfoQuerySortBy
 extension TokenWalletInfoQuerySortThenBy
     on QueryBuilder<TokenWalletInfo, TokenWalletInfo, QSortThenBy> {
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByCachedBalanceJsonString() {
+  thenByCachedBalanceJsonString() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedBalanceJsonString', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByCachedBalanceJsonStringDesc() {
+  thenByCachedBalanceJsonStringDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedBalanceJsonString', Sort.desc);
     });
@@ -1051,42 +1127,42 @@ extension TokenWalletInfoQuerySortThenBy
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByTokenAddress() {
+  thenByTokenAddress() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenAddress', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByTokenAddressDesc() {
+  thenByTokenAddressDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenAddress', Sort.desc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByTokenFractionDigits() {
+  thenByTokenFractionDigits() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenFractionDigits', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByTokenFractionDigitsDesc() {
+  thenByTokenFractionDigitsDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tokenFractionDigits', Sort.desc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByWalletId() {
+  thenByWalletId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.asc);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QAfterSortBy>
-      thenByWalletIdDesc() {
+  thenByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
     });
@@ -1096,29 +1172,32 @@ extension TokenWalletInfoQuerySortThenBy
 extension TokenWalletInfoQueryWhereDistinct
     on QueryBuilder<TokenWalletInfo, TokenWalletInfo, QDistinct> {
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QDistinct>
-      distinctByCachedBalanceJsonString({bool caseSensitive = true}) {
+  distinctByCachedBalanceJsonString({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'cachedBalanceJsonString',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'cachedBalanceJsonString',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QDistinct>
-      distinctByTokenAddress({bool caseSensitive = true}) {
+  distinctByTokenAddress({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'tokenAddress', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<TokenWalletInfo, TokenWalletInfo, QDistinct>
-      distinctByTokenFractionDigits() {
+  distinctByTokenFractionDigits() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'tokenFractionDigits');
     });
   }
 
-  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QDistinct> distinctByWalletId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<TokenWalletInfo, TokenWalletInfo, QDistinct> distinctByWalletId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
@@ -1134,21 +1213,21 @@ extension TokenWalletInfoQueryProperty
   }
 
   QueryBuilder<TokenWalletInfo, String?, QQueryOperations>
-      cachedBalanceJsonStringProperty() {
+  cachedBalanceJsonStringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cachedBalanceJsonString');
     });
   }
 
   QueryBuilder<TokenWalletInfo, String, QQueryOperations>
-      tokenAddressProperty() {
+  tokenAddressProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tokenAddress');
     });
   }
 
   QueryBuilder<TokenWalletInfo, int, QQueryOperations>
-      tokenFractionDigitsProperty() {
+  tokenFractionDigitsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tokenFractionDigits');
     });
