@@ -374,11 +374,11 @@ packages:
     dependency: "direct main"
     description:
       path: compat
-      ref: b2b12cfeaf15d057ea18b14c196e04f3002de2da
-      resolved-ref: b2b12cfeaf15d057ea18b14c196e04f3002de2da
+      ref: "44b8c0f8e1cc7ddbfa33c0b3f11279e64646138"
+      resolved-ref: "44b8c0f8e1cc7ddbfa33c0b3f11279e646461386"
       url: "https://github.com/cypherstack/cs_monero"
     source: git
-    version: "1.0.0"
+    version: "2.0.0"
   connectivity_plus:
     dependency: "direct main"
     description:
