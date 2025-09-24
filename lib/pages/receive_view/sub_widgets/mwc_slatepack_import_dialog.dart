@@ -101,15 +101,7 @@ class _MwcSlatepackImportDialogState
     }
 
     if (mounted) {
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (context) => _SlatepackResponseDialog(
-              responseSlatepack: result.responseSlatepack,
-              wasEncrypted: result.wasEncrypted,
-            ),
-      );
+      Navigator.of(context).pop(result);
     }
   }
 
@@ -167,7 +159,7 @@ class _MwcSlatepackImportDialogState
             ],
           ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16),
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -191,7 +183,7 @@ class _MwcSlatepackImportDialogState
                   children: [
                     if (!isDesktop)
                       Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 24),
+                        padding: const EdgeInsets.only(top: 24, bottom: 24),
                         child: Text(
                           "Import slatepack",
                           style: STextStyles.pageTitleH2(context),
@@ -270,14 +262,15 @@ class _MwcSlatepackImportDialogState
             ],
           ),
         ),
-        isDesktop ? const SizedBox(height: 32) : const SizedBox(height: 16),
+        isDesktop ? const SizedBox(height: 32) : const SizedBox(height: 24),
       ],
     );
   }
 }
 
-class _SlatepackResponseDialog extends StatelessWidget {
-  const _SlatepackResponseDialog({
+class SlatepackResponseDialog extends StatelessWidget {
+  const SlatepackResponseDialog({
+    super.key,
     required this.responseSlatepack,
     required this.wasEncrypted,
   });

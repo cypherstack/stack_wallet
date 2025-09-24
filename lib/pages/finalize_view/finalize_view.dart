@@ -166,7 +166,9 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
                 ),
           );
         } else {
-          _slateController.text = "";
+          setState(() {
+            _slateController.text = "";
+          });
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.success,

@@ -142,22 +142,35 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     }
 
     if (mounted) {
-      await showDialog<void>(
-        context: context,
-        builder:
-            (context) => SDialog(
-              child: SizedBox(
-                width: 700,
-                child: MwcSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
+      final response =
+          await showDialog<({String responseSlatepack, bool wasEncrypted})>(
+            context: context,
+            builder:
+                (context) => SDialog(
+                  child: SizedBox(
+                    width: 700,
+                    child: MwcSlatepackImportDialog(
+                      walletId: widget.walletId,
+                      clipboard: widget.clipboard,
+                      rawSlatepack: result.raw,
+                      decoded: result.result,
+                      slatepackType: result.type,
+                    ),
+                  ),
                 ),
+          );
+
+      if (mounted && response != null) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => SlatepackResponseDialog(
+                responseSlatepack: response.responseSlatepack,
+                wasEncrypted: response.wasEncrypted,
               ),
-            ),
-      );
+        );
+      }
     }
   }
 

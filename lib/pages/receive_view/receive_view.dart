@@ -124,19 +124,32 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       }
 
       if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder:
-              (context) => SDialog(
-                child: MwcSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
+        final response =
+            await showDialog<({String responseSlatepack, bool wasEncrypted})>(
+              context: context,
+              builder:
+                  (context) => SDialog(
+                    child: MwcSlatepackImportDialog(
+                      walletId: widget.walletId,
+                      clipboard: widget.clipboard,
+                      rawSlatepack: result.raw,
+                      decoded: result.result,
+                      slatepackType: result.type,
+                    ),
+                  ),
+            );
+
+        if (mounted && response != null) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder:
+                (context) => SlatepackResponseDialog(
+                  responseSlatepack: response.responseSlatepack,
+                  wasEncrypted: response.wasEncrypted,
                 ),
-              ),
-        );
+          );
+        }
       }
     }
   }
