@@ -35,3 +35,5 @@ Runner/GeneratedPluginRegistrant.*
 
 # app specific, handled by scripts
 Runner/Assets.xcassets/LaunchImage.imageset/*.png
+/Flutter/ephemeral/flutter_lldb_helper.py
+/Flutter/ephemeral/flutter_lldbinit

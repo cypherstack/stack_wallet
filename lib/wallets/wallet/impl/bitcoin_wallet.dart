@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
@@ -37,24 +37,29 @@ class BitcoinWallet<T extends PaynymCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
+    final allAddresses =
+        await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .not()
+            .group(
+              (q) => q
+                  .typeEqualTo(AddressType.nonWallet)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.nonWallet),
+            )
+            .findAll();
     return allAddresses;
   }
 
   // ===========================================================================
 
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, BigInt feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     return Amount(
       rawValue: BigInt.from(
         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
@@ -68,6 +73,7 @@ class BitcoinWallet<T extends PaynymCurrencyInterface> extends Bip39HDWallet<T>
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
     return vSize * (feeRatePerKB.toInt() / 1000).ceil();
   }
+
   //
   // @override
   // Future<TxData> coinSelection({required TxData txData}) async {

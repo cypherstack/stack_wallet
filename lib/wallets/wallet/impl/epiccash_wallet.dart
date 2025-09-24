@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_libepiccash/lib.dart' as epiccash;
 import 'package:flutter_libepiccash/models/transaction.dart' as epic_models;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';

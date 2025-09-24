@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 

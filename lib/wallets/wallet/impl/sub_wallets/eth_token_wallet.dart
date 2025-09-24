@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:ethereum_addresses/ethereum_addresses.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 import '../../../../dto/ethereum/eth_token_tx_dto.dart';

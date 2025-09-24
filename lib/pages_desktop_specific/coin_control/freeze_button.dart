@@ -10,7 +10,7 @@
 
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
@@ -19,10 +19,7 @@ import '../../widgets/desktop/primary_button.dart';
 import 'utxo_row.dart';
 
 class FreezeButton extends StatefulWidget {
-  const FreezeButton({
-    super.key,
-    required this.selectedUTXOs,
-  });
+  const FreezeButton({super.key, required this.selectedUTXOs});
 
   final Set<UtxoRowData> selectedUTXOs;
 
@@ -56,10 +53,11 @@ class _FreezeButtonState extends State<FreezeButton> {
     switch (_freezeLabelCache) {
       case "Freeze":
         for (final e in widget.selectedUTXOs) {
-          final utxo = MainDB.instance.isar.utxos
-              .where()
-              .idEqualTo(e.utxoId)
-              .findFirstSync()!;
+          final utxo =
+              MainDB.instance.isar.utxos
+                  .where()
+                  .idEqualTo(e.utxoId)
+                  .findFirstSync()!;
           if (!utxo.isBlocked) {
             utxosToUpdate.add(utxo.copyWith(isBlocked: true));
           }
@@ -68,10 +66,11 @@ class _FreezeButtonState extends State<FreezeButton> {
 
       case "Unfreeze":
         for (final e in widget.selectedUTXOs) {
-          final utxo = MainDB.instance.isar.utxos
-              .where()
-              .idEqualTo(e.utxoId)
-              .findFirstSync()!;
+          final utxo =
+              MainDB.instance.isar.utxos
+                  .where()
+                  .idEqualTo(e.utxoId)
+                  .findFirstSync()!;
           if (utxo.isBlocked) {
             utxosToUpdate.add(utxo.copyWith(isBlocked: false));
           }

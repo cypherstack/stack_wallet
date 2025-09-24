@@ -13,7 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';

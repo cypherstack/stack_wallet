@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'encrypted_string_value.g.dart';
 

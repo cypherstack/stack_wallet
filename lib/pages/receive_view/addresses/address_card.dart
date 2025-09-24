@@ -18,7 +18,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -76,8 +76,9 @@ class _AddressCardState extends ConsumerState<AddressCard> {
       final RenderRepaintBoundary boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
       final ui.Image image = await boundary.toImage();
-      final ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       if (shouldSaveInsteadOfShare) {
@@ -129,10 +130,9 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(
-          ["${tempDir.path}/qrcode.png"],
-          text: "Receive URI QR Code",
-        );
+        await Share.shareFiles([
+          "${tempDir.path}/qrcode.png",
+        ], text: "Receive URI QR Code");
       }
     } catch (e) {
       //todo: comeback to this
@@ -142,10 +142,11 @@ class _AddressCardState extends ConsumerState<AddressCard> {
 
   @override
   void initState() {
-    address = MainDB.instance.isar.addresses
-        .where()
-        .idEqualTo(widget.addressId)
-        .findFirstSync()!;
+    address =
+        MainDB.instance.isar.addresses
+            .where()
+            .idEqualTo(widget.addressId)
+            .findFirstSync()!;
 
     label = MainDB.instance.getAddressLabelSync(widget.walletId, address.value);
     Id? id = label?.id;
@@ -154,9 +155,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         walletId: widget.walletId,
         addressString: address.value,
         value: "",
-        tags: address.subType == AddressSubType.receiving
-            ? ["receiving"]
-            : address.subType == AddressSubType.change
+        tags:
+            address.subType == AddressSubType.receiving
+                ? ["receiving"]
+                : address.subType == AddressSubType.change
                 ? ["change"]
                 : null,
       );
@@ -180,26 +182,19 @@ class _AddressCardState extends ConsumerState<AddressCard> {
 
           return ConditionalParent(
             condition: isDesktop,
-            builder: (child) => Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SvgPicture.file(
-                  File(
-                    ref.watch(
-                      coinIconProvider(widget.coin),
+            builder:
+                (child) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SvgPicture.file(
+                      File(ref.watch(coinIconProvider(widget.coin))),
+                      width: 32,
+                      height: 32,
                     ),
-                  ),
-                  width: 32,
-                  height: 32,
+                    const SizedBox(width: 12),
+                    Expanded(child: child),
+                  ],
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
-                Expanded(
-                  child: child,
-                ),
-              ],
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -218,17 +213,13 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                       disableIcon: true,
                       onValueChanged: (value) {
                         MainDB.instance.putAddressLabel(
-                          label!.copyWith(
-                            label: value,
-                          ),
+                          label!.copyWith(label: value),
                         );
                       },
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: isDesktop ? 2 : 8,
-                ),
+                SizedBox(height: isDesktop ? 2 : 8),
                 Row(
                   children: [
                     Expanded(
@@ -239,36 +230,28 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     CustomTextButton(
                       text: "Copy address",
                       onTap: () {
                         widget.clipboard
-                            .setData(
-                          ClipboardData(
-                            text: address.value,
-                          ),
-                        )
+                            .setData(ClipboardData(text: address.value))
                             .then((value) {
-                          if (context.mounted) {
-                            unawaited(
-                              showFloatingFlushBar(
-                                type: FlushBarType.info,
-                                message: "Copied to clipboard",
-                                context: context,
-                              ),
-                            );
-                          }
-                        });
+                              if (context.mounted) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.info,
+                                    message: "Copied to clipboard",
+                                    context: context,
+                                  ),
+                                );
+                              }
+                            });
                       },
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     CustomTextButton(
                       text: "Show QR code",
                       onTap: () async {
@@ -284,21 +267,19 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                       style: STextStyles.w600_18(context),
                                     ),
                                   if (label!.value.isNotEmpty)
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
+                                    const SizedBox(height: 8),
                                   Text(
                                     address.value,
-                                    style:
-                                        STextStyles.w500_16(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
+                                    style: STextStyles.w500_16(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
                                     ),
                                   ),
-                                  const SizedBox(
-                                    height: 16,
-                                  ),
+                                  const SizedBox(height: 16),
                                   Center(
                                     child: RepaintBoundary(
                                       key: _qrKey,
@@ -312,25 +293,25 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(
-                                    height: 16,
-                                  ),
+                                  const SizedBox(height: 16),
                                   Row(
                                     children: [
                                       if (!isDesktop)
                                         Expanded(
                                           child: SecondaryButton(
                                             label: "Share",
-                                            buttonHeight: isDesktop
-                                                ? ButtonHeight.l
-                                                : null,
+                                            buttonHeight:
+                                                isDesktop
+                                                    ? ButtonHeight.l
+                                                    : null,
                                             icon: SvgPicture.asset(
                                               Assets.svg.share,
                                               width: 14,
                                               height: 14,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .buttonTextSecondary,
+                                              color:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonTextSecondary,
                                             ),
                                             onPressed: () async {
                                               await _capturePng(false);
@@ -340,9 +321,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                       if (isDesktop)
                                         Expanded(
                                           child: PrimaryButton(
-                                            buttonHeight: isDesktop
-                                                ? ButtonHeight.l
-                                                : null,
+                                            buttonHeight:
+                                                isDesktop
+                                                    ? ButtonHeight.l
+                                                    : null,
                                             onPressed: () async {
                                               // TODO: add save functionality instead of share
                                               // save works on linux at the moment
@@ -353,9 +335,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                               Assets.svg.arrowDown,
                                               width: 20,
                                               height: 20,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .buttonTextPrimary,
+                                              color:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonTextPrimary,
                                             ),
                                           ),
                                         ),

@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -40,30 +40,23 @@ class DesktopTradeHistory extends ConsumerStatefulWidget {
 class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      topLeft: Radius.circular(Constants.size.circularBorderRadius),
+      topRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   BorderRadius get _borderRadiusLast {
     return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
+      bottomRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final trades =
-        ref.watch(tradesServiceProvider.select((value) => value.trades));
+    final trades = ref.watch(
+      tradesServiceProvider.select((value) => value.trades),
+    );
 
     final tradeCount = trades.length;
     final hasHistory = tradeCount > 0;
@@ -120,144 +113,150 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                         //todo: check if print needed
                         // debugPrint("name: ${manager.walletName}");
 
-                        final tx = await MainDB.instance
-                            .getTransactions(walletIds.first)
-                            .filter()
-                            .txidEqualTo(txid)
-                            .findFirst();
+                        final tx =
+                            await MainDB.instance
+                                .getTransactions(walletIds.first)
+                                .filter()
+                                .txidEqualTo(txid)
+                                .findFirst();
 
                         if (mounted) {
                           await showDialog<void>(
                             context: context,
-                            builder: (context) => Navigator(
-                              initialRoute: TradeDetailsView.routeName,
-                              onGenerateRoute: RouteGenerator.generateRoute,
-                              onGenerateInitialRoutes: (_, __) {
-                                return [
-                                  FadePageRoute(
-                                    DesktopDialog(
-                                      maxHeight: null,
-                                      maxWidth: 580,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 32,
-                                              bottom: 16,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "Trade details",
-                                                  style: STextStyles.desktopH3(
-                                                    context,
-                                                  ),
+                            builder:
+                                (context) => Navigator(
+                                  initialRoute: TradeDetailsView.routeName,
+                                  onGenerateRoute: RouteGenerator.generateRoute,
+                                  onGenerateInitialRoutes: (_, __) {
+                                    return [
+                                      FadePageRoute(
+                                        DesktopDialog(
+                                          maxHeight: null,
+                                          maxWidth: 580,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                  bottom: 16,
                                                 ),
-                                                DesktopDialogCloseButton(
-                                                  onPressedOverride:
-                                                      Navigator.of(
-                                                    context,
-                                                    rootNavigator: true,
-                                                  ).pop,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Trade details",
+                                                      style:
+                                                          STextStyles.desktopH3(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                    DesktopDialogCloseButton(
+                                                      onPressedOverride:
+                                                          Navigator.of(
+                                                            context,
+                                                            rootNavigator: true,
+                                                          ).pop,
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                          Flexible(
-                                            child: SingleChildScrollView(
-                                              primary: false,
-                                              child: TradeDetailsView(
-                                                tradeId: tradeId,
-                                                transactionIfSentFromStack: tx,
-                                                walletName: ref.read(
-                                                  pWalletName(
-                                                    walletIds.first,
-                                                  ),
-                                                ),
-                                                walletId: walletIds.first,
                                               ),
-                                            ),
+                                              Flexible(
+                                                child: SingleChildScrollView(
+                                                  primary: false,
+                                                  child: TradeDetailsView(
+                                                    tradeId: tradeId,
+                                                    transactionIfSentFromStack:
+                                                        tx,
+                                                    walletName: ref.read(
+                                                      pWalletName(
+                                                        walletIds.first,
+                                                      ),
+                                                    ),
+                                                    walletId: walletIds.first,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
+                                        const RouteSettings(
+                                          name: TradeDetailsView.routeName,
+                                        ),
                                       ),
-                                    ),
-                                    const RouteSettings(
-                                      name: TradeDetailsView.routeName,
-                                    ),
-                                  ),
-                                ];
-                              },
-                            ),
+                                    ];
+                                  },
+                                ),
                           );
                         }
                       } else {
                         unawaited(
                           showDialog<void>(
                             context: context,
-                            builder: (context) => Navigator(
-                              initialRoute: TradeDetailsView.routeName,
-                              onGenerateRoute: RouteGenerator.generateRoute,
-                              onGenerateInitialRoutes: (_, __) {
-                                return [
-                                  FadePageRoute(
-                                    DesktopDialog(
-                                      maxHeight: null,
-                                      maxWidth: 580,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 32,
-                                              bottom: 16,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "Trade details",
-                                                  style: STextStyles.desktopH3(
-                                                    context,
+                            builder:
+                                (context) => Navigator(
+                                  initialRoute: TradeDetailsView.routeName,
+                                  onGenerateRoute: RouteGenerator.generateRoute,
+                                  onGenerateInitialRoutes: (_, __) {
+                                    return [
+                                      FadePageRoute(
+                                        DesktopDialog(
+                                          maxHeight: null,
+                                          maxWidth: 580,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                  bottom: 16,
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Trade details",
+                                                      style:
+                                                          STextStyles.desktopH3(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                    DesktopDialogCloseButton(
+                                                      onPressedOverride:
+                                                          Navigator.of(
+                                                            context,
+                                                            rootNavigator: true,
+                                                          ).pop,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Flexible(
+                                                child: SingleChildScrollView(
+                                                  primary: false,
+                                                  child: TradeDetailsView(
+                                                    tradeId: tradeId,
+                                                    transactionIfSentFromStack:
+                                                        null,
+                                                    walletName: null,
+                                                    walletId: walletIds?.first,
                                                   ),
                                                 ),
-                                                DesktopDialogCloseButton(
-                                                  onPressedOverride:
-                                                      Navigator.of(
-                                                    context,
-                                                    rootNavigator: true,
-                                                  ).pop,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Flexible(
-                                            child: SingleChildScrollView(
-                                              primary: false,
-                                              child: TradeDetailsView(
-                                                tradeId: tradeId,
-                                                transactionIfSentFromStack:
-                                                    null,
-                                                walletName: null,
-                                                walletId: walletIds?.first,
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
+                                        const RouteSettings(
+                                          name: TradeDetailsView.routeName,
+                                        ),
                                       ),
-                                    ),
-                                    const RouteSettings(
-                                      name: TradeDetailsView.routeName,
-                                    ),
-                                  ),
-                                ];
-                              },
-                            ),
+                                    ];
+                                  },
+                                ),
                           ),
                         );
                       }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../app_config.dart';
 import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
