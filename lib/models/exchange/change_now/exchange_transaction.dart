@@ -9,7 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:uuid/uuid.dart';
 
 import 'exchange_transaction_status.dart';
@@ -117,12 +117,11 @@ class ExchangeTransaction {
             DateTime.tryParse(json["date"] as String? ?? "") ??
             DateTime.fromMillisecondsSinceEpoch(0),
         statusString: json["statusString"] as String? ?? "",
-        statusObject:
-            json["statusObject"] is Map<String, dynamic>
-                ? ExchangeTransactionStatus.fromJson(
-                  json["statusObject"] as Map<String, dynamic>,
-                )
-                : null,
+        statusObject: json["statusObject"] is Map<String, dynamic>
+            ? ExchangeTransactionStatus.fromJson(
+                json["statusObject"] as Map<String, dynamic>,
+              )
+            : null,
       );
     } catch (e) {
       rethrow;
