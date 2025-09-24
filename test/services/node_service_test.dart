@@ -166,28 +166,6 @@ void main() {
       clearnetEnabled: true,
       isPrimary: true,
     );
-    final nodeD = NodeModel(
-      host: "host3",
-      port: 423,
-      name: "btcnode",
-      id: "pnodeID3",
-      useSSL: true,
-      enabled: true,
-      coinName: "mimblewimblecoin",
-      isFailover: true,
-      isDown: false,
-    );
-    final nodeD = NodeModel(
-      host: "host3",
-      port: 423,
-      name: "btcnode",
-      id: "pnodeID3",
-      useSSL: true,
-      enabled: true,
-      coinName: "mimblewimblecoin",
-      isFailover: true,
-      isDown: false,
-    );
 
     setUp(() async {
       await NodeService(
