@@ -29,8 +29,8 @@ dependencies:
 
   xelis_flutter:
     git:
-      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-      ref: v0.1.1
+      url: https://github.com/cypherstack/xelis-flutter-ffi.git
+      ref: 5dd5c50713160fa15fb06ff44886ae035eed62fd
 
   flutter_libsparkmobile:
     git:
