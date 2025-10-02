@@ -112,3 +112,6 @@ crypto_plugins/cs_monero/built_outputs
 crypto_plugins/cs_monero/build
 crypto_plugins/*.diff
 /devtools_options.yaml
+
+# generated interfaces
+lib/wl_gen/generated/

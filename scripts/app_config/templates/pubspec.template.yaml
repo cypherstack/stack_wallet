@@ -47,8 +47,10 @@ dependencies:
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
 
-  flutter_libmwc:
-    path: ./crypto_plugins/flutter_libmwc
+# %%ENABLE_MWC%%
+#  flutter_libmwc:
+#    path: ./crypto_plugins/flutter_libmwc
+# %%END_ENABLE_MWC%%
 
   bitcoindart:
     git:
