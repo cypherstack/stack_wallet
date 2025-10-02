@@ -27,7 +27,7 @@ void _process(final String filePath, final List<String> enableCoinMarkers) {
 
     // Check if line starts any marker block
     for (final marker in enableCoinMarkers) {
-      if (line.contains('# %%ENABLE_$marker%%')) {
+      if (line.trim() == "# %%ENABLE_$marker%%") {
         activeMarker = marker;
         markerSet = true;
         updatedLines.add(line);
@@ -39,7 +39,7 @@ void _process(final String filePath, final List<String> enableCoinMarkers) {
 
     // Check if line ends the active marker block
     if (activeMarker != null &&
-        line.contains('# %%END_ENABLE_$activeMarker%%')) {
+        line.trim() == "# %%END_ENABLE_$activeMarker%%") {
       activeMarker = null;
       updatedLines.add(line);
       continue;
@@ -57,40 +57,4 @@ void _process(final String filePath, final List<String> enableCoinMarkers) {
   print(
     'Updated pubspec.yaml with enabled blocks: ${enableCoinMarkers.join(", ")}',
   );
-}
-
-void _genFile(String outputFilePath, String template, bool on) {
-  final lines = File(template).readAsLinesSync();
-
-  // add empty line and gen warning
-
-  final List<String> updatedLines = [
-    "// GENERATED CODE - DO NOT MODIFY BY HAND",
-    "",
-  ];
-
-  final keepMarker = on ? "ON" : "OFF";
-
-  bool? keepLine;
-
-  for (final line in lines) {
-    if (line.trim() == "//$keepMarker") {
-      keepLine = true;
-      continue;
-    }
-
-    if (line.trim() == "//END_$keepMarker") {
-      keepLine = false;
-      continue;
-    }
-
-    if (keepLine != false) {
-      updatedLines.add(line);
-    }
-  }
-
-  // add empty line
-  if (updatedLines.last.isNotEmpty) updatedLines.add("");
-
-  File(outputFilePath).writeAsStringSync(updatedLines.join('\n'));
 }
