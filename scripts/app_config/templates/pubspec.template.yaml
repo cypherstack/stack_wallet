@@ -24,18 +24,56 @@ dependencies:
   mutex: ^3.0.0
   web_socket_channel: ^2.4.0
 
-  frostdart:
-    path: ./crypto_plugins/frostdart
+#  %%ENABLE_FROST%%
+#  frostdart:
+#    path: ./crypto_plugins/frostdart
+#  %%END_ENABLE_FROST%%
 
-  xelis_flutter:
-    git:
-      url: https://github.com/cypherstack/xelis-flutter-ffi.git
-      ref: 5dd5c50713160fa15fb06ff44886ae035eed62fd
+#  %%ENABLE_XEL%%
+#  xelis_flutter:
+#    git:
+#      url: https://github.com/cypherstack/xelis-flutter-ffi.git
+#      ref: 5dd5c50713160fa15fb06ff44886ae035eed62fd
+#  %%END_ENABLE_XEL%%
 
-  flutter_libsparkmobile:
-    git:
-      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 84a139a25ab1691762002fafcae351e3d444a5c7
+#  %%ENABLE_FIRO%%
+#  flutter_libsparkmobile:
+#    git:
+#      url: https://github.com/cypherstack/flutter_libsparkmobile.git
+#      ref: 84a139a25ab1691762002fafcae351e3d444a5c7
+#  %%END_ENABLE_FIRO%%
+
+#  %%ENABLE_EPIC%%
+#  flutter_libepiccash:
+#    path: ./crypto_plugins/flutter_libepiccash
+#  %%END_ENABLE_EPIC%%
+
+# %%ENABLE_MWC%%
+#  flutter_libmwc:
+#    path: ./crypto_plugins/flutter_libmwc
+# %%END_ENABLE_MWC%%
+
+#  %%ENABLE_TOR%%
+#  tor_ffi_plugin:
+#    git:
+#      url: https://github.com/cypherstack/tor.git
+#      ref: 21077186e6bf773ec8a7cd57ef149b2cee5daa7b
+#  %%END_ENABLE_TOR%%
+
+#  %%ENABLE_XMR%%
+#  cs_monero: 1.0.0-pre.3
+#  cs_monero_flutter_libs: 1.0.0-pre.0
+#  monero_rpc: ^2.0.0
+#  %%END_ENABLE_XMR%%
+
+#  %%ENABLE_SAL%%
+#  cs_salvium: ^1.2.1
+#  cs_salvium_flutter_libs: ^1.0.4
+#  %%END_ENABLE_SAL%%
+
+#  %%ENABLE_MWEB%%
+#  flutter_mwebd: ^0.0.1-pre.8
+#  %%END_ENABLE_MWEB%%
 
   # cs_monero compat (unpublished)
   compat:
@@ -43,14 +81,6 @@ dependencies:
       url: https://github.com/cypherstack/cs_monero
       path: compat
       ref: 44b8c0f8e1cc7ddbfa33c0b3f11279e64646138
-
-  flutter_libepiccash:
-    path: ./crypto_plugins/flutter_libepiccash
-
-# %%ENABLE_MWC%%
-#  flutter_libmwc:
-#    path: ./crypto_plugins/flutter_libmwc
-# %%END_ENABLE_MWC%%
 
   bitcoindart:
     git:
@@ -66,11 +96,6 @@ dependencies:
     git:
       url: https://github.com/cypherstack/bip47.git
       ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
-
-  tor_ffi_plugin:
-    git:
-      url: https://github.com/cypherstack/tor.git
-      ref: 21077186e6bf773ec8a7cd57ef149b2cee5daa7b
 
   fusiondart:
     git:
@@ -192,7 +217,6 @@ dependencies:
   calendar_date_picker2: ^1.0.2
   sqlite3: 2.9.0
   sqlite3_flutter_libs: 0.5.25
-#  camera_linux: ^0.0.8
   camera_linux:
     git:
       url: https://github.com/cypherstack/camera-linux
@@ -207,11 +231,7 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
-  cs_monero: 1.0.0-pre.3
-  cs_monero_flutter_libs: 1.0.0-pre.0
-  monero_rpc: ^2.0.0
   digest_auth: ^1.0.1
-#  logger: ^2.5.0
   logger:
     git:
       url: https://github.com/cypherstack/logger
@@ -223,9 +243,6 @@ dependencies:
   drift: ^2.28.2
   drift_flutter: ^0.2.7
   path: ^1.9.1
-  cs_salvium: ^1.2.1
-  cs_salvium_flutter_libs: ^1.0.4
-  flutter_mwebd: ^0.0.1-pre.8
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
 
@@ -241,7 +258,6 @@ dev_dependencies:
   hive_test: ^1.0.1
   mockito: ^5.4.6
   mockingjay: ^0.2.0
-#  lint: ^1.10.0
   analyzer: ^8.2.2
   import_sorter: ^4.6.0
   flutter_lints: ^3.0.1
