@@ -47,6 +47,9 @@ dependencies:
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
 
+  flutter_libmwc:
+    path: ./crypto_plugins/flutter_libmwc
+
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git

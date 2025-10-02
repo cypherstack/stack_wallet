@@ -1,3 +1,6 @@
+// ignore: unused_import
+import 'dart:io';
+
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 

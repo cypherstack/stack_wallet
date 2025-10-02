@@ -27,7 +27,8 @@ import '../../../../../widgets/detail_item.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
 import '../../../../home_view/home_view.dart';
-import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tvd;
 
 class FrostCreateStep5 extends ConsumerStatefulWidget {
   const FrostCreateStep5({super.key});
@@ -90,7 +91,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
             detail: multisigConfig,
             button:
                 Util.isDesktop
-                    ? IconCopyButton(data: multisigConfig)
+                    ? tvd.IconCopyButton(data: multisigConfig)
                     : SimpleCopyButton(data: multisigConfig),
           ),
           const SizedBox(height: 12),
@@ -99,7 +100,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
             detail: serializedKeys,
             button:
                 Util.isDesktop
-                    ? IconCopyButton(data: serializedKeys)
+                    ? tvd.IconCopyButton(data: serializedKeys)
                     : SimpleCopyButton(data: serializedKeys),
           ),
           if (!Util.isDesktop) const Spacer(),

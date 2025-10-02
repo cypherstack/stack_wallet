@@ -68,6 +68,7 @@ import 'pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'pages/exchange_view/send_from_view.dart';
 import 'pages/exchange_view/trade_details_view.dart';
 import 'pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'pages/finalize_view/finalize_view.dart';
 import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -165,7 +166,8 @@ import 'pages/wallet_view/transaction_views/transaction_search_filter_view.dart'
 import 'pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/boost_transaction_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
-import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tvd;
 import 'pages/wallet_view/wallet_view.dart';
 import 'pages/wallets_view/wallets_overview.dart';
 import 'pages/wallets_view/wallets_view.dart';
@@ -1614,13 +1616,13 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case TransactionV2DetailsView.routeName:
+      case tvd.TransactionV2DetailsView.routeName:
         if (args
             is ({TransactionV2 tx, CryptoCurrency coin, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder:
-                (_) => TransactionV2DetailsView(
+                (_) => tvd.TransactionV2DetailsView(
                   transaction: args.tx,
                   coin: args.coin,
                   walletId: args.walletId,
@@ -1706,6 +1708,16 @@ class RouteGenerator {
                   walletId: args.item1,
                   tokenContract: args.item2,
                 ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FinalizeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FinalizeView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }

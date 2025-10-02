@@ -1143,6 +1143,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       );
 
   @override
+<<<<<<<
   bool get advancedFiroFeatures => (super.noSuchMethod(
         Invocation.getter(#advancedFiroFeatures),
         returnValue: false,
@@ -1182,6 +1183,21 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       );
 
   @override
+=======
+  bool get enableExchange => (super.noSuchMethod(
+        Invocation.getter(#enableExchange),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableExchange(bool? showExchange) => super.noSuchMethod(
+        Invocation.setter(
+          #enableExchange,
+          showExchange,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+>>>>>>>
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,

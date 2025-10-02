@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../frost_route_generator.dart';
+import '../../../../pages/finalize_view/finalize_view.dart';
 import '../../../../pages/send_view/frost_ms/frost_send_view.dart';
 import '../../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -28,11 +29,7 @@ import 'desktop_send.dart';
 import 'desktop_token_send.dart';
 
 class MyWallet extends ConsumerStatefulWidget {
-  const MyWallet({
-    super.key,
-    required this.walletId,
-    this.contractAddress,
-  });
+  const MyWallet({super.key, required this.walletId, this.contractAddress});
 
   final String walletId;
   final String? contractAddress;
@@ -42,14 +39,12 @@ class MyWallet extends ConsumerStatefulWidget {
 }
 
 class _MyWalletState extends ConsumerState<MyWallet> {
-  final titles = [
-    "Send",
-    "Receive",
-  ];
+  final titles = ["Send", "Receive"];
 
   late final bool isEth;
   late final CryptoCurrency coin;
   late final bool isFrost;
+  late final bool isMimblewimblecoin;
   late final bool isViewOnly;
 
   @override
@@ -58,6 +53,11 @@ class _MyWalletState extends ConsumerState<MyWallet> {
     coin = wallet.info.coin;
     isFrost = wallet is BitcoinFrostWallet;
     isEth = coin is Ethereum;
+    isMimblewimblecoin = coin is Mimblewimblecoin;
+
+    if (isMimblewimblecoin) {
+      titles.add("Finalize");
+    }
 
     if (isEth && widget.contractAddress == null) {
       titles.add("Transactions");
@@ -102,64 +102,57 @@ class _MyWalletState extends ConsumerState<MyWallet> {
               widget.contractAddress == null
                   ? isFrost
                       ? Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                                  child: SecondaryButton(
-                                    width: 200,
-                                    buttonHeight: ButtonHeight.l,
-                                    label: "Import sign config",
-                                    onPressed: () async {
-                                      final wallet = ref
-                                              .read(pWallets)
-                                              .getWallet(widget.walletId)
-                                          as BitcoinFrostWallet;
-                                      ref.read(pFrostScaffoldArgs.state).state =
-                                          (
-                                        info: (
-                                          walletName: wallet.info.name,
-                                          frostCurrency: wallet.cryptoCurrency,
-                                        ),
-                                        walletId: widget.walletId,
-                                        stepRoutes: FrostRouteGenerator
-                                            .signFrostTxStepRoutes,
-                                        parentNav: Navigator.of(context),
-                                        frostInterruptionDialogType:
-                                            FrostInterruptionDialogType
-                                                .transactionCreation,
-                                        callerRouteName: MyStackView.routeName,
-                                      );
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                                child: SecondaryButton(
+                                  width: 200,
+                                  buttonHeight: ButtonHeight.l,
+                                  label: "Import sign config",
+                                  onPressed: () async {
+                                    final wallet =
+                                        ref
+                                                .read(pWallets)
+                                                .getWallet(widget.walletId)
+                                            as BitcoinFrostWallet;
+                                    ref.read(pFrostScaffoldArgs.state).state = (
+                                      info: (
+                                        walletName: wallet.info.name,
+                                        frostCurrency: wallet.cryptoCurrency,
+                                      ),
+                                      walletId: widget.walletId,
+                                      stepRoutes:
+                                          FrostRouteGenerator
+                                              .signFrostTxStepRoutes,
+                                      parentNav: Navigator.of(context),
+                                      frostInterruptionDialogType:
+                                          FrostInterruptionDialogType
+                                              .transactionCreation,
+                                      callerRouteName: MyStackView.routeName,
+                                    );
 
-                                      await Navigator.of(context).pushNamed(
-                                        FrostStepScaffold.routeName,
-                                      );
-                                    },
-                                  ),
+                                    await Navigator.of(
+                                      context,
+                                    ).pushNamed(FrostStepScaffold.routeName);
+                                  },
                                 ),
-                              ],
-                            ),
-                            FrostSendView(
-                              walletId: widget.walletId,
-                              coin: coin,
-                            ),
-                          ],
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: DesktopSend(
-                            walletId: widget.walletId,
+                              ),
+                            ],
                           ),
-                        )
+                          FrostSendView(walletId: widget.walletId, coin: coin),
+                        ],
+                      )
+                      : Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: DesktopSend(walletId: widget.walletId),
+                      )
                   : Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: DesktopTokenSend(
-                        walletId: widget.walletId,
-                      ),
-                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: DesktopTokenSend(walletId: widget.walletId),
+                  ),
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: DesktopReceive(
@@ -167,6 +160,12 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                   contractAddress: widget.contractAddress,
                 ),
               ),
+              if (isMimblewimblecoin)
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: FinalizeView(walletId: widget.walletId),
+                ),
+
               if (isEth && widget.contractAddress == null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -174,9 +173,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height - 362,
                     ),
-                    child: TransactionsV2List(
-                      walletId: widget.walletId,
-                    ),
+                    child: TransactionsV2List(walletId: widget.walletId),
                   ),
                 ),
             ],

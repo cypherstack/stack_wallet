@@ -33,6 +33,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_wallet.dart';
+import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -47,10 +48,14 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
+import 'sub_widgets/mwc_slatepack_import_dialog.dart';
+import 'sub_widgets/slatepack_entry_dialog.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
@@ -83,6 +88,71 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   final List<AddressType> _walletAddressTypes = [];
   final Map<AddressType, String> _addressMap = {};
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
+
+  Future<void> _importSlatepack() async {
+    final slatepackString = await showDialog<String>(
+      context: context,
+      builder: (context) => const SlatepackEntryDialog(),
+    );
+
+    if (slatepackString == null) return;
+    if (mounted) {
+      final wallet =
+          ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
+
+      Exception? ex;
+      final result = await showLoading(
+        whileFuture: wallet.fullDecodeSlatepack(slatepackString),
+        context: context,
+        message: "Decoding slatepack...",
+        onException: (e) => ex = e,
+      );
+
+      if (result == null || ex != null) {
+        if (mounted) {
+          await showDialog<void>(
+            context: context,
+            builder:
+                (context) => StackOkDialog(
+                  title: "Slatepack receive error",
+                  message:
+                      ex?.toString() ?? "Unexpected result without exception",
+                ),
+          );
+        }
+        return;
+      }
+
+      if (mounted) {
+        final response =
+            await showDialog<({String responseSlatepack, bool wasEncrypted})>(
+              context: context,
+              builder:
+                  (context) => SDialog(
+                    child: MwcSlatepackImportDialog(
+                      walletId: widget.walletId,
+                      clipboard: widget.clipboard,
+                      rawSlatepack: result.raw,
+                      decoded: result.result,
+                      slatepackType: result.type,
+                    ),
+                  ),
+            );
+
+        if (mounted && response != null) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder:
+                (context) => SlatepackResponseDialog(
+                  responseSlatepack: response.responseSlatepack,
+                  wasEncrypted: response.wasEncrypted,
+                ),
+          );
+        }
+      }
+    }
+  }
 
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -692,6 +762,14 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                 ? generateNewSparkAddress
                                 : generateNewAddress,
                       ),
+                    // MWC Slatepack import button.
+                    if (coin is Mimblewimblecoin) ...[
+                      const SizedBox(height: 12),
+                      SecondaryButton(
+                        label: "Import Slatepack",
+                        onPressed: _importSlatepack,
+                      ),
+                    ],
                     const SizedBox(height: 30),
                     RoundedWhiteContainer(
                       child: Padding(

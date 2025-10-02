@@ -18,4 +18,3 @@ set_rust_version_for_libepiccash() {
     exit 1
   fi
 }
-

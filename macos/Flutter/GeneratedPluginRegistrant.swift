@@ -14,6 +14,7 @@ import device_info_plus
 import devicelocale
 import file_picker
 import flutter_libepiccash
+import flutter_libmwc
 import flutter_local_notifications
 import flutter_secure_storage_macos
 import isar_flutter_libs
@@ -38,6 +39,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   DevicelocalePlugin.register(with: registry.registrar(forPlugin: "DevicelocalePlugin"))
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   FlutterLibepiccashPlugin.register(with: registry.registrar(forPlugin: "FlutterLibepiccashPlugin"))
+  FlutterLibmwcPlugin.register(with: registry.registrar(forPlugin: "FlutterLibmwcPlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
   FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   IsarFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "IsarFlutterLibsPlugin"))

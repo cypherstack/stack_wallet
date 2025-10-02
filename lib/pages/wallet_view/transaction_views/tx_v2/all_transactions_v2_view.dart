@@ -21,7 +21,6 @@ import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/transaction_filter.dart';
-import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/transaction_filter_provider.dart';
@@ -51,7 +50,7 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../sub_widgets/tx_icon.dart';
 import '../transaction_search_filter_view.dart';
 import 'transaction_v2_card.dart';
-import 'transaction_v2_details_view.dart';
+import 'transaction_v2_details_view.dart' as tvd;
 
 typedef _GroupedTransactions =
     ({String label, DateTime startDate, List<TransactionV2> transactions});
@@ -992,7 +991,7 @@ class _DesktopTransactionCardRowState
                   (context) => DesktopDialog(
                     maxHeight: MediaQuery.of(context).size.height - 64,
                     maxWidth: 580,
-                    child: TransactionV2DetailsView(
+                    child: tvd.TransactionV2DetailsView(
                       transaction: _transaction,
                       coin: coin,
                       walletId: walletId,
@@ -1002,7 +1001,7 @@ class _DesktopTransactionCardRowState
           } else {
             unawaited(
               Navigator.of(context).pushNamed(
-                TransactionV2DetailsView.routeName,
+                tvd.TransactionV2DetailsView.routeName,
                 arguments: (tx: _transaction, coin: coin, walletId: walletId),
               ),
             );
