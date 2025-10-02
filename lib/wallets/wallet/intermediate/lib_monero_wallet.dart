@@ -5,7 +5,7 @@ import 'dart:math';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 

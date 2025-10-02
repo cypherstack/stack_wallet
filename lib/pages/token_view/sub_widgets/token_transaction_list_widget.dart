@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../wallet_view/sub_widgets/no_transactions_found.dart';
 import '../../wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';

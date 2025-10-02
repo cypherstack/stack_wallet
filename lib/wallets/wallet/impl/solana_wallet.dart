@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';

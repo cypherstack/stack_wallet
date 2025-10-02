@@ -13,7 +13,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../db/hive/db.dart';
@@ -30,10 +30,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 
 class DeletePasswordWarningView extends ConsumerStatefulWidget {
-  const DeletePasswordWarningView({
-    super.key,
-    required this.shouldCreateNew,
-  });
+  const DeletePasswordWarningView({super.key, required this.shouldCreateNew});
 
   static const String routeName = "/deletePasswordWarning";
 
@@ -63,16 +60,18 @@ class _ForgotPasswordDesktopViewState
           await epicDir.delete(recursive: true);
         }
 
-        final mimblewimblecoinDir =
-            Directory("${appRoot.path}/mimblewimblecoin");
+        final mimblewimblecoinDir = Directory(
+          "${appRoot.path}/mimblewimblecoin",
+        );
         if (mimblewimblecoinDir.existsSync()) {
           await mimblewimblecoinDir.delete(recursive: true);
         }
 
         await Isar.getInstance("desktopStore")?.close(deleteFromDisk: true);
 
-        await (await StackFileSystem.applicationHiveDirectory())
-            .delete(recursive: true);
+        await (await StackFileSystem.applicationHiveDirectory()).delete(
+          recursive: true,
+        );
       } else if (Platform.isLinux) {
         await appRoot.delete(recursive: true);
       } else {
@@ -85,21 +84,24 @@ class _ForgotPasswordDesktopViewState
         if (epicDir.existsSync()) {
           await epicDir.delete(recursive: true);
         }
-        final mimblewimblecoinDir =
-            Directory("${appRoot.path}/mimblewimblecoin");
+        final mimblewimblecoinDir = Directory(
+          "${appRoot.path}/mimblewimblecoin",
+        );
         if (mimblewimblecoinDir.existsSync()) {
           await mimblewimblecoinDir.delete(recursive: true);
         }
 
-        await (await StackFileSystem.applicationHiveDirectory())
-            .delete(recursive: true);
-        await (await StackFileSystem.applicationIsarDirectory())
-            .delete(recursive: true);
+        await (await StackFileSystem.applicationHiveDirectory()).delete(
+          recursive: true,
+        );
+        await (await StackFileSystem.applicationIsarDirectory()).delete(
+          recursive: true,
+        );
       }
 
       await DB.instance.init();
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
       return false;
     }
 
@@ -128,19 +130,10 @@ class _ForgotPasswordDesktopViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const AppIcon(
-                  width: 100,
-                ),
-                const SizedBox(
-                  height: 42,
-                ),
-                Text(
-                  "Warning!",
-                  style: STextStyles.desktopH1(context),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const AppIcon(width: 100),
+                const SizedBox(height: 42),
+                Text("Warning!", style: STextStyles.desktopH1(context)),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: 480,
                   child: RichText(
@@ -152,9 +145,10 @@ class _ForgotPasswordDesktopViewState
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         TextSpan(
-                          text: widget.shouldCreateNew
-                              ? "create a new ${AppConfig.prefix}"
-                              : "restore from backup",
+                          text:
+                              widget.shouldCreateNew
+                                  ? "create a new ${AppConfig.prefix}"
+                                  : "restore from backup",
                           style: STextStyles.desktopTextSmallBold(context),
                         ),
                         TextSpan(
@@ -174,9 +168,7 @@ class _ForgotPasswordDesktopViewState
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 48,
-                ),
+                const SizedBox(height: 48),
                 PrimaryButton(
                   label: "Delete and continue",
                   enabled: !_deleteInProgress,
@@ -223,9 +215,7 @@ class _ForgotPasswordDesktopViewState
                     }
                   },
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 SecondaryButton(
                   label: "Take me back!",
                   enabled: !_deleteInProgress,
@@ -233,9 +223,7 @@ class _ForgotPasswordDesktopViewState
                     Navigator.of(context).pop();
                   },
                 ),
-                const SizedBox(
-                  height: kDesktopAppBarHeight,
-                ),
+                const SizedBox(height: kDesktopAppBarHeight),
               ],
             ),
           ),

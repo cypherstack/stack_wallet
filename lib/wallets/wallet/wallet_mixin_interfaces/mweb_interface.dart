@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mweb_client/mweb_client.dart';
 
 import '../../../db/drift/database.dart';

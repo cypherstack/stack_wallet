@@ -16,7 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/buy/response_objects/crypto.dart';

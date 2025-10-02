@@ -10,7 +10,7 @@
 
 import 'dart:convert';
 
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 import 'mwcmqs_server_model.dart';
 
@@ -23,19 +23,10 @@ class MwcMqsConfigModel {
   @HiveField(2)
   final int? port;
 
-  MwcMqsConfigModel({
-    required this.host,
-    this.port
-  });
+  MwcMqsConfigModel({required this.host, this.port});
 
-  MwcMqsConfigModel copyWith({
-    int? port,
-    bool? protocolInsecure,
-  }) {
-    return MwcMqsConfigModel(
-      host: host,
-      port: this.port ?? 443,
-    );
+  MwcMqsConfigModel copyWith({int? port, bool? protocolInsecure}) {
+    return MwcMqsConfigModel(host: host, port: this.port ?? 443);
   }
 
   Map<String, dynamic> toMap() {
@@ -46,10 +37,7 @@ class MwcMqsConfigModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'mwcmqs_domain': host,
-      'mwcmqs_port': port,
-    };
+    return {'mwcmqs_domain': host, 'mwcmqs_port': port};
   }
 
   @override
@@ -69,10 +57,9 @@ class MwcMqsConfigModel {
       _mwcmqs['mwcmqs_port'] = _mwcmqs['port'];
     }
 
-
     return MwcMqsConfigModel(
       host: _mwcmqs['mwcmqs_domain'] as String,
-      port: _mwcmqs['mwcmqs_port'] as int
+      port: _mwcmqs['mwcmqs_port'] as int,
     );
   }
 
@@ -81,9 +68,6 @@ class MwcMqsConfigModel {
     bool? protocolInsecure,
     int? addressIndex,
   }) {
-    return MwcMqsConfigModel(
-      host: server.host,
-      port: server.port ?? 443
-    );
+    return MwcMqsConfigModel(host: server.host, port: server.port ?? 443);
   }
 }

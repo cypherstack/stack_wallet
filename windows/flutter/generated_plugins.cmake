@@ -11,7 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_libepiccash
   flutter_libmwc
   flutter_secure_storage_windows
-  isar_flutter_libs
+  isar_community_flutter_libs
   local_auth_windows
   permission_handler_windows
   share_plus

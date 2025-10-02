@@ -17,11 +17,7 @@ const SparkCoinSchema = CollectionSchema(
   name: r'SparkCoin',
   id: -187103855721793545,
   properties: {
-    r'address': PropertySchema(
-      id: 0,
-      name: r'address',
-      type: IsarType.string,
-    ),
+    r'address': PropertySchema(id: 0, name: r'address', type: IsarType.string),
     r'contextB64': PropertySchema(
       id: 1,
       name: r'contextB64',
@@ -37,41 +33,17 @@ const SparkCoinSchema = CollectionSchema(
       name: r'encryptedDiversifier',
       type: IsarType.longList,
     ),
-    r'groupId': PropertySchema(
-      id: 4,
-      name: r'groupId',
-      type: IsarType.long,
-    ),
-    r'height': PropertySchema(
-      id: 5,
-      name: r'height',
-      type: IsarType.long,
-    ),
-    r'isUsed': PropertySchema(
-      id: 6,
-      name: r'isUsed',
-      type: IsarType.bool,
-    ),
+    r'groupId': PropertySchema(id: 4, name: r'groupId', type: IsarType.long),
+    r'height': PropertySchema(id: 5, name: r'height', type: IsarType.long),
+    r'isUsed': PropertySchema(id: 6, name: r'isUsed', type: IsarType.bool),
     r'lTagHash': PropertySchema(
       id: 7,
       name: r'lTagHash',
       type: IsarType.string,
     ),
-    r'memo': PropertySchema(
-      id: 8,
-      name: r'memo',
-      type: IsarType.string,
-    ),
-    r'nonce': PropertySchema(
-      id: 9,
-      name: r'nonce',
-      type: IsarType.longList,
-    ),
-    r'serial': PropertySchema(
-      id: 10,
-      name: r'serial',
-      type: IsarType.longList,
-    ),
+    r'memo': PropertySchema(id: 8, name: r'memo', type: IsarType.string),
+    r'nonce': PropertySchema(id: 9, name: r'nonce', type: IsarType.longList),
+    r'serial': PropertySchema(id: 10, name: r'serial', type: IsarType.longList),
     r'serialContext': PropertySchema(
       id: 11,
       name: r'serialContext',
@@ -82,16 +54,8 @@ const SparkCoinSchema = CollectionSchema(
       name: r'serializedCoinB64',
       type: IsarType.string,
     ),
-    r'tag': PropertySchema(
-      id: 13,
-      name: r'tag',
-      type: IsarType.longList,
-    ),
-    r'txHash': PropertySchema(
-      id: 14,
-      name: r'txHash',
-      type: IsarType.string,
-    ),
+    r'tag': PropertySchema(id: 13, name: r'tag', type: IsarType.longList),
+    r'txHash': PropertySchema(id: 14, name: r'txHash', type: IsarType.string),
     r'type': PropertySchema(
       id: 15,
       name: r'type',
@@ -112,8 +76,9 @@ const SparkCoinSchema = CollectionSchema(
       id: 18,
       name: r'zzzIsLocked',
       type: IsarType.bool,
-    )
+    ),
   },
+
   estimateSize: _sparkCoinEstimateSize,
   serialize: _sparkCoinSerialize,
   deserialize: _sparkCoinDeserialize,
@@ -135,16 +100,17 @@ const SparkCoinSchema = CollectionSchema(
           name: r'lTagHash',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _sparkCoinGetId,
   getLinks: _sparkCoinGetLinks,
   attach: _sparkCoinAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _sparkCoinEstimateSize(
@@ -259,7 +225,8 @@ SparkCoin _sparkCoinDeserialize(
     serializedCoinB64: reader.readStringOrNull(offsets[12]),
     tag: reader.readLongList(offsets[13]),
     txHash: reader.readString(offsets[14]),
-    type: _SparkCointypeValueEnumMap[reader.readByteOrNull(offsets[15])] ??
+    type:
+        _SparkCointypeValueEnumMap[reader.readByteOrNull(offsets[15])] ??
         SparkCoinType.mint,
     valueIntString: reader.readString(offsets[16]),
     walletId: reader.readString(offsets[17]),
@@ -308,7 +275,8 @@ P _sparkCoinDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 15:
       return (_SparkCointypeValueEnumMap[reader.readByteOrNull(offset)] ??
-          SparkCoinType.mint) as P;
+              SparkCoinType.mint)
+          as P;
     case 16:
       return (reader.readString(offset)) as P;
     case 17:
@@ -320,10 +288,7 @@ P _sparkCoinDeserializeProp<P>(
   }
 }
 
-const _SparkCointypeEnumValueMap = {
-  'mint': 0,
-  'spend': 1,
-};
+const _SparkCointypeEnumValueMap = {'mint': 0, 'spend': 1};
 const _SparkCointypeValueEnumMap = {
   0: SparkCoinType.mint,
   1: SparkCoinType.spend,
@@ -359,10 +324,14 @@ extension SparkCoinByIndex on IsarCollection<SparkCoin> {
   }
 
   Future<List<SparkCoin?>> getAllByWalletIdLTagHash(
-      List<String> walletIdValues, List<String> lTagHashValues) {
+    List<String> walletIdValues,
+    List<String> lTagHashValues,
+  ) {
     final len = walletIdValues.length;
-    assert(lTagHashValues.length == len,
-        'All index values must have the same length');
+    assert(
+      lTagHashValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], lTagHashValues[i]]);
@@ -372,10 +341,14 @@ extension SparkCoinByIndex on IsarCollection<SparkCoin> {
   }
 
   List<SparkCoin?> getAllByWalletIdLTagHashSync(
-      List<String> walletIdValues, List<String> lTagHashValues) {
+    List<String> walletIdValues,
+    List<String> lTagHashValues,
+  ) {
     final len = walletIdValues.length;
-    assert(lTagHashValues.length == len,
-        'All index values must have the same length');
+    assert(
+      lTagHashValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], lTagHashValues[i]]);
@@ -385,10 +358,14 @@ extension SparkCoinByIndex on IsarCollection<SparkCoin> {
   }
 
   Future<int> deleteAllByWalletIdLTagHash(
-      List<String> walletIdValues, List<String> lTagHashValues) {
+    List<String> walletIdValues,
+    List<String> lTagHashValues,
+  ) {
     final len = walletIdValues.length;
-    assert(lTagHashValues.length == len,
-        'All index values must have the same length');
+    assert(
+      lTagHashValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], lTagHashValues[i]]);
@@ -398,10 +375,14 @@ extension SparkCoinByIndex on IsarCollection<SparkCoin> {
   }
 
   int deleteAllByWalletIdLTagHashSync(
-      List<String> walletIdValues, List<String> lTagHashValues) {
+    List<String> walletIdValues,
+    List<String> lTagHashValues,
+  ) {
     final len = walletIdValues.length;
-    assert(lTagHashValues.length == len,
-        'All index values must have the same length');
+    assert(
+      lTagHashValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([walletIdValues[i], lTagHashValues[i]]);
@@ -422,10 +403,15 @@ extension SparkCoinByIndex on IsarCollection<SparkCoin> {
     return putAllByIndex(r'walletId_lTagHash', objects);
   }
 
-  List<Id> putAllByWalletIdLTagHashSync(List<SparkCoin> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'walletId_lTagHash', objects,
-        saveLinks: saveLinks);
+  List<Id> putAllByWalletIdLTagHashSync(
+    List<SparkCoin> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(
+      r'walletId_lTagHash',
+      objects,
+      saveLinks: saveLinks,
+    );
   }
 }
 
@@ -442,10 +428,7 @@ extension SparkCoinQueryWhere
     on QueryBuilder<SparkCoin, SparkCoin, QWhereClause> {
   QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -471,8 +454,10 @@ extension SparkCoinQueryWhere
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -480,8 +465,10 @@ extension SparkCoinQueryWhere
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -496,101 +483,125 @@ extension SparkCoinQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause>
-      walletIdEqualToAnyLTagHash(String walletId) {
+  walletIdEqualToAnyLTagHash(String walletId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId_lTagHash',
-        value: [walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'walletId_lTagHash',
+          value: [walletId],
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause>
-      walletIdNotEqualToAnyLTagHash(String walletId) {
+  walletIdNotEqualToAnyLTagHash(String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause> walletIdLTagHashEqualTo(
-      String walletId, String lTagHash) {
+    String walletId,
+    String lTagHash,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId_lTagHash',
-        value: [walletId, lTagHash],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'walletId_lTagHash',
+          value: [walletId, lTagHash],
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterWhereClause>
-      walletIdEqualToLTagHashNotEqualTo(String walletId, String lTagHash) {
+  walletIdEqualToLTagHashNotEqualTo(String walletId, String lTagHash) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [walletId],
-              upper: [walletId, lTagHash],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [walletId, lTagHash],
-              includeLower: false,
-              upper: [walletId],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [walletId],
+                upper: [walletId, lTagHash],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [walletId, lTagHash],
+                includeLower: false,
+                upper: [walletId],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [walletId, lTagHash],
-              includeLower: false,
-              upper: [walletId],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId_lTagHash',
-              lower: [walletId],
-              upper: [walletId, lTagHash],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [walletId, lTagHash],
+                includeLower: false,
+                upper: [walletId],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId_lTagHash',
+                lower: [walletId],
+                upper: [walletId, lTagHash],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -603,11 +614,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -617,12 +630,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -632,12 +647,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -649,14 +666,16 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'address',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'address',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -665,11 +684,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -678,71 +699,77 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> addressContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> addressMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'address',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'address',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> addressIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'address',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'address', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      addressIsNotEmpty() {
+  addressIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'address',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'address', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> contextB64IsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'contextB64',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'contextB64'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      contextB64IsNotNull() {
+  contextB64IsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'contextB64',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'contextB64'),
+      );
     });
   }
 
@@ -751,27 +778,31 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'contextB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'contextB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      contextB64GreaterThan(
+  contextB64GreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'contextB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'contextB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -781,12 +812,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'contextB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'contextB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -798,28 +831,29 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'contextB64',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'contextB64',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      contextB64StartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  contextB64StartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'contextB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'contextB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -828,106 +862,115 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'contextB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'contextB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> contextB64Contains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'contextB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'contextB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> contextB64Matches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'contextB64',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      contextB64IsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'contextB64',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      contextB64IsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'contextB64',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringEqualTo(
-    String value, {
+    String pattern, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'diversifierIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'contextB64',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
+  contextB64IsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'diversifierIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'contextB64', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringLessThan(
+  contextB64IsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'contextB64', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+  diversifierIntStringEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'diversifierIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+  diversifierIntStringGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'diversifierIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'diversifierIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringBetween(
+  diversifierIntStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'diversifierIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+  diversifierIntStringBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -935,163 +978,170 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'diversifierIntString',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'diversifierIntString',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  diversifierIntStringStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'diversifierIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'diversifierIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  diversifierIntStringEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'diversifierIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'diversifierIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringContains(String value, {bool caseSensitive = true}) {
+  diversifierIntStringContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'diversifierIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'diversifierIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringMatches(String pattern, {bool caseSensitive = true}) {
+  diversifierIntStringMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'diversifierIntString',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'diversifierIntString',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringIsEmpty() {
+  diversifierIntStringIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'diversifierIntString',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'diversifierIntString', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      diversifierIntStringIsNotEmpty() {
+  diversifierIntStringIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'diversifierIntString',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'diversifierIntString',
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierIsNull() {
+  encryptedDiversifierIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'encryptedDiversifier',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'encryptedDiversifier'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierIsNotNull() {
+  encryptedDiversifierIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'encryptedDiversifier',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'encryptedDiversifier'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierElementEqualTo(int value) {
+  encryptedDiversifierElementEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'encryptedDiversifier',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'encryptedDiversifier',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  encryptedDiversifierElementGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'encryptedDiversifier',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'encryptedDiversifier',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierElementLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  encryptedDiversifierElementLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'encryptedDiversifier',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'encryptedDiversifier',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierElementBetween(
+  encryptedDiversifierElementBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'encryptedDiversifier',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'encryptedDiversifier',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierLengthEqualTo(int length) {
+  encryptedDiversifierLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'encryptedDiversifier',
@@ -1104,36 +1154,21 @@ extension SparkCoinQueryFilter
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierIsEmpty() {
+  encryptedDiversifierIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'encryptedDiversifier',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.listLength(r'encryptedDiversifier', 0, true, 0, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierIsNotEmpty() {
+  encryptedDiversifierIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'encryptedDiversifier',
-        0,
-        false,
-        999999,
-        true,
-      );
+      return query.listLength(r'encryptedDiversifier', 0, false, 999999, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  encryptedDiversifierLengthLessThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'encryptedDiversifier',
@@ -1146,10 +1181,7 @@ extension SparkCoinQueryFilter
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  encryptedDiversifierLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'encryptedDiversifier',
@@ -1162,7 +1194,7 @@ extension SparkCoinQueryFilter
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      encryptedDiversifierLengthBetween(
+  encryptedDiversifierLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -1180,12 +1212,12 @@ extension SparkCoinQueryFilter
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> groupIdEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'groupId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'groupId', value: value),
+      );
     });
   }
 
@@ -1194,11 +1226,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'groupId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'groupId',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1207,11 +1241,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'groupId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'groupId',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1222,39 +1258,41 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'groupId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'groupId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> heightIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'height',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'height'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> heightIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'height',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'height'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> heightEqualTo(
-      int? value) {
+    int? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'height',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'height', value: value),
+      );
     });
   }
 
@@ -1263,11 +1301,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'height',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'height',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1276,11 +1316,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'height',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'height',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1291,23 +1333,25 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'height',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'height',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> idEqualTo(
-      Id value) {
+    Id value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -1316,11 +1360,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1329,11 +1375,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1344,23 +1392,25 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> isUsedEqualTo(
-      bool value) {
+    bool value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isUsed',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isUsed', value: value),
+      );
     });
   }
 
@@ -1369,11 +1419,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lTagHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'lTagHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1383,12 +1435,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'lTagHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'lTagHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1398,12 +1452,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'lTagHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'lTagHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1415,14 +1471,16 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'lTagHash',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'lTagHash',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1431,11 +1489,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lTagHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'lTagHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1444,70 +1504,76 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lTagHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'lTagHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> lTagHashContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lTagHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'lTagHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> lTagHashMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lTagHash',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'lTagHash',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> lTagHashIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lTagHash',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'lTagHash', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      lTagHashIsNotEmpty() {
+  lTagHashIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lTagHash',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'lTagHash', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> memoIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'memo',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'memo'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> memoIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'memo',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'memo'),
+      );
     });
   }
 
@@ -1516,11 +1582,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'memo',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'memo',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1530,12 +1598,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'memo',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'memo',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1545,12 +1615,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'memo',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'memo',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1562,14 +1634,16 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'memo',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'memo',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1578,11 +1652,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'memo',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'memo',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1591,107 +1667,111 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'memo',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'memo',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> memoContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'memo',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'memo',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> memoMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'memo',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'memo',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> memoIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'memo',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'memo', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> memoIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'memo',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'memo', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> nonceIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'nonce',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'nonce'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> nonceIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'nonce',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'nonce'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> nonceElementEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nonce',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'nonce', value: value),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      nonceElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  nonceElementGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'nonce',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'nonce',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      nonceElementLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  nonceElementLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'nonce',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'nonce',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1702,50 +1782,35 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'nonce',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'nonce',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> nonceLengthEqualTo(
-      int length) {
+    int length,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'nonce',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.listLength(r'nonce', length, true, length, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> nonceIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'nonce',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.listLength(r'nonce', 0, true, 0, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> nonceIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'nonce',
-        0,
-        false,
-        999999,
-        true,
-      );
+      return query.listLength(r'nonce', 0, false, 999999, true);
     });
   }
 
@@ -1754,29 +1819,14 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'nonce',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.listLength(r'nonce', 0, true, length, include);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      nonceLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  nonceLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'nonce',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.listLength(r'nonce', length, include, 999999, true);
     });
   }
 
@@ -1799,142 +1849,106 @@ extension SparkCoinQueryFilter
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> serialIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'serial',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'serial'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> serialIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'serial',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'serial'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialElementEqualTo(int value) {
+  serialElementEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'serial',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'serial', value: value),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  serialElementGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'serial',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'serial',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialElementLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  serialElementLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'serial',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'serial',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialElementBetween(
+  serialElementBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'serial',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'serial',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> serialLengthEqualTo(
-      int length) {
+    int length,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serial',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.listLength(r'serial', length, true, length, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> serialIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serial',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.listLength(r'serial', 0, true, 0, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> serialIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serial',
-        0,
-        false,
-        999999,
-        true,
-      );
+      return query.listLength(r'serial', 0, false, 999999, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  serialLengthLessThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serial',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.listLength(r'serial', 0, true, length, include);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  serialLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serial',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.listLength(r'serial', length, include, 999999, true);
     });
   }
 
@@ -1956,152 +1970,115 @@ extension SparkCoinQueryFilter
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextIsNull() {
+  serialContextIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'serialContext',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'serialContext'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextIsNotNull() {
+  serialContextIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'serialContext',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'serialContext'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextElementEqualTo(int value) {
+  serialContextElementEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'serialContext',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'serialContext', value: value),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  serialContextElementGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'serialContext',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'serialContext',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextElementLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  serialContextElementLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'serialContext',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'serialContext',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextElementBetween(
+  serialContextElementBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'serialContext',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serialContext',
-        length,
-        true,
-        length,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'serialContext',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
       );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextIsEmpty() {
+  serialContextLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serialContext',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.listLength(r'serialContext', length, true, length, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextIsNotEmpty() {
+  serialContextIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serialContext',
-        0,
-        false,
-        999999,
-        true,
-      );
+      return query.listLength(r'serialContext', 0, true, 0, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  serialContextIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serialContext',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.listLength(r'serialContext', 0, false, 999999, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  serialContextLengthLessThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'serialContext',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.listLength(r'serialContext', 0, true, length, include);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serialContextLengthBetween(
+  serialContextLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'serialContext', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+  serialContextLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -2119,71 +2096,74 @@ extension SparkCoinQueryFilter
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64IsNull() {
+  serializedCoinB64IsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'serializedCoinB64',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'serializedCoinB64'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64IsNotNull() {
+  serializedCoinB64IsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'serializedCoinB64',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'serializedCoinB64'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64EqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+  serializedCoinB64EqualTo(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'serializedCoinB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'serializedCoinB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64GreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'serializedCoinB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64LessThan(
+  serializedCoinB64GreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'serializedCoinB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'serializedCoinB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64Between(
+  serializedCoinB64LessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'serializedCoinB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+  serializedCoinB64Between(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -2191,124 +2171,125 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'serializedCoinB64',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'serializedCoinB64',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64StartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  serializedCoinB64StartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'serializedCoinB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'serializedCoinB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64EndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  serializedCoinB64EndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'serializedCoinB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'serializedCoinB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64Contains(String value, {bool caseSensitive = true}) {
+  serializedCoinB64Contains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'serializedCoinB64',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'serializedCoinB64',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64Matches(String pattern, {bool caseSensitive = true}) {
+  serializedCoinB64Matches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'serializedCoinB64',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'serializedCoinB64',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64IsEmpty() {
+  serializedCoinB64IsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'serializedCoinB64',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'serializedCoinB64', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      serializedCoinB64IsNotEmpty() {
+  serializedCoinB64IsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'serializedCoinB64',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'serializedCoinB64', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> tagIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'tag',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'tag'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> tagIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'tag',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'tag'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> tagElementEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tag',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'tag', value: value),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      tagElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  tagElementGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'tag',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'tag',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -2317,11 +2298,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'tag',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'tag',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -2332,50 +2315,35 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'tag',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'tag',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> tagLengthEqualTo(
-      int length) {
+    int length,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tag',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.listLength(r'tag', length, true, length, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> tagIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tag',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.listLength(r'tag', 0, true, 0, true);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> tagIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tag',
-        0,
-        false,
-        999999,
-        true,
-      );
+      return query.listLength(r'tag', 0, false, 999999, true);
     });
   }
 
@@ -2384,29 +2352,14 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tag',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.listLength(r'tag', 0, true, length, include);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      tagLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  tagLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tag',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.listLength(r'tag', length, include, 999999, true);
     });
   }
 
@@ -2417,13 +2370,7 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'tag',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.listLength(r'tag', lower, includeLower, upper, includeUpper);
     });
   }
 
@@ -2432,11 +2379,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'txHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2446,12 +2395,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'txHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'txHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2461,12 +2412,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'txHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'txHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2478,14 +2431,16 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'txHash',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'txHash',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2494,11 +2449,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'txHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'txHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2507,63 +2464,69 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'txHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'txHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> txHashContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'txHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'txHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> txHashMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'txHash',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'txHash',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> txHashIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txHash',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'txHash', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> txHashIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'txHash',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'txHash', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> typeEqualTo(
-      SparkCoinType value) {
+    SparkCoinType value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'type',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'type', value: value),
+      );
     });
   }
 
@@ -2572,11 +2535,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'type',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'type',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -2585,11 +2550,13 @@ extension SparkCoinQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'type',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'type',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -2600,64 +2567,69 @@ extension SparkCoinQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'type',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'type',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  valueIntStringEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'valueIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'valueIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'valueIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringLessThan(
+  valueIntStringGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'valueIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'valueIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringBetween(
+  valueIntStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'valueIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
+  valueIntStringBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -2665,84 +2637,86 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'valueIntString',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'valueIntString',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  valueIntStringStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'valueIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'valueIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  valueIntStringEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'valueIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'valueIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringContains(String value, {bool caseSensitive = true}) {
+  valueIntStringContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'valueIntString',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'valueIntString',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringMatches(String pattern, {bool caseSensitive = true}) {
+  valueIntStringMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'valueIntString',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'valueIntString',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringIsEmpty() {
+  valueIntStringIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'valueIntString',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'valueIntString', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      valueIntStringIsNotEmpty() {
+  valueIntStringIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'valueIntString',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'valueIntString', value: ''),
+      );
     });
   }
 
@@ -2751,11 +2725,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2765,12 +2741,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2780,12 +2758,14 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2797,14 +2777,16 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'walletId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2813,11 +2795,13 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -2826,81 +2810,87 @@ extension SparkCoinQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> walletIdContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> walletIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'walletId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> walletIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      walletIdIsNotEmpty() {
+  walletIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> isLockedIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'zzzIsLocked',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'zzzIsLocked'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition>
-      isLockedIsNotNull() {
+  isLockedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'zzzIsLocked',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'zzzIsLocked'),
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> isLockedEqualTo(
-      bool? value) {
+    bool? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'zzzIsLocked',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'zzzIsLocked', value: value),
+      );
     });
   }
 }
@@ -2937,14 +2927,14 @@ extension SparkCoinQuerySortBy on QueryBuilder<SparkCoin, SparkCoin, QSortBy> {
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy>
-      sortByDiversifierIntString() {
+  sortByDiversifierIntString() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'diversifierIntString', Sort.asc);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy>
-      sortByDiversifierIntStringDesc() {
+  sortByDiversifierIntStringDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'diversifierIntString', Sort.desc);
     });
@@ -3017,7 +3007,7 @@ extension SparkCoinQuerySortBy on QueryBuilder<SparkCoin, SparkCoin, QSortBy> {
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy>
-      sortBySerializedCoinB64Desc() {
+  sortBySerializedCoinB64Desc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serializedCoinB64', Sort.desc);
     });
@@ -3111,14 +3101,14 @@ extension SparkCoinQuerySortThenBy
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy>
-      thenByDiversifierIntString() {
+  thenByDiversifierIntString() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'diversifierIntString', Sort.asc);
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy>
-      thenByDiversifierIntStringDesc() {
+  thenByDiversifierIntStringDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'diversifierIntString', Sort.desc);
     });
@@ -3203,7 +3193,7 @@ extension SparkCoinQuerySortThenBy
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy>
-      thenBySerializedCoinB64Desc() {
+  thenBySerializedCoinB64Desc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serializedCoinB64', Sort.desc);
     });
@@ -3272,30 +3262,35 @@ extension SparkCoinQuerySortThenBy
 
 extension SparkCoinQueryWhereDistinct
     on QueryBuilder<SparkCoin, SparkCoin, QDistinct> {
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByAddress(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByAddress({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'address', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByContextB64(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByContextB64({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'contextB64', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByDiversifierIntString(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByDiversifierIntString({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'diversifierIntString',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'diversifierIntString',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<SparkCoin, SparkCoin, QDistinct>
-      distinctByEncryptedDiversifier() {
+  distinctByEncryptedDiversifier() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'encryptedDiversifier');
     });
@@ -3319,15 +3314,17 @@ extension SparkCoinQueryWhereDistinct
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByLTagHash(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByLTagHash({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lTagHash', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByMemo(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByMemo({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'memo', caseSensitive: caseSensitive);
     });
@@ -3351,11 +3348,14 @@ extension SparkCoinQueryWhereDistinct
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctBySerializedCoinB64(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctBySerializedCoinB64({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'serializedCoinB64',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'serializedCoinB64',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -3365,8 +3365,9 @@ extension SparkCoinQueryWhereDistinct
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByTxHash(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByTxHash({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'txHash', caseSensitive: caseSensitive);
     });
@@ -3378,16 +3379,20 @@ extension SparkCoinQueryWhereDistinct
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByValueIntString(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByValueIntString({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'valueIntString',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'valueIntString',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByWalletId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByWalletId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
@@ -3421,14 +3426,14 @@ extension SparkCoinQueryProperty
   }
 
   QueryBuilder<SparkCoin, String, QQueryOperations>
-      diversifierIntStringProperty() {
+  diversifierIntStringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'diversifierIntString');
     });
   }
 
   QueryBuilder<SparkCoin, List<int>?, QQueryOperations>
-      encryptedDiversifierProperty() {
+  encryptedDiversifierProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'encryptedDiversifier');
     });
@@ -3477,14 +3482,14 @@ extension SparkCoinQueryProperty
   }
 
   QueryBuilder<SparkCoin, List<int>?, QQueryOperations>
-      serialContextProperty() {
+  serialContextProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'serialContext');
     });
   }
 
   QueryBuilder<SparkCoin, String?, QQueryOperations>
-      serializedCoinB64Property() {
+  serializedCoinB64Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'serializedCoinB64');
     });

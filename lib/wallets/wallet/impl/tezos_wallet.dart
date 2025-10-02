@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:tuple/tuple.dart';
 

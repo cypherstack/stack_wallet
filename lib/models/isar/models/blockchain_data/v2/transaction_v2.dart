@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../../utilities/amount/amount.dart';
 import '../../../../../utilities/extensions/extensions.dart';

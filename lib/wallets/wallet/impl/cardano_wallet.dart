@@ -6,7 +6,7 @@ import 'package:blockchain_utils/bip/cardano/cip1852/cip1852.dart';
 import 'package:blockchain_utils/bip/cardano/cip1852/conf/cip1852_coins.dart';
 import 'package:blockchain_utils/bip/cardano/mnemonic/cardano_icarus_seed_generator.dart';
 import 'package:blockchain_utils/bip/cardano/shelley/cardano_shelley.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:on_chain/ada/ada.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:tuple/tuple.dart';

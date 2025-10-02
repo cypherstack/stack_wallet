@@ -11,7 +11,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';

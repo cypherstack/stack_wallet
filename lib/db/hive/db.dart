@@ -11,8 +11,8 @@
 import 'dart:isolate';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:hive/hive.dart' show Box;
-import 'package:hive/src/hive_impl.dart';
+import 'package:hive_ce/src/hive_impl.dart';
+import 'package:hive_ce/hive.dart' show Box;
 import 'package:mutex/mutex.dart';
 
 import '../../app_config.dart';

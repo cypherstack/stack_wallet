@@ -12,7 +12,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../app_config.dart';
 import '../db/hive/db.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:nanodart/nanodart.dart';
 import 'package:tuple/tuple.dart';
 

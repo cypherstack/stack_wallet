@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../app_config.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';

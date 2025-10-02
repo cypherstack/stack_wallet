@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/lelantus_coin.dart';
@@ -104,10 +104,7 @@ void main() {
 
       when(reader.readByte()).thenAnswer((_) => readByteResponses.removeAt(0));
 
-      final List<dynamic> readResponses = [
-        3426523234,
-        <Transaction>[],
-      ];
+      final List<dynamic> readResponses = [3426523234, <Transaction>[]];
 
       when(reader.read()).thenAnswer((_) => readResponses.removeAt(0));
 
@@ -214,10 +211,7 @@ void main() {
         3794,
         3794,
         4,
-        [
-          Input(txid: "abc", vout: 1),
-          Input(txid: "abc", vout: 1),
-        ],
+        [Input(txid: "abc", vout: 1), Input(txid: "abc", vout: 1)],
         [
           Output(scriptpubkeyAddress: "adr", value: 1),
           Output(scriptpubkeyAddress: "adr", value: 1),

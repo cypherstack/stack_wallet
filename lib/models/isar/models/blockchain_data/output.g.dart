@@ -33,12 +33,9 @@ const OutputSchema = Schema(
       name: r'scriptPubKeyType',
       type: IsarType.string,
     ),
-    r'value': PropertySchema(
-      id: 4,
-      name: r'value',
-      type: IsarType.long,
-    )
+    r'value': PropertySchema(id: 4, name: r'value', type: IsarType.long),
   },
+
   estimateSize: _outputEstimateSize,
   serialize: _outputSerialize,
   deserialize: _outputDeserialize,
@@ -127,17 +124,17 @@ P _outputDeserializeProp<P>(
 extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'scriptPubKey',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'scriptPubKey'),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'scriptPubKey',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'scriptPubKey'),
+      );
     });
   }
 
@@ -146,11 +143,13 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKey',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'scriptPubKey',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -160,12 +159,14 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'scriptPubKey',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'scriptPubKey',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -175,12 +176,14 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'scriptPubKey',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'scriptPubKey',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -192,14 +195,16 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'scriptPubKey',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'scriptPubKey',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -208,11 +213,13 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'scriptPubKey',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'scriptPubKey',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -221,104 +228,113 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'scriptPubKey',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'scriptPubKey',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'scriptPubKey',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'scriptPubKey',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'scriptPubKey',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'scriptPubKey',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKey',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'scriptPubKey', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'scriptPubKey',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'scriptPubKey', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  scriptPubKeyAddressEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKeyAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'scriptPubKeyAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressGreaterThan(
+  scriptPubKeyAddressGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'scriptPubKeyAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'scriptPubKeyAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressLessThan(
+  scriptPubKeyAddressLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'scriptPubKeyAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'scriptPubKeyAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressBetween(
+  scriptPubKeyAddressBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -326,101 +342,106 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'scriptPubKeyAddress',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'scriptPubKeyAddress',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  scriptPubKeyAddressStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'scriptPubKeyAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'scriptPubKeyAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  scriptPubKeyAddressEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'scriptPubKeyAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'scriptPubKeyAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressContains(String value, {bool caseSensitive = true}) {
+  scriptPubKeyAddressContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'scriptPubKeyAddress',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'scriptPubKeyAddress',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressMatches(String pattern, {bool caseSensitive = true}) {
+  scriptPubKeyAddressMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'scriptPubKeyAddress',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'scriptPubKeyAddress',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressIsEmpty() {
+  scriptPubKeyAddressIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKeyAddress',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'scriptPubKeyAddress', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAddressIsNotEmpty() {
+  scriptPubKeyAddressIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'scriptPubKeyAddress',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'scriptPubKeyAddress',
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyAsmIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'scriptPubKeyAsm',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'scriptPubKeyAsm'),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAsmIsNotNull() {
+  scriptPubKeyAsmIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'scriptPubKeyAsm',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'scriptPubKeyAsm'),
+      );
     });
   }
 
@@ -429,27 +450,31 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKeyAsm',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'scriptPubKeyAsm',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAsmGreaterThan(
+  scriptPubKeyAsmGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'scriptPubKeyAsm',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'scriptPubKeyAsm',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -459,12 +484,14 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'scriptPubKeyAsm',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'scriptPubKeyAsm',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -476,14 +503,16 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'scriptPubKeyAsm',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'scriptPubKeyAsm',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -492,11 +521,13 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'scriptPubKeyAsm',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'scriptPubKeyAsm',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -505,71 +536,77 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'scriptPubKeyAsm',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'scriptPubKeyAsm',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyAsmContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'scriptPubKeyAsm',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'scriptPubKeyAsm',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyAsmMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'scriptPubKeyAsm',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'scriptPubKeyAsm',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyAsmIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKeyAsm',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'scriptPubKeyAsm', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyAsmIsNotEmpty() {
+  scriptPubKeyAsmIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'scriptPubKeyAsm',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'scriptPubKeyAsm', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'scriptPubKeyType',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'scriptPubKeyType'),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyTypeIsNotNull() {
+  scriptPubKeyTypeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'scriptPubKeyType',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'scriptPubKeyType'),
+      );
     });
   }
 
@@ -578,27 +615,31 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKeyType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'scriptPubKeyType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyTypeGreaterThan(
+  scriptPubKeyTypeGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'scriptPubKeyType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'scriptPubKeyType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -608,12 +649,14 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'scriptPubKeyType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'scriptPubKeyType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -625,28 +668,29 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'scriptPubKeyType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'scriptPubKeyType',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyTypeStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  scriptPubKeyTypeStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'scriptPubKeyType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'scriptPubKeyType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -655,64 +699,69 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'scriptPubKeyType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'scriptPubKeyType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyTypeContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'scriptPubKeyType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'scriptPubKeyType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> scriptPubKeyTypeMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'scriptPubKeyType',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'scriptPubKeyType',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyTypeIsEmpty() {
+  scriptPubKeyTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scriptPubKeyType',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'scriptPubKeyType', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition>
-      scriptPubKeyTypeIsNotEmpty() {
+  scriptPubKeyTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'scriptPubKeyType',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'scriptPubKeyType', value: ''),
+      );
     });
   }
 
   QueryBuilder<Output, Output, QAfterFilterCondition> valueEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'value', value: value),
+      );
     });
   }
 
@@ -721,11 +770,13 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'value',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'value',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -734,11 +785,13 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'value',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'value',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -749,13 +802,15 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'value',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'value',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }

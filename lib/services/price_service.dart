@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../db/isar/main_db.dart';
 import '../models/isar/models/isar_models.dart';

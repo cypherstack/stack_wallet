@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../change_now/cn_exchange_transaction.dart';
@@ -226,10 +226,9 @@ class Trade {
       timestamp: exTx.date,
       updatedAt: DateTime.tryParse(exTx.statusObject!.updatedAt) ?? exTx.date,
       payInCurrency: exTx.fromCurrency,
-      payInAmount:
-          exTx.statusObject!.amountSendDecimal.isEmpty
-              ? exTx.statusObject!.expectedSendAmountDecimal
-              : exTx.statusObject!.amountSendDecimal,
+      payInAmount: exTx.statusObject!.amountSendDecimal.isEmpty
+          ? exTx.statusObject!.expectedSendAmountDecimal
+          : exTx.statusObject!.amountSendDecimal,
       payInAddress: exTx.payinAddress,
       payInNetwork: "",
       payInExtraId: exTx.payinExtraId,
