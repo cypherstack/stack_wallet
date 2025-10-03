@@ -11,7 +11,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -76,6 +75,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
@@ -345,18 +345,19 @@ class _SendViewState extends ConsumerState<SendView> {
     );
     final Amount? amount;
     if (baseAmount != null) {
-      final _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
+      final _price = ref
+          .read(priceAnd24hChangeNotifierProvider)
+          .getPrice(coin)
+          ?.value;
 
       if (_price == null || _price == Decimal.zero) {
         amount = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
       } else {
-        amount =
-            baseAmount <= Amount.zero
-                ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
-                : (baseAmount.decimal / _price)
-                    .toDecimal(scaleOnInfinitePrecision: coin.fractionDigits)
-                    .toAmount(fractionDigits: coin.fractionDigits);
+        amount = baseAmount <= Amount.zero
+            ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
+            : (baseAmount.decimal / _price)
+                  .toDecimal(scaleOnInfinitePrecision: coin.fractionDigits)
+                  .toAmount(fractionDigits: coin.fractionDigits);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
         return;
@@ -397,8 +398,10 @@ class _SendViewState extends ConsumerState<SendView> {
         }
         _cachedAmountToSend = amount;
 
-        final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
+        final price = ref
+            .read(priceAnd24hChangeNotifierProvider)
+            .getPrice(coin)
+            ?.value;
 
         if (price != null && price > Decimal.zero) {
           baseAmountController.text = (amount.decimal * price)
@@ -463,12 +466,11 @@ class _SendViewState extends ConsumerState<SendView> {
       fee = fee.split(" ").first;
     }
 
-    final value =
-        fee.contains(",")
-            ? Decimal.parse(
-              fee.replaceFirst(",", "."),
-            ).toAmount(fractionDigits: coin.fractionDigits)
-            : Decimal.parse(fee).toAmount(fractionDigits: coin.fractionDigits);
+    final value = fee.contains(",")
+        ? Decimal.parse(
+            fee.replaceFirst(",", "."),
+          ).toAmount(fractionDigits: coin.fractionDigits)
+        : Decimal.parse(fee).toAmount(fractionDigits: coin.fractionDigits);
 
     if (shouldSetState) {
       setState(() => _currentFee = value);
@@ -559,25 +561,22 @@ class _SendViewState extends ConsumerState<SendView> {
 
     Amount fee;
     if (coin is Monero) {
-      lib_monero.TransactionPriority specialMoneroId;
+      final int specialMoneroId;
       switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
         case FeeRateType.fast:
-          specialMoneroId = lib_monero.TransactionPriority.high;
+          specialMoneroId = csMonero.getTxPriorityHigh();
           break;
         case FeeRateType.average:
-          specialMoneroId = lib_monero.TransactionPriority.medium;
+          specialMoneroId = csMonero.getTxPriorityMedium();
           break;
         case FeeRateType.slow:
-          specialMoneroId = lib_monero.TransactionPriority.normal;
+          specialMoneroId = csMonero.getTxPriorityNormal();
           break;
         default:
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await wallet.estimateFeeFor(
-        amount,
-        BigInt.from(specialMoneroId.value),
-      );
+      fee = await wallet.estimateFeeFor(amount, BigInt.from(specialMoneroId));
       cachedFees[amount] = ref
           .read(pAmountFormatter(coin))
           .format(fee, withUnitName: true, indicatePrecisionLoss: false);
@@ -629,10 +628,9 @@ class _SendViewState extends ConsumerState<SendView> {
             amount: amount,
             recipientAddress: null,
             // No specific recipient for manual slatepack.
-            message:
-                onChainNoteController.text.isNotEmpty == true
-                    ? onChainNoteController.text
-                    : null,
+            message: onChainNoteController.text.isNotEmpty == true
+                ? onChainNoteController.text
+                : null,
             encrypt: false, // No encryption without recipient address.
           );
         }
@@ -672,10 +670,9 @@ class _SendViewState extends ConsumerState<SendView> {
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
-            builder:
-                (context) => StackDialogBase(
-                  child: MwcSlatepackDialog(slatepackResult: slatepackResult),
-                ),
+            builder: (context) => StackDialogBase(
+              child: MwcSlatepackDialog(slatepackResult: slatepackResult),
+            ),
           );
 
           // Clear form after slatepack dialog is closed.
@@ -692,11 +689,10 @@ class _SendViewState extends ConsumerState<SendView> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder:
-              (context) => StackOkDialog(
-                title: "Slatepack Creation Failed",
-                message: e.toString(),
-              ),
+          builder: (context) => StackOkDialog(
+            title: "Slatepack Creation Failed",
+            message: e.toString(),
+          ),
         );
       }
     }
@@ -716,18 +712,18 @@ class _SendViewState extends ConsumerState<SendView> {
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
         case BalanceType.private:
-          availableBalance =
-              isFiro
-                  ? wallet.info.cachedBalanceTertiary.spendable
-                  : wallet.info.cachedBalanceSecondary.spendable;
+          availableBalance = isFiro
+              ? wallet.info.cachedBalanceTertiary.spendable
+              : wallet.info.cachedBalanceSecondary.spendable;
           break;
       }
     } else {
       availableBalance = ref.read(pWalletBalance(walletId)).spendable;
     }
 
-    final coinControlEnabled =
-        ref.read(prefsChangeNotifierProvider).enableCoinControl;
+    final coinControlEnabled = ref
+        .read(prefsChangeNotifierProvider)
+        .enableCoinControl;
 
     if (coin is! Ethereum &&
             !(wallet is CoinControlInterface && coinControlEnabled) ||
@@ -754,10 +750,9 @@ class _SendViewState extends ConsumerState<SendView> {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -833,10 +828,10 @@ class _SendViewState extends ConsumerState<SendView> {
             feeRateType: feeRate,
             utxos:
                 (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        selectedUTXOs.isNotEmpty)
-                    ? selectedUTXOs
-                    : null,
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
           ),
         );
       } else if (wallet is FiroWallet) {
@@ -855,10 +850,9 @@ class _SendViewState extends ConsumerState<SendView> {
                   ],
                   feeRateType: ref.read(feeRateTypeMobileStateProvider),
                   satsPerVByte: isCustomFee.value ? customFeeRate : null,
-                  utxos:
-                      (coinControlEnabled && selectedUTXOs.isNotEmpty)
-                          ? selectedUTXOs
-                          : null,
+                  utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
+                      ? selectedUTXOs
+                      : null,
                 ),
               );
             } else {
@@ -869,16 +863,16 @@ class _SendViewState extends ConsumerState<SendView> {
                       address: _address!,
                       amount: amount,
                       isChange: false,
-                      addressType:
-                          wallet.cryptoCurrency.getAddressType(_address!)!,
+                      addressType: wallet.cryptoCurrency.getAddressType(
+                        _address!,
+                      )!,
                     ),
                   ],
                   feeRateType: ref.read(feeRateTypeMobileStateProvider),
                   satsPerVByte: isCustomFee.value ? customFeeRate : null,
-                  utxos:
-                      (coinControlEnabled && selectedUTXOs.isNotEmpty)
-                          ? selectedUTXOs
-                          : null,
+                  utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
+                      ? selectedUTXOs
+                      : null,
                 ),
               );
             }
@@ -887,31 +881,28 @@ class _SendViewState extends ConsumerState<SendView> {
           case BalanceType.private:
             txDataFuture = wallet.prepareSendSpark(
               txData: TxData(
-                recipients:
-                    ref.read(pValidSparkSendToAddress)
-                        ? null
-                        : [
-                          TxRecipient(
-                            address: _address!,
-                            amount: amount,
-                            isChange: false,
-                            addressType:
-                                wallet.cryptoCurrency.getAddressType(
-                                  _address!,
-                                )!,
-                          ),
-                        ],
-                sparkRecipients:
-                    ref.read(pValidSparkSendToAddress)
-                        ? [
-                          (
-                            address: _address!,
-                            amount: amount,
-                            memo: memoController.text,
-                            isChange: false,
-                          ),
-                        ]
-                        : null,
+                recipients: ref.read(pValidSparkSendToAddress)
+                    ? null
+                    : [
+                        TxRecipient(
+                          address: _address!,
+                          amount: amount,
+                          isChange: false,
+                          addressType: wallet.cryptoCurrency.getAddressType(
+                            _address!,
+                          )!,
+                        ),
+                      ],
+                sparkRecipients: ref.read(pValidSparkSendToAddress)
+                    ? [
+                        (
+                          address: _address!,
+                          amount: amount,
+                          memo: memoController.text,
+                          isChange: false,
+                        ),
+                      ]
+                    : null,
               ),
             );
             break;
@@ -959,10 +950,10 @@ class _SendViewState extends ConsumerState<SendView> {
             ethEIP1559Fee: ethFee,
             utxos:
                 (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        selectedUTXOs.isNotEmpty)
-                    ? selectedUTXOs
-                    : null,
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
           ),
         );
       }
@@ -975,10 +966,9 @@ class _SendViewState extends ConsumerState<SendView> {
         if (isPaynymSend) {
           txData = txData.copyWith(
             paynymAccountLite: widget.accountLite!,
-            note:
-                noteController.text.isNotEmpty
-                    ? noteController.text
-                    : "PayNym send",
+            note: noteController.text.isNotEmpty
+                ? noteController.text
+                : "PayNym send",
           );
         } else {
           txData = txData.copyWith(note: noteController.text);
@@ -992,13 +982,12 @@ class _SendViewState extends ConsumerState<SendView> {
           Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-              builder:
-                  (_) => ConfirmTransactionView(
-                    txData: txData,
-                    walletId: walletId,
-                    isPaynymTransaction: isPaynymSend,
-                    onSuccess: clearSendForm,
-                  ),
+              builder: (_) => ConfirmTransactionView(
+                txData: txData,
+                walletId: walletId,
+                isPaynymTransaction: isPaynymSend,
+                onSuccess: clearSendForm,
+              ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
               ),
@@ -1028,10 +1017,9 @@ class _SendViewState extends ConsumerState<SendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -1089,10 +1077,9 @@ class _SendViewState extends ConsumerState<SendView> {
           break;
 
         case BalanceType.private:
-          amount =
-              isFiro
-                  ? ref.read(pWalletBalanceTertiary(walletId)).spendable
-                  : ref.read(pWalletBalanceSecondary(walletId)).spendable;
+          amount = isFiro
+              ? ref.read(pWalletBalanceTertiary(walletId)).spendable
+              : ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
       }
     } else {
@@ -1153,32 +1140,32 @@ class _SendViewState extends ConsumerState<SendView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder:
-          (_) => TransactionFeeSelectionSheet(
-            walletId: walletId,
-            amount: (Decimal.tryParse(cryptoAmountController.text) ??
+      builder: (_) => TransactionFeeSelectionSheet(
+        walletId: walletId,
+        amount:
+            (Decimal.tryParse(cryptoAmountController.text) ??
                     ref.watch(pSendAmount)?.decimal ??
                     Decimal.zero)
                 .toAmount(fractionDigits: coin.fractionDigits),
-            updateChosen: (String fee) {
-              if (fee == "custom") {
-                if (!isCustomFee.value) {
-                  setState(() {
-                    isCustomFee.value = true;
-                  });
-                }
-                return;
-              }
-
-              _setCurrentFee(fee, true);
+        updateChosen: (String fee) {
+          if (fee == "custom") {
+            if (!isCustomFee.value) {
               setState(() {
-                _calculateFeesFuture = Future(() => fee);
-                if (isCustomFee.value) {
-                  isCustomFee.value = false;
-                }
+                isCustomFee.value = true;
               });
-            },
-          ),
+            }
+            return;
+          }
+
+          _setCurrentFee(fee, true);
+          setState(() {
+            _calculateFeesFuture = Future(() => fee);
+            if (isCustomFee.value) {
+              isCustomFee.value = false;
+            }
+          });
+        },
+      ),
     );
   }
 
@@ -1433,10 +1420,9 @@ class _SendViewState extends ConsumerState<SendView> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.popupBG,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.popupBG,
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
                                 ),
@@ -1489,38 +1475,31 @@ class _SendViewState extends ConsumerState<SendView> {
                                         if (showPrivateBalance) {
                                           switch (balType) {
                                             case BalanceType.public:
-                                              amount =
-                                                  ref
-                                                      .read(
-                                                        pWalletBalance(
-                                                          walletId,
-                                                        ),
-                                                      )
-                                                      .spendable;
-                                              break;
-
-                                            case BalanceType.private:
-                                              amount =
-                                                  ref
-                                                      .read(
-                                                        isMwebEnabled
-                                                            ? pWalletBalanceSecondary(
-                                                              walletId,
-                                                            )
-                                                            : pWalletBalanceTertiary(
-                                                              walletId,
-                                                            ),
-                                                      )
-                                                      .spendable;
-                                              break;
-                                          }
-                                        } else {
-                                          amount =
-                                              ref
+                                              amount = ref
                                                   .read(
                                                     pWalletBalance(walletId),
                                                   )
                                                   .spendable;
+                                              break;
+
+                                            case BalanceType.private:
+                                              amount = ref
+                                                  .read(
+                                                    isMwebEnabled
+                                                        ? pWalletBalanceSecondary(
+                                                            walletId,
+                                                          )
+                                                        : pWalletBalanceTertiary(
+                                                            walletId,
+                                                          ),
+                                                  )
+                                                  .spendable;
+                                              break;
+                                          }
+                                        } else {
+                                          amount = ref
+                                              .read(pWalletBalance(walletId))
+                                              .spendable;
                                         }
 
                                         return GestureDetector(
@@ -1672,95 +1651,103 @@ class _SendViewState extends ConsumerState<SendView> {
                                   },
                                   focusNode: _addressFocusNode,
                                   style: STextStyles.field(context),
-                                  decoration: standardInputDecoration(
-                                    isMwcSlatepack
-                                        ? "Enter ${coin.ticker} address (optional)"
-                                        : "Enter ${coin.ticker} address",
-                                    _addressFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    contentPadding: const EdgeInsets.only(
-                                      left: 16,
-                                      top: 6,
-                                      bottom: 8,
-                                      right: 5,
-                                    ),
-                                    suffixIcon: Padding(
-                                      padding:
-                                          sendToController.text.isEmpty
+                                  decoration:
+                                      standardInputDecoration(
+                                        isMwcSlatepack
+                                            ? "Enter ${coin.ticker} address (optional)"
+                                            : "Enter ${coin.ticker} address",
+                                        _addressFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        contentPadding: const EdgeInsets.only(
+                                          left: 16,
+                                          top: 6,
+                                          bottom: 8,
+                                          right: 5,
+                                        ),
+                                        suffixIcon: Padding(
+                                          padding: sendToController.text.isEmpty
                                               ? const EdgeInsets.only(right: 8)
                                               : const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            _addressToggleFlag
-                                                ? TextFieldIconButton(
-                                                  semanticsLabel:
-                                                      "Clear Button. Clears The Address Field Input.",
-                                                  key: const Key(
-                                                    "sendViewClearAddressFieldButtonKey",
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                _addressToggleFlag
+                                                    ? TextFieldIconButton(
+                                                        semanticsLabel:
+                                                            "Clear Button. Clears The Address Field Input.",
+                                                        key: const Key(
+                                                          "sendViewClearAddressFieldButtonKey",
+                                                        ),
+                                                        onTap: () {
+                                                          sendToController
+                                                                  .text =
+                                                              "";
+                                                          _address = "";
+                                                          _setValidAddressProviders(
+                                                            _address,
+                                                          );
+                                                          setState(() {
+                                                            _addressToggleFlag =
+                                                                false;
+                                                          });
+                                                        },
+                                                        child: const XIcon(),
+                                                      )
+                                                    : TextFieldIconButton(
+                                                        semanticsLabel:
+                                                            "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                        key: const Key(
+                                                          "sendViewPasteAddressFieldButtonKey",
+                                                        ),
+                                                        onTap: _pasteAddress,
+                                                        child:
+                                                            sendToController
+                                                                .text
+                                                                .isEmpty
+                                                            ? const ClipboardIcon()
+                                                            : const XIcon(),
+                                                      ),
+                                                if (sendToController
+                                                    .text
+                                                    .isEmpty)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "Address Book Button. Opens Address Book For Address Field.",
+                                                    key: const Key(
+                                                      "sendViewAddressBookButtonKey",
+                                                    ),
+                                                    onTap: () {
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pushNamed(
+                                                        AddressBookView
+                                                            .routeName,
+                                                        arguments: widget.coin,
+                                                      );
+                                                    },
+                                                    child:
+                                                        const AddressBookIcon(),
                                                   ),
-                                                  onTap: () {
-                                                    sendToController.text = "";
-                                                    _address = "";
-                                                    _setValidAddressProviders(
-                                                      _address,
-                                                    );
-                                                    setState(() {
-                                                      _addressToggleFlag =
-                                                          false;
-                                                    });
-                                                  },
-                                                  child: const XIcon(),
-                                                )
-                                                : TextFieldIconButton(
-                                                  semanticsLabel:
-                                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
-                                                  key: const Key(
-                                                    "sendViewPasteAddressFieldButtonKey",
+                                                if (sendToController
+                                                    .text
+                                                    .isEmpty)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                                    key: const Key(
+                                                      "sendViewScanQrButtonKey",
+                                                    ),
+                                                    onTap: _scanQr,
+                                                    child: const QrCodeIcon(),
                                                   ),
-                                                  onTap: _pasteAddress,
-                                                  child:
-                                                      sendToController
-                                                              .text
-                                                              .isEmpty
-                                                          ? const ClipboardIcon()
-                                                          : const XIcon(),
-                                                ),
-                                            if (sendToController.text.isEmpty)
-                                              TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Address Book Button. Opens Address Book For Address Field.",
-                                                key: const Key(
-                                                  "sendViewAddressBookButtonKey",
-                                                ),
-                                                onTap: () {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pushNamed(
-                                                    AddressBookView.routeName,
-                                                    arguments: widget.coin,
-                                                  );
-                                                },
-                                                child: const AddressBookIcon(),
-                                              ),
-                                            if (sendToController.text.isEmpty)
-                                              TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
-                                                key: const Key(
-                                                  "sendViewScanQrButtonKey",
-                                                ),
-                                                onTap: _scanQr,
-                                                child: const QrCodeIcon(),
-                                              ),
-                                          ],
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
                                 ),
                               ),
                             const SizedBox(height: 10),
@@ -1782,72 +1769,79 @@ class _SendViewState extends ConsumerState<SendView> {
                                   onChanged: (_) {
                                     setState(() {});
                                   },
-                                  decoration: standardInputDecoration(
-                                    "Enter memo (optional)",
-                                    _memoFocus,
-                                    context,
-                                  ).copyWith(
-                                    counterText: '',
-                                    contentPadding: const EdgeInsets.only(
-                                      left: 16,
-                                      top: 6,
-                                      bottom: 8,
-                                      right: 5,
-                                    ),
-                                    suffixIcon: Padding(
-                                      padding:
-                                          memoController.text.isEmpty
+                                  decoration:
+                                      standardInputDecoration(
+                                        "Enter memo (optional)",
+                                        _memoFocus,
+                                        context,
+                                      ).copyWith(
+                                        counterText: '',
+                                        contentPadding: const EdgeInsets.only(
+                                          left: 16,
+                                          top: 6,
+                                          bottom: 8,
+                                          right: 5,
+                                        ),
+                                        suffixIcon: Padding(
+                                          padding: memoController.text.isEmpty
                                               ? const EdgeInsets.only(right: 8)
                                               : const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            memoController.text.isNotEmpty
-                                                ? TextFieldIconButton(
-                                                  semanticsLabel:
-                                                      "Clear Button. Clears The Memo Field Input.",
-                                                  key: const Key(
-                                                    "sendViewClearMemoFieldButtonKey",
-                                                  ),
-                                                  onTap: () {
-                                                    memoController.text = "";
-                                                    setState(() {});
-                                                  },
-                                                  child: const XIcon(),
-                                                )
-                                                : TextFieldIconButton(
-                                                  semanticsLabel:
-                                                      "Paste Button. Pastes From Clipboard To Memo Field Input.",
-                                                  key: const Key(
-                                                    "sendViewPasteMemoFieldButtonKey",
-                                                  ),
-                                                  onTap: () async {
-                                                    final ClipboardData? data =
-                                                        await clipboard.getData(
-                                                          Clipboard.kTextPlain,
-                                                        );
-                                                    if (data?.text != null &&
-                                                        data!
-                                                            .text!
-                                                            .isNotEmpty) {
-                                                      final String content =
-                                                          data.text!.trim();
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                memoController.text.isNotEmpty
+                                                    ? TextFieldIconButton(
+                                                        semanticsLabel:
+                                                            "Clear Button. Clears The Memo Field Input.",
+                                                        key: const Key(
+                                                          "sendViewClearMemoFieldButtonKey",
+                                                        ),
+                                                        onTap: () {
+                                                          memoController.text =
+                                                              "";
+                                                          setState(() {});
+                                                        },
+                                                        child: const XIcon(),
+                                                      )
+                                                    : TextFieldIconButton(
+                                                        semanticsLabel:
+                                                            "Paste Button. Pastes From Clipboard To Memo Field Input.",
+                                                        key: const Key(
+                                                          "sendViewPasteMemoFieldButtonKey",
+                                                        ),
+                                                        onTap: () async {
+                                                          final ClipboardData?
+                                                          data = await clipboard
+                                                              .getData(
+                                                                Clipboard
+                                                                    .kTextPlain,
+                                                              );
+                                                          if (data?.text !=
+                                                                  null &&
+                                                              data!
+                                                                  .text!
+                                                                  .isNotEmpty) {
+                                                            final String
+                                                            content = data.text!
+                                                                .trim();
 
-                                                      memoController.text =
-                                                          content.trim();
+                                                            memoController
+                                                                .text = content
+                                                                .trim();
 
-                                                      setState(() {});
-                                                    }
-                                                  },
-                                                  child: const ClipboardIcon(),
-                                                ),
-                                          ],
+                                                            setState(() {});
+                                                          }
+                                                        },
+                                                        child:
+                                                            const ClipboardIcon(),
+                                                      ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
                                 ),
                               ),
                             Builder(
@@ -1890,14 +1884,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                       child: Text(
                                         error,
                                         textAlign: TextAlign.left,
-                                        style: STextStyles.label(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
+                                        style: STextStyles.label(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .textError,
-                                        ),
+                                            ),
                                       ),
                                     ),
                                   );
@@ -1919,8 +1911,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 children: [
                                   TextField(
                                     autocorrect: Util.isDesktop ? false : true,
-                                    enableSuggestions:
-                                        Util.isDesktop ? false : true,
+                                    enableSuggestions: Util.isDesktop
+                                        ? false
+                                        : true,
                                     readOnly: true,
                                     textInputAction: TextInputAction.none,
                                   ),
@@ -1929,10 +1922,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                       horizontal: 12,
                                     ),
                                     child: RawMaterialButton(
-                                      splashColor:
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.highlight,
+                                      splashColor: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.highlight,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,
@@ -1947,8 +1939,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                               top: Radius.circular(20),
                                             ),
                                           ),
-                                          builder:
-                                              (_) => DualBalanceSelectionSheet(
+                                          builder: (_) =>
+                                              DualBalanceSelectionSheet(
                                                 walletId: walletId,
                                               ),
                                         );
@@ -1977,28 +1969,26 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       )
                                                       .state) {
                                                     case BalanceType.public:
-                                                      amount =
-                                                          ref
-                                                              .watch(
-                                                                pWalletBalance(
-                                                                  walletId,
-                                                                ),
-                                                              )
-                                                              .spendable;
+                                                      amount = ref
+                                                          .watch(
+                                                            pWalletBalance(
+                                                              walletId,
+                                                            ),
+                                                          )
+                                                          .spendable;
                                                       break;
                                                     case BalanceType.private:
-                                                      amount =
-                                                          ref
-                                                              .watch(
-                                                                isFiro
-                                                                    ? pWalletBalanceTertiary(
-                                                                      walletId,
-                                                                    )
-                                                                    : pWalletBalanceSecondary(
-                                                                      walletId,
-                                                                    ),
-                                                              )
-                                                              .spendable;
+                                                      amount = ref
+                                                          .watch(
+                                                            isFiro
+                                                                ? pWalletBalanceTertiary(
+                                                                    walletId,
+                                                                  )
+                                                                : pWalletBalanceSecondary(
+                                                                    walletId,
+                                                                  ),
+                                                          )
+                                                          .spendable;
                                                       break;
                                                   }
 
@@ -2023,10 +2013,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Assets.svg.chevronDown,
                                             width: 8,
                                             height: 4,
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textSubtitle2,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle2,
                                           ),
                                         ],
                                       ),
@@ -2049,8 +2038,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                       showCoinControl,
                                       selectedUTXOs,
                                     ),
-                                    onTap:
-                                        () => _sendAllTapped(showCoinControl),
+                                    onTap: () =>
+                                        _sendAllTapped(showCoinControl),
                                   ),
                               ],
                             ),
@@ -2059,23 +2048,21 @@ class _SendViewState extends ConsumerState<SendView> {
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark,
                               ),
                               key: const Key(
                                 "amountInputFieldCryptoTextFieldKey",
                               ),
                               controller: cryptoAmountController,
                               focusNode: _cryptoFocus,
-                              keyboardType:
-                                  Util.isDesktop
-                                      ? null
-                                      : const TextInputType.numberWithOptions(
-                                        signed: false,
-                                        decimal: true,
-                                      ),
+                              keyboardType: Util.isDesktop
+                                  ? null
+                                  : const TextInputType.numberWithOptions(
+                                      signed: false,
+                                      decimal: true,
+                                    ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
@@ -2111,14 +2098,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                       ref
                                           .watch(pAmountUnit(coin))
                                           .unitForCoin(coin),
-                                      style: STextStyles.smallMed14(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
+                                      style: STextStyles.smallMed14(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .accentColorDark,
-                                      ),
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -2129,26 +2114,25 @@ class _SendViewState extends ConsumerState<SendView> {
                             if (Prefs.instance.externalCalls)
                               TextField(
                                 autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions:
-                                    Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop
+                                    ? false
+                                    : true,
                                 style: STextStyles.smallMed14(context).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
                                 ),
                                 key: const Key(
                                   "amountInputFieldFiatTextFieldKey",
                                 ),
                                 controller: baseAmountController,
                                 focusNode: _baseFocus,
-                                keyboardType:
-                                    Util.isDesktop
-                                        ? null
-                                        : const TextInputType.numberWithOptions(
-                                          signed: false,
-                                          decimal: true,
-                                        ),
+                                keyboardType: Util.isDesktop
+                                    ? null
+                                    : const TextInputType.numberWithOptions(
+                                        signed: false,
+                                        decimal: true,
+                                      ),
                                 textAlign: TextAlign.right,
                                 inputFormatters: [
                                   AmountInputFormatter(
@@ -2184,14 +2168,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                             (value) => value.currency,
                                           ),
                                         ),
-                                        style: STextStyles.smallMed14(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
+                                        style: STextStyles.smallMed14(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .accentColorDark,
-                                        ),
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -2206,20 +2188,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                   children: [
                                     Text(
                                       "Coin control",
-                                      style: STextStyles.w500_14(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
+                                      style: STextStyles.w500_14(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .textSubtitle1,
-                                      ),
+                                          ),
                                     ),
                                     CustomTextButton(
-                                      text:
-                                          selectedUTXOs.isEmpty
-                                              ? "Select coins"
-                                              : "Selected coins (${selectedUTXOs.length})",
+                                      text: selectedUTXOs.isEmpty
+                                          ? "Select coins"
+                                          : "Selected coins (${selectedUTXOs.length})",
                                       onTap: () async {
                                         if (FocusScope.of(context).hasFocus) {
                                           FocusScope.of(context).unfocus();
@@ -2229,12 +2208,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         }
 
                                         if (context.mounted) {
-                                          final spendable =
-                                              ref
-                                                  .read(
-                                                    pWalletBalance(walletId),
-                                                  )
-                                                  .spendable;
+                                          final spendable = ref
+                                              .read(pWalletBalance(walletId))
+                                              .spendable;
 
                                           Amount? amount;
                                           if (ref.read(pSendAmount) != null) {
@@ -2247,28 +2223,26 @@ class _SendViewState extends ConsumerState<SendView> {
                                             }
                                           }
 
-                                          final result = await Navigator.of(
-                                            context,
-                                          ).pushNamed(
-                                            CoinControlView.routeName,
-                                            arguments: Tuple4(
-                                              walletId,
-                                              CoinControlViewType.use,
-                                              amount,
-                                              selectedUTXOs
-                                                  .map((e) => e.utxo)
-                                                  .toSet(),
-                                            ),
-                                          );
+                                          final result =
+                                              await Navigator.of(
+                                                context,
+                                              ).pushNamed(
+                                                CoinControlView.routeName,
+                                                arguments: Tuple4(
+                                                  walletId,
+                                                  CoinControlViewType.use,
+                                                  amount,
+                                                  selectedUTXOs
+                                                      .map((e) => e.utxo)
+                                                      .toSet(),
+                                                ),
+                                              );
 
                                           if (result is Set<UTXO>) {
                                             setState(() {
-                                              selectedUTXOs =
-                                                  result
-                                                      .map(
-                                                        (e) => StandardInput(e),
-                                                      )
-                                                      .toSet();
+                                              selectedUTXOs = result
+                                                  .map((e) => StandardInput(e))
+                                                  .toSet();
                                             });
                                           }
                                         }
@@ -2292,42 +2266,47 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                                 child: TextField(
                                   autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
+                                  enableSuggestions: Util.isDesktop
+                                      ? false
+                                      : true,
                                   maxLength: 256,
                                   controller: onChainNoteController,
                                   focusNode: _onChainNoteFocusNode,
                                   style: STextStyles.field(context),
                                   onChanged: (_) => setState(() {}),
-                                  decoration: standardInputDecoration(
-                                    "Type something...",
-                                    _onChainNoteFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    suffixIcon:
-                                        onChainNoteController.text.isNotEmpty
+                                  decoration:
+                                      standardInputDecoration(
+                                        "Type something...",
+                                        _onChainNoteFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        suffixIcon:
+                                            onChainNoteController
+                                                .text
+                                                .isNotEmpty
                                             ? Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 0,
-                                              ),
-                                              child: UnconstrainedBox(
-                                                child: Row(
-                                                  children: [
-                                                    TextFieldIconButton(
-                                                      child: const XIcon(),
-                                                      onTap: () async {
-                                                        setState(() {
-                                                          onChainNoteController
-                                                              .text = "";
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
+                                                padding: const EdgeInsets.only(
+                                                  right: 0,
                                                 ),
-                                              ),
-                                            )
+                                                child: UnconstrainedBox(
+                                                  child: Row(
+                                                    children: [
+                                                      TextFieldIconButton(
+                                                        child: const XIcon(),
+                                                        onTap: () async {
+                                                          setState(() {
+                                                            onChainNoteController
+                                                                    .text =
+                                                                "";
+                                                          });
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
                                             : null,
-                                  ),
+                                      ),
                                 ),
                               ),
                             if (coin is Epiccash || coin is Mimblewimblecoin)
@@ -2348,20 +2327,77 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                                 child: TextField(
                                   autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
+                                  enableSuggestions: Util.isDesktop
+                                      ? false
+                                      : true,
                                   controller: noteController,
                                   focusNode: _noteFocusNode,
                                   style: STextStyles.field(context),
                                   onChanged: (_) => setState(() {}),
-                                  decoration: standardInputDecoration(
-                                    "Type something...",
-                                    _noteFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    suffixIcon:
-                                        noteController.text.isNotEmpty
+                                  decoration:
+                                      standardInputDecoration(
+                                        "Type something...",
+                                        _noteFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        suffixIcon:
+                                            noteController.text.isNotEmpty
                                             ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 0,
+                                                ),
+                                                child: UnconstrainedBox(
+                                                  child: Row(
+                                                    children: [
+                                                      TextFieldIconButton(
+                                                        child: const XIcon(),
+                                                        onTap: () async {
+                                                          setState(() {
+                                                            noteController
+                                                                    .text =
+                                                                "";
+                                                          });
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                            : null,
+                                      ),
+                                ),
+                              ),
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                              const SizedBox(height: 12),
+                            Text(
+                              (coin is Epiccash || coin is Mimblewimblecoin)
+                                  ? "Local Note (optional)"
+                                  : "Note (optional)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                autocorrect: Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop
+                                    ? false
+                                    : true,
+                                controller: noteController,
+                                focusNode: _noteFocusNode,
+                                style: STextStyles.field(context),
+                                onChanged: (_) => setState(() {}),
+                                decoration:
+                                    standardInputDecoration(
+                                      "Type something...",
+                                      _noteFocusNode,
+                                      context,
+                                    ).copyWith(
+                                      suffixIcon: noteController.text.isNotEmpty
+                                          ? Padding(
                                               padding: const EdgeInsets.only(
                                                 right: 0,
                                               ),
@@ -2381,61 +2417,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 ),
                                               ),
                                             )
-                                            : null,
-                                  ),
-                                ),
-                              ),
-                            if (coin is Epiccash || coin is Mimblewimblecoin)
-                              const SizedBox(height: 12),
-                            Text(
-                              (coin is Epiccash || coin is Mimblewimblecoin)
-                                  ? "Local Note (optional)"
-                                  : "Note (optional)",
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                              child: TextField(
-                                autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions:
-                                    Util.isDesktop ? false : true,
-                                controller: noteController,
-                                focusNode: _noteFocusNode,
-                                style: STextStyles.field(context),
-                                onChanged: (_) => setState(() {}),
-                                decoration: standardInputDecoration(
-                                  "Type something...",
-                                  _noteFocusNode,
-                                  context,
-                                ).copyWith(
-                                  suffixIcon:
-                                      noteController.text.isNotEmpty
-                                          ? Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 0,
-                                            ),
-                                            child: UnconstrainedBox(
-                                              child: Row(
-                                                children: [
-                                                  TextFieldIconButton(
-                                                    child: const XIcon(),
-                                                    onTap: () async {
-                                                      setState(() {
-                                                        noteController.text =
-                                                            "";
-                                                      });
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
                                           : null,
-                                ),
+                                    ),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -2461,8 +2444,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 children: [
                                   TextField(
                                     autocorrect: Util.isDesktop ? false : true,
-                                    enableSuggestions:
-                                        Util.isDesktop ? false : true,
+                                    enableSuggestions: Util.isDesktop
+                                        ? false
+                                        : true,
                                     controller: feeController,
                                     readOnly: true,
                                     textInputAction: TextInputAction.none,
@@ -2476,10 +2460,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         horizontal: 12,
                                       ),
                                       child: RawMaterialButton(
-                                        splashColor:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .highlight,
+                                        splashColor: Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.highlight,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             Constants.size.circularBorderRadius,
@@ -2487,138 +2470,128 @@ class _SendViewState extends ConsumerState<SendView> {
                                         ),
                                         onPressed:
                                             isFiro &&
-                                                    ref
-                                                            .watch(
-                                                              publicPrivateBalanceStateProvider
-                                                                  .state,
-                                                            )
-                                                            .state !=
-                                                        BalanceType.public
-                                                ? null
-                                                : _onFeeSelectPressed,
+                                                ref
+                                                        .watch(
+                                                          publicPrivateBalanceStateProvider
+                                                              .state,
+                                                        )
+                                                        .state !=
+                                                    BalanceType.public
+                                            ? null
+                                            : _onFeeSelectPressed,
                                         child:
                                             (isFiro &&
-                                                    ref
-                                                            .watch(
-                                                              publicPrivateBalanceStateProvider
-                                                                  .state,
-                                                            )
-                                                            .state !=
-                                                        BalanceType.public)
-                                                ? Row(
-                                                  children: [
-                                                    FutureBuilder(
-                                                      future:
-                                                          _calculateFeesFuture,
-                                                      builder: (
-                                                        context,
-                                                        snapshot,
-                                                      ) {
-                                                        if (snapshot.connectionState ==
-                                                                ConnectionState
-                                                                    .done &&
-                                                            snapshot.hasData) {
-                                                          _setCurrentFee(
-                                                            snapshot.data!,
-                                                            false,
-                                                          );
-                                                          return Text(
-                                                            "~${snapshot.data!}",
-                                                            style:
-                                                                STextStyles.itemSubtitle(
-                                                                  context,
-                                                                ),
-                                                          );
-                                                        } else {
-                                                          return AnimatedText(
-                                                            stringsToLoopThrough:
-                                                                stringsToLoopThrough,
-                                                            style:
-                                                                STextStyles.itemSubtitle(
-                                                                  context,
-                                                                ),
-                                                          );
-                                                        }
-                                                      },
-                                                    ),
-                                                  ],
-                                                )
-                                                : Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Row(
-                                                      children: [
-                                                        Text(
-                                                          ref
-                                                              .watch(
-                                                                feeRateTypeMobileStateProvider
-                                                                    .state,
-                                                              )
-                                                              .state
-                                                              .prettyName,
+                                                ref
+                                                        .watch(
+                                                          publicPrivateBalanceStateProvider
+                                                              .state,
+                                                        )
+                                                        .state !=
+                                                    BalanceType.public)
+                                            ? Row(
+                                                children: [
+                                                  FutureBuilder(
+                                                    future:
+                                                        _calculateFeesFuture,
+                                                    builder: (context, snapshot) {
+                                                      if (snapshot.connectionState ==
+                                                              ConnectionState
+                                                                  .done &&
+                                                          snapshot.hasData) {
+                                                        _setCurrentFee(
+                                                          snapshot.data!,
+                                                          false,
+                                                        );
+                                                        return Text(
+                                                          "~${snapshot.data!}",
                                                           style:
-                                                              STextStyles.itemSubtitle12(
+                                                              STextStyles.itemSubtitle(
                                                                 context,
                                                               ),
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 10,
-                                                        ),
-                                                        FutureBuilder(
-                                                          future:
-                                                              _calculateFeesFuture,
-                                                          builder: (
-                                                            context,
-                                                            snapshot,
-                                                          ) {
-                                                            if (snapshot.connectionState ==
-                                                                    ConnectionState
-                                                                        .done &&
-                                                                snapshot
-                                                                    .hasData) {
-                                                              _setCurrentFee(
-                                                                snapshot.data!,
-                                                                false,
-                                                              );
-                                                              return Text(
-                                                                isCustomFee
-                                                                        .value
-                                                                    ? ""
-                                                                    : "~${snapshot.data!}",
-                                                                style:
-                                                                    STextStyles.itemSubtitle(
-                                                                      context,
-                                                                    ),
-                                                              );
-                                                            } else {
-                                                              return AnimatedText(
-                                                                stringsToLoopThrough:
-                                                                    stringsToLoopThrough,
-                                                                style:
-                                                                    STextStyles.itemSubtitle(
-                                                                      context,
-                                                                    ),
-                                                              );
-                                                            }
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    SvgPicture.asset(
-                                                      Assets.svg.chevronDown,
-                                                      width: 8,
-                                                      height: 4,
-                                                      color:
-                                                          Theme.of(context)
-                                                              .extension<
-                                                                StackColors
-                                                              >()!
-                                                              .textSubtitle2,
-                                                    ),
-                                                  ],
-                                                ),
+                                                        );
+                                                      } else {
+                                                        return AnimatedText(
+                                                          stringsToLoopThrough:
+                                                              stringsToLoopThrough,
+                                                          style:
+                                                              STextStyles.itemSubtitle(
+                                                                context,
+                                                              ),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              )
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        ref
+                                                            .watch(
+                                                              feeRateTypeMobileStateProvider
+                                                                  .state,
+                                                            )
+                                                            .state
+                                                            .prettyName,
+                                                        style:
+                                                            STextStyles.itemSubtitle12(
+                                                              context,
+                                                            ),
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      FutureBuilder(
+                                                        future:
+                                                            _calculateFeesFuture,
+                                                        builder: (context, snapshot) {
+                                                          if (snapshot.connectionState ==
+                                                                  ConnectionState
+                                                                      .done &&
+                                                              snapshot
+                                                                  .hasData) {
+                                                            _setCurrentFee(
+                                                              snapshot.data!,
+                                                              false,
+                                                            );
+                                                            return Text(
+                                                              isCustomFee.value
+                                                                  ? ""
+                                                                  : "~${snapshot.data!}",
+                                                              style:
+                                                                  STextStyles.itemSubtitle(
+                                                                    context,
+                                                                  ),
+                                                            );
+                                                          } else {
+                                                            return AnimatedText(
+                                                              stringsToLoopThrough:
+                                                                  stringsToLoopThrough,
+                                                              style:
+                                                                  STextStyles.itemSubtitle(
+                                                                    context,
+                                                                  ),
+                                                            );
+                                                          }
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SvgPicture.asset(
+                                                    Assets.svg.chevronDown,
+                                                    width: 8,
+                                                    height: 4,
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textSubtitle2,
+                                                  ),
+                                                ],
+                                              ),
                                       ),
                                     ),
                                   ),
@@ -2649,23 +2622,18 @@ class _SendViewState extends ConsumerState<SendView> {
                             TextButton(
                               onPressed:
                                   ref.watch(pPreviewTxButtonEnabled(coin))
-                                      ? ref.watch(
-                                                pSelectedMwcTransactionMethod,
-                                              ) ==
-                                              MwcTransactionMethod.slatepack
-                                          ? _createSlatepack
-                                          : _previewTransaction
-                                      : null,
-                              style:
-                                  ref.watch(pPreviewTxButtonEnabled(coin))
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonStyle(context)
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryDisabledButtonStyle(
-                                            context,
-                                          ),
+                                  ? ref.watch(pSelectedMwcTransactionMethod) ==
+                                            MwcTransactionMethod.slatepack
+                                        ? _createSlatepack
+                                        : _previewTransaction
+                                  : null,
+                              style: ref.watch(pPreviewTxButtonEnabled(coin))
+                                  ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryEnabledButtonStyle(context)
+                                  : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryDisabledButtonStyle(context),
                               child: Text(
                                 ref.watch(pSelectedMwcTransactionMethod) ==
                                         MwcTransactionMethod.slatepack

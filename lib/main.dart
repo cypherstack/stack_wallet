@@ -15,7 +15,6 @@ import 'dart:ui';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -79,6 +78,7 @@ import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
+import 'wl_gen/interfaces/cs_monero_interface.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
@@ -189,7 +189,7 @@ void main(List<String> args) async {
 
   DB.instance.hive.registerAdapter(lib_monero_compat.WalletTypeAdapter());
 
-  lib_monero.Logging.useLogger = kDebugMode;
+  csMonero.setUseCsMoneroLoggerInternal(kDebugMode);
 
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
@@ -372,8 +372,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     Constants.exchangeForExperiencedUsers(familiarity);
 
     if (Util.isDesktop) {
-      _desktopHasPassword =
-          await ref.read(storageCryptoHandlerProvider).hasPassword();
+      _desktopHasPassword = await ref
+          .read(storageCryptoHandlerProvider)
+          .hasPassword();
     }
   }
 
@@ -480,14 +481,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       final brightness = WidgetsBinding.instance.window.platformBrightness;
       switch (brightness) {
         case Brightness.dark:
-          themeId =
-              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
+          themeId = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          themeId =
-              ref
-                  .read(prefsChangeNotifierProvider)
-                  .systemBrightnessLightThemeId;
+          themeId = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightThemeId;
           break;
       }
     } else {
@@ -506,8 +507,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(applicationThemesDirectoryPathProvider.notifier).state =
           StackFileSystem.themesDir!.path;
 
-      ref.read(themeProvider.state).state =
-          ref.read(pThemeService).getTheme(themeId: themeId)!;
+      ref.read(themeProvider.state).state = ref
+          .read(pThemeService)
+          .getTheme(themeId: themeId)!;
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -531,21 +533,22 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       String themeId;
       switch (WidgetsBinding.instance.window.platformBrightness) {
         case Brightness.dark:
-          themeId =
-              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
+          themeId = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          themeId =
-              ref
-                  .read(prefsChangeNotifierProvider)
-                  .systemBrightnessLightThemeId;
+          themeId = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightThemeId;
           break;
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-          ref.read(themeProvider.state).state =
-              ref.read(pThemeService).getTheme(themeId: themeId)!;
+          ref.read(themeProvider.state).state = ref
+              .read(pThemeService)
+              .getTheme(themeId: themeId)!;
         }
       });
     };
@@ -673,17 +676,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ref.read(pNavKey).currentContext!,
           RouteGenerator.getRoute(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-            builder:
-                (_) => LockscreenView(
-                  showBackButton: true,
-                  routeOnSuccess: RestoreFromEncryptedStringView.routeName,
-                  routeOnSuccessArguments: encrypted,
-                  biometricsCancelButtonString: "CANCEL",
-                  biometricsLocalizedReason:
-                      "Authenticate to restore ${AppConfig.appName} backup",
-                  biometricsAuthenticationTitle:
-                      "Restore ${AppConfig.prefix} backup",
-                ),
+            builder: (_) => LockscreenView(
+              showBackButton: true,
+              routeOnSuccess: RestoreFromEncryptedStringView.routeName,
+              routeOnSuccessArguments: encrypted,
+              biometricsCancelButtonString: "CANCEL",
+              biometricsLocalizedReason:
+                  "Authenticate to restore ${AppConfig.appName} backup",
+              biometricsAuthenticationTitle:
+                  "Restore ${AppConfig.prefix} backup",
+            ),
             settings: const RouteSettings(name: "/swbrestorelockscreen"),
           ),
         ),
@@ -807,85 +809,79 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         ),
       ),
       home: CryptoNotifications(
-        child:
-            Util.isDesktop
-                ? FutureBuilder(
-                  future: loadShared(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      if (_desktopHasPassword) {
-                        String? startupWalletId;
-                        if (ref
+        child: Util.isDesktop
+            ? FutureBuilder(
+                future: loadShared(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (_desktopHasPassword) {
+                      String? startupWalletId;
+                      if (ref
+                          .read(prefsChangeNotifierProvider)
+                          .gotoWalletOnStartup) {
+                        startupWalletId = ref
                             .read(prefsChangeNotifierProvider)
-                            .gotoWalletOnStartup) {
-                          startupWalletId =
-                              ref
-                                  .read(prefsChangeNotifierProvider)
-                                  .startupWalletId;
-                        }
+                            .startupWalletId;
+                      }
 
-                        return DesktopLoginView(
-                          startupWalletId: startupWalletId,
-                          load: () => load(true),
-                        );
+                      return DesktopLoginView(
+                        startupWalletId: startupWalletId,
+                        load: () => load(true),
+                      );
+                    } else {
+                      return const IntroView();
+                    }
+                  } else {
+                    return const LoadingView();
+                  }
+                },
+              )
+            : FutureBuilder(
+                future: load(false),
+                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    // FlutterNativeSplash.remove();
+                    if (ref.read(pAllWalletsInfo).isNotEmpty ||
+                        ref.read(prefsChangeNotifierProvider).hasPin) {
+                      // return HomeView();
+
+                      String? startupWalletId;
+                      if (ref
+                          .read(prefsChangeNotifierProvider)
+                          .gotoWalletOnStartup) {
+                        startupWalletId = ref
+                            .read(prefsChangeNotifierProvider)
+                            .startupWalletId;
+                      }
+
+                      return LockscreenView(
+                        isInitialAppLogin: true,
+                        routeOnSuccess: HomeView.routeName,
+                        routeOnSuccessArguments: startupWalletId,
+                        biometricsAuthenticationTitle:
+                            "Unlock ${AppConfig.prefix}",
+                        biometricsLocalizedReason:
+                            "Unlock your ${AppConfig.appName} using biometrics",
+                        biometricsCancelButtonString: "Cancel",
+                      );
+                    } else {
+                      if (AppConfig.appName == "Campfire" &&
+                          !CampfireMigration.didRun &&
+                          CampfireMigration.hasOldWallets) {
+                        return const CampfireMigrateView();
                       } else {
                         return const IntroView();
                       }
-                    } else {
-                      return const LoadingView();
                     }
-                  },
-                )
-                : FutureBuilder(
-                  future: load(false),
-                  builder: (
-                    BuildContext context,
-                    AsyncSnapshot<void> snapshot,
-                  ) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      // FlutterNativeSplash.remove();
-                      if (ref.read(pAllWalletsInfo).isNotEmpty ||
-                          ref.read(prefsChangeNotifierProvider).hasPin) {
-                        // return HomeView();
-
-                        String? startupWalletId;
-                        if (ref
-                            .read(prefsChangeNotifierProvider)
-                            .gotoWalletOnStartup) {
-                          startupWalletId =
-                              ref
-                                  .read(prefsChangeNotifierProvider)
-                                  .startupWalletId;
-                        }
-
-                        return LockscreenView(
-                          isInitialAppLogin: true,
-                          routeOnSuccess: HomeView.routeName,
-                          routeOnSuccessArguments: startupWalletId,
-                          biometricsAuthenticationTitle:
-                              "Unlock ${AppConfig.prefix}",
-                          biometricsLocalizedReason:
-                              "Unlock your ${AppConfig.appName} using biometrics",
-                          biometricsCancelButtonString: "Cancel",
-                        );
-                      } else {
-                        if (AppConfig.appName == "Campfire" &&
-                            !CampfireMigration.didRun &&
-                            CampfireMigration.hasOldWallets) {
-                          return const CampfireMigrateView();
-                        } else {
-                          return const IntroView();
-                        }
-                      }
-                    } else {
-                      // CURRENTLY DISABLED as cannot be animated
-                      // technically not needed as FlutterNativeSplash will overlay
-                      // anything returned here until the future completes but
-                      // FutureBuilder requires you to return something
-                      return const LoadingView();
-                    }
-                  },
-                ),
+                  } else {
+                    // CURRENTLY DISABLED as cannot be animated
+                    // technically not needed as FlutterNativeSplash will overlay
+                    // anything returned here until the future completes but
+                    // FutureBuilder requires you to return something
+                    return const LoadingView();
+                  }
+                },
+              ),
       ),
     );
   }

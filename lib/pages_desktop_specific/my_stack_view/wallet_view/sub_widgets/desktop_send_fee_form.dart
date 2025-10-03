@@ -1,4 +1,3 @@
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,6 +21,7 @@ import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_fee_dialog.dart';
 import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/fee_slider.dart';
+import '../../../../wl_gen/interfaces/cs_monero_interface.dart';
 
 class DesktopSendFeeForm extends ConsumerStatefulWidget {
   const DesktopSendFeeForm({
@@ -86,47 +86,44 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
       children: [
         ConditionalParent(
           condition: canEditFees,
-          builder:
-              (child) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  child,
-                  CustomTextButton(
-                    text: "Edit",
-                    onTap: () async {
-                      feeSelectionResult =
-                          await showDialog<(FeeRateType, String?, String?)?>(
-                            context: context,
-                            builder:
-                                (_) => DesktopFeeDialog(
-                                  walletId: widget.walletId,
-                                  isToken: widget.isToken,
-                                ),
-                          );
+          builder: (child) => Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              child,
+              CustomTextButton(
+                text: "Edit",
+                onTap: () async {
+                  feeSelectionResult =
+                      await showDialog<(FeeRateType, String?, String?)?>(
+                        context: context,
+                        builder: (_) => DesktopFeeDialog(
+                          walletId: widget.walletId,
+                          isToken: widget.isToken,
+                        ),
+                      );
 
-                      if (feeSelectionResult != null) {
-                        if (_isCustomFee &&
-                            feeSelectionResult!.$1 != FeeRateType.custom) {
-                          _isCustomFee = false;
-                        } else if (!_isCustomFee &&
-                            feeSelectionResult!.$1 == FeeRateType.custom) {
-                          _isCustomFee = true;
-                        }
-                      }
+                  if (feeSelectionResult != null) {
+                    if (_isCustomFee &&
+                        feeSelectionResult!.$1 != FeeRateType.custom) {
+                      _isCustomFee = false;
+                    } else if (!_isCustomFee &&
+                        feeSelectionResult!.$1 == FeeRateType.custom) {
+                      _isCustomFee = true;
+                    }
+                  }
 
-                      setState(() {});
-                    },
-                  ),
-                ],
+                  setState(() {});
+                },
               ),
+            ],
+          ),
           child: Text(
             "Transaction fee"
             "${_isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -135,162 +132,155 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
         if (!_isCustomFee)
           Padding(
             padding: const EdgeInsets.all(10),
-            child:
-                (feeSelectionResult?.$2 == null)
-                    ? FutureBuilder(
-                      future: ref.watch(
-                        pWallets.select(
-                          (value) => value.getWallet(widget.walletId).fees,
-                        ),
+            child: (feeSelectionResult?.$2 == null)
+                ? FutureBuilder(
+                    future: ref.watch(
+                      pWallets.select(
+                        (value) => value.getWallet(widget.walletId).fees,
                       ),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          return DesktopFeeItem(
-                            feeObject: snapshot.data,
-                            feeRateType: FeeRateType.average,
-                            walletId: widget.walletId,
-                            isButton: false,
-                            feeFor: ({
-                              required Amount amount,
-                              required FeeRateType feeRateType,
-                              required BigInt feeRate,
-                              required CryptoCurrency coin,
-                            }) async {
-                              if (ref
-                                      .read(
-                                        widget.isToken
-                                            ? tokenFeeSessionCacheProvider
-                                            : feeSheetSessionCacheProvider,
-                                      )
-                                      .average[amount] ==
-                                  null) {
-                                if (widget.isToken == false) {
-                                  final wallet = ref
-                                      .read(pWallets)
-                                      .getWallet(widget.walletId);
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return DesktopFeeItem(
+                          feeObject: snapshot.data,
+                          feeRateType: FeeRateType.average,
+                          walletId: widget.walletId,
+                          isButton: false,
+                          feeFor:
+                              ({
+                                required Amount amount,
+                                required FeeRateType feeRateType,
+                                required BigInt feeRate,
+                                required CryptoCurrency coin,
+                              }) async {
+                                if (ref
+                                        .read(
+                                          widget.isToken
+                                              ? tokenFeeSessionCacheProvider
+                                              : feeSheetSessionCacheProvider,
+                                        )
+                                        .average[amount] ==
+                                    null) {
+                                  if (widget.isToken == false) {
+                                    final wallet = ref
+                                        .read(pWallets)
+                                        .getWallet(widget.walletId);
 
-                                  if (coin is Monero || coin is Wownero) {
-                                    final fee = await wallet.estimateFeeFor(
-                                      amount,
-                                      BigInt.from(
-                                        lib_monero
-                                            .TransactionPriority
-                                            .medium
-                                            .value,
-                                      ),
-                                    );
-                                    ref
-                                            .read(feeSheetSessionCacheProvider)
-                                            .average[amount] =
-                                        fee;
-                                  } else if ((coin is Firo) &&
+                                    if (coin is Monero || coin is Wownero) {
+                                      final fee = await wallet.estimateFeeFor(
+                                        amount,
+                                        BigInt.from(
+                                          csMonero.getTxPriorityMedium(),
+                                        ),
+                                      );
                                       ref
+                                              .read(
+                                                feeSheetSessionCacheProvider,
+                                              )
+                                              .average[amount] =
+                                          fee;
+                                    } else if ((coin is Firo) &&
+                                        ref
+                                                .read(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state,
+                                                )
+                                                .state !=
+                                            BalanceType.public) {
+                                      final firoWallet = wallet as FiroWallet;
+
+                                      if (ref
                                               .read(
                                                 publicPrivateBalanceStateProvider
                                                     .state,
                                               )
-                                              .state !=
-                                          BalanceType.public) {
-                                    final firoWallet = wallet as FiroWallet;
-
-                                    if (ref
-                                            .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state,
-                                            )
-                                            .state ==
-                                        BalanceType.private) {
+                                              .state ==
+                                          BalanceType.private) {
+                                        ref
+                                            .read(feeSheetSessionCacheProvider)
+                                            .average[amount] = await firoWallet
+                                            .estimateFeeForSpark(amount);
+                                      }
+                                    } else {
                                       ref
                                           .read(feeSheetSessionCacheProvider)
-                                          .average[amount] = await firoWallet
-                                          .estimateFeeForSpark(amount);
+                                          .average[amount] = await wallet
+                                          .estimateFeeFor(amount, feeRate);
                                     }
                                   } else {
-                                    ref
-                                        .read(feeSheetSessionCacheProvider)
-                                        .average[amount] = await wallet
+                                    final tokenWallet = ref.read(
+                                      pCurrentTokenWallet,
+                                    )!;
+                                    final fee = await tokenWallet
                                         .estimateFeeFor(amount, feeRate);
+                                    ref
+                                            .read(tokenFeeSessionCacheProvider)
+                                            .average[amount] =
+                                        fee;
                                   }
-                                } else {
-                                  final tokenWallet =
-                                      ref.read(pCurrentTokenWallet)!;
-                                  final fee = await tokenWallet.estimateFeeFor(
-                                    amount,
-                                    feeRate,
-                                  );
-                                  ref
-                                          .read(tokenFeeSessionCacheProvider)
-                                          .average[amount] =
-                                      fee;
                                 }
-                              }
-                              return ref
-                                  .read(
-                                    widget.isToken
-                                        ? tokenFeeSessionCacheProvider
-                                        : feeSheetSessionCacheProvider,
-                                  )
-                                  .average[amount]!;
-                            },
-                            isSelected: true,
-                          );
-                        } else {
-                          return Row(
-                            children: [
-                              AnimatedText(
-                                stringsToLoopThrough: stringsToLoopThrough,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFieldActiveText,
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    )
-                    : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          feeSelectionResult?.$2 ?? "",
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldActiveText,
-                          ),
-                          textAlign: TextAlign.left,
-                        ),
-                        Text(
-                          feeSelectionResult?.$3 ?? "",
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveSearchIconRight,
-                          ),
-                        ),
-                      ],
-                    ),
+                                return ref
+                                    .read(
+                                      widget.isToken
+                                          ? tokenFeeSessionCacheProvider
+                                          : feeSheetSessionCacheProvider,
+                                    )
+                                    .average[amount]!;
+                              },
+                          isSelected: true,
+                        );
+                      } else {
+                        return Row(
+                          children: [
+                            AnimatedText(
+                              stringsToLoopThrough: stringsToLoopThrough,
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveText,
+                                  ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        feeSelectionResult?.$2 ?? "",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldActiveText,
+                            ),
+                        textAlign: TextAlign.left,
+                      ),
+                      Text(
+                        feeSelectionResult?.$3 ?? "",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconRight,
+                            ),
+                      ),
+                    ],
+                  ),
           ),
         if (_isCustomFee && isEth)
           EthFeeForm(
-            minGasLimit:
-                widget.isToken
-                    ? kEthereumTokenMinGasLimit
-                    : kEthereumMinGasLimit,
-            stateChanged:
-                (value) => widget.onCustomEip1559FeeOptionChanged?.call(value),
+            minGasLimit: widget.isToken
+                ? kEthereumTokenMinGasLimit
+                : kEthereumMinGasLimit,
+            stateChanged: (value) =>
+                widget.onCustomEip1559FeeOptionChanged?.call(value),
           ),
         if (_isCustomFee && !isEth)
           Padding(

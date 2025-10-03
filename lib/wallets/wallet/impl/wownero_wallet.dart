@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_monero_wallet.dart';
@@ -16,33 +16,27 @@ class WowneroWallet extends LibMoneroWallet {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (libMoneroWallet == null ||
+    if (!csMonero.walletInstanceExists(walletId) ||
         syncStatus is! lib_monero_compat.SyncedSyncStatus) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
-    lib_monero.TransactionPriority priority;
     FeeRateType feeRateType = FeeRateType.slow;
     switch (feeRate.toInt()) {
       case 1:
-        priority = lib_monero.TransactionPriority.low;
         feeRateType = FeeRateType.average;
         break;
       case 2:
-        priority = lib_monero.TransactionPriority.medium;
         feeRateType = FeeRateType.average;
         break;
       case 3:
-        priority = lib_monero.TransactionPriority.high;
         feeRateType = FeeRateType.fast;
         break;
       case 4:
-        priority = lib_monero.TransactionPriority.last;
         feeRateType = FeeRateType.fast;
         break;
       case 0:
       default:
-        priority = lib_monero.TransactionPriority.normal;
         feeRateType = FeeRateType.slow;
         break;
     }
@@ -71,9 +65,10 @@ class WowneroWallet extends LibMoneroWallet {
           // unsure why this delay?
           await Future<void>.delayed(const Duration(milliseconds: 500));
         } catch (e) {
-          approximateFee = libMoneroWallet!.estimateFee(
-            priority,
-            amount.raw.toInt(),
+          approximateFee = await csMonero.estimateFee(
+            feeRate.toInt(),
+            amount.raw,
+            walletId: walletId,
           );
         }
       }
@@ -91,77 +86,66 @@ class WowneroWallet extends LibMoneroWallet {
 
   @override
   bool walletExists(String path) =>
-      lib_monero.WowneroWallet.isWalletExist(path);
+      csMonero.walletExists(path, csCoin: CsCoin.wownero);
 
   @override
-  Future<void> loadWallet({
-    required String path,
-    required String password,
-  }) async {
-    libMoneroWallet = await lib_monero.WowneroWallet.loadWallet(
-      path: path,
-      password: password,
-    );
-  }
+  Future<void> loadWallet({required String path, required String password}) =>
+      csMonero.loadWallet(
+        walletId,
+        path: path,
+        password: password,
+        csCoin: CsCoin.wownero,
+      );
 
   @override
-  Future<lib_monero.Wallet> getCreatedWallet({
+  Future<void> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
-  }) async {
-    final lib_monero.WowneroSeedType type;
-    switch (wordCount) {
-      case 16:
-        type = lib_monero.WowneroSeedType.sixteen;
-        break;
-
-      case 25:
-        type = lib_monero.WowneroSeedType.twentyFive;
-        break;
-
-      default:
-        throw Exception("Invalid mnemonic word count: $wordCount");
-    }
-
-    return await lib_monero.WowneroWallet.create(
-      path: path,
-      password: password,
-      seedType: type,
-      overrideDeprecated14WordSeedException: true,
-      seedOffset: seedOffset,
-    );
-  }
+    required final void Function(int refreshFromBlockHeight, String seed)
+    onCreated,
+  }) => csMonero.getCreatedWallet(
+    csCoin: CsCoin.wownero,
+    path: path,
+    password: password,
+    wordCount: wordCount,
+    seedOffset: seedOffset,
+    onCreated: onCreated,
+  );
 
   @override
-  Future<lib_monero.Wallet> getRestoredWallet({
+  Future<void> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
     required String seedOffset,
     int height = 0,
-  }) async => await lib_monero.WowneroWallet.restoreWalletFromSeed(
+  }) => csMonero.getRestoredWallet(
     path: path,
     password: password,
-    seed: mnemonic,
-    restoreHeight: height,
+    mnemonic: mnemonic,
+    height: height,
     seedOffset: seedOffset,
+    csCoin: CsCoin.wownero,
+    walletId: walletId,
   );
 
   @override
-  Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
+  Future<void> getRestoredFromViewKeyWallet({
     required String path,
     required String password,
     required String address,
     required String privateViewKey,
     int height = 0,
-  }) async => lib_monero.WowneroWallet.createViewOnlyWallet(
+  }) => csMonero.getRestoredFromViewKeyWallet(
+    walletId: walletId,
+    csCoin: CsCoin.wownero,
     path: path,
     password: password,
     address: address,
-    viewKey: privateViewKey,
-    restoreHeight: height,
+    privateViewKey: privateViewKey,
+    height: height,
   );
 
   @override
