@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1586,6 +1587,10 @@ class _TransactionDetailsViewState
                                                                   "Could not open in block explorer",
                                                               message:
                                                                   "Failed to open \"${uri.toString()}\"",
+                                                              maxWidth:
+                                                                  Util.isDesktop
+                                                                      ? 400
+                                                                      : null,
                                                             ),
                                                       ),
                                                     );
@@ -1770,7 +1775,7 @@ class _TransactionDetailsViewState
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
-            (coin is Epiccash &&
+            ((coin is Epiccash || coin is Mimblewimblecoin) &&
                     _transaction.getConfirmations(currentHeight) < 1 &&
                     _transaction.isCancelled == false)
                 ? ConditionalParent(
@@ -1819,6 +1824,7 @@ class _TransactionDetailsViewState
 
                           final result = await wallet
                               .cancelPendingTransactionAndPost(id);
+
                           if (context.mounted) {
                             // pop progress dialog
                             Navigator.of(context).pop();
@@ -1829,8 +1835,8 @@ class _TransactionDetailsViewState
                                 builder:
                                     (_) => StackOkDialog(
                                       title: "Transaction cancelled",
+                                      maxWidth: Util.isDesktop ? 400 : null,
                                       onOkPressed: (_) {
-                                        wallet.refresh();
                                         Navigator.of(context).popUntil(
                                           ModalRoute.withName(
                                             WalletView.routeName,
@@ -1846,6 +1852,65 @@ class _TransactionDetailsViewState
                                     (_) => StackOkDialog(
                                       title: "Failed to cancel transaction",
                                       message: result,
+                                      maxWidth: Util.isDesktop ? 400 : null,
+                                    ),
+                              );
+                            }
+                          }
+                        } else if (wallet is MimblewimblecoinWallet) {
+                          final String? id = _transaction.slateId;
+                          if (id == null) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Could not find MWC transaction ID",
+                                context: context,
+                              ),
+                            );
+                            return;
+                          }
+
+                          unawaited(
+                            showDialog<dynamic>(
+                              barrierDismissible: false,
+                              context: context,
+                              builder:
+                                  (_) =>
+                                      const CancellingTransactionProgressDialog(),
+                            ),
+                          );
+
+                          final result = await wallet
+                              .cancelPendingTransactionAndPost(id);
+
+                          if (context.mounted) {
+                            // pop progress dialog
+                            Navigator.of(context).pop();
+
+                            if (result.isEmpty) {
+                              await showDialog<dynamic>(
+                                context: context,
+                                builder:
+                                    (_) => StackOkDialog(
+                                      title: "Transaction cancelled",
+                                      maxWidth: Util.isDesktop ? 400 : null,
+                                      onOkPressed: (_) {
+                                        Navigator.of(context).popUntil(
+                                          ModalRoute.withName(
+                                            WalletView.routeName,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              );
+                            } else {
+                              await showDialog<dynamic>(
+                                context: context,
+                                builder:
+                                    (_) => StackOkDialog(
+                                      title: "Failed to cancel transaction",
+                                      message: result,
+                                      maxWidth: Util.isDesktop ? 400 : null,
                                     ),
                               );
                             }
@@ -1854,7 +1919,8 @@ class _TransactionDetailsViewState
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message: "ERROR: Wallet type is not Epic Cash",
+                              message:
+                                  "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
                               context: context,
                             ),
                           );

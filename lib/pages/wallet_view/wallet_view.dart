@@ -15,7 +15,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
@@ -51,6 +51,7 @@ import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
@@ -75,6 +76,7 @@ import '../../widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/churn_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/finalize_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
@@ -88,6 +90,7 @@ import '../cashfusion/cashfusion_view.dart';
 import '../churning/churning_view.dart';
 import '../coin_control/coin_control_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
+import '../finalize_view/finalize_view.dart';
 import '../monkey/monkey_view.dart';
 import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
@@ -1015,6 +1018,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         }
                       },
                     ),
+                    if (wallet is MimblewimblecoinWallet)
+                      WalletNavigationBarItemData(
+                        label: "Finalize",
+                        icon: const FinalizeNavIcon(),
+                        onTap: () {
+                          if (mounted) {
+                            unawaited(
+                              Navigator.of(context).pushNamed(
+                                FinalizeView.routeName,
+                                arguments: walletId,
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     if (ref.watch(pWalletCoin(walletId)) is FrostCurrency)
                       WalletNavigationBarItemData(
                         label: "Sign",

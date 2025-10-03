@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;

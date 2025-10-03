@@ -14,9 +14,10 @@ import device_info_plus
 import devicelocale
 import file_picker
 import flutter_libepiccash
+import flutter_libmwc
 import flutter_local_notifications
 import flutter_secure_storage_macos
-import isar_flutter_libs
+import isar_community_flutter_libs
 import local_auth_darwin
 import mobile_scanner
 import package_info_plus
@@ -38,10 +39,11 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   DevicelocalePlugin.register(with: registry.registrar(forPlugin: "DevicelocalePlugin"))
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   FlutterLibepiccashPlugin.register(with: registry.registrar(forPlugin: "FlutterLibepiccashPlugin"))
+  FlutterLibmwcPlugin.register(with: registry.registrar(forPlugin: "FlutterLibmwcPlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
   FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   IsarFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "IsarFlutterLibsPlugin"))
-  FLALocalAuthPlugin.register(with: registry.registrar(forPlugin: "FLALocalAuthPlugin"))
+  LocalAuthPlugin.register(with: registry.registrar(forPlugin: "LocalAuthPlugin"))
   MobileScannerPlugin.register(with: registry.registrar(forPlugin: "MobileScannerPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))

@@ -39,7 +39,8 @@ import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import '../../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart'
+    as tdv;
 import '../../sub_widgets/view_only_wallet_data_widget.dart';
 import 'cn_wallet_keys.dart';
 import 'wallet_xprivs.dart';
@@ -323,7 +324,7 @@ class _FrostKeys extends StatelessWidget {
                     detail: frostWalletData!.config,
                     button:
                         Util.isDesktop
-                            ? IconCopyButton(data: frostWalletData!.config)
+                            ? tdv.IconCopyButton(data: frostWalletData!.config)
                             : SimpleCopyButton(data: frostWalletData!.config),
                   ),
                   const SizedBox(height: 16),
@@ -332,7 +333,7 @@ class _FrostKeys extends StatelessWidget {
                     detail: frostWalletData!.keys,
                     button:
                         Util.isDesktop
-                            ? IconCopyButton(data: frostWalletData!.keys)
+                            ? tdv.IconCopyButton(data: frostWalletData!.keys)
                             : SimpleCopyButton(data: frostWalletData!.keys),
                   ),
                   if (prevGen) const SizedBox(height: 24),
@@ -350,7 +351,7 @@ class _FrostKeys extends StatelessWidget {
                       detail: frostWalletData!.prevGen!.config,
                       button:
                           Util.isDesktop
-                              ? IconCopyButton(
+                              ? tdv.IconCopyButton(
                                 data: frostWalletData!.prevGen!.config,
                               )
                               : SimpleCopyButton(
@@ -364,7 +365,7 @@ class _FrostKeys extends StatelessWidget {
                       detail: frostWalletData!.prevGen!.keys,
                       button:
                           Util.isDesktop
-                              ? IconCopyButton(
+                              ? tdv.IconCopyButton(
                                 data: frostWalletData!.prevGen!.keys,
                               )
                               : SimpleCopyButton(

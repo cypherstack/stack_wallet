@@ -14,7 +14,7 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.7.0 <4.0.0"
+  sdk: ">=3.9.0 <4.0.0"
   flutter: ^3.29.0
 
 dependencies:
@@ -29,23 +29,26 @@ dependencies:
 
   xelis_flutter:
     git:
-      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-      ref: v0.1.1
+      url: https://github.com/cypherstack/xelis-flutter-ffi.git
+      ref: 5dd5c50713160fa15fb06ff44886ae035eed62fd
 
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 5f0dde009c969bf6425da35382305b2c0b65bc46
+      ref: 84a139a25ab1691762002fafcae351e3d444a5c7
 
   # cs_monero compat (unpublished)
   compat:
     git:
       url: https://github.com/cypherstack/cs_monero
       path: compat
-      ref: b2b12cfeaf15d057ea18b14c196e04f3002de2da
+      ref: 44b8c0f8e1cc7ddbfa33c0b3f11279e64646138
 
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
+
+  flutter_libmwc:
+    path: ./crypto_plugins/flutter_libmwc
 
   bitcoindart:
     git:
@@ -65,7 +68,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 16c9e709e984ec89e8715ce378b038c93ad7add3
+      ref: 21077186e6bf773ec8a7cd57ef149b2cee5daa7b
 
   fusiondart:
     git:
@@ -107,8 +110,8 @@ dependencies:
 
   # Storage plugins
   flutter_secure_storage: ^8.0.0
-  hive: ^2.0.5
-  hive_flutter: ^1.1.0
+  hive_ce: ^2.13.2
+  hive_ce_flutter: ^2.3.2
   path_provider: ^2.1.5
 
   # UI/Component plugins
@@ -145,12 +148,8 @@ dependencies:
       url: https://github.com/cypherstack/flutter_file_picker.git
       ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
   connectivity_plus: ^4.0.1
-  isar:
-    version: 3.1.8
-    hosted: https://pub.isar-community.dev/
-  isar_flutter_libs: # contains Isar Core
-    version: 3.1.8
-    hosted: https://pub.isar-community.dev/
+  isar_community: 3.3.0-dev.2
+  isar_community_flutter_libs: 3.3.0-dev.2
   dropdown_button2: ^2.1.3
   string_validator: ^0.3.0
   equatable: ^2.0.5
@@ -177,7 +176,7 @@ dependencies:
     git:
       url: https://www.github.com/julian-CStack/coinlib
       path: coinlib_flutter
-      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -189,8 +188,8 @@ dependencies:
       ref: dea799c20bc917f72b18c916ca96bc99fb1bd1c5
       path: packages/solana
   calendar_date_picker2: ^1.0.2
-  sqlite3: 2.4.5
-  sqlite3_flutter_libs: 0.5.24
+  sqlite3: 2.9.0
+  sqlite3_flutter_libs: 0.5.25
 #  camera_linux: ^0.0.8
   camera_linux:
     git:
@@ -219,12 +218,12 @@ dependencies:
     git:
       url: https://github.com/Cyrix126/namecoin_dart
       ref: 819b21164ef93cc0889049d4a8a1be2d0cc36a1b
-  drift: ^2.22.1
-  drift_flutter: ^0.2.3
+  drift: ^2.28.2
+  drift_flutter: ^0.2.7
   path: ^1.9.1
   cs_salvium: ^1.2.1
   cs_salvium_flutter_libs: ^1.0.4
-  flutter_mwebd: ^0.0.1-pre.7
+  flutter_mwebd: ^0.0.1-pre.8
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
 
@@ -233,21 +232,19 @@ dev_dependencies:
     sdk: flutter
   integration_test:
       sdk: flutter
-  build_runner: ^2.1.7
+  build_runner: ^2.5.4
   flutter_launcher_icons: ^0.13.1
-  hive_generator: ^2.0.0
-  dependency_validator: ^3.1.2
+  hive_ce_generator: ^1.9.3
+  dependency_validator: ^5.0.2
   hive_test: ^1.0.1
-  mockito: ^5.4.1
+  mockito: ^5.4.6
   mockingjay: ^0.2.0
 #  lint: ^1.10.0
-  analyzer: ^6.7.0
+  analyzer: ^8.2.2
   import_sorter: ^4.6.0
   flutter_lints: ^3.0.1
-  isar_generator:
-    version: 3.1.8
-    hosted: https://pub.isar-community.dev/
-  drift_dev: ^2.22.1
+  isar_community_generator: 3.3.0-dev.2
+  drift_dev: ^2.28.3
 
 flutter_native_splash:
   image: assets/icon/splash.png
@@ -271,13 +268,13 @@ dependency_overrides:
     git:
       url: https://www.github.com/julian-CStack/coinlib
       path: coinlib
-      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
 
   coinlib_flutter:
     git:
       url: https://www.github.com/julian-CStack/coinlib
       path: coinlib_flutter
-      ref: da1b3659e296660ac2b36f81d155d2362a2b3195
+      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
 
   bip47:
     git:
@@ -298,7 +295,7 @@ dependency_overrides:
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
 
   crypto: 3.0.2
-  analyzer: ^6.7.0
+  analyzer: ^8.2.0
   pinenacl: ^0.6.0
   http: ^0.13.0
 

@@ -8,7 +8,7 @@ import 'package:bitcoindart/bitcoindart.dart' as btc_dart;
 import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:tuple/tuple.dart';
 

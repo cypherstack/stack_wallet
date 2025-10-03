@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -29,10 +29,7 @@ import 'fusion_tx_group_card.dart';
 import 'transaction_v2_list_item.dart';
 
 class TransactionsV2List extends ConsumerStatefulWidget {
-  const TransactionsV2List({
-    super.key,
-    required this.walletId,
-  });
+  const TransactionsV2List({super.key, required this.walletId});
 
   final String walletId;
 
@@ -50,48 +47,39 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      topLeft: Radius.circular(Constants.size.circularBorderRadius),
+      topRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   BorderRadius get _borderRadiusLast {
     return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
+      bottomRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   @override
   void initState() {
     coin = ref.read(pWallets).getWallet(widget.walletId).info.coin;
-    _query =
-        ref.read(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
-              whereClauses: [
-                IndexWhereClause.equalTo(
-                  indexName: 'walletId',
-                  value: [widget.walletId],
-                ),
-              ],
-              filter: ref
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .buildQuery<TransactionV2>(
+          whereClauses: [
+            IndexWhereClause.equalTo(
+              indexName: 'walletId',
+              value: [widget.walletId],
+            ),
+          ],
+          filter:
+              ref
                   .read(pWallets)
                   .getWallet(widget.walletId)
                   .transactionFilterOperation,
-              sortBy: [
-                const SortProperty(
-                  property: "timestamp",
-                  sort: Sort.desc,
-                ),
-              ],
-            );
+          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
+        );
 
     _subscription = _query.watch().listen((event) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -124,15 +112,8 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
           return const Column(
             children: [
               Spacer(),
-              Center(
-                child: LoadingIndicator(
-                  height: 50,
-                  width: 50,
-                ),
-              ),
-              Spacer(
-                flex: 4,
-              ),
+              Center(child: LoadingIndicator(height: 50, width: 50)),
+              Spacer(flex: 4),
             ],
           );
         }
@@ -159,8 +140,9 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                 final prevTime = DateTime.fromMillisecondsSinceEpoch(
                   fusions.last.timestamp * 1000,
                 );
-                final thisTime =
-                    DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
+                final thisTime = DateTime.fromMillisecondsSinceEpoch(
+                  tx.timestamp * 1000,
+                );
 
                 if (prevTime.difference(thisTime).inMinutes > 30) {
                   _txns.add(FusionTxGroup(fusions));
@@ -190,76 +172,66 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
             onRefresh: () async {
               await ref.read(pWallets).getWallet(widget.walletId).refresh();
             },
-            child: Util.isDesktop
-                ? ListView.separated(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      if (_txns.length == 1) {
-                        radius = BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
+            child:
+                Util.isDesktop
+                    ? ListView.separated(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        BorderRadius? radius;
+                        if (_txns.length == 1) {
+                          radius = BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          );
+                        } else if (index == _txns.length - 1) {
+                          radius = _borderRadiusLast;
+                        } else if (index == 0) {
+                          radius = _borderRadiusFirst;
+                        }
+                        final tx = _txns[index];
+                        return TxListItem(tx: tx, coin: coin, radius: radius);
+                      },
+                      separatorBuilder: (context, index) {
+                        return Container(
+                          width: double.infinity,
+                          height: 2,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
                         );
-                      } else if (index == _txns.length - 1) {
-                        radius = _borderRadiusLast;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = _txns[index];
-                      return TxListItem(
-                        tx: tx,
-                        coin: coin,
-                        radius: radius,
-                      );
-                    },
-                    separatorBuilder: (context, index) {
-                      return Container(
-                        width: double.infinity,
-                        height: 2,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                      );
-                    },
-                    itemCount: _txns.length,
-                  )
-                : ListView.builder(
-                    itemCount: _txns.length,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      bool shouldWrap = false;
-                      if (_txns.length == 1) {
-                        radius = BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        );
-                      } else if (index == _txns.length - 1) {
-                        radius = _borderRadiusLast;
-                        shouldWrap = true;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = _txns[index];
-                      if (shouldWrap) {
-                        return Column(
-                          children: [
-                            TxListItem(
-                              tx: tx,
-                              coin: coin,
-                              radius: radius,
-                            ),
-                            const SizedBox(
-                              height: WalletView.navBarHeight + 14,
-                            ),
-                          ],
-                        );
-                      } else {
-                        return TxListItem(
-                          tx: tx,
-                          coin: coin,
-                          radius: radius,
-                        );
-                      }
-                    },
-                  ),
+                      },
+                      itemCount: _txns.length,
+                    )
+                    : ListView.builder(
+                      itemCount: _txns.length,
+                      itemBuilder: (context, index) {
+                        BorderRadius? radius;
+                        bool shouldWrap = false;
+                        if (_txns.length == 1) {
+                          radius = BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          );
+                        } else if (index == _txns.length - 1) {
+                          radius = _borderRadiusLast;
+                          shouldWrap = true;
+                        } else if (index == 0) {
+                          radius = _borderRadiusFirst;
+                        }
+                        final tx = _txns[index];
+                        if (shouldWrap) {
+                          return Column(
+                            children: [
+                              TxListItem(tx: tx, coin: coin, radius: radius),
+                              const SizedBox(
+                                height: WalletView.navBarHeight + 14,
+                              ),
+                            ],
+                          );
+                        } else {
+                          return TxListItem(tx: tx, coin: coin, radius: radius);
+                        }
+                      },
+                    ),
           );
         }
       },

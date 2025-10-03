@@ -19,6 +19,7 @@ Highlights include:
     - [Dash](https://www.dash.org/)
     - [Dogecoin](https://dogecoin.com/)
     - [Epic Cash](https://linktr.ee/epiccash)
+    - [MimbleWimbleCoin](https://mwc.mw)
     - [Ethereum](https://ethereum.org/en/)
     - [Ecash](https://e.cash/)
     - [Fact0rn](https://www.fact0rn.io/)

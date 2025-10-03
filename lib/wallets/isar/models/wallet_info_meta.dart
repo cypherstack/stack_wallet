@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../isar_id_interface.dart';
 
@@ -16,8 +16,5 @@ class WalletInfoMeta implements IsarId {
   /// and should not be displayed in the ui.
   final bool isMnemonicVerified;
 
-  WalletInfoMeta({
-    required this.walletId,
-    required this.isMnemonicVerified,
-  });
+  WalletInfoMeta({required this.walletId, required this.isMnemonicVerified});
 }

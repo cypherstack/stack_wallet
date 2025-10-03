@@ -57,6 +57,9 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView> {
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
+  // keep reference to be able to remove listener in dispose without requiring the riverpod ref
+  late final Prefs _prefs;
+
   late final PageController _pageController;
   late final RotateIconController _rotateIconController;
 
@@ -209,6 +212,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   void initState() {
+    _prefs = ref.read(prefsChangeNotifierProvider);
     _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
     if (_autoLockInfo.enabled) {
       _idleMonitor = IdleMonitor(
@@ -242,7 +246,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   dispose() {
-    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _prefs.removeListener(_prefsTimeoutListener);
     _idleMonitor?.detach();
     _pageController.dispose();
     _rotateIconController.forward = null;

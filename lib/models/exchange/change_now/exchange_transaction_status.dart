@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 import '../../../utilities/logger.dart';
 import 'cn_exchange_transaction_status.dart'
@@ -177,14 +177,12 @@ class ExchangeTransactionStatus {
         toCurrency: json["toCurrency"] as String? ?? "",
         id: json["id"] as String,
         updatedAt: json["updatedAt"] as String? ?? "",
-        expectedSendAmountDecimal:
-            json["expectedSendAmount"] == null
-                ? ""
-                : json["expectedSendAmount"].toString(),
-        expectedReceiveAmountDecimal:
-            json["expectedReceiveAmount"] == null
-                ? ""
-                : json["expectedReceiveAmount"].toString(),
+        expectedSendAmountDecimal: json["expectedSendAmount"] == null
+            ? ""
+            : json["expectedSendAmount"].toString(),
+        expectedReceiveAmountDecimal: json["expectedReceiveAmount"] == null
+            ? ""
+            : json["expectedReceiveAmount"].toString(),
         createdAt: json["createdAt"] as String? ?? "",
         isPartner: json["isPartner"] as bool,
         depositReceivedAt: json["depositReceivedAt"] as String? ?? "",
@@ -194,12 +192,12 @@ class ExchangeTransactionStatus {
         payoutHash: json["payoutHash"] as String? ?? "",
         payinExtraId: json["payinExtraId"] as String? ?? "",
         payoutExtraId: json["payoutExtraId"] as String? ?? "",
-        amountSendDecimal:
-            json["amountSend"] == null ? "" : json["amountSend"].toString(),
-        amountReceiveDecimal:
-            json["amountReceive"] == null
-                ? ""
-                : json["amountReceive"].toString(),
+        amountSendDecimal: json["amountSend"] == null
+            ? ""
+            : json["amountSend"].toString(),
+        amountReceiveDecimal: json["amountReceive"] == null
+            ? ""
+            : json["amountReceive"].toString(),
         tokensDestination: json["tokensDestination"] as String? ?? "",
         refundAddress: json["refundAddress"] as String? ?? "",
         refundExtraId: json["refundExtraId"] as String? ?? "",

@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:frostdart/frostdart.dart' as frost;
 import 'package:frostdart/frostdart_bindings_generated.dart';
 import 'package:frostdart/util.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';

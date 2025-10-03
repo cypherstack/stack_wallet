@@ -20,10 +20,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
+import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../../../pages/send_view/sub_widgets/mwc_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
@@ -40,8 +42,10 @@ import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -49,6 +53,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -65,6 +70,7 @@ import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/mwc_txs_method_toggle.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -112,6 +118,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _nonceFocusNode = FocusNode();
 
   late final bool isStellar;
+  late final bool isMimblewimblecoin;
 
   String? _note;
   String? _onChainNote;
@@ -160,8 +167,144 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  /// Handle MWC slatepack creation for desktop.
+  Future<void> _handleDesktopSlatepackCreation(
+    MimblewimblecoinWallet wallet,
+  ) async {
+    try {
+      final amount = ref.read(pSendAmount)!;
+
+      Future<SlatepackResult> wrappedFutureWithDelay() async {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        return wallet.createSlatepack(
+          amount: amount,
+          recipientAddress: null, // No specific recipient for manual slatepack.
+          message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
+          encrypt: false, // No encryption without recipient address.
+        );
+      }
+
+      // Create slatepack.
+      Exception? ex;
+      final slatepackResult = await showLoading(
+        whileFuture: wrappedFutureWithDelay(),
+        context: context,
+        rootNavigator: true,
+        message: "Building slatepack...",
+        delay: const Duration(seconds: 2),
+        onException: (e) => ex = e,
+      );
+
+      if (slatepackResult == null ||
+          !slatepackResult.success ||
+          slatepackResult.slatepack == null ||
+          ex != null) {
+        String error =
+            ex?.toString() ??
+            slatepackResult?.error ??
+            'Failed to create slatepack';
+        if (error.startsWith("Exception:")) {
+          error = error.replaceFirst("Exception:", "").trim();
+        }
+        throw Exception(error);
+      }
+
+      // refresh asap to show the pending slate tx in history
+      unawaited(() async {
+        await Future<void>.delayed(Duration.zero);
+        await wallet.refresh();
+      }());
+
+      // Show slatepack dialog.
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => DesktopDialog(
+                maxHeight: double.infinity,
+                maxWidth: 700,
+                child: MwcSlatepackDialog(slatepackResult: slatepackResult),
+              ),
+        );
+
+        // Clear form after slatepack dialog is closed.
+        clearSendForm();
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        'Failed to create MWC slatepack on desktop',
+        error: e,
+        stackTrace: s,
+      );
+
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder:
+              (context) => DesktopDialog(
+                maxWidth: 450,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 32, bottom: 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Slatepack Creation Failed',
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 32),
+                        child: Text(
+                          'Failed to create slatepack: $e',
+                          textAlign: TextAlign.left,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ).copyWith(fontSize: 18),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 32),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: PrimaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                label: 'OK',
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        );
+      }
+    }
+  }
+
   Future<void> previewSend() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
+
+    // Handle MWC slatepack transactions directly.
+    if (isMimblewimblecoin &&
+        ref.read(pSelectedMwcTransactionMethod) ==
+            MwcTransactionMethod.slatepack) {
+      await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
+      return;
+    }
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
@@ -477,6 +620,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           if (coin is Epiccash) {
             txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
           }
+          if (coin is Mimblewimblecoin) {
+            txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
+          }
         }
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
@@ -775,6 +921,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
+          if (coin is Mimblewimblecoin) {
+            content = AddressUtils().formatAddressMwc(content);
+          }
 
           sendToController.text = content;
           _address = content;
@@ -789,6 +938,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
           content = AddressUtils().formatEpicCashAddress(content);
+        }
+        if (coin is Mimblewimblecoin) {
+          // strip http:// and https:// if content contains @
+          content = AddressUtils().formatAddressMwc(content);
         }
 
         await _checkSparkNameAndOrSetAddress(content);
@@ -932,6 +1085,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     clipboard = widget.clipboard;
 
     isStellar = coin is Stellar;
+    isMimblewimblecoin = coin is Mimblewimblecoin;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1026,6 +1180,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final balType = ref.watch(publicPrivateBalanceStateProvider);
 
+    if (coin is Mimblewimblecoin) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddressMwc(_address!);
+        }
+      });
+    }
+
     final isMwebEnabled = ref.watch(
       pWalletInfo(walletId).select((s) => s.isMwebEnabled),
     );
@@ -1059,7 +1228,36 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        if (showPrivateBalance)
+        if (showPrivateBalance) const SizedBox(height: 4),
+        if (isMimblewimblecoin)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Colors.white, // Fallback color
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Colors.grey, // Fallback color
+                  width: 1,
+                ),
+              ),
+              child: const SizedBox(
+                height:
+                    60, // Provide an explicit height to avoid infinite constraints
+                child: MwcTxsMethodToggle(),
+              ),
+            ),
+          ),
+
+        if (coin is Firo)
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1358,7 +1556,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         const SizedBox(height: 20),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1369,8 +1570,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (!isPaynymSend) const SizedBox(height: 10),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
+          const SizedBox(height: 10),
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1428,7 +1636,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 height: 1.8,
               ),
               decoration: standardInputDecoration(
-                "Enter ${coin.ticker} address",
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                        MwcTransactionMethod.slatepack
+                    ? "Enter ${coin.ticker} address (optional)"
+                    : "Enter ${coin.ticker} address",
                 _addressFocusNode,
                 context,
                 desktopMed: true,
@@ -1546,7 +1757,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (!isPaynymSend)
+        if (!isPaynymSend &&
+            !(isMimblewimblecoin &&
+                ref.watch(pSelectedMwcTransactionMethod) ==
+                    MwcTransactionMethod.slatepack))
           Builder(
             builder: (_) {
               final String? error;
@@ -1564,6 +1778,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 }
               } else {
                 if (_data != null && _data.contactLabel == _address) {
+                  error = null;
+                } else if (coin is Mimblewimblecoin &&
+                    ref.watch(pSelectedMwcTransactionMethod) ==
+                        MwcTransactionMethod.slatepack) {
+                  // For MWC slatepack transactions, address validation is not required.
+                  // TODO: When implementing encrypted slatepacks, address validation will be required.
                   error = null;
                 } else if (!ref.watch(pValidSendToAddress)) {
                   error = "Invalid address";
@@ -1659,7 +1879,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         if (!isPaynymSend) const SizedBox(height: 20),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Tezos &&
+            coin is! Mimblewimblecoin)
           DesktopSendFeeForm(
             walletId: walletId,
             isToken: false,
@@ -1724,7 +1947,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
-          label: "Preview send",
+          label:
+              ref.watch(pSelectedMwcTransactionMethod) ==
+                      MwcTransactionMethod.slatepack
+                  ? "Create slatepack"
+                  : "Preview send",
           enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
           onPressed:
               ref.watch(pPreviewTxButtonEnabled(coin)) ? previewSend : null,
@@ -1751,4 +1978,30 @@ String formatAddress(String epicAddress) {
     epicAddress = epicAddress.substring(0, epicAddress.length - 1);
   }
   return epicAddress;
+}
+
+String formatAddressMwc(String mimblewimblecoinAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
+  if ((mimblewimblecoinAddress.startsWith("http://") ||
+          mimblewimblecoinAddress.startsWith("https://")) &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("http://", "");
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+      "https://",
+      "",
+    );
+  }
+  // strip mailto: prefix
+  if (mimblewimblecoinAddress.startsWith("mailto:")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
+  if (mimblewimblecoinAddress.endsWith("/") &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
+      0,
+      mimblewimblecoinAddress.length - 1,
+    );
+  }
+  return mimblewimblecoinAddress;
 }

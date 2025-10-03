@@ -9,7 +9,7 @@ import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart'
     as spark
     show Log;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logger/logger.dart';
 
 import '../../../db/drift/database.dart' show Drift;

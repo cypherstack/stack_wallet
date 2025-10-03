@@ -16,6 +16,7 @@ rustup target add x86_64-apple-ios
 source ../rust_version.sh
 set_rust_version_for_libepiccash
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/ios && ./build_all.sh )
+(cd ../../crypto_plugins/flutter_libmwc/scripts/ios/ && ./build_all.sh )
 # set rust (back) to a more recent stable release after building epiccash
 set_rust_to_everything_else
 

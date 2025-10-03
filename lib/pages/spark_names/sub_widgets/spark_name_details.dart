@@ -17,7 +17,8 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
-import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../wallet_view/transaction_views/transaction_details_view.dart'
+    as tvd;
 import '../buy_spark_name_view.dart';
 
 class SparkNameDetailsView extends ConsumerStatefulWidget {
@@ -288,7 +289,7 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                             ),
                           ),
                           Util.isDesktop
-                              ? IconCopyButton(data: name.address)
+                              ? tvd.IconCopyButton(data: name.address)
                               : SimpleCopyButton(data: name.address),
                         ],
                       ),
@@ -344,7 +345,9 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                                           ),
                                         ),
                                         Util.isDesktop
-                                            ? IconCopyButton(data: label!.value)
+                                            ? tvd.IconCopyButton(
+                                              data: label!.value,
+                                            )
                                             : SimpleCopyButton(
                                               data: label!.value,
                                             ),

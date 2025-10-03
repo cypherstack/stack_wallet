@@ -14,7 +14,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -22,7 +22,6 @@ import '../../../models/isar/models/contact_entry.dart';
 import '../../../models/isar/models/transaction_note.dart';
 import '../../../models/transaction_filter.dart';
 import '../../../notifications/show_flush_bar.dart';
-import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/ui/transaction_filter_provider.dart';
@@ -49,7 +48,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../../../widgets/transaction_card.dart';
 import '../sub_widgets/tx_icon.dart';
-import 'transaction_details_view.dart';
+import 'transaction_details_view.dart' as tvd;
 import 'transaction_search_filter_view.dart';
 
 typedef _GroupedTransactions =
@@ -853,6 +852,10 @@ class _DesktopTransactionCardRowState
       return "Restored Funds";
     }
 
+    if (coin is Mimblewimblecoin && _transaction.slateId == null) {
+      return "Restored Funds";
+    }
+
     if (_transaction.subType == TransactionSubType.mint) {
       if (_transaction.isConfirmed(height, minConfirms)) {
         return "Anonymized";
@@ -954,6 +957,19 @@ class _DesktopTransactionCardRowState
             );
             return;
           }
+
+          if (coin is Mimblewimblecoin && _transaction.slateId == null) {
+            unawaited(
+              showFloatingFlushBar(
+                context: context,
+                message:
+                    "Restored Mimblewimblecoin funds from your Seed have no Data.",
+                type: FlushBarType.warning,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+            return;
+          }
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,
@@ -961,7 +977,7 @@ class _DesktopTransactionCardRowState
                   (context) => DesktopDialog(
                     maxHeight: MediaQuery.of(context).size.height - 64,
                     maxWidth: 580,
-                    child: TransactionDetailsView(
+                    child: tvd.TransactionDetailsView(
                       transaction: _transaction,
                       coin: coin,
                       walletId: walletId,
@@ -971,7 +987,7 @@ class _DesktopTransactionCardRowState
           } else {
             unawaited(
               Navigator.of(context).pushNamed(
-                TransactionDetailsView.routeName,
+                tvd.TransactionDetailsView.routeName,
                 arguments: Tuple3(_transaction, coin, walletId),
               ),
             );

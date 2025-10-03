@@ -419,7 +419,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
 
     return Column(
       children: [
-        if (isCnAnd25 || widget.coin is Epiccash)
+        if (isCnAnd25 ||
+            widget.coin is Epiccash ||
+            widget.coin is Mimblewimblecoin)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -446,9 +448,13 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               ),
             ],
           ),
-        if (isCnAnd25 || widget.coin is Epiccash)
+        if (isCnAnd25 ||
+            widget.coin is Epiccash ||
+            widget.coin is Mimblewimblecoin)
           SizedBox(height: Util.isDesktop ? 16 : 8),
-        if (isCnAnd25 || widget.coin is Epiccash)
+        if (isCnAnd25 ||
+            widget.coin is Epiccash ||
+            widget.coin is Mimblewimblecoin)
           ref.watch(_pIsUsingDate)
               ? RestoreFromDatePicker(
                 onTap: widget.dateChooserFunction,
@@ -505,29 +511,35 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   ),
                 ),
               ),
-        if (isCnAnd25 || widget.coin is Epiccash) const SizedBox(height: 8),
-        if (isCnAnd25 || widget.coin is Epiccash)
-          RoundedWhiteContainer(
-            child: Center(
-              child: Text(
-                ref.watch(_pIsUsingDate)
-                    ? "Choose the date you made the wallet (approximate is fine)"
-                    : "Enter the initial block height of the wallet",
-                style:
-                    Util.isDesktop
-                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle1,
-                        )
-                        : STextStyles.smallMed12(
-                          context,
-                        ).copyWith(fontSize: 10),
-              ),
+        if (isCnAnd25 ||
+            widget.coin is Epiccash ||
+            widget.coin is Mimblewimblecoin)
+          const SizedBox(height: 8),
+        if (isCnAnd25 ||
+            widget.coin is Epiccash ||
+            widget.coin is Mimblewimblecoin)
+          SizedBox(height: Util.isDesktop ? 16 : 8),
+        RoundedWhiteContainer(
+          child: Center(
+            child: Text(
+              ref.watch(_pIsUsingDate)
+                  ? "Choose the date you made the wallet (approximate is fine)"
+                  : "Enter the initial block height of the wallet",
+              style:
+                  Util.isDesktop
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textSubtitle1,
+                      )
+                      : STextStyles.smallMed12(context).copyWith(fontSize: 10),
             ),
           ),
-        if (isCnAnd25 || widget.coin is Epiccash)
+        ),
+        if (isCnAnd25 ||
+            widget.coin is Epiccash ||
+            widget.coin is Mimblewimblecoin)
           SizedBox(height: Util.isDesktop ? 24 : 16),
         Text(
           "Choose recovery phrase length",

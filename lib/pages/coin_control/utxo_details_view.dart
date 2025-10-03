@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
@@ -35,7 +35,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/utxo_status_icon.dart';
 import '../../widgets/rounded_container.dart';
-import '../wallet_view/transaction_views/transaction_details_view.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart' as tdv;
 
 class UtxoDetailsView extends ConsumerStatefulWidget {
   const UtxoDetailsView({
@@ -83,10 +83,11 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
 
   @override
   void initState() {
-    utxo = MainDB.instance.isar.utxos
-        .where()
-        .idEqualTo(widget.utxoId)
-        .findFirstSync()!;
+    utxo =
+        MainDB.instance.isar.utxos
+            .where()
+            .idEqualTo(widget.utxoId)
+            .findFirstSync()!;
 
     streamUTXO = MainDB.instance.watchUTXO(id: widget.utxoId);
 
@@ -112,53 +113,50 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
     final confirmed = _isConfirmed(
       utxo!,
       currentHeight,
-      ref.watch(
-        pWallets.select(
-          (s) => s.getWallet(widget.walletId),
-        ),
-      ),
+      ref.watch(pWallets.select((s) => s.getWallet(widget.walletId))),
     );
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop(_popWithRefresh ? "refresh" : null);
-              },
-            ),
-            title: Text(
-              "Output details",
-              style: STextStyles.navBarTitle(context),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(
+                      context,
+                    ).pop(_popWithRefresh ? "refresh" : null);
+                  },
+                ),
+                title: Text(
+                  "Output details",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(child: child),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
       child: StreamBuilder<UTXO?>(
         stream: streamUTXO,
         builder: (context, snapshot) {
@@ -184,8 +182,9 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         ),
                         DesktopDialogCloseButton(
                           onPressedOverride: () {
-                            Navigator.of(context)
-                                .pop(_popWithRefresh ? "refresh" : null);
+                            Navigator.of(
+                              context,
+                            ).pop(_popWithRefresh ? "refresh" : null);
                           },
                         ),
                       ],
@@ -204,15 +203,14 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                               child: RoundedContainer(
                                 padding: EdgeInsets.zero,
                                 color: Colors.transparent,
-                                borderColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
+                                borderColor:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultBG,
                                 child: child,
                               ),
                             ),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             SecondaryButton(
                               buttonHeight: ButtonHeight.l,
                               label: utxo!.isBlocked ? "Unfreeze" : "Freeze",
@@ -229,15 +227,13 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!isDesktop)
-                  const SizedBox(
-                    height: 10,
-                  ),
+                if (!isDesktop) const SizedBox(height: 10),
                 RoundedContainer(
                   padding: const EdgeInsets.all(12),
-                  color: isDesktop
-                      ? Colors.transparent
-                      : Theme.of(context).extension<StackColors>()!.popupBG,
+                  color:
+                      isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -246,22 +242,23 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           if (isDesktop)
                             UTXOStatusIcon(
                               blocked: utxo!.isBlocked,
-                              status: confirmed
-                                  ? UTXOStatusIconStatus.confirmed
-                                  : UTXOStatusIconStatus.unconfirmed,
-                              background: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
+                              status:
+                                  confirmed
+                                      ? UTXOStatusIconStatus.confirmed
+                                      : UTXOStatusIconStatus.unconfirmed,
+                              background:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG,
                               selected: false,
                               width: 32,
                               height: 32,
                             ),
-                          if (isDesktop)
-                            const SizedBox(
-                              width: 16,
-                            ),
+                          if (isDesktop) const SizedBox(width: 16),
                           Text(
-                            ref.watch(pAmountFormatter(coin)).format(
+                            ref
+                                .watch(pAmountFormatter(coin))
+                                .format(
                                   utxo!.value.toAmountAsRaw(
                                     fractionDigits: coin.fractionDigits,
                                   ),
@@ -274,18 +271,19 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         utxo!.isBlocked
                             ? "Frozen"
                             : confirmed
-                                ? "Available"
-                                : "Unconfirmed",
+                            ? "Available"
+                            : "Unconfirmed",
                         style: STextStyles.w500_14(context).copyWith(
-                          color: utxo!.isBlocked
-                              ? const Color(0xFF7FA2D4) // todo theme
-                              : confirmed
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorGreen
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorYellow,
+                          color:
+                              utxo!.isBlocked
+                                  ? const Color(0xFF7FA2D4) // todo theme
+                                  : confirmed
+                                  ? Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorGreen
+                                  : Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorYellow,
                         ),
                       ),
                     ],
@@ -293,12 +291,14 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                 ),
                 const _Div(),
                 RoundedContainer(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(12),
-                  color: isDesktop
-                      ? Colors.transparent
-                      : Theme.of(context).extension<StackColors>()!.popupBG,
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,9 +309,10 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           Text(
                             "Label",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
                             ),
                           ),
                           SimpleEditButton(
@@ -319,32 +320,27 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                             editLabel: "label",
                             onValueChanged: (newName) {
                               MainDB.instance.putUTXO(
-                                utxo!.copyWith(
-                                  name: newName,
-                                ),
+                                utxo!.copyWith(name: newName),
                               );
                             },
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
-                      Text(
-                        utxo!.name,
-                        style: STextStyles.w500_14(context),
-                      ),
+                      const SizedBox(height: 4),
+                      Text(utxo!.name, style: STextStyles.w500_14(context)),
                     ],
                   ),
                 ),
                 const _Div(),
                 RoundedContainer(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(12),
-                  color: isDesktop
-                      ? Colors.transparent
-                      : Theme.of(context).extension<StackColors>()!.popupBG,
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,39 +351,35 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           Text(
                             "Address",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
                             ),
                           ),
                           isDesktop
-                              ? IconCopyButton(
-                                  data: utxo!.address!,
-                                )
-                              : SimpleCopyButton(
-                                  data: utxo!.address!,
-                                ),
+                              ? tdv.IconCopyButton(data: utxo!.address!)
+                              : SimpleCopyButton(data: utxo!.address!),
                         ],
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
-                      Text(
-                        utxo!.address!,
-                        style: STextStyles.w500_14(context),
-                      ),
+                      const SizedBox(height: 4),
+                      Text(utxo!.address!, style: STextStyles.w500_14(context)),
                     ],
                   ),
                 ),
                 if (label != null && label!.value.isNotEmpty) const _Div(),
                 if (label != null && label!.value.isNotEmpty)
                   RoundedContainer(
-                    padding: isDesktop
-                        ? const EdgeInsets.all(16)
-                        : const EdgeInsets.all(12),
-                    color: isDesktop
-                        ? Colors.transparent
-                        : Theme.of(context).extension<StackColors>()!.popupBG,
+                    padding:
+                        isDesktop
+                            ? const EdgeInsets.all(16)
+                            : const EdgeInsets.all(12),
+                    color:
+                        isDesktop
+                            ? Colors.transparent
+                            : Theme.of(
+                              context,
+                            ).extension<StackColors>()!.popupBG,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,38 +390,32 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                             Text(
                               "Address label",
                               style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle1,
                               ),
                             ),
                             isDesktop
-                                ? IconCopyButton(
-                                    data: label!.value,
-                                  )
-                                : SimpleCopyButton(
-                                    data: label!.value,
-                                  ),
+                                ? tdv.IconCopyButton(data: label!.value)
+                                : SimpleCopyButton(data: label!.value),
                           ],
                         ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text(
-                          label!.value,
-                          style: STextStyles.w500_14(context),
-                        ),
+                        const SizedBox(height: 4),
+                        Text(label!.value, style: STextStyles.w500_14(context)),
                       ],
                     ),
                   ),
                 const _Div(),
                 RoundedContainer(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(12),
-                  color: isDesktop
-                      ? Colors.transparent
-                      : Theme.of(context).extension<StackColors>()!.popupBG,
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,38 +426,32 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           Text(
                             "Transaction ID",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
                             ),
                           ),
                           isDesktop
-                              ? IconCopyButton(
-                                  data: utxo!.txid,
-                                )
-                              : SimpleCopyButton(
-                                  data: utxo!.txid,
-                                ),
+                              ? tdv.IconCopyButton(data: utxo!.txid)
+                              : SimpleCopyButton(data: utxo!.txid),
                         ],
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
-                      Text(
-                        utxo!.txid,
-                        style: STextStyles.w500_14(context),
-                      ),
+                      const SizedBox(height: 4),
+                      Text(utxo!.txid, style: STextStyles.w500_14(context)),
                     ],
                   ),
                 ),
                 const _Div(),
                 RoundedContainer(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(12),
-                  color: isDesktop
-                      ? Colors.transparent
-                      : Theme.of(context).extension<StackColors>()!.popupBG,
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,14 +459,13 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                       Text(
                         "Confirmations",
                         style: STextStyles.w500_14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle1,
                         ),
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
                       Text(
                         "${utxo!.getConfirmations(currentHeight)}",
                         style: STextStyles.w500_14(context),
@@ -501,14 +480,16 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       RoundedContainer(
-                        padding: isDesktop
-                            ? const EdgeInsets.all(16)
-                            : const EdgeInsets.all(12),
-                        color: isDesktop
-                            ? Colors.transparent
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .popupBG,
+                        padding:
+                            isDesktop
+                                ? const EdgeInsets.all(16)
+                                : const EdgeInsets.all(12),
+                        color:
+                            isDesktop
+                                ? Colors.transparent
+                                : Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.popupBG,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,9 +500,10 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                                 Text(
                                   "Freeze reason",
                                   style: STextStyles.w500_14(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
                                   ),
                                 ),
                                 SimpleEditButton(
@@ -529,17 +511,13 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                                   editLabel: "freeze reason",
                                   onValueChanged: (newReason) {
                                     MainDB.instance.putUTXO(
-                                      utxo!.copyWith(
-                                        blockedReason: newReason,
-                                      ),
+                                      utxo!.copyWith(blockedReason: newReason),
                                     );
                                   },
                                 ),
                               ],
                             ),
-                            const SizedBox(
-                              height: 4,
-                            ),
+                            const SizedBox(height: 4),
                             Text(
                               utxo!.blockedReason ?? "",
                               style: STextStyles.w500_14(context),
@@ -556,10 +534,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                     label: utxo!.isBlocked ? "Unfreeze" : "Freeze",
                     onPressed: _toggleFreeze,
                   ),
-                if (!isDesktop)
-                  const SizedBox(
-                    height: 16,
-                  ),
+                if (!isDesktop) const SizedBox(height: 16),
               ],
             ),
           );
@@ -581,9 +556,7 @@ class _Div extends StatelessWidget {
         color: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
       );
     } else {
-      return const SizedBox(
-        height: 12,
-      );
+      return const SizedBox(height: 12);
     }
   }
 }

@@ -12,7 +12,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../app_config.dart';
 import '../db/hive/db.dart';
@@ -26,6 +26,7 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
+import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../wallets/wallet/wallet.dart';
@@ -131,6 +132,14 @@ class Wallets {
       );
       Logging.instance.d(
         "epic wallet: $walletId deleted with result: $deleteResult",
+      );
+    } else if (info.coin is Mimblewimblecoin) {
+      final deleteResult = await deleteMimblewimblecoinWallet(
+        walletId: walletId,
+        secureStore: secureStorage,
+      );
+      Logging.instance.i(
+        "Mimblewimblecoin wallet: $walletId deleted with result: $deleteResult",
       );
     }
 

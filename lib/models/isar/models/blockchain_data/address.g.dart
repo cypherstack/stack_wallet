@@ -26,6 +26,7 @@ const AddressSchema = CollectionSchema(
       id: 1,
       name: r'derivationPath',
       type: IsarType.object,
+
       target: r'DerivationPath',
     ),
     r'otherData': PropertySchema(
@@ -50,11 +51,7 @@ const AddressSchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _AddresstypeEnumValueMap,
     ),
-    r'value': PropertySchema(
-      id: 6,
-      name: r'value',
-      type: IsarType.string,
-    ),
+    r'value': PropertySchema(id: 6, name: r'value', type: IsarType.string),
     r'walletId': PropertySchema(
       id: 7,
       name: r'walletId',
@@ -64,8 +61,9 @@ const AddressSchema = CollectionSchema(
       id: 8,
       name: r'zSafeFrost',
       type: IsarType.bool,
-    )
+    ),
   },
+
   estimateSize: _addressEstimateSize,
   serialize: _addressSerialize,
   deserialize: _addressDeserialize,
@@ -82,7 +80,7 @@ const AddressSchema = CollectionSchema(
           name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
     ),
     r'value_walletId': IndexSchema(
@@ -100,7 +98,7 @@ const AddressSchema = CollectionSchema(
           name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
     ),
     r'derivationIndex': IndexSchema(
@@ -113,9 +111,9 @@ const AddressSchema = CollectionSchema(
           name: r'derivationIndex',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {
     r'transactions': LinkSchema(
@@ -123,13 +121,14 @@ const AddressSchema = CollectionSchema(
       name: r'transactions',
       target: r'Transaction',
       single: false,
-    )
+    ),
   },
   embeddedSchemas: {r'DerivationPath': DerivationPathSchema},
+
   getId: _addressGetId,
   getLinks: _addressGetLinks,
   attach: _addressAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _addressEstimateSize(
@@ -141,9 +140,13 @@ int _addressEstimateSize(
   {
     final value = object.derivationPath;
     if (value != null) {
-      bytesCount += 3 +
+      bytesCount +=
+          3 +
           DerivationPathSchema.estimateSize(
-              value, allOffsets[DerivationPath]!, allOffsets);
+            value,
+            allOffsets[DerivationPath]!,
+            allOffsets,
+          );
     }
   }
   {
@@ -195,9 +198,11 @@ Address _addressDeserialize(
     ),
     otherData: reader.readStringOrNull(offsets[2]),
     publicKey: reader.readByteList(offsets[3]) ?? [],
-    subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
+    subType:
+        _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
         AddressSubType.receiving,
-    type: _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+    type:
+        _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
         AddressType.p2pkh,
     value: reader.readString(offsets[6]),
     walletId: reader.readString(offsets[7]),
@@ -218,20 +223,23 @@ P _addressDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readObjectOrNull<DerivationPath>(
-        offset,
-        DerivationPathSchema.deserialize,
-        allOffsets,
-      )) as P;
+            offset,
+            DerivationPathSchema.deserialize,
+            allOffsets,
+          ))
+          as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (reader.readByteList(offset) ?? []) as P;
     case 4:
       return (_AddresssubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
-          AddressSubType.receiving) as P;
+              AddressSubType.receiving)
+          as P;
     case 5:
       return (_AddresstypeValueEnumMap[reader.readByteOrNull(offset)] ??
-          AddressType.p2pkh) as P;
+              AddressType.p2pkh)
+          as P;
     case 6:
       return (reader.readString(offset)) as P;
     case 7:
@@ -316,8 +324,12 @@ List<IsarLinkBase<dynamic>> _addressGetLinks(Address object) {
 
 void _addressAttach(IsarCollection<dynamic> col, Id id, Address object) {
   object.id = id;
-  object.transactions
-      .attach(col, col.isar.collection<Transaction>(), r'transactions', id);
+  object.transactions.attach(
+    col,
+    col.isar.collection<Transaction>(),
+    r'transactions',
+    id,
+  );
 }
 
 extension AddressByIndex on IsarCollection<Address> {
@@ -338,10 +350,14 @@ extension AddressByIndex on IsarCollection<Address> {
   }
 
   Future<List<Address?>> getAllByValueWalletId(
-      List<String> valueValues, List<String> walletIdValues) {
+    List<String> valueValues,
+    List<String> walletIdValues,
+  ) {
     final len = valueValues.length;
-    assert(walletIdValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([valueValues[i], walletIdValues[i]]);
@@ -351,10 +367,14 @@ extension AddressByIndex on IsarCollection<Address> {
   }
 
   List<Address?> getAllByValueWalletIdSync(
-      List<String> valueValues, List<String> walletIdValues) {
+    List<String> valueValues,
+    List<String> walletIdValues,
+  ) {
     final len = valueValues.length;
-    assert(walletIdValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([valueValues[i], walletIdValues[i]]);
@@ -364,10 +384,14 @@ extension AddressByIndex on IsarCollection<Address> {
   }
 
   Future<int> deleteAllByValueWalletId(
-      List<String> valueValues, List<String> walletIdValues) {
+    List<String> valueValues,
+    List<String> walletIdValues,
+  ) {
     final len = valueValues.length;
-    assert(walletIdValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([valueValues[i], walletIdValues[i]]);
@@ -377,10 +401,14 @@ extension AddressByIndex on IsarCollection<Address> {
   }
 
   int deleteAllByValueWalletIdSync(
-      List<String> valueValues, List<String> walletIdValues) {
+    List<String> valueValues,
+    List<String> walletIdValues,
+  ) {
     final len = valueValues.length;
-    assert(walletIdValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([valueValues[i], walletIdValues[i]]);
@@ -401,8 +429,10 @@ extension AddressByIndex on IsarCollection<Address> {
     return putAllByIndex(r'value_walletId', objects);
   }
 
-  List<Id> putAllByValueWalletIdSync(List<Address> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByValueWalletIdSync(
+    List<Address> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'value_walletId', objects, saveLinks: saveLinks);
   }
 }
@@ -426,10 +456,7 @@ extension AddressQueryWhereSort on QueryBuilder<Address, Address, QWhere> {
 extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
   QueryBuilder<Address, Address, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -455,8 +482,10 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     });
   }
 
-  QueryBuilder<Address, Address, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Address, Address, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -464,8 +493,10 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     });
   }
 
-  QueryBuilder<Address, Address, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Address, Address, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -480,191 +511,235 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> walletIdEqualTo(
-      String walletId) {
+    String walletId,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId',
-        value: [walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'walletId', value: [walletId]),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> walletIdNotEqualTo(
-      String walletId) {
+    String walletId,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> valueEqualToAnyWalletId(
-      String value) {
+    String value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'value_walletId',
-        value: [value],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'value_walletId', value: [value]),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> valueNotEqualToAnyWalletId(
-      String value) {
+    String value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [],
-              upper: [value],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [value],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [],
+                upper: [value],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [value],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [value],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [],
-              upper: [value],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [value],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [],
+                upper: [value],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> valueWalletIdEqualTo(
-      String value, String walletId) {
+    String value,
+    String walletId,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'value_walletId',
-        value: [value, walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'value_walletId',
+          value: [value, walletId],
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause>
-      valueEqualToWalletIdNotEqualTo(String value, String walletId) {
+  valueEqualToWalletIdNotEqualTo(String value, String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [value],
-              upper: [value, walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [value, walletId],
-              includeLower: false,
-              upper: [value],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [value],
+                upper: [value, walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [value, walletId],
+                includeLower: false,
+                upper: [value],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [value, walletId],
-              includeLower: false,
-              upper: [value],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'value_walletId',
-              lower: [value],
-              upper: [value, walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [value, walletId],
+                includeLower: false,
+                upper: [value],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'value_walletId',
+                lower: [value],
+                upper: [value, walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexEqualTo(
-      int derivationIndex) {
+    int derivationIndex,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'derivationIndex',
-        value: [derivationIndex],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'derivationIndex',
+          value: [derivationIndex],
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexNotEqualTo(
-      int derivationIndex) {
+    int derivationIndex,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'derivationIndex',
-              lower: [],
-              upper: [derivationIndex],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'derivationIndex',
-              lower: [derivationIndex],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'derivationIndex',
+                lower: [],
+                upper: [derivationIndex],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'derivationIndex',
+                lower: [derivationIndex],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'derivationIndex',
-              lower: [derivationIndex],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'derivationIndex',
-              lower: [],
-              upper: [derivationIndex],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'derivationIndex',
+                lower: [derivationIndex],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'derivationIndex',
+                lower: [],
+                upper: [derivationIndex],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -674,12 +749,14 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'derivationIndex',
-        lower: [derivationIndex],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'derivationIndex',
+          lower: [derivationIndex],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
@@ -688,12 +765,14 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'derivationIndex',
-        lower: [],
-        upper: [derivationIndex],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'derivationIndex',
+          lower: [],
+          upper: [derivationIndex],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
@@ -704,13 +783,15 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'derivationIndex',
-        lower: [lowerDerivationIndex],
-        includeLower: includeLower,
-        upper: [upperDerivationIndex],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'derivationIndex',
+          lower: [lowerDerivationIndex],
+          includeLower: includeLower,
+          upper: [upperDerivationIndex],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -718,26 +799,25 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
 extension AddressQueryFilter
     on QueryBuilder<Address, Address, QFilterCondition> {
   QueryBuilder<Address, Address, QAfterFilterCondition> derivationIndexEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'derivationIndex',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'derivationIndex', value: value),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      derivationIndexGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  derivationIndexGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'derivationIndex',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'derivationIndex',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -746,11 +826,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'derivationIndex',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'derivationIndex',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -761,39 +843,40 @@ extension AddressQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'derivationIndex',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'derivationIndex',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> derivationPathIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'derivationPath',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'derivationPath'),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      derivationPathIsNotNull() {
+  derivationPathIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'derivationPath',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'derivationPath'),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -802,11 +885,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -815,11 +900,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -830,29 +917,31 @@ extension AddressQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'otherData',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'otherData'),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'otherData',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'otherData'),
+      );
     });
   }
 
@@ -861,11 +950,13 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -875,12 +966,14 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -890,12 +983,14 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -907,14 +1002,16 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'otherData',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'otherData',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -923,11 +1020,13 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -936,91 +1035,95 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> otherDataContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> otherDataMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'otherData',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'otherData',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otherData',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'otherData', value: ''),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'otherData',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'otherData', value: ''),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> publicKeyElementEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'publicKey',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'publicKey', value: value),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      publicKeyElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  publicKeyElementGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'publicKey',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'publicKey',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      publicKeyElementLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  publicKeyElementLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'publicKey',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'publicKey',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1031,50 +1134,35 @@ extension AddressQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'publicKey',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'publicKey',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> publicKeyLengthEqualTo(
-      int length) {
+    int length,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'publicKey',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.listLength(r'publicKey', length, true, length, true);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> publicKeyIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'publicKey',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.listLength(r'publicKey', 0, true, 0, true);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> publicKeyIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'publicKey',
-        0,
-        false,
-        999999,
-        true,
-      );
+      return query.listLength(r'publicKey', 0, false, 999999, true);
     });
   }
 
@@ -1083,29 +1171,14 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'publicKey',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.listLength(r'publicKey', 0, true, length, include);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      publicKeyLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  publicKeyLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'publicKey',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.listLength(r'publicKey', length, include, 999999, true);
     });
   }
 
@@ -1127,12 +1200,12 @@ extension AddressQueryFilter
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> subTypeEqualTo(
-      AddressSubType value) {
+    AddressSubType value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'subType',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'subType', value: value),
+      );
     });
   }
 
@@ -1141,11 +1214,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'subType',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'subType',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1154,11 +1229,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'subType',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'subType',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1169,23 +1246,25 @@ extension AddressQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'subType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'subType',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> typeEqualTo(
-      AddressType value) {
+    AddressType value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'type',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'type', value: value),
+      );
     });
   }
 
@@ -1194,11 +1273,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'type',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'type',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1207,11 +1288,13 @@ extension AddressQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'type',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'type',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1222,13 +1305,15 @@ extension AddressQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'type',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'type',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -1237,11 +1322,13 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1251,12 +1338,14 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1266,12 +1355,14 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1283,14 +1374,16 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'value',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'value',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1299,11 +1392,13 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1312,53 +1407,59 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> valueContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> valueMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'value',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'value',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> valueIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'value', value: ''),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> valueIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'value',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'value', value: ''),
+      );
     });
   }
 
@@ -1367,11 +1468,13 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1381,12 +1484,14 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1396,12 +1501,14 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1413,14 +1520,16 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'walletId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1429,11 +1538,13 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1442,79 +1553,85 @@ extension AddressQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> walletIdContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> walletIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'walletId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> walletIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> walletIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'zSafeFrost',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'zSafeFrost'),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'zSafeFrost',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'zSafeFrost'),
+      );
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostEqualTo(
-      bool? value) {
+    bool? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'zSafeFrost',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'zSafeFrost', value: value),
+      );
     });
   }
 }
@@ -1522,7 +1639,8 @@ extension AddressQueryFilter
 extension AddressQueryObject
     on QueryBuilder<Address, Address, QFilterCondition> {
   QueryBuilder<Address, Address, QAfterFilterCondition> derivationPath(
-      FilterQuery<DerivationPath> q) {
+    FilterQuery<DerivationPath> q,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'derivationPath');
     });
@@ -1532,14 +1650,15 @@ extension AddressQueryObject
 extension AddressQueryLinks
     on QueryBuilder<Address, Address, QFilterCondition> {
   QueryBuilder<Address, Address, QAfterFilterCondition> transactions(
-      FilterQuery<Transaction> q) {
+    FilterQuery<Transaction> q,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'transactions');
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionsLengthEqualTo(int length) {
+  transactionsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'transactions', length, true, length, true);
     });
@@ -1552,34 +1671,28 @@ extension AddressQueryLinks
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionsIsNotEmpty() {
+  transactionsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'transactions', 0, false, 999999, true);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  transactionsLengthLessThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'transactions', 0, true, length, include);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  transactionsLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'transactions', length, include, 999999, true);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionsLengthBetween(
+  transactionsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -1587,7 +1700,12 @@ extension AddressQueryLinks
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
-          r'transactions', lower, includeLower, upper, includeUpper);
+        r'transactions',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 }
@@ -1785,8 +1903,9 @@ extension AddressQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Address, Address, QDistinct> distinctByOtherData(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Address, Address, QDistinct> distinctByOtherData({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'otherData', caseSensitive: caseSensitive);
     });
@@ -1810,15 +1929,17 @@ extension AddressQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Address, Address, QDistinct> distinctByValue(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Address, Address, QDistinct> distinctByValue({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Address, Address, QDistinct> distinctByWalletId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Address, Address, QDistinct> distinctByWalletId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
@@ -1846,7 +1967,7 @@ extension AddressQueryProperty
   }
 
   QueryBuilder<Address, DerivationPath?, QQueryOperations>
-      derivationPathProperty() {
+  derivationPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'derivationPath');
     });
@@ -1906,12 +2027,9 @@ const DerivationPathSchema = Schema(
   name: r'DerivationPath',
   id: -7377061614393881103,
   properties: {
-    r'value': PropertySchema(
-      id: 0,
-      name: r'value',
-      type: IsarType.string,
-    )
+    r'value': PropertySchema(id: 0, name: r'value', type: IsarType.string),
   },
+
   estimateSize: _derivationPathEstimateSize,
   serialize: _derivationPathSerialize,
   deserialize: _derivationPathDeserialize,
@@ -1965,53 +2083,56 @@ P _derivationPathDeserializeProp<P>(
 extension DerivationPathQueryFilter
     on QueryBuilder<DerivationPath, DerivationPath, QFilterCondition> {
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  valueEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueLessThan(
+  valueGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueBetween(
+  valueLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+  valueBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -2019,84 +2140,86 @@ extension DerivationPathQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'value',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'value',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  valueStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  valueEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueContains(String value, {bool caseSensitive = true}) {
+  valueContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueMatches(String pattern, {bool caseSensitive = true}) {
+  valueMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'value',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'value',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueIsEmpty() {
+  valueIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'value', value: ''),
+      );
     });
   }
 
   QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
-      valueIsNotEmpty() {
+  valueIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'value',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'value', value: ''),
+      );
     });
   }
 }

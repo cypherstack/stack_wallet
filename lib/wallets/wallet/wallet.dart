@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 
@@ -38,6 +38,7 @@ import 'impl/ethereum_wallet.dart';
 import 'impl/fact0rn_wallet.dart';
 import 'impl/firo_wallet.dart';
 import 'impl/litecoin_wallet.dart';
+import 'impl/mimblewimblecoin_wallet.dart';
 import 'impl/monero_wallet.dart';
 import 'impl/namecoin_wallet.dart';
 import 'impl/nano_wallet.dart';
@@ -361,6 +362,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Epiccash):
         return EpiccashWallet(net);
+
+      case const (Mimblewimblecoin):
+        return MimblewimblecoinWallet(net);
 
       case const (Ethereum):
         return EthereumWallet(net);
