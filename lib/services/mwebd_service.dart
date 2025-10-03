@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter_mwebd/flutter_mwebd.dart';
 import 'package:mutex/mutex.dart';
 import 'package:mweb_client/mweb_client.dart';
 
@@ -11,6 +10,7 @@ import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wl_gen/interfaces/mwebd_server_interface.dart';
 import 'event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'event_bus/events/global/tor_status_changed_event.dart';
 import 'event_bus/global_event_bus.dart';
@@ -24,8 +24,7 @@ final class MwebdService {
     CryptoCurrencyNetwork.test4 => throw UnimplementedError(),
   };
 
-  final Map<CryptoCurrencyNetwork, ({MwebdServer server, MwebClient client})>
-  _map = {};
+  final Map<CryptoCurrencyNetwork, MwebClient> _map = {};
 
   late final StreamSubscription<TorConnectionStatusChangedEvent>
   _torStatusListener;
@@ -80,38 +79,30 @@ final class MwebdService {
   // update function called when Tor pref changed
   Future<void> _update(({InternetAddress host, int port})? proxyInfo) async {
     await _updateLock.protect(() async {
-      final proxy =
-          proxyInfo == null
-              ? ""
-              : "socks5://${proxyInfo.host.address}:${proxyInfo.port}";
+      final proxy = proxyInfo == null
+          ? ""
+          : "socks5://${proxyInfo.host.address}:${proxyInfo.port}";
       final nets = _map.keys;
       for (final net in nets) {
-        final old = _map.remove(net)!;
-
-        await old.client.cleanup();
-        await old.server.stopServer();
+        final oldClient = _map.remove(net)!;
+        await oldClient.cleanup();
+        final oldServerInfo = await mwebdServerInterface.stopServer(net);
 
         final port = await _getRandomUnusedPort();
         if (port == null) {
           throw Exception("Could not find an unused port for mwebd");
         }
 
-        final newServer = MwebdServer(
-          chain: old.server.chain,
-          dataDir: old.server.dataDir,
-          peer: old.server.peer,
+        final serverPort = await mwebdServerInterface.createAndStartServer(
+          net,
+          chain: oldServerInfo.chain,
+          dataDir: oldServerInfo.dataDir,
+          peer: oldServerInfo.peer,
           proxy: proxy,
           serverPort: port,
         );
-        await newServer.createServer();
-        await newServer.startServer();
 
-        final newClient = MwebClient.fromHost(
-          "127.0.0.1",
-          newServer.serverPort,
-        );
-
-        _map[net] = (server: newServer, client: newClient);
+        _map[net] = MwebClient.fromHost("127.0.0.1", serverPort);
       }
     });
   }
@@ -125,10 +116,10 @@ final class MwebdService {
       }
 
       if (_map.isNotEmpty) {
-        for (final old in _map.values) {
+        for (final net in _map.keys) {
           try {
-            await old.client.cleanup();
-            await old.server.stopServer();
+            await _map[net]?.cleanup();
+            await mwebdServerInterface.stopServer(net);
           } catch (e, s) {
             Logging.instance.i(
               "Switching mwebd chain. Error likely expected here.",
@@ -163,35 +154,32 @@ final class MwebdService {
         proxy = "";
       }
 
-      final newServer = MwebdServer(
+      final serverPort = await mwebdServerInterface.createAndStartServer(
+        net,
         chain: chain,
         dataDir: dir.path,
         peer: defaultPeer(net),
         proxy: proxy,
         serverPort: port,
       );
-      await newServer.createServer();
-      await newServer.startServer();
 
-      final newClient = MwebClient.fromHost("127.0.0.1", newServer.serverPort);
-
-      _map[net] = (server: newServer, client: newClient);
+      _map[net] = MwebClient.fromHost("127.0.0.1", serverPort);
 
       Logging.instance.i("MwebdService init($net) completed!");
     });
   }
 
   /// Get server status. Returns null if no server was initialized.
-  Future<Status?> getServerStatus(CryptoCurrencyNetwork net) async {
-    return await _updateLock.protect(() async {
-      return await _map[net]?.server.getStatus();
+  Future<Status?> getServerStatus(CryptoCurrencyNetwork net) {
+    return _updateLock.protect(() {
+      return mwebdServerInterface.getServerStatus(net);
     });
   }
 
   /// Get client for network. Returns null if no server was initialized.
   Future<MwebClient?> getClient(CryptoCurrencyNetwork net) async {
     return await _updateLock.protect(() async {
-      return _map[net]?.client;
+      return _map[net];
     });
   }
 
