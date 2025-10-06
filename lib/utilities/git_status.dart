@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_libepiccash/git_versions.dart' as epic_versions;
-import 'package:flutter_libmwc/git_versions.dart' as mimblewimblecoin_versions;
 import 'package:http/http.dart';
 
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../app_config.dart';
+import '../wl_gen/interfaces/libmwc_interface.dart';
 
 const kGithubAPI = "https://api.github.com";
 const kGithubSearch = "/search/commits";
@@ -19,8 +19,7 @@ enum CommitStatus { isHead, isOldCommit, notACommit, notLoaded }
 abstract class GitStatus {
   static String get epicCashCommit => epic_versions.getPluginVersion();
   // static String get moneroCommit => monero_versions.getPluginVersion();
-  static String get mimblewimblecoinCommit =>
-      mimblewimblecoin_versions.getPluginVersion();
+  static String get mimblewimblecoinCommit => libMwc.getPluginVersion();
 
   static String get appCommitHash => AppConfig.commitHash;
 

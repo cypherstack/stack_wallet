@@ -139,6 +139,8 @@ abstract class LibMwcInterface {
   Future<int> getChainHeight({required String config});
 
   Future<String> deleteWallet({required String wallet, required String config});
+
+  String getPluginVersion();
 }
 
 class MwcTransaction {
