@@ -13,7 +13,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:frostdart/frostdart.dart' as frost;
 import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:tuple/tuple.dart';
@@ -33,7 +32,6 @@ import '../../../../../models/stack_restoring_ui_state.dart';
 import '../../../../../models/trade_wallet_lookup.dart';
 import '../../../../../models/wallet_restore_state.dart';
 import '../../../../../services/address_book_service.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../services/node_service.dart';
 import '../../../../../services/trade_notes_service.dart';
 import '../../../../../services/trade_sent_from_stack_service.dart';
@@ -62,6 +60,7 @@ import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 
 class PreRestoreState {
   final Set<String> walletIds;
@@ -243,12 +242,11 @@ abstract class SWB {
       Logging.instance.i("...createStackWalletJSON DB.instance.mutex acquired");
       Logging.instance.i("SWB backing up nodes");
       try {
-        final nodesFuture =
-            nodeService.nodes.map((e) async {
-              final map = e.toMap();
-              map["password"] = await e.getPassword(_secureStore);
-              return map;
-            }).toList();
+        final nodesFuture = nodeService.nodes.map((e) async {
+          final map = e.toMap();
+          map["password"] = await e.getPassword(_secureStore);
+          return map;
+        }).toList();
         final nodes = await Future.wait(nodesFuture);
         backupJson['nodes'] = nodes;
       } catch (e, s) {
@@ -280,8 +278,9 @@ abstract class SWB {
 
       final AddressBookService addressBookService = AddressBookService();
       final addresses = addressBookService.contacts;
-      backupJson['addressBookEntries'] =
-          addresses.map((e) => e.toMap()).toList();
+      backupJson['addressBookEntries'] = addresses
+          .map((e) => e.toMap())
+          .toList();
 
       Logging.instance.d("SWB backing up wallets");
 
@@ -298,8 +297,8 @@ abstract class SWB {
               (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
         } else if (wallet is MnemonicInterface) {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
-          backupWallet['mnemonicPassphrase'] =
-              await wallet.getMnemonicPassphrase();
+          backupWallet['mnemonicPassphrase'] = await wallet
+              .getMnemonicPassphrase();
         } else if (wallet is PrivateKeyInterface) {
           backupWallet['privateKey'] = await wallet.getPrivateKey();
         } else if (wallet is BitcoinFrostWallet) {
@@ -332,11 +331,10 @@ abstract class SWB {
 
         backupWallet['restoreHeight'] = wallet.info.restoreHeight;
 
-        final isarNotes =
-            await MainDB.instance.isar.transactionNotes
-                .where()
-                .walletIdEqualTo(wallet.walletId)
-                .findAll();
+        final isarNotes = await MainDB.instance.isar.transactionNotes
+            .where()
+            .walletIdEqualTo(wallet.walletId)
+            .findAll();
 
         final notes = isarNotes.asMap().map(
           (key, value) => MapEntry(value.txid, value.value),
@@ -359,8 +357,9 @@ abstract class SWB {
 
       // back up trade history lookup data for trades send from stack wallet
       final tradeTxidLookupDataService = TradeSentFromStackService();
-      final lookupData =
-          tradeTxidLookupDataService.all.map((e) => e.toMap()).toList();
+      final lookupData = tradeTxidLookupDataService.all
+          .map((e) => e.toMap())
+          .toList();
       backupJson["tradeTxidLookupData"] = lookupData;
 
       Logging.instance.d("SWB backing up trade notes");
@@ -439,10 +438,10 @@ abstract class SWB {
         serializedKeys = frostData["keys"] as String;
         multisigConfig = frostData["config"] as String;
 
-        final myNameIndex = frost.getParticipantIndexFromKeys(
+        final myNameIndex = frostInterface.participantIndexFromKeys(
           serializedKeys: serializedKeys,
         );
-        final participants = Frost.getParticipants(
+        final participants = frostInterface.getParticipants(
           multisigConfig: multisigConfig,
         );
         final myName = participants[myNameIndex];
@@ -452,7 +451,9 @@ abstract class SWB {
           knownSalts: [],
           participants: participants,
           myName: myName,
-          threshold: frost.multisigThreshold(multisigConfig: multisigConfig),
+          threshold: frostInterface.getMultisigThreshold(
+            multisigConfig: multisigConfig,
+          ),
         );
 
         await MainDB.instance.isar.writeTxn(() async {
@@ -693,11 +694,10 @@ abstract class SWB {
     );
     Logging.instance.d("SWB temp backup created");
 
-    final List<String> _currentWalletIds =
-        await MainDB.instance.isar.walletInfo
-            .where()
-            .walletIdProperty()
-            .findAll();
+    final List<String> _currentWalletIds = await MainDB.instance.isar.walletInfo
+        .where()
+        .walletIdProperty()
+        .findAll();
 
     final preRestoreState = PreRestoreState(
       _currentWalletIds.toSet(),
@@ -926,12 +926,11 @@ abstract class SWB {
           // ensure this contact's data matches the pre restore state
           final List<ContactAddressEntry> addresses = [];
           for (final address in (contact['addresses'] as List<dynamic>)) {
-            final entry =
-                ContactAddressEntry()
-                  ..coinName = address['coin'] as String
-                  ..address = address['address'] as String
-                  ..label = address['label'] as String
-                  ..other = address['other'] as String?;
+            final entry = ContactAddressEntry()
+              ..coinName = address['coin'] as String
+              ..address = address['address'] as String
+              ..label = address['label'] as String
+              ..other = address['other'] as String?;
 
             try {
               entry.coin;
@@ -1107,12 +1106,11 @@ abstract class SWB {
     _prefs.language = prefs['language'] as String;
     _prefs.showFavoriteWallets = prefs['showFavoriteWallets'] as bool;
     _prefs.wifiOnly = prefs['wifiOnly'] as bool;
-    _prefs.syncType =
-        prefs['syncType'] == "currentWalletOnly"
-            ? SyncingType.currentWalletOnly
-            : prefs['syncType'] == "selectedWalletsAtStartup"
-            ? SyncingType.currentWalletOnly
-            : SyncingType.allWalletsOnStartup; //
+    _prefs.syncType = prefs['syncType'] == "currentWalletOnly"
+        ? SyncingType.currentWalletOnly
+        : prefs['syncType'] == "selectedWalletsAtStartup"
+        ? SyncingType.currentWalletOnly
+        : SyncingType.allWalletsOnStartup; //
     _prefs.walletIdsSyncOnStartup =
         (prefs['walletIdsSyncOnStartup'] as List<dynamic>)
             .map<String>((e) => e as String)
@@ -1136,12 +1134,11 @@ abstract class SWB {
     for (final contact in addressBookEntries) {
       final List<ContactAddressEntry> addresses = [];
       for (final address in (contact['addresses'] as List<dynamic>)) {
-        final entry =
-            ContactAddressEntry()
-              ..coinName = address['coin'] as String
-              ..address = address['address'] as String
-              ..label = address['label'] as String
-              ..other = address['other'] as String?;
+        final entry = ContactAddressEntry()
+          ..coinName = address['coin'] as String
+          ..address = address['address'] as String
+          ..label = address['label'] as String
+          ..other = address['other'] as String?;
 
         try {
           entry.coin;
@@ -1175,11 +1172,10 @@ abstract class SWB {
       secureStorageInterface: secureStorageInterface,
     );
     if (nodes != null) {
-      final primaryIds =
-          primaryNodes
-              ?.map((e) => e["id"] as String?)
-              .whereType<String>()
-              .toSet();
+      final primaryIds = primaryNodes
+          ?.map((e) => e["id"] as String?)
+          .whereType<String>()
+          .toSet();
 
       for (final node in nodes) {
         final id = node['id'] as String;
@@ -1250,8 +1246,9 @@ abstract class SWB {
       final json = Map<String, dynamic>.from(tradeTxidLookupData[i] as Map);
       TradeWalletLookup lookup = TradeWalletLookup.fromJson(json);
       // update walletIds
-      final List<String> walletIds =
-          lookup.walletIds.map((e) => oldToNewWalletIdMap[e]!).toList();
+      final List<String> walletIds = lookup.walletIds
+          .map((e) => oldToNewWalletIdMap[e]!)
+          .toList();
       lookup = lookup.copyWith(walletIds: walletIds);
 
       final oldLookup = DB.instance.get<TradeWalletLookup>(

@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../frost_route_generator.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
@@ -17,6 +16,7 @@ import '../../../../../widgets/detail_item.dart';
 import '../../../../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../../../../widgets/frost_step_user_steps.dart';
 import '../../../../../widgets/qr.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostCreateStep1a extends ConsumerStatefulWidget {
@@ -41,7 +41,7 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
   bool _userVerifyContinue = false;
 
   void _showParticipantsDialog() {
-    final participants = Frost.getParticipants(
+    final participants = frostInterface.getParticipants(
       multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
     );
 
@@ -53,9 +53,7 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -63,9 +61,7 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
                 style: STextStyles.w600_20(context),
               ),
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -75,9 +71,7 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             for (final participant in participants)
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -85,12 +79,11 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
                   Container(
                     width: double.infinity,
                     height: 1.5,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Row(
@@ -99,12 +92,10 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
                           width: 26,
                           height: 26,
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveBG,
-                            borderRadius: BorderRadius.circular(
-                              200,
-                            ),
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveBG,
+                            borderRadius: BorderRadius.circular(200),
                           ),
                           child: Center(
                             child: SvgPicture.asset(
@@ -114,32 +105,22 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 8,
-                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             participant,
                             style: STextStyles.w500_14(context),
                           ),
                         ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        IconCopyButton(
-                          data: participant,
-                        ),
+                        const SizedBox(width: 8),
+                        IconCopyButton(data: participant),
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -152,12 +133,8 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
-          const SizedBox(
-            height: 20,
-          ),
+          const FrostStepUserSteps(userSteps: info),
+          const SizedBox(height: 20),
           SizedBox(
             height: 220,
             child: Row(
@@ -170,9 +147,7 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           DetailItem(
             title: "Encoded config",
             detail: ref.watch(pFrostMultisigConfig.state).state ?? "Error",
@@ -186,9 +161,7 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
                         ref.watch(pFrostMultisigConfig.state).state ?? "Error",
                   ),
           ),
-          SizedBox(
-            height: Util.isDesktop ? 64 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 64 : 16),
           Row(
             children: [
               Expanded(
@@ -199,13 +172,8 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
               ),
             ],
           ),
-          if (!Util.isDesktop)
-            const Spacer(
-              flex: 2,
-            ),
-          const SizedBox(
-            height: 16,
-          ),
+          if (!Util.isDesktop) const Spacer(flex: 2),
+          const SizedBox(height: 16),
           CheckboxTextButton(
             label: "I have verified that everyone has joined the group",
             onChanged: (value) {
@@ -214,15 +182,14 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Start key generation",
             enabled: _userVerifyContinue,
             onPressed: () async {
-              ref.read(pFrostStartKeyGenData.notifier).state =
-                  Frost.startKeyGeneration(
+              ref
+                  .read(pFrostStartKeyGenData.notifier)
+                  .state = frostInterface.startKeyGeneration(
                 multisigConfig: ref.watch(pFrostMultisigConfig.state).state!,
                 myName: ref.read(pFrostMyName.state).state!,
               );

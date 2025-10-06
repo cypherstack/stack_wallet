@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../frost_route_generator.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/custom_buttons/checkbox_text_button.dart';
@@ -15,6 +14,7 @@ import '../../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../../widgets/frost_step_user_steps.dart';
 import '../../../../../widgets/stack_dialog.dart';
 import '../../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 
 class FrostCreateStep3 extends ConsumerStatefulWidget {
@@ -46,7 +46,7 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
 
   @override
   void initState() {
-    participants = Frost.getParticipants(
+    participants = frostInterface.getParticipants(
       multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
     );
     myIndex = participants.indexOf(ref.read(pFrostMyName.state).state!);
@@ -80,9 +80,7 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
+          const FrostStepUserSteps(userSteps: info),
           const SizedBox(height: 12),
           DetailItem(
             title: "My name",
@@ -93,17 +91,11 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
             title: "My share",
             detail: myShare,
             button: Util.isDesktop
-                ? IconCopyButton(
-                    data: myShare,
-                  )
-                : SimpleCopyButton(
-                    data: myShare,
-                  ),
+                ? IconCopyButton(data: myShare)
+                : SimpleCopyButton(data: myShare),
           ),
           const SizedBox(height: 12),
-          FrostQrDialogPopupButton(
-            data: myShare,
-          ),
+          FrostQrDialogPopupButton(data: myShare),
           const SizedBox(height: 12),
           for (int i = 0; i < participants.length; i++)
             Padding(
@@ -131,12 +123,11 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Generate",
-            enabled: _userVerifyContinue &&
+            enabled:
+                _userVerifyContinue &&
                 !fieldIsEmptyFlags.reduce((v, e) => v |= e),
             onPressed: () async {
               // check for empty commitments
@@ -157,8 +148,9 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
               shares.insert(myIndex, myShare);
 
               try {
-                ref.read(pFrostCompletedKeyGenData.notifier).state =
-                    Frost.completeKeyGeneration(
+                ref
+                    .read(pFrostCompletedKeyGenData.notifier)
+                    .state = frostInterface.completeKeyGeneration(
                   multisigConfigWithNamePtr: ref
                       .read(pFrostStartKeyGenData.state)
                       .state!
@@ -178,7 +170,7 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
                       .routeName,
                 );
               } catch (e, s) {
-                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
                 if (context.mounted) {
                   return await showDialog<void>(
