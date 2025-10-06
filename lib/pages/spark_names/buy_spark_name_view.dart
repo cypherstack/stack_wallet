@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
@@ -32,6 +31,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../wl_gen/interfaces/lib_spark_interface.dart';
 import 'confirm_spark_name_transaction_view.dart';
 
 class BuySparkNameView extends ConsumerStatefulWidget {
@@ -108,16 +108,15 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
       throw Exception("Invalid Spark address selected");
     }
 
-    final myAddresses =
-        await wallet.mainDB.isar.addresses
-            .where()
-            .walletIdEqualTo(widget.walletId)
-            .filter()
-            .typeEqualTo(AddressType.spark)
-            .and()
-            .subTypeEqualTo(AddressSubType.receiving)
-            .valueProperty()
-            .findAll();
+    final myAddresses = await wallet.mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(widget.walletId)
+        .filter()
+        .typeEqualTo(AddressType.spark)
+        .and()
+        .subTypeEqualTo(AddressSubType.receiving)
+        .valueProperty()
+        .findAll();
 
     if (!myAddresses.contains(chosenAddress)) {
       throw Exception("Selected Spark address does not belong to this wallet");
@@ -137,30 +136,28 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
     if (_preRegLock) return;
     _preRegLock = true;
     try {
-      final txData =
-          (await showLoading(
-            whileFuture: _preRegFuture(),
-            context: context,
-            message: "Preparing transaction...",
-            onException: (e) {
-              throw e;
-            },
-          ))!;
+      final txData = (await showLoading(
+        whileFuture: _preRegFuture(),
+        context: context,
+        message: "Preparing transaction...",
+        onException: (e) {
+          throw e;
+        },
+      ))!;
 
       if (mounted) {
         if (Util.isDesktop) {
           await showDialog<void>(
             context: context,
-            builder:
-                (context) => SDialog(
-                  child: SizedBox(
-                    width: 580,
-                    child: ConfirmSparkNameTransactionView(
-                      txData: txData,
-                      walletId: widget.walletId,
-                    ),
-                  ),
+            builder: (context) => SDialog(
+              child: SizedBox(
+                width: 580,
+                child: ConfirmSparkNameTransactionView(
+                  txData: txData,
+                  walletId: widget.walletId,
                 ),
+              ),
+            ),
           );
         } else {
           await Navigator.of(context).pushNamed(
@@ -180,13 +177,12 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
 
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => StackOkDialog(
-                title: "Error",
-                message: err,
-                desktopPopRootNavigator: Util.isDesktop,
-                maxWidth: Util.isDesktop ? 600 : null,
-              ),
+          builder: (_) => StackOkDialog(
+            title: "Error",
+            message: err,
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 600 : null,
+          ),
         );
       }
     } finally {
@@ -260,10 +256,9 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
         );
       },
       child: Column(
-        crossAxisAlignment:
-            Util.isDesktop
-                ? CrossAxisAlignment.start
-                : CrossAxisAlignment.stretch,
+        crossAxisAlignment: Util.isDesktop
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.stretch,
         children: [
           RoundedWhiteContainer(
             padding: EdgeInsets.all(Util.isDesktop ? 0 : 12),
@@ -272,27 +267,23 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
               children: [
                 Text(
                   "Name",
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          )
-                          : STextStyles.w500_12(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          ),
+                  style: Util.isDesktop
+                      ? STextStyles.w500_14(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        )
+                      : STextStyles.w500_12(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        ),
                 ),
                 Text(
                   widget.name,
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context)
-                          : STextStyles.w500_12(context),
+                  style: Util.isDesktop
+                      ? STextStyles.w500_14(context)
+                      : STextStyles.w500_12(context),
                 ),
               ],
             ),
@@ -307,20 +298,17 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                   children: [
                     Text(
                       "Spark address",
-                      style:
-                          Util.isDesktop
-                              ? STextStyles.w500_14(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemLabel,
-                              )
-                              : STextStyles.w500_12(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemLabel,
-                              ),
+                      style: Util.isDesktop
+                          ? STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.infoItemLabel,
+                            )
+                          : STextStyles.w500_12(context).copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.infoItemLabel,
+                            ),
                     ),
                     CustomTextButton(
                       text: "Use current",
@@ -361,20 +349,17 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                 children: [
                   Text(
                     "Additional info",
-                    style:
-                        Util.isDesktop
-                            ? STextStyles.w500_14(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemLabel,
-                            )
-                            : STextStyles.w500_12(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemLabel,
-                            ),
+                    style: Util.isDesktop
+                        ? STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemLabel,
+                          )
+                        : STextStyles.w500_12(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemLabel,
+                          ),
                   ),
                 ],
               ),
@@ -410,20 +395,17 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
               children: [
                 Text(
                   "${isRenewal ? "Renew" : "Register"} for",
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          )
-                          : STextStyles.w500_12(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          ),
+                  style: Util.isDesktop
+                      ? STextStyles.w500_14(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        )
+                      : STextStyles.w500_12(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        ),
                 ),
                 SizedBox(
                   width: Util.isDesktop ? 180 : 140,
@@ -451,10 +433,9 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                       isExpanded: true,
                       buttonStyleData: ButtonStyleData(
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
                           ),
@@ -467,10 +448,9 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                             Assets.svg.chevronDown,
                             width: 12,
                             height: 6,
-                            color:
-                                Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveSearchIconRight,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveSearchIconRight,
                           ),
                         ),
                       ),
@@ -479,10 +459,9 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                         elevation: 0,
                         maxHeight: 250,
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
                           ),
@@ -508,20 +487,17 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
               children: [
                 Text(
                   "Cost",
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          )
-                          : STextStyles.w500_12(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          ),
+                  style: Util.isDesktop
+                      ? STextStyles.w500_14(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        )
+                      : STextStyles.w500_12(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        ),
                 ),
                 Text(
                   ref
@@ -529,15 +505,15 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                       .format(
                         Amount.fromDecimal(
                           Decimal.fromInt(
-                            kStandardSparkNamesFee[widget.name.length] * _years,
+                            libSpark.standardSparkNamesFee[widget.name.length] *
+                                _years,
                           ),
                           fractionDigits: coin.fractionDigits,
                         ),
                       ),
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context)
-                          : STextStyles.w500_12(context),
+                  style: Util.isDesktop
+                      ? STextStyles.w500_14(context)
+                      : STextStyles.w500_12(context),
                 ),
               ],
             ),
