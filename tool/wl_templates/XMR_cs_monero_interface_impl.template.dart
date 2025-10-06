@@ -158,25 +158,21 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     int height = 0,
   }) async {
     _wallets[walletId] = switch (csCoin) {
-      CsCoin.monero =>
-        _wallets[walletId] =
-            await lib_monero.MoneroWallet.restoreWalletFromSeed(
-              path: path,
-              password: password,
-              seed: mnemonic,
-              restoreHeight: height,
-              seedOffset: seedOffset,
-            ),
+      CsCoin.monero => await lib_monero.MoneroWallet.restoreWalletFromSeed(
+        path: path,
+        password: password,
+        seed: mnemonic,
+        restoreHeight: height,
+        seedOffset: seedOffset,
+      ),
 
-      CsCoin.wownero =>
-        _wallets[walletId] =
-            await lib_monero.WowneroWallet.restoreWalletFromSeed(
-              path: path,
-              password: password,
-              seed: mnemonic,
-              restoreHeight: height,
-              seedOffset: seedOffset,
-            ),
+      CsCoin.wownero => await lib_monero.WowneroWallet.restoreWalletFromSeed(
+        path: path,
+        password: password,
+        seed: mnemonic,
+        restoreHeight: height,
+        seedOffset: seedOffset,
+      ),
     };
   }
 
