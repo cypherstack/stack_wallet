@@ -1,9 +1,7 @@
-import 'package:cs_monero/src/ffi_bindings/wownero_wallet_bindings.dart'
-    as wow_wallet_ffi;
-
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
@@ -54,7 +52,7 @@ class Wownero extends CryptonoteCurrency {
     }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return wow_wallet_ffi.validateAddress(address, 0);
+        return csMonero.validateAddress(address, 0, csCoin: CsCoin.wownero);
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -107,10 +105,9 @@ class Wownero extends CryptonoteCurrency {
   int get targetBlockTimeSeconds => 120;
 
   @override
-  DerivePathType get defaultDerivePathType =>
-      throw UnsupportedError(
-        "$runtimeType does not use bitcoin style derivation paths",
-      );
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+    "$runtimeType does not use bitcoin style derivation paths",
+  );
 
   @override
   Uri defaultBlockExplorer(String txid) {

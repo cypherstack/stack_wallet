@@ -1,4 +1,3 @@
-import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -71,7 +70,7 @@ class TxData {
   final CsPendingTransaction? pendingTransaction;
 
   // salvium
-  final lib_salvium.PendingTransaction? pendingSalviumTransaction;
+  final CsPendingTransaction? pendingSalviumTransaction;
 
   // tezos specific
   final tezart.OperationsList? tezosOperationsList;
@@ -260,7 +259,7 @@ class TxData {
     int? nonce,
     BigInt? chainId,
     CsPendingTransaction? pendingTransaction,
-    lib_salvium.PendingTransaction? pendingSalviumTransaction,
+    CsPendingTransaction? pendingSalviumTransaction,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,

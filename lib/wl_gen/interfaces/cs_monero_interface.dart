@@ -76,7 +76,7 @@ abstract class CsMoneroInterface {
   void stopAutoSaving(String walletId);
 
   bool hasListeners(String walletId);
-  void addListener(String walletId, CsMoneroWalletListener listener);
+  void addListener(String walletId, CsWalletListener listener);
   void startListeners(String walletId);
   void stopListeners(String walletId);
 
@@ -148,13 +148,17 @@ abstract class CsMoneroInterface {
 
   List<String> getMoneroWordList(String language);
   List<String> getWowneroWordList(String language, int seedLength);
+
+  int getHeightByDate(DateTime date, {required CsCoin csCoin});
+
+  bool validateAddress(String address, int network, {required CsCoin csCoin});
 }
 
 enum CsCoin { monero, wownero }
 
 // forwarding class
-final class CsMoneroWalletListener {
-  CsMoneroWalletListener({
+final class CsWalletListener {
+  CsWalletListener({
     this.onSyncingUpdate,
     this.onNewBlock,
     this.onBalancesChanged,

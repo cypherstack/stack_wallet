@@ -1,60 +1,57 @@
 //ON
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
-import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
-    as cs_monero_deprecated;
-import 'package:cs_monero/src/ffi_bindings/monero_wallet_bindings.dart'
-    as xmr_wallet_ffi;
-import 'package:cs_monero/src/ffi_bindings/wownero_wallet_bindings.dart'
-    as wow_wallet_ffi;
+import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
+import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
+    as cs_salvium_deprecated;
+import 'package:cs_salvium/src/ffi_bindings/salvium_wallet_bindings.dart'
+    as sal_wallet_ffi;
 
 //END_ON
 import '../../models/input.dart';
 import '../interfaces/cs_monero_interface.dart';
+import '../interfaces/cs_salvium_interface.dart';
 
-CsMoneroInterface get csMonero => _getInterface();
+CsSalviumInterface get csSalvium => _getInterface();
 
 //OFF
-CsMoneroInterface _getInterface() => throw Exception("XMR/WOW not enabled!");
+CsSalviumInterface _getInterface() => throw Exception("XMR/WOW not enabled!");
 
 //END_OFF
 //ON
-CsMoneroInterface _getInterface() => _CsMoneroInterfaceImpl();
+CsSalviumInterface _getInterface() => _CsSalviumInterfaceImpl();
 
-class _CsMoneroInterfaceImpl extends CsMoneroInterface {
-  final Map<String, lib_monero.Wallet> _wallets = {};
+class _CsSalviumInterfaceImpl extends CsSalviumInterface {
+  final Map<String, lib_salvium.Wallet> _wallets = {};
 
   @override
-  void setUseCsMoneroLoggerInternal(bool enable) =>
-      lib_monero.Logging.useLogger = enable;
+  void setUseCsSalviumLoggerInternal(bool enable) =>
+      lib_salvium.Logging.useLogger = enable;
 
   @override
   bool walletInstanceExists(String walletId) => _wallets[walletId] != null;
 
   @override
-  bool walletExists(String path, {required CsCoin csCoin}) => switch (csCoin) {
-    CsCoin.monero => lib_monero.MoneroWallet.isWalletExist(path),
-    CsCoin.wownero => lib_monero.WowneroWallet.isWalletExist(path),
-  };
+  bool walletExists(String path) =>
+      lib_salvium.SalviumWallet.isWalletExist(path);
 
   @override
   Future<int> estimateFee(int rate, BigInt amount, {required String walletId}) {
-    lib_monero.TransactionPriority priority;
+    lib_salvium.TransactionPriority priority;
     switch (rate) {
       case 1:
-        priority = lib_monero.TransactionPriority.low;
+        priority = lib_salvium.TransactionPriority.low;
         break;
       case 2:
-        priority = lib_monero.TransactionPriority.medium;
+        priority = lib_salvium.TransactionPriority.medium;
         break;
       case 3:
-        priority = lib_monero.TransactionPriority.high;
+        priority = lib_salvium.TransactionPriority.high;
         break;
       case 4:
-        priority = lib_monero.TransactionPriority.last;
+        priority = lib_salvium.TransactionPriority.last;
         break;
       case 0:
       default:
-        priority = lib_monero.TransactionPriority.normal;
+        priority = lib_salvium.TransactionPriority.normal;
         break;
     }
 
@@ -64,35 +61,23 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
   @override
   Future<void> loadWallet(
     String walletId, {
-    required CsCoin csCoin,
     required String path,
     required String password,
   }) async {
-    switch (csCoin) {
-      case CsCoin.monero:
-        _wallets[walletId] = await lib_monero.MoneroWallet.loadWallet(
-          path: path,
-          password: password,
-        );
-        break;
-
-      case CsCoin.wownero:
-        _wallets[walletId] = await lib_monero.WowneroWallet.loadWallet(
-          path: path,
-          password: password,
-        );
-        break;
-    }
+    _wallets[walletId] = await lib_salvium.SalviumWallet.loadWallet(
+      path: path,
+      password: password,
+    );
   }
 
   @override
-  int getTxPriorityHigh() => lib_monero.TransactionPriority.high.value;
+  int getTxPriorityHigh() => lib_salvium.TransactionPriority.high.value;
 
   @override
-  int getTxPriorityMedium() => lib_monero.TransactionPriority.medium.value;
+  int getTxPriorityMedium() => lib_salvium.TransactionPriority.medium.value;
 
   @override
-  int getTxPriorityNormal() => lib_monero.TransactionPriority.normal.value;
+  int getTxPriorityNormal() => lib_salvium.TransactionPriority.normal.value;
 
   @override
   String getAddress(
@@ -105,7 +90,6 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
 
   @override
   Future<void> getCreatedWallet({
-    required CsCoin csCoin,
     required String path,
     required String password,
     required int wordCount,
@@ -113,39 +97,18 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     required final void Function(int refreshFromBlockHeight, String seed)
     onCreated,
   }) async {
-    final lib_monero.Wallet wallet;
+    final type = switch (wordCount) {
+      16 => lib_salvium.SalviumSeedType.sixteen,
+      25 => lib_salvium.SalviumSeedType.twentyFive,
+      _ => throw Exception("Invalid mnemonic word count: $wordCount"),
+    };
 
-    switch (csCoin) {
-      case CsCoin.monero:
-        final type = switch (wordCount) {
-          16 => lib_monero.MoneroSeedType.sixteen,
-          25 => lib_monero.MoneroSeedType.twentyFive,
-          _ => throw Exception("Invalid mnemonic word count: $wordCount"),
-        };
-
-        wallet = await lib_monero.MoneroWallet.create(
-          path: path,
-          password: password,
-          seedType: type,
-          seedOffset: seedOffset,
-        );
-        break;
-
-      case CsCoin.wownero:
-        final type = switch (wordCount) {
-          16 => lib_monero.WowneroSeedType.sixteen,
-          25 => lib_monero.WowneroSeedType.twentyFive,
-          _ => throw Exception("Invalid mnemonic word count: $wordCount"),
-        };
-
-        wallet = await lib_monero.WowneroWallet.create(
-          path: path,
-          password: password,
-          seedType: type,
-          seedOffset: seedOffset,
-        );
-        break;
-    }
+    final wallet = await lib_salvium.SalviumWallet.create(
+      path: path,
+      password: password,
+      seedType: type,
+      seedOffset: seedOffset,
+    );
 
     onCreated(
       wallet.getRefreshFromBlockHeight(),
@@ -156,59 +119,37 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
   @override
   Future<void> getRestoredWallet({
     required String walletId,
-    required CsCoin csCoin,
     required String path,
     required String password,
     required String mnemonic,
     required String seedOffset,
     int height = 0,
   }) async {
-    _wallets[walletId] = switch (csCoin) {
-      CsCoin.monero => await lib_monero.MoneroWallet.restoreWalletFromSeed(
-        path: path,
-        password: password,
-        seed: mnemonic,
-        restoreHeight: height,
-        seedOffset: seedOffset,
-      ),
-
-      CsCoin.wownero => await lib_monero.WowneroWallet.restoreWalletFromSeed(
-        path: path,
-        password: password,
-        seed: mnemonic,
-        restoreHeight: height,
-        seedOffset: seedOffset,
-      ),
-    };
+    _wallets[walletId] = await lib_salvium.SalviumWallet.restoreWalletFromSeed(
+      path: path,
+      password: password,
+      seed: mnemonic,
+      restoreHeight: height,
+      seedOffset: seedOffset,
+    );
   }
 
   @override
   Future<void> getRestoredFromViewKeyWallet({
     required String walletId,
-    required CsCoin csCoin,
     required String path,
     required String password,
     required String address,
     required String privateViewKey,
     int height = 0,
   }) async {
-    _wallets[walletId] = switch (csCoin) {
-      CsCoin.monero => await lib_monero.MoneroWallet.createViewOnlyWallet(
-        path: path,
-        password: password,
-        address: address,
-        viewKey: privateViewKey,
-        restoreHeight: height,
-      ),
-
-      CsCoin.wownero => await lib_monero.WowneroWallet.createViewOnlyWallet(
-        path: path,
-        password: password,
-        address: address,
-        viewKey: privateViewKey,
-        restoreHeight: height,
-      ),
-    };
+    _wallets[walletId] = await lib_salvium.SalviumWallet.createViewOnlyWallet(
+      path: path,
+      password: password,
+      address: address,
+      viewKey: privateViewKey,
+      restoreHeight: height,
+    );
   }
 
   @override
@@ -258,7 +199,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
   @override
   void addListener(String walletId, CsWalletListener listener) =>
       _wallets[walletId]?.addListener(
-        lib_monero.WalletListener(
+        lib_salvium.WalletListener(
           onSyncingUpdate: listener.onSyncingUpdate,
           onNewBlock: listener.onNewBlock,
           onBalancesChanged: listener.onBalancesChanged,
@@ -396,18 +337,18 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     required int currentHeight,
   }) async {
     final pending = await _wallets[walletId]!.createTx(
-      output: lib_monero.Recipient(
+      output: lib_salvium.Recipient(
         address: output.address,
         amount: output.amount,
       ),
       paymentId: "",
       sweep: sweep,
-      priority: lib_monero.TransactionPriority.values.firstWhere(
+      priority: lib_salvium.TransactionPriority.values.firstWhere(
         (e) => e.value == priority,
       ),
       preferredInputs: preferredInputs
           ?.map(
-            (e) => lib_monero.Output(
+            (e) => lib_salvium.Output(
               address: e.address!,
               hash: e.utxo.txid,
               keyImage: e.utxo.keyImage!,
@@ -449,17 +390,17 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     final pending = await _wallets[walletId]!.createTxMultiDest(
       outputs: outputs
           .map(
-            (e) => lib_monero.Recipient(address: e.address, amount: e.amount),
+            (e) => lib_salvium.Recipient(address: e.address, amount: e.amount),
           )
           .toList(),
       paymentId: "",
       sweep: sweep,
-      priority: lib_monero.TransactionPriority.values.firstWhere(
+      priority: lib_salvium.TransactionPriority.values.firstWhere(
         (e) => e.value == priority,
       ),
       preferredInputs: preferredInputs
           ?.map(
-            (e) => lib_monero.Output(
+            (e) => lib_salvium.Output(
               address: e.address!,
               hash: e.utxo.txid,
               keyImage: e.utxo.keyImage!,
@@ -489,7 +430,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
 
   @override
   Future<void> commitTx(String walletId, CsPendingTransaction tx) =>
-      _wallets[walletId]!.commitTx(tx.value as lib_monero.PendingTransaction);
+      _wallets[walletId]!.commitTx(tx.value as lib_salvium.PendingTransaction);
 
   @override
   Future<List<CsOutput>> getOutputs(
@@ -532,28 +473,16 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       _wallets[walletId]!.thawOutput(keyImage);
 
   @override
-  List<String> getMoneroWordList(String language) =>
-      lib_monero.getMoneroWordList(language);
+  List<String> getSalviumWordList(String language) =>
+      lib_salvium.getSalviumWordList(language);
 
   @override
-  List<String> getWowneroWordList(String language, int seedLength) =>
-      lib_monero.getWowneroWordList(language, seedWordsLength: seedLength);
+  int getHeightByDate(DateTime date) =>
+      cs_salvium_deprecated.getSalviumHeightByDate(date: date);
 
   @override
-  int getHeightByDate(DateTime date, {required CsCoin csCoin}) =>
-      switch (csCoin) {
-        CsCoin.monero => cs_monero_deprecated.getMoneroHeightByDate(date: date),
-        CsCoin.wownero => cs_monero_deprecated.getWowneroHeightByDate(
-          date: date,
-        ),
-      };
-
-  @override
-  bool validateAddress(String address, int network, {required CsCoin csCoin}) =>
-      switch (csCoin) {
-        CsCoin.monero => xmr_wallet_ffi.validateAddress(address, network),
-        CsCoin.wownero => wow_wallet_ffi.validateAddress(address, network),
-      };
+  bool validateAddress(String address, int network) =>
+      sal_wallet_ffi.validateAddress(address, network);
 }
 
 //END_ON

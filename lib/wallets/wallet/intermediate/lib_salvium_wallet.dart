@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
@@ -32,6 +31,8 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
@@ -97,13 +98,11 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
               await onUTXOsChanged(utxos);
               await updateBalance(shouldUpdateUtxos: false);
             } catch (e, s) {
-              lib_salvium.Logging.log?.i("_startInit", error: e, stackTrace: s);
+              Logging.instance.e("_startInit", error: e, stackTrace: s);
             }
           });
     });
   }
-
-  lib_salvium.Wallet? libSalviumWallet;
 
   SyncStatus? get syncStatus => _syncStatus;
   SyncStatus? _syncStatus;
@@ -134,14 +133,16 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   Future<void> loadWallet({required String path, required String password});
 
-  Future<lib_salvium.Wallet> getCreatedWallet({
+  Future<void> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
+    required final void Function(int refreshFromBlockHeight, String seed)
+    onCreated,
   });
 
-  Future<lib_salvium.Wallet> getRestoredWallet({
+  Future<void> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
@@ -149,7 +150,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     int height = 0,
   });
 
-  Future<lib_salvium.Wallet> getRestoredFromViewKeyWallet({
+  Future<void> getRestoredFromViewKeyWallet({
     required String path,
     required String password,
     required String address,
@@ -162,16 +163,18 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   bool walletExists(String path);
 
   String getTxKeyFor({required String txid}) {
-    if (libSalviumWallet == null) {
+    if (!csSalvium.walletInstanceExists(walletId)) {
       throw Exception("Cannot get tx key in uninitialized libSalviumWallet");
     }
-    return libSalviumWallet!.getTxKey(txid);
+    return csSalvium.getTxKey(walletId, txid);
   }
 
   void _setListener() {
-    if (libSalviumWallet != null && libSalviumWallet!.getListeners().isEmpty) {
-      libSalviumWallet?.addListener(
-        lib_salvium.WalletListener(
+    if (csSalvium.walletInstanceExists(walletId) &&
+        !csSalvium.hasListeners(walletId)) {
+      csSalvium.addListener(
+        walletId,
+        CsWalletListener(
           onSyncingUpdate: onSyncingUpdate,
           onNewBlock: onNewBlock,
           onBalancesChanged: onBalancesChanged,
@@ -187,17 +190,16 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<void> open() async {
     bool wasNull = false;
 
-    if (libSalviumWallet == null) {
+    if (!csSalvium.walletInstanceExists(walletId)) {
       wasNull = true;
       // await libSalviumWallet?.close();
       final path = await pathForWallet(name: walletId);
 
       final String password;
       try {
-        password =
-            (await secureStorageInterface.read(
-              key: _libSalviumWalletPasswordKey(walletId.toUpperCase()),
-            ))!;
+        password = (await secureStorageInterface.read(
+          key: _libSalviumWalletPasswordKey(walletId.toUpperCase()),
+        ))!;
       } catch (e, s) {
         throw Exception("Password not found $e, $s");
       }
@@ -224,15 +226,15 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     if (wasNull) {
       try {
         _setSyncStatus(ConnectingSyncStatus());
-        libSalviumWallet?.startSyncing();
+        csSalvium.startSyncing(walletId);
       } catch (_) {
         _setSyncStatus(FailedSyncStatus());
         // TODO log
       }
     }
     _setListener();
-    libSalviumWallet?.startListeners();
-    libSalviumWallet?.startAutoSaving();
+    csSalvium.startListeners(walletId);
+    csSalvium.startAutoSaving(walletId);
 
     unawaited(refresh());
   }
@@ -242,16 +244,17 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       final appRoot = await StackFileSystem.applicationRootDirectory();
       await _backupWalletFiles(name: walletId, appRoot: appRoot);
     }
-    await libSalviumWallet!.save();
+    await csSalvium.save(walletId);
   }
 
   Address addressFor({required int index, int account = 0}) {
-    final address = libSalviumWallet!.getAddress(
+    final address = csSalvium.getAddress(
+      walletId,
       accountIndex: account,
       addressIndex: index,
     );
 
-    if (address.value.contains("111")) {
+    if (address.contains("111")) {
       throw Exception("111 address found!");
     }
 
@@ -259,7 +262,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       walletId: walletId,
       derivationIndex: index,
       derivationPath: null,
-      value: address.value,
+      value: address,
       publicKey: [],
       type: AddressType.cryptonote,
       subType: AddressSubType.receiving,
@@ -269,18 +272,16 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   }
 
   Future<CWKeyData?> getKeys() async {
-    final base = libSalviumWallet;
-
-    if (base == null) {
+    if (!csSalvium.walletInstanceExists(walletId)) {
       return null;
     }
     try {
       return CWKeyData(
         walletId: walletId,
-        publicViewKey: base.getPublicViewKey(),
-        privateViewKey: base.getPrivateViewKey(),
-        publicSpendKey: base.getPublicSpendKey(),
-        privateSpendKey: base.getPrivateSpendKey(),
+        publicViewKey: csSalvium.getPublicViewKey(walletId),
+        privateViewKey: csSalvium.getPrivateViewKey(walletId),
+        publicSpendKey: csSalvium.getPublicSpendKey(walletId),
+        privateSpendKey: csSalvium.getPrivateSpendKey(walletId),
       );
     } catch (e, s) {
       Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
@@ -299,16 +300,17 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     final path = await pathForWallet(name: walletId);
     final String password;
     try {
-      password =
-          (await secureStorageInterface.read(
-            key: _libSalviumWalletPasswordKey(walletId),
-          ))!;
+      password = (await secureStorageInterface.read(
+        key: _libSalviumWalletPasswordKey(walletId),
+      ))!;
     } catch (e, s) {
       throw Exception("Password not found $e, $s");
     }
     await loadWallet(path: path, password: password);
-    final wallet = libSalviumWallet!;
-    return (wallet.getAddress().value, wallet.getPrivateViewKey());
+    return (
+      csSalvium.getAddress(walletId),
+      csSalvium.getPrivateViewKey(walletId),
+    );
   }
 
   @override
@@ -322,17 +324,23 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           key: _libSalviumWalletPasswordKey(walletId),
           value: password,
         );
-        final wallet = await getCreatedWallet(
+
+        late final int refreshFromBlockHeight;
+        late final String seedPhrase;
+
+        await getCreatedWallet(
           path: path,
           password: password,
           wordCount: wordCount,
           seedOffset: "", // default for non restored wallets for now
+          onCreated: (height, seed) {
+            refreshFromBlockHeight = height;
+            seedPhrase = seed;
+          },
         );
 
-        final height = wallet.getRefreshFromBlockHeight();
-
         await info.updateRestoreHeight(
-          newRestoreHeight: height,
+          newRestoreHeight: refreshFromBlockHeight,
           isar: mainDB.isar,
         );
 
@@ -340,7 +348,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         // before wallet.init() is called
         await secureStorageInterface.write(
           key: Wallet.mnemonicKey(walletId: walletId),
-          value: wallet.getSeed().trim(),
+          value: seedPhrase,
         );
         await secureStorageInterface.write(
           key: Wallet.mnemonicPassphraseKey(walletId: walletId),
@@ -363,8 +371,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         await mainDB.deleteWalletBlockchainData(walletId);
 
         highestPercentCached = 0;
-        unawaited(libSalviumWallet?.rescanBlockchain());
-        libSalviumWallet?.startSyncing();
+        unawaited(csSalvium.rescanBlockchain(walletId));
+        csSalvium.startSyncing(walletId);
         // unawaited(save());
       });
       unawaited(refresh());
@@ -401,19 +409,18 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
             key: _libSalviumWalletPasswordKey(walletId),
             value: password,
           );
-          final wallet = await getRestoredWallet(
+
+          if (!csSalvium.walletInstanceExists(walletId)) {
+            await exit();
+          }
+
+          await getRestoredWallet(
             path: path,
             password: password,
             mnemonic: mnemonic,
             height: height,
             seedOffset: seedOffset,
           );
-
-          if (libSalviumWallet != null) {
-            await exit();
-          }
-
-          libSalviumWallet = wallet;
 
           _setListener();
 
@@ -423,7 +430,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
                 walletId: walletId,
                 derivationIndex: 0,
                 derivationPath: null,
-                value: wallet.getAddress().value,
+                value: csSalvium.getAddress(walletId),
                 publicKey: [],
                 type: AddressType.cryptonote,
                 subType: AddressSubType.receiving,
@@ -442,12 +449,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         _setListener();
 
         // libSalviumWallet?.setRecoveringFromSeed(isRecovery: true);
-        unawaited(libSalviumWallet?.rescanBlockchain());
-        libSalviumWallet?.startSyncing();
+        unawaited(csSalvium.rescanBlockchain(walletId));
+        csSalvium.startSyncing(walletId);
 
         // await save();
-        libSalviumWallet?.startListeners();
-        libSalviumWallet?.startAutoSaving();
+        csSalvium.startListeners(walletId);
+        csSalvium.startAutoSaving(walletId);
       } catch (e, s) {
         Logging.instance.e(
           "Exception rethrown from recoverFromMnemonic(): ",
@@ -464,7 +471,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   @override
   Future<bool> pingCheck() async {
     if (_canPing) {
-      return (await libSalviumWallet?.isConnectedToDaemon()) ?? false;
+      return csSalvium.isConnectedToDaemon(walletId);
     } else {
       return false;
     }
@@ -478,50 +485,50 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       throw Exception("TOR – clearnet mismatch");
     }
 
-    final host =
-        node.host.endsWith(".onion") ? node.host : Uri.parse(node.host).host;
+    final host = node.host.endsWith(".onion")
+        ? node.host
+        : Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
-    proxy =
-        prefs.useTor && !node.forceNoTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null;
+    proxy = prefs.useTor && !node.forceNoTor
+        ? TorService.sharedInstance.getProxyInfo()
+        : null;
 
     _setSyncStatus(ConnectingSyncStatus());
     try {
       if (_requireMutex) {
         await _torConnectingLock.protect(() async {
-          await libSalviumWallet?.connect(
+          await csSalvium.connect(
+            walletId,
             daemonAddress: "$host:${node.port}",
             daemonUsername: node.loginName,
             daemonPassword: await node.getPassword(secureStorageInterface),
             trusted: node.trusted ?? false,
             useSSL: node.useSSL,
-            socksProxyAddress:
-                node.forceNoTor
-                    ? null
-                    : proxy == null
-                    ? null
-                    : "${proxy.host.address}:${proxy.port}",
+            socksProxyAddress: node.forceNoTor
+                ? null
+                : proxy == null
+                ? null
+                : "${proxy.host.address}:${proxy.port}",
           );
         });
       } else {
-        await libSalviumWallet?.connect(
+        await csSalvium.connect(
+          walletId,
           daemonAddress: "$host:${node.port}",
           daemonUsername: node.loginName,
           daemonPassword: await node.getPassword(secureStorageInterface),
           trusted: node.trusted ?? false,
           useSSL: node.useSSL,
-          socksProxyAddress:
-              node.forceNoTor
-                  ? null
-                  : proxy == null
-                  ? null
-                  : "${proxy.host.address}:${proxy.port}",
+          socksProxyAddress: node.forceNoTor
+              ? null
+              : proxy == null
+              ? null
+              : "${proxy.host.address}:${proxy.port}",
         );
       }
-      libSalviumWallet?.startSyncing();
-      libSalviumWallet?.startListeners();
-      libSalviumWallet?.startAutoSaving();
+      csSalvium.startSyncing(walletId);
+      csSalvium.startListeners(walletId);
+      csSalvium.startAutoSaving(walletId);
 
       // _setSyncStatus(ConnectedSyncStatus());
     } catch (e, s) {
@@ -538,22 +545,19 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> updateTransactions() async {
-    final base = libSalviumWallet;
-
-    if (base == null) {
+    if (!csSalvium.walletInstanceExists(walletId)) {
       return;
     }
 
-    final localTxids =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .heightGreaterThan(0)
-            .txidProperty()
-            .findAll();
+    final localTxids = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightGreaterThan(0)
+        .txidProperty()
+        .findAll();
 
-    final allTxids = await base.getAllTxids(refresh: true);
+    final allTxids = await csSalvium.getAllTxids(walletId, refresh: true);
 
     final txidsToFetch = allTxids.toSet().difference(localTxids.toSet());
 
@@ -561,9 +565,17 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       return;
     }
 
-    final transactions = await base.getTxs(txids: txidsToFetch, refresh: false);
+    final transactions = await csSalvium.getTxs(
+      walletId,
+      txids: txidsToFetch,
+      refresh: false,
+    );
 
-    final allOutputs = await base.getOutputs(includeSpent: true, refresh: true);
+    final allOutputs = await csSalvium.getOutputs(
+      walletId,
+      includeSpent: true,
+      refresh: true,
+    );
 
     // final cachedTransactions =
     // DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
@@ -649,16 +661,14 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         type: type,
         subType: TransactionSubType.none,
         otherData: jsonEncode({
-          TxV2OdKeys.overrideFee:
-              Amount(
-                rawValue: tx.fee,
-                fractionDigits: cryptoCurrency.fractionDigits,
-              ).toJsonString(),
-          TxV2OdKeys.moneroAmount:
-              Amount(
-                rawValue: tx.amount,
-                fractionDigits: cryptoCurrency.fractionDigits,
-              ).toJsonString(),
+          TxV2OdKeys.overrideFee: Amount(
+            rawValue: tx.fee,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
+          TxV2OdKeys.moneroAmount: Amount(
+            rawValue: tx.amount,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
           TxV2OdKeys.moneroAccountIndex: tx.accountIndex,
           TxV2OdKeys.isMoneroTransaction: true,
         }),
@@ -673,7 +683,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<Amount> get availableBalance async {
     try {
       return Amount(
-        rawValue: libSalviumWallet!.getUnlockedBalance(),
+        rawValue: csSalvium.getUnlockedBalance(walletId)!,
         fractionDigits: cryptoCurrency.fractionDigits,
       );
     } catch (_) {
@@ -683,14 +693,14 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   Future<Amount> get totalBalance async {
     try {
-      final full = libSalviumWallet?.getBalance();
+      final full = csSalvium.getBalance(walletId);
       if (full != null) {
         return Amount(
           rawValue: full,
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       } else {
-        final transactions = await libSalviumWallet!.getAllTxs(refresh: true);
+        final transactions = await csSalvium.getAllTxs(walletId, refresh: true);
         BigInt transactionBalance = BigInt.zero;
         for (final tx in transactions) {
           if (!tx.isSpend) {
@@ -713,10 +723,10 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   @override
   Future<void> exit() async {
     Logging.instance.i("exit called on $walletId");
-    libSalviumWallet?.stopAutoSaving();
-    libSalviumWallet?.stopListeners();
-    libSalviumWallet?.stopSyncing();
-    await libSalviumWallet?.save();
+    csSalvium.stopAutoSaving(walletId);
+    csSalvium.stopListeners(walletId);
+    csSalvium.stopSyncing(walletId);
+    await csSalvium.save(walletId);
   }
 
   Future<String> pathForWalletDir({required String name}) async {
@@ -786,7 +796,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   final _utxosUpdateLock = Mutex();
   Future<void> onUTXOsChanged(List<UTXO> utxos) async {
     await _utxosUpdateLock.protect(() async {
-      final cwUtxos = await libSalviumWallet?.getOutputs(refresh: true) ?? [];
+      final cwUtxos = await csSalvium.getOutputs(walletId, refresh: true);
 
       // bool changed = false;
 
@@ -803,12 +813,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
           if (u.isBlocked) {
             if (!cw.isFrozen) {
-              await libSalviumWallet?.freezeOutput(cw.keyImage);
+              await csSalvium.freezeOutput(walletId, cw.keyImage);
               // changed = true;
             }
           } else {
             if (cw.isFrozen) {
-              await libSalviumWallet?.thawOutput(cw.keyImage);
+              await csSalvium.thawOutput(walletId, cw.keyImage);
               // changed = true;
             }
           }
@@ -964,9 +974,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     if (mismatch) {
       _canPing = false;
-      libSalviumWallet?.stopAutoSaving();
-      libSalviumWallet?.stopListeners();
-      libSalviumWallet?.stopSyncing();
+      csSalvium.stopAutoSaving(walletId);
+      csSalvium.stopListeners(walletId);
+      csSalvium.stopSyncing(walletId);
       _setSyncStatus(FailedSyncStatus());
     }
 
@@ -984,27 +994,23 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   @override
   Future<bool> updateUTXOs() async {
     final List<UTXO> outputArray = [];
-    final utxos =
-        await libSalviumWallet?.getOutputs(refresh: true) ??
-        <lib_salvium.Output>[];
+    final utxos = await csSalvium.getOutputs(walletId, refresh: true);
     for (final rawUTXO in utxos) {
       if (!rawUTXO.spent) {
-        final current =
-            await mainDB.isar.utxos
-                .where()
-                .walletIdEqualTo(walletId)
-                .filter()
-                .voutEqualTo(rawUTXO.vout)
-                .and()
-                .txidEqualTo(rawUTXO.hash)
-                .findFirst();
-        final tx =
-            await mainDB.isar.transactionV2s
-                .where()
-                .walletIdEqualTo(walletId)
-                .filter()
-                .txidEqualTo(rawUTXO.hash)
-                .findFirst();
+        final current = await mainDB.isar.utxos
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .voutEqualTo(rawUTXO.vout)
+            .and()
+            .txidEqualTo(rawUTXO.hash)
+            .findFirst();
+        final tx = await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .txidEqualTo(rawUTXO.hash)
+            .findFirst();
 
         final otherDataMap = {
           UTXOOtherDataKeys.keyImage: rawUTXO.keyImage,
@@ -1077,7 +1083,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     // Slight possibility of race but should be irrelevant
     await refreshMutex.acquire();
 
-    libSalviumWallet?.startSyncing();
+    csSalvium.startSyncing(walletId);
     _setSyncStatus(StartingSyncStatus());
 
     await updateTransactions();
@@ -1091,7 +1097,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       refreshMutex.release();
     }
 
-    final synced = await libSalviumWallet?.isSynced();
+    final synced = await csSalvium.isSynced(walletId);
 
     if (synced == true) {
       _setSyncStatus(SyncedSyncStatus());
@@ -1103,8 +1109,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     try {
       final currentReceiving = await getCurrentReceivingAddress();
 
-      final newReceivingIndex =
-          currentReceiving == null ? 0 : currentReceiving.derivationIndex + 1;
+      final newReceivingIndex = currentReceiving == null
+          ? 0
+          : currentReceiving.derivationIndex + 1;
 
       final newReceivingAddress = addressFor(index: newReceivingIndex);
 
@@ -1139,17 +1146,15 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     try {
       int highestIndex = -1;
-      final entries = await libSalviumWallet?.getAllTxs(refresh: true);
-      if (entries != null) {
-        for (final element in entries) {
-          if (!element.isSpend) {
-            final int curAddressIndex =
-                element.addressIndexes.isEmpty
-                    ? 0
-                    : element.addressIndexes.reduce(max);
-            if (curAddressIndex > highestIndex) {
-              highestIndex = curAddressIndex;
-            }
+      final entries = await csSalvium.getAllTxs(walletId, refresh: true);
+
+      for (final element in entries) {
+        if (!element.isSpend) {
+          final int curAddressIndex = element.addressIndexes.isEmpty
+              ? 0
+              : element.addressIndexes.reduce(max);
+          if (curAddressIndex > highestIndex) {
+            highestIndex = curAddressIndex;
           }
         }
       }
@@ -1165,12 +1170,11 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         // Use new index to derive a new receiving address
         final newReceivingAddress = addressFor(index: newReceivingIndex);
 
-        final existing =
-            await mainDB
-                .getAddresses(walletId)
-                .filter()
-                .valueEqualTo(newReceivingAddress.value)
-                .findFirst();
+        final existing = await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newReceivingAddress.value)
+            .findFirst();
         if (existing == null) {
           // Add that new change address
           await mainDB.putAddress(newReceivingAddress);
@@ -1206,9 +1210,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     numberOfBlocksFast: 10,
     numberOfBlocksAverage: 15,
     numberOfBlocksSlow: 20,
-    fast: BigInt.from(lib_salvium.TransactionPriority.high.value),
-    medium: BigInt.from(lib_salvium.TransactionPriority.medium.value),
-    slow: BigInt.from(lib_salvium.TransactionPriority.normal.value),
+    fast: BigInt.from(csSalvium.getTxPriorityHigh()),
+    medium: BigInt.from(csSalvium.getTxPriorityMedium()),
+    slow: BigInt.from(csSalvium.getTxPriorityNormal()),
   );
 
   @override
@@ -1234,16 +1238,16 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     try {
       final feeRate = txData.feeRateType;
       if (feeRate is FeeRateType) {
-        lib_salvium.TransactionPriority feePriority;
+        final int feePriority;
         switch (feeRate) {
           case FeeRateType.fast:
-            feePriority = lib_salvium.TransactionPriority.high;
+            feePriority = csSalvium.getTxPriorityHigh();
             break;
           case FeeRateType.average:
-            feePriority = lib_salvium.TransactionPriority.medium;
+            feePriority = csSalvium.getTxPriorityMedium();
             break;
           case FeeRateType.slow:
-            feePriority = lib_salvium.TransactionPriority.normal;
+            feePriority = csSalvium.getTxPriorityNormal();
             break;
           default:
             throw ArgumentError("Invalid use of custom fee");
@@ -1268,12 +1272,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
             throw Exception("Send all not supported with multiple recipients");
           }
 
-          final List<lib_salvium.Recipient> outputs = [];
+          final List<CsRecipient> outputs = [];
           for (final recipient in txData.recipients!) {
-            final output = lib_salvium.Recipient(
-              address: recipient.address,
-              amount: recipient.amount.raw,
-            );
+            final output = CsRecipient(recipient.address, recipient.amount.raw);
 
             outputs.add(output);
           }
@@ -1283,44 +1284,27 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           }
 
           final height = await chainHeight;
-          final inputs =
-              txData.utxos
-                  ?.whereType<StandardInput>()
-                  .map(
-                    (e) => lib_salvium.Output(
-                      address: e.utxo.address!,
-                      hash: e.utxo.txid,
-                      keyImage: e.utxo.keyImage!,
-                      value: e.value,
-                      isFrozen: e.utxo.isBlocked,
-                      isUnlocked:
-                          e.utxo.blockHeight != null &&
-                          (height - (e.utxo.blockHeight ?? 0)) >=
-                              cryptoCurrency.minConfirms,
-                      height: e.utxo.blockHeight ?? 0,
-                      vout: e.utxo.vout,
-                      spent: e.utxo.used ?? false,
-                      spentHeight: null, // doesn't matter here
-                      coinbase: e.utxo.isCoinbase,
-                    ),
-                  )
-                  .toList();
+          final inputs = txData.utxos?.whereType<StandardInput>().toList();
 
           return await prepareSendMutex.protect(() async {
-            final lib_salvium.PendingTransaction pendingTransaction;
+            final CsPendingTransaction pendingTransaction;
             if (outputs.length == 1) {
-              pendingTransaction = await libSalviumWallet!.createTx(
+              pendingTransaction = await csSalvium.createTx(
+                walletId,
                 output: outputs.first,
-                paymentId: "",
+                minConfirms: cryptoCurrency.minConfirms,
+                currentHeight: height,
                 sweep: sweep,
                 priority: feePriority,
                 preferredInputs: inputs,
                 accountIndex: 0, // sw only uses account 0 at this time
               );
             } else {
-              pendingTransaction = await libSalviumWallet!.createTxMultiDest(
+              pendingTransaction = await csSalvium.createTxMultiDest(
+                walletId,
                 outputs: outputs,
-                paymentId: "",
+                minConfirms: cryptoCurrency.minConfirms,
+                currentHeight: height,
                 priority: feePriority,
                 preferredInputs: inputs,
                 sweep: sweep,
@@ -1363,7 +1347,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
       try {
-        await libSalviumWallet!.commitTx(txData.pendingSalviumTransaction!);
+        await csSalvium.commitTx(walletId, txData.pendingSalviumTransaction!);
 
         Logging.instance.d(
           "transaction ${txData.pendingSalviumTransaction!.txid} has been sent",
@@ -1412,19 +1396,18 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           key: _libSalviumWalletPasswordKey(walletId.toUpperCase()),
           value: password,
         );
-        final wallet = await getRestoredFromViewKeyWallet(
+
+        if (csSalvium.walletInstanceExists(walletId)) {
+          await exit();
+        }
+
+        await getRestoredFromViewKeyWallet(
           path: path,
           password: password,
           address: data.address,
           privateViewKey: data.privateViewKey,
           height: height,
         );
-
-        if (libSalviumWallet != null) {
-          await exit();
-        }
-
-        libSalviumWallet = wallet;
 
         _setListener();
 
@@ -1434,7 +1417,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
               walletId: walletId,
               derivationIndex: 0,
               derivationPath: null,
-              value: wallet.getAddress().value,
+              value: csSalvium.getAddress(walletId),
               publicKey: [],
               type: AddressType.cryptonote,
               subType: AddressSubType.receiving,
@@ -1449,12 +1432,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         await updateNode();
         _setListener();
 
-        unawaited(libSalviumWallet?.rescanBlockchain());
-        libSalviumWallet?.startSyncing();
+        unawaited(csSalvium.rescanBlockchain(walletId));
+        csSalvium.startSyncing(walletId);
 
         // await save();
-        libSalviumWallet?.startListeners();
-        libSalviumWallet?.startAutoSaving();
+        csSalvium.startListeners(walletId);
+        csSalvium.startAutoSaving(walletId);
       } catch (e, s) {
         Logging.instance.e(
           "Exception rethrown from recoverViewOnly(): ",

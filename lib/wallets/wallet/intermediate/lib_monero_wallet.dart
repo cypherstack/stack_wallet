@@ -177,7 +177,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         !csMonero.hasListeners(walletId)) {
       csMonero.addListener(
         walletId,
-        CsMoneroWalletListener(
+        CsWalletListener(
           onSyncingUpdate: onSyncingUpdate,
           onNewBlock: onNewBlock,
           onBalancesChanged: onBalancesChanged,

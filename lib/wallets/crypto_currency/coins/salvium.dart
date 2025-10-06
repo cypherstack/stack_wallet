@@ -1,9 +1,7 @@
-import 'package:cs_salvium/src/ffi_bindings/salvium_wallet_bindings.dart'
-    as sal_wallet_ffi;
-
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
@@ -54,7 +52,7 @@ class Salvium extends CryptonoteCurrency {
     }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return sal_wallet_ffi.validateAddress(address, 0);
+        return csSalvium.validateAddress(address, 0);
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -107,10 +105,9 @@ class Salvium extends CryptonoteCurrency {
   int get targetBlockTimeSeconds => 120;
 
   @override
-  DerivePathType get defaultDerivePathType =>
-      throw UnsupportedError(
-        "$runtimeType does not use bitcoin style derivation paths",
-      );
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+    "$runtimeType does not use bitcoin style derivation paths",
+  );
 
   @override
   Uri defaultBlockExplorer(String txid) {
