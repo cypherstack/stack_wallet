@@ -63,7 +63,6 @@ dependencies:
 # %%ENABLE_XMR%%
 #  cs_monero: 1.0.0-pre.3
 #  cs_monero_flutter_libs: 1.0.0-pre.0
-#  monero_rpc: ^2.0.0
 # %%END_ENABLE_XMR%%
 
 # %%ENABLE_SAL%%
@@ -74,6 +73,8 @@ dependencies:
 # %%ENABLE_MWEBD%%
 #  flutter_mwebd: ^0.0.1-pre.8
 # %%END_ENABLE_MWEBD%%
+
+  monero_rpc: ^2.0.0
 
   # cs_monero compat (unpublished)
   compat:
