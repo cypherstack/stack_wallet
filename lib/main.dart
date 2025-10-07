@@ -87,7 +87,9 @@ final openedFromSWBFileStringStateProvider = StateProvider<String?>(
 // miscellaneous box for later use
 void main(List<String> args) async {
   // talker.info('initializing Rust lib ...');
-  await libXelis.initRustLib();
+  if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
+    await libXelis.initRustLib();
+  }
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
@@ -159,7 +161,10 @@ void main(List<String> args) async {
 
   DB.instance.hive.registerAdapter(lib_monero_compat.WalletTypeAdapter());
 
-  csMonero.setUseCsMoneroLoggerInternal(kDebugMode);
+  if (AppConfig.coins.whereType<Monero>().isNotEmpty ||
+      AppConfig.coins.whereType<Wownero>().isNotEmpty) {
+    csMonero.setUseCsMoneroLoggerInternal(kDebugMode);
+  }
 
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
@@ -175,8 +180,10 @@ void main(List<String> args) async {
     debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
 
-  await libXelis.setupRustLogger();
-  libXelis.startListeningToRustLogs();
+  if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
+    await libXelis.setupRustLogger();
+    libXelis.startListeningToRustLogs();
+  }
 
   // setup lib spark logging
   initSparkLogging(Prefs.instance.logLevel);
