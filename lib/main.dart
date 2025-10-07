@@ -25,9 +25,6 @@ import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
-import 'package:xelis_flutter/src/api/api.dart' as xelis_api;
-import 'package:xelis_flutter/src/api/logger.dart' as xelis_logging;
-import 'package:xelis_flutter/src/frb_generated.dart' as xelis_rust;
 
 import 'app_config.dart';
 import 'db/db_version_migration.dart';
@@ -79,45 +76,18 @@ import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
 import 'wl_gen/interfaces/cs_monero_interface.dart';
+import 'wl_gen/interfaces/lib_xelis_interface.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
 );
-
-void startListeningToRustLogs() {
-  xelis_api.createLogStream().listen(
-    (logEntry) {
-      final Level level;
-      switch (logEntry.level) {
-        case xelis_logging.Level.error:
-          level = Level.error;
-        case xelis_logging.Level.warn:
-          level = Level.warning;
-        case xelis_logging.Level.info:
-          level = Level.info;
-        case xelis_logging.Level.debug:
-          level = Level.debug;
-        case xelis_logging.Level.trace:
-          level = Level.trace;
-      }
-
-      Logging.instance.log(
-        level,
-        "[Xelis Rust Log] ${logEntry.tag}: ${logEntry.msg}",
-      );
-    },
-    onError: (dynamic e) {
-      Logging.instance.e("Error receiving Xelis Rust logs: $e");
-    },
-  );
-}
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
   // talker.info('initializing Rust lib ...');
-  await xelis_rust.RustLib.init();
+  await libXelis.initRustLib();
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
@@ -205,8 +175,8 @@ void main(List<String> args) async {
     debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
 
-  await xelis_api.setUpRustLogger();
-  startListeningToRustLogs();
+  await libXelis.setupRustLogger();
+  libXelis.startListeningToRustLogs();
 
   // setup lib spark logging
   initSparkLogging(Prefs.instance.logLevel);
