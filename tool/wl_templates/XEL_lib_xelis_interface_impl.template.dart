@@ -24,9 +24,9 @@ LibXelisInterface _getInterface() => throw Exception("XEL not enabled!");
 
 //END_OFF
 //ON
-LibXelisInterface _getInterface() => _MwebdServerInterfaceImpl();
+LibXelisInterface _getInterface() => _LibXelisInterfaceImpl();
 
-final class _MwebdServerInterfaceImpl extends LibXelisInterface {
+final class _LibXelisInterfaceImpl extends LibXelisInterface {
   final Map<String, x_wallet.XelisWallet> _wallets = {};
 
   @override
