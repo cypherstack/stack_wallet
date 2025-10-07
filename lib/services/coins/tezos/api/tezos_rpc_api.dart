@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../../app_config.dart';
 import '../../../../networking/http.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
@@ -19,13 +20,16 @@ abstract final class TezosRpcAPI {
       final response = await _client.get(
         url: Uri.parse(balanceCall),
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
 
-      final balance =
-          BigInt.parse(response.body.substring(1, response.body.length - 2));
+      final balance = BigInt.parse(
+        response.body.substring(1, response.body.length - 2),
+      );
       return balance;
     } catch (e, s) {
       Logging.instance.e(
@@ -47,7 +51,9 @@ abstract final class TezosRpcAPI {
       final response = await _client.get(
         url: Uri.parse(api),
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );

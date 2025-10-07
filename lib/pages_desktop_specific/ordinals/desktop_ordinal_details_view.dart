@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
 import '../../networking/http.dart';
@@ -57,10 +58,11 @@ class _DesktopOrdinalDetailsViewState
 
     final response = await client.get(
       url: Uri.parse(widget.ordinal.content),
-      proxyInfo:
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null,
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     if (response.code != 200) {
@@ -71,10 +73,9 @@ class _DesktopOrdinalDetailsViewState
 
     final bytes = response.bodyBytes;
 
-    final dir =
-        Platform.isAndroid
-            ? await StackFileSystem.wtfAndroidDocumentsPath()
-            : await getApplicationDocumentsDirectory();
+    final dir = Platform.isAndroid
+        ? await StackFileSystem.wtfAndroidDocumentsPath()
+        : await getApplicationDocumentsDirectory();
 
     final filePath = path.join(
       dir.path,
@@ -109,19 +110,17 @@ class _DesktopOrdinalDetailsViewState
               const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
@@ -213,10 +212,9 @@ class _DesktopOrdinalDetailsViewState
                                 Assets.svg.arrowDown,
                                 width: 13,
                                 height: 18,
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .buttonTextSecondary,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonTextSecondary,
                               ),
                               buttonHeight: ButtonHeight.l,
                               iconSpacing: 8,
@@ -276,28 +274,26 @@ class _DesktopOrdinalDetailsViewState
                             const _Divider(),
                             Consumer(
                               builder: (context, ref, _) {
-                                final coin =
-                                    ref
-                                        .watch(pWallets)
-                                        .getWallet(widget.walletId)
-                                        .info
-                                        .coin;
+                                final coin = ref
+                                    .watch(pWallets)
+                                    .getWallet(widget.walletId)
+                                    .info
+                                    .coin;
                                 return _DetailsItemWCopy(
                                   title: "Amount",
-                                  data:
-                                      utxo == null
-                                          ? "ERROR"
-                                          : ref
-                                              .watch(pAmountFormatter(coin))
-                                              .format(
-                                                Amount(
-                                                  rawValue: BigInt.from(
-                                                    utxo!.value,
-                                                  ),
-                                                  fractionDigits:
-                                                      coin.fractionDigits,
+                                  data: utxo == null
+                                      ? "ERROR"
+                                      : ref
+                                            .watch(pAmountFormatter(coin))
+                                            .format(
+                                              Amount(
+                                                rawValue: BigInt.from(
+                                                  utxo!.value,
                                                 ),
+                                                fractionDigits:
+                                                    coin.fractionDigits,
                                               ),
+                                            ),
                                 );
                               },
                             ),

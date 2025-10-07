@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../app_config.dart';
 import '../dto/ordinals/inscription_data.dart';
 import '../dto/ordinals/litescribe_response.dart';
 import '../networking/http.dart';
@@ -22,7 +23,9 @@ class LitescribeAPI {
   Future<LitescribeResponse> _getResponse(String endpoint) async {
     final response = await client.get(
       url: Uri.parse('$baseUrl$endpoint'),
-      proxyInfo: Prefs.instance.useTor
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
           ? TorService.sharedInstance.getProxyInfo()
           : null,
     );

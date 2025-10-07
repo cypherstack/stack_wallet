@@ -80,17 +80,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder:
-              (_) => const LockscreenView(
-                showBackButton: false,
-                popOnSuccess: true,
-                routeOnSuccessArguments: true,
-                routeOnSuccess: "",
-                biometricsCancelButtonString: "CANCEL",
-                biometricsLocalizedReason:
-                    "Authenticate to unlock ${AppConfig.appName}",
-                biometricsAuthenticationTitle: "Unlock ${AppConfig.appName}",
-              ),
+          builder: (_) => const LockscreenView(
+            showBackButton: false,
+            popOnSuccess: true,
+            routeOnSuccessArguments: true,
+            routeOnSuccess: "",
+            biometricsCancelButtonString: "CANCEL",
+            biometricsLocalizedReason:
+                "Authenticate to unlock ${AppConfig.appName}",
+            biometricsAuthenticationTitle: "Unlock ${AppConfig.appName}",
+          ),
           settings: const RouteSettings(name: "/unlockTimedOutAppScreen"),
         ),
       );
@@ -136,14 +135,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
       await showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
-        builder:
-            (_) => WillPopScope(
-              onWillPop: () async {
-                _exitEnabled = true;
-                return true;
-              },
-              child: const StackDialog(title: "Tap back again to exit"),
-            ),
+        builder: (_) => WillPopScope(
+          onWillPop: () async {
+            _exitEnabled = true;
+            return true;
+          },
+          child: const StackDialog(title: "Tap back again to exit"),
+        ),
       ).timeout(
         timeout,
         onTimeout: () {
@@ -300,8 +298,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
           key: _key,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.backgroundAppBar,
             title: Row(
               children: [
                 GestureDetector(
@@ -321,10 +320,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ],
             ),
             actions: [
-              const Padding(
-                padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
-                child: AspectRatio(aspectRatio: 1, child: SmallTorIcon()),
-              ),
+              if (AppConfig.hasFeature(AppFeature.tor))
+                const Padding(
+                  padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                  child: AspectRatio(aspectRatio: 1, child: SmallTorIcon()),
+                ),
               Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
                 child: AspectRatio(
@@ -335,54 +335,51 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewAlertsButton"),
                     size: 36,
                     shadows: const [],
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.backgroundAppBar,
                     icon:
                         ref.watch(
-                              notificationsProvider.select(
-                                (value) => value.hasUnreadNotifications,
-                              ),
-                            )
-                            ? SvgPicture.file(
-                              File(
-                                ref.watch(
-                                  themeProvider.select(
-                                    (value) => value.assets.bellNew,
-                                  ),
+                          notificationsProvider.select(
+                            (value) => value.hasUnreadNotifications,
+                          ),
+                        )
+                        ? SvgPicture.file(
+                            File(
+                              ref.watch(
+                                themeProvider.select(
+                                  (value) => value.assets.bellNew,
                                 ),
                               ),
-                              width: 20,
-                              height: 20,
-                              color:
-                                  ref.watch(
-                                        notificationsProvider.select(
-                                          (value) =>
-                                              value.hasUnreadNotifications,
-                                        ),
-                                      )
-                                      ? null
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .topNavIconPrimary,
-                            )
-                            : SvgPicture.asset(
-                              Assets.svg.bell,
-                              width: 20,
-                              height: 20,
-                              color:
-                                  ref.watch(
-                                        notificationsProvider.select(
-                                          (value) =>
-                                              value.hasUnreadNotifications,
-                                        ),
-                                      )
-                                      ? null
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .topNavIconPrimary,
                             ),
+                            width: 20,
+                            height: 20,
+                            color:
+                                ref.watch(
+                                  notificationsProvider.select(
+                                    (value) => value.hasUnreadNotifications,
+                                  ),
+                                )
+                                ? null
+                                : Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.topNavIconPrimary,
+                          )
+                        : SvgPicture.asset(
+                            Assets.svg.bell,
+                            width: 20,
+                            height: 20,
+                            color:
+                                ref.watch(
+                                  notificationsProvider.select(
+                                    (value) => value.hasUnreadNotifications,
+                                  ),
+                                )
+                                ? null
+                                : Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.topNavIconPrimary,
+                          ),
                     onPressed: () {
                       // reset unread state
                       ref.refresh(unreadNotificationsStateProvider);
@@ -390,10 +387,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       Navigator.of(
                         context,
                       ).pushNamed(NotificationsView.routeName).then((_) {
-                        final Set<int> unreadNotificationIds =
-                            ref
-                                .read(unreadNotificationsStateProvider.state)
-                                .state;
+                        final Set<int> unreadNotificationIds = ref
+                            .read(unreadNotificationsStateProvider.state)
+                            .state;
                         if (unreadNotificationIds.isEmpty) return;
 
                         final List<Future<void>> futures = [];
@@ -433,16 +429,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewSettingsButton"),
                     size: 36,
                     shadows: const [],
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.backgroundAppBar,
                     icon: SvgPicture.asset(
                       Assets.svg.gear,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
@@ -465,21 +459,20 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     ref.watch(prefsChangeNotifierProvider).enableExchange)
                   Container(
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.backgroundAppBar,
                       boxShadow:
                           Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .homeViewButtonBarBoxShadow !=
-                                  null
-                              ? [
-                                Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .homeViewButtonBarBoxShadow!,
-                              ]
-                              : null,
+                                  .extension<StackColors>()!
+                                  .homeViewButtonBarBoxShadow !=
+                              null
+                          ? [
+                              Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .homeViewButtonBarBoxShadow!,
+                            ]
+                          : null,
                     ),
                     child: const Padding(
                       padding: EdgeInsets.only(
@@ -516,8 +509,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         onPageChanged: (pageIndex) {
                           if (!_lock) {
                             ref
-                                .read(homeViewPageIndexStateProvider.state)
-                                .state = pageIndex;
+                                    .read(homeViewPageIndexStateProvider.state)
+                                    .state =
+                                pageIndex;
                           }
                         },
                       );

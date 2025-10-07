@@ -126,9 +126,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   ) async {
     await showDialog<void>(
       context: context,
-      builder:
-          (_) =>
-              MoreFeaturesDialog(walletId: widget.walletId, options: options),
+      builder: (_) =>
+          MoreFeaturesDialog(walletId: widget.walletId, options: options),
     );
   }
 
@@ -154,49 +153,48 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => DesktopDialog(
-            maxWidth: 500,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-              child: Column(
+      builder: (context) => DesktopDialog(
+        maxWidth: 500,
+        maxHeight: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          child: Column(
+            children: [
+              Text("Attention!", style: STextStyles.desktopH2(context)),
+              const SizedBox(height: 16),
+              Text(
+                "You're about to privatize all of your public funds.",
+                style: STextStyles.desktopTextSmall(context),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Attention!", style: STextStyles.desktopH2(context)),
-                  const SizedBox(height: 16),
-                  Text(
-                    "You're about to privatize all of your public funds.",
-                    style: STextStyles.desktopTextSmall(context),
+                  SecondaryButton(
+                    width: 200,
+                    buttonHeight: ButtonHeight.l,
+                    label: "Cancel",
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SecondaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.l,
-                        label: "Cancel",
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      PrimaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.l,
-                        label: "Continue",
-                        onPressed: () {
-                          Navigator.of(context).pop();
+                  const SizedBox(width: 20),
+                  PrimaryButton(
+                    width: 200,
+                    buttonHeight: ButtonHeight.l,
+                    label: "Continue",
+                    onPressed: () {
+                      Navigator.of(context).pop();
 
-                          unawaited(_attemptAnonymize());
-                        },
-                      ),
-                    ],
+                      unawaited(_attemptAnonymize());
+                    },
                   ),
                 ],
               ),
-            ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -205,14 +203,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     unawaited(
       showDialog(
         context: context,
-        builder:
-            (context) => WillPopScope(
-              child: const CustomLoadingOverlay(
-                message: "Privatizing balance",
-                eventBus: null,
-              ),
-              onWillPop: () async => shouldPop,
-            ),
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Privatizing balance",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
       ),
     );
 
@@ -265,46 +262,44 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         await showDialog<dynamic>(
           context: context,
-          builder:
-              (_) => DesktopDialog(
-                maxWidth: 400,
-                maxHeight: 300,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          builder: (_) => DesktopDialog(
+            maxWidth: 400,
+            maxHeight: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Privatize all failed",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const Spacer(flex: 1),
+                  Text(
+                    "Reason: $e",
+                    style: STextStyles.desktopTextSmall(context),
+                  ),
+                  const Spacer(flex: 2),
+                  Row(
                     children: [
-                      Text(
-                        "Privatize all failed",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const Spacer(flex: 1),
-                      Text(
-                        "Reason: $e",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const Spacer(flex: 2),
-                      Row(
-                        children: [
-                          const Spacer(),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: PrimaryButton(
-                              label: "Ok",
-                              buttonHeight: ButtonHeight.l,
-                              onPressed:
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop,
-                            ),
-                          ),
-                        ],
+                      const Spacer(),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Ok",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          ).pop,
+                        ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
+            ),
+          ),
         );
       }
     }
@@ -447,7 +442,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (wallet.info.coin is Banano)
         (WalletFeature.monkey, Assets.svg.monkey, _onMonkeyPressed),
 
-      if (!isViewOnly && wallet is CashFusionInterface)
+      if (AppConfig.hasFeature(AppFeature.tor) &&
+          !isViewOnly &&
+          wallet is CashFusionInterface)
         (WalletFeature.fusion, Assets.svg.cashFusion, _onFusionPressed),
 
       if (!isViewOnly &&
@@ -493,8 +490,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       canGen =
           (wallet is MultiAddressInterface ||
-              wallet is SparkInterface ||
-              supportsMweb);
+          wallet is SparkInterface ||
+          supportsMweb);
     }
 
     final showMwebOption = wallet is MwebInterface && !wallet.isViewOnly;
@@ -523,16 +520,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Assets.svg.bars,
               height: 20,
               width: 20,
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.buttonTextSecondary,
             ),
-            onPressed:
-                () => _onMorePressed([
-                  ...options.sublist(options.length - count),
-                  ...extraOptions,
-                ]),
+            onPressed: () => _onMorePressed([
+              ...options.sublist(options.length - count),
+              ...extraOptions,
+            ]),
           ),
         );
       },
@@ -545,30 +540,27 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                 label: option.$1.label,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 buttonHeight: ButtonHeight.l,
-                icon:
-                    option.$1 == WalletFeature.buy
-                        ? SvgPicture.file(
-                          File(
-                            ref.watch(
-                              themeProvider.select((value) => value.assets.buy),
-                            ),
+                icon: option.$1 == WalletFeature.buy
+                    ? SvgPicture.file(
+                        File(
+                          ref.watch(
+                            themeProvider.select((value) => value.assets.buy),
                           ),
-                          height: 20,
-                          width: 20,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonTextSecondary,
-                        )
-                        : SvgPicture.asset(
-                          option.$2,
-                          height: 20,
-                          width: 20,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonTextSecondary,
                         ),
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.buttonTextSecondary,
+                      )
+                    : SvgPicture.asset(
+                        option.$2,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.buttonTextSecondary,
+                      ),
                 onPressed: () => option.$3(),
               ),
             ),

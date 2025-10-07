@@ -8,6 +8,7 @@ import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
+import '../../../app_config.dart';
 import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
 import '../../../models/input.dart';
@@ -511,8 +512,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final host = node.host.endsWith(".onion")
         ? node.host
         : Uri.parse(node.host).host;
-    ({InternetAddress host, int port})? proxy;
-    proxy = prefs.useTor && !node.forceNoTor
+    final ({InternetAddress host, int port})? proxy =
+        AppConfig.hasFeature(AppFeature.tor) && prefs.useTor && !node.forceNoTor
         ? TorService.sharedInstance.getProxyInfo()
         : null;
 

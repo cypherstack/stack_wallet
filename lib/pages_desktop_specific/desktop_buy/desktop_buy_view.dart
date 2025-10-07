@@ -10,6 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../app_config.dart';
 import '../../pages/buy_view/buy_form.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/tor_service.dart';
@@ -35,8 +37,9 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
 
   @override
   void initState() {
-    torEnabled =
-        ref.read(pTorService).status != TorConnectionStatus.disconnected;
+    torEnabled = AppConfig.hasFeature(AppFeature.tor)
+        ? ref.read(pTorService).status != TorConnectionStatus.disconnected
+        : false;
     super.initState();
   }
 
@@ -54,9 +57,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
             appBar: DesktopAppBar(
               isCompactHeight: true,
               leading: Padding(
-                padding: const EdgeInsets.only(
-                  left: 24,
-                ),
+                padding: const EdgeInsets.only(left: 24),
                 child: Text(
                   "Buy crypto",
                   style: STextStyles.desktopH3(context),
@@ -64,11 +65,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
               ),
             ),
             body: const Padding(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                bottom: 24,
-              ),
+              padding: EdgeInsets.only(left: 24, right: 24, bottom: 24),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -77,9 +74,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          height: 16,
-                        ),
+                        SizedBox(height: 16),
                         RoundedWhiteContainer(
                           padding: EdgeInsets.all(24),
                           child: BuyForm(),
@@ -87,9 +82,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                       ],
                     ),
                   ),
-                  SizedBox(
-                    width: 16,
-                  ),
+                  SizedBox(width: 16),
                   // Expanded(
                   //   child: Row(
                   //     children: const [
@@ -105,19 +98,16 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
           ),
           if (torEnabled)
             Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.7),
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.overlay.withOpacity(0.7),
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               child: DesktopDialog(
                 maxHeight: 200,
                 maxWidth: 350,
                 child: Padding(
-                  padding: const EdgeInsets.all(
-                    15.0,
-                  ),
+                  padding: const EdgeInsets.all(15.0),
                   child: Column(
                     // crossAxisAlignment: CrossAxisAlignment.center,
                     // mainAxisAlignment: MainAxisAlignment.center,
@@ -127,16 +117,14 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                         textAlign: TextAlign.center,
                         style: STextStyles.pageTitleH1(context),
                       ),
-                      const SizedBox(
-                        height: 30,
-                      ),
+                      const SizedBox(height: 30),
                       Text(
                         "Purchasing not available while Tor is enabled",
                         textAlign: TextAlign.center,
                         style: STextStyles.desktopTextMedium(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
                         ),
                       ),
                     ],
