@@ -329,6 +329,24 @@ final class _MwebdServerInterfaceImpl extends LibXelisInterface {
   @override
   Future<bool> hasXelisBalance(String walletId) =>
       _wallets[walletId]!.hasXelisBalance();
+
+  @override
+  Future<bool> testDaemonConnection(String endPoint, bool useSSL) async {
+    final daemon = xelis_sdk.DaemonClient(
+      endPoint: endPoint,
+      secureWebSocket: useSSL,
+      timeout: 5000,
+    );
+    daemon.connect();
+    final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
+    daemon.disconnect();
+
+    Logging.instance.i(
+      "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
+    );
+
+    return networkInfo.height != null;
+  }
 }
 
 extension _XelisNetworkConversion on CryptoCurrencyNetwork {

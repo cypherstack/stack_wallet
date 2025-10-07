@@ -89,6 +89,8 @@ abstract class LibXelisInterface {
   Future<BigInt> getXelisBalanceRaw(String walletId);
 
   Future<bool> hasXelisBalance(String walletId);
+
+  Future<bool> testDaemonConnection(String endPoint, bool useSSL);
 }
 
 // =============================================================================
