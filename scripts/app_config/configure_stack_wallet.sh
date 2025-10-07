@@ -71,6 +71,7 @@ const _commitHash = "$BUILT_COMMIT_HASH";
 const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
+  AppFeature.tor,
   AppFeature.swap
 };
 

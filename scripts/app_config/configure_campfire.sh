@@ -61,6 +61,7 @@ const _shortDescriptionText = "Your privacy. Your wallet. Your Firo.";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
 const Set<AppFeature> _features = {
+  AppFeature.tor,
   AppFeature.swap
 };
 
