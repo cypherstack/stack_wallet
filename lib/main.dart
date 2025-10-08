@@ -185,8 +185,10 @@ void main(List<String> args) async {
     libXelis.startListeningToRustLogs();
   }
 
-  // setup lib spark logging
-  initSparkLogging(Prefs.instance.logLevel);
+  if (AppConfig.coins.whereType<Firo>().isNotEmpty) {
+    // setup lib spark logging
+    initSparkLogging(Prefs.instance.logLevel);
+  }
 
   if (AppConfig.appName == "Campfire" &&
       !Util.isDesktop &&
