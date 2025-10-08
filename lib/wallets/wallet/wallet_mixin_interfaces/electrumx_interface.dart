@@ -405,6 +405,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           utxos: utxos,
           coinControl: coinControl,
           isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
+          overrideFeeAmount: overrideFeeAmount,
         );
       }
       throw Exception("Insufficient balance to pay transaction fee");
