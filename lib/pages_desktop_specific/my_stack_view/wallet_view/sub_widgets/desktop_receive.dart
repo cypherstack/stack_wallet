@@ -32,7 +32,6 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -128,14 +127,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         await showDialog<void>(
           context: context,
           useRootNavigator: true,
-          builder:
-              (context) => StackOkDialog(
-                desktopPopRootNavigator: true,
-                title: "Slatepack receive error",
-                message:
-                    ex?.toString() ?? "Unexpected result without exception",
-                maxWidth: 400,
-              ),
+          builder: (context) => StackOkDialog(
+            desktopPopRootNavigator: true,
+            title: "Slatepack receive error",
+            message: ex?.toString() ?? "Unexpected result without exception",
+            maxWidth: 400,
+          ),
         );
       }
       return;
@@ -145,30 +142,28 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       final response =
           await showDialog<({String responseSlatepack, bool wasEncrypted})>(
             context: context,
-            builder:
-                (context) => SDialog(
-                  child: SizedBox(
-                    width: 700,
-                    child: MwcSlatepackImportDialog(
-                      walletId: widget.walletId,
-                      clipboard: widget.clipboard,
-                      rawSlatepack: result.raw,
-                      decoded: result.result,
-                      slatepackType: result.type,
-                    ),
-                  ),
+            builder: (context) => SDialog(
+              child: SizedBox(
+                width: 700,
+                child: MwcSlatepackImportDialog(
+                  walletId: widget.walletId,
+                  clipboard: widget.clipboard,
+                  rawSlatepack: result.raw,
+                  decoded: result.result,
+                  slatepackType: result.type,
                 ),
+              ),
+            ),
           );
 
       if (mounted && response != null) {
         await showDialog<void>(
           context: context,
           barrierDismissible: false,
-          builder:
-              (context) => SlatepackResponseDialog(
-                responseSlatepack: response.responseSlatepack,
-                wasEncrypted: response.wasEncrypted,
-              ),
+          builder: (context) => SlatepackResponseDialog(
+            responseSlatepack: response.responseSlatepack,
+            wasEncrypted: response.wasEncrypted,
+          ),
         );
       }
     }
@@ -517,94 +512,85 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               ),
             ),
           ),
-        if (!(isMimblewimblecoin &&
-            ref.watch(pSelectedMwcTransactionMethod) ==
-                MwcTransactionMethod.slatepack))
+        if (!(isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId))))
           const SizedBox(height: 20),
-        if (!(isMimblewimblecoin &&
-            ref.watch(pSelectedMwcTransactionMethod) ==
-                MwcTransactionMethod.slatepack))
+        if (!(isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId))))
           ConditionalParent(
             condition: showMultiType,
-            builder:
-                (child) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    DropdownButtonHideUnderline(
-                      child: DropdownButton2<int>(
-                        value: _currentIndex,
-                        items: [
-                          for (int i = 0; i < _walletAddressTypes.length; i++)
-                            DropdownMenuItem(
-                              value: i,
-                              child: Text(
-                                supportsSpark &&
-                                        _walletAddressTypes[i] ==
-                                            AddressType.p2pkh
-                                    ? "Transparent address"
-                                    : "${_walletAddressTypes[i].readableName} address",
-                                style: STextStyles.w500_14(context),
-                              ),
-                            ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null && value != _currentIndex) {
-                            setState(() {
-                              _currentIndex = value;
-                            });
-                          }
-                        },
-                        isExpanded: true,
-                        iconStyleData: IconStyleData(
-                          icon: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: SvgPicture.asset(
-                              Assets.svg.chevronDown,
-                              width: 12,
-                              height: 6,
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveSearchIconRight,
-                            ),
+            builder: (child) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DropdownButtonHideUnderline(
+                  child: DropdownButton2<int>(
+                    value: _currentIndex,
+                    items: [
+                      for (int i = 0; i < _walletAddressTypes.length; i++)
+                        DropdownMenuItem(
+                          value: i,
+                          child: Text(
+                            supportsSpark &&
+                                    _walletAddressTypes[i] == AddressType.p2pkh
+                                ? "Transparent address"
+                                : "${_walletAddressTypes[i].readableName} address",
+                            style: STextStyles.w500_14(context),
                           ),
                         ),
-                        buttonStyleData: ButtonStyleData(
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldDefaultBG,
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                          ),
-                        ),
-                        dropdownStyleData: DropdownStyleData(
-                          offset: const Offset(0, -10),
-                          elevation: 0,
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldDefaultBG,
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                          ),
-                        ),
-                        menuItemStyleData: const MenuItemStyleData(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null && value != _currentIndex) {
+                        setState(() {
+                          _currentIndex = value;
+                        });
+                      }
+                    },
+                    isExpanded: true,
+                    iconStyleData: IconStyleData(
+                      icon: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          width: 12,
+                          height: 6,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveSearchIconRight,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    child,
-                  ],
+                    buttonStyleData: ButtonStyleData(
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                    ),
+                    dropdownStyleData: DropdownStyleData(
+                      offset: const Offset(0, -10),
+                      elevation: 0,
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                    ),
+                    menuItemStyleData: const MenuItemStyleData(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 12),
+                child,
+              ],
+            ),
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
@@ -620,10 +606,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.backgroundAppBar,
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(
@@ -646,10 +631,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                   Assets.svg.copy,
                                   width: 15,
                                   height: 15,
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.infoItemIcons,
                                 ),
                                 const SizedBox(width: 4),
                                 Text("Copy", style: STextStyles.link2(context)),
@@ -663,14 +647,14 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                             Expanded(
                               child: Text(
                                 address,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).extension<StackColors>()!.textDark,
-                                ),
+                                    ),
                               ),
                             ),
                           ],
@@ -690,18 +674,16 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             buttonHeight: ButtonHeight.l,
             onPressed:
                 supportsMweb &&
-                        _walletAddressTypes[_currentIndex] == AddressType.mweb
-                    ? generateNewMwebAddress
-                    : supportsSpark &&
-                        _walletAddressTypes[_currentIndex] == AddressType.spark
-                    ? generateNewSparkAddress
-                    : generateNewAddress,
+                    _walletAddressTypes[_currentIndex] == AddressType.mweb
+                ? generateNewMwebAddress
+                : supportsSpark &&
+                      _walletAddressTypes[_currentIndex] == AddressType.spark
+                ? generateNewSparkAddress
+                : generateNewAddress,
             label: "Generate new address",
           ),
         const SizedBox(height: 20),
-        if (isMimblewimblecoin &&
-            ref.watch(pSelectedMwcTransactionMethod) ==
-                MwcTransactionMethod.slatepack)
+        if (isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId)))
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -709,10 +691,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               Text(
                 "Receive Slatepack",
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color:
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveSearchIconRight,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
                 ),
                 textAlign: TextAlign.left,
               ),
@@ -743,61 +724,60 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   },
                   focusNode: _slateFocusNode,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldActiveText,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
                     height: 1.8,
                   ),
-                  decoration: standardInputDecoration(
-                    "Enter Slatepack Message",
-                    _slateFocusNode,
-                    context,
-                    desktopMed: true,
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical:
-                          12, // Adjust vertical padding for better alignment
-                    ),
-                    suffixIcon: Padding(
-                      padding:
-                          _receiveSlateController.text.isEmpty
+                  decoration:
+                      standardInputDecoration(
+                        "Enter Slatepack Message",
+                        _slateFocusNode,
+                        context,
+                        desktopMed: true,
+                      ).copyWith(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical:
+                              12, // Adjust vertical padding for better alignment
+                        ),
+                        suffixIcon: Padding(
+                          padding: _receiveSlateController.text.isEmpty
                               ? const EdgeInsets.only(right: 8)
                               : const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _slateToggleFlag
-                                ? TextFieldIconButton(
-                                  key: const Key(
-                                    "receiveViewClearSlatepackFieldButtonKey",
-                                  ),
-                                  onTap: () {
-                                    _receiveSlateController.text = "";
-                                    _slate = "";
-                                    setState(() {
-                                      _slateToggleFlag = false;
-                                    });
-                                  },
-                                  child: const XIcon(),
-                                )
-                                : TextFieldIconButton(
-                                  key: const Key(
-                                    "receiveViewPasteSlatepackFieldButtonKey",
-                                  ),
-                                  onTap: _pasteSlatepack,
-                                  child:
-                                      _receiveSlateController.text.isEmpty
-                                          ? const ClipboardIcon()
-                                          : const XIcon(),
-                                ),
-                          ],
+                          child: UnconstrainedBox(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _slateToggleFlag
+                                    ? TextFieldIconButton(
+                                        key: const Key(
+                                          "receiveViewClearSlatepackFieldButtonKey",
+                                        ),
+                                        onTap: () {
+                                          _receiveSlateController.text = "";
+                                          _slate = "";
+                                          setState(() {
+                                            _slateToggleFlag = false;
+                                          });
+                                        },
+                                        child: const XIcon(),
+                                      )
+                                    : TextFieldIconButton(
+                                        key: const Key(
+                                          "receiveViewPasteSlatepackFieldButtonKey",
+                                        ),
+                                        onTap: _pasteSlatepack,
+                                        child:
+                                            _receiveSlateController.text.isEmpty
+                                            ? const ClipboardIcon()
+                                            : const XIcon(),
+                                      ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
                 ),
               ),
             ],
@@ -834,9 +814,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
         // TODO: create transparent button class to account for hover
         // Conditional logic for 'Submit' button or QR code
-        if (isMimblewimblecoin &&
-            ref.watch(pSelectedMwcTransactionMethod) ==
-                MwcTransactionMethod.slatepack)
+        if (isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId)))
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: PrimaryButton(
@@ -852,38 +830,36 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               if (Util.isDesktop) {
                 await showDialog<void>(
                   context: context,
-                  builder:
-                      (context) => DesktopDialog(
-                        maxHeight: double.infinity,
-                        maxWidth: 580,
-                        child: Column(
+                  builder: (context) => DesktopDialog(
+                    maxHeight: double.infinity,
+                    maxWidth: 580,
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                const AppBarBackButton(size: 40, iconSize: 24),
-                                Text(
-                                  "Generate QR code",
-                                  style: STextStyles.desktopH3(context),
-                                ),
-                              ],
-                            ),
-                            IntrinsicHeight(
-                              child: Navigator(
-                                onGenerateRoute: RouteGenerator.generateRoute,
-                                onGenerateInitialRoutes:
-                                    (_, __) => [
-                                      RouteGenerator.generateRoute(
-                                        RouteSettings(
-                                          name: GenerateUriQrCodeView.routeName,
-                                          arguments: Tuple2(coin, address),
-                                        ),
-                                      ),
-                                    ],
-                              ),
+                            const AppBarBackButton(size: 40, iconSize: 24),
+                            Text(
+                              "Generate QR code",
+                              style: STextStyles.desktopH3(context),
                             ),
                           ],
                         ),
-                      ),
+                        IntrinsicHeight(
+                          child: Navigator(
+                            onGenerateRoute: RouteGenerator.generateRoute,
+                            onGenerateInitialRoutes: (_, __) => [
+                              RouteGenerator.generateRoute(
+                                RouteSettings(
+                                  name: GenerateUriQrCodeView.routeName,
+                                  arguments: Tuple2(coin, address),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               } else {
                 unawaited(
@@ -891,11 +867,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     RouteGenerator.getRoute(
                       shouldUseMaterialRoute:
                           RouteGenerator.useMaterialPageRoute,
-                      builder:
-                          (_) => GenerateUriQrCodeView(
-                            coin: coin,
-                            receivingAddress: address,
-                          ),
+                      builder: (_) => GenerateUriQrCodeView(
+                        coin: coin,
+                        receivingAddress: address,
+                      ),
                       settings: const RouteSettings(
                         name: GenerateUriQrCodeView.routeName,
                       ),
@@ -914,19 +889,17 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     Assets.svg.qrcode,
                     width: 14,
                     height: 16,
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorBlue,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorBlue,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Create new QR code",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorBlue,
                     ),
                   ),
                 ],

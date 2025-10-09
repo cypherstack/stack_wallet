@@ -41,7 +41,6 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
-import '../../utilities/enums/mwc_transaction_method.dart';
 import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
@@ -1377,9 +1376,7 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     final isMwcSlatepack =
-        coin is Mimblewimblecoin &&
-        ref.watch(pSelectedMwcTransactionMethod) ==
-            MwcTransactionMethod.slatepack;
+        coin is Mimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId));
 
     return Background(
       child: Scaffold(
@@ -2622,8 +2619,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             TextButton(
                               onPressed:
                                   ref.watch(pPreviewTxButtonEnabled(coin))
-                                  ? ref.watch(pSelectedMwcTransactionMethod) ==
-                                            MwcTransactionMethod.slatepack
+                                  ? ref.watch(pIsSlatepack(widget.walletId))
                                         ? _createSlatepack
                                         : _previewTransaction
                                   : null,
@@ -2635,8 +2631,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         .extension<StackColors>()!
                                         .getPrimaryDisabledButtonStyle(context),
                               child: Text(
-                                ref.watch(pSelectedMwcTransactionMethod) ==
-                                        MwcTransactionMethod.slatepack
+                                ref.watch(pIsSlatepack(widget.walletId))
                                     ? "Create slatepack"
                                     : "Preview",
                                 style: STextStyles.button(context),
