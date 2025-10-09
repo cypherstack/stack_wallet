@@ -13,7 +13,7 @@ import '../interfaces/cs_salvium_interface.dart';
 CsSalviumInterface get csSalvium => _getInterface();
 
 //OFF
-CsSalviumInterface _getInterface() => throw Exception("XMR/WOW not enabled!");
+CsSalviumInterface _getInterface() => throw Exception("Sal not enabled!");
 
 //END_OFF
 //ON
@@ -181,8 +181,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       wallet.actual.getPrivateSpendKey();
 
   @override
-  Future<bool> isSynced(WrappedWallet wallet) =>
-      wallet.actual.isSynced() ?? Future.value(false);
+  Future<bool> isSynced(WrappedWallet wallet) => wallet.actual.isSynced();
 
   @override
   void startSyncing(WrappedWallet wallet) => wallet.actual.startSyncing();
@@ -227,11 +226,11 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
 
   @override
   Future<bool> rescanBlockchain(WrappedWallet wallet) =>
-      wallet.actual.rescanBlockchain() ?? Future.value(false);
+      wallet.actual.rescanBlockchain();
 
   @override
   Future<bool> isConnectedToDaemon(WrappedWallet wallet) =>
-      wallet.actual.isConnectedToDaemon() ?? Future.value(false);
+      wallet.actual.isConnectedToDaemon();
 
   @override
   Future<void> connect(
@@ -275,7 +274,6 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     bool refresh = false,
   }) async {
     final transactions = await wallet.actual.getAllTxs(refresh: refresh);
-    if (transactions == null) return [];
     return transactions
         .map(
           (e) => CsTransaction(
@@ -293,7 +291,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
             key: e.key,
             timeStamp: e.timeStamp,
             minConfirms: e.minConfirms.value,
-            salviumData: (asset: e.asset, type: e.type),
+            salviumData: (asset: e.asset, type: e.type.value),
           ),
         )
         .toList();
@@ -327,7 +325,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
             key: e.key,
             timeStamp: e.timeStamp,
             minConfirms: e.minConfirms.value,
-            salviumData: (asset: e.asset, type: e.type),
+            salviumData: (asset: e.asset, type: e.type.value),
           ),
         )
         .toList();
