@@ -32,8 +32,8 @@ class ChurningService extends ChangeNotifier {
   Object? lastSeenError;
 
   bool _canChurn() {
-    if (csMonero.walletInstanceExists(walletId) &&
-        csMonero.getUnlockedBalance(walletId, accountIndex: kAccount)! >
+    if (wallet.wallet != null &&
+        csMonero.getUnlockedBalance(wallet.wallet!, accountIndex: kAccount)! >
             BigInt.zero) {
       return true;
     } else {
@@ -48,7 +48,9 @@ class ChurningService extends ChangeNotifier {
       return;
     }
 
-    final outputs = await csMonero.getOutputs(walletId, refresh: true);
+    final outputs = wallet.wallet == null
+        ? <CsOutput>[]
+        : await csMonero.getOutputs(wallet.wallet!, refresh: true);
     final required = wallet.cryptoCurrency.minConfirms;
 
     int lowestNumberOfConfirms = required;
@@ -184,7 +186,7 @@ class ChurningService extends ChangeNotifier {
 
   Future<void> _churnTxSimple() async {
     final address = csMonero.getAddress(
-      walletId,
+      wallet.wallet!,
       accountIndex: kAccount,
       addressIndex: 0,
     );
@@ -192,7 +194,7 @@ class ChurningService extends ChangeNotifier {
     final height = await wallet.chainHeight;
 
     final pending = await csMonero.createTx(
-      walletId,
+      wallet.wallet!,
       output: CsRecipient(
         address,
         BigInt.zero, // Doesn't matter if `sweep` is true
@@ -204,6 +206,6 @@ class ChurningService extends ChangeNotifier {
       currentHeight: height,
     );
 
-    await csMonero.commitTx(walletId, pending);
+    await csMonero.commitTx(wallet.wallet!, pending);
   }
 }

@@ -1,8 +1,11 @@
 import '../../models/input.dart';
+import 'cs_salvium_interface.dart' show WrappedWallet;
 
 export '../generated/cs_monero_interface_impl.dart';
 
 abstract class CsMoneroInterface {
+  const CsMoneroInterface();
+
   void setUseCsMoneroLoggerInternal(bool enable);
 
   // tx prio forwarding
@@ -10,13 +13,15 @@ abstract class CsMoneroInterface {
   int getTxPriorityMedium();
   int getTxPriorityNormal();
 
-  bool walletInstanceExists(String walletId);
-
   bool walletExists(String path, {required CsCoin csCoin});
 
-  Future<int> estimateFee(int rate, BigInt amount, {required String walletId});
+  Future<int> estimateFee(
+    int rate,
+    BigInt amount, {
+    required WrappedWallet wallet,
+  });
 
-  Future<void> loadWallet(
+  Future<WrappedWallet> loadWallet(
     String walletId, {
     required CsCoin csCoin,
     required String path,
@@ -24,22 +29,20 @@ abstract class CsMoneroInterface {
   });
 
   String getAddress(
-    String walletId, {
+    WrappedWallet wallet, {
     int accountIndex = 0,
     int addressIndex = 0,
   });
 
-  Future<void> getCreatedWallet({
+  Future<WrappedWallet> getCreatedWallet({
     required CsCoin csCoin,
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
-    required final void Function(int refreshFromBlockHeight, String seed)
-    onCreated,
   });
 
-  Future<void> getRestoredWallet({
+  Future<WrappedWallet> getRestoredWallet({
     required String walletId,
     required CsCoin csCoin,
     required String path,
@@ -49,7 +52,7 @@ abstract class CsMoneroInterface {
     int height = 0,
   });
 
-  Future<void> getRestoredFromViewKeyWallet({
+  Future<WrappedWallet> getRestoredFromViewKeyWallet({
     required String walletId,
     required CsCoin csCoin,
     required String path,
@@ -59,35 +62,35 @@ abstract class CsMoneroInterface {
     int height = 0,
   });
 
-  String getTxKey(String walletId, String txid);
+  String getTxKey(WrappedWallet wallet, String txid);
 
-  Future<void> save(String walletId);
+  Future<void> save(WrappedWallet wallet);
 
-  String getPublicViewKey(String walletId);
-  String getPrivateViewKey(String walletId);
-  String getPublicSpendKey(String walletId);
-  String getPrivateSpendKey(String walletId);
+  String getPublicViewKey(WrappedWallet wallet);
+  String getPrivateViewKey(WrappedWallet wallet);
+  String getPublicSpendKey(WrappedWallet wallet);
+  String getPrivateSpendKey(WrappedWallet wallet);
 
-  Future<bool> isSynced(String walletId);
-  void startSyncing(String walletId);
-  void stopSyncing(String walletId);
+  Future<bool> isSynced(WrappedWallet wallet);
+  void startSyncing(WrappedWallet wallet);
+  void stopSyncing(WrappedWallet wallet);
 
-  void startAutoSaving(String walletId);
-  void stopAutoSaving(String walletId);
+  void startAutoSaving(WrappedWallet wallet);
+  void stopAutoSaving(WrappedWallet wallet);
 
-  bool hasListeners(String walletId);
-  void addListener(String walletId, CsWalletListener listener);
-  void startListeners(String walletId);
-  void stopListeners(String walletId);
+  bool hasListeners(WrappedWallet wallet);
+  void addListener(WrappedWallet wallet, CsWalletListener listener);
+  void startListeners(WrappedWallet wallet);
+  void stopListeners(WrappedWallet wallet);
 
-  Future<bool> rescanBlockchain(String walletId);
-  Future<bool> isConnectedToDaemon(String walletId);
+  Future<bool> rescanBlockchain(WrappedWallet wallet);
+  Future<bool> isConnectedToDaemon(WrappedWallet wallet);
 
-  int getRefreshFromBlockHeight(String walletId);
-  void setRefreshFromBlockHeight(String walletId, int height);
+  int getRefreshFromBlockHeight(WrappedWallet wallet);
+  void setRefreshFromBlockHeight(WrappedWallet wallet, int height);
 
   Future<void> connect(
-    String walletId, {
+    WrappedWallet wallet, {
     required String daemonAddress,
     required bool trusted,
     String? daemonUsername,
@@ -97,24 +100,27 @@ abstract class CsMoneroInterface {
     String? socksProxyAddress,
   });
 
-  Future<List<String>> getAllTxids(String walletId, {bool refresh = false});
+  Future<List<String>> getAllTxids(
+    WrappedWallet wallet, {
+    bool refresh = false,
+  });
 
-  BigInt? getBalance(String walletId, {int accountIndex = 0});
-  BigInt? getUnlockedBalance(String walletId, {int accountIndex = 0});
+  BigInt? getBalance(WrappedWallet wallet, {int accountIndex = 0});
+  BigInt? getUnlockedBalance(WrappedWallet wallet, {int accountIndex = 0});
 
   Future<List<CsTransaction>> getAllTxs(
-    String walletId, {
+    WrappedWallet wallet, {
     bool refresh = false,
   });
 
   Future<List<CsTransaction>> getTxs(
-    String walletId, {
+    WrappedWallet wallet, {
     required Set<String> txids,
     bool refresh = false,
   });
 
   Future<CsPendingTransaction> createTx(
-    String walletId, {
+    WrappedWallet wallet, {
     required CsRecipient output,
     required int priority,
     required bool sweep,
@@ -125,7 +131,7 @@ abstract class CsMoneroInterface {
   });
 
   Future<CsPendingTransaction> createTxMultiDest(
-    String walletId, {
+    WrappedWallet wallet, {
     required List<CsRecipient> outputs,
     required int priority,
     required bool sweep,
@@ -135,16 +141,16 @@ abstract class CsMoneroInterface {
     required int currentHeight,
   });
 
-  Future<void> commitTx(String walletId, CsPendingTransaction tx);
+  Future<void> commitTx(WrappedWallet wallet, CsPendingTransaction tx);
 
   Future<List<CsOutput>> getOutputs(
-    String walletId, {
+    WrappedWallet wallet, {
     bool refresh = false,
     bool includeSpent = false,
   });
 
-  Future<void> freezeOutput(String walletId, String keyImage);
-  Future<void> thawOutput(String walletId, String keyImage);
+  Future<void> freezeOutput(WrappedWallet wallet, String keyImage);
+  Future<void> thawOutput(WrappedWallet wallet, String keyImage);
 
   List<String> getMoneroWordList(String language);
   List<String> getWowneroWordList(String language, int seedLength);
@@ -152,6 +158,8 @@ abstract class CsMoneroInterface {
   int getHeightByDate(DateTime date, {required CsCoin csCoin});
 
   bool validateAddress(String address, int network, {required CsCoin csCoin});
+
+  String getSeed(WrappedWallet wallet);
 }
 
 enum CsCoin { monero, wownero }
@@ -221,7 +229,7 @@ final class CsPendingTransaction {
 
 // forwarding class
 final class CsTransaction {
-  CsTransaction( {
+  CsTransaction({
     required this.displayLabel,
     required this.description,
     required this.fee,
@@ -293,7 +301,6 @@ final class CsTransaction {
   bool get isPending => confirmations < minConfirms;
 
   final ({int type, String asset})? salviumData;
-
 }
 
 // forwarding class

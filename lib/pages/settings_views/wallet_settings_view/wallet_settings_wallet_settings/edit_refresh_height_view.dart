@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -53,7 +55,11 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                 newRestoreHeight: newHeight,
                 isar: ref.read(mainDBProvider).isar,
               );
-          csMonero.setRefreshFromBlockHeight(widget.walletId, newHeight);
+          final wallet =
+              ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet?;
+          if (wallet?.wallet != null) {
+            csMonero.setRefreshFromBlockHeight(wallet!.wallet!, newHeight);
+          }
         } else {
           errMessage = "Invalid height: ${_controller.text}";
         }
@@ -89,8 +95,19 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController()
-      ..text = csMonero.getRefreshFromBlockHeight(widget.walletId).toString();
+    _controller = TextEditingController();
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet?;
+    if (wallet?.wallet != null) {
+      _controller.text = csMonero
+          .getRefreshFromBlockHeight(wallet!.wallet!)
+          .toString();
+    } else {
+      _controller.text = ref
+          .read(pWalletInfo(widget.walletId))
+          .restoreHeight
+          .toString();
+    }
   }
 
   @override

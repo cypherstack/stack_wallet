@@ -6,6 +6,8 @@ import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart'
+    show WrappedWallet;
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_monero_wallet.dart';
@@ -16,8 +18,7 @@ class WowneroWallet extends LibMoneroWallet {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (!csMonero.walletInstanceExists(walletId) ||
-        syncStatus is! lib_monero_compat.SyncedSyncStatus) {
+    if (wallet == null || syncStatus is! lib_monero_compat.SyncedSyncStatus) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
@@ -68,7 +69,7 @@ class WowneroWallet extends LibMoneroWallet {
           approximateFee = await csMonero.estimateFee(
             feeRate.toInt(),
             amount.raw,
-            walletId: walletId,
+            wallet: wallet!,
           );
         }
       }
@@ -89,33 +90,32 @@ class WowneroWallet extends LibMoneroWallet {
       csMonero.walletExists(path, csCoin: CsCoin.wownero);
 
   @override
-  Future<void> loadWallet({required String path, required String password}) =>
-      csMonero.loadWallet(
-        walletId,
-        path: path,
-        password: password,
-        csCoin: CsCoin.wownero,
-      );
+  Future<WrappedWallet> loadWallet({
+    required String path,
+    required String password,
+  }) => csMonero.loadWallet(
+    walletId,
+    path: path,
+    password: password,
+    csCoin: CsCoin.wownero,
+  );
 
   @override
-  Future<void> getCreatedWallet({
+  Future<WrappedWallet> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
-    required final void Function(int refreshFromBlockHeight, String seed)
-    onCreated,
   }) => csMonero.getCreatedWallet(
     csCoin: CsCoin.wownero,
     path: path,
     password: password,
     wordCount: wordCount,
     seedOffset: seedOffset,
-    onCreated: onCreated,
   );
 
   @override
-  Future<void> getRestoredWallet({
+  Future<WrappedWallet> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
@@ -132,7 +132,7 @@ class WowneroWallet extends LibMoneroWallet {
   );
 
   @override
-  Future<void> getRestoredFromViewKeyWallet({
+  Future<WrappedWallet> getRestoredFromViewKeyWallet({
     required String path,
     required String password,
     required String address,
