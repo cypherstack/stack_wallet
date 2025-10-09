@@ -18,12 +18,14 @@ List<String> hashTags({required List<String> base64Tags}) =>
 
 //END_OFF
 //ON
-LibSparkInterface _getInterface() => _LibSparkInterfaceImpl();
+LibSparkInterface _getInterface() => const _LibSparkInterfaceImpl();
 
 List<String> hashTags({required List<String> base64Tags}) =>
     LibSpark.hashTags(base64Tags: base64Tags);
 
 class _LibSparkInterfaceImpl extends LibSparkInterface {
+  const _LibSparkInterfaceImpl();
+
   @override
   String get sparkBaseDerivationPath => kSparkBaseDerivationPath;
 

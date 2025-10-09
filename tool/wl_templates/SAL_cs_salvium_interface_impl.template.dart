@@ -17,13 +17,15 @@ CsSalviumInterface _getInterface() => throw Exception("XMR/WOW not enabled!");
 
 //END_OFF
 //ON
-CsSalviumInterface _getInterface() => _CsSalviumInterfaceImpl();
+CsSalviumInterface _getInterface() => const _CsSalviumInterfaceImpl();
 
 extension _WrappedWalletExt on WrappedWallet {
   lib_salvium.SalviumWallet get actual => get();
 }
 
 class _CsSalviumInterfaceImpl extends CsSalviumInterface {
+  const _CsSalviumInterfaceImpl();
+
   @override
   void setUseCsSalviumLoggerInternal(bool enable) =>
       lib_salvium.Logging.useLogger = enable;

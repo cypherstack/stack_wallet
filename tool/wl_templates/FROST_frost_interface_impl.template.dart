@@ -24,9 +24,11 @@ FrostInterface _getInterface() => throw Exception("FROST not enabled!");
 
 //END_OFF
 //ON
-FrostInterface _getInterface() => _FrostInterfaceImpl();
+FrostInterface _getInterface() => const _FrostInterfaceImpl();
 
 final class _FrostInterfaceImpl extends FrostInterface {
+  const _FrostInterfaceImpl();
+
   @override
   ({OpaqueWrapper machinePtr, String preprocess}) attemptSignConfig({
     required int network,

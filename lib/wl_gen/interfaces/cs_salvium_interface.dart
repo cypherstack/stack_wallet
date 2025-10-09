@@ -4,6 +4,8 @@ import 'cs_monero_interface.dart';
 export '../generated/cs_salvium_interface_impl.dart';
 
 abstract class CsSalviumInterface {
+  const CsSalviumInterface();
+
   void setUseCsSalviumLoggerInternal(bool enable);
 
   // tx prio forwarding
