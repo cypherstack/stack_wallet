@@ -93,6 +93,7 @@ import 'pages/receive_view/addresses/edit_address_label_view.dart';
 import 'pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'pages/receive_view/receive_view.dart';
+import 'pages/salvium_stake/salvium_create_stake_view.dart';
 import 'pages/send_view/confirm_transaction_view.dart';
 import 'pages/send_view/frost_ms/frost_send_view.dart';
 import 'pages/send_view/send_view.dart';
@@ -685,6 +686,16 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NamecoinNamesHomeView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SalviumCreateStakeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SalviumCreateStakeView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }

@@ -98,6 +98,7 @@ import '../ordinals/ordinals_view.dart';
 import '../paynym/paynym_claim_view.dart';
 import '../paynym/paynym_home_view.dart';
 import '../receive_view/receive_view.dart';
+import '../salvium_stake/salvium_create_stake_view.dart';
 import '../send_view/frost_ms/frost_send_view.dart';
 import '../send_view/send_view.dart';
 import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -1251,6 +1252,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           Navigator.of(context).pushNamed(
                             CashFusionView.routeName,
                             arguments: walletId,
+                          );
+                        },
+                      ),
+                    if (wallet is LibSalviumWallet)
+                      WalletNavigationBarItemData(
+                        label: "Staking",
+                        icon: const PaynymNavIcon(),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            SalviumCreateStakeView.routeName,
+                            arguments: widget.walletId,
                           );
                         },
                       ),
