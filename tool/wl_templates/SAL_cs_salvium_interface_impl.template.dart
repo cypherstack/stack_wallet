@@ -68,10 +68,12 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     String walletId, {
     required String path,
     required String password,
+    int network = 0,
   }) async {
     final wallet = await lib_salvium.SalviumWallet.loadWallet(
       path: path,
       password: password,
+      networkType: network,
     );
     return WrappedWallet(wallet);
   }
@@ -100,6 +102,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required String password,
     required int wordCount,
     required String seedOffset,
+    int network = 0,
   }) async {
     final type = switch (wordCount) {
       16 => lib_salvium.SalviumSeedType.sixteen,
@@ -112,6 +115,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       password: password,
       seedType: type,
       seedOffset: seedOffset,
+      networkType: network,
     );
 
     return WrappedWallet(wallet);
@@ -124,6 +128,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required String password,
     required String mnemonic,
     required String seedOffset,
+    int network = 0,
     int height = 0,
   }) async {
     final wallet = await lib_salvium.SalviumWallet.restoreWalletFromSeed(
@@ -132,6 +137,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       seed: mnemonic,
       restoreHeight: height,
       seedOffset: seedOffset,
+      networkType: network,
     );
 
     return WrappedWallet(wallet);
@@ -145,6 +151,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required String address,
     required String privateViewKey,
     int height = 0,
+    int network = 0,
   }) async {
     final wallet = await lib_salvium.SalviumWallet.createViewOnlyWallet(
       path: path,
@@ -152,6 +159,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       address: address,
       viewKey: privateViewKey,
       restoreHeight: height,
+      networkType: network,
     );
 
     return WrappedWallet(wallet);

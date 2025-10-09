@@ -25,6 +25,7 @@ abstract class CsSalviumInterface {
     String walletId, {
     required String path,
     required String password,
+    int network = 0,
   });
 
   String getAddress(
@@ -38,6 +39,7 @@ abstract class CsSalviumInterface {
     required String password,
     required int wordCount,
     required String seedOffset,
+    int network = 0,
   });
 
   Future<WrappedWallet> getRestoredWallet({
@@ -47,6 +49,7 @@ abstract class CsSalviumInterface {
     required String mnemonic,
     required String seedOffset,
     int height = 0,
+    int network = 0,
   });
 
   Future<WrappedWallet> getRestoredFromViewKeyWallet({
@@ -56,6 +59,7 @@ abstract class CsSalviumInterface {
     required String address,
     required String privateViewKey,
     int height = 0,
+    int network = 0,
   });
 
   String getTxKey(WrappedWallet wallet, String txid);

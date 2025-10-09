@@ -14,6 +14,10 @@ class Salvium extends CryptonoteCurrency {
         _id = _idMain;
         _name = "Salvium";
         _ticker = "SAL";
+      case CryptoCurrencyNetwork.test:
+        _id = "${_idMain}TestNet";
+        _name = "tSalvium";
+        _ticker = "tSAL";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -53,6 +57,8 @@ class Salvium extends CryptonoteCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return csSalvium.validateAddress(address, 0);
+      case CryptoCurrencyNetwork.test:
+        return csSalvium.validateAddress(address, 1);
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -68,6 +74,22 @@ class Salvium extends CryptonoteCurrency {
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          trusted: true,
+          torEnabled: true,
+          clearnetEnabled: true,
+          isPrimary: isPrimary,
+        );
+      case CryptoCurrencyNetwork.test:
+        return NodeModel(
+          host: "http://127.0.0.1",
+          port: 29081,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: false,
           enabled: true,
           coinName: identifier,
           isFailover: true,

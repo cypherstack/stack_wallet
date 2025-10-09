@@ -38,7 +38,12 @@ class SalviumWallet extends LibSalviumWallet {
   Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
-  }) => csSalvium.loadWallet(walletId, path: path, password: password);
+  }) => csSalvium.loadWallet(
+    walletId,
+    path: path,
+    password: password,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
+  );
 
   @override
   Future<WrappedWallet> getCreatedWallet({
@@ -51,6 +56,7 @@ class SalviumWallet extends LibSalviumWallet {
     password: password,
     wordCount: wordCount,
     seedOffset: seedOffset,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
   );
 
   @override
@@ -66,6 +72,7 @@ class SalviumWallet extends LibSalviumWallet {
     mnemonic: mnemonic,
     height: height,
     seedOffset: seedOffset,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
     walletId: walletId,
   );
 
@@ -83,6 +90,7 @@ class SalviumWallet extends LibSalviumWallet {
     address: address,
     privateViewKey: privateViewKey,
     height: height,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
   );
 
   @override
