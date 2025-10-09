@@ -299,7 +299,11 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
             key: e.key,
             timeStamp: e.timeStamp,
             minConfirms: e.minConfirms.value,
-            salviumData: (asset: e.asset, type: e.type.value),
+            salviumData: (
+              asset: e.asset,
+              type: e.type.value,
+              typeDisplay: e.type.displayName,
+            ),
           ),
         )
         .toList();
@@ -333,7 +337,11 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
             key: e.key,
             timeStamp: e.timeStamp,
             minConfirms: e.minConfirms.value,
-            salviumData: (asset: e.asset, type: e.type.value),
+            salviumData: (
+              asset: e.asset,
+              type: e.type.value,
+              typeDisplay: e.type.displayName,
+            ),
           ),
         )
         .toList();

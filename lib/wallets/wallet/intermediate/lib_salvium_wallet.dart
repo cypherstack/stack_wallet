@@ -669,6 +669,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           ).toJsonString(),
           TxV2OdKeys.moneroAccountIndex: tx.accountIndex,
           TxV2OdKeys.isMoneroTransaction: true,
+          TxV2OdKeys.salviumTypeInt: tx.salviumData?.type,
+          TxV2OdKeys.salviumTypeString: tx.salviumData?.typeDisplay,
         }),
       );
 

@@ -300,7 +300,7 @@ final class CsTransaction {
   /// Flag indicating whether the transaction is pending (i.e., not yet confirmed).
   bool get isPending => confirmations < minConfirms;
 
-  final ({int type, String asset})? salviumData;
+  final ({int type, String typeDisplay, String asset})? salviumData;
 }
 
 // forwarding class
