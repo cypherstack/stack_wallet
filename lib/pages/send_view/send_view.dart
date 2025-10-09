@@ -2309,64 +2309,6 @@ class _SendViewState extends ConsumerState<SendView> {
                             if (coin is Epiccash || coin is Mimblewimblecoin)
                               const SizedBox(height: 12),
                             Text(
-                              (coin is Epiccash)
-                                  ? "Local Note (optional)"
-                                  : "Note (optional)",
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                            if (coin is Epiccash || coin is Mimblewimblecoin)
-                              const SizedBox(height: 8),
-                            if (coin is Epiccash || coin is Mimblewimblecoin)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                                child: TextField(
-                                  autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions: Util.isDesktop
-                                      ? false
-                                      : true,
-                                  controller: noteController,
-                                  focusNode: _noteFocusNode,
-                                  style: STextStyles.field(context),
-                                  onChanged: (_) => setState(() {}),
-                                  decoration:
-                                      standardInputDecoration(
-                                        "Type something...",
-                                        _noteFocusNode,
-                                        context,
-                                      ).copyWith(
-                                        suffixIcon:
-                                            noteController.text.isNotEmpty
-                                            ? Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 0,
-                                                ),
-                                                child: UnconstrainedBox(
-                                                  child: Row(
-                                                    children: [
-                                                      TextFieldIconButton(
-                                                        child: const XIcon(),
-                                                        onTap: () async {
-                                                          setState(() {
-                                                            noteController
-                                                                    .text =
-                                                                "";
-                                                          });
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              )
-                                            : null,
-                                      ),
-                                ),
-                              ),
-                            if (coin is Epiccash || coin is Mimblewimblecoin)
-                              const SizedBox(height: 12),
-                            Text(
                               (coin is Epiccash || coin is Mimblewimblecoin)
                                   ? "Local Note (optional)"
                                   : "Note (optional)",
