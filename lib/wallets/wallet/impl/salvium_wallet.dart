@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import '../../../utilities/amount/amount.dart';
-import '../../../wl_gen/generated/cs_salvium_interface_impl.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../intermediate/lib_salvium_wallet.dart';
 
@@ -10,7 +10,8 @@ class SalviumWallet extends LibSalviumWallet {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (!csSalvium.walletInstanceExists(walletId) /*||
+    if (wallet ==
+        null /*||
         syncStatus is! lib_monero_compat.SyncedSyncStatus*/ ) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
@@ -20,7 +21,7 @@ class SalviumWallet extends LibSalviumWallet {
       approximateFee = await csSalvium.estimateFee(
         feeRate.toInt(),
         amount.raw,
-        walletId: walletId,
+        wallet: wallet!,
       );
     });
 
@@ -34,27 +35,26 @@ class SalviumWallet extends LibSalviumWallet {
   bool walletExists(String path) => csSalvium.walletExists(path);
 
   @override
-  Future<void> loadWallet({required String path, required String password}) =>
-      csSalvium.loadWallet(walletId, path: path, password: password);
+  Future<WrappedWallet> loadWallet({
+    required String path,
+    required String password,
+  }) => csSalvium.loadWallet(walletId, path: path, password: password);
 
   @override
-  Future<void> getCreatedWallet({
+  Future<WrappedWallet> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
-    required final void Function(int refreshFromBlockHeight, String seed)
-    onCreated,
   }) => csSalvium.getCreatedWallet(
     path: path,
     password: password,
     wordCount: wordCount,
     seedOffset: seedOffset,
-    onCreated: onCreated,
   );
 
   @override
-  Future<void> getRestoredWallet({
+  Future<WrappedWallet> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
@@ -70,7 +70,7 @@ class SalviumWallet extends LibSalviumWallet {
   );
 
   @override
-  Future<void> getRestoredFromViewKeyWallet({
+  Future<WrappedWallet> getRestoredFromViewKeyWallet({
     required String path,
     required String password,
     required String address,

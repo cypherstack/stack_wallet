@@ -221,7 +221,7 @@ final class CsPendingTransaction {
 
 // forwarding class
 final class CsTransaction {
-  CsTransaction({
+  CsTransaction( {
     required this.displayLabel,
     required this.description,
     required this.fee,
@@ -236,6 +236,7 @@ final class CsTransaction {
     required this.key,
     required this.timeStamp,
     required this.minConfirms,
+    this.salviumData,
   }) {
     if (fee.isNegative) throw Exception("negative fee");
     if (confirmations.isNegative) throw Exception("negative confirmations");
@@ -290,6 +291,9 @@ final class CsTransaction {
 
   /// Flag indicating whether the transaction is pending (i.e., not yet confirmed).
   bool get isPending => confirmations < minConfirms;
+
+  final ({int type, String asset})? salviumData;
+
 }
 
 // forwarding class

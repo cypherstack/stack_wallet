@@ -100,6 +100,8 @@ class TxData {
 
   final TxType type;
 
+  final bool salviumStakeTx;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -135,6 +137,7 @@ class TxData {
     this.opNameState,
     this.sparkNameInfo,
     this.type = TxType.regular,
+    this.salviumStakeTx = false,
   });
 
   Amount? get amount {

@@ -19,22 +19,25 @@ CsSalviumInterface _getInterface() => throw Exception("XMR/WOW not enabled!");
 //ON
 CsSalviumInterface _getInterface() => _CsSalviumInterfaceImpl();
 
-class _CsSalviumInterfaceImpl extends CsSalviumInterface {
-  final Map<String, lib_salvium.Wallet> _wallets = {};
+extension _WrappedWalletExt on WrappedWallet {
+  lib_salvium.SalviumWallet get actual => get();
+}
 
+class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   @override
   void setUseCsSalviumLoggerInternal(bool enable) =>
       lib_salvium.Logging.useLogger = enable;
-
-  @override
-  bool walletInstanceExists(String walletId) => _wallets[walletId] != null;
 
   @override
   bool walletExists(String path) =>
       lib_salvium.SalviumWallet.isWalletExist(path);
 
   @override
-  Future<int> estimateFee(int rate, BigInt amount, {required String walletId}) {
+  Future<int> estimateFee(
+    int rate,
+    BigInt amount, {
+    required WrappedWallet wallet,
+  }) {
     lib_salvium.TransactionPriority priority;
     switch (rate) {
       case 1:
@@ -55,19 +58,20 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
         break;
     }
 
-    return _wallets[walletId]!.estimateFee(priority, amount.toInt());
+    return wallet.actual.estimateFee(priority, amount.toInt());
   }
 
   @override
-  Future<void> loadWallet(
+  Future<WrappedWallet> loadWallet(
     String walletId, {
     required String path,
     required String password,
   }) async {
-    _wallets[walletId] = await lib_salvium.SalviumWallet.loadWallet(
+    final wallet = await lib_salvium.SalviumWallet.loadWallet(
       path: path,
       password: password,
     );
+    return WrappedWallet(wallet);
   }
 
   @override
@@ -81,21 +85,19 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
 
   @override
   String getAddress(
-    String walletId, {
+    WrappedWallet wallet, {
     int accountIndex = 0,
     int addressIndex = 0,
-  }) => _wallets[walletId]!
+  }) => wallet.actual
       .getAddress(accountIndex: accountIndex, addressIndex: addressIndex)
       .value;
 
   @override
-  Future<void> getCreatedWallet({
+  Future<WrappedWallet> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
-    required final void Function(int refreshFromBlockHeight, String seed)
-    onCreated,
   }) async {
     final type = switch (wordCount) {
       16 => lib_salvium.SalviumSeedType.sixteen,
@@ -110,14 +112,11 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       seedOffset: seedOffset,
     );
 
-    onCreated(
-      wallet.getRefreshFromBlockHeight(),
-      wallet.getSeed(seedOffset: seedOffset).trim(),
-    );
+    return WrappedWallet(wallet);
   }
 
   @override
-  Future<void> getRestoredWallet({
+  Future<WrappedWallet> getRestoredWallet({
     required String walletId,
     required String path,
     required String password,
@@ -125,17 +124,19 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required String seedOffset,
     int height = 0,
   }) async {
-    _wallets[walletId] = await lib_salvium.SalviumWallet.restoreWalletFromSeed(
+    final wallet = await lib_salvium.SalviumWallet.restoreWalletFromSeed(
       path: path,
       password: password,
       seed: mnemonic,
       restoreHeight: height,
       seedOffset: seedOffset,
     );
+
+    return WrappedWallet(wallet);
   }
 
   @override
-  Future<void> getRestoredFromViewKeyWallet({
+  Future<WrappedWallet> getRestoredFromViewKeyWallet({
     required String walletId,
     required String path,
     required String password,
@@ -143,62 +144,63 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required String privateViewKey,
     int height = 0,
   }) async {
-    _wallets[walletId] = await lib_salvium.SalviumWallet.createViewOnlyWallet(
+    final wallet = await lib_salvium.SalviumWallet.createViewOnlyWallet(
       path: path,
       password: password,
       address: address,
       viewKey: privateViewKey,
       restoreHeight: height,
     );
+
+    return WrappedWallet(wallet);
   }
 
   @override
-  String getTxKey(String walletId, String txid) =>
-      _wallets[walletId]!.getTxKey(txid);
+  String getTxKey(WrappedWallet wallet, String txid) =>
+      wallet.actual.getTxKey(txid);
 
   @override
-  Future<void> save(String walletId) => _wallets[walletId]!.save();
+  Future<void> save(WrappedWallet wallet) => wallet.actual.save();
 
   @override
-  String getPublicViewKey(String walletId) =>
-      _wallets[walletId]!.getPublicViewKey();
+  String getPublicViewKey(WrappedWallet wallet) =>
+      wallet.actual.getPublicViewKey();
 
   @override
-  String getPrivateViewKey(String walletId) =>
-      _wallets[walletId]!.getPrivateViewKey();
+  String getPrivateViewKey(WrappedWallet wallet) =>
+      wallet.actual.getPrivateViewKey();
 
   @override
-  String getPublicSpendKey(String walletId) =>
-      _wallets[walletId]!.getPublicSpendKey();
+  String getPublicSpendKey(WrappedWallet wallet) =>
+      wallet.actual.getPublicSpendKey();
 
   @override
-  String getPrivateSpendKey(String walletId) =>
-      _wallets[walletId]!.getPrivateSpendKey();
+  String getPrivateSpendKey(WrappedWallet wallet) =>
+      wallet.actual.getPrivateSpendKey();
 
   @override
-  Future<bool> isSynced(String walletId) =>
-      _wallets[walletId]?.isSynced() ?? Future.value(false);
+  Future<bool> isSynced(WrappedWallet wallet) =>
+      wallet.actual.isSynced() ?? Future.value(false);
 
   @override
-  void startSyncing(String walletId) => _wallets[walletId]?.startSyncing();
+  void startSyncing(WrappedWallet wallet) => wallet.actual.startSyncing();
 
   @override
-  void stopSyncing(String walletId) => _wallets[walletId]?.stopSyncing();
+  void stopSyncing(WrappedWallet wallet) => wallet.actual.stopSyncing();
 
   @override
-  void startAutoSaving(String walletId) =>
-      _wallets[walletId]?.startAutoSaving();
+  void startAutoSaving(WrappedWallet wallet) => wallet.actual.startAutoSaving();
 
   @override
-  void stopAutoSaving(String walletId) => _wallets[walletId]?.stopAutoSaving();
+  void stopAutoSaving(WrappedWallet wallet) => wallet.actual.stopAutoSaving();
 
   @override
-  bool hasListeners(String walletId) =>
-      _wallets[walletId]!.getListeners().isNotEmpty;
+  bool hasListeners(WrappedWallet wallet) =>
+      wallet.actual.getListeners().isNotEmpty;
 
   @override
-  void addListener(String walletId, CsWalletListener listener) =>
-      _wallets[walletId]?.addListener(
+  void addListener(WrappedWallet wallet, CsWalletListener listener) =>
+      wallet.actual.addListener(
         lib_salvium.WalletListener(
           onSyncingUpdate: listener.onSyncingUpdate,
           onNewBlock: listener.onNewBlock,
@@ -208,30 +210,30 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       );
 
   @override
-  void startListeners(String walletId) => _wallets[walletId]?.startListeners();
+  void startListeners(WrappedWallet wallet) => wallet.actual.startListeners();
 
   @override
-  void stopListeners(String walletId) => _wallets[walletId]?.stopListeners();
+  void stopListeners(WrappedWallet wallet) => wallet.actual.stopListeners();
 
   @override
-  int getRefreshFromBlockHeight(String walletId) =>
-      _wallets[walletId]!.getRefreshFromBlockHeight();
+  int getRefreshFromBlockHeight(WrappedWallet wallet) =>
+      wallet.actual.getRefreshFromBlockHeight();
 
   @override
-  void setRefreshFromBlockHeight(String walletId, int height) =>
-      _wallets[walletId]!.setRefreshFromBlockHeight(height);
+  void setRefreshFromBlockHeight(WrappedWallet wallet, int height) =>
+      wallet.actual.setRefreshFromBlockHeight(height);
 
   @override
-  Future<bool> rescanBlockchain(String walletId) =>
-      _wallets[walletId]?.rescanBlockchain() ?? Future.value(false);
+  Future<bool> rescanBlockchain(WrappedWallet wallet) =>
+      wallet.actual.rescanBlockchain() ?? Future.value(false);
 
   @override
-  Future<bool> isConnectedToDaemon(String walletId) =>
-      _wallets[walletId]?.isConnectedToDaemon() ?? Future.value(false);
+  Future<bool> isConnectedToDaemon(WrappedWallet wallet) =>
+      wallet.actual.isConnectedToDaemon() ?? Future.value(false);
 
   @override
   Future<void> connect(
-    String walletId, {
+    WrappedWallet wallet, {
     required String daemonAddress,
     required bool trusted,
     String? daemonUsername,
@@ -240,7 +242,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     bool isLightWallet = false,
     String? socksProxyAddress,
   }) async {
-    await _wallets[walletId]?.connect(
+    await wallet.actual.connect(
       daemonAddress: daemonAddress,
       trusted: trusted,
       daemonUsername: daemonUsername,
@@ -252,23 +254,25 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   }
 
   @override
-  Future<List<String>> getAllTxids(String walletId, {bool refresh = false}) =>
-      _wallets[walletId]!.getAllTxids(refresh: refresh);
+  Future<List<String>> getAllTxids(
+    WrappedWallet wallet, {
+    bool refresh = false,
+  }) => wallet.actual.getAllTxids(refresh: refresh);
 
   @override
-  BigInt? getBalance(String walletId, {int accountIndex = 0}) =>
-      _wallets[walletId]?.getBalance(accountIndex: accountIndex);
+  BigInt? getBalance(WrappedWallet wallet, {int accountIndex = 0}) =>
+      wallet.actual.getBalance(accountIndex: accountIndex);
 
   @override
-  BigInt? getUnlockedBalance(String walletId, {int accountIndex = 0}) =>
-      _wallets[walletId]?.getUnlockedBalance(accountIndex: accountIndex);
+  BigInt? getUnlockedBalance(WrappedWallet wallet, {int accountIndex = 0}) =>
+      wallet.actual.getUnlockedBalance(accountIndex: accountIndex);
 
   @override
   Future<List<CsTransaction>> getAllTxs(
-    String walletId, {
+    WrappedWallet wallet, {
     bool refresh = false,
   }) async {
-    final transactions = await _wallets[walletId]?.getAllTxs(refresh: refresh);
+    final transactions = await wallet.actual.getAllTxs(refresh: refresh);
     if (transactions == null) return [];
     return transactions
         .map(
@@ -287,6 +291,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
             key: e.key,
             timeStamp: e.timeStamp,
             minConfirms: e.minConfirms.value,
+            salviumData: (asset: e.asset, type: e.type),
           ),
         )
         .toList();
@@ -294,15 +299,15 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
 
   @override
   Future<List<CsTransaction>> getTxs(
-    String walletId, {
+    WrappedWallet wallet, {
     required Set<String> txids,
     bool refresh = false,
   }) async {
-    final transactions = await _wallets[walletId]?.getTxs(
+    final transactions = await wallet.actual.getTxs(
       txids: txids,
       refresh: refresh,
     );
-    if (transactions == null) return [];
+
     return transactions
         .map(
           (e) => CsTransaction(
@@ -320,6 +325,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
             key: e.key,
             timeStamp: e.timeStamp,
             minConfirms: e.minConfirms.value,
+            salviumData: (asset: e.asset, type: e.type),
           ),
         )
         .toList();
@@ -327,7 +333,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
 
   @override
   Future<CsPendingTransaction> createTx(
-    String walletId, {
+    WrappedWallet wallet, {
     required CsRecipient output,
     required int priority,
     required bool sweep,
@@ -336,7 +342,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required int minConfirms,
     required int currentHeight,
   }) async {
-    final pending = await _wallets[walletId]!.createTx(
+    final pending = await wallet.actual.createTx(
       output: lib_salvium.Recipient(
         address: output.address,
         amount: output.amount,
@@ -377,8 +383,57 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   }
 
   @override
+  Future<CsPendingTransaction> createStakeTx(
+    WrappedWallet wallet, {
+    required CsRecipient output,
+    required int priority,
+    List<StandardInput>? preferredInputs,
+    required int accountIndex,
+    required int minConfirms,
+    required int currentHeight,
+  }) async {
+    final pending = await wallet.actual.createStakeTx(
+      output: lib_salvium.Recipient(
+        address: output.address,
+        amount: output.amount,
+      ),
+      paymentId: "",
+      priority: lib_salvium.TransactionPriority.values.firstWhere(
+        (e) => e.value == priority,
+      ),
+      preferredInputs: preferredInputs
+          ?.map(
+            (e) => lib_salvium.Output(
+              address: e.address!,
+              hash: e.utxo.txid,
+              keyImage: e.utxo.keyImage!,
+              value: e.value,
+              isFrozen: e.utxo.isBlocked,
+              isUnlocked:
+                  e.utxo.blockHeight != null &&
+                  (currentHeight - (e.utxo.blockHeight ?? 0)) >= minConfirms,
+              height: e.utxo.blockHeight ?? 0,
+              vout: e.utxo.vout,
+              spent: e.utxo.used ?? false,
+              spentHeight: null, // doesn't matter here
+              coinbase: e.utxo.isCoinbase,
+            ),
+          )
+          .toList(),
+      accountIndex: accountIndex,
+    );
+
+    return CsPendingTransaction(
+      pending,
+      pending.amount,
+      pending.fee,
+      pending.txid,
+    );
+  }
+
+  @override
   Future<CsPendingTransaction> createTxMultiDest(
-    String walletId, {
+    WrappedWallet wallet, {
     required List<CsRecipient> outputs,
     required int priority,
     required bool sweep,
@@ -387,7 +442,7 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
     required int minConfirms,
     required int currentHeight,
   }) async {
-    final pending = await _wallets[walletId]!.createTxMultiDest(
+    final pending = await wallet.actual.createTxMultiDest(
       outputs: outputs
           .map(
             (e) => lib_salvium.Recipient(address: e.address, amount: e.amount),
@@ -429,21 +484,19 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   }
 
   @override
-  Future<void> commitTx(String walletId, CsPendingTransaction tx) =>
-      _wallets[walletId]!.commitTx(tx.value as lib_salvium.PendingTransaction);
+  Future<void> commitTx(WrappedWallet wallet, CsPendingTransaction tx) =>
+      wallet.actual.commitTx(tx.value as lib_salvium.PendingTransaction);
 
   @override
   Future<List<CsOutput>> getOutputs(
-    String walletId, {
+    WrappedWallet wallet, {
     bool refresh = false,
     bool includeSpent = false,
   }) async {
-    final outputs = await _wallets[walletId]?.getOutputs(
+    final outputs = await wallet.actual.getOutputs(
       includeSpent: includeSpent,
       refresh: refresh,
     );
-
-    if (outputs == null) return [];
 
     return outputs
         .map(
@@ -465,12 +518,12 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   }
 
   @override
-  Future<void> freezeOutput(String walletId, String keyImage) =>
-      _wallets[walletId]!.freezeOutput(keyImage);
+  Future<void> freezeOutput(WrappedWallet wallet, String keyImage) =>
+      wallet.actual.freezeOutput(keyImage);
 
   @override
-  Future<void> thawOutput(String walletId, String keyImage) =>
-      _wallets[walletId]!.thawOutput(keyImage);
+  Future<void> thawOutput(WrappedWallet wallet, String keyImage) =>
+      wallet.actual.thawOutput(keyImage);
 
   @override
   List<String> getSalviumWordList(String language) =>
@@ -483,6 +536,9 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   @override
   bool validateAddress(String address, int network) =>
       sal_wallet_ffi.validateAddress(address, network);
+
+  @override
+  String getSeed(WrappedWallet wallet) => wallet.actual.getSeed();
 }
 
 //END_ON
