@@ -49,7 +49,7 @@ class XelisWallet extends LibXelisWallet {
     invalidSeedLengthCheck(seedLength);
 
     Logging.instance.i("Xelis: recovering wallet");
-    await libXelis.createXelisWallet(
+    final wallet = await libXelis.createXelisWallet(
       walletId,
       name: name,
       directory: directory,
@@ -64,6 +64,8 @@ class XelisWallet extends LibXelisWallet {
       key: Wallet.mnemonicKey(walletId: walletId),
       value: mnemonic,
     );
+
+    this.wallet = wallet;
 
     await _finishInit();
   }
@@ -82,7 +84,7 @@ class XelisWallet extends LibXelisWallet {
       value: password,
     );
 
-    await libXelis.createXelisWallet(
+    final wallet = await libXelis.createXelisWallet(
       walletId,
       name: name,
       directory: directory,
@@ -92,11 +94,13 @@ class XelisWallet extends LibXelisWallet {
       l1Low: tableState.currentSize.isLow,
     );
 
-    final mnemonic = await libXelis.getSeed(walletId);
+    final mnemonic = await libXelis.getSeed(wallet);
     await secureStorageInterface.write(
       key: Wallet.mnemonicKey(walletId: walletId),
       value: mnemonic.trim(),
     );
+
+    this.wallet = wallet;
 
     await _finishInit();
   }
@@ -112,7 +116,7 @@ class XelisWallet extends LibXelisWallet {
       key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
     );
 
-    await libXelis.openXelisWallet(
+    wallet = await libXelis.openXelisWallet(
       walletId,
       name: name,
       directory: directory,
@@ -136,7 +140,7 @@ class XelisWallet extends LibXelisWallet {
           walletId: walletId,
           derivationIndex: 0,
           derivationPath: null,
-          value: libXelis.getAddress(walletId),
+          value: libXelis.getAddress(wallet!),
           publicKey: [],
           type: AddressType.xelis,
           subType: AddressSubType.receiving,
@@ -168,7 +172,7 @@ class XelisWallet extends LibXelisWallet {
         walletId,
       );
 
-      if (!libXelis.walletInstanceExists(walletId)) {
+      if (wallet == null) {
         if (isRestore == true) {
           await _restoreWallet();
         } else {
@@ -224,7 +228,7 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<bool> pingCheck() async {
     try {
-      await libXelis.getDaemonInfo(walletId);
+      await libXelis.getDaemonInfo(wallet!);
       await handleOnline();
       return true;
     } catch (_) {
@@ -239,11 +243,11 @@ class XelisWallet extends LibXelisWallet {
   Future<void> updateBalance({int? newBalance}) async {
     await _balanceUpdateMutex.protect(() async {
       try {
-        if (await libXelis.hasXelisBalance(walletId)) {
+        if (await libXelis.hasXelisBalance(wallet!)) {
           final BigInt xelBalance = newBalance != null
               ? BigInt.from(newBalance)
               : await libXelis.getXelisBalanceRaw(
-                  walletId,
+                  wallet!,
                 ); // in the future, use getAssetBalances and handle each
           final balance = Balance(
             total: Amount(
@@ -274,7 +278,7 @@ class XelisWallet extends LibXelisWallet {
   }
 
   Future<int> _fetchChainHeight() async {
-    final infoString = await libXelis.getDaemonInfo(walletId);
+    final infoString = await libXelis.getDaemonInfo(wallet!);
     final Map<String, dynamic> nodeInfo = (json.decode(infoString) as Map)
         .cast();
 
@@ -304,9 +308,9 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<void> updateNode() async {
     try {
-      final bool online = await libXelis.isOnline(walletId);
+      final bool online = await libXelis.isOnline(wallet!);
       if (online == true) {
-        await libXelis.offlineMode(walletId);
+        await libXelis.offlineMode(wallet!);
       }
       await super.connect();
     } catch (e, s) {
@@ -333,7 +337,7 @@ class XelisWallet extends LibXelisWallet {
           walletId: walletId,
           derivationIndex: 0,
           derivationPath: null,
-          value: libXelis.getAddress(walletId),
+          value: libXelis.getAddress(wallet!),
           publicKey: [],
           type: AddressType.xelis,
           subType: AddressSubType.receiving,
@@ -356,10 +360,10 @@ class XelisWallet extends LibXelisWallet {
         firstBlock -= 10;
       }
     } else {
-      await libXelis.rescan(walletId, topoheight: BigInt.from(pruningHeight));
+      await libXelis.rescan(wallet!, topoheight: BigInt.from(pruningHeight));
     }
 
-    final txList = objTransactions ?? (await libXelis.allHistory(walletId));
+    final txList = objTransactions ?? (await libXelis.allHistory(wallet!));
 
     final List<TransactionV2> txns = [];
 
@@ -395,7 +399,7 @@ class XelisWallet extends LibXelisWallet {
           txType = TransactionType.incoming;
 
           final int decimals = await libXelis.getAssetDecimals(
-            walletId,
+            wallet!,
             asset: libXelis.xelisAsset,
           );
 
@@ -418,7 +422,7 @@ class XelisWallet extends LibXelisWallet {
           txType = TransactionType.outgoing;
 
           final int decimals = await libXelis.getAssetDecimals(
-            walletId,
+            wallet!,
             asset: burn.asset,
           );
 
@@ -460,7 +464,7 @@ class XelisWallet extends LibXelisWallet {
 
           for (final transfer in incoming.transfers) {
             final int decimals = await libXelis.getAssetDecimals(
-              walletId,
+              wallet!,
               asset: transfer.asset,
             );
 
@@ -639,7 +643,7 @@ class XelisWallet extends LibXelisWallet {
       );
 
       // Check balance using raw method
-      final xelBalance = await libXelis.getXelisBalanceRaw(walletId);
+      final xelBalance = await libXelis.getXelisBalanceRaw(wallet!);
       final balance = Amount(
         rawValue: xelBalance,
         fractionDigits: cryptoCurrency.fractionDigits,
@@ -657,13 +661,13 @@ class XelisWallet extends LibXelisWallet {
       // Check if we have enough for both transfers and fee
       if (totalSendAmount + boostedFee > balance) {
         final requiredAmt = await libXelis.formatCoin(
-          walletId,
+          wallet!,
           atomicAmount: (totalSendAmount + boostedFee).raw,
           assetHash: asset,
         );
 
         final availableAmt = await libXelis.formatCoin(
-          walletId,
+          wallet!,
           atomicAmount: xelBalance,
           assetHash: asset,
         );
@@ -722,7 +726,7 @@ class XelisWallet extends LibXelisWallet {
             try {
               final amt = double.parse(
                 await libXelis.formatCoin(
-                  walletId,
+                  wallet!,
                   atomicAmount: recipient.amount.raw,
                   assetHash: asset,
                 ),
@@ -753,12 +757,9 @@ class XelisWallet extends LibXelisWallet {
           }),
         );
 
-        final decimals = await libXelis.getAssetDecimals(
-          walletId,
-          asset: asset,
-        );
+        final decimals = await libXelis.getAssetDecimals(wallet!, asset: asset);
         final estimatedFee = double.parse(
-          await libXelis.estimateFees(walletId, transfers: transfers),
+          await libXelis.estimateFees(wallet!, transfers: transfers),
         );
         final rawFee = (estimatedFee * pow(10, decimals)).round();
         return Amount(
@@ -807,7 +808,7 @@ class XelisWallet extends LibXelisWallet {
 
       final amt = double.parse(
         await libXelis.formatCoin(
-          walletId,
+          wallet!,
           atomicAmount: sendAmount.raw,
           assetHash: asset,
         ),
@@ -815,7 +816,7 @@ class XelisWallet extends LibXelisWallet {
 
       // Create a transfer transaction
       final txJson = await libXelis.createTransfersTransaction(
-        walletId,
+        wallet!,
         transfers: [
           WrappedTransfer(
             floatAmount: amt,
@@ -830,7 +831,7 @@ class XelisWallet extends LibXelisWallet {
       final txHash = txMap['hash'] as String;
 
       // Broadcast the transaction
-      await libXelis.broadcastTransaction(walletId, txHash: txHash);
+      await libXelis.broadcastTransaction(wallet!, txHash: txHash);
 
       return await updateSentCachedTxData(
         txData: txData.copyWith(txid: txHash),
@@ -981,7 +982,7 @@ class XelisWallet extends LibXelisWallet {
   Future<void> refresh({int? topoheight}) async {
     await refreshMutex.protect(() async {
       try {
-        final bool online = await libXelis.isOnline(walletId);
+        final bool online = await libXelis.isOnline(wallet!);
         if (online == true) {
           await updateChainHeight(topoheight: topoheight);
           await updateBalance();

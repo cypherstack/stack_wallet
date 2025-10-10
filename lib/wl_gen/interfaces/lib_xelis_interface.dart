@@ -6,9 +6,9 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 export '../generated/lib_xelis_interface_impl.dart';
 
 abstract class LibXelisInterface {
-  String get xelisAsset;
+  const LibXelisInterface();
 
-  bool walletInstanceExists(String walletId);
+  String get xelisAsset;
 
   Future<void> initRustLib();
 
@@ -22,19 +22,22 @@ abstract class LibXelisInterface {
 
   bool validateSeedWord(String word);
 
-  Stream<Event> eventsStream(String walletId);
+  Stream<Event> eventsStream(OpaqueXelisWallet wallet);
 
-  Future<void> onlineMode(String walletId, {required String daemonAddress});
-  Future<void> offlineMode(String walletId);
+  Future<void> onlineMode(
+    OpaqueXelisWallet wallet, {
+    required String daemonAddress,
+  });
+  Future<void> offlineMode(OpaqueXelisWallet wallet);
 
   Future<void> updateTables({
     required String precomputedTablesPath,
     required bool l1Low,
   });
 
-  Future<String> getSeed(String walletId);
+  Future<String> getSeed(OpaqueXelisWallet wallet);
 
-  Future<void> createXelisWallet(
+  Future<OpaqueXelisWallet> createXelisWallet(
     String walletId, {
     required String name,
     required String directory,
@@ -46,7 +49,7 @@ abstract class LibXelisInterface {
     bool? l1Low,
   });
 
-  Future<void> openXelisWallet(
+  Future<OpaqueXelisWallet> openXelisWallet(
     String walletId, {
     required String name,
     required String directory,
@@ -56,45 +59,58 @@ abstract class LibXelisInterface {
     bool? l1Low,
   });
 
-  String getAddress(String walletId);
+  String getAddress(OpaqueXelisWallet wallet);
 
-  Future<String> getDaemonInfo(String walletId);
+  Future<String> getDaemonInfo(OpaqueXelisWallet wallet);
 
-  Future<bool> isOnline(String walletId);
+  Future<bool> isOnline(OpaqueXelisWallet wallet);
 
-  Future<void> rescan(String walletId, {required BigInt topoheight});
+  Future<void> rescan(OpaqueXelisWallet wallet, {required BigInt topoheight});
 
-  Future<List<TransactionEntryWrapper>> allHistory(String walletId);
+  Future<List<TransactionEntryWrapper>> allHistory(OpaqueXelisWallet wallet);
 
-  Future<void> broadcastTransaction(String walletId, {required String txHash});
+  Future<void> broadcastTransaction(
+    OpaqueXelisWallet wallet, {
+    required String txHash,
+  });
 
   Future<String> estimateFees(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required List<WrappedTransfer> transfers,
   });
 
   Future<String> createTransfersTransaction(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required List<WrappedTransfer> transfers,
   });
 
   Future<String> formatCoin(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required BigInt atomicAmount,
     String? assetHash,
   });
 
-  Future<int> getAssetDecimals(String walletId, {required String asset});
+  Future<int> getAssetDecimals(
+    OpaqueXelisWallet wallet, {
+    required String asset,
+  });
 
-  Future<BigInt> getXelisBalanceRaw(String walletId);
+  Future<BigInt> getXelisBalanceRaw(OpaqueXelisWallet wallet);
 
-  Future<bool> hasXelisBalance(String walletId);
+  Future<bool> hasXelisBalance(OpaqueXelisWallet wallet);
 
   Future<bool> testDaemonConnection(String endPoint, bool useSSL);
 }
 
 // =============================================================================
 // ============== stupid =======================================================
+
+final class OpaqueXelisWallet {
+  final Object _value;
+  const OpaqueXelisWallet(this._value);
+  T get<T>() => _value as T;
+}
+
 class WrappedTransfer {
   final double floatAmount;
   final String strAddress;

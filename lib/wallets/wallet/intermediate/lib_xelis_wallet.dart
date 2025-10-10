@@ -26,8 +26,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
   int pruningHeight = 0;
 
+  OpaqueXelisWallet? wallet;
+
   void checkInitialized() {
-    if (!libXelis.walletInstanceExists(walletId)) {
+    if (wallet == null) {
       throw StateError('libXelisWallet not initialized');
     }
   }
@@ -93,11 +95,11 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     final node = getCurrentNode();
     try {
       checkInitialized();
-      _eventSubscription = libXelis.eventsStream(walletId).listen(handleEvent);
+      _eventSubscription = libXelis.eventsStream(wallet!).listen(handleEvent);
 
       Logging.instance.i("Connecting to node: ${node.host}:${node.port}");
       await libXelis.onlineMode(
-        walletId,
+        wallet!,
         daemonAddress: "${node.host}:${node.port}",
       );
       await super.refresh();
@@ -167,7 +169,9 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
         await _eventSubscription?.cancel();
         _eventSubscription = null;
 
-        await libXelis.offlineMode(walletId);
+        if (wallet != null) {
+          await libXelis.offlineMode(wallet!);
+        }
         await super.exit();
       });
     } finally {

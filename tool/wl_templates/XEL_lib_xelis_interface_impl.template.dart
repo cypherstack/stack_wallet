@@ -24,16 +24,17 @@ LibXelisInterface _getInterface() => throw Exception("XEL not enabled!");
 
 //END_OFF
 //ON
-LibXelisInterface _getInterface() => _LibXelisInterfaceImpl();
+LibXelisInterface _getInterface() => const _LibXelisInterfaceImpl();
+
+extension _OpaqueXelisWalletExt on OpaqueXelisWallet {
+  x_wallet.XelisWallet get actual => get();
+}
 
 final class _LibXelisInterfaceImpl extends LibXelisInterface {
-  final Map<String, x_wallet.XelisWallet> _wallets = {};
+  const _LibXelisInterfaceImpl();
 
   @override
   String get xelisAsset => xelis_sdk.xelisAsset;
-
-  @override
-  bool walletInstanceExists(String walletId) => _wallets[walletId] != null;
 
   @override
   Future<void> initRustLib() => xelis_rust.RustLib.init();
@@ -98,19 +99,16 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   bool isAddressValid({required String address}) =>
       x_utils.isAddressValid(strAddress: address);
 
-  x_seed.SearchEngine? _xelisSeedSearch;
   @override
   bool validateSeedWord(String word) {
-    _xelisSeedSearch ??= x_seed.SearchEngine.init(
+    return x_seed.SearchEngine.init(
       languageIndex: BigInt.from(0),
-    );
-
-    return _xelisSeedSearch!.search(query: word).isNotEmpty;
+    ).search(query: word).isNotEmpty;
   }
 
   @override
-  Stream<Event> eventsStream(String walletId) async* {
-    final rawEventStream = _wallets[walletId]!.eventsStream();
+  Stream<Event> eventsStream(OpaqueXelisWallet wallet) async* {
+    final rawEventStream = wallet.actual.eventsStream();
 
     await for (final rawData in rawEventStream) {
       final json = jsonDecode(rawData);
@@ -166,12 +164,14 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   }
 
   @override
-  Future<void> onlineMode(String walletId, {required String daemonAddress}) =>
-      _wallets[walletId]!.onlineMode(daemonAddress: daemonAddress);
+  Future<void> onlineMode(
+    OpaqueXelisWallet wallet, {
+    required String daemonAddress,
+  }) => wallet.actual.onlineMode(daemonAddress: daemonAddress);
 
   @override
-  Future<void> offlineMode(String walletId) =>
-      _wallets[walletId]?.offlineMode() ?? Future.value();
+  Future<void> offlineMode(OpaqueXelisWallet wallet) =>
+      wallet.actual.offlineMode();
 
   @override
   Future<void> updateTables({
@@ -183,10 +183,10 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   );
 
   @override
-  Future<String> getSeed(String walletId) => _wallets[walletId]!.getSeed();
+  Future<String> getSeed(OpaqueXelisWallet wallet) => wallet.actual.getSeed();
 
   @override
-  Future<void> createXelisWallet(
+  Future<OpaqueXelisWallet> createXelisWallet(
     String walletId, {
     required String name,
     required String directory,
@@ -197,13 +197,7 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     String? precomputedTablesPath,
     bool? l1Low,
   }) async {
-    if (walletInstanceExists(walletId)) {
-      throw Exception(
-        "Attempted overwrite of existing wallet in cache on create",
-      );
-    }
-
-    _wallets[walletId] = await x_wallet.createXelisWallet(
+    final wallet = await x_wallet.createXelisWallet(
       name: name,
       directory: directory,
       password: password,
@@ -213,10 +207,12 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
       precomputedTablesPath: precomputedTablesPath,
       l1Low: l1Low,
     );
+
+    return OpaqueXelisWallet(wallet);
   }
 
   @override
-  Future<void> openXelisWallet(
+  Future<OpaqueXelisWallet> openXelisWallet(
     String walletId, {
     required String name,
     required String directory,
@@ -225,13 +221,7 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     String? precomputedTablesPath,
     bool? l1Low,
   }) async {
-    if (walletInstanceExists(walletId)) {
-      throw Exception(
-        "Attempted overwrite of existing wallet in cache on open",
-      );
-    }
-
-    _wallets[walletId] = await x_wallet.openXelisWallet(
+    final wallet = await x_wallet.openXelisWallet(
       name: name,
       directory: directory,
       password: password,
@@ -239,46 +229,49 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
       precomputedTablesPath: precomputedTablesPath,
       l1Low: l1Low,
     );
+
+    return OpaqueXelisWallet(wallet);
   }
 
   @override
-  String getAddress(String walletId) => _wallets[walletId]!.getAddressStr();
+  String getAddress(OpaqueXelisWallet wallet) => wallet.actual.getAddressStr();
 
   @override
-  Future<String> getDaemonInfo(String walletId) =>
-      _wallets[walletId]!.getDaemonInfo();
+  Future<String> getDaemonInfo(OpaqueXelisWallet wallet) =>
+      wallet.actual.getDaemonInfo();
 
   @override
-  Future<bool> isOnline(String walletId) => _wallets[walletId]!.isOnline();
+  Future<bool> isOnline(OpaqueXelisWallet wallet) => wallet.actual.isOnline();
 
   @override
-  Future<void> rescan(String walletId, {required BigInt topoheight}) =>
-      _wallets[walletId]!.rescan(topoheight: topoheight);
+  Future<void> rescan(OpaqueXelisWallet wallet, {required BigInt topoheight}) =>
+      wallet.actual.rescan(topoheight: topoheight);
 
   @override
-  Future<List<TransactionEntryWrapper>> allHistory(String walletId) async =>
-      (await _wallets[walletId]!.allHistory()).map((e) {
-        final tx = _checkDecodeJsonStringTxEntry(e);
-        return TransactionEntryWrapper(
-          tx,
-          entryType: _entryTypeConversion(tx.txEntryType),
-          hash: tx.hash,
-          timestamp: tx.timestamp,
-          topoheight: tx.topoheight,
-        );
-      }).toList();
+  Future<List<TransactionEntryWrapper>> allHistory(
+    OpaqueXelisWallet wallet,
+  ) async => (await wallet.actual.allHistory()).map((e) {
+    final tx = _checkDecodeJsonStringTxEntry(e);
+    return TransactionEntryWrapper(
+      tx,
+      entryType: _entryTypeConversion(tx.txEntryType),
+      hash: tx.hash,
+      timestamp: tx.timestamp,
+      topoheight: tx.topoheight,
+    );
+  }).toList();
 
   @override
   Future<void> broadcastTransaction(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required String txHash,
-  }) => _wallets[walletId]!.broadcastTransaction(txHash: txHash);
+  }) => wallet.actual.broadcastTransaction(txHash: txHash);
 
   @override
   Future<String> createTransfersTransaction(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required List<WrappedTransfer> transfers,
-  }) => _wallets[walletId]!.createTransfersTransaction(
+  }) => wallet.actual.createTransfersTransaction(
     transfers: transfers
         .map(
           (e) => x_wallet.Transfer(
@@ -293,9 +286,9 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
 
   @override
   Future<String> estimateFees(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required List<WrappedTransfer> transfers,
-  }) => _wallets[walletId]!.estimateFees(
+  }) => wallet.actual.estimateFees(
     transfers: transfers
         .map(
           (e) => x_wallet.Transfer(
@@ -310,42 +303,52 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
 
   @override
   Future<String> formatCoin(
-    String walletId, {
+    OpaqueXelisWallet wallet, {
     required BigInt atomicAmount,
     String? assetHash,
-  }) => _wallets[walletId]!.formatCoin(
+  }) => wallet.actual.formatCoin(
     atomicAmount: atomicAmount,
     assetHash: assetHash,
   );
 
   @override
-  Future<int> getAssetDecimals(String walletId, {required String asset}) =>
-      _wallets[walletId]!.getAssetDecimals(asset: asset);
+  Future<int> getAssetDecimals(
+    OpaqueXelisWallet wallet, {
+    required String asset,
+  }) => wallet.actual.getAssetDecimals(asset: asset);
 
   @override
-  Future<BigInt> getXelisBalanceRaw(String walletId) =>
-      _wallets[walletId]!.getXelisBalanceRaw();
+  Future<BigInt> getXelisBalanceRaw(OpaqueXelisWallet wallet) =>
+      wallet.actual.getXelisBalanceRaw();
 
   @override
-  Future<bool> hasXelisBalance(String walletId) =>
-      _wallets[walletId]!.hasXelisBalance();
+  Future<bool> hasXelisBalance(OpaqueXelisWallet wallet) =>
+      wallet.actual.hasXelisBalance();
 
   @override
   Future<bool> testDaemonConnection(String endPoint, bool useSSL) async {
-    final daemon = xelis_sdk.DaemonClient(
-      endPoint: endPoint,
-      secureWebSocket: useSSL,
-      timeout: 5000,
-    );
-    daemon.connect();
-    final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
-    daemon.disconnect();
+    try {
+      final daemon = xelis_sdk.DaemonClient(
+        endPoint: endPoint,
+        secureWebSocket: useSSL,
+        timeout: 5000,
+      );
+      daemon.connect();
+      final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
+      daemon.disconnect();
 
-    Logging.instance.i(
-      "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
-    );
-
-    return networkInfo.height != null;
+      Logging.instance.i(
+        "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
+      );
+      return true;
+    } catch (e, s) {
+      Logging.instance.w(
+        "xelis daemon connection test failed, returning false.",
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    }
   }
 }
 
