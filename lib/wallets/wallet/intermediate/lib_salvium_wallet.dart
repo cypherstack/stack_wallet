@@ -797,6 +797,14 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   final _utxosUpdateLock = Mutex();
   Future<void> onUTXOsChanged(List<UTXO> utxos) async {
+    if (wallet == null) {
+      Logging.instance.w(
+        "onUTXOsChanged triggered while cs_salvium wallet is null. If this "
+        "occurs while not in a salvium wallet this warning can be ignored.",
+      );
+      return;
+    }
+
     await _utxosUpdateLock.protect(() async {
       final cwUtxos = await csSalvium.getOutputs(wallet!, refresh: true);
 

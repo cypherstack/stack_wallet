@@ -827,6 +827,15 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   final _utxosUpdateLock = Mutex();
   Future<void> onUTXOsChanged(List<UTXO> utxos) async {
+    if (wallet == null) {
+      Logging.instance.w(
+        "onUTXOsChanged triggered while cs_monero wallet is null. If this "
+        "occurs while not in a monero/wownero wallet this warning can be "
+        "ignored.",
+      );
+      return;
+    }
+
     await _utxosUpdateLock.protect(() async {
       final cwUtxos = await csMonero.getOutputs(wallet!, refresh: true);
 
