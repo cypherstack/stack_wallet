@@ -10,6 +10,7 @@ import 'package:cs_monero/src/ffi_bindings/wownero_wallet_bindings.dart'
 //END_ON
 import '../../models/input.dart';
 import '../interfaces/cs_monero_interface.dart';
+import '../interfaces/cs_salvium_interface.dart' show WrappedWallet;
 
 CsMoneroInterface get csMonero => _getInterface();
 

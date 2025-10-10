@@ -61,8 +61,8 @@ dependencies:
 # %%END_ENABLE_TOR%%
 
 # %%ENABLE_XMR%%
-#  cs_monero: 1.1.0
-#  cs_monero_flutter_libs: 1.1.0
+#  cs_monero: 1.1.1
+#  cs_monero_flutter_libs: 1.1.1
 # %%END_ENABLE_XMR%%
 
 # %%ENABLE_SAL%%
