@@ -816,11 +816,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if (isSparkWallet ||
-                            ref.watch(pWalletInfo(walletId)).isMwebEnabled)
+                        if ((isSparkWallet ||
+                                ref
+                                    .watch(pWalletInfo(walletId))
+                                    .isMwebEnabled) &&
+                            !viewOnly)
                           const SizedBox(height: 10),
-                        if (isSparkWallet ||
-                            ref.watch(pWalletInfo(walletId)).isMwebEnabled)
+                        if ((isSparkWallet ||
+                                ref
+                                    .watch(pWalletInfo(walletId))
+                                    .isMwebEnabled) &&
+                            !viewOnly)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
