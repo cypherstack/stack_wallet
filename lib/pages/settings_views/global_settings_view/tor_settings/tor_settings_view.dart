@@ -50,8 +50,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.backgroundAppBar,
           leading: AppBarBackButton(
             onPressed: () {
               Navigator.of(context).pop();
@@ -98,12 +99,12 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                   children: [
                     Padding(
                       padding: EdgeInsets.all(10.0),
-                      child: TorAnimatedButton(),
+                      child: _TorAnimatedButton(),
                     ),
                   ],
                 ),
                 const SizedBox(height: 30),
-                const TorButton(),
+                const _TorButton(),
                 const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   child: Consumer(
@@ -144,8 +145,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                                 " connection is disrupted or compromised.",
                                             rightButton: SecondaryButton(
                                               label: "Close",
-                                              onPressed:
-                                                  Navigator.of(context).pop,
+                                              onPressed: Navigator.of(
+                                                context,
+                                              ).pop,
                                             ),
                                           );
                                         },
@@ -155,10 +157,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                       Assets.svg.circleInfo,
                                       height: 16,
                                       width: 16,
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .infoItemLabel,
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.infoItemLabel,
                                     ),
                                   ),
                                 ],
@@ -174,8 +175,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .torKillSwitch = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .torKillSwitch =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -195,14 +197,14 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
   }
 }
 
-class TorAnimatedButton extends ConsumerStatefulWidget {
-  const TorAnimatedButton({super.key});
+class _TorAnimatedButton extends ConsumerStatefulWidget {
+  const _TorAnimatedButton({super.key});
 
   @override
-  ConsumerState<TorAnimatedButton> createState() => _TorAnimatedButtonState();
+  ConsumerState<_TorAnimatedButton> createState() => _TorAnimatedButtonState();
 }
 
-class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
+class _TorAnimatedButtonState extends ConsumerState<_TorAnimatedButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController controller1;
 
@@ -224,7 +226,6 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
 
         case TorConnectionStatus.connected:
           await disconnectTor(ref, context);
-
           break;
 
         case TorConnectionStatus.connecting:
@@ -365,7 +366,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
                 },
               ),
             ),
-            const UpperCaseTorText(),
+            const _UpperCaseTorText(),
           ],
         ),
       ),
@@ -373,14 +374,14 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
   }
 }
 
-class TorButton extends ConsumerStatefulWidget {
-  const TorButton({super.key});
+class _TorButton extends ConsumerStatefulWidget {
+  const _TorButton({super.key});
 
   @override
-  ConsumerState<TorButton> createState() => _TorButtonState();
+  ConsumerState<_TorButton> createState() => _TorButtonState();
 }
 
-class _TorButtonState extends ConsumerState<TorButton> {
+class _TorButtonState extends ConsumerState<_TorButton> {
   late TorConnectionStatus _status;
 
   Color _color(TorConnectionStatus status, StackColors colors) {
@@ -483,14 +484,14 @@ class _TorButtonState extends ConsumerState<TorButton> {
   }
 }
 
-class UpperCaseTorText extends ConsumerStatefulWidget {
-  const UpperCaseTorText({super.key});
+class _UpperCaseTorText extends ConsumerStatefulWidget {
+  const _UpperCaseTorText({super.key});
 
   @override
-  ConsumerState<UpperCaseTorText> createState() => _UpperCaseTorTextState();
+  ConsumerState<_UpperCaseTorText> createState() => _UpperCaseTorTextState();
 }
 
-class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
+class _UpperCaseTorTextState extends ConsumerState<_UpperCaseTorText> {
   late TorConnectionStatus _status;
 
   Color _color(TorConnectionStatus status, StackColors colors) {

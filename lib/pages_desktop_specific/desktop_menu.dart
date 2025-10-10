@@ -126,19 +126,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: 25),
             AnimatedContainer(
               duration: duration,
               width: _width == expandedWidth ? 70 : 32,
-              child: LivingStackIcon(
-                onPressed: toggleMinimize,
-              ),
+              child: LivingStackIcon(onPressed: toggleMinimize),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             AnimatedOpacity(
               duration: duration,
               opacity: _width == expandedWidth ? 1 : 0,
@@ -146,40 +140,40 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 height: 28,
                 child: Text(
                   AppConfig.appName,
-                  style: STextStyles.desktopH2(context).copyWith(
-                    fontSize: 18,
-                    height: 23.4 / 18,
-                  ),
+                  style: STextStyles.desktopH2(
+                    context,
+                  ).copyWith(fontSize: 18, height: 23.4 / 18),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 5,
-            ),
-            AnimatedContainer(
-              duration: duration,
-              width: _width == expandedWidth
-                  ? _width - 32 // 16 padding on either side
-                  : _width - 16, // 8 padding on either side
-              child: DesktopTorStatusButton(
-                transitionDuration: duration,
-                controller: torButtonController,
-                onPressed: () {
-                  ref.read(currentDesktopMenuItemProvider.state).state =
-                      DesktopMenuItemId.settings;
-                  ref.read(selectedSettingsMenuItemStateProvider.state).state =
-                      4;
-                },
+            if (AppConfig.hasFeature(AppFeature.tor)) const SizedBox(height: 5),
+            if (AppConfig.hasFeature(AppFeature.tor))
+              AnimatedContainer(
+                duration: duration,
+                width: _width == expandedWidth
+                    ? _width -
+                          32 // 16 padding on either side
+                    : _width - 16, // 8 padding on either side
+                child: DesktopTorStatusButton(
+                  transitionDuration: duration,
+                  controller: torButtonController,
+                  onPressed: () {
+                    ref.read(currentDesktopMenuItemProvider.state).state =
+                        DesktopMenuItemId.settings;
+                    ref
+                            .read(selectedSettingsMenuItemStateProvider.state)
+                            .state =
+                        4;
+                  },
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 40,
-            ),
+            const SizedBox(height: 40),
             Expanded(
               child: AnimatedContainer(
                 duration: duration,
                 width: _width == expandedWidth
-                    ? _width - 32 // 16 padding on either side
+                    ? _width -
+                          32 // 16 padding on either side
                     : _width - 16, // 8 padding on either side
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -196,9 +190,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     if (AppConfig.hasFeature(AppFeature.swap) &&
                         showExchange) ...[
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       DesktopMenuItem(
                         key: const ValueKey('swap'),
                         duration: duration,
@@ -212,9 +204,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ],
                     if (AppConfig.hasFeature(AppFeature.buy) &&
                         showExchange) ...[
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       DesktopMenuItem(
                         key: const ValueKey('buy'),
                         duration: duration,
@@ -226,9 +216,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         isExpandedInitially: !_isMinimized,
                       ),
                     ],
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
                     DesktopMenuItem(
                       key: const ValueKey('notifications'),
                       duration: duration,
@@ -239,9 +227,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       controller: controllers[3],
                       isExpandedInitially: !_isMinimized,
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
                     DesktopMenuItem(
                       key: const ValueKey('addressBook'),
                       duration: duration,
@@ -252,9 +238,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       controller: controllers[4],
                       isExpandedInitially: !_isMinimized,
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
                     DesktopMenuItem(
                       key: const ValueKey('settings'),
                       duration: duration,
@@ -265,9 +249,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       controller: controllers[5],
                       isExpandedInitially: !_isMinimized,
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
                     DesktopMenuItem(
                       key: const ValueKey('support'),
                       duration: duration,
@@ -278,9 +260,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       controller: controllers[6],
                       isExpandedInitially: !_isMinimized,
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
                     DesktopMenuItem(
                       key: const ValueKey('about'),
                       duration: duration,

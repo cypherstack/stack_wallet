@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../networking/http.dart';
 import '../../../utilities/extensions/extensions.dart';
@@ -56,10 +57,11 @@ abstract class TrocadorAPI {
           "Content-Type": "application/json",
           "API-KEY": kTrocadorApiKey,
         },
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       code = response.code;
@@ -99,8 +101,9 @@ abstract class TrocadorAPI {
 
       if (json is List) {
         final list = List<Map<String, dynamic>>.from(json);
-        final List<TrocadorCoin> coins =
-            list.map((e) => TrocadorCoin.fromMap(e)).toList();
+        final List<TrocadorCoin> coins = list
+            .map((e) => TrocadorCoin.fromMap(e))
+            .toList();
 
         return ExchangeResponse(value: coins);
       } else {

@@ -10,6 +10,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -20,6 +21,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
+import '../../../../wl_gen/interfaces/cs_monero_interface.dart';
 
 class EditRefreshHeightView extends ConsumerStatefulWidget {
   const EditRefreshHeightView({super.key, required this.walletId});
@@ -34,7 +36,6 @@ class EditRefreshHeightView extends ConsumerStatefulWidget {
 }
 
 class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
-  late final LibMoneroWallet _wallet;
   late final TextEditingController _controller;
   final _focusNode = FocusNode();
 
@@ -48,11 +49,17 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
       try {
         final newHeight = int.tryParse(_controller.text);
         if (newHeight != null && newHeight >= 0) {
-          await _wallet.info.updateRestoreHeight(
-            newRestoreHeight: newHeight,
-            isar: ref.read(mainDBProvider).isar,
-          );
-          _wallet.libMoneroWallet!.setRefreshFromBlockHeight(newHeight);
+          await ref
+              .read(pWalletInfo(widget.walletId))
+              .updateRestoreHeight(
+                newRestoreHeight: newHeight,
+                isar: ref.read(mainDBProvider).isar,
+              );
+          final wallet =
+              ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet?;
+          if (wallet?.wallet != null) {
+            csMonero.setRefreshFromBlockHeight(wallet!.wallet!, newHeight);
+          }
         } else {
           errMessage = "Invalid height: ${_controller.text}";
         }
@@ -88,11 +95,19 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
   @override
   void initState() {
     super.initState();
-    _wallet = ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet;
-    _controller =
-        TextEditingController()
-          ..text =
-              _wallet.libMoneroWallet!.getRefreshFromBlockHeight().toString();
+    _controller = TextEditingController();
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet?;
+    if (wallet?.wallet != null) {
+      _controller.text = csMonero
+          .getRefreshFromBlockHeight(wallet!.wallet!)
+          .toString();
+    } else {
+      _controller.text = ref
+          .read(pWalletInfo(widget.walletId))
+          .restoreHeight
+          .toString();
+    }
   }
 
   @override
@@ -118,8 +133,10 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   DesktopDialogCloseButton(
-                    onPressedOverride:
-                        Navigator.of(context, rootNavigator: true).pop,
+                    onPressedOverride: Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop,
                   ),
                 ],
               ),
@@ -137,8 +154,9 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
         builder: (child) {
           return Background(
             child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
+              backgroundColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.background,
               appBar: AppBar(
                 leading: AppBarBackButton(
                   onPressed: () {
@@ -167,51 +185,47 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                 key: const Key("restoreHeightFieldKey"),
                 controller: _controller,
                 focusNode: _focusNode,
-                style:
-                    Util.isDesktop
-                        ? STextStyles.desktopTextMedium(
-                          context,
-                        ).copyWith(height: 2)
-                        : STextStyles.field(context),
+                style: Util.isDesktop
+                    ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
+                    : STextStyles.field(context),
                 enableSuggestions: false,
                 autocorrect: false,
                 autofocus: true,
                 onSubmitted: (_) => _save(),
                 onChanged: (_) => setState(() {}),
-                decoration: standardInputDecoration(
-                  "Restore height",
-                  _focusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon:
-                      _controller.text.isNotEmpty
+                decoration:
+                    standardInputDecoration(
+                      "Restore height",
+                      _focusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon: _controller.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: ConditionalParent(
-                                condition: Util.isDesktop,
-                                builder:
-                                    (child) =>
-                                        SizedBox(height: 70, child: child),
-                                child: Row(
-                                  children: [
-                                    TextFieldIconButton(
-                                      child: const XIcon(),
-                                      onTap: () async {
-                                        setState(() {
-                                          _controller.text = "";
-                                        });
-                                      },
-                                    ),
-                                  ],
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: ConditionalParent(
+                                  condition: Util.isDesktop,
+                                  builder: (child) =>
+                                      SizedBox(height: 70, child: child),
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            _controller.text = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
+                            )
                           : Util.isDesktop
                           ? const SizedBox(height: 70)
                           : null,
-                ),
+                    ),
               ),
             ),
             Util.isDesktop ? const SizedBox(height: 32) : const Spacer(),

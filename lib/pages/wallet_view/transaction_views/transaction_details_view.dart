@@ -16,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -39,6 +38,7 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -100,12 +100,11 @@ class _TransactionDetailsViewState
     isTokenTx = _transaction.subType == TransactionSubType.ethToken;
     walletId = widget.walletId;
 
-    minConfirms =
-        ref
-            .read(pWallets)
-            .getWallet(widget.walletId)
-            .cryptoCurrency
-            .minConfirms;
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
     coin = widget.coin;
     amount = _transaction.realAmount;
     fee = _transaction.fee.toAmountAsRaw(fractionDigits: coin.fractionDigits);
@@ -116,12 +115,9 @@ class _TransactionDetailsViewState
       amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
 
-    ethContract =
-        isTokenTx
-            ? ref
-                .read(mainDBProvider)
-                .getEthContractSync(_transaction.otherData!)
-            : null;
+    ethContract = isTokenTx
+        ? ref.read(mainDBProvider).getEthContractSync(_transaction.otherData!)
+        : null;
 
     unit = isTokenTx ? ethContract!.symbol : coin.ticker;
 
@@ -217,10 +213,9 @@ class _TransactionDetailsViewState
           .read(addressBookServiceProvider)
           .contacts
           .where(
-            (element) =>
-                element.addresses
-                    .where((element) => element.address == address)
-                    .isNotEmpty,
+            (element) => element.addresses
+                .where((element) => element.address == address)
+                .isNotEmpty,
           );
       if (contacts.isNotEmpty) {
         return contacts.first.name;
@@ -256,8 +251,9 @@ class _TransactionDetailsViewState
                       onChanged: (value) {
                         if (value is bool) {
                           ref
-                              .read(prefsChangeNotifierProvider)
-                              .hideBlockExplorerWarning = value;
+                                  .read(prefsChangeNotifierProvider)
+                                  .hideBlockExplorerWarning =
+                              value;
                           setState(() {});
                         }
                       },
@@ -277,10 +273,9 @@ class _TransactionDetailsViewState
               child: Text(
                 "Cancel",
                 style: STextStyles.button(context).copyWith(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.accentColorDark,
                 ),
               ),
             ),
@@ -319,8 +314,9 @@ class _TransactionDetailsViewState
                                 onChanged: (value) {
                                   if (value is bool) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .hideBlockExplorerWarning = value;
+                                            .read(prefsChangeNotifierProvider)
+                                            .hideBlockExplorerWarning =
+                                        value;
                                     setState(() {});
                                   }
                                 },
@@ -383,10 +379,9 @@ class _TransactionDetailsViewState
     )) {
       price = ref.watch(
         priceAnd24hChangeNotifierProvider.select(
-          (value) =>
-              isTokenTx
-                  ? value.getTokenPrice(_transaction.otherData!)?.value
-                  : value.getPrice(coin)?.value,
+          (value) => isTokenTx
+              ? value.getTokenPrice(_transaction.otherData!)?.value
+              : value.getPrice(coin)?.value,
         ),
       );
     }
@@ -395,38 +390,36 @@ class _TransactionDetailsViewState
       condition: !isDesktop,
       builder: (child) => Background(child: child),
       child: Scaffold(
-        backgroundColor:
-            isDesktop
-                ? Colors.transparent
-                : Theme.of(context).extension<StackColors>()!.background,
-        appBar:
-            isDesktop
-                ? null
-                : AppBar(
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  leading: AppBarBackButton(
-                    onPressed: () async {
-                      // if (FocusScope.of(context).hasFocus) {
-                      //   FocusScope.of(context).unfocus();
-                      //   await Future<void>.delayed(Duration(milliseconds: 50));
-                      // }
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  title: Text(
-                    "Transaction details",
-                    style: STextStyles.navBarTitle(context),
-                  ),
+        backgroundColor: isDesktop
+            ? Colors.transparent
+            : Theme.of(context).extension<StackColors>()!.background,
+        appBar: isDesktop
+            ? null
+            : AppBar(
+                backgroundColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    // if (FocusScope.of(context).hasFocus) {
+                    //   FocusScope.of(context).unfocus();
+                    //   await Future<void>.delayed(Duration(milliseconds: 50));
+                    // }
+                    Navigator.of(context).pop();
+                  },
                 ),
+                title: Text(
+                  "Transaction details",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
         body: ConditionalParent(
           condition: !isDesktop,
           builder: (child) => SafeArea(child: child),
           child: Padding(
-            padding:
-                isDesktop
-                    ? const EdgeInsets.only(left: 32)
-                    : const EdgeInsets.all(12),
+            padding: isDesktop
+                ? const EdgeInsets.only(left: 32)
+                : const EdgeInsets.all(12),
             child: Column(
               children: [
                 if (isDesktop)
@@ -442,20 +435,18 @@ class _TransactionDetailsViewState
                   ),
                 Expanded(
                   child: Padding(
-                    padding:
-                        isDesktop
-                            ? const EdgeInsets.only(right: 32, bottom: 32)
-                            : const EdgeInsets.all(0),
+                    padding: isDesktop
+                        ? const EdgeInsets.only(right: 32, bottom: 32)
+                        : const EdgeInsets.all(0),
                     child: ConditionalParent(
                       condition: isDesktop,
                       builder: (child) {
                         return RoundedWhiteContainer(
-                          borderColor:
-                              isDesktop
-                                  ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.backgroundAppBar
-                                  : null,
+                          borderColor: isDesktop
+                              ? Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.backgroundAppBar
+                              : null,
                           padding: const EdgeInsets.all(0),
                           child: child,
                         );
@@ -463,40 +454,35 @@ class _TransactionDetailsViewState
                       child: SingleChildScrollView(
                         primary: isDesktop ? false : null,
                         child: Padding(
-                          padding:
-                              isDesktop
-                                  ? const EdgeInsets.all(0)
-                                  : const EdgeInsets.all(4),
+                          padding: isDesktop
+                              ? const EdgeInsets.all(0)
+                              : const EdgeInsets.all(4),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               RoundedWhiteContainer(
-                                padding:
-                                    isDesktop
-                                        ? const EdgeInsets.all(0)
-                                        : const EdgeInsets.all(12),
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(0)
+                                    : const EdgeInsets.all(12),
                                 child: Container(
-                                  decoration:
-                                      isDesktop
-                                          ? BoxDecoration(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .backgroundAppBar,
-                                            borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(
-                                                Constants
-                                                    .size
-                                                    .circularBorderRadius,
-                                              ),
+                                  decoration: isDesktop
+                                      ? BoxDecoration(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .backgroundAppBar,
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(
+                                              Constants
+                                                  .size
+                                                  .circularBorderRadius,
                                             ),
-                                          )
-                                          : null,
+                                          ),
+                                        )
+                                      : null,
                                   child: Padding(
-                                    padding:
-                                        isDesktop
-                                            ? const EdgeInsets.all(12)
-                                            : const EdgeInsets.all(0),
+                                    padding: isDesktop
+                                        ? const EdgeInsets.all(12)
+                                        : const EdgeInsets.all(0),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -513,12 +499,12 @@ class _TransactionDetailsViewState
                                               SelectableText(
                                                 _transaction.isCancelled
                                                     ? coin is Ethereum
-                                                        ? "Failed"
-                                                        : "Cancelled"
+                                                          ? "Failed"
+                                                          : "Cancelled"
                                                     : whatIsIt(
-                                                      _transaction,
-                                                      currentHeight,
-                                                    ),
+                                                        _transaction,
+                                                        currentHeight,
+                                                      ),
                                                 style:
                                                     STextStyles.desktopTextMedium(
                                                       context,
@@ -527,41 +513,37 @@ class _TransactionDetailsViewState
                                             ],
                                           ),
                                         Column(
-                                          crossAxisAlignment:
-                                              isDesktop
-                                                  ? CrossAxisAlignment.end
-                                                  : CrossAxisAlignment.start,
+                                          crossAxisAlignment: isDesktop
+                                              ? CrossAxisAlignment.end
+                                              : CrossAxisAlignment.start,
                                           children: [
                                             SelectableText(
                                               "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
-                                              style:
-                                                  isDesktop
-                                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .textDark,
-                                                      )
-                                                      : STextStyles.titleBold12(
-                                                        context,
-                                                      ),
+                                              style: isDesktop
+                                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.titleBold12(
+                                                      context,
+                                                    ),
                                             ),
                                             const SizedBox(height: 2),
                                             if (price != null)
                                               SelectableText(
                                                 "$amountPrefix${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                style:
-                                                    isDesktop
-                                                        ? STextStyles.desktopTextExtraExtraSmall(
-                                                          context,
-                                                        )
-                                                        : STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
+                                                style: isDesktop
+                                                    ? STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      )
+                                                    : STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
                                               ),
                                           ],
                                         ),
@@ -581,24 +563,20 @@ class _TransactionDetailsViewState
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
                               RoundedWhiteContainer(
-                                padding:
-                                    isDesktop
-                                        ? const EdgeInsets.all(16)
-                                        : const EdgeInsets.all(12),
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       "Status",
-                                      style:
-                                          isDesktop
-                                              ? STextStyles.desktopTextExtraExtraSmall(
-                                                context,
-                                              )
-                                              : STextStyles.itemSubtitle(
-                                                context,
-                                              ),
+                                      style: isDesktop
+                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                              context,
+                                            )
+                                          : STextStyles.itemSubtitle(context),
                                     ),
                                     // Flexible(
                                     //   child: FittedBox(
@@ -607,35 +585,31 @@ class _TransactionDetailsViewState
                                     SelectableText(
                                       _transaction.isCancelled
                                           ? coin is Ethereum
-                                              ? "Failed"
-                                              : "Cancelled"
+                                                ? "Failed"
+                                                : "Cancelled"
                                           : whatIsIt(
-                                            _transaction,
-                                            currentHeight,
-                                          ),
-                                      style:
-                                          isDesktop
-                                              ? STextStyles.desktopTextExtraExtraSmall(
-                                                context,
-                                              ).copyWith(
-                                                color:
-                                                    _transaction.type ==
-                                                            TransactionType
-                                                                .outgoing
-                                                        ? Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .accentColorOrange
-                                                        : Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .accentColorGreen,
-                                              )
-                                              : STextStyles.itemSubtitle12(
-                                                context,
-                                              ),
+                                              _transaction,
+                                              currentHeight,
+                                            ),
+                                      style: isDesktop
+                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                              context,
+                                            ).copyWith(
+                                              color:
+                                                  _transaction.type ==
+                                                      TransactionType.outgoing
+                                                  ? Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .accentColorOrange
+                                                  : Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .accentColorGreen,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
                                     ),
                                     //   ),
                                     // ),
@@ -658,10 +632,9 @@ class _TransactionDetailsViewState
                                       _transaction.subType ==
                                           TransactionSubType.mint))
                                 RoundedWhiteContainer(
-                                  padding:
-                                      isDesktop
-                                          ? const EdgeInsets.all(16)
-                                          : const EdgeInsets.all(12),
+                                  padding: isDesktop
+                                      ? const EdgeInsets.all(16)
+                                      : const EdgeInsets.all(12),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -688,24 +661,19 @@ class _TransactionDetailsViewState
                                                         if (isDesktop) {
                                                           showDialog<void>(
                                                             context: context,
-                                                            builder:
-                                                                (
-                                                                  _,
-                                                                ) => DesktopDialog(
-                                                                  maxHeight:
-                                                                      double
-                                                                          .infinity,
-                                                                  child: AddressDetailsView(
-                                                                    addressId:
-                                                                        _transaction
-                                                                            .address
-                                                                            .value!
-                                                                            .id,
-                                                                    walletId:
-                                                                        widget
-                                                                            .walletId,
-                                                                  ),
-                                                                ),
+                                                            builder: (_) => DesktopDialog(
+                                                              maxHeight: double
+                                                                  .infinity,
+                                                              child: AddressDetailsView(
+                                                                addressId:
+                                                                    _transaction
+                                                                        .address
+                                                                        .value!
+                                                                        .id,
+                                                                walletId: widget
+                                                                    .walletId,
+                                                              ),
+                                                            ),
                                                           );
                                                         } else {
                                                           Navigator.of(
@@ -732,74 +700,70 @@ class _TransactionDetailsViewState
                                                         TransactionType.outgoing
                                                     ? "Sent to"
                                                     : "Receiving address",
-                                                style:
-                                                    isDesktop
-                                                        ? STextStyles.desktopTextExtraExtraSmall(
-                                                          context,
-                                                        )
-                                                        : STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
+                                                style: isDesktop
+                                                    ? STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      )
+                                                    : STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
                                               ),
                                             ),
                                             const SizedBox(height: 8),
                                             _transaction.type ==
                                                     TransactionType.incoming
                                                 ? FutureBuilder(
-                                                  future: fetchContactNameFor(
-                                                    _transaction
-                                                        .address
-                                                        .value!
-                                                        .value,
-                                                  ),
-                                                  builder: (
-                                                    builderContext,
-                                                    AsyncSnapshot<String>
-                                                    snapshot,
-                                                  ) {
-                                                    String
-                                                    addressOrContactName =
-                                                        _transaction
-                                                            .address
-                                                            .value!
-                                                            .value;
-                                                    if (snapshot.connectionState ==
-                                                            ConnectionState
-                                                                .done &&
-                                                        snapshot.hasData) {
-                                                      addressOrContactName =
-                                                          snapshot.data!;
-                                                    }
-                                                    return SelectableText(
-                                                      addressOrContactName,
-                                                      style:
-                                                          isDesktop
-                                                              ? STextStyles.desktopTextExtraExtraSmall(
-                                                                context,
-                                                              ).copyWith(
-                                                                color:
-                                                                    Theme.of(
-                                                                          context,
-                                                                        )
+                                                    future: fetchContactNameFor(
+                                                      _transaction
+                                                          .address
+                                                          .value!
+                                                          .value,
+                                                    ),
+                                                    builder:
+                                                        (
+                                                          builderContext,
+                                                          AsyncSnapshot<String>
+                                                          snapshot,
+                                                        ) {
+                                                          String
+                                                          addressOrContactName =
+                                                              _transaction
+                                                                  .address
+                                                                  .value!
+                                                                  .value;
+                                                          if (snapshot.connectionState ==
+                                                                  ConnectionState
+                                                                      .done &&
+                                                              snapshot
+                                                                  .hasData) {
+                                                            addressOrContactName =
+                                                                snapshot.data!;
+                                                          }
+                                                          return SelectableText(
+                                                            addressOrContactName,
+                                                            style: isDesktop
+                                                                ? STextStyles.desktopTextExtraExtraSmall(
+                                                                    context,
+                                                                  ).copyWith(
+                                                                    color: Theme.of(context)
                                                                         .extension<
                                                                           StackColors
                                                                         >()!
                                                                         .textDark,
-                                                              )
-                                                              : STextStyles.itemSubtitle12(
-                                                                context,
-                                                              ),
-                                                    );
-                                                  },
-                                                )
+                                                                  )
+                                                                : STextStyles.itemSubtitle12(
+                                                                    context,
+                                                                  ),
+                                                          );
+                                                        },
+                                                  )
                                                 : SelectableText(
-                                                  _transaction
-                                                      .address
-                                                      .value!
-                                                      .value,
-                                                  style:
-                                                      isDesktop
-                                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                                    _transaction
+                                                        .address
+                                                        .value!
+                                                        .value,
+                                                    style: isDesktop
+                                                        ? STextStyles.desktopTextExtraExtraSmall(
                                                             context,
                                                           ).copyWith(
                                                             color:
@@ -811,10 +775,10 @@ class _TransactionDetailsViewState
                                                                     >()!
                                                                     .textDark,
                                                           )
-                                                          : STextStyles.itemSubtitle12(
+                                                        : STextStyles.itemSubtitle12(
                                                             context,
                                                           ),
-                                                ),
+                                                  ),
                                           ],
                                         ),
                                       ),
@@ -832,10 +796,9 @@ class _TransactionDetailsViewState
                                     : const SizedBox(height: 12),
                               if (coin is Epiccash)
                                 RoundedWhiteContainer(
-                                  padding:
-                                      isDesktop
-                                          ? const EdgeInsets.all(16)
-                                          : const EdgeInsets.all(12),
+                                  padding: isDesktop
+                                      ? const EdgeInsets.all(16)
+                                      : const EdgeInsets.all(12),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -849,33 +812,30 @@ class _TransactionDetailsViewState
                                           children: [
                                             Text(
                                               "On chain note",
-                                              style:
-                                                  isDesktop
-                                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                                        context,
-                                                      )
-                                                      : STextStyles.itemSubtitle(
-                                                        context,
-                                                      ),
+                                              style: isDesktop
+                                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                                      context,
+                                                    )
+                                                  : STextStyles.itemSubtitle(
+                                                      context,
+                                                    ),
                                             ),
                                             const SizedBox(height: 8),
                                             SelectableText(
                                               _transaction.otherData ?? "",
-                                              style:
-                                                  isDesktop
-                                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .textDark,
-                                                      )
-                                                      : STextStyles.itemSubtitle12(
-                                                        context,
-                                                      ),
+                                              style: isDesktop
+                                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.itemSubtitle12(
+                                                      context,
+                                                    ),
                                             ),
                                           ],
                                         ),
@@ -891,10 +851,9 @@ class _TransactionDetailsViewState
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
                               RoundedWhiteContainer(
-                                padding:
-                                    isDesktop
-                                        ? const EdgeInsets.all(16)
-                                        : const EdgeInsets.all(12),
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -906,66 +865,67 @@ class _TransactionDetailsViewState
                                           (coin is Epiccash)
                                               ? "Local Note"
                                               : "Note ",
-                                          style:
-                                              isDesktop
-                                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                                    context,
-                                                  )
-                                                  : STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                          style: isDesktop
+                                              ? STextStyles.desktopTextExtraExtraSmall(
+                                                  context,
+                                                )
+                                              : STextStyles.itemSubtitle(
+                                                  context,
+                                                ),
                                         ),
                                         isDesktop
                                             ? IconPencilButton(
-                                              onPressed: () {
-                                                showDialog<void>(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return DesktopDialog(
-                                                      maxWidth: 580,
-                                                      maxHeight: 360,
-                                                      child: EditNoteView(
-                                                        txid: _transaction.txid,
-                                                        walletId: walletId,
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            )
+                                                onPressed: () {
+                                                  showDialog<void>(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return DesktopDialog(
+                                                        maxWidth: 580,
+                                                        maxHeight: 360,
+                                                        child: EditNoteView(
+                                                          txid:
+                                                              _transaction.txid,
+                                                          walletId: walletId,
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              )
                                             : GestureDetector(
-                                              onTap: () {
-                                                Navigator.of(context).pushNamed(
-                                                  EditNoteView.routeName,
-                                                  arguments: Tuple2(
-                                                    _transaction.txid,
-                                                    walletId,
-                                                  ),
-                                                );
-                                              },
-                                              child: Row(
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    Assets.svg.pencil,
-                                                    width: 10,
-                                                    height: 10,
-                                                    color:
-                                                        Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .infoItemIcons,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    "Edit",
-                                                    style: STextStyles.link2(
-                                                      context,
+                                                onTap: () {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pushNamed(
+                                                    EditNoteView.routeName,
+                                                    arguments: Tuple2(
+                                                      _transaction.txid,
+                                                      walletId,
                                                     ),
-                                                  ),
-                                                ],
+                                                  );
+                                                },
+                                                child: Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      Assets.svg.pencil,
+                                                      width: 10,
+                                                      height: 10,
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .infoItemIcons,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      "Edit",
+                                                      style: STextStyles.link2(
+                                                        context,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -979,21 +939,15 @@ class _TransactionDetailsViewState
                                               )
                                               ?.value ??
                                           "",
-                                      style:
-                                          isDesktop
-                                              ? STextStyles.desktopTextExtraExtraSmall(
-                                                context,
-                                              ).copyWith(
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .textDark,
-                                              )
-                                              : STextStyles.itemSubtitle12(
-                                                context,
-                                              ),
+                                      style: isDesktop
+                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                              context,
+                                            ).copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
                                     ),
                                   ],
                                 ),
@@ -1002,10 +956,9 @@ class _TransactionDetailsViewState
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
                               RoundedWhiteContainer(
-                                padding:
-                                    isDesktop
-                                        ? const EdgeInsets.all(16)
-                                        : const EdgeInsets.all(12),
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -1017,14 +970,13 @@ class _TransactionDetailsViewState
                                       children: [
                                         Text(
                                           "Date",
-                                          style:
-                                              isDesktop
-                                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                                    context,
-                                                  )
-                                                  : STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                          style: isDesktop
+                                              ? STextStyles.desktopTextExtraExtraSmall(
+                                                  context,
+                                                )
+                                              : STextStyles.itemSubtitle(
+                                                  context,
+                                                ),
                                         ),
                                         if (isDesktop)
                                           const SizedBox(height: 2),
@@ -1033,21 +985,19 @@ class _TransactionDetailsViewState
                                             Format.extractDateFrom(
                                               _transaction.timestamp,
                                             ),
-                                            style:
-                                                isDesktop
-                                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    ).copyWith(
-                                                      color:
-                                                          Theme.of(context)
-                                                              .extension<
-                                                                StackColors
-                                                              >()!
-                                                              .textDark,
-                                                    )
-                                                    : STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
+                                            style: isDesktop
+                                                ? STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textDark,
+                                                  )
+                                                : STextStyles.itemSubtitle12(
+                                                    context,
+                                                  ),
                                           ),
                                       ],
                                     ),
@@ -1056,21 +1006,17 @@ class _TransactionDetailsViewState
                                         Format.extractDateFrom(
                                           _transaction.timestamp,
                                         ),
-                                        style:
-                                            isDesktop
-                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                  context,
-                                                ).copyWith(
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .textDark,
-                                                )
-                                                : STextStyles.itemSubtitle12(
-                                                  context,
-                                                ),
+                                        style: isDesktop
+                                            ? STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              ).copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
+                                              )
+                                            : STextStyles.itemSubtitle12(
+                                                context,
+                                              ),
                                       ),
                                     if (isDesktop)
                                       IconCopyButton(
@@ -1087,19 +1033,17 @@ class _TransactionDetailsViewState
                                     : const SizedBox(height: 12),
                               if (coin is! NanoCurrency)
                                 RoundedWhiteContainer(
-                                  padding:
-                                      isDesktop
-                                          ? const EdgeInsets.all(16)
-                                          : const EdgeInsets.all(12),
+                                  padding: isDesktop
+                                      ? const EdgeInsets.all(16)
+                                      : const EdgeInsets.all(12),
                                   child: Builder(
                                     builder: (context) {
-                                      final String feeString =
-                                          showFeePending
-                                              ? _transaction.isConfirmed(
-                                                    currentHeight,
-                                                    minConfirms,
-                                                  )
-                                                  ? ref
+                                      final String feeString = showFeePending
+                                          ? _transaction.isConfirmed(
+                                                  currentHeight,
+                                                  minConfirms,
+                                                )
+                                                ? ref
                                                       .watch(
                                                         pAmountFormatter(coin),
                                                       )
@@ -1107,13 +1051,13 @@ class _TransactionDetailsViewState
                                                         fee,
                                                         withUnitName: isTokenTx,
                                                       )
-                                                  : "Pending"
-                                              : ref
-                                                  .watch(pAmountFormatter(coin))
-                                                  .format(
-                                                    fee,
-                                                    withUnitName: isTokenTx,
-                                                  );
+                                                : "Pending"
+                                          : ref
+                                                .watch(pAmountFormatter(coin))
+                                                .format(
+                                                  fee,
+                                                  withUnitName: isTokenTx,
+                                                );
 
                                       return Row(
                                         mainAxisAlignment:
@@ -1127,58 +1071,52 @@ class _TransactionDetailsViewState
                                             children: [
                                               Text(
                                                 "Transaction fee",
-                                                style:
-                                                    isDesktop
-                                                        ? STextStyles.desktopTextExtraExtraSmall(
-                                                          context,
-                                                        )
-                                                        : STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
+                                                style: isDesktop
+                                                    ? STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      )
+                                                    : STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
                                               ),
                                               if (isDesktop)
                                                 const SizedBox(height: 2),
                                               if (isDesktop)
                                                 SelectableText(
                                                   feeString,
-                                                  style:
-                                                      isDesktop
-                                                          ? STextStyles.desktopTextExtraExtraSmall(
-                                                            context,
-                                                          ).copyWith(
-                                                            color:
-                                                                Theme.of(
-                                                                      context,
-                                                                    )
-                                                                    .extension<
-                                                                      StackColors
-                                                                    >()!
-                                                                    .textDark,
-                                                          )
-                                                          : STextStyles.itemSubtitle12(
-                                                            context,
-                                                          ),
+                                                  style: isDesktop
+                                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                                          context,
+                                                        ).copyWith(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .extension<
+                                                                    StackColors
+                                                                  >()!
+                                                                  .textDark,
+                                                        )
+                                                      : STextStyles.itemSubtitle12(
+                                                          context,
+                                                        ),
                                                 ),
                                             ],
                                           ),
                                           if (!isDesktop)
                                             SelectableText(
                                               feeString,
-                                              style:
-                                                  isDesktop
-                                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .textDark,
-                                                      )
-                                                      : STextStyles.itemSubtitle12(
-                                                        context,
-                                                      ),
+                                              style: isDesktop
+                                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.itemSubtitle12(
+                                                      context,
+                                                    ),
                                             ),
                                           if (isDesktop)
                                             IconCopyButton(data: feeString),
@@ -1201,9 +1139,9 @@ class _TransactionDetailsViewState
                                       widget.coin is Ecash) {
                                     height =
                                         _transaction.height != null &&
-                                                _transaction.height! > 0
-                                            ? "${_transaction.height!}"
-                                            : "Pending";
+                                            _transaction.height! > 0
+                                        ? "${_transaction.height!}"
+                                        : "Pending";
                                     confirmations = confirms.toString();
                                   } else if (widget.coin is Epiccash &&
                                       _transaction.slateId == null) {
@@ -1218,10 +1156,9 @@ class _TransactionDetailsViewState
                                       height =
                                           "${_transaction.height == 0 ? "Unknown" : _transaction.height}";
                                     } else {
-                                      height =
-                                          confirms > 0
-                                              ? "${_transaction.height}"
-                                              : "Pending";
+                                      height = confirms > 0
+                                          ? "${_transaction.height}"
+                                          : "Pending";
                                     }
 
                                     confirmations = confirms.toString();
@@ -1230,10 +1167,9 @@ class _TransactionDetailsViewState
                                   return Column(
                                     children: [
                                       RoundedWhiteContainer(
-                                        padding:
-                                            isDesktop
-                                                ? const EdgeInsets.all(16)
-                                                : const EdgeInsets.all(12),
+                                        padding: isDesktop
+                                            ? const EdgeInsets.all(16)
+                                            : const EdgeInsets.all(12),
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
@@ -1246,58 +1182,54 @@ class _TransactionDetailsViewState
                                               children: [
                                                 Text(
                                                   "Block height",
-                                                  style:
-                                                      isDesktop
-                                                          ? STextStyles.desktopTextExtraExtraSmall(
-                                                            context,
-                                                          )
-                                                          : STextStyles.itemSubtitle(
-                                                            context,
-                                                          ),
+                                                  style: isDesktop
+                                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                                          context,
+                                                        )
+                                                      : STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
                                                 ),
                                                 if (isDesktop)
                                                   const SizedBox(height: 2),
                                                 if (isDesktop)
                                                   SelectableText(
                                                     height,
-                                                    style:
-                                                        isDesktop
-                                                            ? STextStyles.desktopTextExtraExtraSmall(
-                                                              context,
-                                                            ).copyWith(
-                                                              color:
-                                                                  Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .extension<
-                                                                        StackColors
-                                                                      >()!
-                                                                      .textDark,
-                                                            )
-                                                            : STextStyles.itemSubtitle12(
-                                                              context,
-                                                            ),
+                                                    style: isDesktop
+                                                        ? STextStyles.desktopTextExtraExtraSmall(
+                                                            context,
+                                                          ).copyWith(
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .textDark,
+                                                          )
+                                                        : STextStyles.itemSubtitle12(
+                                                            context,
+                                                          ),
                                                   ),
                                               ],
                                             ),
                                             if (!isDesktop)
                                               SelectableText(
                                                 height,
-                                                style:
-                                                    isDesktop
-                                                        ? STextStyles.desktopTextExtraExtraSmall(
-                                                          context,
-                                                        ).copyWith(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .extension<
-                                                                    StackColors
-                                                                  >()!
-                                                                  .textDark,
-                                                        )
-                                                        : STextStyles.itemSubtitle12(
-                                                          context,
-                                                        ),
+                                                style: isDesktop
+                                                    ? STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark,
+                                                      )
+                                                    : STextStyles.itemSubtitle12(
+                                                        context,
+                                                      ),
                                               ),
                                             if (isDesktop)
                                               IconCopyButton(data: height),
@@ -1308,10 +1240,9 @@ class _TransactionDetailsViewState
                                           ? const _Divider()
                                           : const SizedBox(height: 12),
                                       RoundedWhiteContainer(
-                                        padding:
-                                            isDesktop
-                                                ? const EdgeInsets.all(16)
-                                                : const EdgeInsets.all(12),
+                                        padding: isDesktop
+                                            ? const EdgeInsets.all(16)
+                                            : const EdgeInsets.all(12),
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
@@ -1324,58 +1255,54 @@ class _TransactionDetailsViewState
                                               children: [
                                                 Text(
                                                   "Confirmations",
-                                                  style:
-                                                      isDesktop
-                                                          ? STextStyles.desktopTextExtraExtraSmall(
-                                                            context,
-                                                          )
-                                                          : STextStyles.itemSubtitle(
-                                                            context,
-                                                          ),
+                                                  style: isDesktop
+                                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                                          context,
+                                                        )
+                                                      : STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
                                                 ),
                                                 if (isDesktop)
                                                   const SizedBox(height: 2),
                                                 if (isDesktop)
                                                   SelectableText(
                                                     confirmations,
-                                                    style:
-                                                        isDesktop
-                                                            ? STextStyles.desktopTextExtraExtraSmall(
-                                                              context,
-                                                            ).copyWith(
-                                                              color:
-                                                                  Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .extension<
-                                                                        StackColors
-                                                                      >()!
-                                                                      .textDark,
-                                                            )
-                                                            : STextStyles.itemSubtitle12(
-                                                              context,
-                                                            ),
+                                                    style: isDesktop
+                                                        ? STextStyles.desktopTextExtraExtraSmall(
+                                                            context,
+                                                          ).copyWith(
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .textDark,
+                                                          )
+                                                        : STextStyles.itemSubtitle12(
+                                                            context,
+                                                          ),
                                                   ),
                                               ],
                                             ),
                                             if (!isDesktop)
                                               SelectableText(
                                                 confirmations,
-                                                style:
-                                                    isDesktop
-                                                        ? STextStyles.desktopTextExtraExtraSmall(
-                                                          context,
-                                                        ).copyWith(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .extension<
-                                                                    StackColors
-                                                                  >()!
-                                                                  .textDark,
-                                                        )
-                                                        : STextStyles.itemSubtitle12(
-                                                          context,
-                                                        ),
+                                                style: isDesktop
+                                                    ? STextStyles.desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark,
+                                                      )
+                                                    : STextStyles.itemSubtitle12(
+                                                        context,
+                                                      ),
                                               ),
                                             if (isDesktop)
                                               IconCopyButton(data: height),
@@ -1392,10 +1319,9 @@ class _TransactionDetailsViewState
                                     : const SizedBox(height: 12),
                               if (coin is Ethereum)
                                 RoundedWhiteContainer(
-                                  padding:
-                                      isDesktop
-                                          ? const EdgeInsets.all(16)
-                                          : const EdgeInsets.all(12),
+                                  padding: isDesktop
+                                      ? const EdgeInsets.all(16)
+                                      : const EdgeInsets.all(12),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1404,32 +1330,25 @@ class _TransactionDetailsViewState
                                     children: [
                                       Text(
                                         "Nonce",
-                                        style:
-                                            isDesktop
-                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                  context,
-                                                )
-                                                : STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
+                                        style: isDesktop
+                                            ? STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              )
+                                            : STextStyles.itemSubtitle(context),
                                       ),
                                       SelectableText(
                                         _transaction.nonce.toString(),
-                                        style:
-                                            isDesktop
-                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                  context,
-                                                ).copyWith(
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .textDark,
-                                                )
-                                                : STextStyles.itemSubtitle12(
-                                                  context,
-                                                ),
+                                        style: isDesktop
+                                            ? STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              ).copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
+                                              )
+                                            : STextStyles.itemSubtitle12(
+                                                context,
+                                              ),
                                       ),
                                     ],
                                   ),
@@ -1440,10 +1359,9 @@ class _TransactionDetailsViewState
                                     : const SizedBox(height: 12),
                               if (kDebugMode)
                                 RoundedWhiteContainer(
-                                  padding:
-                                      isDesktop
-                                          ? const EdgeInsets.all(16)
-                                          : const EdgeInsets.all(12),
+                                  padding: isDesktop
+                                      ? const EdgeInsets.all(16)
+                                      : const EdgeInsets.all(12),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1452,32 +1370,25 @@ class _TransactionDetailsViewState
                                     children: [
                                       Text(
                                         "Tx sub type",
-                                        style:
-                                            isDesktop
-                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                  context,
-                                                )
-                                                : STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
+                                        style: isDesktop
+                                            ? STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              )
+                                            : STextStyles.itemSubtitle(context),
                                       ),
                                       SelectableText(
                                         _transaction.subType.toString(),
-                                        style:
-                                            isDesktop
-                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                  context,
-                                                ).copyWith(
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .textDark,
-                                                )
-                                                : STextStyles.itemSubtitle12(
-                                                  context,
-                                                ),
+                                        style: isDesktop
+                                            ? STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              ).copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
+                                              )
+                                            : STextStyles.itemSubtitle12(
+                                                context,
+                                              ),
                                       ),
                                     ],
                                   ),
@@ -1486,10 +1397,9 @@ class _TransactionDetailsViewState
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
                               RoundedWhiteContainer(
-                                padding:
-                                    isDesktop
-                                        ? const EdgeInsets.all(16)
-                                        : const EdgeInsets.all(12),
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment:
@@ -1502,14 +1412,13 @@ class _TransactionDetailsViewState
                                         children: [
                                           Text(
                                             "Transaction ID",
-                                            style:
-                                                isDesktop
-                                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    )
-                                                    : STextStyles.itemSubtitle(
-                                                      context,
-                                                    ),
+                                            style: isDesktop
+                                                ? STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  )
+                                                : STextStyles.itemSubtitle(
+                                                    context,
+                                                  ),
                                           ),
                                           const SizedBox(height: 8),
                                           // Flexible(
@@ -1518,21 +1427,19 @@ class _TransactionDetailsViewState
                                           //     child:
                                           SelectableText(
                                             _transaction.txid,
-                                            style:
-                                                isDesktop
-                                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    ).copyWith(
-                                                      color:
-                                                          Theme.of(context)
-                                                              .extension<
-                                                                StackColors
-                                                              >()!
-                                                              .textDark,
-                                                    )
-                                                    : STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
+                                            style: isDesktop
+                                                ? STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textDark,
+                                                  )
+                                                : STextStyles.itemSubtitle12(
+                                                    context,
+                                                  ),
                                           ),
                                           if (coin is! Epiccash)
                                             const SizedBox(height: 8),
@@ -1570,28 +1477,24 @@ class _TransactionDetailsViewState
                                                 try {
                                                   await launchUrl(
                                                     uri,
-                                                    mode:
-                                                        LaunchMode
-                                                            .externalApplication,
+                                                    mode: LaunchMode
+                                                        .externalApplication,
                                                   );
                                                 } catch (_) {
                                                   if (context.mounted) {
                                                     unawaited(
                                                       showDialog<void>(
                                                         context: context,
-                                                        builder:
-                                                            (
-                                                              _,
-                                                            ) => StackOkDialog(
-                                                              title:
-                                                                  "Could not open in block explorer",
-                                                              message:
-                                                                  "Failed to open \"${uri.toString()}\"",
-                                                              maxWidth:
-                                                                  Util.isDesktop
-                                                                      ? 400
-                                                                      : null,
-                                                            ),
+                                                        builder: (_) => StackOkDialog(
+                                                          title:
+                                                              "Could not open in block explorer",
+                                                          message:
+                                                              "Failed to open \"${uri.toString()}\"",
+                                                          maxWidth:
+                                                              Util.isDesktop
+                                                              ? 400
+                                                              : null,
+                                                        ),
                                                       ),
                                                     );
                                                   }
@@ -1701,10 +1604,9 @@ class _TransactionDetailsViewState
                                     : const SizedBox(height: 12),
                               if (coin is Epiccash)
                                 RoundedWhiteContainer(
-                                  padding:
-                                      isDesktop
-                                          ? const EdgeInsets.all(16)
-                                          : const EdgeInsets.all(12),
+                                  padding: isDesktop
+                                      ? const EdgeInsets.all(16)
+                                      : const EdgeInsets.all(12),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1717,14 +1619,13 @@ class _TransactionDetailsViewState
                                         children: [
                                           Text(
                                             "Slate ID",
-                                            style:
-                                                isDesktop
-                                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    )
-                                                    : STextStyles.itemSubtitle(
-                                                      context,
-                                                    ),
+                                            style: isDesktop
+                                                ? STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  )
+                                                : STextStyles.itemSubtitle(
+                                                    context,
+                                                  ),
                                           ),
                                           // Flexible(
                                           //   child: FittedBox(
@@ -1732,21 +1633,19 @@ class _TransactionDetailsViewState
                                           //     child:
                                           SelectableText(
                                             _transaction.slateId ?? "Unknown",
-                                            style:
-                                                isDesktop
-                                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    ).copyWith(
-                                                      color:
-                                                          Theme.of(context)
-                                                              .extension<
-                                                                StackColors
-                                                              >()!
-                                                              .textDark,
-                                                    )
-                                                    : STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
+                                            style: isDesktop
+                                                ? STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textDark,
+                                                  )
+                                                : STextStyles.itemSubtitle12(
+                                                    context,
+                                                  ),
                                           ),
                                           //   ),
                                           // ),
@@ -1776,165 +1675,154 @@ class _TransactionDetailsViewState
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
             ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                    _transaction.getConfirmations(currentHeight) < 1 &&
-                    _transaction.isCancelled == false)
-                ? ConditionalParent(
-                  condition: isDesktop,
-                  builder:
-                      (child) => Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        child: child,
+                _transaction.getConfirmations(currentHeight) < 1 &&
+                _transaction.isCancelled == false)
+            ? ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  child: child,
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Theme.of(context).extension<StackColors>()!.textError,
                       ),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width - 32,
-                    child: TextButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                          Theme.of(context).extension<StackColors>()!.textError,
-                        ),
-                      ),
-                      onPressed: () async {
-                        final wallet = ref.read(pWallets).getWallet(walletId);
+                    ),
+                    onPressed: () async {
+                      final wallet = ref.read(pWallets).getWallet(walletId);
 
-                        if (wallet is EpiccashWallet) {
-                          final String? id = _transaction.slateId;
-                          if (id == null) {
-                            unawaited(
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Could not find Epic transaction ID",
-                                context: context,
-                              ),
-                            );
-                            return;
-                          }
-
-                          unawaited(
-                            showDialog<dynamic>(
-                              barrierDismissible: false,
-                              context: context,
-                              builder:
-                                  (_) =>
-                                      const CancellingTransactionProgressDialog(),
-                            ),
-                          );
-
-                          final result = await wallet
-                              .cancelPendingTransactionAndPost(id);
-
-                          if (context.mounted) {
-                            // pop progress dialog
-                            Navigator.of(context).pop();
-
-                            if (result.isEmpty) {
-                              await showDialog<dynamic>(
-                                context: context,
-                                builder:
-                                    (_) => StackOkDialog(
-                                      title: "Transaction cancelled",
-                                      maxWidth: Util.isDesktop ? 400 : null,
-                                      onOkPressed: (_) {
-                                        Navigator.of(context).popUntil(
-                                          ModalRoute.withName(
-                                            WalletView.routeName,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                              );
-                            } else {
-                              await showDialog<dynamic>(
-                                context: context,
-                                builder:
-                                    (_) => StackOkDialog(
-                                      title: "Failed to cancel transaction",
-                                      message: result,
-                                      maxWidth: Util.isDesktop ? 400 : null,
-                                    ),
-                              );
-                            }
-                          }
-                        } else if (wallet is MimblewimblecoinWallet) {
-                          final String? id = _transaction.slateId;
-                          if (id == null) {
-                            unawaited(
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Could not find MWC transaction ID",
-                                context: context,
-                              ),
-                            );
-                            return;
-                          }
-
-                          unawaited(
-                            showDialog<dynamic>(
-                              barrierDismissible: false,
-                              context: context,
-                              builder:
-                                  (_) =>
-                                      const CancellingTransactionProgressDialog(),
-                            ),
-                          );
-
-                          final result = await wallet
-                              .cancelPendingTransactionAndPost(id);
-
-                          if (context.mounted) {
-                            // pop progress dialog
-                            Navigator.of(context).pop();
-
-                            if (result.isEmpty) {
-                              await showDialog<dynamic>(
-                                context: context,
-                                builder:
-                                    (_) => StackOkDialog(
-                                      title: "Transaction cancelled",
-                                      maxWidth: Util.isDesktop ? 400 : null,
-                                      onOkPressed: (_) {
-                                        Navigator.of(context).popUntil(
-                                          ModalRoute.withName(
-                                            WalletView.routeName,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                              );
-                            } else {
-                              await showDialog<dynamic>(
-                                context: context,
-                                builder:
-                                    (_) => StackOkDialog(
-                                      title: "Failed to cancel transaction",
-                                      message: result,
-                                      maxWidth: Util.isDesktop ? 400 : null,
-                                    ),
-                              );
-                            }
-                          }
-                        } else {
+                      if (wallet is EpiccashWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message:
-                                  "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
+                              message: "Could not find Epic transaction ID",
                               context: context,
                             ),
                           );
                           return;
                         }
-                      },
-                      child: Text(
-                        "Cancel Transaction",
-                        style: STextStyles.button(context),
-                      ),
+
+                        unawaited(
+                          showDialog<dynamic>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result = await wallet
+                            .cancelPendingTransactionAndPost(id);
+
+                        if (context.mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                maxWidth: Util.isDesktop ? 400 : null,
+                                onOkPressed: (_) {
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(WalletView.routeName),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                                maxWidth: Util.isDesktop ? 400 : null,
+                              ),
+                            );
+                          }
+                        }
+                      } else if (wallet is MimblewimblecoinWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: "Could not find MWC transaction ID",
+                              context: context,
+                            ),
+                          );
+                          return;
+                        }
+
+                        unawaited(
+                          showDialog<dynamic>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result = await wallet
+                            .cancelPendingTransactionAndPost(id);
+
+                        if (context.mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                maxWidth: Util.isDesktop ? 400 : null,
+                                onOkPressed: (_) {
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(WalletView.routeName),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                                maxWidth: Util.isDesktop ? 400 : null,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message:
+                                "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
+                            context: context,
+                          ),
+                        );
+                        return;
+                      }
+                    },
+                    child: Text(
+                      "Cancel Transaction",
+                      style: STextStyles.button(context),
                     ),
                   ),
-                )
-                : null,
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -1963,8 +1851,9 @@ class IconCopyButton extends StatelessWidget {
       height: 26,
       width: 26,
       child: RawMaterialButton(
-        fillColor:
-            Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+        fillColor: Theme.of(
+          context,
+        ).extension<StackColors>()!.buttonBackSecondary,
         elevation: 0,
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -2004,8 +1893,9 @@ class IconPencilButton extends StatelessWidget {
       height: 26,
       width: 26,
       child: RawMaterialButton(
-        fillColor:
-            Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+        fillColor: Theme.of(
+          context,
+        ).extension<StackColors>()!.buttonBackSecondary,
         elevation: 0,
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),

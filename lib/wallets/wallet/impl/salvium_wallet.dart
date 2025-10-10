@@ -1,48 +1,27 @@
 import 'dart:async';
 
-import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
-
 import '../../../utilities/amount/amount.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../intermediate/lib_salvium_wallet.dart';
 
 class SalviumWallet extends LibSalviumWallet {
-  SalviumWallet(CryptoCurrencyNetwork network)
-    : super(Salvium(network));
+  SalviumWallet(CryptoCurrencyNetwork network) : super(Salvium(network));
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (libSalviumWallet == null /*||
-        syncStatus is! lib_monero_compat.SyncedSyncStatus*/) {
+    if (wallet ==
+        null /*||
+        syncStatus is! lib_monero_compat.SyncedSyncStatus*/ ) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
-    }
-
-    lib_salvium.TransactionPriority priority;
-    switch (feeRate.toInt()) {
-      case 1:
-        priority = lib_salvium.TransactionPriority.low;
-        break;
-      case 2:
-        priority = lib_salvium.TransactionPriority.medium;
-        break;
-      case 3:
-        priority = lib_salvium.TransactionPriority.high;
-        break;
-      case 4:
-        priority = lib_salvium.TransactionPriority.last;
-        break;
-      case 0:
-      default:
-        priority = lib_salvium.TransactionPriority.normal;
-        break;
     }
 
     int approximateFee = 0;
     await estimateFeeMutex.protect(() async {
-      approximateFee = await libSalviumWallet!.estimateFee(
-        priority,
-        amount.raw.toInt(),
+      approximateFee = await csSalvium.estimateFee(
+        feeRate.toInt(),
+        amount.raw,
+        wallet: wallet!,
       );
     });
 
@@ -53,72 +32,65 @@ class SalviumWallet extends LibSalviumWallet {
   }
 
   @override
-  bool walletExists(String path) => lib_salvium.SalviumWallet.isWalletExist(path);
+  bool walletExists(String path) => csSalvium.walletExists(path);
 
   @override
-  Future<void> loadWallet({
+  Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
-  }) async {
-    libSalviumWallet = await lib_salvium.SalviumWallet.loadWallet(
-      path: path,
-      password: password,
-    );
-  }
+  }) => csSalvium.loadWallet(
+    walletId,
+    path: path,
+    password: password,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
+  );
 
   @override
-  Future<lib_salvium.Wallet> getCreatedWallet({
+  Future<WrappedWallet> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
-  }) async {
-    final lib_salvium.SalviumSeedType type;
-    switch (wordCount) {
-      case 25:
-        type = lib_salvium.SalviumSeedType.twentyFive;
-        break;
-
-      default:
-        throw Exception("Invalid mnemonic word count: $wordCount");
-    }
-
-    return await lib_salvium.SalviumWallet.create(
-      path: path,
-      password: password,
-      seedType: type,
-      seedOffset: seedOffset,
-    );
-  }
+  }) => csSalvium.getCreatedWallet(
+    path: path,
+    password: password,
+    wordCount: wordCount,
+    seedOffset: seedOffset,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
+  );
 
   @override
-  Future<lib_salvium.Wallet> getRestoredWallet({
+  Future<WrappedWallet> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
     required String seedOffset,
     int height = 0,
-  }) async => await lib_salvium.SalviumWallet.restoreWalletFromSeed(
+  }) async => await csSalvium.getRestoredWallet(
     path: path,
     password: password,
-    seed: mnemonic,
-    restoreHeight: height,
+    mnemonic: mnemonic,
+    height: height,
     seedOffset: seedOffset,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
+    walletId: walletId,
   );
 
   @override
-  Future<lib_salvium.Wallet> getRestoredFromViewKeyWallet({
+  Future<WrappedWallet> getRestoredFromViewKeyWallet({
     required String path,
     required String password,
     required String address,
     required String privateViewKey,
     int height = 0,
-  }) async => lib_salvium.SalviumWallet.createViewOnlyWallet(
+  }) async => csSalvium.getRestoredFromViewKeyWallet(
+    walletId: walletId,
     path: path,
     password: password,
     address: address,
-    viewKey: privateViewKey,
-    restoreHeight: height,
+    privateViewKey: privateViewKey,
+    height: height,
+    network: cryptoCurrency.network == CryptoCurrencyNetwork.main ? 0 : 1,
   );
 
   @override

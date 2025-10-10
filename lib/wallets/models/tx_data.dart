@@ -1,5 +1,3 @@
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
-import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -10,6 +8,8 @@ import '../../models/paynym/paynym_account_lite.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../widgets/eth_fee_form.dart';
+import '../../wl_gen/interfaces/cs_monero_interface.dart'
+    show CsPendingTransaction;
 import '../isar/models/spark_coin.dart';
 import 'name_op_state.dart';
 import 'tx_recipient.dart';
@@ -67,10 +67,10 @@ class TxData {
   final int? nonce;
   final BigInt? chainId;
   // wownero and monero specific
-  final lib_monero.PendingTransaction? pendingTransaction;
+  final CsPendingTransaction? pendingTransaction;
 
   // salvium
-  final lib_salvium.PendingTransaction? pendingSalviumTransaction;
+  final CsPendingTransaction? pendingSalviumTransaction;
 
   // tezos specific
   final tezart.OperationsList? tezosOperationsList;
@@ -99,6 +99,8 @@ class TxData {
   final NameOpState? opNameState;
 
   final TxType type;
+
+  final bool salviumStakeTx;
 
   TxData({
     this.feeRateType,
@@ -135,6 +137,7 @@ class TxData {
     this.opNameState,
     this.sparkNameInfo,
     this.type = TxType.regular,
+    this.salviumStakeTx = false,
   });
 
   Amount? get amount {
@@ -169,10 +172,10 @@ class TxData {
 
   Amount? get amountSpark =>
       sparkRecipients != null && sparkRecipients!.isNotEmpty
-          ? sparkRecipients!
-              .map((e) => e.amount)
-              .reduce((total, amount) => total += amount)
-          : null;
+      ? sparkRecipients!
+            .map((e) => e.amount)
+            .reduce((total, amount) => total += amount)
+      : null;
 
   Amount? get amountWithoutChange {
     if (recipients != null && recipients!.isNotEmpty) {
@@ -230,10 +233,9 @@ class TxData {
     }
   }
 
-  int? get estimatedSatsPerVByte =>
-      fee != null && vSize != null
-          ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
-          : null;
+  int? get estimatedSatsPerVByte => fee != null && vSize != null
+      ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
+      : null;
 
   TxData copyWith({
     FeeRateType? feeRateType,
@@ -259,8 +261,8 @@ class TxData {
     web3dart.Transaction? web3dartTransaction,
     int? nonce,
     BigInt? chainId,
-    lib_monero.PendingTransaction? pendingTransaction,
-    lib_salvium.PendingTransaction? pendingSalviumTransaction,
+    CsPendingTransaction? pendingTransaction,
+    CsPendingTransaction? pendingSalviumTransaction,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,

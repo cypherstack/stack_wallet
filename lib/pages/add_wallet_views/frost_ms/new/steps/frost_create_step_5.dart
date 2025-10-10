@@ -11,7 +11,6 @@ import '../../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
 import '../../../../../providers/providers.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/logger.dart';
@@ -26,6 +25,7 @@ import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/detail_item.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../../home_view/home_view.dart';
 import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
     as tvd;
@@ -56,10 +56,14 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
   @override
   void initState() {
     seed = ref.read(pFrostStartKeyGenData.state).state!.seed;
-    serializedKeys =
-        ref.read(pFrostCompletedKeyGenData.state).state!.serializedKeys;
-    recoveryString =
-        ref.read(pFrostCompletedKeyGenData.state).state!.recoveryString;
+    serializedKeys = ref
+        .read(pFrostCompletedKeyGenData.state)
+        .state!
+        .serializedKeys;
+    recoveryString = ref
+        .read(pFrostCompletedKeyGenData.state)
+        .state!
+        .recoveryString;
     multisigConfig = ref.read(pFrostMultisigConfig.state).state!;
     multisigId = ref.read(pFrostCompletedKeyGenData.state).state!.multisigId;
 
@@ -73,15 +77,15 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
       child: Column(
         children: [
           RoundedContainer(
-            color:
-                Theme.of(context).extension<StackColors>()!.warningBackground,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.warningBackground,
             child: Text(
               _warning,
               style: STextStyles.w500_14(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.warningForeground,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.warningForeground,
               ),
             ),
           ),
@@ -89,19 +93,17 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
           DetailItem(
             title: "Multisig Config",
             detail: multisigConfig,
-            button:
-                Util.isDesktop
-                    ? tvd.IconCopyButton(data: multisigConfig)
-                    : SimpleCopyButton(data: multisigConfig),
+            button: Util.isDesktop
+                ? tvd.IconCopyButton(data: multisigConfig)
+                : SimpleCopyButton(data: multisigConfig),
           ),
           const SizedBox(height: 12),
           DetailItem(
             title: "Keys",
             detail: serializedKeys,
-            button:
-                Util.isDesktop
-                    ? tvd.IconCopyButton(data: serializedKeys)
-                    : SimpleCopyButton(data: serializedKeys),
+            button: Util.isDesktop
+                ? tvd.IconCopyButton(data: serializedKeys)
+                : SimpleCopyButton(data: serializedKeys),
           ),
           if (!Util.isDesktop) const Spacer(),
           const SizedBox(height: 12),
@@ -156,10 +158,10 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   serializedKeys: serializedKeys,
                   multisigId: multisigId,
                   myName: ref.read(pFrostMyName.state).state!,
-                  participants: Frost.getParticipants(
+                  participants: frostInterface.getParticipants(
                     multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
                   ),
-                  threshold: Frost.getThreshold(
+                  threshold: frostInterface.getThreshold(
                     multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
                   ),
                 );

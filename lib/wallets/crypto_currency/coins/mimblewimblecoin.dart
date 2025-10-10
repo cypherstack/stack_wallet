@@ -1,10 +1,9 @@
-import 'package:flutter_libmwc/lib.dart' as mimblewimblecoin;
-
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/mwc_transaction_method.dart';
+import '../../../wl_gen/interfaces/libmwc_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
 
@@ -54,7 +53,7 @@ class Mimblewimblecoin extends Bip39Currency {
   @override
   bool validateAddress(String address) {
     // Use libmwc for address validation.
-    return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
+    return libMwc.validateSendAddress(address: address);
   }
 
   /// Check if data is a slatepack.
@@ -134,10 +133,9 @@ class Mimblewimblecoin extends Bip39Currency {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get defaultDerivePathType =>
-      throw UnsupportedError(
-        "$runtimeType does not use bitcoin style derivation paths",
-      );
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+    "$runtimeType does not use bitcoin style derivation paths",
+  );
 
   @override
   Uri defaultBlockExplorer(String txid) {

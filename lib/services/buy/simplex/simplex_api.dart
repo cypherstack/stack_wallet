@@ -51,15 +51,15 @@ class SimplexAPI {
       final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      final Map<String, String> data = {
-        'ROUTE': 'supported_cryptos',
-      };
+      final Map<String, String> data = {'ROUTE': 'supported_cryptos'};
       final Uri url = _buildUri('api.php', data);
 
       final res = await client.post(
         url: url,
         headers: headers,
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -78,10 +78,7 @@ class SimplexAPI {
         stackTrace: s,
       );
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -107,16 +104,9 @@ class SimplexAPI {
 
       return BuyResponse(value: cryptos);
     } catch (e, s) {
-      Logging.instance.e(
-        "_parseSupported exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("_parseSupported exception", error: e, stackTrace: s);
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -126,15 +116,15 @@ class SimplexAPI {
       final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      final Map<String, String> data = {
-        'ROUTE': 'supported_fiats',
-      };
+      final Map<String, String> data = {'ROUTE': 'supported_fiats'};
       final Uri url = _buildUri('api.php', data);
 
       final res = await client.post(
         url: url,
         headers: headers,
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -147,13 +137,13 @@ class SimplexAPI {
 
       return _parseSupportedFiats(jsonArray);
     } catch (e, s) {
-      Logging.instance
-          .e("getAvailableCurrencies exception: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "getAvailableCurrencies exception: ",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -169,8 +159,9 @@ class SimplexAPI {
           fiats.add(
             Fiat.fromJson({
               'ticker': "${fiat['ticker_symbol']}",
-              'name': fiatFromTickerCaseInsensitive("${fiat['ticker_symbol']}")
-                  .prettyName,
+              'name': fiatFromTickerCaseInsensitive(
+                "${fiat['ticker_symbol']}",
+              ).prettyName,
               'minAmount': "${fiat['min_amount']}",
               'maxAmount': "${fiat['max_amount']}",
               'image': "",
@@ -181,16 +172,9 @@ class SimplexAPI {
 
       return BuyResponse(value: fiats);
     } catch (e, s) {
-      Logging.instance.e(
-        "_parseSupported exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("_parseSupported exception", error: e, stackTrace: s);
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -222,7 +206,9 @@ class SimplexAPI {
       final res = await client.get(
         url: url,
         headers: headers,
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -241,16 +227,9 @@ class SimplexAPI {
 
       return _parseQuote(jsonArray);
     } catch (e, s) {
-      Logging.instance.e(
-        "getQuote exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getQuote exception", error: e, stackTrace: s);
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -280,8 +259,9 @@ class SimplexAPI {
         youPayFiatPrice: quote.buyWithFiat
             ? quote.youPayFiatPrice
             : Decimal.parse("${jsonArray['fiat_money']['base_amount']}"),
-        youReceiveCryptoAmount:
-            Decimal.parse("${jsonArray['digital_money']['amount']}"),
+        youReceiveCryptoAmount: Decimal.parse(
+          "${jsonArray['digital_money']['amount']}",
+        ),
         id: jsonArray['quote_id'] as String,
         receivingAddress: quote.receivingAddress,
         buyWithFiat: quote.buyWithFiat,
@@ -289,16 +269,9 @@ class SimplexAPI {
 
       return BuyResponse(value: _quote);
     } catch (e, s) {
-      Logging.instance.e(
-        "_parseQuote exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("_parseQuote exception", error: e, stackTrace: s);
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -329,8 +302,9 @@ class SimplexAPI {
         data['USER_ID'] = userID;
       }
       if (signupEpoch != null && signupEpoch != 0) {
-        final DateTime date =
-            DateTime.fromMillisecondsSinceEpoch(signupEpoch * 1000);
+        final DateTime date = DateTime.fromMillisecondsSinceEpoch(
+          signupEpoch * 1000,
+        );
         data['SIGNUP_TIMESTAMP'] =
             date.toIso8601String() + timeZoneFormatter(date.timeZoneOffset);
       }
@@ -339,7 +313,9 @@ class SimplexAPI {
       final res = await client.get(
         url: url,
         headers: headers,
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -362,16 +338,9 @@ class SimplexAPI {
 
       return BuyResponse(value: _order);
     } catch (e, s) {
-      Logging.instance.e(
-        "newOrder exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("newOrder exception", error: e, stackTrace: s);
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }
@@ -394,16 +363,9 @@ class SimplexAPI {
 
       return BuyResponse(value: status);
     } catch (e, s) {
-      Logging.instance.e(
-        "newOrder exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("newOrder exception", error: e, stackTrace: s);
       return BuyResponse(
-        exception: BuyException(
-          e.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: BuyException(e.toString(), BuyExceptionType.generic),
       );
     }
   }

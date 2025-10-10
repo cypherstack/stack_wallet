@@ -6,7 +6,7 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
-enum AppFeature { themeSelection, buy, swap }
+enum AppFeature { themeSelection, buy, swap, tor }
 
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;
@@ -77,10 +77,9 @@ abstract class AppConfig {
   static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
     // trocador hack
     const hackSplitter = " (Mainnet";
-    final name =
-        prettyName.contains(hackSplitter)
-            ? prettyName.split(hackSplitter).first.toLowerCase()
-            : prettyName.replaceAll(" ", "").toLowerCase();
+    final name = prettyName.contains(hackSplitter)
+        ? prettyName.split(hackSplitter).first.toLowerCase()
+        : prettyName.replaceAll(" ", "").toLowerCase();
 
     try {
       return coins.firstWhere(

@@ -42,7 +42,6 @@ import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/mwc_transaction_method.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/show_loading.dart';
@@ -220,12 +219,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         await showDialog<void>(
           context: context,
           barrierDismissible: false,
-          builder:
-              (context) => DesktopDialog(
-                maxHeight: double.infinity,
-                maxWidth: 700,
-                child: MwcSlatepackDialog(slatepackResult: slatepackResult),
-              ),
+          builder: (context) => DesktopDialog(
+            maxHeight: double.infinity,
+            maxWidth: 700,
+            child: MwcSlatepackDialog(slatepackResult: slatepackResult),
+          ),
         );
 
         // Clear form after slatepack dialog is closed.
@@ -241,55 +239,54 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder:
-              (context) => DesktopDialog(
-                maxWidth: 450,
-                maxHeight: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 32, bottom: 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          builder: (context) => DesktopDialog(
+            maxWidth: 450,
+            maxHeight: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 32, bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Slatepack Creation Failed',
-                            style: STextStyles.desktopH3(context),
-                          ),
-                          const DesktopDialogCloseButton(),
-                        ],
+                      Text(
+                        'Slatepack Creation Failed',
+                        style: STextStyles.desktopH3(context),
                       ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 32),
-                        child: Text(
-                          'Failed to create slatepack: $e',
-                          textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 32),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: PrimaryButton(
-                                buttonHeight: ButtonHeight.l,
-                                label: 'OK',
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const DesktopDialogCloseButton(),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 32),
+                    child: Text(
+                      'Failed to create slatepack: $e',
+                      textAlign: TextAlign.left,
+                      style: STextStyles.desktopTextExtraExtraSmall(
+                        context,
+                      ).copyWith(fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 32),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.l,
+                            label: 'OK',
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+            ),
+          ),
         );
       }
     }
@@ -299,9 +296,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     // Handle MWC slatepack transactions directly.
-    if (isMimblewimblecoin &&
-        ref.read(pSelectedMwcTransactionMethod) ==
-            MwcTransactionMethod.slatepack) {
+    if (isMimblewimblecoin && ref.read(pIsSlatepack(widget.walletId))) {
       await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
       return;
     }
@@ -314,18 +309,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
         case BalanceType.private:
-          availableBalance =
-              coin is Firo
-                  ? wallet.info.cachedBalanceTertiary.spendable
-                  : wallet.info.cachedBalanceSecondary.spendable;
+          availableBalance = coin is Firo
+              ? wallet.info.cachedBalanceTertiary.spendable
+              : wallet.info.cachedBalanceSecondary.spendable;
           break;
       }
     } else {
       availableBalance = wallet.info.cachedBalance.spendable;
     }
 
-    final coinControlEnabled =
-        ref.read(prefsChangeNotifierProvider).enableCoinControl;
+    final coinControlEnabled = ref
+        .read(prefsChangeNotifierProvider)
+        .enableCoinControl;
 
     if (!(wallet is CoinControlInterface && coinControlEnabled) ||
         (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
@@ -466,10 +461,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             feeRateType: feeRate,
             utxos:
                 (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        ref.read(pDesktopUseUTXOs).isNotEmpty)
-                    ? ref.read(pDesktopUseUTXOs)
-                    : null,
+                    coinControlEnabled &&
+                    ref.read(pDesktopUseUTXOs).isNotEmpty)
+                ? ref.read(pDesktopUseUTXOs)
+                : null,
           ),
         );
       } else if (wallet is FiroWallet) {
@@ -490,9 +485,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled &&
-                              ref.read(pDesktopUseUTXOs).isNotEmpty)
-                          ? ref.read(pDesktopUseUTXOs)
-                          : null,
+                          ref.read(pDesktopUseUTXOs).isNotEmpty)
+                      ? ref.read(pDesktopUseUTXOs)
+                      : null,
                 ),
               );
             } else {
@@ -503,17 +498,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       address: _address!,
                       amount: amount,
                       isChange: false,
-                      addressType:
-                          wallet.cryptoCurrency.getAddressType(_address!)!,
+                      addressType: wallet.cryptoCurrency.getAddressType(
+                        _address!,
+                      )!,
                     ),
                   ],
                   feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled &&
-                              ref.read(pDesktopUseUTXOs).isNotEmpty)
-                          ? ref.read(pDesktopUseUTXOs)
-                          : null,
+                          ref.read(pDesktopUseUTXOs).isNotEmpty)
+                      ? ref.read(pDesktopUseUTXOs)
+                      : null,
                 ),
               );
             }
@@ -522,31 +518,28 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           case BalanceType.private:
             txDataFuture = wallet.prepareSendSpark(
               txData: TxData(
-                recipients:
-                    ref.read(pValidSparkSendToAddress)
-                        ? null
-                        : [
-                          TxRecipient(
-                            address: _address!,
-                            amount: amount,
-                            isChange: false,
-                            addressType:
-                                wallet.cryptoCurrency.getAddressType(
-                                  _address!,
-                                )!,
-                          ),
-                        ],
-                sparkRecipients:
-                    ref.read(pValidSparkSendToAddress)
-                        ? [
-                          (
-                            address: _address!,
-                            amount: amount,
-                            memo: memoController.text,
-                            isChange: false,
-                          ),
-                        ]
-                        : null,
+                recipients: ref.read(pValidSparkSendToAddress)
+                    ? null
+                    : [
+                        TxRecipient(
+                          address: _address!,
+                          amount: amount,
+                          isChange: false,
+                          addressType: wallet.cryptoCurrency.getAddressType(
+                            _address!,
+                          )!,
+                        ),
+                      ],
+                sparkRecipients: ref.read(pValidSparkSendToAddress)
+                    ? [
+                        (
+                          address: _address!,
+                          amount: amount,
+                          memo: memoController.text,
+                          isChange: false,
+                        ),
+                      ]
+                    : null,
               ),
             );
             break;
@@ -590,16 +583,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             memo: memo,
             feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
-            nonce:
-                wallet.cryptoCurrency is Ethereum
-                    ? int.tryParse(nonceController.text)
-                    : null,
+            nonce: wallet.cryptoCurrency is Ethereum
+                ? int.tryParse(nonceController.text)
+                : null,
             utxos:
                 (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        ref.read(pDesktopUseUTXOs).isNotEmpty)
-                    ? ref.read(pDesktopUseUTXOs)
-                    : null,
+                    coinControlEnabled &&
+                    ref.read(pDesktopUseUTXOs).isNotEmpty)
+                ? ref.read(pDesktopUseUTXOs)
+                : null,
             ethEIP1559Fee: ethFee,
           ),
         );
@@ -630,18 +622,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         unawaited(
           showDialog(
             context: context,
-            builder:
-                (context) => DesktopDialog(
-                  maxHeight: MediaQuery.of(context).size.height - 64,
-                  maxWidth: 580,
-                  child: ConfirmTransactionView(
-                    txData: txData,
-                    walletId: walletId,
-                    onSuccess: clearSendForm,
-                    isPaynymTransaction: isPaynymSend,
-                    routeOnSuccessName: DesktopHomeView.routeName,
-                  ),
-                ),
+            builder: (context) => DesktopDialog(
+              maxHeight: MediaQuery.of(context).size.height - 64,
+              maxWidth: 580,
+              child: ConfirmTransactionView(
+                txData: txData,
+                walletId: walletId,
+                onSuccess: clearSendForm,
+                isPaynymTransaction: isPaynymSend,
+                routeOnSuccessName: DesktopHomeView.routeName,
+              ),
+            ),
           ),
         );
       }
@@ -740,8 +731,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
         _cachedAmountToSend = amount;
 
-        final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
+        final price = ref
+            .read(priceAnd24hChangeNotifierProvider)
+            .getPrice(coin)
+            ?.value;
 
         if (price != null && price > Decimal.zero) {
           final String fiatAmountString = (amount.decimal * price)
@@ -979,18 +972,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     );
     final Amount? amount;
     if (baseAmount != null) {
-      final _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
+      final _price = ref
+          .read(priceAnd24hChangeNotifierProvider)
+          .getPrice(coin)
+          ?.value;
 
       if (_price == null || _price == Decimal.zero) {
         amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
       } else {
-        amount =
-            baseAmount <= Amount.zero
-                ? Decimal.zero.toAmount(fractionDigits: coin.fractionDigits)
-                : (baseAmount.decimal / _price)
-                    .toDecimal(scaleOnInfinitePrecision: coin.fractionDigits)
-                    .toAmount(fractionDigits: coin.fractionDigits);
+        amount = baseAmount <= Amount.zero
+            ? Decimal.zero.toAmount(fractionDigits: coin.fractionDigits)
+            : (baseAmount.decimal / _price)
+                  .toDecimal(scaleOnInfinitePrecision: coin.fractionDigits)
+                  .toAmount(fractionDigits: coin.fractionDigits);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
         return;
@@ -1042,10 +1036,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
         case BalanceType.private:
-          amount =
-              coin is Firo
-                  ? ref.read(pWalletBalanceTertiary(walletId)).spendable
-                  : ref.read(pWalletBalanceSecondary(walletId)).spendable;
+          amount = coin is Firo
+              ? ref.read(pWalletBalanceTertiary(walletId)).spendable
+              : ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
       }
     } else {
@@ -1061,11 +1054,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final amount = ref.read(pSendAmount);
     await showDialog<void>(
       context: context,
-      builder:
-          (context) => DesktopCoinControlUseDialog(
-            walletId: widget.walletId,
-            amountToSend: amount,
-          ),
+      builder: (context) => DesktopCoinControlUseDialog(
+        walletId: widget.walletId,
+        amountToSend: amount,
+      ),
     );
   }
 
@@ -1261,10 +1253,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1345,10 +1336,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -1390,10 +1380,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -1417,13 +1406,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           key: const Key("amountInputFieldCryptoTextFieldKey"),
           controller: cryptoAmountController,
           focusNode: _cryptoFocus,
-          keyboardType:
-              Util.isDesktop
-                  ? null
-                  : const TextInputType.numberWithOptions(
-                    signed: false,
-                    decimal: true,
-                  ),
+          keyboardType: Util.isDesktop
+              ? null
+              : const TextInputType.numberWithOptions(
+                  signed: false,
+                  decimal: true,
+                ),
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
@@ -1447,10 +1435,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -1459,10 +1446,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
               ),
@@ -1480,13 +1466,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             key: const Key("amountInputFieldFiatTextFieldKey"),
             controller: baseAmountController,
             focusNode: _baseFocus,
-            keyboardType:
-                Util.isDesktop
-                    ? null
-                    : const TextInputType.numberWithOptions(
-                      signed: false,
-                      decimal: true,
-                    ),
+            keyboardType: Util.isDesktop
+                ? null
+                : const TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(decimals: 2, locale: locale),
@@ -1506,10 +1491,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1522,10 +1506,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),
@@ -1536,8 +1519,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (showCoinControl)
           RoundedContainer(
             color: Colors.transparent,
-            borderColor:
-                Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+            borderColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldDefaultBG,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1546,10 +1530,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
                 CustomTextButton(
-                  text:
-                      ref.watch(desktopUseUTXOs.state).state.isEmpty
-                          ? "Select coins"
-                          : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
+                  text: ref.watch(desktopUseUTXOs.state).state.isEmpty
+                      ? "Select coins"
+                      : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
                   onTap: _showDesktopCoinControl,
                 ),
               ],
@@ -1557,28 +1540,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         const SizedBox(height: 20),
         if (!isPaynymSend &&
-            !(isMimblewimblecoin &&
-                ref.watch(pSelectedMwcTransactionMethod) ==
-                    MwcTransactionMethod.slatepack))
+            !(isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId))))
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
         if (!isPaynymSend &&
-            !(isMimblewimblecoin &&
-                ref.watch(pSelectedMwcTransactionMethod) ==
-                    MwcTransactionMethod.slatepack))
+            !(isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId))))
           const SizedBox(height: 10),
         if (!isPaynymSend &&
-            !(isMimblewimblecoin &&
-                ref.watch(pSelectedMwcTransactionMethod) ==
-                    MwcTransactionMethod.slatepack))
+            !(isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId))))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1629,138 +1605,135 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               },
               focusNode: _addressFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveText,
                 height: 1.8,
               ),
-              decoration: standardInputDecoration(
-                ref.watch(pSelectedMwcTransactionMethod) ==
-                        MwcTransactionMethod.slatepack
-                    ? "Enter ${coin.ticker} address (optional)"
-                    : "Enter ${coin.ticker} address",
-                _addressFocusNode,
-                context,
-                desktopMed: true,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 11,
-                  bottom: 12,
-                  right: 5,
-                ),
-                suffixIcon: Padding(
-                  padding:
-                      sendToController.text.isEmpty
+              decoration:
+                  standardInputDecoration(
+                    ref.watch(pIsSlatepack(widget.walletId))
+                        ? "Enter ${coin.ticker} address (optional)"
+                        : "Enter ${coin.ticker} address",
+                    _addressFocusNode,
+                    context,
+                    desktopMed: true,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      top: 11,
+                      bottom: 12,
+                      right: 5,
+                    ),
+                    suffixIcon: Padding(
+                      padding: sendToController.text.isEmpty
                           ? const EdgeInsets.only(right: 8)
                           : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _addressToggleFlag
-                            ? TextFieldIconButton(
-                              key: const Key(
-                                "sendViewClearAddressFieldButtonKey",
-                              ),
-                              onTap: () {
-                                sendToController.text = "";
-                                _address = "";
-                                _setValidAddressProviders(_address);
-                                setState(() {
-                                  _addressToggleFlag = false;
-                                });
-                              },
-                              child: const XIcon(),
-                            )
-                            : TextFieldIconButton(
-                              key: const Key(
-                                "sendViewPasteAddressFieldButtonKey",
-                              ),
-                              onTap: pasteAddress,
-                              child:
-                                  sendToController.text.isEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                            ),
-                        if (sendToController.text.isEmpty)
-                          TextFieldIconButton(
-                            key: const Key("sendViewAddressBookButtonKey"),
-                            onTap: () async {
-                              final entry = await showDialog<
-                                ContactAddressEntry?
-                              >(
-                                context: context,
-                                builder:
-                                    (context) => DesktopDialog(
-                                      maxWidth: 696,
-                                      maxHeight: 600,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                      child: UnconstrainedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _addressToggleFlag
+                                ? TextFieldIconButton(
+                                    key: const Key(
+                                      "sendViewClearAddressFieldButtonKey",
+                                    ),
+                                    onTap: () {
+                                      sendToController.text = "";
+                                      _address = "";
+                                      _setValidAddressProviders(_address);
+                                      setState(() {
+                                        _addressToggleFlag = false;
+                                      });
+                                    },
+                                    child: const XIcon(),
+                                  )
+                                : TextFieldIconButton(
+                                    key: const Key(
+                                      "sendViewPasteAddressFieldButtonKey",
+                                    ),
+                                    onTap: pasteAddress,
+                                    child: sendToController.text.isEmpty
+                                        ? const ClipboardIcon()
+                                        : const XIcon(),
+                                  ),
+                            if (sendToController.text.isEmpty)
+                              TextFieldIconButton(
+                                key: const Key("sendViewAddressBookButtonKey"),
+                                onTap: () async {
+                                  final entry =
+                                      await showDialog<ContactAddressEntry?>(
+                                        context: context,
+                                        builder: (context) => DesktopDialog(
+                                          maxWidth: 696,
+                                          maxHeight: 600,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 32,
-                                                ),
-                                                child: Text(
-                                                  "Address book",
-                                                  style: STextStyles.desktopH3(
-                                                    context,
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 32,
+                                                        ),
+                                                    child: Text(
+                                                      "Address book",
+                                                      style:
+                                                          STextStyles.desktopH3(
+                                                            context,
+                                                          ),
+                                                    ),
                                                   ),
-                                                ),
+                                                  const DesktopDialogCloseButton(),
+                                                ],
                                               ),
-                                              const DesktopDialogCloseButton(),
+                                              Expanded(
+                                                child:
+                                                    AddressBookAddressChooser(
+                                                      coin: coin,
+                                                    ),
+                                              ),
                                             ],
                                           ),
-                                          Expanded(
-                                            child: AddressBookAddressChooser(
-                                              coin: coin,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                              );
+                                        ),
+                                      );
 
-                              if (entry != null) {
-                                sendToController.text =
-                                    entry.other ?? entry.label;
+                                  if (entry != null) {
+                                    sendToController.text =
+                                        entry.other ?? entry.label;
 
-                                _address = entry.address;
+                                    _address = entry.address;
 
-                                _setValidAddressProviders(_address);
+                                    _setValidAddressProviders(_address);
 
-                                setState(() {
-                                  _addressToggleFlag = true;
-                                });
-                              }
-                            },
-                            child: const AddressBookIcon(),
-                          ),
-                        if (sendToController.text.isEmpty)
-                          TextFieldIconButton(
-                            semanticsLabel:
-                                "Scan QR Button. Opens Camera For Scanning QR Code.",
-                            key: const Key("sendViewScanQrButtonKey"),
-                            onTap: scanWebcam,
-                            child: const QrCodeIcon(),
-                          ),
-                      ],
+                                    setState(() {
+                                      _addressToggleFlag = true;
+                                    });
+                                  }
+                                },
+                                child: const AddressBookIcon(),
+                              ),
+                            if (sendToController.text.isEmpty)
+                              TextFieldIconButton(
+                                semanticsLabel:
+                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                key: const Key("sendViewScanQrButtonKey"),
+                                onTap: scanWebcam,
+                                child: const QrCodeIcon(),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
             ),
           ),
         if (!isPaynymSend &&
-            !(isMimblewimblecoin &&
-                ref.watch(pSelectedMwcTransactionMethod) ==
-                    MwcTransactionMethod.slatepack))
+            !(isMimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId))))
           Builder(
             builder: (_) {
               final String? error;
@@ -1780,8 +1753,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 if (_data != null && _data.contactLabel == _address) {
                   error = null;
                 } else if (coin is Mimblewimblecoin &&
-                    ref.watch(pSelectedMwcTransactionMethod) ==
-                        MwcTransactionMethod.slatepack) {
+                    ref.watch(pIsSlatepack(widget.walletId))) {
                   // For MWC slatepack transactions, address validation is not required.
                   // TODO: When implementing encrypted slatepacks, address validation will be required.
                   error = null;
@@ -1803,10 +1775,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       error,
                       textAlign: TextAlign.left,
                       style: STextStyles.label(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textError,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textError,
                       ),
                     ),
                   ),
@@ -1835,47 +1806,45 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 setState(() {});
               },
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveText,
                 height: 1.8,
               ),
-              decoration: standardInputDecoration(
-                "Enter memo (optional)",
-                _memoFocus,
-                context,
-                desktopMed: true,
-              ).copyWith(
-                counterText: '',
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 11,
-                  bottom: 12,
-                  right: 5,
-                ),
-                suffixIcon: Padding(
-                  padding:
-                      memoController.text.isEmpty
+              decoration:
+                  standardInputDecoration(
+                    "Enter memo (optional)",
+                    _memoFocus,
+                    context,
+                    desktopMed: true,
+                  ).copyWith(
+                    counterText: '',
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      top: 11,
+                      bottom: 12,
+                      right: 5,
+                    ),
+                    suffixIcon: Padding(
+                      padding: memoController.text.isEmpty
                           ? const EdgeInsets.only(right: 8)
                           : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        TextFieldIconButton(
-                          key: const Key("sendViewPasteMemoButtonKey"),
-                          onTap: pasteMemo,
-                          child:
-                              memoController.text.isEmpty
+                      child: UnconstrainedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            TextFieldIconButton(
+                              key: const Key("sendViewPasteMemoButtonKey"),
+                              onTap: pasteMemo,
+                              child: memoController.text.isEmpty
                                   ? const ClipboardIcon()
                                   : const XIcon(),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
             ),
           ),
         if (!isPaynymSend) const SizedBox(height: 20),
@@ -1899,10 +1868,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Nonce",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1923,38 +1891,37 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               keyboardType: const TextInputType.numberWithOptions(),
               focusNode: _nonceFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveText,
                 height: 1.8,
               ),
-              decoration: standardInputDecoration(
-                "Leave empty to auto select nonce",
-                _nonceFocusNode,
-                context,
-                desktopMed: true,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 11,
-                  bottom: 12,
-                  right: 5,
-                ),
-              ),
+              decoration:
+                  standardInputDecoration(
+                    "Leave empty to auto select nonce",
+                    _nonceFocusNode,
+                    context,
+                    desktopMed: true,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      top: 11,
+                      bottom: 12,
+                      right: 5,
+                    ),
+                  ),
             ),
           ),
         const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
-          label:
-              ref.watch(pSelectedMwcTransactionMethod) ==
-                      MwcTransactionMethod.slatepack
-                  ? "Create slatepack"
-                  : "Preview send",
+          label: ref.watch(pIsSlatepack(widget.walletId))
+              ? "Create slatepack"
+              : "Preview send",
           enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
-          onPressed:
-              ref.watch(pPreviewTxButtonEnabled(coin)) ? previewSend : null,
+          onPressed: ref.watch(pPreviewTxButtonEnabled(coin))
+              ? previewSend
+              : null,
         ),
       ],
     );

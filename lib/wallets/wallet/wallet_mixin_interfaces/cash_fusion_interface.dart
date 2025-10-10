@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar_community/isar.dart';
 
+import '../../../app_config.dart';
 import '../../../models/fusion_progress_ui_state.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -340,8 +341,10 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
   Future<List<Map<String, dynamic>>> _getTransactionsByAddress(
     String address,
   ) async {
-    final txidList =
-        await mainDB.getTransactions(walletId).txidProperty().findAll();
+    final txidList = await mainDB
+        .getTransactions(walletId)
+        .txidProperty()
+        .findAll();
 
     final futures = txidList.map(
       (e) => electrumXCachedClient.getTransaction(
@@ -391,10 +394,9 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
       return [];
     }
 
-    final updatedAddresses =
-        addresses
-            .map((e) => e.copyWith(otherData: kReservedFusionAddress))
-            .toList();
+    final updatedAddresses = addresses
+        .map((e) => e.copyWith(otherData: kReservedFusionAddress))
+        .toList();
 
     await mainDB.isar.writeTxn(() async {
       for (final newAddress in updatedAddresses) {
@@ -441,10 +443,9 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
     );
 
     // Initialize a list of unused reserved change addresses.
-    final List<Address> unusedReservedAddresses =
-        unusedChangeAddresses
-            .where((e) => e.otherData == kReservedFusionAddress)
-            .toList();
+    final List<Address> unusedReservedAddresses = unusedChangeAddresses
+        .where((e) => e.otherData == kReservedFusionAddress)
+        .toList();
 
     unusedReservedAddresses.addAll(
       await _reserveAddresses(
@@ -476,24 +477,17 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    final changeAddresses =
-        await mainDB.isar.addresses
-            .buildQuery<Address>(
-              whereClauses: [
-                IndexWhereClause.equalTo(
-                  indexName: r"walletId",
-                  value: [walletId],
-                ),
-              ],
-              filter: changeAddressFilterOperation,
-              sortBy: [
-                const SortProperty(
-                  property: r"derivationIndex",
-                  sort: Sort.desc,
-                ),
-              ],
-            )
-            .findAll();
+    final changeAddresses = await mainDB.isar.addresses
+        .buildQuery<Address>(
+          whereClauses: [
+            IndexWhereClause.equalTo(indexName: r"walletId", value: [walletId]),
+          ],
+          filter: changeAddressFilterOperation,
+          sortBy: [
+            const SortProperty(property: r"derivationIndex", sort: Sort.desc),
+          ],
+        )
+        .findAll();
 
     final List<Address> unused = [];
 
@@ -527,12 +521,11 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<bool> _isUnused(String address) async {
-    final txCountInDB =
-        await mainDB
-            .getTransactions(walletId)
-            .filter()
-            .address((q) => q.valueEqualTo(address))
-            .count();
+    final txCountInDB = await mainDB
+        .getTransactions(walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(address))
+        .count();
     if (txCountInDB == 0) {
       // double check via electrumx
       // _getTxCountForAddress can throw!
@@ -603,6 +596,10 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
   Future<void> fuse({required FusionInfo fusionInfo}) async {
     // Initial attempt for CashFusion integration goes here.
 
+    if (!AppConfig.hasFeature(AppFeature.tor)) {
+      throw Exception("AppConfig has no Tor");
+    }
+
     try {
       _updateStatus(status: fusion.FusionStatus.reset);
       _updateStatus(
@@ -632,15 +629,11 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
         getChainHeight: fetchChainHeight,
         updateStatusCallback: _updateStatus,
         checkUtxoExists: _checkUtxoExists,
-        getTransactionJson:
-            (String txid) async => await electrumXCachedClient.getTransaction(
-              cryptoCurrency: info.coin,
-              txHash: txid,
-            ),
+        getTransactionJson: (String txid) async => await electrumXCachedClient
+            .getTransaction(cryptoCurrency: info.coin, txHash: txid),
         getPrivateKeyForPubKey: _getPrivateKeyForPubKey,
-        broadcastTransaction:
-            (String txHex) =>
-                electrumXClient.broadcastTransaction(rawTx: txHex),
+        broadcastTransaction: (String txHex) =>
+            electrumXClient.broadcastTransaction(rawTx: txHex),
         unReserveAddresses: (List<fusion.Address> addresses) async {
           final List<Future<void>> futures = [];
           for (final addr in addresses) {
@@ -692,14 +685,13 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
         await updateUTXOs();
 
         // Add unfrozen stack UTXOs.
-        final List<UTXO> walletUtxos =
-            await mainDB
-                .getUTXOs(walletId)
-                .filter()
-                .isBlockedEqualTo(false)
-                .and()
-                .addressIsNotNull()
-                .findAll();
+        final List<UTXO> walletUtxos = await mainDB
+            .getUTXOs(walletId)
+            .filter()
+            .isBlockedEqualTo(false)
+            .and()
+            .addressIsNotNull()
+            .findAll();
 
         final List<fusion.UtxoDTO> coinList = [];
         // Loop through UTXOs, checking and adding valid ones.
@@ -719,24 +711,23 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
           }
 
           // Fetch address to get pubkey
-          final addr =
-              await mainDB
-                  .getAddresses(walletId)
-                  .filter()
-                  .anyOf<
-                    String,
-                    QueryBuilder<Address, Address, QAfterFilterCondition>
-                  >(possibleAddresses, (q, e) => q.valueEqualTo(e))
-                  .and()
-                  .group(
-                    (q) => q
-                        .subTypeEqualTo(AddressSubType.change)
-                        .or()
-                        .subTypeEqualTo(AddressSubType.receiving),
-                  )
-                  .and()
-                  .typeEqualTo(AddressType.p2pkh)
-                  .findFirst();
+          final addr = await mainDB
+              .getAddresses(walletId)
+              .filter()
+              .anyOf<
+                String,
+                QueryBuilder<Address, Address, QAfterFilterCondition>
+              >(possibleAddresses, (q, e) => q.valueEqualTo(e))
+              .and()
+              .group(
+                (q) => q
+                    .subTypeEqualTo(AddressSubType.change)
+                    .or()
+                    .subTypeEqualTo(AddressSubType.receiving),
+              )
+              .and()
+              .typeEqualTo(AddressType.p2pkh)
+              .findFirst();
 
           // depending on the address type in the query above this can be null
           if (addr == null) {

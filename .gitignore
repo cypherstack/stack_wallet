@@ -112,3 +112,13 @@ crypto_plugins/cs_monero/built_outputs
 crypto_plugins/cs_monero/build
 crypto_plugins/*.diff
 /devtools_options.yaml
+
+# generated interfaces
+lib/wl_gen/generated/
+
+# normally these aren't ignored but WL changes them...
+/linux/flutter/generated_plugin_registrant.cc
+/windows/flutter/generated_plugin_registrant.cc
+/linux/flutter/generated_plugins.cmake
+/windows/flutter/generated_plugins.cmake
+/macos/Flutter/GeneratedPluginRegistrant.swift

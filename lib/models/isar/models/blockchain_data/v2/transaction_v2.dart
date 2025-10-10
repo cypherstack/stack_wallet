@@ -406,6 +406,10 @@ class TransactionV2 {
   bool get isInstantLock =>
       _getFromOtherData(key: TxV2OdKeys.isInstantLock) == true;
 
+  @ignore
+  String? get salviumTypeString =>
+      _getFromOtherData(key: TxV2OdKeys.salviumTypeString) as String?;
+
   @override
   String toString() {
     return 'TransactionV2(\n'
@@ -441,4 +445,6 @@ abstract final class TxV2OdKeys {
   static const moneroAccountIndex = "moneroAccountIndex";
   static const isMoneroTransaction = "isMoneroTransaction";
   static const isInstantLock = "isInstantLock";
+  static const salviumTypeInt = "salviumTypeInt";
+  static const salviumTypeString = "salviumTypeString";
 }

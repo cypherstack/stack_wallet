@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_chain/ada/ada.dart';
 import 'package:socks5_proxy/socks.dart';
-import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 
+import '../app_config.dart';
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
@@ -19,6 +19,7 @@ import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart'
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../wallets/wallet/impl/solana_wallet.dart';
+import '../wl_gen/interfaces/lib_xelis_interface.dart';
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
@@ -144,10 +145,11 @@ Future<bool> testNodeConnection({
 
     case CryptonoteCurrency():
       try {
-        final proxyInfo =
-            ref.read(prefsChangeNotifierProvider).useTor
-                ? ref.read(pTorService).getProxyInfo()
-                : null;
+        final proxyInfo = !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : ref.read(prefsChangeNotifierProvider).useTor
+            ? ref.read(pTorService).getProxyInfo()
+            : null;
 
         final url = formData.host!;
         final uri = Uri.tryParse(url);
@@ -232,10 +234,11 @@ Future<bool> testNodeConnection({
           url: uri,
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"action": "version"}),
-          proxyInfo:
-              ref.read(prefsChangeNotifierProvider).useTor
-                  ? ref.read(pTorService).getProxyInfo()
-                  : null,
+          proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+              ? null
+              : ref.read(prefsChangeNotifierProvider).useTor
+              ? ref.read(pTorService).getProxyInfo()
+              : null,
         );
 
         testPassed = response.code == 200;
@@ -271,7 +274,8 @@ Future<bool> testNodeConnection({
     case Cardano():
       try {
         final client = HttpClient();
-        if (ref.read(prefsChangeNotifierProvider).useTor) {
+        if (AppConfig.hasFeature(AppFeature.tor) &&
+            ref.read(prefsChangeNotifierProvider).useTor) {
           final proxyInfo = TorService.sharedInstance.getProxyInfo();
           final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
           SocksTCPClient.assignToHttpClient(client, [proxySettings]);
@@ -297,22 +301,11 @@ Future<bool> testNodeConnection({
 
     case Xelis():
       try {
-        final daemon = xelis_sdk.DaemonClient(
-          endPoint: "${formData.host!}:${formData.port!}",
-          secureWebSocket: formData.useSSL ?? false,
-          timeout: 5000,
+        testPassed = await libXelis.testDaemonConnection(
+          "${formData.host!}:${formData.port!}",
+          formData.useSSL ?? false,
         );
-        daemon.connect();
-
-        final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
-        testPassed = networkInfo.height != null;
-
-        daemon.disconnect();
-
-        Logging.instance.i(
-          "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
-        );
-      } catch (e, s) {
+      } catch (_) {
         testPassed = false;
       }
       break;

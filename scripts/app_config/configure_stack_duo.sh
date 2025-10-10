@@ -23,6 +23,22 @@ else
   sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 fi
 
+dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
+      "${PUBSPEC_FILE}" \
+      XMR \
+      TOR \
+      FROST
+
+dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
+      "${APP_PROJECT_ROOT_DIR}/tool/wl_templates" \
+      "${APP_PROJECT_ROOT_DIR}/lib/wl_gen/generated" \
+      XMR \
+      TOR \
+      FROST
+
+export INCLUDE_EPIC_SO="OFF"
+export INCLUDE_MWC_SO="OFF"
+
 pushd "${APP_PROJECT_ROOT_DIR}"
 BUILT_COMMIT_HASH=$(git log -1 --pretty=format:"%H")
 popd
@@ -46,6 +62,7 @@ const _commitHash = "$BUILT_COMMIT_HASH";
 const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
+  AppFeature.tor,
   AppFeature.swap
 };
 

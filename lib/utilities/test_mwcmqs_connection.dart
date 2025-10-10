@@ -10,6 +10,7 @@
 
 import 'dart:convert';
 
+import '../app_config.dart';
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../services/tor_service.dart';
@@ -31,10 +32,11 @@ Future<bool> _testMwcMqsNodeConnection(Uri uri) async {
         .get(
           url: uri,
           headers: headers,
-          proxyInfo:
-              Prefs.instance.useTor
-                  ? TorService.sharedInstance.getProxyInfo()
-                  : null,
+          proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+              ? null
+              : Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null,
         )
         .timeout(
           const Duration(milliseconds: 2000),
