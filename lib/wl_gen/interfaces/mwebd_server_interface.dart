@@ -3,7 +3,9 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 export '../generated/mwebd_server_interface_impl.dart';
 
 abstract class MwebdServerInterface {
-  Future<int> createAndStartServer(
+  const MwebdServerInterface();
+
+  Future<({OpaqueMwebdServer server, int port})> createAndStartServer(
     CryptoCurrencyNetwork net, {
     required String chain,
     required String dataDir,
@@ -13,10 +15,10 @@ abstract class MwebdServerInterface {
   });
 
   Future<({String chain, String dataDir, String peer})> stopServer(
-    CryptoCurrencyNetwork net,
+    OpaqueMwebdServer server,
   );
 
-  Future<Status?> getServerStatus(CryptoCurrencyNetwork net);
+  Future<Status?> getServerStatus(OpaqueMwebdServer? server);
 }
 
 // local copy
@@ -59,4 +61,12 @@ class Status {
     mwebUtxosHeight,
     blockTime,
   );
+}
+
+final class OpaqueMwebdServer {
+  final Object _value;
+
+  const OpaqueMwebdServer(this._value);
+
+  T get<T>() => _value as T;
 }

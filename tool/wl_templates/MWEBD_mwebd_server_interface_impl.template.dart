@@ -12,13 +12,17 @@ MwebdServerInterface _getInterface() => throw Exception("MWEBD not enabled!");
 
 //END_OFF
 //ON
-MwebdServerInterface _getInterface() => _MwebdServerInterfaceImpl();
+MwebdServerInterface _getInterface() => const _MwebdServerInterfaceImpl();
+
+extension _OpaqueMwebdServerExt on OpaqueMwebdServer {
+  MwebdServer get value => get();
+}
 
 class _MwebdServerInterfaceImpl extends MwebdServerInterface {
-  final Map<CryptoCurrencyNetwork, MwebdServer> _map = {};
+  const _MwebdServerInterfaceImpl();
 
   @override
-  Future<int> createAndStartServer(
+  Future<({OpaqueMwebdServer server, int port})> createAndStartServer(
     CryptoCurrencyNetwork net, {
     required String chain,
     required String dataDir,
@@ -26,10 +30,6 @@ class _MwebdServerInterfaceImpl extends MwebdServerInterface {
     String proxy = "",
     required int serverPort,
   }) async {
-    if (_map[net] != null) {
-      throw Exception("Server for $net already exists");
-    }
-
     final newServer = MwebdServer(
       chain: chain,
       dataDir: dataDir,
@@ -39,22 +39,26 @@ class _MwebdServerInterfaceImpl extends MwebdServerInterface {
     );
     await newServer.createServer();
     await newServer.startServer();
-    _map[net] = newServer;
-    return newServer.serverPort;
+    return (server: OpaqueMwebdServer(newServer), port: newServer.serverPort);
   }
 
   @override
   Future<({String chain, String dataDir, String peer})> stopServer(
-    CryptoCurrencyNetwork net,
+    OpaqueMwebdServer server,
   ) async {
-    final server = _map.remove(net);
-    await server!.stopServer();
-    return (chain: server.chain, dataDir: server.dataDir, peer: server.peer);
+    final actual = server.value;
+    final data = (
+      chain: actual.chain,
+      dataDir: actual.dataDir,
+      peer: actual.peer,
+    );
+    await actual.stopServer();
+    return data;
   }
 
   @override
-  Future<Status?> getServerStatus(CryptoCurrencyNetwork net) async {
-    final status = await _map[net]?.getStatus();
+  Future<Status?> getServerStatus(OpaqueMwebdServer? server) async {
+    final status = await server?.value.getStatus();
     if (status == null) return null;
 
     return Status(
