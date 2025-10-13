@@ -175,7 +175,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "electrumx.fact0rn.io",
+          host: "electrumx1.projectfactor.io",
           port: 50002,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
