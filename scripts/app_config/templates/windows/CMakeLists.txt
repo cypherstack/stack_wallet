@@ -89,7 +89,7 @@ if(INCLUDE_EPIC_SO)
 endif()
 
 if(INCLUDE_MWC_SO)
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libmwc/scripts/windows/build/libmwc_cash_wallet.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libmwc/scripts/windows/build/libmwc_wallet.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
 
