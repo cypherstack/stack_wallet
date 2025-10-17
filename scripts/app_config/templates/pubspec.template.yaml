@@ -318,6 +318,24 @@ dependency_overrides:
   pinenacl: ^0.6.0
   http: ^0.13.0
 
+# %%ENABLE_ISAR%%
+#  isar_community:
+#    git:
+#      url: https://github.com/isar-community/isar-community.git
+#      path: packages/isar_community
+#      ref: 39ea19ff035518aef4d0e776206d96a428f57789
+#  isar_community_flutter_libs:
+#    git:
+#      url: https://github.com/isar-community/isar-community.git
+#      path: packages/isar_community_flutter_libs
+#      ref: 39ea19ff035518aef4d0e776206d96a428f57789
+#  isar_community_generator:
+#    git:
+#      url: https://github.com/isar-community/isar-community.git
+#      path: packages/isar_community_generator
+#      ref: 39ea19ff035518aef4d0e776206d96a428f57789
+# %%END_ENABLE_ISAR%%
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

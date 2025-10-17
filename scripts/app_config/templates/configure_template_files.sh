@@ -59,6 +59,129 @@ if [ -f "${ACTUAL_PUBSPEC}" ]; then
 fi
 cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
 
+# ============================================================================
+# Isar Source Build Support
+# ============================================================================
+
+detect_isar_version() {
+    local version="unknown"
+    local lock_file="${APP_PROJECT_ROOT_DIR}/pubspec.lock"
+    
+    if [[ -f "${lock_file}" ]]; then
+        version=$(grep -A1 "isar_community:" "${lock_file}" | grep version | awk -F'"' '{print $2}' | head -n1)
+    fi
+    
+    if [[ -z "${version}" || "${version}" == "unknown" ]]; then
+        version="3.3.0-dev.2"
+        echo "Could not detect isar_community version (fallback: ${version})"
+    else
+        echo "Detected isar_community version: ${version}"
+    fi
+    
+    echo "${version}"
+}
+
+enable_isar_source_build() {
+    local isar_version="$1"
+    local git_ref="${isar_version#v}"
+    
+    echo "Enabling Isar source build section in pubspec.yaml (ref: ${git_ref})"
+    
+    dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" ISAR
+    sed -i -E "/(isar_community|isar_community_flutter_libs|isar_community_generator)/,+3 s|(ref:).*|\1 ${git_ref}|" "${ACTUAL_PUBSPEC}"
+    echo "Applied isar_community ${git_ref} source override successfully."
+}
+
+find_isar_core_lib() {
+    local isar_core_path
+    isar_core_path=$(find "${HOME}/.pub-cache/git" -type d -path "*/isar_core_ffi" | head -n 1)
+    
+    if [[ -z "${isar_core_path}" ]]; then
+        echo ""
+        return 1
+    fi
+    
+    echo "${isar_core_path}"
+    return 0
+}
+
+build_isar_core() {
+    local isar_core_path="$1"
+    
+    if [[ ! -f "${isar_core_path}/target/release/libisar.so" ]]; then
+        echo "Running cargo build --release for Isar core..."
+        (cd "${isar_core_path}" && cargo build --release)
+    else
+        echo "libisar.so already built, skipping rebuild."
+    fi
+}
+
+copy_isar_lib() {
+    local lib_src="$1"
+    local lib_dest="$2"
+    
+    if [[ ! -f "${lib_src}" ]]; then
+        echo "Warning: libisar.so not found at ${lib_src}"
+        return 1
+    fi
+    
+    mkdir -p "${lib_dest}"
+    cp -f "${lib_src}" "${lib_dest}/"
+    echo "Copied libisar.so to ${lib_dest}"
+}
+
+handle_isar_source_build() {
+    echo "------------------------------------------------------------"
+    echo "Building Isar database library from source (BUILD_ISAR_FROM_SOURCE=1)"
+    echo "------------------------------------------------------------"
+    
+    local isar_core_path
+    isar_core_path=$(find_isar_core_lib) || {
+        echo "Error: could not locate isar_core_ffi inside ~/.pub-cache/git."
+        return 1
+    }
+    
+    echo "Found isar_core_ffi at: ${isar_core_path}"
+    
+    # Build the core library
+    build_isar_core "${isar_core_path}"
+    
+    local lib_src="${isar_core_path}/target/release/libisar.so"
+    
+    # Handle fallback if libisar.so is in parent target dir
+    if [[ ! -f "${lib_src}" ]]; then
+        local alt_src
+        alt_src="$(dirname "${isar_core_path}")/target/release/libisar.so"
+        if [[ -f "${alt_src}" ]]; then
+            echo "Found libisar.so in parent directory target/release"
+            lib_src="${alt_src}"
+        else
+            echo "Error: could not produce libisar.so"
+            return 1
+        fi
+    fi
+ 
+    local plugin_path="${APP_PROJECT_ROOT_DIR}/linux/flutter/ephemeral/.plugin_symlinks/isar_community_flutter_libs/linux"
+    echo "Copying to Flutter plugin symlink path: ${plugin_path}"
+    copy_isar_lib "${lib_src}" "${plugin_path}" || return 1
+    
+    local bundle_path="${APP_PROJECT_ROOT_DIR}/build/linux/x64/release/bundle/lib"
+    echo "Copying to final bundle directory: ${bundle_path}"
+    copy_isar_lib "${lib_src}" "${bundle_path}" || return 1
+}
+
+if [[ "${BUILD_ISAR_FROM_SOURCE:-0}" -eq 1 ]]; then
+    isar_version=$(detect_isar_version)
+    enable_isar_source_build "${isar_version}"
+    handle_isar_source_build || exit 1
+else
+    echo "Using prebuilt Isar binaries (pub.dev)"
+fi
+
+# ============================================================================
+# Copy Template Files
+# ============================================================================
+
 for TF in "${TEMPLATE_FILES[@]}"; do
   FILE="${APP_PROJECT_ROOT_DIR}/${TF}"
   if [ -f "${FILE}" ]; then
