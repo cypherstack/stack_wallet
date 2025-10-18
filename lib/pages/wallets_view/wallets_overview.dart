@@ -73,14 +73,13 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   List<WalletListItemData> _filter(String searchTerm) {
     // clean out deleted wallets
-    final existingWalletIds =
-        ref
-            .read(mainDBProvider)
-            .isar
-            .walletInfo
-            .where()
-            .walletIdProperty()
-            .findAllSync();
+    final existingWalletIds = ref
+        .read(mainDBProvider)
+        .isar
+        .walletInfo
+        .where()
+        .walletIdProperty()
+        .findAllSync();
     wallets.removeWhere((k, v) => !existingWalletIds.contains(k));
 
     if (searchTerm.isEmpty) {
@@ -128,7 +127,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   }
 
   void updateWallets() {
-    final walletsData = ref.read(pAllWalletsInfo);
+    final walletsData = ref.read(pAllWalletsInfo).toList();
 
     walletsData.removeWhere((e) => e.coin != widget.coin);
 
@@ -205,45 +204,44 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop && !AppConfig.isSingleCoinApp,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: const AppBarBackButton(),
-                title: Text(
-                  "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
-                  style: STextStyles.navBarTitle(context),
-                ),
-                actions: [
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      icon: SvgPicture.asset(
-                        Assets.svg.plus,
-                        width: 18,
-                        height: 18,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.topNavIconPrimary,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          CreateOrRestoreWalletView.routeName,
-                          arguments: CoinEntity(widget.coin),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              body: SafeArea(
-                child: Padding(padding: const EdgeInsets.all(16), child: child),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: const AppBarBackButton(),
+            title: Text(
+              "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+              style: STextStyles.navBarTitle(context),
             ),
+            actions: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  icon: SvgPicture.asset(
+                    Assets.svg.plus,
+                    width: 18,
+                    height: 18,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      CreateOrRestoreWalletView.routeName,
+                      arguments: CoinEntity(widget.coin),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
+          body: SafeArea(
+            child: Padding(padding: const EdgeInsets.all(16), child: child),
+          ),
+        ),
+      ),
       child: Column(
         children: [
           ClipRRect(
@@ -260,55 +258,53 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                   _searchString = value;
                 });
               },
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
-                        height: 1.8,
-                      )
-                      : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search...",
-                searchFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop ? 12 : 10,
-                    vertical: isDesktop ? 18 : 16,
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: isDesktop ? 20 : 16,
-                    height: isDesktop ? 20 : 16,
-                  ),
-                ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldActiveText,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
+              decoration:
+                  standardInputDecoration(
+                    "Search...",
+                    searchFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 12 : 10,
+                        vertical: isDesktop ? 18 : 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: isDesktop ? 20 : 16,
+                        height: isDesktop ? 20 : 16,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                      _searchString = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchString = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
           const SizedBox(height: 16),
@@ -340,34 +336,33 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                       return ConditionalParent(
                         key: Key(wallet.walletId),
                         condition: isDesktop,
-                        builder:
-                            (child) => RoundedWhiteContainer(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 14,
-                                horizontal: 20,
-                              ),
-                              borderColor:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.backgroundAppBar,
-                              child: child,
-                            ),
+                        builder: (child) => RoundedWhiteContainer(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 20,
+                          ),
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar,
+                          child: child,
+                        ),
                         child: SimpleWalletCard(
                           walletId: wallet.walletId,
                           popPrevious:
                               widget.overrideSimpleWalletCardPopPreviousValueWith ==
-                                      null
-                                  ? isDesktop
-                                  : widget
-                                      .overrideSimpleWalletCardPopPreviousValueWith!,
-                          desktopNavigatorState:
-                              isDesktop ? widget.navigatorState : null,
+                                  null
+                              ? isDesktop
+                              : widget
+                                    .overrideSimpleWalletCardPopPreviousValueWith!,
+                          desktopNavigatorState: isDesktop
+                              ? widget.navigatorState
+                              : null,
                         ),
                       );
                     }
                   },
-                  separatorBuilder:
-                      (_, __) => SizedBox(height: isDesktop ? 10 : 8),
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: isDesktop ? 10 : 8),
                   itemCount: data.length,
                 );
               },
