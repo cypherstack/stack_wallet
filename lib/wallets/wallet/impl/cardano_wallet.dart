@@ -8,6 +8,7 @@ import 'package:blockchain_utils/bip/cardano/mnemonic/cardano_icarus_seed_genera
 import 'package:blockchain_utils/bip/cardano/shelley/cardano_shelley.dart';
 import 'package:isar_community/isar.dart';
 import 'package:on_chain/ada/ada.dart';
+import 'package:on_chain/ada/src/provider/exception/blockfrost_api_error.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:tuple/tuple.dart';
 
@@ -418,19 +419,45 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     });
   }
 
+  Future<bool> _checkAddressIsFound() async {
+    try {
+      await blockfrostProvider!.request(
+        BlockfrostRequestSpecificAddress(
+          ADAAddress.fromAddress((await getCurrentReceivingAddress())!.value),
+        ),
+      );
+      return true;
+    } on BlockfrostError catch (e, s) {
+      if (e.statusCode == 404 && e.error == "Not found") {
+        Logging.instance.i(
+          "Ada address not seen on network yet",
+          error: e,
+          stackTrace: s,
+        );
+        return false;
+      } else {
+        rethrow;
+      }
+    }
+  }
+
   @override
   Future<void> updateBalance() async {
     try {
       await updateProvider();
 
-      final addressUtxos = await blockfrostProvider!.request(
-        BlockfrostRequestAddressUTXOsOfAGivenAsset(
-          address: ADAAddress.fromAddress(
-            (await getCurrentReceivingAddress())!.value,
-          ),
-          asset: "lovelace",
-        ),
-      );
+      final addressExists = await _checkAddressIsFound();
+
+      final addressUtxos = addressExists
+          ? await blockfrostProvider!.request(
+              BlockfrostRequestAddressUTXOsOfAGivenAsset(
+                address: ADAAddress.fromAddress(
+                  (await getCurrentReceivingAddress())!.value,
+                ),
+                asset: "lovelace",
+              ),
+            )
+          : <ADAAccountUTXOResponse>[];
 
       BigInt totalBalanceInLovelace = BigInt.parse("0");
       for (final utxo in addressUtxos) {
@@ -498,13 +525,17 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     try {
       await updateProvider();
 
+      final addressExists = await _checkAddressIsFound();
+
       final currentAddr = (await getCurrentReceivingAddress())!.value;
 
-      final txsList = await blockfrostProvider!.request(
-        BlockfrostRequestAddressTransactions(
-          ADAAddress.fromAddress(currentAddr),
-        ),
-      );
+      final txsList = addressExists
+          ? await blockfrostProvider!.request(
+              BlockfrostRequestAddressTransactions(
+                ADAAddress.fromAddress(currentAddr),
+              ),
+            )
+          : <ADATransactionSummaryInfoResponse>[];
 
       final parsedTxsList = List<Tuple2<isar.Transaction, Address>>.empty(
         growable: true,
