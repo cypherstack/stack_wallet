@@ -631,16 +631,23 @@ class XelisWallet extends LibXelisWallet {
               'Address cannot be empty.',
             ); // in the future, support for multiple recipients will work.
 
+      // but for now, no
+      // Validate recipients
+      if (recipients.length != 1) {
+        throw Exception("$runtimeType confirmSend requires 1 recipient");
+      }
+
       final asset = assetId ?? libXelis.xelisAsset;
 
       // Calculate total send amount
-      final totalSendAmount = recipients.fold<Amount>(
-        Amount(
-          rawValue: BigInt.zero,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-        (sum, recipient) => sum + recipient.amount,
-      );
+      final totalSendAmount = recipients.first.amount;
+      // final totalSendAmount = recipients.fold<Amount>(
+      //   Amount(
+      //     rawValue: BigInt.zero,
+      //     fractionDigits: cryptoCurrency.fractionDigits,
+      //   ),
+      //   (sum, recipient) => sum + recipient.amount,
+      // );
 
       // Check balance using raw method
       final xelBalance = await libXelis.getXelisBalanceRaw(wallet!);
@@ -658,24 +665,38 @@ class XelisWallet extends LibXelisWallet {
         assetId: asset,
       );
 
-      // Check if we have enough for both transfers and fee
-      if (totalSendAmount + boostedFee > balance) {
-        final requiredAmt = await libXelis.formatCoin(
-          wallet!,
-          atomicAmount: (totalSendAmount + boostedFee).raw,
-          assetHash: asset,
+      final isSendAll = xelBalance == totalSendAmount.raw;
+      if (isSendAll) {
+        txData = txData.copyWith(
+          recipients: [
+            TxRecipient(
+              address: recipients.first.address,
+              amount: recipients.first.amount - boostedFee,
+              isChange: recipients.first.isChange,
+              addressType: recipients.first.addressType,
+            ),
+          ],
         );
+      } else {
+        // Check if we have enough for both transfers and fee
+        if (totalSendAmount + boostedFee > balance) {
+          final requiredAmt = await libXelis.formatCoin(
+            wallet!,
+            atomicAmount: (totalSendAmount + boostedFee).raw,
+            assetHash: asset,
+          );
 
-        final availableAmt = await libXelis.formatCoin(
-          wallet!,
-          atomicAmount: xelBalance,
-          assetHash: asset,
-        );
+          final availableAmt = await libXelis.formatCoin(
+            wallet!,
+            atomicAmount: xelBalance,
+            assetHash: asset,
+          );
 
-        throw Exception(
-          "Insufficient balance to cover transfers and fees. "
-          "Required: $requiredAmt, Available: $availableAmt",
-        );
+          throw Exception(
+            "Insufficient balance to cover transfers and fees. "
+            "Required: $requiredAmt, Available: $availableAmt",
+          );
+        }
       }
 
       return txData.copyWith(
