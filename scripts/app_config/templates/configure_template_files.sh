@@ -73,9 +73,9 @@ detect_isar_version() {
     
     if [[ -z "${version}" || "${version}" == "unknown" ]]; then
         version="3.3.0-dev.2"
-        echo "Could not detect isar_community version (fallback: ${version})"
+        echo "Could not detect isar_community version (fallback: ${version})" >&2
     else
-        echo "Detected isar_community version: ${version}"
+        echo "Detected isar_community version: ${version}" >&2
     fi
     
     echo "${version}"
@@ -85,6 +85,9 @@ enable_isar_source_build() {
     local isar_version="$1"
     local git_ref="${isar_version#v}"
     
+    # Escape special characters for use in sed replacement string
+    git_ref=$(printf '%s\n' "${git_ref}" | sed -e 's:[\/&]:\\&:g')
+
     echo "Enabling Isar source build section in pubspec.yaml (ref: ${git_ref})"
     
     dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" ISAR
@@ -107,8 +110,10 @@ find_isar_core_lib() {
 
 build_isar_core() {
     local isar_core_path="$1"
+    # Go up 2 levels: isar_core_ffi -> packages -> workspace_root
+    local workspace_root=$(dirname $(dirname "${isar_core_path}"))
     
-    if [[ ! -f "${isar_core_path}/target/release/libisar.so" ]]; then
+    if [[ ! -f "${workspace_root}/target/release/libisar.so" ]]; then
         echo "Running cargo build --release for Isar core..."
         (cd "${isar_core_path}" && cargo build --release)
     else
@@ -146,14 +151,16 @@ handle_isar_source_build() {
     # Build the core library
     build_isar_core "${isar_core_path}"
     
-    local lib_src="${isar_core_path}/target/release/libisar.so"
+    # Go up 2 levels to get workspace root
+    local workspace_root=$(dirname $(dirname "${isar_core_path}"))
+    local lib_src="${workspace_root}/target/release/libisar.so"
     
-    # Handle fallback if libisar.so is in parent target dir
+    # Handle fallback if libisar.so is in deps subdirectory
     if [[ ! -f "${lib_src}" ]]; then
         local alt_src
-        alt_src="$(dirname "${isar_core_path}")/target/release/libisar.so"
+        alt_src="${workspace_root}/target/release/deps/libisar.so"
         if [[ -f "${alt_src}" ]]; then
-            echo "Found libisar.so in parent directory target/release"
+            echo "Found libisar.so in deps subdirectory"
             lib_src="${alt_src}"
         else
             echo "Error: could not produce libisar.so"
