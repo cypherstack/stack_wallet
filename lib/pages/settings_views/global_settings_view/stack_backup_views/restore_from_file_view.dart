@@ -15,7 +15,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -89,8 +88,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -140,12 +140,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 padding: const EdgeInsets.only(bottom: 10.0),
                 child: Text(
                   "Choose file location",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  ),
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark3,
+                      ),
                   textAlign: TextAlign.left,
                 ),
               ),
@@ -187,10 +187,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark3,
                         width: 16,
                         height: 16,
                       ),
@@ -215,12 +214,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 padding: const EdgeInsets.only(bottom: 10.0),
                 child: Text(
                   "Enter passphrase",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  ),
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark3,
+                      ),
                   textAlign: TextAlign.left,
                 ),
               ),
@@ -236,41 +235,44 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
-                decoration: standardInputDecoration(
-                  "Enter passphrase",
-                  passwordFocusNode,
-                  context,
-                ).copyWith(
-                  labelStyle:
-                      isDesktop ? STextStyles.fieldLabel(context) : null,
-                  suffixIcon: UnconstrainedBox(
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          key: const Key(
-                            "restoreFromFilePasswordFieldShowPasswordButtonKey",
-                          ),
-                          onTap: () async {
-                            setState(() {
-                              hidePassword = !hidePassword;
-                            });
-                          },
-                          child: SvgPicture.asset(
-                            hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                            color:
-                                Theme.of(
+                decoration:
+                    standardInputDecoration(
+                      "Enter passphrase",
+                      passwordFocusNode,
+                      context,
+                    ).copyWith(
+                      labelStyle: isDesktop
+                          ? STextStyles.fieldLabel(context)
+                          : null,
+                      suffixIcon: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              key: const Key(
+                                "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                              ),
+                              onTap: () async {
+                                setState(() {
+                                  hidePassword = !hidePassword;
+                                });
+                              },
+                              child: SvgPicture.asset(
+                                hidePassword
+                                    ? Assets.svg.eye
+                                    : Assets.svg.eyeSlash,
+                                color: Theme.of(
                                   context,
                                 ).extension<StackColors>()!.textDark3,
-                            width: 16,
-                            height: 16,
-                          ),
+                                width: 16,
+                                height: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
                 onChanged: (newValue) {
                   setState(() {});
                 },
@@ -280,20 +282,20 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
             if (!isDesktop) const Spacer(),
             !isDesktop
                 ? TextButton(
-                  style:
-                      passwordController.text.isEmpty ||
-                              fileLocationController.text.isEmpty
-                          ? Theme.of(context)
+                    style:
+                        passwordController.text.isEmpty ||
+                            fileLocationController.text.isEmpty
+                        ? Theme.of(context)
                               .extension<StackColors>()!
                               .getPrimaryDisabledButtonStyle(context)
-                          : Theme.of(context)
+                        : Theme.of(context)
                               .extension<StackColors>()!
                               .getPrimaryEnabledButtonStyle(context),
-                  onPressed:
-                      passwordController.text.isEmpty ||
-                              fileLocationController.text.isEmpty
-                          ? null
-                          : () async {
+                    onPressed:
+                        passwordController.text.isEmpty ||
+                            fileLocationController.text.isEmpty
+                        ? null
+                        : () async {
                             final String fileToRestore =
                                 fileLocationController.text;
                             final String passphrase = passwordController.text;
@@ -319,48 +321,51 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               showDialog<dynamic>(
                                 barrierDismissible: false,
                                 context: context,
-                                builder:
-                                    (_) => WillPopScope(
-                                      onWillPop: () async {
-                                        return shouldPop;
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Center(
-                                              child: Text(
-                                                "Decrypting ${AppConfig.prefix} backup file",
-                                                style: STextStyles.pageTitleH2(
+                                builder: (_) => WillPopScope(
+                                  onWillPop: () async {
+                                    return shouldPop;
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Center(
+                                          child: Text(
+                                            "Decrypting ${AppConfig.prefix} backup file",
+                                            style:
+                                                STextStyles.pageTitleH2(
                                                   context,
                                                 ).copyWith(
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .textWhite,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textWhite,
                                                 ),
-                                              ),
-                                            ),
                                           ),
-                                          const SizedBox(height: 64),
-                                          const Center(
-                                            child: LoadingIndicator(width: 100),
-                                          ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 64),
+                                      const Center(
+                                        child: LoadingIndicator(width: 100),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             );
 
+                            final encryptedText = await File(
+                              fileToRestore,
+                            ).readAsString();
+
                             final String? jsonString = await compute(
-                              SWB.decryptStackWalletWithPassphrase,
-                              Tuple2(fileToRestore, passphrase),
+                              SWB.decryptStackWalletStringWithPassphrase,
+                              (
+                                encryptedText: encryptedText,
+                                passphrase: passphrase,
+                              ),
                               debugLabel: "stack wallet decryption compute",
                             );
 
@@ -382,31 +387,30 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
                               await Navigator.of(context).push(
                                 RouteGenerator.getRoute(
-                                  builder:
-                                      (_) => StackRestoreProgressView(
-                                        jsonString: jsonString,
-                                        shouldPushToHome: true,
-                                      ),
+                                  builder: (_) => StackRestoreProgressView(
+                                    jsonString: jsonString,
+                                    shouldPushToHome: true,
+                                  ),
                                 ),
                               );
                             }
                           },
-                  child: Text("Restore", style: STextStyles.button(context)),
-                )
+                    child: Text("Restore", style: STextStyles.button(context)),
+                  )
                 : Row(
-                  children: [
-                    PrimaryButton(
-                      width: 183,
-                      buttonHeight: ButtonHeight.m,
-                      label: "Restore",
-                      enabled:
-                          !(passwordController.text.isEmpty ||
-                              fileLocationController.text.isEmpty),
-                      onPressed:
-                          passwordController.text.isEmpty ||
-                                  fileLocationController.text.isEmpty
-                              ? null
-                              : () async {
+                    children: [
+                      PrimaryButton(
+                        width: 183,
+                        buttonHeight: ButtonHeight.m,
+                        label: "Restore",
+                        enabled:
+                            !(passwordController.text.isEmpty ||
+                                fileLocationController.text.isEmpty),
+                        onPressed:
+                            passwordController.text.isEmpty ||
+                                fileLocationController.text.isEmpty
+                            ? null
+                            : () async {
                                 final String fileToRestore =
                                     fileLocationController.text;
                                 final String passphrase =
@@ -433,55 +437,58 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
-                                    builder:
-                                        (_) => WillPopScope(
-                                          onWillPop: () async {
-                                            return shouldPop;
-                                          },
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.stretch,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Material(
-                                                color: Colors.transparent,
-                                                child: Center(
-                                                  child: Text(
-                                                    "Decrypting ${AppConfig.prefix} backup file",
-                                                    style:
-                                                        STextStyles.pageTitleH2(
-                                                          context,
-                                                        ).copyWith(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .extension<
-                                                                    StackColors
-                                                                  >()!
-                                                                  .textWhite,
-                                                        ),
-                                                  ),
-                                                ),
+                                    builder: (_) => WillPopScope(
+                                      onWillPop: () async {
+                                        return shouldPop;
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Center(
+                                              child: Text(
+                                                "Decrypting ${AppConfig.prefix} backup file",
+                                                style:
+                                                    STextStyles.pageTitleH2(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textWhite,
+                                                    ),
                                               ),
-                                              const SizedBox(height: 64),
-                                              const Center(
-                                                child: LoadingIndicator(
-                                                  width: 100,
-                                                ),
-                                              ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
+                                          const SizedBox(height: 64),
+                                          const Center(
+                                            child: LoadingIndicator(width: 100),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 );
 
+                                final encryptedText = await File(
+                                  fileToRestore,
+                                ).readAsString();
+
                                 final String? jsonString = await compute(
-                                  SWB.decryptStackWalletWithPassphrase,
-                                  Tuple2(fileToRestore, passphrase),
+                                  SWB.decryptStackWalletStringWithPassphrase,
+                                  (
+                                    encryptedText: encryptedText,
+                                    passphrase: passphrase,
+                                  ),
                                   debugLabel: "stack wallet decryption compute",
                                 );
 
-                                if (mounted) {
+                                if (context.mounted) {
                                   // pop LoadingIndicator
                                   shouldPop = true;
                                   Navigator.of(
@@ -571,16 +578,16 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   );
                                 }
                               },
-                    ),
-                    const SizedBox(width: 16),
-                    SecondaryButton(
-                      width: 183,
-                      buttonHeight: ButtonHeight.m,
-                      label: "Cancel",
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
+                      ),
+                      const SizedBox(width: 16),
+                      SecondaryButton(
+                        width: 183,
+                        buttonHeight: ButtonHeight.m,
+                        label: "Cancel",
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
           ],
         ),
       ),

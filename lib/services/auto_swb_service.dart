@@ -20,11 +20,7 @@ import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 
-enum AutoSWBStatus {
-  idle,
-  backingUp,
-  error,
-}
+enum AutoSWBStatus { idle, backingUp, error }
 
 class AutoSWBService extends ChangeNotifier {
   Timer? _timer;
@@ -74,27 +70,28 @@ class AutoSWBService extends ChangeNotifier {
       );
       final jsonString = jsonEncode(json);
 
-      final adkString =
-          await secureStorageInterface.read(key: "auto_adk_string");
+      final adkString = await secureStorageInterface.read(
+        key: "auto_adk_string",
+      );
 
-      final adkVersionString =
-          await secureStorageInterface.read(key: "auto_adk_version_string");
+      final adkVersionString = await secureStorageInterface.read(
+        key: "auto_adk_version_string",
+      );
       final int adkVersion = int.parse(adkVersionString!);
 
       final DateTime now = DateTime.now();
-      final String fileToSave =
-          createAutoBackupFilename(autoBackupDirectoryPath, now);
+      final String fileToSave = createAutoBackupFilename(
+        autoBackupDirectoryPath,
+        now,
+      );
 
-      final result = await SWB.encryptStackWalletWithADK(
-        fileToSave,
+      final content = await SWB.encryptStackWalletWithADK(
         adkString!,
         jsonString,
         adkVersion,
       );
 
-      if (!result) {
-        throw Exception("stack auto backup service failed to create a backup");
-      }
+      await File(fileToSave).writeAsString(content, flush: true);
 
       Prefs.instance.lastAutoBackup = now;
 

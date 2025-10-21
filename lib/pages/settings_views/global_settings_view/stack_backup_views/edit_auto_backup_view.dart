@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,7 +20,6 @@ import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../../app_config.dart';
-import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -31,6 +29,7 @@ import '../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/background.dart';
@@ -95,158 +94,101 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     final String passphrase = passwordController.text;
     final String repeatPassphrase = passwordRepeatController.text;
 
-    if (pathToSave.isEmpty) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Directory not chosen",
-          context: context,
-        ),
-      );
-      return;
-    }
-    if (!(await Directory(pathToSave).exists())) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Directory does not exist",
-          context: context,
-        ),
-      );
-      return;
-    }
-    if (passphrase.isEmpty) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "A passphrase is required",
-          context: context,
-        ),
-      );
-      return;
-    }
-    if (passphrase != repeatPassphrase) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Passphrase does not match",
-          context: context,
-        ),
-      );
-      return;
-    }
-
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (_) => const StackDialog(
-              title: "Updating Auto Backup",
-              message: "This shouldn't take long",
-            ),
-      ),
-    );
-    // make sure the dialog is able to be displayed for at least 1 second
-    final fut = Future<void>.delayed(const Duration(seconds: 1));
-
-    String adkString;
-    int adkVersion;
-    try {
-      final adk = await compute(generateAdk, passphrase);
-      adkString = Format.uint8listToString(adk.item2);
-      adkVersion = adk.item1;
-    } on Exception catch (e, s) {
-      final String err = getErrorMessageFromSWBException(e);
-      Logging.instance.e("$err\n$s", error: e, stackTrace: s);
-      // pop encryption progress dialog
-      Navigator.of(context).pop();
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: err,
-          context: context,
-        ),
-      );
-      return;
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      // pop encryption progress dialog
-      Navigator.of(context).pop();
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "$e",
-          context: context,
-        ),
-      );
-      return;
-    }
-
-    await secureStore.write(key: "auto_adk_string", value: adkString);
-    await secureStore.write(
-      key: "auto_adk_version_string",
-      value: adkVersion.toString(),
-    );
-
-    final DateTime now = DateTime.now();
-    final String fileToSave = createAutoBackupFilename(pathToSave, now);
-
-    final backup = await SWB.createStackWalletJSON(
-      secureStorage: ref.read(secureStoreProvider),
-    );
-
-    final bool result = await SWB.encryptStackWalletWithADK(
-      fileToSave,
-      adkString,
-      jsonEncode(backup),
-      adkVersion,
-    );
-
-    // this future should already be complete unless there was an error encrypting
-    await Future.wait([fut]);
+    if (validateFail(context, pathToSave, passphrase, repeatPassphrase)) return;
 
     if (mounted) {
-      // pop encryption progress dialog
-      Navigator.of(context).pop();
-
-      if (result) {
-        ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
-        ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;
-
-        ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = true;
-
-        await showDialog<dynamic>(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (_) =>
-                  Platform.isAndroid
-                      ? StackOkDialog(
-                        title: "${AppConfig.prefix} Auto Backup saved to:",
-                        message: fileToSave,
-                      )
-                      : const StackOkDialog(
-                        title: "${AppConfig.prefix} Auto Backup saved",
-                      ),
-        );
-        if (mounted) {
-          passwordController.text = "";
-          passwordRepeatController.text = "";
-
-          if (!Util.isDesktop) {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(AutoBackupView.routeName));
+      final now = DateTime.now();
+      Exception? ex;
+      final savedPath = await showLoading(
+        whileFuture: () async {
+          String adkString;
+          int adkVersion;
+          try {
+            final adk = await compute(generateAdk, passphrase);
+            adkString = Format.uint8listToString(adk.item2);
+            adkVersion = adk.item1;
+          } on Exception catch (e, s) {
+            final String err = getErrorMessageFromSWBException(e);
+            Logging.instance.e(err, error: e, stackTrace: s);
+            rethrow;
           }
+
+          await secureStore.write(key: "auto_adk_string", value: adkString);
+          await secureStore.write(
+            key: "auto_adk_version_string",
+            value: adkVersion.toString(),
+          );
+
+          final fileToSavePath = createAutoBackupFilename(pathToSave, now);
+
+          final backup = await SWB.createStackWalletJSON(
+            secureStorage: secureStore,
+          );
+
+          final encryptedDataString = await SWB.encryptStackWalletWithADK(
+            adkString,
+            jsonEncode(backup),
+            adkVersion,
+          );
+
+          if (Platform.isAndroid) {
+            // TODO SAF
+            File(
+              fileToSavePath,
+            ).writeAsStringSync(encryptedDataString, flush: true);
+          } else {
+            File(
+              fileToSavePath,
+            ).writeAsStringSync(encryptedDataString, flush: true);
+          }
+
+          return fileToSavePath;
+        }(),
+        context: context,
+        message: "Updating Auto Backup",
+        subMessage: "This shouldn't take long",
+        delay: const Duration(seconds: 1),
+        onException: (e) => ex = e,
+      );
+
+      if (mounted) {
+        // pop encryption progress dialog
+        Navigator.of(context).pop();
+
+        if (savedPath != null) {
+          ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
+          ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;
+
+          ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = true;
+
+          await showDialog<dynamic>(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => StackOkDialog(
+              title: "${AppConfig.prefix} Auto Backup saved to:",
+              message: savedPath,
+            ),
+          );
+          if (mounted) {
+            passwordController.text = "";
+            passwordRepeatController.text = "";
+
+            if (!Util.isDesktop) {
+              Navigator.of(
+                context,
+              ).popUntil(ModalRoute.withName(AutoBackupView.routeName));
+            }
+          }
+        } else {
+          await showDialog<dynamic>(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => StackOkDialog(
+              title: "Failed to update Auto Backup",
+              message: ex?.toString(),
+            ),
+          );
         }
-      } else {
-        await showDialog<dynamic>(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (_) => const StackOkDialog(title: "Failed to update Auto Backup"),
-        );
       }
     }
   }
@@ -262,13 +204,14 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     fileLocationController.text =
         ref.read(prefsChangeNotifierProvider).autoBackupLocation ?? "";
 
-    _currentDropDownValue =
-        ref.read(prefsChangeNotifierProvider).backupFrequencyType;
+    _currentDropDownValue = ref
+        .read(prefsChangeNotifierProvider)
+        .backupFrequencyType;
 
     passwordFocusNode = FocusNode();
     passwordRepeatFocusNode = FocusNode();
 
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (Platform.isIOS) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         final dir = await stackFileSystem.prepareStorage();
         if (mounted) {
@@ -302,44 +245,45 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                title: Text(
-                  "Edit Auto Backup",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
-                          ),
-                          child: IntrinsicHeight(child: child),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Edit Auto Backup",
+              style: STextStyles.navBarTitle(context),
+            ),
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(child: child),
+                    ),
+                  );
+                },
               ),
             ),
           ),
+        ),
+      ),
       child: Column(
-        crossAxisAlignment:
-            isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.stretch,
+        crossAxisAlignment: isDesktop
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.stretch,
         children: [
           if (!isDesktop)
             Text("Create your backup", style: STextStyles.smallMed12(context)),
@@ -352,31 +296,30 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               textAlign: TextAlign.left,
             ),
           const SizedBox(height: 10),
-          if (!Platform.isAndroid && !Platform.isIOS)
+          if (!Platform.isIOS)
             TextField(
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
-              onTap:
-                  Platform.isAndroid || Platform.isIOS
-                      ? null
-                      : () async {
-                        try {
-                          await stackFileSystem.prepareStorage();
+              onTap: Platform.isIOS
+                  ? null
+                  : () async {
+                      try {
+                        await stackFileSystem.prepareStorage();
 
-                          if (mounted) {
-                            await stackFileSystem.pickDir(context);
-                          }
-
-                          if (mounted) {
-                            setState(() {
-                              fileLocationController.text =
-                                  stackFileSystem.dirPath ?? "";
-                            });
-                          }
-                        } catch (e, s) {
-                          Logging.instance.e("$e\n$s", error: e, stackTrace: s);
+                        if (context.mounted) {
+                          await stackFileSystem.pickDir(context);
                         }
-                      },
+
+                        if (mounted) {
+                          setState(() {
+                            fileLocationController.text =
+                                stackFileSystem.dirPath ?? "";
+                          });
+                        }
+                      } catch (e, s) {
+                        Logging.instance.e("$e\n$s", error: e, stackTrace: s);
+                      }
+                    },
               controller: fileLocationController,
               style: STextStyles.field(context),
               decoration: InputDecoration(
@@ -388,10 +331,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark3,
                         width: 16,
                         height: 16,
                       ),
@@ -419,8 +361,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               ),
               textAlign: TextAlign.left,
             ),
-          if (!Platform.isAndroid && !Platform.isIOS)
-            const SizedBox(height: 10),
+          if (!Platform.isIOS) const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -433,40 +374,44 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               obscureText: hidePassword,
               enableSuggestions: false,
               autocorrect: false,
-              decoration: standardInputDecoration(
-                "Create passphrase",
-                passwordFocusNode,
-                context,
-              ).copyWith(
-                labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
-                suffixIcon: UnconstrainedBox(
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      GestureDetector(
-                        key: const Key(
-                          "createBackupPasswordFieldShowPasswordButtonKey",
-                        ),
-                        onTap: () async {
-                          setState(() {
-                            hidePassword = !hidePassword;
-                          });
-                        },
-                        child: SvgPicture.asset(
-                          hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                          color:
-                              Theme.of(
+              decoration:
+                  standardInputDecoration(
+                    "Create passphrase",
+                    passwordFocusNode,
+                    context,
+                  ).copyWith(
+                    labelStyle: isDesktop
+                        ? STextStyles.fieldLabel(context)
+                        : null,
+                    suffixIcon: UnconstrainedBox(
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            key: const Key(
+                              "createBackupPasswordFieldShowPasswordButtonKey",
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                hidePassword = !hidePassword;
+                              });
+                            },
+                            child: SvgPicture.asset(
+                              hidePassword
+                                  ? Assets.svg.eye
+                                  : Assets.svg.eyeSlash,
+                              color: Theme.of(
                                 context,
                               ).extension<StackColors>()!.textDark3,
-                          width: 16,
-                          height: 16,
-                        ),
+                              width: 16,
+                              height: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                    ],
+                    ),
                   ),
-                ),
-              ),
               onChanged: (newValue) {
                 if (newValue.isEmpty) {
                   setState(() {
@@ -513,13 +458,12 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 right: 12,
                 top: passwordFeedback.isNotEmpty ? 4 : 0,
               ),
-              child:
-                  passwordFeedback.isNotEmpty
-                      ? Text(
-                        passwordFeedback,
-                        style: STextStyles.infoSmall(context),
-                      )
-                      : null,
+              child: passwordFeedback.isNotEmpty
+                  ? Text(
+                      passwordFeedback,
+                      style: STextStyles.infoSmall(context),
+                    )
+                  : null,
             ),
           if (passwordFocusNode.hasFocus ||
               passwordRepeatFocusNode.hasFocus ||
@@ -528,27 +472,22 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               padding: const EdgeInsets.only(left: 12, right: 12, top: 10),
               child: ProgressBar(
                 key: const Key("createStackBackUpProgressBar"),
-                width:
-                    isDesktop
-                        ? 492
-                        : MediaQuery.of(context).size.width - 32 - 24,
+                width: isDesktop
+                    ? 492
+                    : MediaQuery.of(context).size.width - 32 - 24,
                 height: 5,
-                fillColor:
-                    passwordStrength < 0.51
-                        ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorRed
-                        : passwordStrength < 1
-                        ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorYellow
-                        : Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorGreen,
-                backgroundColor:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonBackSecondary,
+                fillColor: passwordStrength < 0.51
+                    ? Theme.of(context).extension<StackColors>()!.accentColorRed
+                    : passwordStrength < 1
+                    ? Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorYellow
+                    : Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorGreen,
+                backgroundColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.buttonBackSecondary,
                 percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
               ),
             ),
@@ -565,40 +504,44 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               obscureText: hidePassword,
               enableSuggestions: false,
               autocorrect: false,
-              decoration: standardInputDecoration(
-                "Confirm passphrase",
-                passwordRepeatFocusNode,
-                context,
-              ).copyWith(
-                labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
-                suffixIcon: UnconstrainedBox(
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      GestureDetector(
-                        key: const Key(
-                          "createBackupPasswordFieldShowPasswordButtonKey",
-                        ),
-                        onTap: () async {
-                          setState(() {
-                            hidePassword = !hidePassword;
-                          });
-                        },
-                        child: SvgPicture.asset(
-                          hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                          color:
-                              Theme.of(
+              decoration:
+                  standardInputDecoration(
+                    "Confirm passphrase",
+                    passwordRepeatFocusNode,
+                    context,
+                  ).copyWith(
+                    labelStyle: isDesktop
+                        ? STextStyles.fieldLabel(context)
+                        : null,
+                    suffixIcon: UnconstrainedBox(
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            key: const Key(
+                              "createBackupPasswordFieldShowPasswordButtonKey",
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                hidePassword = !hidePassword;
+                              });
+                            },
+                            child: SvgPicture.asset(
+                              hidePassword
+                                  ? Assets.svg.eye
+                                  : Assets.svg.eyeSlash,
+                              color: Theme.of(
                                 context,
                               ).extension<StackColors>()!.textDark3,
-                          width: 16,
-                          height: 16,
-                        ),
+                              width: 16,
+                              height: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                    ],
+                    ),
                   ),
-                ),
-              ),
               onChanged: (newValue) {
                 setState(() {});
                 // TODO: ? check if passwords match?
@@ -608,13 +551,13 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           SizedBox(height: isDesktop ? 24 : 32),
           Text(
             "Auto Backup frequency",
-            style:
-                isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark3,
-                    )
-                    : STextStyles.smallMed12(context),
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
+                  )
+                : STextStyles.smallMed12(context),
           ),
           const SizedBox(height: 10),
           if (isDesktop)
@@ -653,8 +596,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                             .backupFrequencyType !=
                         value) {
                       ref
-                          .read(prefsChangeNotifierProvider)
-                          .backupFrequencyType = value;
+                              .read(prefsChangeNotifierProvider)
+                              .backupFrequencyType =
+                          value;
                     }
                     setState(() {
                       _currentDropDownValue = value;
@@ -666,18 +610,18 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     Assets.svg.chevronDown,
                     width: 10,
                     height: 5,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
                   ),
                 ),
                 dropdownStyleData: DropdownStyleData(
                   offset: const Offset(0, -10),
                   elevation: 0,
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -699,8 +643,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 ),
                 Positioned.fill(
                   child: RawMaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
+                    splashColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.highlight,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -737,10 +682,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                             padding: const EdgeInsets.only(right: 4.0),
                             child: SvgPicture.asset(
                               Assets.svg.chevronDown,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle2,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle2,
                               width: 12,
                               height: 6,
                             ),
@@ -777,14 +721,13 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             ),
           if (!isDesktop)
             TextButton(
-              style:
-                  shouldEnableCreate
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .getPrimaryEnabledButtonStyle(context)
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .getPrimaryDisabledButtonStyle(context),
+              style: shouldEnableCreate
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context)
+                  : Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
               child: Text("Save", style: STextStyles.button(context)),
             ),

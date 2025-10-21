@@ -15,7 +15,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
 import '../../db/hive/db.dart';
@@ -96,29 +95,26 @@ class _ForgottenPassphraseRestoreFromSWBState
                   child: Text(
                     "Decrypting ${AppConfig.prefix} backup file",
                     style: STextStyles.pageTitleH2(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textWhite,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textWhite,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 64,
-              ),
-              const Center(
-                child: LoadingIndicator(
-                  width: 100,
-                ),
-              ),
+              const SizedBox(height: 64),
+              const Center(child: LoadingIndicator(width: 100)),
             ],
           ),
         ),
       ),
     );
 
+    final content = await File(fileToRestore).readAsString();
+
     final String? jsonString = await compute(
-      SWB.decryptStackWalletWithPassphrase,
-      Tuple2(fileToRestore, passphrase),
+      SWB.decryptStackWalletStringWithPassphrase,
+      (encryptedText: content, passphrase: passphrase),
       debugLabel: "${AppConfig.appName} decryption compute",
     );
 
@@ -161,9 +157,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 44,
-                  ),
+                  const SizedBox(height: 44),
                   Flexible(
                     child: StackRestoreProgressView(
                       jsonString: jsonString,
@@ -220,8 +214,9 @@ class _ForgottenPassphraseRestoreFromSWBState
             ref.refresh(storageCryptoHandlerProvider);
             await DB.instance.init();
             if (mounted) {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(CreatePasswordView.routeName));
+              Navigator.of(
+                context,
+              ).popUntil(ModalRoute.withName(CreatePasswordView.routeName));
               Navigator.of(context).pop();
             }
           },
@@ -241,21 +236,17 @@ class _ForgottenPassphraseRestoreFromSWBState
                   "Restore from backup",
                   style: STextStyles.desktopH1(context),
                 ),
-                const SizedBox(
-                  height: 32,
-                ),
+                const SizedBox(height: 32),
                 Text(
                   "Use your ${AppConfig.prefix} backup file to restore your wallets, address book, and wallet preferences.",
                   textAlign: TextAlign.center,
                   style: STextStyles.desktopTextSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle1,
                   ),
                 ),
-                const SizedBox(
-                  height: 40,
-                ),
+                const SizedBox(height: 40),
                 GestureDetector(
                   onTap: () async {
                     try {
@@ -290,20 +281,16 @@ class _ForgottenPassphraseRestoreFromSWBState
                             child: UnconstrainedBox(
                               child: Row(
                                 children: [
-                                  const SizedBox(
-                                    width: 24,
-                                  ),
+                                  const SizedBox(width: 24),
                                   SvgPicture.asset(
                                     Assets.svg.folder,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
                                     width: 24,
                                     height: 24,
                                   ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
+                                  const SizedBox(width: 12),
                                 ],
                               ),
                             ),
@@ -321,16 +308,14 @@ class _ForgottenPassphraseRestoreFromSWBState
                           setState(() {
                             _enableButton =
                                 passwordController.text.isNotEmpty &&
-                                    fileLocationController.text.isNotEmpty;
+                                fileLocationController.text.isNotEmpty;
                           });
                         },
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
@@ -339,67 +324,63 @@ class _ForgottenPassphraseRestoreFromSWBState
                     key: const Key("restoreFromFilePasswordFieldKey"),
                     focusNode: passwordFocusNode,
                     controller: passwordController,
-                    style: STextStyles.desktopTextMedium(context).copyWith(
-                      height: 2,
-                    ),
+                    style: STextStyles.desktopTextMedium(
+                      context,
+                    ).copyWith(height: 2),
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
-                    decoration: standardInputDecoration(
-                      "Enter passphrase",
-                      passwordFocusNode,
-                      context,
-                    ).copyWith(
-                      suffixIcon: UnconstrainedBox(
-                        child: SizedBox(
-                          height: 70,
-                          child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 24,
-                              ),
-                              GestureDetector(
-                                key: const Key(
-                                  "restoreFromFilePasswordFieldShowPasswordButtonKey",
-                                ),
-                                onTap: () async {
-                                  setState(() {
-                                    hidePassword = !hidePassword;
-                                  });
-                                },
-                                child: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: SvgPicture.asset(
-                                    hidePassword
-                                        ? Assets.svg.eye
-                                        : Assets.svg.eyeSlash,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
-                                    width: 24,
-                                    height: 24,
+                    decoration:
+                        standardInputDecoration(
+                          "Enter passphrase",
+                          passwordFocusNode,
+                          context,
+                        ).copyWith(
+                          suffixIcon: UnconstrainedBox(
+                            child: SizedBox(
+                              height: 70,
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 24),
+                                  GestureDetector(
+                                    key: const Key(
+                                      "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                    ),
+                                    onTap: () async {
+                                      setState(() {
+                                        hidePassword = !hidePassword;
+                                      });
+                                    },
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: SvgPicture.asset(
+                                        hidePassword
+                                            ? Assets.svg.eye
+                                            : Assets.svg.eyeSlash,
+                                        color: Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.textDark3,
+                                        width: 24,
+                                        height: 24,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                ],
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
                     onChanged: (newValue) {
                       setState(() {
-                        _enableButton = passwordController.text.isNotEmpty &&
+                        _enableButton =
+                            passwordController.text.isNotEmpty &&
                             fileLocationController.text.isNotEmpty;
                       });
                     },
                   ),
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 PrimaryButton(
                   label: "Restore",
                   enabled: _enableButton,
@@ -407,9 +388,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                     restore();
                   },
                 ),
-                const SizedBox(
-                  height: kDesktopAppBarHeight,
-                ),
+                const SizedBox(height: kDesktopAppBarHeight),
               ],
             ),
           ),

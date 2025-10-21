@@ -21,7 +21,6 @@ import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../../app_config.dart';
-import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import '../../../../providers/global/prefs_provider.dart';
@@ -33,6 +32,7 @@ import '../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -44,9 +44,7 @@ import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 
 class CreateAutoBackup extends ConsumerStatefulWidget {
-  const CreateAutoBackup({
-    super.key,
-  });
+  const CreateAutoBackup({super.key});
 
   @override
   ConsumerState<CreateAutoBackup> createState() => _CreateAutoBackup();
@@ -89,6 +87,146 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
     BackupFrequencyType.afterClosingAWallet,
   ];
 
+  Future<void> _enableAutoBackup() async {
+    final String pathToSave = fileLocationController.text;
+    final String passphrase = passphraseController.text;
+    final String repeatPassphrase = passphraseRepeatController.text;
+
+    if (validateFail(context, pathToSave, passphrase, repeatPassphrase)) return;
+
+    if (mounted) {
+      final now = DateTime.now();
+      Exception? ex;
+      final savedPath = await showLoading(
+        whileFuture: () async {
+          String adkString;
+          int adkVersion;
+          try {
+            final adk = await compute(generateAdk, passphrase);
+            adkString = Format.uint8listToString(adk.item2);
+            adkVersion = adk.item1;
+          } on Exception catch (e, s) {
+            final String err = getErrorMessageFromSWBException(e);
+            Logging.instance.e(err, error: e, stackTrace: s);
+            rethrow;
+          }
+
+          await secureStore.write(key: "auto_adk_string", value: adkString);
+          await secureStore.write(
+            key: "auto_adk_version_string",
+            value: adkVersion.toString(),
+          );
+
+          final fileToSavePath = createAutoBackupFilename(pathToSave, now);
+
+          final backup = await SWB.createStackWalletJSON(
+            secureStorage: secureStore,
+          );
+
+          final encryptedDataString = await SWB.encryptStackWalletWithADK(
+            adkString,
+            jsonEncode(backup),
+            adkVersion,
+          );
+
+          if (Platform.isAndroid) {
+            // TODO SAF
+            File(
+              fileToSavePath,
+            ).writeAsStringSync(encryptedDataString, flush: true);
+          } else {
+            File(
+              fileToSavePath,
+            ).writeAsStringSync(encryptedDataString, flush: true);
+          }
+
+          return fileToSavePath;
+        }(),
+        context: context,
+        message: "Encrypting initial backup",
+        subMessage: "This shouldn't take long",
+        delay: const Duration(seconds: 1),
+        onException: (e) => ex = e,
+      );
+
+      if (mounted) {
+        // pop encryption progress dialog
+        Navigator.of(context).pop();
+
+        if (savedPath != null) {
+          ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
+          ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;
+
+          ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = true;
+
+          await showDialog<dynamic>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: double.infinity,
+                maxWidth: 500,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${AppConfig.prefix} Auto Backup enabled!",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                      Row(
+                        children: [
+                          const Spacer(),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Ok",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+          if (mounted) {
+            passphraseController.text = "";
+            passphraseRepeatController.text = "";
+
+            Navigator.of(context).pop();
+          }
+        } else {
+          await showDialog<dynamic>(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => StackOkDialog(
+              title: "Failed to enable Auto Backup",
+              message: ex?.toString(),
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   void initState() {
     secureStore = ref.read(secureStoreProvider);
@@ -101,7 +239,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
     passphraseFocusNode = FocusNode();
     passphraseRepeatFocusNode = FocusNode();
 
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (Platform.isIOS) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         final dir = await stackFileSystem.prepareStorage();
         if (mounted) {
@@ -154,9 +292,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          const SizedBox(
-            height: 30,
-          ),
+          const SizedBox(height: 30),
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 32),
@@ -168,15 +304,13 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               textAlign: TextAlign.left,
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!Platform.isAndroid && !Platform.isIOS)
+                if (!Platform.isIOS)
                   Consumer(
                     builder: (context, ref, __) {
                       return Container(
@@ -184,7 +318,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                         child: TextField(
                           autocorrect: false,
                           enableSuggestions: false,
-                          onTap: Platform.isAndroid || Platform.isIOS
+                          onTap: Platform.isIOS
                               ? null
                               : () async {
                                   try {
@@ -216,20 +350,16 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                             suffixIcon: UnconstrainedBox(
                               child: Row(
                                 children: [
-                                  const SizedBox(
-                                    width: 16,
-                                  ),
+                                  const SizedBox(width: 16),
                                   SvgPicture.asset(
                                     Assets.svg.folder,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
+                                  const SizedBox(width: 12),
                                 ],
                               ),
                             ),
@@ -249,21 +379,18 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                       );
                     },
                   ),
-                if (!Platform.isAndroid && !Platform.isIOS)
-                  const SizedBox(
-                    height: 24,
-                  ),
+                if (!Platform.isIOS) const SizedBox(height: 24),
                 if (isDesktop)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10.0),
                     child: Text(
                       "Create a passphrase",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      ),
+                      style: STextStyles.desktopTextExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark3,
+                          ),
                       textAlign: TextAlign.left,
                     ),
                   ),
@@ -279,46 +406,44 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
-                    decoration: standardInputDecoration(
-                      "Create passphrase",
-                      passphraseFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle:
-                          isDesktop ? STextStyles.fieldLabel(context) : null,
-                      suffixIcon: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
+                    decoration:
+                        standardInputDecoration(
+                          "Create passphrase",
+                          passphraseFocusNode,
+                          context,
+                        ).copyWith(
+                          labelStyle: isDesktop
+                              ? STextStyles.fieldLabel(context)
+                              : null,
+                          suffixIcon: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 16),
+                                GestureDetector(
+                                  key: const Key(
+                                    "createBackupPasswordFieldShowPasswordButtonKey",
+                                  ),
+                                  onTap: () async {
+                                    setState(() {
+                                      hidePassword = !hidePassword;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                    hidePassword
+                                        ? Assets.svg.eye
+                                        : Assets.svg.eyeSlash,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
                             ),
-                            GestureDetector(
-                              key: const Key(
-                                "createBackupPasswordFieldShowPasswordButtonKey",
-                              ),
-                              onTap: () async {
-                                setState(() {
-                                  hidePassword = !hidePassword;
-                                });
-                              },
-                              child: SvgPicture.asset(
-                                hidePassword
-                                    ? Assets.svg.eye
-                                    : Assets.svg.eyeSlash,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 12,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
                     onChanged: (newValue) {
                       if (newValue.isEmpty) {
                         setState(() {
@@ -386,26 +511,25 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                       width: 512,
                       height: 5,
                       fillColor: passwordStrength < 0.51
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorRed
+                          ? Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorRed
                           : passwordStrength < 1
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorYellow
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorGreen,
-                      backgroundColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonBackSecondary,
-                      percent:
-                          passwordStrength < 0.25 ? 0.03 : passwordStrength,
+                          ? Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorYellow
+                          : Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorGreen,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonBackSecondary,
+                      percent: passwordStrength < 0.25
+                          ? 0.03
+                          : passwordStrength,
                     ),
                   ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
@@ -418,45 +542,42 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
-                    decoration: standardInputDecoration(
-                      "Confirm passphrase",
-                      passphraseRepeatFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle: STextStyles.fieldLabel(context),
-                      suffixIcon: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
+                    decoration:
+                        standardInputDecoration(
+                          "Confirm passphrase",
+                          passphraseRepeatFocusNode,
+                          context,
+                        ).copyWith(
+                          labelStyle: STextStyles.fieldLabel(context),
+                          suffixIcon: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 16),
+                                GestureDetector(
+                                  key: const Key(
+                                    "createBackupPasswordFieldShowPasswordButtonKey",
+                                  ),
+                                  onTap: () async {
+                                    setState(() {
+                                      hidePassword = !hidePassword;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                    hidePassword
+                                        ? Assets.svg.eye
+                                        : Assets.svg.eyeSlash,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
                             ),
-                            GestureDetector(
-                              key: const Key(
-                                "createBackupPasswordFieldShowPasswordButtonKey",
-                              ),
-                              onTap: () async {
-                                setState(() {
-                                  hidePassword = !hidePassword;
-                                });
-                              },
-                              child: SvgPicture.asset(
-                                hidePassword
-                                    ? Assets.svg.eye
-                                    : Assets.svg.eyeSlash,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 12,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
                     onChanged: (newValue) {
                       setState(() {});
                       // TODO: ? check if passwords match?
@@ -466,9 +587,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 32),
@@ -480,47 +599,39 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               textAlign: TextAlign.left,
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 32,
-              right: 32,
-            ),
+            padding: const EdgeInsets.only(left: 32, right: 32),
             child: isDesktop
                 ? DropdownButtonHideUnderline(
                     child: DropdownButton2(
                       isExpanded: true,
                       value: _currentDropDownValue,
                       items: [
-                        ..._dropDownItems.map(
-                          (e) {
-                            String message = "";
-                            switch (e) {
-                              case BackupFrequencyType.everyTenMinutes:
-                                message = "Every 10 minutes";
-                                break;
-                              case BackupFrequencyType.everyAppStart:
-                                message = "Every app startup";
-                                break;
-                              case BackupFrequencyType.afterClosingAWallet:
-                                message =
-                                    "After closing a cryptocurrency wallet";
-                                break;
-                            }
+                        ..._dropDownItems.map((e) {
+                          String message = "";
+                          switch (e) {
+                            case BackupFrequencyType.everyTenMinutes:
+                              message = "Every 10 minutes";
+                              break;
+                            case BackupFrequencyType.everyAppStart:
+                              message = "Every app startup";
+                              break;
+                            case BackupFrequencyType.afterClosingAWallet:
+                              message = "After closing a cryptocurrency wallet";
+                              break;
+                          }
 
-                            return DropdownMenuItem(
-                              value: e,
-                              child: Text(
-                                message,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ),
+                          return DropdownMenuItem(
+                            value: e,
+                            child: Text(
+                              message,
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        }),
                       ],
                       onChanged: (value) {
                         if (value is BackupFrequencyType) {
@@ -529,8 +640,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                   .backupFrequencyType !=
                               value) {
                             ref
-                                .read(prefsChangeNotifierProvider)
-                                .backupFrequencyType = value;
+                                    .read(prefsChangeNotifierProvider)
+                                    .backupFrequencyType =
+                                value;
                           }
                           setState(() {
                             _currentDropDownValue = value;
@@ -542,18 +654,18 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                           Assets.svg.chevronDown,
                           width: 10,
                           height: 5,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textDark3,
                         ),
                       ),
                       dropdownStyleData: DropdownStyleData(
                         offset: const Offset(0, -10),
                         elevation: 0,
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldDefaultBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
                           ),
@@ -581,292 +693,13 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     onPressed: Navigator.of(context).pop,
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     buttonHeight: ButtonHeight.l,
                     label: "Enable Auto Backup",
                     enabled: shouldEnableCreate,
-                    onPressed: !shouldEnableCreate
-                        ? null
-                        : () async {
-                            final String pathToSave =
-                                fileLocationController.text;
-                            final String passphrase = passphraseController.text;
-                            final String repeatPassphrase =
-                                passphraseRepeatController.text;
-
-                            if (pathToSave.isEmpty) {
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "Directory not chosen",
-                                  context: context,
-                                ),
-                              );
-                              return;
-                            }
-                            if (!(await Directory(pathToSave).exists())) {
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "Directory does not exist",
-                                  context: context,
-                                ),
-                              );
-                              return;
-                            }
-                            if (passphrase.isEmpty) {
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "A passphrase is required",
-                                  context: context,
-                                ),
-                              );
-                              return;
-                            }
-                            if (passphrase != repeatPassphrase) {
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "Passphrase does not match",
-                                  context: context,
-                                ),
-                              );
-                              return;
-                            }
-
-                            unawaited(
-                              showDialog<dynamic>(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (_) {
-                                  if (Util.isDesktop) {
-                                    return DesktopDialog(
-                                      maxHeight: double.infinity,
-                                      maxWidth: 450,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(
-                                          32,
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Encrypting initial backup",
-                                              style: STextStyles.desktopH3(
-                                                context,
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 40,
-                                            ),
-                                            Text(
-                                              "This shouldn't take long",
-                                              style: STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                context,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return const StackDialog(
-                                      title: "Encrypting initial backup",
-                                      message: "This shouldn't take long",
-                                    );
-                                  }
-                                },
-                              ),
-                            );
-
-                            // make sure the dialog is able to be displayed for at least some time
-                            final fut = Future<void>.delayed(
-                              const Duration(milliseconds: 300),
-                            );
-
-                            String adkString;
-                            int adkVersion;
-                            try {
-                              final adk =
-                                  await compute(generateAdk, passphrase);
-                              adkString = Format.uint8listToString(adk.item2);
-                              adkVersion = adk.item1;
-                            } on Exception catch (e, s) {
-                              final String err =
-                                  getErrorMessageFromSWBException(e);
-                              Logging.instance.e(
-                                err,
-                                error: e,
-                                stackTrace: s,
-                              );
-                              // pop encryption progress dialog
-                              Navigator.of(context).pop();
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: err,
-                                  context: context,
-                                ),
-                              );
-                              return;
-                            } catch (e, s) {
-                              Logging.instance.e(
-                                "",
-                                error: e,
-                                stackTrace: s,
-                              );
-                              // pop encryption progress dialog
-                              Navigator.of(context).pop();
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "$e",
-                                  context: context,
-                                ),
-                              );
-                              return;
-                            }
-
-                            await secureStore.write(
-                              key: "auto_adk_string",
-                              value: adkString,
-                            );
-                            await secureStore.write(
-                              key: "auto_adk_version_string",
-                              value: adkVersion.toString(),
-                            );
-
-                            final DateTime now = DateTime.now();
-                            final String fileToSave =
-                                createAutoBackupFilename(pathToSave, now);
-
-                            final backup = await SWB.createStackWalletJSON(
-                              secureStorage: secureStore,
-                            );
-
-                            final bool result =
-                                await SWB.encryptStackWalletWithADK(
-                              fileToSave,
-                              adkString,
-                              jsonEncode(backup),
-                              adkVersion,
-                            );
-
-                            // this future should already be complete unless there was an error encrypting
-                            await Future.wait([fut]);
-
-                            if (mounted) {
-                              // pop encryption progress dialog
-                              Navigator.of(context).pop();
-
-                              if (result) {
-                                ref
-                                    .read(prefsChangeNotifierProvider)
-                                    .autoBackupLocation = pathToSave;
-                                ref
-                                    .read(prefsChangeNotifierProvider)
-                                    .lastAutoBackup = now;
-
-                                ref
-                                    .read(prefsChangeNotifierProvider)
-                                    .isAutoBackupEnabled = true;
-
-                                await showDialog<dynamic>(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (context) {
-                                    if (Platform.isAndroid) {
-                                      return StackOkDialog(
-                                        title:
-                                            "${AppConfig.prefix} Auto Backup enabled and saved to:",
-                                        message: fileToSave,
-                                      );
-                                    } else if (Util.isDesktop) {
-                                      return DesktopDialog(
-                                        maxHeight: double.infinity,
-                                        maxWidth: 500,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 32,
-                                            right: 32,
-                                            bottom: 32,
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    "${AppConfig.prefix} Auto Backup enabled!",
-                                                    style:
-                                                        STextStyles.desktopH3(
-                                                      context,
-                                                    ),
-                                                  ),
-                                                  const DesktopDialogCloseButton(),
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 40,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  const Spacer(),
-                                                  Expanded(
-                                                    child: PrimaryButton(
-                                                      label: "Ok",
-                                                      buttonHeight:
-                                                          ButtonHeight.l,
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      return const StackOkDialog(
-                                        title:
-                                            "${AppConfig.prefix} Auto Backup enabled!",
-                                      );
-                                    }
-                                  },
-                                );
-                                if (mounted) {
-                                  passphraseController.text = "";
-                                  passphraseRepeatController.text = "";
-
-                                  Navigator.of(context).pop();
-                                }
-                              } else {
-                                await showDialog<dynamic>(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) => const StackOkDialog(
-                                    title: "Failed to enable Auto Backup",
-                                  ),
-                                );
-                              }
-                            }
-                          },
+                    onPressed: !shouldEnableCreate ? null : _enableAutoBackup,
                   ),
                 ),
               ],

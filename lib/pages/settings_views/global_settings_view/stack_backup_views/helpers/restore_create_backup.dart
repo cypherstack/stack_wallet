@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:tuple/tuple.dart';
@@ -31,6 +32,7 @@ import '../../../../../models/node_model.dart';
 import '../../../../../models/stack_restoring_ui_state.dart';
 import '../../../../../models/trade_wallet_lookup.dart';
 import '../../../../../models/wallet_restore_state.dart';
+import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
 import '../../../../../services/node_service.dart';
 import '../../../../../services/trade_notes_service.dart';
@@ -92,6 +94,35 @@ String createAutoBackupFilename(String dirPath, DateTime date) {
       "_${date.minute}_${date.second}.swb";
 }
 
+bool validateFail(
+  BuildContext context,
+  String pathToSave,
+  String passphrase,
+  String repeatPassphrase,
+) {
+  for (final e in [
+    [pathToSave.isEmpty, "Directory not chosen"],
+    [!(Directory(pathToSave).existsSync()), "Directory does not exist"],
+    [passphrase.isEmpty, "A passphrase is required"],
+    [passphrase != repeatPassphrase, "Passphrase does not match"],
+  ]) {
+    if (e[0] as bool) {
+      if (context.mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e[1] as String,
+            context: context,
+          ),
+        );
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
 abstract class SWB {
   static Completer<void>? _cancelCompleter;
 
@@ -131,88 +162,42 @@ abstract class SWB {
     }
   }
 
-  static Future<bool> encryptStackWalletWithPassphrase(
-    String fileToSave,
+  static Future<String> encryptStackWalletWithPassphrase(
     String passphrase,
     String plaintext,
   ) async {
-    try {
-      final File backupFile = File(fileToSave);
-      if (!backupFile.existsSync()) {
-        final String jsonBackup = plaintext;
-        final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
-        final Uint8List encryptedContent = await encryptWithPassphrase(
-          passphrase,
-          content,
-        );
-        backupFile.writeAsStringSync(
-          Format.uint8listToString(encryptedContent),
-        );
-      }
-      Logging.instance.d(backupFile.absolute);
-      return true;
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      return false;
-    }
+    final String jsonBackup = plaintext;
+    final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
+    final Uint8List encryptedContent = await encryptWithPassphrase(
+      passphrase,
+      content,
+    );
+    return Format.uint8listToString(encryptedContent);
   }
 
-  static Future<bool> encryptStackWalletWithADK(
-    String fileToSave,
+  static Future<String> encryptStackWalletWithADK(
     String adk,
     String plaintext,
     int adkVersion,
   ) async {
-    try {
-      final File backupFile = File(fileToSave);
-      if (!backupFile.existsSync()) {
-        final String jsonBackup = plaintext;
-        final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
-        final Uint8List encryptedContent = await encryptWithAdk(
-          Format.stringToUint8List(adk),
-          content,
-          version: adkVersion,
-        );
-        backupFile.writeAsStringSync(
-          Format.uint8listToString(encryptedContent),
-        );
-      }
-      Logging.instance.d(backupFile.absolute);
-      return true;
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      return false;
-    }
-  }
-
-  static Future<String?> decryptStackWalletWithPassphrase(
-    Tuple2<String, String> data,
-  ) async {
-    try {
-      final String fileToRestore = data.item1;
-      final String passphrase = data.item2;
-      final File backupFile = File(fileToRestore);
-      final String encryptedText = await backupFile.readAsString();
-      return await decryptStackWalletStringWithPassphrase(
-        Tuple2(encryptedText, passphrase),
-      );
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      return null;
-    }
+    final String jsonBackup = plaintext;
+    final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
+    final Uint8List encryptedContent = await encryptWithAdk(
+      Format.stringToUint8List(adk),
+      content,
+      version: adkVersion,
+    );
+    return Format.uint8listToString(encryptedContent);
   }
 
   static Future<String?> decryptStackWalletStringWithPassphrase(
-    Tuple2<String, String> data,
+    ({String passphrase, String encryptedText}) data,
   ) async {
     try {
-      final encryptedText = data.item1;
-      final passphrase = data.item2;
-
-      final encryptedBytes = Format.stringToUint8List(encryptedText);
+      final encryptedBytes = Format.stringToUint8List(data.encryptedText);
 
       final decryptedContent = await decryptWithPassphrase(
-        passphrase,
+        data.passphrase,
         encryptedBytes,
       );
 
