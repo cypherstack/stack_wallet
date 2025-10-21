@@ -117,8 +117,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -168,12 +169,12 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
                   "Choose file location",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  ),
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark3,
+                      ),
                 ),
               ),
               child,
@@ -191,31 +192,26 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                     child: TextField(
                       autocorrect: Util.isDesktop ? false : true,
                       enableSuggestions: Util.isDesktop ? false : true,
-                      onTap:
-                          Platform.isAndroid || Platform.isIOS
-                              ? null
-                              : () async {
-                                try {
-                                  await stackFileSystem.prepareStorage();
+                      onTap: Platform.isAndroid || Platform.isIOS
+                          ? null
+                          : () async {
+                              try {
+                                await stackFileSystem.prepareStorage();
 
-                                  if (mounted) {
-                                    await stackFileSystem.pickDir(context);
-                                  }
-
-                                  if (mounted) {
-                                    setState(() {
-                                      fileLocationController.text =
-                                          stackFileSystem.dirPath ?? "";
-                                    });
-                                  }
-                                } catch (e, s) {
-                                  Logging.instance.e(
-                                    "",
-                                    error: e,
-                                    stackTrace: s,
-                                  );
+                                if (mounted) {
+                                  await stackFileSystem.pickDir(context);
                                 }
-                              },
+
+                                if (mounted) {
+                                  setState(() {
+                                    fileLocationController.text =
+                                        stackFileSystem.dirPath ?? "";
+                                  });
+                                }
+                              } catch (e, s) {
+                                Logging.instance.e("", error: e, stackTrace: s);
+                              }
+                            },
                       controller: fileLocationController,
                       style: STextStyles.field(context),
                       decoration: InputDecoration(
@@ -227,10 +223,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                               const SizedBox(width: 16),
                               SvgPicture.asset(
                                 Assets.svg.folder,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -263,12 +258,12 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                 padding: const EdgeInsets.only(bottom: 10.0),
                 child: Text(
                   "Create a passphrase",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  ),
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark3,
+                      ),
                   textAlign: TextAlign.left,
                 ),
               ),
@@ -284,41 +279,44 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
-                decoration: standardInputDecoration(
-                  "Create passphrase",
-                  passwordFocusNode,
-                  context,
-                ).copyWith(
-                  labelStyle:
-                      isDesktop ? STextStyles.fieldLabel(context) : null,
-                  suffixIcon: UnconstrainedBox(
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          key: const Key(
-                            "createBackupPasswordFieldShowPasswordButtonKey",
-                          ),
-                          onTap: () async {
-                            setState(() {
-                              hidePassword = !hidePassword;
-                            });
-                          },
-                          child: SvgPicture.asset(
-                            hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                            color:
-                                Theme.of(
+                decoration:
+                    standardInputDecoration(
+                      "Create passphrase",
+                      passwordFocusNode,
+                      context,
+                    ).copyWith(
+                      labelStyle: isDesktop
+                          ? STextStyles.fieldLabel(context)
+                          : null,
+                      suffixIcon: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              key: const Key(
+                                "createBackupPasswordFieldShowPasswordButtonKey",
+                              ),
+                              onTap: () async {
+                                setState(() {
+                                  hidePassword = !hidePassword;
+                                });
+                              },
+                              child: SvgPicture.asset(
+                                hidePassword
+                                    ? Assets.svg.eye
+                                    : Assets.svg.eyeSlash,
+                                color: Theme.of(
                                   context,
                                 ).extension<StackColors>()!.textDark3,
-                            width: 16,
-                            height: 16,
-                          ),
+                                width: 16,
+                                height: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
                 onChanged: (newValue) {
                   if (newValue.isEmpty) {
                     setState(() {
@@ -365,13 +363,12 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                   right: 12,
                   top: passwordFeedback.isNotEmpty ? 4 : 0,
                 ),
-                child:
-                    passwordFeedback.isNotEmpty
-                        ? Text(
-                          passwordFeedback,
-                          style: STextStyles.infoSmall(context),
-                        )
-                        : null,
+                child: passwordFeedback.isNotEmpty
+                    ? Text(
+                        passwordFeedback,
+                        style: STextStyles.infoSmall(context),
+                      )
+                    : null,
               ),
             if (passwordFocusNode.hasFocus ||
                 passwordRepeatFocusNode.hasFocus ||
@@ -382,22 +379,20 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                   key: const Key("createStackBackUpProgressBar"),
                   width: MediaQuery.of(context).size.width - 32 - 24,
                   height: 5,
-                  fillColor:
-                      passwordStrength < 0.51
-                          ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorRed
-                          : passwordStrength < 1
-                          ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorYellow
-                          : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorGreen,
-                  backgroundColor:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonBackSecondary,
+                  fillColor: passwordStrength < 0.51
+                      ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorRed
+                      : passwordStrength < 1
+                      ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorYellow
+                      : Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorGreen,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonBackSecondary,
                   percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
                 ),
               ),
@@ -414,41 +409,44 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
-                decoration: standardInputDecoration(
-                  "Confirm passphrase",
-                  passwordRepeatFocusNode,
-                  context,
-                ).copyWith(
-                  labelStyle:
-                      isDesktop ? STextStyles.fieldLabel(context) : null,
-                  suffixIcon: UnconstrainedBox(
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          key: const Key(
-                            "createBackupPasswordFieldShowPasswordButtonKey",
-                          ),
-                          onTap: () async {
-                            setState(() {
-                              hidePassword = !hidePassword;
-                            });
-                          },
-                          child: SvgPicture.asset(
-                            hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                            color:
-                                Theme.of(
+                decoration:
+                    standardInputDecoration(
+                      "Confirm passphrase",
+                      passwordRepeatFocusNode,
+                      context,
+                    ).copyWith(
+                      labelStyle: isDesktop
+                          ? STextStyles.fieldLabel(context)
+                          : null,
+                      suffixIcon: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              key: const Key(
+                                "createBackupPasswordFieldShowPasswordButtonKey",
+                              ),
+                              onTap: () async {
+                                setState(() {
+                                  hidePassword = !hidePassword;
+                                });
+                              },
+                              child: SvgPicture.asset(
+                                hidePassword
+                                    ? Assets.svg.eye
+                                    : Assets.svg.eyeSlash,
+                                color: Theme.of(
                                   context,
                                 ).extension<StackColors>()!.textDark3,
-                            width: 16,
-                            height: 16,
-                          ),
+                                width: 16,
+                                height: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
                 onChanged: (newValue) {
                   setState(() {});
                   // TODO: ? check if passwords match?
@@ -459,20 +457,18 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
             if (!isDesktop) const Spacer(),
             !isDesktop
                 ? Consumer(
-                  builder: (context, ref, __) {
-                    return TextButton(
-                      style:
-                          shouldEnableCreate
-                              ? Theme.of(context)
+                    builder: (context, ref, __) {
+                      return TextButton(
+                        style: shouldEnableCreate
+                            ? Theme.of(context)
                                   .extension<StackColors>()!
                                   .getPrimaryEnabledButtonStyle(context)
-                              : Theme.of(context)
+                            : Theme.of(context)
                                   .extension<StackColors>()!
                                   .getPrimaryDisabledButtonStyle(context),
-                      onPressed:
-                          !shouldEnableCreate
-                              ? null
-                              : () async {
+                        onPressed: !shouldEnableCreate
+                            ? null
+                            : () async {
                                 final String pathToSave =
                                     fileLocationController.text;
                                 final String passphrase =
@@ -525,11 +521,10 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                   showDialog<dynamic>(
                                     context: context,
                                     barrierDismissible: false,
-                                    builder:
-                                        (_) => const StackDialog(
-                                          title: "Encrypting backup",
-                                          message: "This shouldn't take long",
-                                        ),
+                                    builder: (_) => const StackDialog(
+                                      title: "Encrypting backup",
+                                      message: "This shouldn't take long",
+                                    ),
                                   ),
                                 );
                                 // make sure the dialog is able to be displayed for at least 1 second
@@ -560,17 +555,15 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     await showDialog<dynamic>(
                                       context: context,
                                       barrierDismissible: false,
-                                      builder:
-                                          (_) =>
-                                              Platform.isAndroid
-                                                  ? StackOkDialog(
-                                                    title: "Backup saved to:",
-                                                    message: fileToSave,
-                                                  )
-                                                  : const StackOkDialog(
-                                                    title:
-                                                        "Backup creation succeeded",
-                                                  ),
+                                      builder: (_) => Platform.isAndroid
+                                          ? StackOkDialog(
+                                              title: "Backup saved to:",
+                                              message: fileToSave,
+                                            )
+                                          : const StackOkDialog(
+                                              title:
+                                                  "Backup creation succeeded",
+                                            ),
                                     );
                                     passwordController.text = "";
                                     passwordRepeatController.text = "";
@@ -579,34 +572,32 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     await showDialog<dynamic>(
                                       context: context,
                                       barrierDismissible: false,
-                                      builder:
-                                          (_) => const StackOkDialog(
-                                            title: "Backup creation failed",
-                                          ),
+                                      builder: (_) => const StackOkDialog(
+                                        title: "Backup creation failed",
+                                      ),
                                     );
                                   }
                                 }
                               },
-                      child: Text(
-                        "Create backup",
-                        style: STextStyles.button(context),
-                      ),
-                    );
-                  },
-                )
+                        child: Text(
+                          "Create backup",
+                          style: STextStyles.button(context),
+                        ),
+                      );
+                    },
+                  )
                 : Row(
-                  children: [
-                    Consumer(
-                      builder: (context, ref, __) {
-                        return PrimaryButton(
-                          width: 183,
-                          buttonHeight: ButtonHeight.m,
-                          label: "Create backup",
-                          enabled: shouldEnableCreate,
-                          onPressed:
-                              !shouldEnableCreate
-                                  ? null
-                                  : () async {
+                    children: [
+                      Consumer(
+                        builder: (context, ref, __) {
+                          return PrimaryButton(
+                            width: 183,
+                            buttonHeight: ButtonHeight.m,
+                            label: "Create backup",
+                            enabled: shouldEnableCreate,
+                            onPressed: !shouldEnableCreate
+                                ? null
+                                : () async {
                                     final String pathToSave =
                                         fileLocationController.text;
                                     final String passphrase =
@@ -831,26 +822,25 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                         await showDialog<dynamic>(
                                           context: context,
                                           barrierDismissible: false,
-                                          builder:
-                                              (_) => const StackOkDialog(
-                                                title: "Backup creation failed",
-                                              ),
+                                          builder: (_) => const StackOkDialog(
+                                            title: "Backup creation failed",
+                                          ),
                                         );
                                       }
                                     }
                                   },
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    SecondaryButton(
-                      width: 183,
-                      buttonHeight: ButtonHeight.m,
-                      label: "Cancel",
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      SecondaryButton(
+                        width: 183,
+                        buttonHeight: ButtonHeight.m,
+                        label: "Cancel",
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
           ],
         ),
       ),
