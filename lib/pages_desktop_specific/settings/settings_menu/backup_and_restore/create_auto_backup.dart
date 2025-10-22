@@ -31,6 +31,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/format.dart';
+import '../../../../utilities/fs.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
@@ -129,16 +130,11 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
             adkVersion,
           );
 
-          if (Platform.isAndroid) {
-            // TODO SAF
-            File(
-              fileToSavePath,
-            ).writeAsStringSync(encryptedDataString, flush: true);
-          } else {
-            File(
-              fileToSavePath,
-            ).writeAsStringSync(encryptedDataString, flush: true);
-          }
+          await FS.writeStringToFile(
+            encryptedDataString,
+            pathToSave,
+            fileToSavePath.split("/").last,
+          );
 
           return fileToSavePath;
         }(),
@@ -323,16 +319,16 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                               : () async {
                                   try {
                                     await stackFileSystem.prepareStorage();
-
                                     if (mounted) {
-                                      await stackFileSystem.pickDir(context);
-                                    }
+                                      final filePath = await stackFileSystem
+                                          .openFile();
 
-                                    if (mounted) {
-                                      setState(() {
-                                        fileLocationController.text =
-                                            stackFileSystem.dirPath ?? "";
-                                      });
+                                      if (mounted) {
+                                        setState(() {
+                                          fileLocationController.text =
+                                              filePath ?? "";
+                                        });
+                                      }
                                     }
                                   } catch (e, s) {
                                     Logging.instance.e(

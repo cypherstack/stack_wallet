@@ -102,7 +102,8 @@ bool validateFail(
 ) {
   for (final e in [
     [pathToSave.isEmpty, "Directory not chosen"],
-    [!(Directory(pathToSave).existsSync()), "Directory does not exist"],
+    if (!pathToSave.startsWith("content://"))
+      [!(Directory(pathToSave).existsSync()), "Directory does not exist"],
     [passphrase.isEmpty, "A passphrase is required"],
     [passphrase != repeatPassphrase, "Passphrase does not match"],
   ]) {

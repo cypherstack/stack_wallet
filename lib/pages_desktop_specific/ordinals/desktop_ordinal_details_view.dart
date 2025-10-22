@@ -22,7 +22,6 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/show_loading.dart';
-import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -73,9 +72,7 @@ class _DesktopOrdinalDetailsViewState
 
     final bytes = response.bodyBytes;
 
-    final dir = Platform.isAndroid
-        ? await StackFileSystem.wtfAndroidDocumentsPath()
-        : await getApplicationDocumentsDirectory();
+    final dir = await getApplicationDocumentsDirectory();
 
     final filePath = path.join(
       dir.path,

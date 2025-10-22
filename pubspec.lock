@@ -872,12 +872,11 @@ packages:
   file_picker:
     dependency: "direct main"
     description:
-      path: "."
-      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
-      resolved-ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
-      url: "https://github.com/cypherstack/flutter_file_picker.git"
-    source: git
-    version: "8.3.1"
+      name: file_picker
+      sha256: f2d9f173c2c14635cc0e9b14c143c49ef30b4934e8d1d274d6206fcb0086a06f
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.3.3"
   fixnum:
     dependency: "direct main"
     description:
@@ -1901,6 +1900,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  saf_stream:
+    dependency: "direct main"
+    description:
+      name: saf_stream
+      sha256: c05449997698c481a03e428162a999f93b1ee1bcc0349d651899a59f7b10230a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.12.3"
+  saf_util:
+    dependency: "direct main"
+    description:
+      name: saf_util
+      sha256: "219f983e5f17b28998335158cdc97add9d52af9884e38b5a43f10dcc070510ec"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.11.0"
   sec:
     dependency: transitive
     description:

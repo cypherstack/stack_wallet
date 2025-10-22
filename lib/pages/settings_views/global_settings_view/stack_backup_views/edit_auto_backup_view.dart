@@ -28,6 +28,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/format.dart';
+import '../../../../utilities/fs.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
@@ -131,16 +132,11 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             adkVersion,
           );
 
-          if (Platform.isAndroid) {
-            // TODO SAF
-            File(
-              fileToSavePath,
-            ).writeAsStringSync(encryptedDataString, flush: true);
-          } else {
-            File(
-              fileToSavePath,
-            ).writeAsStringSync(encryptedDataString, flush: true);
-          }
+          await FS.writeStringToFile(
+            encryptedDataString,
+            pathToSave,
+            fileToSavePath.split("/").last,
+          );
 
           return fileToSavePath;
         }(),
@@ -305,16 +301,14 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                   : () async {
                       try {
                         await stackFileSystem.prepareStorage();
-
-                        if (context.mounted) {
-                          await stackFileSystem.pickDir(context);
-                        }
-
                         if (mounted) {
-                          setState(() {
-                            fileLocationController.text =
-                                stackFileSystem.dirPath ?? "";
-                          });
+                          final filePath = await stackFileSystem.openFile();
+
+                          if (mounted) {
+                            setState(() {
+                              fileLocationController.text = filePath ?? "";
+                            });
+                          }
                         }
                       } catch (e, s) {
                         Logging.instance.e("$e\n$s", error: e, stackTrace: s);

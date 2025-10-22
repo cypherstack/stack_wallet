@@ -252,14 +252,13 @@ class _ForgottenPassphraseRestoreFromSWBState
                     try {
                       await stackFileSystem.prepareStorage();
                       if (mounted) {
-                        await stackFileSystem.openFile(context);
-                      }
+                        final filePath = await stackFileSystem.openFile();
 
-                      if (mounted) {
-                        setState(() {
-                          fileLocationController.text =
-                              stackFileSystem.filePath ?? "";
-                        });
+                        if (mounted) {
+                          setState(() {
+                            fileLocationController.text = filePath ?? "";
+                          });
+                        }
                       }
                     } catch (e, s) {
                       Logging.instance.e("$e\n$s", error: e, stackTrace: s);

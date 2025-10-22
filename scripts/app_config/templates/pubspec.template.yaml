@@ -171,10 +171,7 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^8.0.2
   lottie: ^2.3.2
-  file_picker:
-    git:
-      url: https://github.com/cypherstack/flutter_file_picker.git
-      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
+  file_picker: ^10.3.3
   connectivity_plus: ^4.0.1
   isar_community: 3.3.0-dev.2
   isar_community_flutter_libs: 3.3.0-dev.2
@@ -246,6 +243,8 @@ dependencies:
   path: ^1.9.1
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
+  saf_util: ^0.11.0
+  saf_stream: ^0.12.3
 
 dev_dependencies:
   flutter_test:

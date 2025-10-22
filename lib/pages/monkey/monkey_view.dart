@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:saf_stream/saf_stream.dart';
+import 'package:saf_util/saf_util.dart';
 
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -13,8 +15,8 @@ import '../../services/monkey_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/fs.dart';
 import '../../utilities/show_loading.dart';
-import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -51,13 +53,13 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
         .updateMonkeyImageBytes(monKeyBytes.toList());
   }
 
-  Future<Directory?> _getDocsDir() async {
+  Future<String?> _getDocsDir() async {
     try {
       if (Platform.isAndroid) {
-        return await StackFileSystem.wtfAndroidDocumentsPath();
+        return await FS.pickDirectory();
       }
 
-      return await getApplicationDocumentsDirectory();
+      return (await getApplicationDocumentsDirectory()).path;
     } catch (_) {
       return null;
     }
@@ -70,27 +72,40 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     bool isPNG = false,
     bool overwrite = false,
   }) async {
-    final dir = await _getDocsDir();
-    if (dir == null) {
-      throw Exception("Failed to get documents directory to save monKey image");
+    final dirPath = await _getDocsDir();
+    if (dirPath == null) {
+      throw Exception("Failed to get directory path to save monKey image");
     }
 
-    final address =
-        await ref
-            .read(pWallets)
-            .getWallet(walletId)
-            .getCurrentReceivingAddress();
-    String filePath = path.join(dir.path, "monkey_${address?.value}");
+    final address = await ref
+        .read(pWallets)
+        .getWallet(walletId)
+        .getCurrentReceivingAddress();
 
-    filePath += isPNG ? ".png" : ".svg";
+    final fileName = "monkey_${address?.value}${isPNG ? ".png" : ".svg"}";
+    final filePath = path.join(dirPath, fileName);
 
-    final File imgFile = File(filePath);
+    if (Platform.isAndroid) {
+      if (!overwrite && await SafUtil().exists(filePath, false)) {
+        throw Exception("File already exists");
+      }
 
-    if (imgFile.existsSync() && !overwrite) {
-      throw Exception("File already exists");
+      await SafStream().writeFileBytes(
+        dirPath,
+        fileName,
+        isPNG ? "png" : "svg",
+        bytes,
+      );
+    } else {
+      final File imgFile = File(filePath);
+
+      if (imgFile.existsSync() && !overwrite) {
+        throw Exception("File already exists");
+      }
+
+      await imgFile.writeAsBytes(bytes);
     }
 
-    await imgFile.writeAsBytes(bytes);
     _monkeyPath = filePath;
   }
 
@@ -113,313 +128,296 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     return Background(
       child: ConditionalParent(
         condition: isDesktop,
-        builder:
-            (child) => DesktopScaffold(
-              appBar: DesktopAppBar(
-                background: Theme.of(context).extension<StackColors>()!.popupBG,
-                leading: Expanded(
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 32),
-                      AppBarIconButton(
-                        size: 32,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
-                        shadows: const [],
-                        icon: SvgPicture.asset(
-                          Assets.svg.arrowLeft,
-                          width: 18,
-                          height: 18,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.topNavIconPrimary,
-                        ),
-                        onPressed: Navigator.of(context).pop,
-                      ),
-                      const SizedBox(width: 15),
-                      SvgPicture.asset(
-                        Assets.svg.monkey,
-                        width: 32,
-                        height: 32,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textSubtitle1,
-                      ),
-                      const SizedBox(width: 12),
-                      Text("MonKey", style: STextStyles.desktopH3(context)),
-                    ],
+        builder: (child) => DesktopScaffold(
+          appBar: DesktopAppBar(
+            background: Theme.of(context).extension<StackColors>()!.popupBG,
+            leading: Expanded(
+              child: Row(
+                children: [
+                  const SizedBox(width: 32),
+                  AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
+                    ),
+                    onPressed: Navigator.of(context).pop,
                   ),
-                ),
-                trailing: RawMaterialButton(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(1000),
+                  const SizedBox(width: 15),
+                  SvgPicture.asset(
+                    Assets.svg.monkey,
+                    width: 32,
+                    height: 32,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle1,
                   ),
-                  onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      useSafeArea: false,
-                      barrierDismissible: true,
-                      builder: (context) {
-                        return DesktopDialog(
-                          maxHeight: double.infinity,
-                          child: Column(
+                  const SizedBox(width: 12),
+                  Text("MonKey", style: STextStyles.desktopH3(context)),
+                ],
+              ),
+            ),
+            trailing: RawMaterialButton(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(1000),
+              ),
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  useSafeArea: false,
+                  barrierDismissible: true,
+                  builder: (context) {
+                    return DesktopDialog(
+                      maxHeight: double.infinity,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 32),
-                                    child: Text(
-                                      "About MonKeys",
-                                      style: STextStyles.desktopH3(context),
-                                    ),
-                                  ),
-                                  const DesktopDialogCloseButton(),
-                                ],
-                              ),
-                              Text(
-                                "A MonKey is a visual representation of your Banano address.",
-                                style: STextStyles.desktopTextMedium(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark3,
+                              Padding(
+                                padding: const EdgeInsets.only(left: 32),
+                                child: Text(
+                                  "About MonKeys",
+                                  style: STextStyles.desktopH3(context),
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(32),
-                                    child: PrimaryButton(
-                                      width: 272.5,
-                                      label: "OK",
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ),
-                                ],
+                              const DesktopDialogCloseButton(),
+                            ],
+                          ),
+                          Text(
+                            "A MonKey is a visual representation of your Banano address.",
+                            style: STextStyles.desktopTextMedium(context)
+                                .copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(32),
+                                child: PrimaryButton(
+                                  width: 272.5,
+                                  label: "OK",
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
                               ),
                             ],
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     );
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 19,
-                      horizontal: 32,
-                    ),
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          Assets.svg.circleQuestion,
-                          width: 20,
-                          height: 20,
-                          color:
-                              Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .customTextButtonEnabledText,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "What is MonKey?",
-                          style: STextStyles.desktopMenuItemSelected(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .customTextButtonEnabledText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 19,
+                  horizontal: 32,
                 ),
-                useSpacers: false,
-                isCompactHeight: true,
-              ),
-              body: child,
-            ),
-        child: ConditionalParent(
-          condition: !isDesktop,
-          builder:
-              (child) => Scaffold(
-                appBar: AppBar(
-                  leading: AppBarBackButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  title: Text(
-                    "MonKey",
-                    style: STextStyles.navBarTitle(context),
-                  ),
-                  actions: [
-                    AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        icon: SvgPicture.asset(Assets.svg.circleQuestion),
-                        onPressed: () {
-                          showDialog<dynamic>(
-                            context: context,
-                            useSafeArea: false,
-                            barrierDismissible: true,
-                            builder: (context) {
-                              return const StackOkDialog(
-                                title: "About MonKeys",
-                                message:
-                                    "A MonKey is a visual representation of your Banano address.",
-                              );
-                            },
-                          );
-                        },
-                      ),
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      Assets.svg.circleQuestion,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.customTextButtonEnabledText,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "What is MonKey?",
+                      style: STextStyles.desktopMenuItemSelected(context)
+                          .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .customTextButtonEnabledText,
+                          ),
                     ),
                   ],
                 ),
-                body: SafeArea(child: child),
               ),
+            ),
+            useSpacers: false,
+            isCompactHeight: true,
+          ),
+          body: child,
+        ),
+        child: ConditionalParent(
+          condition: !isDesktop,
+          builder: (child) => Scaffold(
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text("MonKey", style: STextStyles.navBarTitle(context)),
+              actions: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    icon: SvgPicture.asset(Assets.svg.circleQuestion),
+                    onPressed: () {
+                      showDialog<dynamic>(
+                        context: context,
+                        useSafeArea: false,
+                        barrierDismissible: true,
+                        builder: (context) {
+                          return const StackOkDialog(
+                            title: "About MonKeys",
+                            message:
+                                "A MonKey is a visual representation of your Banano address.",
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            body: SafeArea(child: child),
+          ),
           child: ConditionalParent(
             condition: isDesktop,
             builder: (child) => SizedBox(width: 318, child: child),
             child: ConditionalParent(
               condition: imageBytes != null,
-              builder:
-                  (_) => Column(
-                    children: [
-                      isDesktop
-                          ? const SizedBox(height: 50)
-                          : const Spacer(flex: 1),
-                      if (imageBytes != null)
-                        SizedBox(
-                          width: 300,
-                          height: 300,
-                          child: SvgPicture.memory(
-                            Uint8List.fromList(imageBytes!),
-                          ),
+              builder: (_) => Column(
+                children: [
+                  isDesktop
+                      ? const SizedBox(height: 50)
+                      : const Spacer(flex: 1),
+                  if (imageBytes != null)
+                    SizedBox(
+                      width: 300,
+                      height: 300,
+                      child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
+                    ),
+                  isDesktop
+                      ? const SizedBox(height: 50)
+                      : const Spacer(flex: 1),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        SecondaryButton(
+                          label: "Save as SVG",
+                          onPressed: () async {
+                            bool didError = false;
+                            await showLoading(
+                              whileFuture: Future.wait([
+                                _saveMonKeyToFile(
+                                  bytes: Uint8List.fromList(
+                                    (wallet as BananoWallet)
+                                        .getMonkeyImageBytes()!,
+                                  ),
+                                ),
+                                Future<void>.delayed(
+                                  const Duration(seconds: 2),
+                                ),
+                              ]),
+                              context: context,
+                              rootNavigator: Util.isDesktop,
+                              message: "Saving MonKey svg",
+                              onException: (e) {
+                                didError = true;
+                                String msg = e.toString();
+                                while (msg.isNotEmpty &&
+                                    msg.startsWith("Exception:")) {
+                                  msg = msg.substring(10).trim();
+                                }
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: msg,
+                                  context: context,
+                                );
+                              },
+                            );
+
+                            if (!didError && mounted) {
+                              await showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message:
+                                    "SVG MonKey image saved to $_monkeyPath",
+                                context: context,
+                              );
+                            }
+                          },
                         ),
-                      isDesktop
-                          ? const SizedBox(height: 50)
-                          : const Spacer(flex: 1),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            SecondaryButton(
-                              label: "Save as SVG",
-                              onPressed: () async {
-                                bool didError = false;
-                                await showLoading(
-                                  whileFuture: Future.wait([
-                                    _saveMonKeyToFile(
-                                      bytes: Uint8List.fromList(
-                                        (wallet as BananoWallet)
-                                            .getMonkeyImageBytes()!,
+                        const SizedBox(height: 12),
+                        SecondaryButton(
+                          label: "Download as PNG",
+                          onPressed: () async {
+                            bool didError = false;
+                            await showLoading(
+                              whileFuture: Future.wait([
+                                wallet.getCurrentReceivingAddress().then(
+                                  (address) async => await ref
+                                      .read(pMonKeyService)
+                                      .fetchMonKey(
+                                        address: address!.value,
+                                        png: true,
+                                      )
+                                      .then(
+                                        (monKeyBytes) async =>
+                                            await _saveMonKeyToFile(
+                                              bytes: monKeyBytes,
+                                              isPNG: true,
+                                            ),
                                       ),
-                                    ),
-                                    Future<void>.delayed(
-                                      const Duration(seconds: 2),
-                                    ),
-                                  ]),
-                                  context: context,
-                                  rootNavigator: Util.isDesktop,
-                                  message: "Saving MonKey svg",
-                                  onException: (e) {
-                                    didError = true;
-                                    String msg = e.toString();
-                                    while (msg.isNotEmpty &&
-                                        msg.startsWith("Exception:")) {
-                                      msg = msg.substring(10).trim();
-                                    }
-                                    showFloatingFlushBar(
-                                      type: FlushBarType.warning,
-                                      message: msg,
-                                      context: context,
-                                    );
-                                  },
-                                );
-
-                                if (!didError && mounted) {
-                                  await showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message:
-                                        "SVG MonKey image saved to $_monkeyPath",
-                                    context: context,
-                                  );
+                                ),
+                                Future<void>.delayed(
+                                  const Duration(seconds: 2),
+                                ),
+                              ]),
+                              context: context,
+                              rootNavigator: Util.isDesktop,
+                              message: "Downloading MonKey png",
+                              onException: (e) {
+                                didError = true;
+                                String msg = e.toString();
+                                while (msg.isNotEmpty &&
+                                    msg.startsWith("Exception:")) {
+                                  msg = msg.substring(10).trim();
                                 }
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            SecondaryButton(
-                              label: "Download as PNG",
-                              onPressed: () async {
-                                bool didError = false;
-                                await showLoading(
-                                  whileFuture: Future.wait([
-                                    wallet.getCurrentReceivingAddress().then(
-                                      (address) async => await ref
-                                          .read(pMonKeyService)
-                                          .fetchMonKey(
-                                            address: address!.value,
-                                            png: true,
-                                          )
-                                          .then(
-                                            (monKeyBytes) async =>
-                                                await _saveMonKeyToFile(
-                                                  bytes: monKeyBytes,
-                                                  isPNG: true,
-                                                ),
-                                          ),
-                                    ),
-                                    Future<void>.delayed(
-                                      const Duration(seconds: 2),
-                                    ),
-                                  ]),
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: msg,
                                   context: context,
-                                  rootNavigator: Util.isDesktop,
-                                  message: "Downloading MonKey png",
-                                  onException: (e) {
-                                    didError = true;
-                                    String msg = e.toString();
-                                    while (msg.isNotEmpty &&
-                                        msg.startsWith("Exception:")) {
-                                      msg = msg.substring(10).trim();
-                                    }
-                                    showFloatingFlushBar(
-                                      type: FlushBarType.warning,
-                                      message: msg,
-                                      context: context,
-                                    );
-                                  },
                                 );
-
-                                if (!didError && mounted) {
-                                  await showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message:
-                                        "PNG MonKey image saved to $_monkeyPath",
-                                    context: context,
-                                  );
-                                }
                               },
-                            ),
-                          ],
+                            );
+
+                            if (!didError && mounted) {
+                              await showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message:
+                                    "PNG MonKey image saved to $_monkeyPath",
+                                context: context,
+                              );
+                            }
+                          },
                         ),
-                      ),
-                      // child,
-                    ],
+                      ],
+                    ),
                   ),
+                  // child,
+                ],
+              ),
               child: Column(
                 children: [
                   isDesktop
@@ -440,10 +438,9 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                         Text(
                           "You do not have a MonKey yet. \nFetch yours now!",
                           style: STextStyles.smallMed14(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark3,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -489,8 +486,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                           },
                         );
 
-                        imageBytes =
-                            (wallet as BananoWallet).getMonkeyImageBytes();
+                        imageBytes = (wallet as BananoWallet)
+                            .getMonkeyImageBytes();
 
                         if (imageBytes != null) {
                           setState(() {});

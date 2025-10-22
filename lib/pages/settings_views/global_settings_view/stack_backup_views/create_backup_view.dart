@@ -22,6 +22,7 @@ import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/fs.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
@@ -100,16 +101,11 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
           final encryptedDataString = await SWB
               .encryptStackWalletWithPassphrase(passphrase, jsonEncode(backup));
 
-          if (Platform.isAndroid) {
-            // TODO SAF
-            File(
-              fileToSavePath,
-            ).writeAsStringSync(encryptedDataString, flush: true);
-          } else {
-            File(
-              fileToSavePath,
-            ).writeAsStringSync(encryptedDataString, flush: true);
-          }
+          await FS.writeStringToFile(
+            encryptedDataString,
+            pathToSave,
+            fileToSavePath.split("/").last,
+          );
 
           return fileToSavePath;
         }(),
@@ -312,16 +308,16 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                           : () async {
                               try {
                                 await stackFileSystem.prepareStorage();
-
-                                if (context.mounted) {
-                                  await stackFileSystem.pickDir(context);
-                                }
-
                                 if (mounted) {
-                                  setState(() {
-                                    fileLocationController.text =
-                                        stackFileSystem.dirPath ?? "";
-                                  });
+                                  final filePath = await stackFileSystem
+                                      .openFile();
+
+                                  if (mounted) {
+                                    setState(() {
+                                      fileLocationController.text =
+                                          filePath ?? "";
+                                    });
+                                  }
                                 }
                               } catch (e, s) {
                                 Logging.instance.e("", error: e, stackTrace: s);
@@ -366,8 +362,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                   );
                 },
               ),
-            if (!Platform.isAndroid && !Platform.isIOS)
-              SizedBox(height: !isDesktop ? 8 : 24),
+            if (!Platform.isIOS) SizedBox(height: !isDesktop ? 8 : 24),
             if (isDesktop)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10.0),
