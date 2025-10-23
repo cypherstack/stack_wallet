@@ -245,6 +245,7 @@ dependencies:
   fixnum: ^1.1.1
   saf_util: ^0.11.0
   saf_stream: ^0.12.3
+  unorm_dart: ^0.2.0
 
 dev_dependencies:
   flutter_test:
