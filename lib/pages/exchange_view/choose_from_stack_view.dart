@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -50,7 +51,16 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
         ref
             .watch(pWallets)
             .wallets
-            .where((e) => e.info.coin == coin)
+            .where((e) {
+              try {
+                return e.info.coin == coin;
+              } catch (ex) {
+                Logging.instance.e(
+                  "Error while filtering wallets for ${coin.ticker}: $ex",
+                );
+                return false;
+              }
+            })
             .map((e) => e.walletId)
             .toList();
 
