@@ -6,7 +6,6 @@ import '../../../../frost_route_generator.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
-import '../../../../services/frost.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/logger.dart';
@@ -23,6 +22,7 @@ import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../../../widgets/frost_step_user_steps.dart';
 import '../../../../widgets/qr.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostReshareStep1a extends ConsumerStatefulWidget {
@@ -63,9 +63,9 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
 
       final serializedKeys = await wallet.getSerializedKeys();
       if (mounted) {
-        final result = Frost.beginResharer(
+        final result = frostInterface.beginResharer(
           serializedKeys: serializedKeys!,
-          config: Frost.decodeRConfig(
+          config: frostInterface.decodeRConfig(
             ref.read(pFrostResharingData).resharerRConfig!,
           ),
         );
@@ -81,14 +81,12 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
         );
       }
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: e.toString(),
-          ),
+          builder: (_) => FrostErrorDialog(title: e.toString()),
         );
       }
     } finally {
@@ -97,8 +95,10 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
   }
 
   void _showParticipantsDialog() {
-    final participants =
-        ref.read(pFrostResharingData).configData!.newParticipants;
+    final participants = ref
+        .read(pFrostResharingData)
+        .configData!
+        .newParticipants;
 
     showDialog<void>(
       context: context,
@@ -108,9 +108,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -118,9 +116,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                 style: STextStyles.w600_20(context),
               ),
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -130,9 +126,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
             for (final participant in participants)
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -140,12 +134,11 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                   Container(
                     width: double.infinity,
                     height: 1.5,
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Row(
@@ -154,12 +147,10 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                           width: 26,
                           height: 26,
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveBG,
-                            borderRadius: BorderRadius.circular(
-                              200,
-                            ),
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveBG,
+                            borderRadius: BorderRadius.circular(200),
                           ),
                           child: Center(
                             child: SvgPicture.asset(
@@ -169,32 +160,22 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 8,
-                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             participant,
                             style: STextStyles.w500_14(context),
                           ),
                         ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        IconCopyButton(
-                          data: participant,
-                        ),
+                        const SizedBox(width: 8),
+                        IconCopyButton(data: participant),
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -227,9 +208,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
+          const FrostStepUserSteps(userSteps: info),
           const SizedBox(height: 20),
           SizedBox(
             height: 220,
@@ -243,9 +222,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 32,
-          ),
+          const SizedBox(height: 32),
           DetailItem(
             title: "Config",
             detail: ref.watch(pFrostResharingData).resharerRConfig!,
@@ -257,9 +234,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                     data: ref.watch(pFrostResharingData).resharerRConfig!,
                   ),
           ),
-          SizedBox(
-            height: Util.isDesktop ? 64 : 16,
-          ),
+          SizedBox(height: Util.isDesktop ? 64 : 16),
           Row(
             children: [
               Expanded(
@@ -271,10 +246,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
             ],
           ),
           if (iAmInvolved && !Util.isDesktop) const Spacer(),
-          if (iAmInvolved)
-            const SizedBox(
-              height: 16,
-            ),
+          if (iAmInvolved) const SizedBox(height: 16),
           if (iAmInvolved)
             CheckboxTextButton(
               label: "I have verified that everyone has imported the config",
@@ -284,10 +256,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
                 });
               },
             ),
-          if (iAmInvolved)
-            const SizedBox(
-              height: 16,
-            ),
+          if (iAmInvolved) const SizedBox(height: 16),
           if (iAmInvolved)
             PrimaryButton(
               label: "Start resharing",

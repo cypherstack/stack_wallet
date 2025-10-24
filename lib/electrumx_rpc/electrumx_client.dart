@@ -20,6 +20,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stream_channel/stream_channel.dart';
 
+import '../app_config.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
 import '../models/electrumx_response/spark_models.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -220,46 +221,47 @@ class ElectrumXClient {
   Future<void> checkElectrumAdapter() async {
     ({InternetAddress host, int port})? proxyInfo;
 
-    // If we're supposed to use Tor...
-    if (_prefs.useTor) {
-      // But Tor isn't running...
-      if (_torService.status != TorConnectionStatus.connected) {
-        // And the killswitch isn't set...
-        if (!_prefs.torKillSwitch) {
-          // Then we'll just proceed and connect to ElectrumX through
-          // clearnet at the bottom of this function.
-          Logging.instance.w(
-            "Tor preference set but Tor is not enabled, killswitch not set,"
-            " connecting to Electrum adapter through clearnet",
-          );
+    if (AppConfig.hasFeature(AppFeature.tor)) {
+      // If we're supposed to use Tor...
+      if (_prefs.useTor) {
+        // But Tor isn't running...
+        if (_torService.status != TorConnectionStatus.connected) {
+          // And the killswitch isn't set...
+          if (!_prefs.torKillSwitch) {
+            // Then we'll just proceed and connect to ElectrumX through
+            // clearnet at the bottom of this function.
+            Logging.instance.w(
+              "Tor preference set but Tor is not enabled, killswitch not set,"
+              " connecting to Electrum adapter through clearnet",
+            );
+          } else {
+            // ... But if the killswitch is set, then we throw an exception.
+            throw Exception(
+              "Tor preference and killswitch set but Tor is not enabled, "
+              "not connecting to Electrum adapter",
+            );
+            // TODO [prio=low]: Try to start Tor.
+          }
         } else {
-          // ... But if the killswitch is set, then we throw an exception.
-          throw Exception(
-            "Tor preference and killswitch set but Tor is not enabled, "
-            "not connecting to Electrum adapter",
+          // Get the proxy info from the TorService.
+          proxyInfo = _torService.getProxyInfo();
+        }
+
+        if (netType == TorPlainNetworkOption.clear) {
+          _electrumAdapterChannel = null;
+          await ClientManager.sharedInstance.remove(
+            cryptoCurrency: cryptoCurrency,
           );
-          // TODO [prio=low]: Try to start Tor.
         }
       } else {
-        // Get the proxy info from the TorService.
-        proxyInfo = _torService.getProxyInfo();
-      }
-
-      if (netType == TorPlainNetworkOption.clear) {
-        _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        );
-      }
-    } else {
-      if (netType == TorPlainNetworkOption.tor) {
-        _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        );
+        if (netType == TorPlainNetworkOption.tor) {
+          _electrumAdapterChannel = null;
+          await ClientManager.sharedInstance.remove(
+            cryptoCurrency: cryptoCurrency,
+          );
+        }
       }
     }
-
     // If the current ElectrumAdapterClient is closed, create a new one.
     if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
       _electrumAdapterChannel = null;
@@ -847,9 +849,9 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch lelantus.getanonymityset...");
     await checkElectrumAdapter();
-    final Map<String, dynamic> response = await (getElectrumAdapter()
-            as FiroElectrumClient)
-        .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
+    final Map<String, dynamic> response =
+        await (getElectrumAdapter() as FiroElectrumClient)
+            .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
     Logging.instance.d("Fetching lelantus.getanonymityset finished");
     return response;
   }
@@ -900,8 +902,8 @@ class ElectrumXClient {
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
     Logging.instance.d("attempting to fetch lelantus.getlatestcoinid...");
     await checkElectrumAdapter();
-    final int response =
-        await (getElectrumAdapter() as FiroElectrumClient).getLatestCoinId();
+    final int response = await (getElectrumAdapter() as FiroElectrumClient)
+        .getLatestCoinId();
     Logging.instance.d("Fetching lelantus.getlatestcoinid finished");
     return response;
   }
@@ -929,12 +931,12 @@ class ElectrumXClient {
     try {
       final start = DateTime.now();
       await checkElectrumAdapter();
-      final Map<String, dynamic> response = await (getElectrumAdapter()
-              as FiroElectrumClient)
-          .getSparkAnonymitySet(
-            coinGroupId: coinGroupId,
-            startBlockHash: startBlockHash,
-          );
+      final Map<String, dynamic> response =
+          await (getElectrumAdapter() as FiroElectrumClient)
+              .getSparkAnonymitySet(
+                coinGroupId: coinGroupId,
+                startBlockHash: startBlockHash,
+              );
       Logging.instance.d(
         "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
         "=$coinGroupId, startBlockHash=$startBlockHash). "
@@ -1025,9 +1027,8 @@ class ElectrumXClient {
     try {
       Logging.instance.d("attempting to fetch spark.getsparklatestcoinid...");
       await checkElectrumAdapter();
-      final int response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getSparkLatestCoinId();
+      final int response = await (getElectrumAdapter() as FiroElectrumClient)
+          .getSparkLatestCoinId();
       Logging.instance.d("Fetching spark.getsparklatestcoinid finished");
       return response;
     } catch (e, s) {
@@ -1045,10 +1046,9 @@ class ElectrumXClient {
         command: "spark.getmempoolsparktxids",
       );
 
-      final txids =
-          List<String>.from(
-            response as List,
-          ).map((e) => e.toHexReversedFromBase64).toSet();
+      final txids = List<String>.from(
+        response as List,
+      ).map((e) => e.toHexReversedFromBase64).toSet();
 
       Logging.instance.d(
         "Finished ElectrumXClient.getMempoolTxids(). "
@@ -1129,7 +1129,7 @@ class ElectrumXClient {
         "Duration=${DateTime.now().difference(start)}",
       );
 
-      return tags;
+      return tags.reversed.toList();
     } catch (e, s) {
       Logging.instance.e(e, error: e, stackTrace: s);
       rethrow;
@@ -1158,10 +1158,8 @@ class ElectrumXClient {
 
         return response
             .map(
-              (e) => (
-                name: e["name"] as String,
-                address: e["address"] as String,
-              ),
+              (e) =>
+                  (name: e["name"] as String, address: e["address"] as String),
             )
             .toList();
       } else if (response["error"] != null) {

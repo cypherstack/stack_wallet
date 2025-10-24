@@ -1,9 +1,8 @@
-import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
-
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/electrum_currency.dart';
 
@@ -94,7 +93,7 @@ class Xelis extends ElectrumCurrency {
   @override
   bool validateAddress(String address) {
     try {
-      return x_utils.isAddressValid(strAddress: address);
+      return libXelis.isAddressValid(address: address);
     } catch (_) {
       return false;
     }

@@ -6,11 +6,13 @@ import 'package:blockchain_utils/bip/cardano/cip1852/cip1852.dart';
 import 'package:blockchain_utils/bip/cardano/cip1852/conf/cip1852_coins.dart';
 import 'package:blockchain_utils/bip/cardano/mnemonic/cardano_icarus_seed_generator.dart';
 import 'package:blockchain_utils/bip/cardano/shelley/cardano_shelley.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:on_chain/ada/ada.dart';
+import 'package:on_chain/ada/src/provider/exception/blockfrost_api_error.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -50,11 +52,10 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     ).change(Bip44Changes.chainExt).addressIndex(0);
     final paymentPublicKey = shelley.bip44.publicKey.compressed;
     final stakePublicKey = shelley.bip44Sk.publicKey.compressed;
-    final addressStr =
-        ADABaseAddress.fromPublicKey(
-          basePubkeyBytes: paymentPublicKey,
-          stakePubkeyBytes: stakePublicKey,
-        ).address;
+    final addressStr = ADABaseAddress.fromPublicKey(
+      basePubkeyBytes: paymentPublicKey,
+      stakePubkeyBytes: stakePublicKey,
+    ).address;
     return Address(
       walletId: walletId,
       value: addressStr,
@@ -214,15 +215,14 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       }
 
       final body = TransactionBody(
-        inputs:
-            listOfUtxosToBeUsed
-                .map(
-                  (e) => TransactionInput(
-                    transactionId: TransactionHash.fromHex(e.txHash),
-                    index: e.outputIndex,
-                  ),
-                )
-                .toList(),
+        inputs: listOfUtxosToBeUsed
+            .map(
+              (e) => TransactionInput(
+                transactionId: TransactionHash.fromHex(e.txHash),
+                index: e.outputIndex,
+              ),
+            )
+            .toList(),
         outputs: [
           change,
           TransactionOutput(
@@ -363,15 +363,14 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         ];
       }
       final body = TransactionBody(
-        inputs:
-            listOfUtxosToBeUsed
-                .map(
-                  (e) => TransactionInput(
-                    transactionId: TransactionHash.fromHex(e.txHash),
-                    index: e.outputIndex,
-                  ),
-                )
-                .toList(),
+        inputs: listOfUtxosToBeUsed
+            .map(
+              (e) => TransactionInput(
+                transactionId: TransactionHash.fromHex(e.txHash),
+                index: e.outputIndex,
+              ),
+            )
+            .toList(),
         outputs: outputs,
         fee: txData.fee!.raw,
       );
@@ -420,19 +419,45 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     });
   }
 
+  Future<bool> _checkAddressIsFound() async {
+    try {
+      await blockfrostProvider!.request(
+        BlockfrostRequestSpecificAddress(
+          ADAAddress.fromAddress((await getCurrentReceivingAddress())!.value),
+        ),
+      );
+      return true;
+    } on BlockfrostError catch (e, s) {
+      if (e.statusCode == 404 && e.error == "Not found") {
+        Logging.instance.i(
+          "Ada address not seen on network yet",
+          error: e,
+          stackTrace: s,
+        );
+        return false;
+      } else {
+        rethrow;
+      }
+    }
+  }
+
   @override
   Future<void> updateBalance() async {
     try {
       await updateProvider();
 
-      final addressUtxos = await blockfrostProvider!.request(
-        BlockfrostRequestAddressUTXOsOfAGivenAsset(
-          address: ADAAddress.fromAddress(
-            (await getCurrentReceivingAddress())!.value,
-          ),
-          asset: "lovelace",
-        ),
-      );
+      final addressExists = await _checkAddressIsFound();
+
+      final addressUtxos = addressExists
+          ? await blockfrostProvider!.request(
+              BlockfrostRequestAddressUTXOsOfAGivenAsset(
+                address: ADAAddress.fromAddress(
+                  (await getCurrentReceivingAddress())!.value,
+                ),
+                asset: "lovelace",
+              ),
+            )
+          : <ADAAccountUTXOResponse>[];
 
       BigInt totalBalanceInLovelace = BigInt.parse("0");
       for (final utxo in addressUtxos) {
@@ -500,13 +525,17 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     try {
       await updateProvider();
 
+      final addressExists = await _checkAddressIsFound();
+
       final currentAddr = (await getCurrentReceivingAddress())!.value;
 
-      final txsList = await blockfrostProvider!.request(
-        BlockfrostRequestAddressTransactions(
-          ADAAddress.fromAddress(currentAddr),
-        ),
-      );
+      final txsList = addressExists
+          ? await blockfrostProvider!.request(
+              BlockfrostRequestAddressTransactions(
+                ADAAddress.fromAddress(currentAddr),
+              ),
+            )
+          : <ADATransactionSummaryInfoResponse>[];
 
       final parsedTxsList = List<Tuple2<isar.Transaction, Address>>.empty(
         growable: true,
@@ -582,11 +611,10 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           type: txType,
           subType: isar.TransactionSubType.none,
           amount: amount,
-          amountString:
-              Amount(
-                rawValue: BigInt.from(amount),
-                fractionDigits: cryptoCurrency.fractionDigits,
-              ).toJsonString(),
+          amountString: Amount(
+            rawValue: BigInt.from(amount),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
           fee: int.parse(txInfo.fees),
           height: txInfo.blockHeight,
           isCancelled: false,
@@ -606,10 +634,9 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           derivationIndex: 0,
           derivationPath: DerivationPath()..value = _addressDerivationPath,
           type: AddressType.cardanoShelley,
-          subType:
-              txType == isar.TransactionType.outgoing
-                  ? AddressSubType.unknown
-                  : AddressSubType.receiving,
+          subType: txType == isar.TransactionType.outgoing
+              ? AddressSubType.unknown
+              : AddressSubType.receiving,
         );
 
         parsedTxsList.add(Tuple2(transaction, txAddress));
@@ -637,7 +664,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     final currentNode = getCurrentNode();
 
     final client = HttpClient();
-    if (prefs.useTor) {
+    if (AppConfig.hasFeature(AppFeature.tor) && prefs.useTor) {
       final proxyInfo = TorService.sharedInstance.getProxyInfo();
       final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
       SocksTCPClient.assignToHttpClient(client, [proxySettings]);
@@ -667,17 +694,19 @@ class CustomBlockForestProvider extends BlockforestProvider {
     BlockforestRequestParam<T, E> request, [
     Duration? timeout,
   ]) async {
-    if (prefs.useTor) {
-      if (netOption == TorPlainNetworkOption.clear) {
-        throw NodeTorMismatchConfigException(
-          message: "TOR enabled but node set to clearnet only",
-        );
-      }
-    } else {
-      if (netOption == TorPlainNetworkOption.tor) {
-        throw NodeTorMismatchConfigException(
-          message: "TOR off but node set to TOR only",
-        );
+    if (AppConfig.hasFeature(AppFeature.tor)) {
+      if (prefs.useTor) {
+        if (netOption == TorPlainNetworkOption.clear) {
+          throw NodeTorMismatchConfigException(
+            message: "TOR enabled but node set to clearnet only",
+          );
+        }
+      } else {
+        if (netOption == TorPlainNetworkOption.tor) {
+          throw NodeTorMismatchConfigException(
+            message: "TOR off but node set to TOR only",
+          );
+        }
       }
     }
 

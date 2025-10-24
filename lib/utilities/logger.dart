@@ -14,7 +14,6 @@ import 'dart:core';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark;
 import 'package:logger/logger.dart';
 
 import 'util.dart';
@@ -22,26 +21,6 @@ import 'util.dart';
 export 'enums/log_level_enum.dart';
 
 const _kLoggerPortName = "logger_port";
-
-// convenience conversion for spark
-extension LoggingLevelExt on spark.LoggingLevel {
-  Level getLoggerLevel() {
-    switch (this) {
-      case spark.LoggingLevel.info:
-        return Level.info;
-      case spark.LoggingLevel.warning:
-        return Level.warning;
-      case spark.LoggingLevel.error:
-        return Level.error;
-      case spark.LoggingLevel.fatal:
-        return Level.fatal;
-      case spark.LoggingLevel.debug:
-        return Level.debug;
-      case spark.LoggingLevel.trace:
-        return Level.trace;
-    }
-  }
-}
 
 class Logging {
   Logging._();
@@ -82,8 +61,9 @@ class Logging {
       PrettyPrinter prettyPrinter(bool toFile) => PrettyPrinter(
         printEmojis: false,
         methodCount: 0,
-        dateTimeFormat:
-            toFile ? DateTimeFormat.none : DateTimeFormat.dateAndTime,
+        dateTimeFormat: toFile
+            ? DateTimeFormat.none
+            : DateTimeFormat.dateAndTime,
         colors: !toFile,
         noBoxingByDefault: toFile,
       );
@@ -132,8 +112,8 @@ class Logging {
 
   String _stringifyMessage(dynamic message) =>
       !(message is Map || message is Iterable)
-          ? message.toString()
-          : JsonEncoder.withIndent('  ', (o) => o.toString()).convert(message);
+      ? message.toString()
+      : JsonEncoder.withIndent('  ', (o) => o.toString()).convert(message);
 
   void log(
     Level level,

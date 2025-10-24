@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
 import '../../networking/http.dart';
@@ -64,8 +65,9 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           leading: const AppBarBackButton(),
           title: Text(
             "Ordinal details",
@@ -104,17 +106,16 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
                   const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
                     title: "Amount",
-                    data:
-                        utxo == null
-                            ? "ERROR"
-                            : ref
-                                .watch(pAmountFormatter(coin))
-                                .format(
-                                  Amount(
-                                    rawValue: BigInt.from(utxo!.value),
-                                    fractionDigits: coin.fractionDigits,
-                                  ),
+                    data: utxo == null
+                        ? "ERROR"
+                        : ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
+                                Amount(
+                                  rawValue: BigInt.from(utxo!.value),
+                                  fractionDigits: coin.fractionDigits,
                                 ),
+                              ),
                   ),
                   const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
@@ -170,20 +171,18 @@ class _DetailsItemWCopy extends StatelessWidget {
                   children: [
                     SvgPicture.asset(
                       Assets.svg.copy,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.infoItemIcons,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.infoItemIcons,
                       width: 12,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       "Copy",
                       style: STextStyles.infoSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.infoItemIcons,
                       ),
                     ),
                   ],
@@ -216,10 +215,11 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     final response = await client.get(
       url: Uri.parse(ordinal.content),
-      proxyInfo:
-          ref.read(prefsChangeNotifierProvider).useTor
-              ? ref.read(pTorService).getProxyInfo()
-              : null,
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : ref.read(prefsChangeNotifierProvider).useTor
+          ? ref.read(pTorService).getProxyInfo()
+          : null,
     );
 
     if (response.code != 200) {
@@ -230,10 +230,9 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     final bytes = response.bodyBytes;
 
-    final dir =
-        Platform.isAndroid
-            ? await StackFileSystem.wtfAndroidDocumentsPath()
-            : await getApplicationDocumentsDirectory();
+    final dir = Platform.isAndroid
+        ? await StackFileSystem.wtfAndroidDocumentsPath()
+        : await getApplicationDocumentsDirectory();
     final filePath = path.join(
       dir.path,
       "ordinal_${ordinal.inscriptionNumber}.png",
@@ -289,10 +288,9 @@ class _OrdinalImageGroup extends ConsumerWidget {
                   Assets.svg.arrowDown,
                   width: 10,
                   height: 12,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
                 ),
                 buttonHeight: ButtonHeight.l,
                 iconSpacing: 4,

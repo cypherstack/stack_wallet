@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -21,6 +21,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../../../wl_gen/interfaces/lib_spark_interface.dart';
 import '../buy_spark_name_view.dart';
 
 class BuySparkNameOptionWidget extends ConsumerStatefulWidget {
@@ -55,6 +56,15 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
       )) {
         rethrow;
       }
+      final db = ref.read(pDrift(widget.walletId));
+      final results = await (db.select(
+        db.sparkNames,
+      )..where((e) => e.name.lower().equals(name))).get();
+
+      if (results.isNotEmpty) {
+        return false;
+      }
+
       // name not found
       return true;
     }
@@ -99,12 +109,11 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => StackOkDialog(
-                title: message,
-                desktopPopRootNavigator: Util.isDesktop,
-                maxWidth: Util.isDesktop ? 600 : null,
-              ),
+          builder: (_) => StackOkDialog(
+            title: message,
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 600 : null,
+          ),
         );
       }
     } finally {
@@ -132,8 +141,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          Util.isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      crossAxisAlignment: Util.isDesktop
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
       children: [
         SizedBox(
           height: 48,
@@ -144,10 +154,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                   height: 48,
                   width: 100,
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.all(
                       Radius.circular(Constants.size.circularBorderRadius),
                     ),
@@ -158,7 +167,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                       Expanded(
                         child: TextField(
                           inputFormatters: [
-                            LengthLimitingTextInputFormatter(kMaxNameLength),
+                            LengthLimitingTextInputFormatter(
+                              libSpark.maxNameLength,
+                            ),
                           ],
                           textInputAction: TextInputAction.search,
                           focusNode: _nameFieldFocus,
@@ -173,10 +184,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                                 Assets.svg.search,
                                 width: 20,
                                 height: 20,
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultSearchIconLeft,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultSearchIconLeft,
                               ),
                             ),
                             fillColor: Colors.transparent,
@@ -196,7 +206,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                             setState(() {
                               _isInvalidCharacters =
                                   value.isNotEmpty &&
-                                  !RegExp(kNameRegexString).hasMatch(value);
+                                  !RegExp(
+                                    libSpark.nameRegexString,
+                                  ).hasMatch(value);
                             });
                           },
                         ),
@@ -210,10 +222,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
         ),
         const SizedBox(height: 4),
         Row(
-          mainAxisAlignment:
-              _isInvalidCharacters
-                  ? MainAxisAlignment.spaceBetween
-                  : MainAxisAlignment.end,
+          mainAxisAlignment: _isInvalidCharacters
+              ? MainAxisAlignment.spaceBetween
+              : MainAxisAlignment.end,
           children: [
             if (_isInvalidCharacters)
               Text(
@@ -228,12 +239,11 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                 builder: (context) {
                   final length = _nameController.text.length;
                   return Text(
-                    "$length/$kMaxNameLength",
+                    "$length/${libSpark.maxNameLength}",
                     style: STextStyles.w500_10(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle2,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle2,
                     ),
                   );
                 },
@@ -246,7 +256,7 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
           label: "Lookup",
           enabled:
               _nameController.text.isNotEmpty &&
-              RegExp(kNameRegexString).hasMatch(_nameController.text),
+              RegExp(libSpark.nameRegexString).hasMatch(_nameController.text),
           buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
           onPressed: _lookup,
         ),
@@ -277,15 +287,13 @@ class _NameCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final availability = isAvailable ? "Available" : "Unavailable";
-    final color =
-        isAvailable
-            ? Theme.of(context).extension<StackColors>()!.accentColorGreen
-            : Theme.of(context).extension<StackColors>()!.accentColorRed;
+    final color = isAvailable
+        ? Theme.of(context).extension<StackColors>()!.accentColorGreen
+        : Theme.of(context).extension<StackColors>()!.accentColorRed;
 
-    final style =
-        (Util.isDesktop
-            ? STextStyles.w500_16(context)
-            : STextStyles.w500_12(context));
+    final style = (Util.isDesktop
+        ? STextStyles.w500_16(context)
+        : STextStyles.w500_12(context));
 
     return RoundedWhiteContainer(
       padding: EdgeInsets.all(Util.isDesktop ? 24 : 16),
@@ -311,51 +319,49 @@ class _NameCard extends ConsumerWidget {
                 PrimaryButton(
                   label: "Buy name",
                   enabled: isAvailable,
-                  buttonHeight:
-                      Util.isDesktop ? ButtonHeight.m : ButtonHeight.l,
+                  buttonHeight: Util.isDesktop
+                      ? ButtonHeight.m
+                      : ButtonHeight.l,
                   width: Util.isDesktop ? 140 : 120,
                   onPressed: () async {
                     if (context.mounted) {
                       if (Util.isDesktop) {
                         await showDialog<void>(
                           context: context,
-                          builder:
-                              (context) => SDialog(
-                                child: SizedBox(
-                                  width: 580,
-                                  child: Column(
+                          builder: (context) => SDialog(
+                            child: SizedBox(
+                              width: 580,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 32,
-                                            ),
-                                            child: Text(
-                                              "Buy name",
-                                              style: STextStyles.desktopH3(
-                                                context,
-                                              ),
-                                            ),
-                                          ),
-                                          const DesktopDialogCloseButton(),
-                                        ],
-                                      ),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 32,
+                                        padding: const EdgeInsets.only(
+                                          left: 32,
                                         ),
-                                        child: BuySparkNameView(
-                                          walletId: walletId,
-                                          name: name,
+                                        child: Text(
+                                          "Buy name",
+                                          style: STextStyles.desktopH3(context),
                                         ),
                                       ),
+                                      const DesktopDialogCloseButton(),
                                     ],
                                   ),
-                                ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                    ),
+                                    child: BuySparkNameView(
+                                      walletId: walletId,
+                                      name: name,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                          ),
                         );
                       } else {
                         await Navigator.of(context).pushNamed(

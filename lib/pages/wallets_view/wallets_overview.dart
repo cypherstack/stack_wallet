@@ -11,13 +11,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../services/event_bus/events/wallet_added_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
@@ -28,6 +27,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/models/wallet_info.dart';
+import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
@@ -127,25 +127,22 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   }
 
   void updateWallets() {
-    final walletsData =
-        ref.read(mainDBProvider).isar.walletInfo.where().findAllSync();
+    final walletsData = ref.read(pAllWalletsInfo).toList();
+
     walletsData.removeWhere((e) => e.coin != widget.coin);
 
     if (widget.coin is Ethereum) {
       for (final data in walletsData) {
         final List<EthContract> contracts = [];
-        final contractAddresses =
-            ref.read(pWalletTokenAddresses(data.walletId));
+        final contractAddresses = ref.read(
+          pWalletTokenAddresses(data.walletId),
+        );
 
         // fetch each contract
         for (final contractAddress in contractAddresses) {
           final contract = ref
-              .read(
-                mainDBProvider,
-              )
-              .getEthContractSync(
-                contractAddress,
-              );
+              .read(mainDBProvider)
+              .getEthContractSync(contractAddress);
 
           // add it to list if it exists in DB
           if (contract != null) {
@@ -155,9 +152,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
         // add tuple to list
         wallets[data.walletId] = (
-          wallet: ref.read(pWallets).getWallet(
-                data.walletId,
-              ),
+          wallet: ref.read(pWallets).getWallet(data.walletId),
           contracts: contracts,
         );
       }
@@ -167,9 +162,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         // desktop single coin apps may cause issues so lets just ignore the error and move on
         try {
           wallets[data.walletId] = (
-            wallet: ref.read(pWallets).getWallet(
-                  data.walletId,
-                ),
+            wallet: ref.read(pWallets).getWallet(data.walletId),
             contracts: [],
           );
         } catch (_) {
@@ -213,8 +206,9 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       condition: !isDesktop && !AppConfig.isSingleCoinApp,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: const AppBarBackButton(),
             title: Text(
@@ -229,9 +223,9 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                     Assets.svg.plus,
                     width: 18,
                     height: 18,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
                   ),
                   onPressed: () {
                     Navigator.of(context).pushNamed(
@@ -244,10 +238,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
             ],
           ),
           body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: child,
-            ),
+            child: Padding(padding: const EdgeInsets.all(16), child: child),
           ),
         ),
       ),
@@ -269,55 +260,54 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
               },
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveText,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldActiveText,
                       height: 1.8,
                     )
                   : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search...",
-                searchFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop ? 12 : 10,
-                    vertical: isDesktop ? 18 : 16,
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: isDesktop ? 20 : 16,
-                    height: isDesktop ? 20 : 16,
-                  ),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _searchController.text = "";
-                                    _searchString = "";
-                                  });
-                                },
+              decoration:
+                  standardInputDecoration(
+                    "Search...",
+                    searchFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 12 : 10,
+                        vertical: isDesktop ? 18 : 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: isDesktop ? 20 : 16,
+                        height: isDesktop ? 20 : 16,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchString = "";
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
+                            ),
+                          )
+                        : null,
+                  ),
             ),
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           Expanded(
             child: Builder(
               builder: (context) {
@@ -351,28 +341,28 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                             vertical: 14,
                             horizontal: 20,
                           ),
-                          borderColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .backgroundAppBar,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar,
                           child: child,
                         ),
                         child: SimpleWalletCard(
                           walletId: wallet.walletId,
-                          popPrevious: widget
-                                      .overrideSimpleWalletCardPopPreviousValueWith ==
+                          popPrevious:
+                              widget.overrideSimpleWalletCardPopPreviousValueWith ==
                                   null
                               ? isDesktop
                               : widget
-                                  .overrideSimpleWalletCardPopPreviousValueWith!,
-                          desktopNavigatorState:
-                              isDesktop ? widget.navigatorState : null,
+                                    .overrideSimpleWalletCardPopPreviousValueWith!,
+                          desktopNavigatorState: isDesktop
+                              ? widget.navigatorState
+                              : null,
                         ),
                       );
                     }
                   },
-                  separatorBuilder: (_, __) => SizedBox(
-                    height: isDesktop ? 10 : 8,
-                  ),
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: isDesktop ? 10 : 8),
                   itemCount: data.length,
                 );
               },

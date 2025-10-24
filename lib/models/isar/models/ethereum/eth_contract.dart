@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import '../contract.dart';
 
 part 'eth_contract.g.dart';

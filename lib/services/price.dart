@@ -34,6 +34,7 @@ class PriceAPI {
     Dash: "dash",
     Dogecoin: "dogecoin",
     Epiccash: "epic-cash",
+    Mimblewimblecoin: "mimblewimblecoin",
     Ecash: "ecash",
     Ethereum: "ethereum",
     Fact0rn: "fact0rn",
@@ -147,10 +148,11 @@ class PriceAPI {
       final coinGeckoResponse = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as List<dynamic>;
@@ -161,10 +163,9 @@ class PriceAPI {
 
         try {
           final price = Decimal.parse(map["current_price"].toString());
-          final change24h =
-              map["price_change_percentage_24h"] != null
-                  ? double.parse(map["price_change_percentage_24h"].toString())
-                  : 0.0;
+          final change24h = map["price_change_percentage_24h"] != null
+              ? double.parse(map["price_change_percentage_24h"].toString())
+              : 0.0;
 
           result[coin] = (value: price, change24h: change24h);
         } catch (_) {
@@ -203,10 +204,11 @@ class PriceAPI {
       final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final json = jsonDecode(response.body) as List<dynamic>;

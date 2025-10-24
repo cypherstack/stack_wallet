@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,6 +28,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../widgets/animated_text.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 
 final feeSheetSessionCacheProvider =
     ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
@@ -91,7 +91,7 @@ class _TransactionFeeSelectionSheetState
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                BigInt.from(lib_monero.TransactionPriority.high.value),
+                BigInt.from(csMonero.getTxPriorityHigh()),
               );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if (coin is Firo) {
@@ -128,7 +128,7 @@ class _TransactionFeeSelectionSheetState
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                BigInt.from(lib_monero.TransactionPriority.medium.value),
+                BigInt.from(csMonero.getTxPriorityMedium()),
               );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if (coin is Firo) {
@@ -164,7 +164,7 @@ class _TransactionFeeSelectionSheetState
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                BigInt.from(lib_monero.TransactionPriority.normal.value),
+                BigInt.from(csMonero.getTxPriorityNormal()),
               );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if (coin is Firo) {
@@ -254,10 +254,9 @@ class _TransactionFeeSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -268,10 +267,9 @@ class _TransactionFeeSelectionSheetState
             ),
             const SizedBox(height: 36),
             FutureBuilder(
-              future:
-                  widget.isToken
-                      ? ref.read(pCurrentTokenWallet)!.fees
-                      : wallet.fees,
+              future: widget.isToken
+                  ? ref.read(pCurrentTokenWallet)!.fees
+                  : wallet.fees,
               builder: (context, AsyncSnapshot<FeeObject> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.hasData) {
@@ -289,10 +287,9 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
-                        final state =
-                            ref
-                                .read(feeRateTypeMobileStateProvider.state)
-                                .state;
+                        final state = ref
+                            .read(feeRateTypeMobileStateProvider.state)
+                            .state;
                         if (state != FeeRateType.fast) {
                           ref.read(feeRateTypeMobileStateProvider.state).state =
                               FeeRateType.fast;
@@ -318,25 +315,23 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .radioButtonIconEnabled,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: FeeRateType.fast,
-                                    groupValue:
-                                        ref
-                                            .watch(
-                                              feeRateTypeMobileStateProvider
-                                                  .state,
-                                            )
-                                            .state,
+                                    groupValue: ref
+                                        .watch(
+                                          feeRateTypeMobileStateProvider.state,
+                                        )
+                                        .state,
                                     onChanged: (x) {
                                       ref
-                                          .read(
-                                            feeRateTypeMobileStateProvider
-                                                .state,
-                                          )
-                                          .state = FeeRateType.fast;
+                                              .read(
+                                                feeRateTypeMobileStateProvider
+                                                    .state,
+                                              )
+                                              .state =
+                                          FeeRateType.fast;
 
                                       Navigator.of(context).pop();
                                     },
@@ -373,30 +368,33 @@ class _TransactionFeeSelectionSheetState
                                             feeRate: feeObject!.fast,
                                             amount: amount,
                                           ),
-                                          builder: (
-                                            _,
-                                            AsyncSnapshot<Amount> snapshot,
-                                          ) {
-                                            if (snapshot.connectionState ==
-                                                    ConnectionState.done &&
-                                                snapshot.hasData) {
-                                              return Text(
-                                                "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
-                                                style: STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                                textAlign: TextAlign.left,
-                                              );
-                                            } else {
-                                              return AnimatedText(
-                                                stringsToLoopThrough:
-                                                    stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                              );
-                                            }
-                                          },
+                                          builder:
+                                              (
+                                                _,
+                                                AsyncSnapshot<Amount> snapshot,
+                                              ) {
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.done &&
+                                                    snapshot.hasData) {
+                                                  return Text(
+                                                    "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                    textAlign: TextAlign.left,
+                                                  );
+                                                } else {
+                                                  return AnimatedText(
+                                                    stringsToLoopThrough:
+                                                        stringsToLoopThrough,
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                  );
+                                                }
+                                              },
                                         ),
                                     ],
                                   ),
@@ -426,10 +424,9 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
-                        final state =
-                            ref
-                                .read(feeRateTypeMobileStateProvider.state)
-                                .state;
+                        final state = ref
+                            .read(feeRateTypeMobileStateProvider.state)
+                            .state;
                         if (state != FeeRateType.average) {
                           ref.read(feeRateTypeMobileStateProvider.state).state =
                               FeeRateType.average;
@@ -454,25 +451,23 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .radioButtonIconEnabled,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: FeeRateType.average,
-                                    groupValue:
-                                        ref
-                                            .watch(
-                                              feeRateTypeMobileStateProvider
-                                                  .state,
-                                            )
-                                            .state,
+                                    groupValue: ref
+                                        .watch(
+                                          feeRateTypeMobileStateProvider.state,
+                                        )
+                                        .state,
                                     onChanged: (x) {
                                       ref
-                                          .read(
-                                            feeRateTypeMobileStateProvider
-                                                .state,
-                                          )
-                                          .state = FeeRateType.average;
+                                              .read(
+                                                feeRateTypeMobileStateProvider
+                                                    .state,
+                                              )
+                                              .state =
+                                          FeeRateType.average;
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -508,30 +503,33 @@ class _TransactionFeeSelectionSheetState
                                             feeRate: feeObject!.medium,
                                             amount: amount,
                                           ),
-                                          builder: (
-                                            _,
-                                            AsyncSnapshot<Amount> snapshot,
-                                          ) {
-                                            if (snapshot.connectionState ==
-                                                    ConnectionState.done &&
-                                                snapshot.hasData) {
-                                              return Text(
-                                                "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
-                                                style: STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                                textAlign: TextAlign.left,
-                                              );
-                                            } else {
-                                              return AnimatedText(
-                                                stringsToLoopThrough:
-                                                    stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                              );
-                                            }
-                                          },
+                                          builder:
+                                              (
+                                                _,
+                                                AsyncSnapshot<Amount> snapshot,
+                                              ) {
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.done &&
+                                                    snapshot.hasData) {
+                                                  return Text(
+                                                    "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                    textAlign: TextAlign.left,
+                                                  );
+                                                } else {
+                                                  return AnimatedText(
+                                                    stringsToLoopThrough:
+                                                        stringsToLoopThrough,
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                  );
+                                                }
+                                              },
                                         ),
                                     ],
                                   ),
@@ -561,10 +559,9 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
-                        final state =
-                            ref
-                                .read(feeRateTypeMobileStateProvider.state)
-                                .state;
+                        final state = ref
+                            .read(feeRateTypeMobileStateProvider.state)
+                            .state;
                         if (state != FeeRateType.slow) {
                           ref.read(feeRateTypeMobileStateProvider.state).state =
                               FeeRateType.slow;
@@ -586,25 +583,23 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .radioButtonIconEnabled,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: FeeRateType.slow,
-                                    groupValue:
-                                        ref
-                                            .watch(
-                                              feeRateTypeMobileStateProvider
-                                                  .state,
-                                            )
-                                            .state,
+                                    groupValue: ref
+                                        .watch(
+                                          feeRateTypeMobileStateProvider.state,
+                                        )
+                                        .state,
                                     onChanged: (x) {
                                       ref
-                                          .read(
-                                            feeRateTypeMobileStateProvider
-                                                .state,
-                                          )
-                                          .state = FeeRateType.slow;
+                                              .read(
+                                                feeRateTypeMobileStateProvider
+                                                    .state,
+                                              )
+                                              .state =
+                                          FeeRateType.slow;
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -640,30 +635,33 @@ class _TransactionFeeSelectionSheetState
                                             feeRate: feeObject!.slow,
                                             amount: amount,
                                           ),
-                                          builder: (
-                                            _,
-                                            AsyncSnapshot<Amount> snapshot,
-                                          ) {
-                                            if (snapshot.connectionState ==
-                                                    ConnectionState.done &&
-                                                snapshot.hasData) {
-                                              return Text(
-                                                "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
-                                                style: STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                                textAlign: TextAlign.left,
-                                              );
-                                            } else {
-                                              return AnimatedText(
-                                                stringsToLoopThrough:
-                                                    stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                              );
-                                            }
-                                          },
+                                          builder:
+                                              (
+                                                _,
+                                                AsyncSnapshot<Amount> snapshot,
+                                              ) {
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.done &&
+                                                    snapshot.hasData) {
+                                                  return Text(
+                                                    "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                    textAlign: TextAlign.left,
+                                                  );
+                                                } else {
+                                                  return AnimatedText(
+                                                    stringsToLoopThrough:
+                                                        stringsToLoopThrough,
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                  );
+                                                }
+                                              },
                                         ),
                                     ],
                                   ),
@@ -694,14 +692,14 @@ class _TransactionFeeSelectionSheetState
                     if (wallet is ElectrumXInterface || coin is Ethereum)
                       GestureDetector(
                         onTap: () {
-                          final state =
-                              ref
-                                  .read(feeRateTypeMobileStateProvider.state)
-                                  .state;
+                          final state = ref
+                              .read(feeRateTypeMobileStateProvider.state)
+                              .state;
                           if (state != FeeRateType.custom) {
                             ref
-                                .read(feeRateTypeMobileStateProvider.state)
-                                .state = FeeRateType.custom;
+                                    .read(feeRateTypeMobileStateProvider.state)
+                                    .state =
+                                FeeRateType.custom;
                           }
                           widget.updateChosen("custom");
 
@@ -718,25 +716,24 @@ class _TransactionFeeSelectionSheetState
                                     width: 20,
                                     height: 20,
                                     child: Radio(
-                                      activeColor:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .radioButtonIconEnabled,
+                                      activeColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .radioButtonIconEnabled,
                                       value: FeeRateType.custom,
-                                      groupValue:
-                                          ref
-                                              .watch(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state,
+                                      groupValue: ref
+                                          .watch(
+                                            feeRateTypeMobileStateProvider
+                                                .state,
+                                          )
+                                          .state,
                                       onChanged: (x) {
                                         ref
-                                            .read(
-                                              feeRateTypeMobileStateProvider
-                                                  .state,
-                                            )
-                                            .state = FeeRateType.custom;
+                                                .read(
+                                                  feeRateTypeMobileStateProvider
+                                                      .state,
+                                                )
+                                                .state =
+                                            FeeRateType.custom;
                                         Navigator.of(context).pop();
                                       },
                                     ),

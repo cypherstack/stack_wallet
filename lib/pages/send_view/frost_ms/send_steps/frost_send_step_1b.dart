@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../frost_route_generator.dart';
 import '../../../../models/input.dart';
@@ -8,7 +8,6 @@ import '../../../../models/isar/models/isar_models.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
@@ -19,6 +18,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/frost_step_user_steps.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 
 class FrostSendStep1b extends ConsumerStatefulWidget {
   const FrostSendStep1b({super.key});
@@ -65,43 +65,40 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
           ref.read(pWallets).getWallet(ref.read(pFrostScaffoldArgs)!.walletId!)
               as BitcoinFrostWallet;
 
-      final data = Frost.extractDataFromSignConfig(
+      final data = frostInterface.extractDataFromSignConfig(
         signConfig: config,
         coin: wallet.cryptoCurrency,
         serializedKeys: (await wallet.getSerializedKeys())!,
       );
 
-      final utxos =
-          await ref
-              .read(mainDBProvider)
-              .getUTXOs(wallet.walletId)
-              .filter()
-              .anyOf(
-                data.inputs,
-                (q, e) => q
-                    .txidEqualTo(Format.uint8listToString(e.hash))
-                    .and()
-                    .valueEqualTo(e.value)
-                    .and()
-                    .voutEqualTo(e.vout),
-              )
-              .findAll();
+      final utxos = await ref
+          .read(mainDBProvider)
+          .getUTXOs(wallet.walletId)
+          .filter()
+          .anyOf(
+            data.inputs,
+            (q, e) => q
+                .txidEqualTo(Format.uint8listToString(e.hash))
+                .and()
+                .valueEqualTo(e.value)
+                .and()
+                .voutEqualTo(e.vout),
+          )
+          .findAll();
 
       // TODO add more data from 'data' and display to user ?
       ref.read(pFrostTxData.notifier).state = TxData(
         frostMSConfig: config,
-        recipients:
-            data.recipients
-                .map(
-                  (e) => TxRecipient(
-                    address: e.address,
-                    amount: e.amount,
-                    isChange: false,
-                    addressType:
-                        wallet.cryptoCurrency.getAddressType(e.address)!,
-                  ),
-                )
-                .toList(),
+        recipients: data.recipients
+            .map(
+              (e) => TxRecipient(
+                address: e.address,
+                amount: e.amount,
+                isChange: false,
+                addressType: wallet.cryptoCurrency.getAddressType(e.address)!,
+              ),
+            )
+            .toList(),
         utxos: utxos.map((e) => StandardInput(e)).toSet(),
       );
 
@@ -123,12 +120,11 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => StackOkDialog(
-                title: "Import and attempt sign config failed",
-                message: e.toString(),
-                desktopPopRootNavigator: Util.isDesktop,
-              ),
+          builder: (_) => StackOkDialog(
+            title: "Import and attempt sign config failed",
+            message: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
         );
       }
     } finally {

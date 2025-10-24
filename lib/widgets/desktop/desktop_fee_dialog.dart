@@ -1,4 +1,3 @@
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,6 +15,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../animated_text.dart';
 import '../conditional_parent.dart';
 import 'desktop_dialog.dart';
@@ -63,7 +63,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                BigInt.from(lib_monero.TransactionPriority.high.value),
+                BigInt.from(csMonero.getTxPriorityHigh()),
               );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if (coin is Firo) {
@@ -113,7 +113,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                BigInt.from(lib_monero.TransactionPriority.medium.value),
+                BigInt.from(csMonero.getTxPriorityMedium()),
               );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if (coin is Firo) {
@@ -163,7 +163,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                BigInt.from(lib_monero.TransactionPriority.normal.value),
+                BigInt.from(csMonero.getTxPriorityNormal()),
               );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if (coin is Firo) {
@@ -335,18 +335,17 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
 
     return ConditionalParent(
       condition: widget.isButton,
-      builder:
-          (child) => MaterialButton(
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            onPressed: () {
-              ref.read(feeRateTypeDesktopStateProvider.state).state =
-                  widget.feeRateType;
-              Navigator.of(
-                context,
-              ).pop((widget.feeRateType, feeString, timeString));
-            },
-            child: child,
-          ),
+      builder: (child) => MaterialButton(
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        onPressed: () {
+          ref.read(feeRateTypeDesktopStateProvider.state).state =
+              widget.feeRateType;
+          Navigator.of(
+            context,
+          ).pop((widget.feeRateType, feeString, timeString));
+        },
+        child: child,
+      ),
       child: Builder(
         builder: (_) {
           if (widget.feeRateType == FeeRateType.custom) {
@@ -355,14 +354,12 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
               children: [
                 Text(
                   widget.feeRateType.prettyName,
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color:
-                        Theme.of(
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
                           context,
                         ).extension<StackColors>()!.textFieldActiveText,
-                  ),
+                      ),
                   textAlign: TextAlign.left,
                 ),
               ],
@@ -377,10 +374,9 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
             return AnimatedText(
               stringsToLoopThrough: stringsToLoopThrough,
               style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveText,
               ),
             );
           } else {
@@ -388,12 +384,11 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
               future: widget.feeFor(
                 coin: wallet.info.coin,
                 feeRateType: widget.feeRateType,
-                feeRate:
-                    widget.feeRateType == FeeRateType.fast
-                        ? widget.feeObject!.fast
-                        : widget.feeRateType == FeeRateType.slow
-                        ? widget.feeObject!.slow
-                        : widget.feeObject!.medium,
+                feeRate: widget.feeRateType == FeeRateType.fast
+                    ? widget.feeObject!.fast
+                    : widget.feeRateType == FeeRateType.slow
+                    ? widget.feeObject!.slow
+                    : widget.feeObject!.medium,
                 amount: ref.watch(sendAmountProvider.state).state,
               ),
               builder: (_, AsyncSnapshot<Amount> snapshot) {
@@ -403,58 +398,51 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
                       "${widget.feeRateType.prettyName} "
                       "(~${ref.watch(pAmountFormatter(wallet.info.coin)).format(snapshot.data!, indicatePrecisionLoss: false)})";
 
-                  timeString =
-                      wallet.info.coin is Ethereum
-                          ? ""
-                          : estimatedTimeToBeIncludedInNextBlock(
-                            wallet.info.coin.targetBlockTimeSeconds,
-                            widget.feeRateType == FeeRateType.fast
-                                ? widget.feeObject!.numberOfBlocksFast
-                                : widget.feeRateType == FeeRateType.slow
-                                ? widget.feeObject!.numberOfBlocksSlow
-                                : widget.feeObject!.numberOfBlocksAverage,
-                          );
+                  timeString = wallet.info.coin is Ethereum
+                      ? ""
+                      : estimatedTimeToBeIncludedInNextBlock(
+                          wallet.info.coin.targetBlockTimeSeconds,
+                          widget.feeRateType == FeeRateType.fast
+                              ? widget.feeObject!.numberOfBlocksFast
+                              : widget.feeRateType == FeeRateType.slow
+                              ? widget.feeObject!.numberOfBlocksSlow
+                              : widget.feeObject!.numberOfBlocksAverage,
+                        );
 
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         feeString!,
-                        style: STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(
-                          color:
-                              Theme.of(
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(
                                 context,
                               ).extension<StackColors>()!.textFieldActiveText,
-                        ),
+                            ),
                         textAlign: TextAlign.left,
                       ),
                       if (widget.feeObject != null)
                         Text(
                           timeString!,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(context)
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                                color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textFieldActiveSearchIconRight,
-                          ),
+                              ),
                         ),
                     ],
                   );
                 } else {
                   return AnimatedText(
                     stringsToLoopThrough: stringsToLoopThrough,
-                    style: STextStyles.desktopTextExtraExtraSmall(
-                      context,
-                    ).copyWith(
-                      color:
-                          Theme.of(
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                          color: Theme.of(
                             context,
                           ).extension<StackColors>()!.textFieldActiveText,
-                    ),
+                        ),
                   );
                 }
               },

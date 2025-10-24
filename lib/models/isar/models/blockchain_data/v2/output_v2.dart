@@ -1,5 +1,5 @@
 import 'package:decimal/decimal.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'output_v2.g.dart';
 

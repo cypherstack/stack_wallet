@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../frost_route_generator.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/custom_buttons/checkbox_text_button.dart';
@@ -15,12 +14,11 @@ import '../../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../../widgets/frost_step_user_steps.dart';
 import '../../../../../widgets/stack_dialog.dart';
 import '../../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 
 class FrostCreateStep2 extends ConsumerStatefulWidget {
-  const FrostCreateStep2({
-    super.key,
-  });
+  const FrostCreateStep2({super.key});
 
   static const String routeName = "/frostCreateStep2";
   static const String title = "Commitments";
@@ -47,7 +45,7 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
 
   @override
   void initState() {
-    participants = Frost.getParticipants(
+    participants = frostInterface.getParticipants(
       multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
     );
     myIndex = participants.indexOf(ref.read(pFrostMyName.state).state!);
@@ -81,9 +79,7 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
+          const FrostStepUserSteps(userSteps: info),
           const SizedBox(height: 12),
           DetailItem(
             title: "My name",
@@ -94,17 +90,11 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
             title: "My commitment",
             detail: myCommitment,
             button: Util.isDesktop
-                ? IconCopyButton(
-                    data: myCommitment,
-                  )
-                : SimpleCopyButton(
-                    data: myCommitment,
-                  ),
+                ? IconCopyButton(data: myCommitment)
+                : SimpleCopyButton(data: myCommitment),
           ),
           const SizedBox(height: 12),
-          FrostQrDialogPopupButton(
-            data: myCommitment,
-          ),
+          FrostQrDialogPopupButton(data: myCommitment),
           const SizedBox(height: 12),
           for (int i = 0; i < participants.length; i++)
             Padding(
@@ -135,7 +125,8 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
           const SizedBox(height: 12),
           PrimaryButton(
             label: "Generate shares",
-            enabled: _userVerifyContinue &&
+            enabled:
+                _userVerifyContinue &&
                 !fieldIsEmptyFlags.reduce((v, e) => v |= e),
             onPressed: () async {
               // check for empty commitments
@@ -156,19 +147,19 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
               commitments.insert(myIndex, myCommitment);
 
               try {
-                ref.read(pFrostSecretSharesData.notifier).state =
-                    Frost.generateSecretShares(
-                  multisigConfigWithNamePtr: ref
-                      .read(pFrostStartKeyGenData.state)
-                      .state!
-                      .multisigConfigWithNamePtr,
-                  mySeed: ref.read(pFrostStartKeyGenData.state).state!.seed,
-                  secretShareMachineWrapperPtr: ref
-                      .read(pFrostStartKeyGenData.state)
-                      .state!
-                      .secretShareMachineWrapperPtr,
-                  commitments: commitments,
-                );
+                ref.read(pFrostSecretSharesData.notifier).state = frostInterface
+                    .generateSecretShares(
+                      multisigConfigWithNamePtr: ref
+                          .read(pFrostStartKeyGenData.state)
+                          .state!
+                          .multisigConfigWithNamePtr,
+                      mySeed: ref.read(pFrostStartKeyGenData.state).state!.seed,
+                      secretShareMachineWrapperPtr: ref
+                          .read(pFrostStartKeyGenData.state)
+                          .state!
+                          .secretShareMachineWrapperPtr,
+                      commitments: commitments,
+                    );
 
                 ref.read(pFrostCreateCurrentStep.state).state = 3;
                 await Navigator.of(context).pushNamed(
@@ -178,7 +169,7 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
                       .routeName,
                 );
               } catch (e, s) {
-                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s);
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,

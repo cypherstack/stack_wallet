@@ -15,7 +15,7 @@ import 'package:archive/archive_io.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../app_config.dart';
 import '../db/isar/main_db.dart';
@@ -92,12 +92,11 @@ class ThemeService {
 
   Future<void> remove({required String themeId}) async {
     final themesDir = StackFileSystem.themesDir!;
-    final isarId =
-        await db.isar.stackThemes
-            .where()
-            .themeIdEqualTo(themeId)
-            .idProperty()
-            .findFirst();
+    final isarId = await db.isar.stackThemes
+        .where()
+        .themeIdEqualTo(themeId)
+        .idProperty()
+        .findFirst();
     if (isarId != null) {
       await db.isar.writeTxn(() async {
         await db.isar.stackThemes.delete(isarId);
@@ -149,8 +148,10 @@ class ThemeService {
 
   // TODO more thorough check/verification of theme
   Future<bool> verifyInstalled({required String themeId}) async {
-    final theme =
-        await db.isar.stackThemes.where().themeIdEqualTo(themeId).findFirst();
+    final theme = await db.isar.stackThemes
+        .where()
+        .themeIdEqualTo(themeId)
+        .findFirst();
     if (theme != null) {
       try {
         theme.assets;
@@ -159,10 +160,12 @@ class ThemeService {
       }
 
       final themesDir = StackFileSystem.themesDir!;
-      final jsonFileExists =
-          await File("${themesDir.path}/$themeId/theme.json").exists();
-      final assetsDirExists =
-          await Directory("${themesDir.path}/$themeId/assets").exists();
+      final jsonFileExists = await File(
+        "${themesDir.path}/$themeId/theme.json",
+      ).exists();
+      final assetsDirExists = await Directory(
+        "${themesDir.path}/$themeId/assets",
+      ).exists();
 
       if (!jsonFileExists || !assetsDirExists) {
         Logging.instance.w(
@@ -181,19 +184,19 @@ class ThemeService {
     try {
       final response = await client.get(
         url: Uri.parse("$baseServerUrl/themes"),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final jsonList = jsonDecode(response.body) as List;
 
-      final result =
-          List<Map<String, dynamic>>.from(jsonList)
-              .map((e) => StackThemeMetaData.fromMap(e))
-              .where((e) => e.id != "light" && e.id != "dark")
-              .toList();
+      final result = List<Map<String, dynamic>>.from(jsonList)
+          .map((e) => StackThemeMetaData.fromMap(e))
+          .where((e) => e.id != "light" && e.id != "dark")
+          .toList();
 
       return result;
     } catch (e, s) {
@@ -212,10 +215,11 @@ class ThemeService {
     try {
       final response = await client.get(
         url: Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final bytes = Uint8List.fromList(response.bodyBytes);

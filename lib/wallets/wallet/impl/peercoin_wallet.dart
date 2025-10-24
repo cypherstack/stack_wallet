@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -37,24 +37,29 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
+    final allAddresses =
+        await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .not()
+            .group(
+              (q) => q
+                  .typeEqualTo(AddressType.nonWallet)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.nonWallet),
+            )
+            .findAll();
     return allAddresses;
   }
 
   // ===========================================================================
 
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, BigInt feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     // TODO: actually do this properly for peercoin
     // this is probably wrong for peercoin
     return Amount(
@@ -75,12 +80,8 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
   // ===========================================================================
 
   @override
-  Future<
-      ({
-        bool blocked,
-        String? blockedReason,
-        String? utxoLabel,
-      })> checkBlockUTXO(
+  Future<({bool blocked, String? blockedReason, String? utxoLabel})>
+  checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
@@ -97,30 +98,34 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
         await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) => e.value)
-        .toSet();
-    final Set<String> changeAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.change)
-        .map((e) => e.value)
-        .toSet();
+    final Set<String> receivingAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.receiving)
+            .map((e) => e.value)
+            .toSet();
+    final Set<String> changeAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.change)
+            .map((e) => e.value)
+            .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
     // Fetch history from ElectrumX.
-    final List<Map<String, dynamic>> allTxHashes =
-        await fetchHistory(allAddressesSet);
+    final List<Map<String, dynamic>> allTxHashes = await fetchHistory(
+      allAddressesSet,
+    );
 
     // Only parse new txs (not in db yet).
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
-      final storedTx = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-          .findFirst();
+      final storedTx =
+          await mainDB.isar.transactionV2s
+              .where()
+              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+              .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -133,8 +138,9 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
         );
 
         // Only tx to list once.
-        if (allTransactions
-                .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+        if (allTransactions.indexWhere(
+              (e) => e["txid"] == tx["txid"] as String,
+            ) ==
             -1) {
           tx["height"] = txHash["height"];
           allTransactions.add(tx);
@@ -284,7 +290,8 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
-        timestamp: txData["blocktime"] as int? ??
+        timestamp:
+            txData["blocktime"] as int? ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),

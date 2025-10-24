@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../exceptions/exchange/pair_unavailable_exception.dart';
 import '../../../external_api_keys.dart';
@@ -73,10 +74,11 @@ class ChangeNowAPI {
           "Content-Type": "application/json",
           "x-changenow-api-key": apiKey,
         },
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final data = response.body;
@@ -103,10 +105,11 @@ class ChangeNowAPI {
           "x-changenow-api-key": apiKey,
         },
         body: jsonEncode(body),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       String? data;
@@ -209,10 +212,9 @@ class ChangeNowAPI {
           currencies.add(
             Currency.fromJson(
               map,
-              rateType:
-                  (map["supportsFixedRate"] as bool)
-                      ? SupportedRateType.both
-                      : SupportedRateType.estimated,
+              rateType: (map["supportsFixedRate"] as bool)
+                  ? SupportedRateType.both
+                  : SupportedRateType.estimated,
               exchangeName: ChangeNowExchange.exchangeName,
             ),
           );

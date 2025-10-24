@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../pages/pinpad_views/pinpad_dialog.dart';
-import '../pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import '../pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tvd;
 import '../pages_desktop_specific/password/request_desktop_auth_dialog.dart';
 import '../providers/global/wallets_provider.dart';
 import '../utilities/text_styles.dart';
@@ -14,11 +15,7 @@ import 'detail_item.dart';
 
 class TxKeyWidget extends ConsumerStatefulWidget {
   /// The [walletId] MUST be the id of a [LibMoneroWallet]!
-  const TxKeyWidget({
-    super.key,
-    required this.walletId,
-    required this.txid,
-  });
+  const TxKeyWidget({super.key, required this.walletId, required this.txid});
 
   final String walletId;
   final String txid;
@@ -41,14 +38,18 @@ class _TxKeyWidgetState extends ConsumerState<TxKeyWidget> {
     try {
       final verified = await showDialog<String?>(
         context: context,
-        builder: (context) => Util.isDesktop
-            ? const RequestDesktopAuthDialog(title: "Show private view key")
-            : const PinpadDialog(
-                biometricsAuthenticationTitle: "Show private view key",
-                biometricsLocalizedReason:
-                    "Authenticate to show private view key",
-                biometricsCancelButtonString: "CANCEL",
-              ),
+        builder:
+            (context) =>
+                Util.isDesktop
+                    ? const RequestDesktopAuthDialog(
+                      title: "Show private view key",
+                    )
+                    : const PinpadDialog(
+                      biometricsAuthenticationTitle: "Show private view key",
+                      biometricsLocalizedReason:
+                          "Authenticate to show private view key",
+                      biometricsCancelButtonString: "CANCEL",
+                    ),
         barrierDismissible: !Util.isDesktop,
       );
 
@@ -75,23 +76,17 @@ class _TxKeyWidgetState extends ConsumerState<TxKeyWidget> {
   @override
   Widget build(BuildContext context) {
     return DetailItemBase(
-      button: _private == null
-          ? CustomTextButton(
-              text: "Show",
-              onTap: _loadTxKey,
-              enabled: _private == null,
-            )
-          : Util.isDesktop
-              ? IconCopyButton(
-                  data: _private!,
-                )
-              : SimpleCopyButton(
-                  data: _private!,
-                ),
-      title: Text(
-        "Private view key",
-        style: STextStyles.itemSubtitle(context),
-      ),
+      button:
+          _private == null
+              ? CustomTextButton(
+                text: "Show",
+                onTap: _loadTxKey,
+                enabled: _private == null,
+              )
+              : Util.isDesktop
+              ? tvd.IconCopyButton(data: _private!)
+              : SimpleCopyButton(data: _private!),
+      title: Text("Private view key", style: STextStyles.itemSubtitle(context)),
       detail: SelectableText(
         // TODO
         _private ?? "*" * 52, // 52 is approx length

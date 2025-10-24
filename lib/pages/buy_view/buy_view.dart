@@ -10,21 +10,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import 'buy_form.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/tor_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/tor_subscription.dart';
+import 'buy_form.dart';
 
 class BuyView extends ConsumerStatefulWidget {
-  const BuyView({
-    super.key,
-    this.coin,
-    this.tokenContract,
-  });
+  const BuyView({super.key, this.coin, this.tokenContract});
 
   final CryptoCurrency? coin;
   final EthContract? tokenContract;
@@ -46,8 +44,9 @@ class _BuyViewState extends ConsumerState<BuyView> {
     coin = widget.coin;
     tokenContract = widget.tokenContract;
 
-    torEnabled =
-        ref.read(pTorService).status != TorConnectionStatus.disconnected;
+    torEnabled = AppConfig.hasFeature(AppFeature.tor)
+        ? ref.read(pTorService).status != TorConnectionStatus.disconnected
+        : false;
 
     super.initState();
   }
@@ -66,23 +65,15 @@ class _BuyViewState extends ConsumerState<BuyView> {
         children: [
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-              ),
-              child: BuyForm(
-                coin: coin,
-                tokenContract: tokenContract,
-              ),
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              child: BuyForm(coin: coin, tokenContract: tokenContract),
             ),
           ),
           if (torEnabled)
             Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.7),
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.overlay.withOpacity(0.7),
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               child: const StackDialog(

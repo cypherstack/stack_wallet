@@ -17,11 +17,7 @@ const UTXOSchema = CollectionSchema(
   name: r'UTXO',
   id: 5934032492047519621,
   properties: {
-    r'address': PropertySchema(
-      id: 0,
-      name: r'address',
-      type: IsarType.string,
-    ),
+    r'address': PropertySchema(id: 0, name: r'address', type: IsarType.string),
     r'blockHash': PropertySchema(
       id: 1,
       name: r'blockHash',
@@ -52,42 +48,23 @@ const UTXOSchema = CollectionSchema(
       name: r'isCoinbase',
       type: IsarType.bool,
     ),
-    r'name': PropertySchema(
-      id: 7,
-      name: r'name',
-      type: IsarType.string,
-    ),
+    r'name': PropertySchema(id: 7, name: r'name', type: IsarType.string),
     r'otherData': PropertySchema(
       id: 8,
       name: r'otherData',
       type: IsarType.string,
     ),
-    r'txid': PropertySchema(
-      id: 9,
-      name: r'txid',
-      type: IsarType.string,
-    ),
-    r'used': PropertySchema(
-      id: 10,
-      name: r'used',
-      type: IsarType.bool,
-    ),
-    r'value': PropertySchema(
-      id: 11,
-      name: r'value',
-      type: IsarType.long,
-    ),
-    r'vout': PropertySchema(
-      id: 12,
-      name: r'vout',
-      type: IsarType.long,
-    ),
+    r'txid': PropertySchema(id: 9, name: r'txid', type: IsarType.string),
+    r'used': PropertySchema(id: 10, name: r'used', type: IsarType.bool),
+    r'value': PropertySchema(id: 11, name: r'value', type: IsarType.long),
+    r'vout': PropertySchema(id: 12, name: r'vout', type: IsarType.long),
     r'walletId': PropertySchema(
       id: 13,
       name: r'walletId',
       type: IsarType.string,
-    )
+    ),
   },
+
   estimateSize: _uTXOEstimateSize,
   serialize: _uTXOSerialize,
   deserialize: _uTXODeserialize,
@@ -104,7 +81,7 @@ const UTXOSchema = CollectionSchema(
           name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
     ),
     r'txid_walletId_vout': IndexSchema(
@@ -127,7 +104,7 @@ const UTXOSchema = CollectionSchema(
           name: r'vout',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
     ),
     r'isBlocked': IndexSchema(
@@ -140,16 +117,17 @@ const UTXOSchema = CollectionSchema(
           name: r'isBlocked',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _uTXOGetId,
   getLinks: _uTXOGetLinks,
   attach: _uTXOAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _uTXOEstimateSize(
@@ -298,7 +276,10 @@ extension UTXOByIndex on IsarCollection<UTXO> {
   }
 
   Future<bool> deleteByTxidWalletIdVout(
-      String txid, String walletId, int vout) {
+    String txid,
+    String walletId,
+    int vout,
+  ) {
     return deleteByIndex(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
@@ -306,11 +287,16 @@ extension UTXOByIndex on IsarCollection<UTXO> {
     return deleteByIndexSync(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  Future<List<UTXO?>> getAllByTxidWalletIdVout(List<String> txidValues,
-      List<String> walletIdValues, List<int> voutValues) {
+  Future<List<UTXO?>> getAllByTxidWalletIdVout(
+    List<String> txidValues,
+    List<String> walletIdValues,
+    List<int> voutValues,
+  ) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len && voutValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len && voutValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
@@ -319,11 +305,16 @@ extension UTXOByIndex on IsarCollection<UTXO> {
     return getAllByIndex(r'txid_walletId_vout', values);
   }
 
-  List<UTXO?> getAllByTxidWalletIdVoutSync(List<String> txidValues,
-      List<String> walletIdValues, List<int> voutValues) {
+  List<UTXO?> getAllByTxidWalletIdVoutSync(
+    List<String> txidValues,
+    List<String> walletIdValues,
+    List<int> voutValues,
+  ) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len && voutValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len && voutValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
@@ -332,11 +323,16 @@ extension UTXOByIndex on IsarCollection<UTXO> {
     return getAllByIndexSync(r'txid_walletId_vout', values);
   }
 
-  Future<int> deleteAllByTxidWalletIdVout(List<String> txidValues,
-      List<String> walletIdValues, List<int> voutValues) {
+  Future<int> deleteAllByTxidWalletIdVout(
+    List<String> txidValues,
+    List<String> walletIdValues,
+    List<int> voutValues,
+  ) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len && voutValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len && voutValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
@@ -345,11 +341,16 @@ extension UTXOByIndex on IsarCollection<UTXO> {
     return deleteAllByIndex(r'txid_walletId_vout', values);
   }
 
-  int deleteAllByTxidWalletIdVoutSync(List<String> txidValues,
-      List<String> walletIdValues, List<int> voutValues) {
+  int deleteAllByTxidWalletIdVoutSync(
+    List<String> txidValues,
+    List<String> walletIdValues,
+    List<int> voutValues,
+  ) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len && voutValues.length == len,
-        'All index values must have the same length');
+    assert(
+      walletIdValues.length == len && voutValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
@@ -370,10 +371,15 @@ extension UTXOByIndex on IsarCollection<UTXO> {
     return putAllByIndex(r'txid_walletId_vout', objects);
   }
 
-  List<Id> putAllByTxidWalletIdVoutSync(List<UTXO> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'txid_walletId_vout', objects,
-        saveLinks: saveLinks);
+  List<Id> putAllByTxidWalletIdVoutSync(
+    List<UTXO> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(
+      r'txid_walletId_vout',
+      objects,
+      saveLinks: saveLinks,
+    );
   }
 }
 
@@ -396,10 +402,7 @@ extension UTXOQueryWhereSort on QueryBuilder<UTXO, UTXO, QWhere> {
 extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -425,8 +428,10 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -434,8 +439,10 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -450,208 +457,260 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> walletIdEqualTo(String walletId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId',
-        value: [walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'walletId', value: [walletId]),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> walletIdNotEqualTo(
-      String walletId) {
+    String walletId,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToAnyWalletIdVout(
-      String txid) {
+    String txid,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId_vout',
-        value: [txid],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'txid_walletId_vout',
+          value: [txid],
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidNotEqualToAnyWalletIdVout(
-      String txid) {
+    String txid,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [],
-              upper: [txid],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [],
+                upper: [txid],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [],
-              upper: [txid],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [],
+                upper: [txid],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToAnyVout(
-      String txid, String walletId) {
+    String txid,
+    String walletId,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId_vout',
-        value: [txid, walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'txid_walletId_vout',
+          value: [txid, walletId],
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause>
-      txidEqualToWalletIdNotEqualToAnyVout(String txid, String walletId) {
+  txidEqualToWalletIdNotEqualToAnyVout(String txid, String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid],
-              upper: [txid, walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid, walletId],
-              includeLower: false,
-              upper: [txid],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid],
+                upper: [txid, walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid, walletId],
+                includeLower: false,
+                upper: [txid],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid, walletId],
-              includeLower: false,
-              upper: [txid],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid],
-              upper: [txid, walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid, walletId],
+                includeLower: false,
+                upper: [txid],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid],
+                upper: [txid, walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdVoutEqualTo(
-      String txid, String walletId, int vout) {
+    String txid,
+    String walletId,
+    int vout,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId_vout',
-        value: [txid, walletId, vout],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'txid_walletId_vout',
+          value: [txid, walletId, vout],
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutNotEqualTo(
-      String txid, String walletId, int vout) {
+    String txid,
+    String walletId,
+    int vout,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid, walletId],
-              upper: [txid, walletId, vout],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid, walletId, vout],
-              includeLower: false,
-              upper: [txid, walletId],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid, walletId],
+                upper: [txid, walletId, vout],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid, walletId, vout],
+                includeLower: false,
+                upper: [txid, walletId],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid, walletId, vout],
-              includeLower: false,
-              upper: [txid, walletId],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId_vout',
-              lower: [txid, walletId],
-              upper: [txid, walletId, vout],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid, walletId, vout],
+                includeLower: false,
+                upper: [txid, walletId],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'txid_walletId_vout',
+                lower: [txid, walletId],
+                upper: [txid, walletId, vout],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause>
-      txidWalletIdEqualToVoutGreaterThan(
+  txidWalletIdEqualToVoutGreaterThan(
     String txid,
     String walletId,
     int vout, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'txid_walletId_vout',
-        lower: [txid, walletId, vout],
-        includeLower: include,
-        upper: [txid, walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'txid_walletId_vout',
+          lower: [txid, walletId, vout],
+          includeLower: include,
+          upper: [txid, walletId],
+        ),
+      );
     });
   }
 
@@ -662,12 +721,14 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'txid_walletId_vout',
-        lower: [txid, walletId],
-        upper: [txid, walletId, vout],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'txid_walletId_vout',
+          lower: [txid, walletId],
+          upper: [txid, walletId, vout],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
@@ -680,56 +741,66 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'txid_walletId_vout',
-        lower: [txid, walletId, lowerVout],
-        includeLower: includeLower,
-        upper: [txid, walletId, upperVout],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'txid_walletId_vout',
+          lower: [txid, walletId, lowerVout],
+          includeLower: includeLower,
+          upper: [txid, walletId, upperVout],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> isBlockedEqualTo(bool isBlocked) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'isBlocked',
-        value: [isBlocked],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'isBlocked', value: [isBlocked]),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> isBlockedNotEqualTo(
-      bool isBlocked) {
+    bool isBlocked,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'isBlocked',
-              lower: [],
-              upper: [isBlocked],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'isBlocked',
-              lower: [isBlocked],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'isBlocked',
+                lower: [],
+                upper: [isBlocked],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'isBlocked',
+                lower: [isBlocked],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'isBlocked',
-              lower: [isBlocked],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'isBlocked',
-              lower: [],
-              upper: [isBlocked],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'isBlocked',
+                lower: [isBlocked],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'isBlocked',
+                lower: [],
+                upper: [isBlocked],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -738,17 +809,17 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
 extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'address',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'address'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'address',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'address'),
+      );
     });
   }
 
@@ -757,11 +828,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -771,12 +844,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -786,12 +861,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -803,14 +880,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'address',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'address',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -819,11 +898,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -832,67 +913,75 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressContains(String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'address',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressMatches(String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'address',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'address',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'address',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'address', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'address',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'address', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'blockHash',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'blockHash'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'blockHash',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'blockHash'),
+      );
     });
   }
 
@@ -901,11 +990,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'blockHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -915,12 +1006,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'blockHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -930,12 +1023,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'blockHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -947,14 +1042,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockHash',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'blockHash',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -963,11 +1060,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'blockHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -976,79 +1075,85 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'blockHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'blockHash',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'blockHash',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'blockHash',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockHash',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'blockHash', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'blockHash',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'blockHash', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'blockHeight',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'blockHeight'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'blockHeight',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'blockHeight'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightEqualTo(
-      int? value) {
+    int? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockHeight',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'blockHeight', value: value),
+      );
     });
   }
 
@@ -1057,11 +1162,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockHeight',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'blockHeight',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1070,11 +1177,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockHeight',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'blockHeight',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1085,38 +1194,39 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockHeight',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'blockHeight',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'blockTime',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'blockTime'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'blockTime',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'blockTime'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockTime',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'blockTime', value: value),
+      );
     });
   }
 
@@ -1125,11 +1235,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockTime',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'blockTime',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1138,11 +1250,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockTime',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'blockTime',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1153,29 +1267,31 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockTime',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'blockTime',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'blockedReason',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'blockedReason'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'blockedReason',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'blockedReason'),
+      );
     });
   }
 
@@ -1184,11 +1300,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockedReason',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'blockedReason',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1198,12 +1316,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockedReason',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'blockedReason',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1213,12 +1333,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockedReason',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'blockedReason',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1230,14 +1352,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockedReason',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'blockedReason',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1246,11 +1370,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'blockedReason',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'blockedReason',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1259,62 +1385,67 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'blockedReason',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'blockedReason',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'blockedReason',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'blockedReason',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'blockedReason',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'blockedReason',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockedReason',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'blockedReason', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'blockedReason',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'blockedReason', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -1323,11 +1454,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1336,11 +1469,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1351,32 +1486,33 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> isBlockedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isBlocked',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isBlocked', value: value),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> isCoinbaseEqualTo(
-      bool value) {
+    bool value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isCoinbase',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isCoinbase', value: value),
+      );
     });
   }
 
@@ -1385,11 +1521,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1399,12 +1537,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1414,12 +1554,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1431,14 +1573,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'name',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'name',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1447,11 +1591,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1460,67 +1606,75 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameContains(String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameMatches(String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'name',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'name',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'name', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'name', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'otherData',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'otherData'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'otherData',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'otherData'),
+      );
     });
   }
 
@@ -1529,11 +1683,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1543,12 +1699,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1558,12 +1716,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1575,14 +1735,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'otherData',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'otherData',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1591,11 +1753,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1604,53 +1768,59 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'otherData',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'otherData',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'otherData',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otherData',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'otherData', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'otherData',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'otherData', value: ''),
+      );
     });
   }
 
@@ -1659,11 +1829,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txid',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'txid',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1673,12 +1845,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'txid',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'txid',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1688,12 +1862,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'txid',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'txid',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1705,14 +1881,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'txid',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'txid',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1721,11 +1899,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'txid',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'txid',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1734,85 +1914,91 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'txid',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'txid',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidContains(String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'txid',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'txid',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidMatches(String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'txid',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'txid',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txid',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'txid', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'txid',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'txid', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'used',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'used'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'used',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'used'),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'used',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'used', value: value),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> valueEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'value', value: value),
+      );
     });
   }
 
@@ -1821,11 +2007,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'value',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'value',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1834,11 +2022,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'value',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'value',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1849,22 +2039,23 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'value',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'value',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> voutEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'vout',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'vout', value: value),
+      );
     });
   }
 
@@ -1873,11 +2064,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'vout',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'vout',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1886,11 +2079,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'vout',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'vout',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1901,13 +2096,15 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'vout',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'vout',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -1916,11 +2113,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1930,12 +2129,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1945,12 +2146,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1962,14 +2165,16 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'walletId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1978,11 +2183,13 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1991,52 +2198,59 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> walletIdContains(String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> walletIdContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> walletIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'walletId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> walletIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> walletIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'walletId', value: ''),
+      );
     });
   }
 }
@@ -2398,15 +2612,17 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
 }
 
 extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByAddress(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByAddress({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'address', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockHash(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockHash({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'blockHash', caseSensitive: caseSensitive);
     });
@@ -2424,11 +2640,14 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockedReason(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockedReason({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'blockedReason',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'blockedReason',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -2444,22 +2663,25 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByName(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByName({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByOtherData(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByOtherData({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'otherData', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByTxid(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByTxid({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'txid', caseSensitive: caseSensitive);
     });
@@ -2483,8 +2705,9 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByWalletId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByWalletId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });

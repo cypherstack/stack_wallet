@@ -3,12 +3,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart' as isar;
@@ -66,18 +67,19 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     final latestBlockhash = await _rpcClient?.getLatestBlockhash();
     final pubKey = (await _getKeyPair()).publicKey;
 
-    final compiledMessage = Message(
-      instructions: [
-        SystemInstruction.transfer(
-          fundingAccount: pubKey,
-          recipientAccount: pubKey,
-          lamports: transferAmount.raw.toInt(),
-        ),
-      ],
-    ).compile(
-      recentBlockhash: latestBlockhash!.value.blockhash,
-      feePayer: pubKey,
-    );
+    final compiledMessage =
+        Message(
+          instructions: [
+            SystemInstruction.transfer(
+              fundingAccount: pubKey,
+              recipientAccount: pubKey,
+              lamports: transferAmount.raw.toInt(),
+            ),
+          ],
+        ).compile(
+          recentBlockhash: latestBlockhash!.value.blockhash,
+          feePayer: pubKey,
+        );
 
     final estimate = await _rpcClient?.getFeeForMessage(
       base64Encode(compiledMessage.toByteArray().toList()),
@@ -456,10 +458,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           derivationIndex: 0,
           derivationPath: DerivationPath()..value = _addressDerivationPath,
           type: AddressType.solana,
-          subType:
-              txType == isar.TransactionType.outgoing
-                  ? AddressSubType.unknown
-                  : AddressSubType.receiving,
+          subType: txType == isar.TransactionType.outgoing
+              ? AddressSubType.unknown
+              : AddressSubType.receiving,
         );
 
         txsList.add(Tuple2(transaction, txAddress));
@@ -526,7 +527,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   ) {
     HttpClient? httpClient;
 
-    if (prefs.useTor) {
+    if (AppConfig.hasFeature(AppFeature.tor) && prefs.useTor) {
       // Make proxied HttpClient.
       final proxyInfo = torService.getProxyInfo();
 

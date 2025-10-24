@@ -11,7 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -58,10 +58,12 @@ class _IsarCollectionWatcherListState<T>
   void initState() {
     super.initState();
 
-    sparkCoinsCollectionWatcher =
-        widget.queryBuilder().watch(fireImmediately: true);
-    _streamSubscription = sparkCoinsCollectionWatcher!
-        .listen((data) => _onSparkCoinsCollectionWatcherEvent(data));
+    sparkCoinsCollectionWatcher = widget.queryBuilder().watch(
+      fireImmediately: true,
+    );
+    _streamSubscription = sparkCoinsCollectionWatcher!.listen(
+      (data) => _onSparkCoinsCollectionWatcherEvent(data),
+    );
   }
 
   @override
@@ -94,7 +96,9 @@ class _IsarCollectionWatcherListState<T>
             child: RoundedWhiteContainer(
               child: Row(
                 children: [
-                  ...widget.itemBuilder(null).map(
+                  ...widget
+                      .itemBuilder(null)
+                      .map(
                         (e) => Expanded(
                           flex: e.$3,
                           child: Text(
@@ -112,32 +116,37 @@ class _IsarCollectionWatcherListState<T>
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: _items.length,
-              separatorBuilder: (_, __) => Container(
-                height: 1,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .backgroundAppBar,
-              ),
-              itemBuilder: (_, index) => Padding(
-                padding: const EdgeInsets.all(4),
-                child: RoundedWhiteContainer(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ...widget.itemBuilder(_items[index]).map(
-                            (e) => Expanded(
-                              flex: e.$3,
-                              child: SelectableText(
-                                e.$2,
-                                style: STextStyles.itemSubtitle12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                            ),
-                          ),
-                    ],
+              separatorBuilder:
+                  (_, __) => Container(
+                    height: 1,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar,
                   ),
-                ),
-              ),
+              itemBuilder:
+                  (_, index) => Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: RoundedWhiteContainer(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ...widget
+                              .itemBuilder(_items[index])
+                              .map(
+                                (e) => Expanded(
+                                  flex: e.$3,
+                                  child: SelectableText(
+                                    e.$2,
+                                    style: STextStyles.itemSubtitle12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
             ),
           ),
         ],
@@ -147,32 +156,28 @@ class _IsarCollectionWatcherListState<T>
         itemCount: _items.length + 1,
         itemBuilder: (ctx, index) {
           return Padding(
-            padding: const EdgeInsets.only(
-              bottom: 16,
-              left: 16,
-              right: 16,
-            ),
+            padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
             child: RoundedWhiteContainer(
-              child: index == 0
-                  ? Row(
-                      children: [
-                        Text(
-                          "Total ${widget.itemName}: ${_items.length}",
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ...widget.itemBuilder(_items[index - 1]).map(
-                              (e) => DetailItem(
-                                title: e.$1,
-                                detail: e.$2,
+              child:
+                  index == 0
+                      ? Row(
+                        children: [
+                          Text(
+                            "Total ${widget.itemName}: ${_items.length}",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                        ],
+                      )
+                      : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ...widget
+                              .itemBuilder(_items[index - 1])
+                              .map(
+                                (e) => DetailItem(title: e.$1, detail: e.$2),
                               ),
-                            ),
-                      ],
-                    ),
+                        ],
+                      ),
             ),
           );
         },

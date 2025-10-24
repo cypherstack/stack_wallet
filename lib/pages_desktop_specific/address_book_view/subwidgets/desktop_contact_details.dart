@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../models/isar/models/contact_entry.dart';
@@ -35,10 +35,7 @@ import 'desktop_address_card.dart';
 import 'desktop_contact_options_menu_popup.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
-  const DesktopContactDetails({
-    super.key,
-    required this.contactId,
-  });
+  const DesktopContactDetails({super.key, required this.contactId});
 
   final String contactId;
 
@@ -51,24 +48,26 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
   List<Tuple2<String, Transaction>> _cachedTransactions = [];
 
   Future<List<Tuple2<String, Transaction>>>
-      _filteredTransactionsByContact() async {
-    final contact =
-        ref.read(addressBookServiceProvider).getContactById(widget.contactId);
+  _filteredTransactionsByContact() async {
+    final contact = ref
+        .read(addressBookServiceProvider)
+        .getContactById(widget.contactId);
 
     // TODO: optimise
 
-    final transactions = await ref
-        .read(mainDBProvider)
-        .isar
-        .transactions
-        .where()
-        .filter()
-        .anyOf(
-          contact.addresses.map((e) => e.address),
-          (q, String e) => q.address((q) => q.valueEqualTo(e)),
-        )
-        .sortByTimestampDesc()
-        .findAll();
+    final transactions =
+        await ref
+            .read(mainDBProvider)
+            .isar
+            .transactions
+            .where()
+            .filter()
+            .anyOf(
+              contact.addresses.map((e) => e.address),
+              (q, String e) => q.address((q) => q.valueEqualTo(e)),
+            )
+            .sortByTimestampDesc()
+            .findAll();
 
     final List<Tuple2<String, Transaction>> result = [];
 
@@ -88,8 +87,9 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
     ContactEntry? _contact;
     try {
       _contact = ref.watch(
-        addressBookServiceProvider
-            .select((value) => value.getContactById(widget.contactId)),
+        addressBookServiceProvider.select(
+          (value) => value.getContactById(widget.contactId),
+        ),
       );
     } catch (_) {
       return Container();
@@ -115,33 +115,27 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: contact.customId == "default"
-                                ? Colors.transparent
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
+                            color:
+                                contact.customId == "default"
+                                    ? Colors.transparent
+                                    : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(32),
                           ),
-                          child: contact.customId == "default"
-                              ? const Center(
-                                  child: AppIcon(
-                                    width: 32,
-                                  ),
-                                )
-                              : contact.emojiChar != null
-                                  ? Center(
-                                      child: Text(contact.emojiChar!),
-                                    )
+                          child:
+                              contact.customId == "default"
+                                  ? const Center(child: AppIcon(width: 32))
+                                  : contact.emojiChar != null
+                                  ? Center(child: Text(contact.emojiChar!))
                                   : Center(
-                                      child: SvgPicture.asset(
-                                        Assets.svg.user,
-                                        width: 18,
-                                      ),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.user,
+                                      width: 18,
                                     ),
+                                  ),
                         ),
-                        const SizedBox(
-                          width: 16,
-                        ),
+                        const SizedBox(width: 16),
                         Text(
                           contact.name,
                           style: STextStyles.desktopTextSmall(context),
@@ -167,9 +161,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                       ),
                   ],
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 Flexible(
                   child: ListView(
                     primary: false,
@@ -183,8 +175,9 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                         children: [
                           Text(
                             "Addresses",
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context),
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ),
                           ),
                           CustomTextButton(
                             text: "Add new",
@@ -195,69 +188,71 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
 
                               await showDialog<void>(
                                 context: context,
-                                builder: (context) => DesktopDialog(
-                                  maxWidth: 580,
-                                  maxHeight: 566,
-                                  child: Column(
-                                    children: [
-                                      Row(
+                                builder:
+                                    (context) => DesktopDialog(
+                                      maxWidth: 580,
+                                      maxHeight: 566,
+                                      child: Column(
                                         children: [
-                                          const SizedBox(
-                                            width: 8,
+                                          Row(
+                                            children: [
+                                              const SizedBox(width: 8),
+                                              const AppBarBackButton(
+                                                isCompact: true,
+                                              ),
+                                              Text(
+                                                "Add new address",
+                                                style: STextStyles.desktopH3(
+                                                  context,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const AppBarBackButton(
-                                            isCompact: true,
-                                          ),
-                                          Text(
-                                            "Add new address",
-                                            style:
-                                                STextStyles.desktopH3(context),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 20,
+                                                left: 32,
+                                                right: 32,
+                                                bottom: 32,
+                                              ),
+                                              child: AddNewContactAddressView(
+                                                contactId: widget.contactId,
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 20,
-                                            left: 32,
-                                            right: 32,
-                                            bottom: 32,
-                                          ),
-                                          child: AddNewContactAddressView(
-                                            contactId: widget.contactId,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                    ),
                               );
                             },
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
+                      const SizedBox(height: 12),
                       RoundedWhiteContainer(
                         padding: const EdgeInsets.all(0),
-                        borderColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
+                        borderColor:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            for (int i = 0;
-                                i < contact.addressesSorted.length;
-                                i++)
+                            for (
+                              int i = 0;
+                              i < contact.addressesSorted.length;
+                              i++
+                            )
                               Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (i > 0)
                                     Container(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .background,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .background,
                                       height: 1,
                                     ),
                                   Padding(
@@ -273,14 +268,12 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          top: 20,
-                          bottom: 12,
-                        ),
+                        padding: const EdgeInsets.only(top: 20, bottom: 12),
                         child: Text(
                           "Transaction history",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                       ),
                       FutureBuilder(
@@ -288,7 +281,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                         builder: (
                           _,
                           AsyncSnapshot<List<Tuple2<String, Transaction>>>
-                              snapshot,
+                          snapshot,
                         ) {
                           if (snapshot.connectionState ==
                                   ConnectionState.done &&
@@ -298,9 +291,10 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             if (_cachedTransactions.isNotEmpty) {
                               return RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(0),
-                                borderColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
+                                borderColor:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.background,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -333,9 +327,10 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             } else {
                               return RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(0),
-                                borderColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
+                                borderColor:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.background,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [

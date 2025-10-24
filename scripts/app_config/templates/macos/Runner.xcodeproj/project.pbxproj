@@ -29,9 +29,6 @@
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		B98151842A674143009D013C /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B98151832A674143009D013C /* libsqlite3.0.tbd */; };
 		BFD0376C00E1FFD46376BB9D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */; };
-		F1FA2C4E2BA4B49F00BDA1BB /* frostdart.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (Weak, ); }; };
-		F1FA2C502BA4B4CA00BDA1BB /* frostdart.dylib in Resources */ = {isa = PBXBuildFile; fileRef = F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */; };
-		F1FA2C512BA4B51E00BDA1BB /* frostdart.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F653CA022D33E8B60E11A9F3 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -51,20 +48,6 @@
 			remoteInfo = FLX;
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		33CC110E2044A8840003C045 /* Bundle Framework */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				F1FA2C512BA4B51E00BDA1BB /* frostdart.dylib in Bundle Framework */,
-			);
-			name = "Bundle Framework";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0FA914E59929120BA65E8403 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
@@ -94,8 +77,6 @@
 		B98151832A674143009D013C /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		BF5E76865ACB46314AC27D8F /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
   		E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
-		F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,7 +93,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B98151842A674143009D013C /* libsqlite3.0.tbd in Frameworks */,
-				F1FA2C4E2BA4B49F00BDA1BB /* frostdart.dylib in Frameworks */,
 				F653CA022D33E8B60E11A9F3 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -142,7 +122,6 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
- 				F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
@@ -199,7 +178,6 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */,
 				B98151832A674143009D013C /* libsqlite3.0.tbd */,
 				E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */,
 				9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */,
@@ -328,7 +306,6 @@
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
-				F1FA2C502BA4B4CA00BDA1BB /* frostdart.dylib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -585,6 +562,7 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				EXCLUDED_ARCHS = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
@@ -592,16 +570,13 @@
  					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage_macos\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/isar_flutter_libs\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/share_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_macos\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock_macos\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/window_size\"",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -612,10 +587,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${DT_TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}\"",
- 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos\"",
 					/usr/lib/swift,
-					"$(PATH)/crypto_plugins/frostdart/macos\n",
 				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -741,6 +713,7 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				EXCLUDED_ARCHS = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
@@ -748,16 +721,13 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage_macos\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/isar_flutter_libs\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/share_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_macos\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock_macos\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/window_size\"",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -768,10 +738,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${DT_TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos\"",
 					/usr/lib/swift,
-					"$(PATH)/crypto_plugins/frostdart/macos\n",
 				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -788,6 +755,7 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				EXCLUDED_ARCHS = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
@@ -795,16 +763,13 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage_macos\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/isar_flutter_libs\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/share_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_macos\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock_macos\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/window_size\"",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -815,10 +780,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${DT_TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}\"",
- 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos\"",
 					/usr/lib/swift,
-					"$(PATH)/crypto_plugins/frostdart/macos\n",
 				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

@@ -27,6 +27,7 @@ export './global/mweb_service_provider.dart';
 export './global/node_service_provider.dart';
 export './global/notifications_provider.dart';
 export './global/prefs_provider.dart';
+export './global/global_nav_key_provider.dart';
 export './global/price_provider.dart';
 export './global/should_show_lockscreen_on_resume_state_provider.dart';
 export './global/wallets_provider.dart';

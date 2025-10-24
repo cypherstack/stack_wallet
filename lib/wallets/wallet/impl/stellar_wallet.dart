@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;
 
+import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -138,7 +139,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     final currentNode = getCurrentNode();
     HttpClient? _httpClient;
 
-    if (prefs.useTor) {
+    if (AppConfig.hasFeature(AppFeature.tor) && prefs.useTor) {
       final ({InternetAddress host, int port}) proxyInfo =
           TorService.sharedInstance.getProxyInfo();
 

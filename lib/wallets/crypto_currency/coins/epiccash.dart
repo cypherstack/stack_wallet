@@ -1,9 +1,8 @@
-import 'package:flutter_libepiccash/lib.dart' as epic;
-
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
 
@@ -63,7 +62,7 @@ class Epiccash extends Bip39Currency {
       }
     }
 
-    return epic.LibEpiccash.validateSendAddress(address: address);
+    return libEpic.validateSendAddress(address: address);
   }
 
   @override
@@ -115,10 +114,9 @@ class Epiccash extends Bip39Currency {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get defaultDerivePathType =>
-      throw UnsupportedError(
-        "$runtimeType does not use bitcoin style derivation paths",
-      );
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+    "$runtimeType does not use bitcoin style derivation paths",
+  );
 
   @override
   Uri defaultBlockExplorer(String txid) {

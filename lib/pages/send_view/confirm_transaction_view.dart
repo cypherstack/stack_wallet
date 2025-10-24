@@ -9,11 +9,11 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_libepiccash/lib.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -34,11 +34,13 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/coins/epiccash.dart';
 import '../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -52,8 +54,10 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
+import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
@@ -98,6 +102,88 @@ class _ConfirmTransactionViewState
 
   late final FocusNode _onChainNoteFocusNode;
   late final TextEditingController onChainNoteController;
+
+  /// Handle MWC slatepack creation for manual exchange.
+  Future<void> _handleMwcSlatepackCreation(
+    BuildContext context,
+    MimblewimblecoinWallet wallet,
+  ) async {
+    try {
+      // Close the progress dialog first.
+      Navigator.of(context).pop();
+
+      // Get recipient information from txData.
+      final recipient = widget.txData.recipients?.first;
+      if (recipient == null) {
+        throw Exception('No recipient found in transaction data');
+      }
+
+      // Create slatepack.
+      final slatepackResult = await wallet.createSlatepack(
+        amount: recipient.amount,
+        recipientAddress: recipient.address.isNotEmpty
+            ? recipient.address
+            : null,
+        message: onChainNoteController.text.isNotEmpty
+            ? onChainNoteController.text
+            : null,
+        encrypt: recipient
+            .address
+            .isNotEmpty, // Encrypt if we have a recipient address.
+      );
+
+      if (!slatepackResult.success || slatepackResult.slatepack == null) {
+        throw Exception(slatepackResult.error ?? 'Failed to create slatepack');
+      }
+
+      // Show slatepack dialog.
+      if (context.mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) =>
+              MwcSlatepackDialog(slatepackResult: slatepackResult),
+        );
+
+        // After slatepack dialog is closed, navigate back to wallet.
+        if (context.mounted) {
+          widget.onSuccess.call();
+          if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+            Navigator.of(
+              context,
+            ).popUntil(ModalRoute.withName(routeOnSuccessName));
+          } else {
+            widget.onSuccessInsteadOfRouteOnSuccess!.call();
+          }
+        }
+      }
+    } catch (e, s) {
+      Logging.instance.e('Failed to create MWC slatepack: $e\n$s');
+
+      if (context.mounted) {
+        // Show user-friendly error message.
+        final errorMessage = e.toString().contains('insufficient funds')
+            ? 'Insufficient funds for this transaction'
+            : e.toString().contains('wallet not open')
+            ? 'Wallet not accessible. Please restart the app.'
+            : 'Failed to create slatepack: ${e.toString()}';
+
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Slatepack Creation Failed'),
+            content: Text('Failed to create slatepack: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -155,7 +241,30 @@ class _ConfirmTransactionViewState
               break;
           }
         } else {
-          if (coin is Epiccash) {
+          if (coin is Mimblewimblecoin) {
+            // Check if this is a slatepack transaction (manual exchange).
+            final otherDataMap = widget.txData.otherData != null
+                ? jsonDecode(widget.txData.otherData!)
+                : null;
+            final transactionMethod =
+                otherDataMap?['transactionMethod'] as String?;
+
+            if (transactionMethod == 'slatepack') {
+              // Handle slatepack creation instead of direct send.
+              await _handleMwcSlatepackCreation(
+                context,
+                wallet as MimblewimblecoinWallet,
+              );
+              return; // Exit early, don't continue with normal transaction flow.
+            } else {
+              // Handle MWCMQS or HTTP transactions normally.
+              txDataFuture = wallet.confirmSend(
+                txData: widget.txData.copyWith(
+                  noteOnChain: onChainNoteController.text,
+                ),
+              );
+            }
+          } else if (coin is Epiccash) {
             txDataFuture = wallet.confirmSend(
               txData: widget.txData.copyWith(
                 noteOnChain: onChainNoteController.text,
@@ -209,7 +318,7 @@ class _ConfirmTransactionViewState
           widget.onSuccessInsteadOfRouteOnSuccess!.call();
         }
       }
-    } on BadEpicHttpAddressException catch (_) {
+    } on BadHttpAddressException catch (_) {
       if (context.mounted) {
         // pop building dialog
         Navigator.of(context).pop();
@@ -282,10 +391,9 @@ class _ConfirmTransactionViewState
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -380,81 +488,76 @@ class _ConfirmTransactionViewState
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    // if (FocusScope.of(context).hasFocus) {
-                    //   FocusScope.of(context).unfocus();
-                    //   await Future<void>.delayed(Duration(milliseconds: 50));
-                    // }
-                    Navigator.of(context).pop();
-                  },
-                ),
-                title: Text(
-                  "Confirm transaction",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (builderContext, constraints) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        top: 12,
-                        right: 12,
-                      ),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 24,
-                          ),
-                          child: IntrinsicHeight(
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: child,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                // if (FocusScope.of(context).hasFocus) {
+                //   FocusScope.of(context).unfocus();
+                //   await Future<void>.delayed(Duration(milliseconds: 50));
+                // }
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Confirm transaction",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (builderContext, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: ConditionalParent(
         condition: isDesktop,
-        builder:
-            (child) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
+        builder: (child) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    AppBarBackButton(
-                      size: 40,
-                      iconSize: 24,
-                      onPressed:
-                          () =>
-                              Navigator.of(context, rootNavigator: true).pop(),
-                    ),
-                    Text(
-                      "Confirm $unit transaction",
-                      style: STextStyles.desktopH3(context),
-                    ),
-                  ],
+                AppBarBackButton(
+                  size: 40,
+                  iconSize: 24,
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(),
                 ),
-                Flexible(child: SingleChildScrollView(child: child)),
+                Text(
+                  "Confirm $unit transaction",
+                  style: STextStyles.desktopH3(context),
+                ),
               ],
             ),
+            Flexible(child: SingleChildScrollView(child: child)),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
@@ -480,7 +583,11 @@ class _ConfirmTransactionViewState
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
                               : widget.txData.recipients?.first.address ??
-                                  widget.txData.sparkRecipients!.first.address,
+                                    widget
+                                        .txData
+                                        .sparkRecipients!
+                                        .first
+                                        .address,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
@@ -497,12 +604,11 @@ class _ConfirmTransactionViewState
                               .watch(pAmountFormatter(coin))
                               .format(
                                 amountWithoutChange,
-                                ethContract:
-                                    widget.isTokenTx
-                                        ? ref
-                                            .watch(pCurrentTokenWallet)!
-                                            .tokenContract
-                                        : null,
+                                ethContract: widget.isTokenTx
+                                    ? ref
+                                          .watch(pCurrentTokenWallet)!
+                                          .tokenContract
+                                    : null,
                               ),
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
@@ -562,9 +668,11 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if (coin is Epiccash && widget.txData.noteOnChain!.isNotEmpty)
+                  if ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                      widget.txData.noteOnChain!.isNotEmpty)
                     const SizedBox(height: 12),
-                  if (coin is Epiccash && widget.txData.noteOnChain!.isNotEmpty)
+                  if ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                      widget.txData.noteOnChain!.isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -589,7 +697,9 @@ class _ConfirmTransactionViewState
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            (coin is Epiccash) ? "Local Note" : "Note",
+                            (coin is Epiccash || coin is Mimblewimblecoin)
+                                ? "Local Note"
+                                : "Note",
                             style: STextStyles.smallMed12(context),
                           ),
                           const SizedBox(height: 4),
@@ -612,18 +722,18 @@ class _ConfirmTransactionViewState
                 ),
                 child: RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
-                  borderColor:
-                      Theme.of(context).extension<StackColors>()!.background,
+                  borderColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.background,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(
                               Constants.size.circularBorderRadius,
@@ -683,37 +793,35 @@ class _ConfirmTransactionViewState
                                 String fiatAmount = "N/A";
 
                                 if (externalCalls) {
-                                  final price =
-                                      widget.isTokenTx
-                                          ? ref
-                                              .read(
-                                                priceAnd24hChangeNotifierProvider,
-                                              )
-                                              .getTokenPrice(
-                                                ref
-                                                    .read(pCurrentTokenWallet)!
-                                                    .tokenContract
-                                                    .address,
-                                              )
-                                              ?.value
-                                          : ref
-                                              .read(
-                                                priceAnd24hChangeNotifierProvider,
-                                              )
-                                              .getPrice(coin)
-                                              ?.value;
-                                  if (price != null && price > Decimal.zero) {
-                                    fiatAmount = (amountWithoutChange.decimal *
-                                            price)
-                                        .toAmount(fractionDigits: 2)
-                                        .fiatString(
-                                          locale:
+                                  final price = widget.isTokenTx
+                                      ? ref
+                                            .read(
+                                              priceAnd24hChangeNotifierProvider,
+                                            )
+                                            .getTokenPrice(
                                               ref
+                                                  .read(pCurrentTokenWallet)!
+                                                  .tokenContract
+                                                  .address,
+                                            )
+                                            ?.value
+                                      : ref
+                                            .read(
+                                              priceAnd24hChangeNotifierProvider,
+                                            )
+                                            .getPrice(coin)
+                                            ?.value;
+                                  if (price != null && price > Decimal.zero) {
+                                    fiatAmount =
+                                        (amountWithoutChange.decimal * price)
+                                            .toAmount(fractionDigits: 2)
+                                            .fiatString(
+                                              locale: ref
                                                   .read(
                                                     localeServiceChangeNotifierProvider,
                                                   )
                                                   .locale,
-                                        );
+                                            );
                                   }
                                 }
 
@@ -724,23 +832,21 @@ class _ConfirmTransactionViewState
                                           .watch(pAmountFormatter(coin))
                                           .format(
                                             amountWithoutChange,
-                                            ethContract:
-                                                widget.isTokenTx
-                                                    ? ref
-                                                        .watch(
-                                                          pCurrentTokenWallet,
-                                                        )!
-                                                        .tokenContract
-                                                    : null,
+                                            ethContract: widget.isTokenTx
+                                                ? ref
+                                                      .watch(
+                                                        pCurrentTokenWallet,
+                                                      )!
+                                                      .tokenContract
+                                                : null,
                                           ),
                                       style:
                                           STextStyles.desktopTextExtraExtraSmall(
                                             context,
                                           ).copyWith(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
                                           ),
                                     ),
                                     if (externalCalls)
@@ -768,10 +874,9 @@ class _ConfirmTransactionViewState
                       ),
                       Container(
                         height: 1,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.background,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -793,19 +898,19 @@ class _ConfirmTransactionViewState
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
                                   : widget.txData.recipients?.first.address ??
-                                      widget
-                                          .txData
-                                          .sparkRecipients!
-                                          .first
-                                          .address,
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color:
-                                    Theme.of(
+                                        widget
+                                            .txData
+                                            .sparkRecipients!
+                                            .first
+                                            .address,
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
                                       context,
                                     ).extension<StackColors>()!.textDark,
-                              ),
+                                  ),
                             ),
                           ],
                         ),
@@ -813,10 +918,9 @@ class _ConfirmTransactionViewState
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                         ),
                       if (widget.isPaynymTransaction)
                         Padding(
@@ -834,14 +938,14 @@ class _ConfirmTransactionViewState
                               const SizedBox(height: 2),
                               SelectableText(
                                 ref.watch(pAmountFormatter(coin)).format(fee!),
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).extension<StackColors>()!.textDark,
-                                ),
+                                    ),
                               ),
                             ],
                           ),
@@ -849,10 +953,9 @@ class _ConfirmTransactionViewState
                       if (coin is Ethereum)
                         Container(
                           height: 1,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                         ),
                       if (coin is Ethereum)
                         Padding(
@@ -870,14 +973,14 @@ class _ConfirmTransactionViewState
                               const SizedBox(height: 2),
                               SelectableText(
                                 widget.txData.nonce.toString(),
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
                                         context,
                                       ).extension<StackColors>()!.textDark,
-                                ),
+                                    ),
                               ),
                             ],
                           ),
@@ -926,14 +1029,15 @@ class _ConfirmTransactionViewState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (coin is Epiccash)
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
                       Text(
                         "On chain Note (optional)",
                         style: STextStyles.smallMed12(context),
                         textAlign: TextAlign.left,
                       ),
-                    if (coin is Epiccash) const SizedBox(height: 8),
-                    if (coin is Epiccash)
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
+                      const SizedBox(height: 8),
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -946,48 +1050,50 @@ class _ConfirmTransactionViewState
                           focusNode: _onChainNoteFocusNode,
                           style: STextStyles.field(context),
                           onChanged: (_) => setState(() {}),
-                          decoration: standardInputDecoration(
-                            "Type something...",
-                            _onChainNoteFocusNode,
-                            context,
-                          ).copyWith(
-                            suffixIcon:
-                                onChainNoteController.text.isNotEmpty
+                          decoration:
+                              standardInputDecoration(
+                                "Type something...",
+                                _onChainNoteFocusNode,
+                                context,
+                              ).copyWith(
+                                suffixIcon:
+                                    onChainNoteController.text.isNotEmpty
                                     ? Padding(
-                                      padding: const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(),
-                                              onTap: () async {
-                                                setState(() {
-                                                  onChainNoteController.text =
-                                                      "";
-                                                });
-                                              },
-                                            ),
-                                          ],
+                                        padding: const EdgeInsets.only(
+                                          right: 0,
                                         ),
-                                      ),
-                                    )
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    onChainNoteController.text =
+                                                        "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
                                     : null,
-                          ),
+                              ),
                         ),
                       ),
-                    if (coin is Epiccash) const SizedBox(height: 12),
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
+                      const SizedBox(height: 12),
                     SelectableText(
-                      (coin is Epiccash)
+                      (coin is Epiccash || coin is Mimblewimblecoin)
                           ? "Local Note (optional)"
                           : "Note (optional)",
-                      style: STextStyles.desktopTextExtraSmall(
-                        context,
-                      ).copyWith(
-                        color:
-                            Theme.of(context)
+                      style: STextStyles.desktopTextExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textFieldActiveSearchIconRight,
-                      ),
+                          ),
                       textAlign: TextAlign.left,
                     ),
                     const SizedBox(height: 10),
@@ -1002,49 +1108,48 @@ class _ConfirmTransactionViewState
                         enableSuggestions: isDesktop ? false : true,
                         controller: noteController,
                         focusNode: _noteFocusNode,
-                        style: STextStyles.desktopTextExtraSmall(
-                          context,
-                        ).copyWith(
-                          color:
-                              Theme.of(
+                        style: STextStyles.desktopTextExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(
                                 context,
                               ).extension<StackColors>()!.textFieldActiveText,
-                          height: 1.8,
-                        ),
+                              height: 1.8,
+                            ),
                         onChanged: (_) => setState(() {}),
-                        decoration: standardInputDecoration(
-                          "Type something...",
-                          _noteFocusNode,
-                          context,
-                          desktopMed: true,
-                        ).copyWith(
-                          contentPadding: const EdgeInsets.only(
-                            left: 16,
-                            top: 11,
-                            bottom: 12,
-                            right: 5,
-                          ),
-                          suffixIcon:
-                              noteController.text.isNotEmpty
+                        decoration:
+                            standardInputDecoration(
+                              "Type something...",
+                              _noteFocusNode,
+                              context,
+                              desktopMed: true,
+                            ).copyWith(
+                              contentPadding: const EdgeInsets.only(
+                                left: 16,
+                                top: 11,
+                                bottom: 12,
+                                right: 5,
+                              ),
+                              suffixIcon: noteController.text.isNotEmpty
                                   ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(
-                                                () => noteController.text = "",
-                                              );
-                                            },
-                                          ),
-                                        ],
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(
+                                                  () =>
+                                                      noteController.text = "",
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
+                                    )
                                   : null,
-                        ),
+                            ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -1067,10 +1172,9 @@ class _ConfirmTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   child: SelectableText(
                     ref.watch(pAmountFormatter(coin)).format(fee!),
                     style: STextStyles.itemSubtitle(context),
@@ -1099,10 +1203,9 @@ class _ConfirmTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   child: SelectableText(
                     "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
@@ -1113,64 +1216,52 @@ class _ConfirmTransactionViewState
             SizedBox(height: isDesktop ? 23 : 12),
             if (!widget.isTokenTx)
               Padding(
-                padding:
-                    isDesktop
-                        ? const EdgeInsets.symmetric(horizontal: 32)
-                        : const EdgeInsets.all(0),
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32)
+                    : const EdgeInsets.all(0),
                 child: RoundedContainer(
-                  padding:
-                      isDesktop
-                          ? const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 18,
-                          )
-                          : const EdgeInsets.all(12),
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.snackBarBackSuccess,
+                  padding: isDesktop
+                      ? const EdgeInsets.symmetric(horizontal: 16, vertical: 18)
+                      : const EdgeInsets.all(12),
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.snackBarBackSuccess,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         isDesktop ? "Total amount to send" : "Total amount",
-                        style:
-                            isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textConfirmTotalAmount,
-                                )
-                                : STextStyles.titleBold12(context).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textConfirmTotalAmount,
-                                ),
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              )
+                            : STextStyles.titleBold12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              ),
                       ),
                       SelectableText(
                         ref
                             .watch(pAmountFormatter(coin))
                             .format(amountWithoutChange + fee!),
-                        style:
-                            isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textConfirmTotalAmount,
-                                )
-                                : STextStyles.itemSubtitle12(context).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textConfirmTotalAmount,
-                                ),
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              )
+                            : STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              ),
                         textAlign: TextAlign.right,
                       ),
                     ],
@@ -1179,10 +1270,9 @@ class _ConfirmTransactionViewState
               ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
-              padding:
-                  isDesktop
-                      ? const EdgeInsets.symmetric(horizontal: 32)
-                      : const EdgeInsets.all(0),
+              padding: isDesktop
+                  ? const EdgeInsets.symmetric(horizontal: 32)
+                  : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
@@ -1190,28 +1280,27 @@ class _ConfirmTransactionViewState
                   if (isDesktop) {
                     final unlocked = await showDialog<bool?>(
                       context: context,
-                      builder:
-                          (context) => DesktopDialog(
-                            maxWidth: 580,
-                            maxHeight: double.infinity,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [DesktopDialogCloseButton()],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 32,
-                                    right: 32,
-                                    bottom: 32,
-                                  ),
-                                  child: DesktopAuthSend(coin: coin),
-                                ),
-                              ],
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 580,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [DesktopDialogCloseButton()],
                             ),
-                          ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: DesktopAuthSend(coin: coin),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                     if (context.mounted && unlocked is bool) {
                       if (unlocked) {
@@ -1232,18 +1321,16 @@ class _ConfirmTransactionViewState
                       RouteGenerator.getRoute(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
-                        builder:
-                            (_) => const LockscreenView(
-                              showBackButton: true,
-                              popOnSuccess: true,
-                              routeOnSuccessArguments: true,
-                              routeOnSuccess: "",
-                              biometricsCancelButtonString: "CANCEL",
-                              biometricsLocalizedReason:
-                                  "Authenticate to send transaction",
-                              biometricsAuthenticationTitle:
-                                  "Confirm Transaction",
-                            ),
+                        builder: (_) => const LockscreenView(
+                          showBackButton: true,
+                          popOnSuccess: true,
+                          routeOnSuccessArguments: true,
+                          routeOnSuccess: "",
+                          biometricsCancelButtonString: "CANCEL",
+                          biometricsLocalizedReason:
+                              "Authenticate to send transaction",
+                          biometricsAuthenticationTitle: "Confirm Transaction",
+                        ),
                         settings: const RouteSettings(
                           name: "/confirmsendlockscreen",
                         ),
@@ -1257,10 +1344,9 @@ class _ConfirmTransactionViewState
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
-                            message:
-                                Util.isDesktop
-                                    ? "Invalid passphrase"
-                                    : "Invalid PIN",
+                            message: Util.isDesktop
+                                ? "Invalid passphrase"
+                                : "Invalid PIN",
                             context: context,
                           ),
                         );

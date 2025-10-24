@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:nanodart/nanodart.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../external_api_keys.dart';
 import '../../../models/balance.dart';
@@ -53,8 +54,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
           url: Uri.parse(_kWorkServer), // this should be a
           headers: _buildHeaders(_kWorkServer),
           body: json.encode({"action": "work_generate", "hash": hash}),
-          proxyInfo:
-              prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+          proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null,
         )
         .then((_httpClient) {
           if (_httpClient.code == 200) {
@@ -119,7 +121,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       url: Uri.parse(node.host),
       headers: _buildHeaders(node.host),
       body: infoBody,
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+      proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 
@@ -138,7 +142,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       url: Uri.parse(node.host),
       headers: _buildHeaders(node.host),
       body: balanceBody,
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+      proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     final balanceData = jsonDecode(balanceResponse.body);
@@ -168,10 +174,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     final Map<String, String> receiveBlock = {
       "type": "state",
       "account": publicAddress,
-      "previous":
-          openBlock
-              ? "0000000000000000000000000000000000000000000000000000000000000000"
-              : frontier,
+      "previous": openBlock
+          ? "0000000000000000000000000000000000000000000000000000000000000000"
+          : frontier,
       "representative": representative,
       "balance": balanceAfterTx.toString(),
       "link": link,
@@ -216,7 +221,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       url: Uri.parse(node.host),
       headers: _buildHeaders(node.host),
       body: processBody,
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+      proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     final Map<String, dynamic> decoded =
@@ -237,7 +244,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         "source": "true",
         "account": accountAddress,
       }),
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+      proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     final receivableData = await jsonDecode(receivableResponse.body);
@@ -369,7 +378,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       url: uri,
       headers: _buildHeaders(node.host),
       body: jsonEncode({"action": "version"}),
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+      proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     return response.code == 200;
@@ -419,14 +430,17 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         url: Uri.parse(node.host),
         headers: _buildHeaders(node.host),
         body: infoBody,
-        proxyInfo:
-            prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      final String frontier =
-          jsonDecode(infoResponse.body)["frontier"].toString();
-      final String representative =
-          jsonDecode(infoResponse.body)["representative"].toString();
+      final String frontier = jsonDecode(
+        infoResponse.body,
+      )["frontier"].toString();
+      final String representative = jsonDecode(
+        infoResponse.body,
+      )["representative"].toString();
       // link = destination address:
       final String linkAsAccount = txData.recipients!.first.address;
       final String link = NanoAccounts.extractPublicKey(linkAsAccount);
@@ -473,8 +487,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         url: Uri.parse(node.host),
         headers: _buildHeaders(node.host),
         body: processBody,
-        proxyInfo:
-            prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final Map<String, dynamic> decoded =
@@ -533,7 +548,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       url: Uri.parse(node.host),
       headers: _buildHeaders(node.host),
       body: jsonEncode(body),
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+      proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     // this should really have proper type checking and error propagation but I'm out of time
@@ -566,10 +583,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
     final data = await _fetchAll(publicAddress, null, null);
 
-    final transactions =
-        data["history"] is List
-            ? data["history"] as List<dynamic>
-            : <dynamic>[];
+    final transactions = data["history"] is List
+        ? data["history"] as List<dynamic>
+        : <dynamic>[];
     if (transactions.isEmpty) {
       return;
     } else {
@@ -607,18 +623,17 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
           numberOfMessages: null,
         );
 
-        final Address address =
-            transactionType == TransactionType.incoming
-                ? receivingAddress
-                : Address(
-                  walletId: walletId,
-                  publicKey: [],
-                  value: tx["account"].toString(),
-                  derivationIndex: 0,
-                  derivationPath: null,
-                  type: info.mainAddressType,
-                  subType: AddressSubType.nonWallet,
-                );
+        final Address address = transactionType == TransactionType.incoming
+            ? receivingAddress
+            : Address(
+                walletId: walletId,
+                publicKey: [],
+                value: tx["account"].toString(),
+                derivationIndex: 0,
+                derivationPath: null,
+                type: info.mainAddressType,
+                subType: AddressSubType.nonWallet,
+              );
         final Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
         transactionList.add(tuple);
       }
@@ -643,15 +658,16 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         url: Uri.parse(node.host),
         headers: _buildHeaders(node.host),
         body: body,
-        proxyInfo:
-            prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       final data = jsonDecode(response.body);
       final balance = Balance(
         total: Amount(
           rawValue:
               (BigInt.parse(data["balance"].toString()) +
-                  BigInt.parse(data["receivable"].toString())),
+              BigInt.parse(data["receivable"].toString())),
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
         spendable: Amount(
@@ -695,8 +711,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         url: Uri.parse(node.host),
         headers: _buildHeaders(node.host),
         body: infoBody,
-        proxyInfo:
-            prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       final infoData = jsonDecode(infoResponse.body);
 

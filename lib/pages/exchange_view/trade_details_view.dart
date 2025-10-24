@@ -57,7 +57,7 @@ import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../wallet_view/transaction_views/edit_note_view.dart';
-import '../wallet_view/transaction_views/transaction_details_view.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart' as tdv;
 import 'edit_trade_note_view.dart';
 import 'send_from_view.dart';
 
@@ -518,7 +518,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                   ),
                                 ],
                               ),
-                              IconCopyButton(data: trade.payInAmount),
+                              tdv.IconCopyButton(data: trade.payInAmount),
                             ],
                           ),
                           const SizedBox(height: 6),
@@ -604,20 +604,20 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 maxHeight:
                                     MediaQuery.of(context).size.height - 64,
                                 maxWidth: 580,
-                                child: TransactionDetailsView(
+                                child: tdv.TransactionDetailsView(
                                   coin: coin,
                                   transaction: transactionIfSentFromStack!,
                                   walletId: walletId!,
                                 ),
                               ),
                               const RouteSettings(
-                                name: TransactionDetailsView.routeName,
+                                name: tdv.TransactionDetailsView.routeName,
                               ),
                             ),
                           );
                         } else {
                           Navigator.of(context).pushNamed(
-                            TransactionDetailsView.routeName,
+                            tdv.TransactionDetailsView.routeName,
                             arguments: Tuple3(
                               transactionIfSentFromStack!,
                               coin,
@@ -664,7 +664,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         ],
                       ),
                     ),
-                    if (isDesktop) IconCopyButton(data: trade.payInAddress),
+                    if (isDesktop) tdv.IconCopyButton(data: trade.payInAddress),
                   ],
                 ),
               ),
@@ -687,7 +687,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           style: STextStyles.itemSubtitle(context),
                         ),
                         isDesktop
-                            ? IconCopyButton(data: trade.payInAddress)
+                            ? tdv.IconCopyButton(data: trade.payInAddress)
                             : GestureDetector(
                               onTap: () async {
                                 final address = trade.payInAddress;
@@ -840,7 +840,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       children: [
                         Text("Memo", style: STextStyles.itemSubtitle(context)),
                         isDesktop
-                            ? IconCopyButton(data: trade.payInExtraId)
+                            ? tdv.IconCopyButton(data: trade.payInExtraId)
                             : GestureDetector(
                               onTap: () async {
                                 final address = trade.payInExtraId;
@@ -904,7 +904,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         style: STextStyles.itemSubtitle(context),
                       ),
                       isDesktop
-                          ? IconPencilButton(
+                          ? tdv.IconPencilButton(
                             onPressed: () {
                               showDialog<void>(
                                 context: context,
@@ -984,7 +984,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           style: STextStyles.itemSubtitle(context),
                         ),
                         isDesktop
-                            ? IconPencilButton(
+                            ? tdv.IconPencilButton(
                               onPressed: () {
                                 showDialog<void>(
                                   context: context,
@@ -1088,7 +1088,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       style: STextStyles.itemSubtitle12(context),
                     ),
                   if (isDesktop)
-                    IconCopyButton(
+                    tdv.IconCopyButton(
                       data: Format.extractDateFrom(
                         trade.timestamp.millisecondsSinceEpoch ~/ 1000,
                       ),
@@ -1121,7 +1121,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         ),
                     ],
                   ),
-                  if (isDesktop) IconCopyButton(data: trade.exchangeName),
+                  if (isDesktop) tdv.IconCopyButton(data: trade.exchangeName),
                   if (!isDesktop)
                     SelectableText(
                       trade.exchangeName,
@@ -1155,7 +1155,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         ),
                     ],
                   ),
-                  if (isDesktop) IconCopyButton(data: trade.tradeId),
+                  if (isDesktop) tdv.IconCopyButton(data: trade.tradeId),
                   if (!isDesktop)
                     Row(
                       children: [

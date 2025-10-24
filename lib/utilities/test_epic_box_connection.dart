@@ -10,6 +10,7 @@
 
 import 'dart:convert';
 
+import '../app_config.dart';
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../services/tor_service.dart';
@@ -24,7 +25,9 @@ Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
         .get(
           url: uri,
           headers: {'Content-Type': 'application/json'},
-          proxyInfo: Prefs.instance.useTor
+          proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+              ? null
+              : Prefs.instance.useTor
               ? TorService.sharedInstance.getProxyInfo()
               : null,
         )
@@ -41,7 +44,7 @@ Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
       return false;
     }
   } catch (e, s) {
-    Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
+    Logging.instance.w("$e\n$s", error: e, stackTrace: s);
     return false;
   }
 }
@@ -87,7 +90,7 @@ Future<NodeFormData?> testEpicNodeConnection(NodeFormData data) async {
       return null;
     }
   } catch (e, s) {
-    Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
+    Logging.instance.w("$e\n$s", error: e, stackTrace: s);
     return null;
   }
 }

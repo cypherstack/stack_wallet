@@ -3,7 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 
 import '../../../db/drift/database.dart';
@@ -276,7 +276,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         // hack check
         if (!(txData.type == TxType.mwebPegIn ||
-            (txData.type == TxType.mweb && overrideFeeAmount != null))) {
+            (txData.type.isMweb() && overrideFeeAmount != null))) {
           throw Exception(
             "Something happened that should never actually happen. "
             "Please report this error to the developers.",
@@ -405,6 +405,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           utxos: utxos,
           coinControl: coinControl,
           isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
+          overrideFeeAmount: overrideFeeAmount,
         );
       }
       throw Exception("Insufficient balance to pay transaction fee");
@@ -907,8 +908,23 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       // dirty shortcut for peercoin's weirdness
       vSize: this is PeercoinWallet ? clTx.size : clTx.vSize(),
       tempTx:
-          txData.type.isMweb()
+          txData.type == TxType.mwebPegIn
               ? null
+              : txData.type.isMweb()
+              ? TransactionV2(
+                walletId: walletId,
+                blockHash: null,
+                hash: clTx.hashHex,
+                txid: clTx.txid,
+                height: null,
+                timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+                inputs: List.unmodifiable(tempInputs),
+                outputs: List.unmodifiable(tempOutputs),
+                version: clTx.version,
+                type: TransactionType.outgoing,
+                subType: TransactionSubType.mweb,
+                otherData: null,
+              )
               : TransactionV2(
                 walletId: walletId,
                 blockHash: null,

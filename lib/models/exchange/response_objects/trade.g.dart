@@ -8,7 +8,7 @@ part of 'trade.dart';
 
 class TradeAdapter extends TypeAdapter<Trade> {
   @override
-  final int typeId = 22;
+  final typeId = 22;
 
   @override
   Trade read(BinaryReader reader) {

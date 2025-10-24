@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/ordinal.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -13,10 +13,7 @@ import '../../../widgets/rounded_white_container.dart';
 import 'ordinal_card.dart';
 
 class OrdinalsList extends ConsumerStatefulWidget {
-  const OrdinalsList({
-    super.key,
-    required this.walletId,
-  });
+  const OrdinalsList({super.key, required this.walletId});
 
   final String walletId;
 
@@ -33,23 +30,25 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
 
   @override
   void initState() {
-    _stream = ref
-        .read(mainDBProvider)
-        .isar
-        .ordinals
-        .where()
-        .filter()
-        .walletIdEqualTo(widget.walletId)
-        .watch();
+    _stream =
+        ref
+            .read(mainDBProvider)
+            .isar
+            .ordinals
+            .where()
+            .filter()
+            .walletIdEqualTo(widget.walletId)
+            .watch();
 
-    _data = ref
-        .read(mainDBProvider)
-        .isar
-        .ordinals
-        .where()
-        .filter()
-        .walletIdEqualTo(widget.walletId)
-        .findAllSync();
+    _data =
+        ref
+            .read(mainDBProvider)
+            .isar
+            .ordinals
+            .where()
+            .filter()
+            .walletIdEqualTo(widget.walletId)
+            .findAllSync();
 
     super.initState();
   }
@@ -71,13 +70,15 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
                 child: Center(
                   child: Text(
                     "Your ordinals will appear here",
-                    style: Util.isDesktop
-                        ? STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          )
-                        : STextStyles.label(context),
+                    style:
+                        Util.isDesktop
+                            ? STextStyles.w500_14(context).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                            )
+                            : STextStyles.label(context),
                   ),
                 ),
               ),
@@ -89,18 +90,19 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
           return Wrap(
             spacing: _spacing,
             runSpacing: _spacing,
-            children: _data
-                .map(
-                  (e) => SizedBox(
-                    width: 220,
-                    height: 270,
-                    child: OrdinalCard(
-                      walletId: widget.walletId,
-                      ordinal: e,
-                    ),
-                  ),
-                )
-                .toList(),
+            children:
+                _data
+                    .map(
+                      (e) => SizedBox(
+                        width: 220,
+                        height: 270,
+                        child: OrdinalCard(
+                          walletId: widget.walletId,
+                          ordinal: e,
+                        ),
+                      ),
+                    )
+                    .toList(),
           );
         } else {
           return GridView.builder(
@@ -112,10 +114,9 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
               crossAxisCount: Util.isDesktop ? 4 : 2,
               childAspectRatio: 6 / 7, // was 3/4, less data displayed now
             ),
-            itemBuilder: (_, i) => OrdinalCard(
-              walletId: widget.walletId,
-              ordinal: _data[i],
-            ),
+            itemBuilder:
+                (_, i) =>
+                    OrdinalCard(walletId: widget.walletId, ordinal: _data[i]),
           );
         }
       },

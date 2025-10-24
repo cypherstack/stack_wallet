@@ -32,7 +32,10 @@ class _OwnedSparkNameCardState extends ConsumerState<OwnedSparkNameCard> {
 
     final remaining = widget.name.validUntil - currentChainHeight;
 
-    if (remaining <= 0) {
+    if (widget.name.validUntil == -99999) {
+      color = theme.accentColorYellow;
+      message = "Pending";
+    } else if (remaining <= 0) {
       color = theme.accentColorRed;
       message = "Expired";
     } else {

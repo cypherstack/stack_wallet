@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../external_api_keys.dart';
 import '../../../networking/http.dart';
@@ -34,10 +35,11 @@ class NanswapAPI {
       final response = await _client.get(
         url: uri,
         headers: {'Accept': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       code = response.code;
@@ -66,10 +68,11 @@ class NanswapAPI {
           'Accept': 'application/json',
         },
         body: jsonEncode(body),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       code = response.code;
