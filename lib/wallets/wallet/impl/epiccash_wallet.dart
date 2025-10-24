@@ -397,8 +397,8 @@ class EpiccashWallet extends Bip39Wallet {
       }
 
       Logging.instance.d("_startScans successfully at the tip");
-      //Once scanner completes restart listener
-      await _listenToEpicbox();
+      // await _listenToEpicbox();
+      // Epicbox listener already started before scanning.
     } catch (e, s) {
       Logging.instance.e("_startScans failed: ", error: e, stackTrace: s);
       rethrow;
@@ -776,6 +776,21 @@ class EpiccashWallet extends Bip39Wallet {
       await _generateAndStoreReceivingAddressForIndex(curAdd);
 
       if (doScan) {
+        // Start epicbox listener first for instant transaction appearance.
+        await _listenToEpicbox();
+
+        // Immediately check for epicbox transactions without node dependency.
+        try {
+          await _updateTransactionsWithoutNodeRefresh();
+          await updateBalance(); // Update balance to show pending transactions.
+        } catch (e, s) {
+          Logging.instance.w(
+            "Initial epicbox transaction check failed",
+            error: e,
+            stackTrace: s,
+          );
+        }
+
         await _startScans();
 
         unawaited(_startSync());
@@ -891,6 +906,150 @@ class EpiccashWallet extends Bip39Wallet {
     } catch (e, s) {
       Logging.instance.w(
         "Epic cash wallet failed to update balance: ",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  /// Updates transactions without refreshing from node (for epicbox-only transactions).
+  Future<void> _updateTransactionsWithoutNodeRefresh() async {
+    try {
+      _hackedCheckTorNodePrefs();
+      final wallet = await secureStorageInterface.read(
+        key: '${walletId}_wallet',
+      );
+      const refreshFromNode =
+          0; // Don't refresh from node, use cached/epicbox data.
+
+      final myAddresses =
+          await mainDB
+              .getAddresses(walletId)
+              .filter()
+              .typeEqualTo(AddressType.mimbleWimble)
+              .and()
+              .subTypeEqualTo(AddressSubType.receiving)
+              .and()
+              .valueIsNotEmpty()
+              .valueProperty()
+              .findAll();
+      final myAddressesSet = myAddresses.toSet();
+
+      final transactions = await epiccash.LibEpiccash.getTransactions(
+        wallet: wallet!,
+        refreshFromNode: refreshFromNode,
+      );
+
+      final List<TransactionV2> txns = [];
+
+      final slatesToCommits = info.epicData?.slatesToCommits ?? {};
+
+      for (final tx in transactions) {
+        final isIncoming =
+            tx.txType == epic_models.TransactionType.TxReceived ||
+            tx.txType == epic_models.TransactionType.TxReceivedCancelled;
+        final slateId = tx.txSlateId;
+        final commitId = slatesToCommits[slateId]?['commitId'] as String?;
+        final numberOfMessages = tx.messages?.messages.length;
+        final onChainNote = tx.messages?.messages[0].message;
+        final addressFrom = slatesToCommits[slateId]?["from"] as String?;
+        final addressTo = slatesToCommits[slateId]?["to"] as String?;
+
+        final credit = int.parse(tx.amountCredited);
+        final debit = int.parse(tx.amountDebited);
+        final fee = int.tryParse(tx.fee ?? "0") ?? 0;
+
+        // Hack EPIC tx data into inputs and outputs.
+        final List<OutputV2> outputs = [];
+        final List<InputV2> inputs = [];
+        final addressFromIsMine = myAddressesSet.contains(addressFrom);
+        final addressToIsMine = myAddressesSet.contains(addressTo);
+
+        OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: "00",
+          valueStringSats: credit.toString(),
+          addresses: [if (addressFrom != null) addressFrom],
+          walletOwns: true,
+        );
+        final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptSigHex: null,
+          scriptSigAsm: null,
+          sequence: null,
+          outpoint: null,
+          addresses: [if (addressTo != null) addressTo],
+          valueStringSats: debit.toString(),
+          witness: null,
+          innerRedeemScriptAsm: null,
+          coinbase: null,
+          walletOwns: true,
+        );
+
+        final TransactionType txType;
+        if (isIncoming) {
+          if (addressToIsMine && addressFromIsMine) {
+            txType = TransactionType.sentToSelf;
+          } else {
+            txType = TransactionType.incoming;
+          }
+          output = output.copyWith(
+            addresses: [
+              myAddressesSet
+                  .first, // Must be changed if we ever do more than a single wallet address!!!
+            ],
+            walletOwns: true,
+          );
+        } else {
+          txType = TransactionType.outgoing;
+        }
+
+        outputs.add(output);
+        inputs.add(input);
+
+        final otherData = {
+          "isEpiccashTransaction": true,
+          "numberOfMessages": numberOfMessages,
+          "slateId": slateId,
+          "onChainNote": onChainNote,
+          "isCancelled":
+              tx.txType == epic_models.TransactionType.TxSentCancelled ||
+              tx.txType == epic_models.TransactionType.TxReceivedCancelled,
+          "overrideFee":
+              Amount(
+                rawValue: BigInt.from(fee),
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ).toJsonString(),
+        };
+
+        final txn = TransactionV2(
+          walletId: walletId,
+          blockHash: null,
+          hash: commitId ?? tx.id.toString(),
+          txid: commitId ?? tx.id.toString(),
+          timestamp:
+              DateTime.parse(tx.creationTs).millisecondsSinceEpoch ~/ 1000,
+          height: tx.confirmed ? tx.kernelLookupMinHeight ?? 1 : null,
+          inputs: List.unmodifiable(inputs),
+          outputs: List.unmodifiable(outputs),
+          version: 0,
+          type: txType,
+          subType: TransactionSubType.none,
+          otherData: jsonEncode(otherData),
+        );
+
+        txns.add(txn);
+      }
+
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll();
+        await mainDB.isar.transactionV2s.putAll(txns);
+      });
+    } catch (e, s) {
+      Logging.instance.e(
+        "${cryptoCurrency.runtimeType} ${cryptoCurrency.network} net wallet"
+        " \"${info.name}\"_${info.walletId} _updateTransactionsWithoutNodeRefresh() failed",
         error: e,
         stackTrace: s,
       );
