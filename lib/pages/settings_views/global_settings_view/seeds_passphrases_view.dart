@@ -9,20 +9,87 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../notifications/show_flush_bar.dart';
+import '../../../services/wallets.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/rounded_white_container.dart';
 
-class SeedsPassphrasesView extends ConsumerWidget {
+class SeedsPassphrasesView extends ConsumerStatefulWidget {
   const SeedsPassphrasesView({super.key});
 
   static const String routeName = "/seedsPassphrases";
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SeedsPassphrasesView> createState() =>
+      _SeedsPassphrasesViewState();
+}
+
+class _SeedsPassphrasesViewState extends ConsumerState<SeedsPassphrasesView> {
+  final List<WalletData> _walletData = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWalletData();
+  }
+
+  Future<void> _loadWalletData() async {
+    final wallets = Wallets.sharedInstance.wallets;
+    final List<WalletData> data = [];
+
+    for (final wallet in wallets) {
+      String? mnemonic;
+      String? passphrase;
+
+      if (wallet is MnemonicInterface) {
+        try {
+          mnemonic = await wallet.getMnemonic();
+          passphrase = await wallet.getMnemonicPassphrase();
+        } catch (e) {
+          // Handle error - mnemonic might not be available.
+          mnemonic = "Error loading mnemonic";
+          passphrase = "";
+        }
+      }
+
+      data.add(
+        WalletData(
+          name: wallet.info.name,
+          coinName: wallet.info.coin.prettyName,
+          mnemonic: mnemonic,
+          passphrase: passphrase,
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _walletData.clear();
+        _walletData.addAll(data);
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _copyToClipboard(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    showFloatingFlushBar(
+      type: FlushBarType.info,
+      message: "$label copied to clipboard",
+      context: context,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -40,28 +107,151 @@ class SeedsPassphrasesView extends ConsumerWidget {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: const IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Empty for now - content will be added later
-                        ],
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _walletData.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No wallets found",
+                          style: STextStyles.label(context),
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: _walletData.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final wallet = _walletData[index];
+                          return RoundedWhiteContainer(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Wallet name and coin.
+                                Text(
+                                  wallet.name,
+                                  style: STextStyles.titleBold12(context),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  wallet.coinName,
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Mnemonic section.
+                                if (wallet.mnemonic != null) ...[
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Mnemonic/Seed",
+                                        style: STextStyles.titleBold12(context),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () => _copyToClipboard(
+                                          wallet.mnemonic!,
+                                          "Mnemonic",
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          child: Text(
+                                            "Copy",
+                                            style: STextStyles.link2(context),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SelectableText(
+                                    wallet.mnemonic!,
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  // Passphrase section.
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "BIP39 Passphrase",
+                                        style: STextStyles.titleBold12(context),
+                                      ),
+                                      if (wallet.passphrase != null &&
+                                          wallet.passphrase!.isNotEmpty)
+                                        GestureDetector(
+                                          onTap: () => _copyToClipboard(
+                                            wallet.passphrase!,
+                                            "Passphrase",
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            child: Text(
+                                              "Copy",
+                                              style: STextStyles.link2(context),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SelectableText(
+                                    wallet.passphrase != null &&
+                                            wallet.passphrase!.isNotEmpty
+                                        ? wallet.passphrase!
+                                        : "(none)",
+                                    style: STextStyles.itemSubtitle(context)
+                                        .copyWith(
+                                      fontStyle: wallet.passphrase == null ||
+                                              wallet.passphrase!.isEmpty
+                                          ? FontStyle.italic
+                                          : FontStyle.normal,
+                                    ),
+                                  ),
+                                ] else ...[
+                                  Text(
+                                    "No mnemonic available",
+                                    style: STextStyles.itemSubtitle(context)
+                                        .copyWith(
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "This wallet may be view-only or use a different key type",
+                                    style: STextStyles.infoSmall(context),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
           ),
         ),
       ),
     );
   }
+}
+
+class WalletData {
+  final String name;
+  final String coinName;
+  final String? mnemonic;
+  final String? passphrase;
+
+  WalletData({
+    required this.name,
+    required this.coinName,
+    this.mnemonic,
+    this.passphrase,
+  });
 }
