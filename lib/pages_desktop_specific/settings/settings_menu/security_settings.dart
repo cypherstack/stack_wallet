@@ -17,6 +17,7 @@ import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../app_config.dart';
 import '../../../notifications/show_flush_bar.dart';
+import '../../../pages/settings_views/global_settings_view/seeds_passphrases_view.dart';
 import '../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -604,6 +605,54 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                             ),
                           );
                         },
+                      ),
+
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Divider(thickness: 0.5),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Show all seeds and passphrases",
+                                    style: STextStyles.desktopTextExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  Text(
+                                    "View recovery phrases and BIP39 passphrases for all wallets",
+                                    style: STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            PrimaryButton(
+                              buttonHeight: ButtonHeight.xs,
+                              label: "View",
+                              width: 101,
+                              onPressed: () async {
+                                await Navigator.of(context).pushNamed(
+                                  SeedsPassphrasesView.routeName,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
