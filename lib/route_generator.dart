@@ -100,6 +100,7 @@ import 'pages/send_view/send_view.dart';
 import 'pages/send_view/token_send_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
+import 'pages/settings_views/global_settings_view/seeds_passphrases_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/logging_settings_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
@@ -1040,6 +1041,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AboutView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case SeedsPassphrasesView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SeedsPassphrasesView(),
           settings: RouteSettings(name: settings.name),
         );
 

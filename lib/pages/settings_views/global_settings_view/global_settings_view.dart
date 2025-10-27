@@ -26,6 +26,7 @@ import '../sub_widgets/settings_list_button.dart';
 import 'about_view.dart';
 import 'advanced_views/advanced_settings_view.dart';
 import 'appearance_settings/appearance_settings_view.dart';
+import 'seeds_passphrases_view.dart';
 import 'currency_view.dart';
 import 'delete_account_view.dart';
 import 'language_view.dart';
@@ -127,6 +128,17 @@ class GlobalSettingsView extends StatelessWidget {
                                       Navigator.of(
                                         context,
                                       ).pushNamed(SecurityView.routeName);
+                                    },
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.keys,
+                                    iconSize: 16,
+                                    title: "Show all seeds and passphrases",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        SeedsPassphrasesView.routeName,
+                                      );
                                     },
                                   ),
                                   const SizedBox(height: 8),
