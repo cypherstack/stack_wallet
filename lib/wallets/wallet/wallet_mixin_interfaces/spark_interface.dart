@@ -11,6 +11,7 @@ import 'package:logger/logger.dart';
 import '../../../db/drift/database.dart' show Drift;
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
+import '../../../models/electrumx_response/spark_models.dart';
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -33,6 +34,7 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
 import 'electrumx_interface.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 
 const kDefaultSparkIndex = 1;
 
@@ -103,22 +105,148 @@ Future<R> computeWithLibSparkLogging<M, R>(
   return _SparkIsolate.run(callback, message);
 }
 
-mixin SparkInterface<T extends ElectrumXCurrencyInterface>
-    on Bip39HDWallet<T>, ElectrumXInterface<T> {
-  String? _sparkChangeAddressCached;
 
-  /// Spark change address. Should generally not be exposed to end users.
-  String get sparkChangeAddress {
-    if (_sparkChangeAddressCached == null) {
-      throw Exception("_sparkChangeAddressCached was not initialized");
-    }
-    return _sparkChangeAddressCached!;
+mixin SparkInterface<T extends ElectrumXCurrencyInterface> on Bip39HDWallet<T>, ElectrumXInterface<T> {
+  late Address _currentSparkAddress;
+
+  late String viewKeyHex;
+
+  // Really we should just send change back to the same address.
+  late Address sparkChangeAddress;
+
+  bool get isTestNet {
+    return cryptoCurrency.network.isTestNet;
   }
 
-  static bool validateSparkAddress({
-    required String address,
-    required bool isTestNet,
-  }) => libSpark.validateAddress(address: address, isTestNet: isTestNet);
+  // This is the BIP44 derivation path for the spark private key; spark public keys will have their own derivation path.
+  String get sparkDerivationPath {
+    // NOTE: This is reusing the sparkIndex for backwards compatibility, but these are actually distinct things which do
+    // not have to be the same. sparkIndex has nothing at all to do with the derivation path.
+    if (isTestNet) {
+      return "${libSpark.sparkBaseDerivationPathTestnet}$kDefaultSparkIndex";
+    } else {
+      return "${libSpark.sparkBaseDerivationPath}$kDefaultSparkIndex";
+    }
+  }
+
+  // This is the index for the spark key, which is NOT the diversifier or the BIP44 derivation path (which generates the
+  // private key data).
+  int get sparkIndex => kDefaultSparkIndex;
+
+  Future<Address> generateSparkAddress(int diversifier) async {
+    final sparkAddress = await libSpark.getAddressFromFullViewKey(
+      fullViewKeyHex: viewKeyHex,
+      index: sparkIndex,
+      diversifier: diversifier,
+      isTestNet: isTestNet,
+    );
+
+    return Address(
+      walletId: walletId,
+      value: sparkAddress,
+      publicKey: [],
+      derivationIndex: diversifier,
+      derivationPath: DerivationPath()..value = sparkDerivationPath,
+      type: AddressType.spark,
+      subType: AddressSubType.receiving,
+    );
+  }
+
+  static bool validateSparkAddress({required String address, required bool isTestNet}) {
+    return libSpark.validateAddress(address: address, isTestNet: isTestNet);
+  }
+
+  Future<List<SparkCoin>> identifyCoins({
+    required List<dynamic> anonymitySetCoins,
+    required int groupId,
+  }) async {
+    return await computeWithLibSparkLogging(
+      identifyCoinsStatic,
+      (
+        walletId_: walletId,
+        viewKeyHex_: viewKeyHex,
+        isTestNet_: isTestNet,
+        anonymitySetCoins: anonymitySetCoins,
+        groupId: groupId,
+      ),
+    );
+  }
+
+  static Future<List<SparkCoin>> identifyCoinsStatic(({
+    List<dynamic> anonymitySetCoins,
+    int groupId,
+    bool isTestNet_,
+    String viewKeyHex_,
+    String walletId_,
+  }) args) async {
+    final List<SparkCoin> myCoins = [];
+
+    for (final dynData in args.anonymitySetCoins) {
+      final data = List<String>.from(dynData as List);
+
+      if (data.length != 3) {
+        Logging.instance.e("Unexpected serialized coin info found", error: data);
+        continue;
+      }
+
+      final serializedCoinB64 = data[0];
+      final txHash = data[1].toHexReversedFromBase64;
+      final contextB64 = data[2];
+
+      final WrappedLibSparkCoin? coin;
+      try {
+        coin = libSpark.identifyAndRecoverCoinByFullViewKey(
+          serializedCoinB64,
+          fullViewKeyHex: args.viewKeyHex_,
+          context: base64Decode(contextB64),
+          isTestNet: args.isTestNet_,
+        );
+      } catch (e) {
+        Logging.instance.e("Failed to identify coin", error: e);
+        continue;
+      }
+
+      // its ours
+      if (coin != null) {
+        final SparkCoinType coinType;
+        switch (coin.type.value) {
+          case 0:
+            coinType = SparkCoinType.mint;
+          case 1:
+            coinType = SparkCoinType.spend;
+          default:
+            Logging.instance.e("Unknown spark coin type detected", error: coin.type.value);
+            continue;
+        }
+
+        myCoins.add(
+          SparkCoin(
+            walletId: args.walletId_,
+            type: coinType,
+            // isUsed is a placeholder value here; its value is incorrect.
+            isUsed: false,
+            groupId: args.groupId,
+            nonce: coin.nonceHex?.toUint8ListFromHex,
+            address: coin.address!,
+            txHash: txHash,
+            valueIntString: coin.value!.toString(),
+            memo: coin.memo,
+            serialContext: coin.serialContext,
+            diversifierIntString: coin.diversifier!.toString(),
+            encryptedDiversifier: coin.encryptedDiversifier,
+            serial: coin.serial,
+            tag: coin.tag,
+            lTagHash: coin.lTagHash!,
+            height: coin.height,
+            serializedCoinB64: serializedCoinB64,
+            contextB64: contextB64,
+          ),
+        );
+      }
+    }
+
+    return myCoins;
+  }
 
   Future<String> hashTag(String tag) async {
     try {
@@ -130,128 +258,90 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> init() async {
-    try {
-      final sparkUsedTagsResetVersion =
-          info.otherData[WalletInfoKeys.firoSparkUsedTagsCacheResetVersion]
-              as int? ??
-          0;
-      if (sparkUsedTagsResetVersion == 0) {
-        await info.updateOtherData(
-          newEntries: {WalletInfoKeys.firoSparkUsedTagsCacheResetVersion: 1},
-          isar: mainDB.isar,
-        );
-        await FiroCacheCoordinator.clearSharedCache(
-          cryptoCurrency.network,
-          clearOnlyUsedTagsCache: true,
-        );
-      }
+    final sparkUsedTagsResetVersion =
+        info.otherData[WalletInfoKeys.firoSparkUsedTagsCacheResetVersion]
+            as int? ??
+        0;
 
-      Address? address = await getCurrentReceivingSparkAddress();
-      if (address == null) {
-        address = await generateNextSparkAddress();
-        await mainDB.putAddress(address);
-      } // TODO add other address types to wallet info?
-
-      if (_sparkChangeAddressCached == null) {
-        final root = await getRootHDNode();
-        final String derivationPath;
-        if (cryptoCurrency.network.isTestNet) {
-          derivationPath =
-              "${libSpark.sparkBaseDerivationPathTestnet}$kDefaultSparkIndex";
-        } else {
-          derivationPath =
-              "${libSpark.sparkBaseDerivationPath}$kDefaultSparkIndex";
-        }
-        final keys = root.derivePath(derivationPath);
-
-        _sparkChangeAddressCached = await libSpark.getAddress(
-          privateKey: keys.privateKey.data,
-          index: kDefaultSparkIndex,
-          diversifier: libSpark.sparkChange,
-          isTestNet: cryptoCurrency.network.isTestNet,
-        );
-      }
-    } catch (e, s) {
-      // do nothing, still allow user into wallet
-      Logging.instance.e("$runtimeType init() failed", error: e, stackTrace: s);
+    if (sparkUsedTagsResetVersion == 0) {
+      await info.updateOtherData(
+        newEntries: {WalletInfoKeys.firoSparkUsedTagsCacheResetVersion: 1},
+        isar: mainDB.isar,
+      );
+      await FiroCacheCoordinator.clearSharedCache(
+        cryptoCurrency.network,
+        clearOnlyUsedTagsCache: true,
+      );
     }
 
-    // await info.updateReceivingAddress(
-    //   newAddress: address.value,
-    //   isar: mainDB.isar,
-    // );
+    if (isViewOnly) {
+      final walletData = await getViewOnlyWalletData() as SparkViewOnlyWalletData;
+      viewKeyHex = walletData.viewKey;
+    } else {
+      final root = await getRootHDNode();
+      final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
+      viewKeyHex = libSpark.getFullViewKeyHexFromPrivateKeyData(privateKeyHex: privateKey.toHex, index: sparkIndex);
+    }
+
+    Address? address = await getCurrentReceivingSparkAddress();
+    if (address == null) {
+      address = await generateSparkAddress(1);
+      await mainDB.putAddress(address);
+    }
+
+    if (address.derivationIndex == -1) {
+      throw Exception("Error finding spark receiving address");
+    }
+
+    _currentSparkAddress = address;
+    sparkChangeAddress = await generateSparkAddress(libSpark.sparkChange);
 
     await super.init();
   }
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.spark)
-              .or()
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
-    return allAddresses;
+    return await mainDB
+      .getAddresses(walletId)
+      .filter()
+      .not()
+      .group(
+        (q) => q
+          .typeEqualTo(AddressType.spark)
+          .or()
+          .typeEqualTo(AddressType.nonWallet)
+          .or()
+          .subTypeEqualTo(AddressSubType.nonWallet),
+      )
+      .findAll();
   }
 
   Future<Address?> getCurrentReceivingSparkAddress() async {
-    return await mainDB.isar.addresses
+    try {
+      // if _currentSparkAddress is not initialized, this will throw.
+      return _currentSparkAddress;
+    } catch (e) {
+      return await mainDB.isar.addresses
         .where()
         .walletIdEqualTo(walletId)
         .filter()
         .typeEqualTo(AddressType.spark)
         .sortByDerivationIndexDesc()
         .findFirst();
+    }
   }
 
   Future<Address> generateNextSparkAddress() async {
-    final highestStoredDiversifier =
-        (await getCurrentReceivingSparkAddress())?.derivationIndex;
-
-    // default to starting at 1 if none found
-    int diversifier = (highestStoredDiversifier ?? 0) + 1;
-    // change address check
-    if (diversifier == libSpark.sparkChange) {
-      diversifier++;
-    }
-
-    final root = await getRootHDNode();
-    final String derivationPath;
-    if (cryptoCurrency.network.isTestNet) {
-      derivationPath =
-          "${libSpark.sparkBaseDerivationPathTestnet}$kDefaultSparkIndex";
-    } else {
-      derivationPath = "${libSpark.sparkBaseDerivationPath}$kDefaultSparkIndex";
-    }
-    final keys = root.derivePath(derivationPath);
-
-    final String addressString = await libSpark.getAddress(
-      privateKey: keys.privateKey.data,
-      index: kDefaultSparkIndex,
-      diversifier: diversifier,
-      isTestNet: cryptoCurrency.network.isTestNet,
-    );
-
-    return Address(
-      walletId: walletId,
-      value: addressString,
-      publicKey: keys.publicKey.data,
-      derivationIndex: diversifier,
-      derivationPath: DerivationPath()..value = derivationPath,
-      type: AddressType.spark,
-      subType: AddressSubType.receiving,
-    );
+    final newAddress = await generateSparkAddress(_currentSparkAddress.derivationIndex + 1);
+    _currentSparkAddress = newAddress;
+    return newAddress;
   }
 
   Future<Amount> estimateFeeForSpark(Amount amount) async {
+    if (isViewOnly) {
+      throw Exception("Fee estimation is not supported for view only wallets");
+    }
+
     final spendAmount = amount.raw.toInt();
     if (spendAmount == 0) {
       return Amount(
@@ -296,18 +386,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           .toList();
 
       final root = await getRootHDNode();
-      final String derivationPath;
-      if (cryptoCurrency.network.isTestNet) {
-        derivationPath =
-            "${libSpark.sparkBaseDerivationPathTestnet}$kDefaultSparkIndex";
-      } else {
-        derivationPath =
-            "${libSpark.sparkBaseDerivationPath}$kDefaultSparkIndex";
-      }
-      final privateKey = root.derivePath(derivationPath).privateKey.data;
+      final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
       int estimate = await _asyncSparkFeesWrapper(
         privateKeyHex: privateKey.toHex,
-        index: kDefaultSparkIndex,
+        index: sparkIndex,
         sendAmount: spendAmount,
         subtractFeeFromAmount: true,
         serializedCoins: serializedCoins,
@@ -330,6 +412,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   /// Spark to Spark/Transparent (spend) creation
   Future<TxData> prepareSendSpark({required TxData txData}) async {
+    if (isViewOnly) {
+      throw Exception("Spending is not supported for view only wallets");
+    }
+
     // There should be at least one output.
     if (!(txData.recipients?.isNotEmpty == true ||
         txData.sparkRecipients?.isNotEmpty == true)) {
@@ -462,14 +548,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .toList();
 
     final root = await getRootHDNode();
-    final String derivationPath;
-    if (cryptoCurrency.network.isTestNet) {
-      derivationPath =
-          "${libSpark.sparkBaseDerivationPathTestnet}$kDefaultSparkIndex";
-    } else {
-      derivationPath = "${libSpark.sparkBaseDerivationPath}$kDefaultSparkIndex";
-    }
-    final privateKey = root.derivePath(derivationPath).privateKey.data;
+    final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
 
     final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
     txb.setLockTime(await chainHeight);
@@ -487,7 +566,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     if (isSendAll) {
       final estFee = await _asyncSparkFeesWrapper(
         privateKeyHex: privateKey.toHex,
-        index: kDefaultSparkIndex,
+        index: sparkIndex,
         sendAmount: txAmount.raw.toInt(),
         subtractFeeFromAmount: true,
         serializedCoins: serializedCoins,
@@ -517,7 +596,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
         memo: txData.sparkRecipients![i].memo,
-        isChange: sparkChangeAddress == txData.sparkRecipients![i].address,
+        isChange: sparkChangeAddress.value == txData.sparkRecipients![i].address,
       ));
     }
 
@@ -606,7 +685,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         additionalInfo: txData.sparkNameInfo!.additionalInfo,
         scalarHex: extractedTx.getId(),
         privateKeyHex: privateKey.toHex,
-        spendKeyIndex: kDefaultSparkIndex,
+        spendKeyIndex: sparkIndex,
         diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
         isTestNet: cryptoCurrency.network != CryptoCurrencyNetwork.main,
         ignoreProof: true,
@@ -616,7 +695,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final spend = await computeWithLibSparkLogging(_createSparkSend, (
       privateKeyHex: privateKey.toHex,
-      index: kDefaultSparkIndex,
+      index: sparkIndex,
       recipients:
           txData.recipients
               ?.map(
@@ -679,7 +758,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             additionalInfo: txData.sparkNameInfo!.additionalInfo,
             scalarHex: hash,
             privateKeyHex: privateKey.toHex,
-            spendKeyIndex: kDefaultSparkIndex,
+            spendKeyIndex: sparkIndex,
             diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
             isTestNet: cryptoCurrency.network != CryptoCurrencyNetwork.main,
             ignoreProof: false,
@@ -783,6 +862,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   // this may not be needed for either mints or spends or both
   Future<TxData> confirmSendSpark({required TxData txData}) async {
+    if (isViewOnly) {
+      throw Exception("Spending is not supported for view only wallets");
+    }
+
     try {
       Logging.instance.d("confirmSend txData: $txData");
 
@@ -822,77 +905,64 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   Set<String> _mempoolTxidsChecked = {};
 
   Future<List<SparkCoin>> _refreshSparkCoinsMempoolCheck({
-    required Set<String> privateKeyHexSet,
     required int groupId,
   }) async {
     final start = DateTime.now();
+
+    // update cache
+    _mempoolTxids = await electrumXClient.getMempoolTxids();
+
+    // remove any checked txids that are not in the mempool anymore
+    _mempoolTxidsChecked = _mempoolTxidsChecked.intersection(_mempoolTxids);
+
+    // get all unchecked txids currently in mempool
+    final txidsToCheck = _mempoolTxids.difference(_mempoolTxidsChecked);
+    if (txidsToCheck.isEmpty) {
+      return [];
+    }
+
+    // fetch spark data to scan if we own any unconfirmed spark coins
+    List<SparkMempoolData> sparkDataToCheck = [];
     try {
-      // update cache
-      _mempoolTxids = await electrumXClient.getMempoolTxids();
-
-      // remove any checked txids that are not in the mempool anymore
-      _mempoolTxidsChecked = _mempoolTxidsChecked.intersection(_mempoolTxids);
-
-      // get all unchecked txids currently in mempool
-      final txidsToCheck = _mempoolTxids.difference(_mempoolTxidsChecked);
-      if (txidsToCheck.isEmpty) {
-        return [];
-      }
-
-      // fetch spark data to scan if we own any unconfirmed spark coins
-      final sparkDataToCheck = await electrumXClient.getMempoolSparkData(
+      sparkDataToCheck = await electrumXClient.getMempoolSparkData(
         txids: txidsToCheck.toList(),
       );
-
-      final Set<String> checkedTxids = {};
-      final List<List<String>> rawCoins = [];
-
-      for (final data in sparkDataToCheck) {
-        for (int i = 0; i < data.coins.length; i++) {
-          rawCoins.add([data.coins[i], data.txid, data.serialContext.first]);
-        }
-
-        checkedTxids.add(data.txid);
-      }
-
-      final result = <SparkCoin>[];
-
-      // if there is new data we try and identify the coins
-      if (rawCoins.isNotEmpty) {
-        // run identify off main isolate
-        final myCoins = await computeWithLibSparkLogging(_identifyCoins, (
-          anonymitySetCoins: rawCoins,
-          groupId: groupId,
-          privateKeyHexSet: privateKeyHexSet,
-          walletId: walletId,
-          isTestNet: cryptoCurrency.network.isTestNet,
-        ));
-
-        // add checked txids after identification
-        _mempoolTxidsChecked.addAll(checkedTxids);
-
-        for (final coin in myCoins) {
-          final match = sparkDataToCheck.firstWhere(
-            (e) => e.serialContext.contains(coin.contextB64!),
-          );
-          result.add(coin.copyWith(isLocked: match.isLocked));
-        }
-      }
-
-      return result;
     } catch (e, s) {
       Logging.instance.e(
-        "_refreshSparkCoinsMempoolCheck() failed",
+        "Exception rethrown from _refreshSparkCoinsMempoolCheck(): ",
         error: e,
         stackTrace: s,
       );
       return [];
-    } finally {
-      Logging.instance.d(
-        "$walletId ${info.name} _refreshSparkCoinsMempoolCheck() run "
-        "duration: ${DateTime.now().difference(start)}",
-      );
     }
+
+    final Set<String> checkedTxids = {};
+    final List<List<String>> rawCoins = [];
+
+    for (final data in sparkDataToCheck) {
+      for (int i = 0; i < data.coins.length; i++) {
+        rawCoins.add([data.coins[i], data.txid, data.serialContext.first]);
+      }
+
+      checkedTxids.add(data.txid);
+    }
+
+    // if there is new data we try and identify the coins
+    final List<SparkCoin> myCoins = await identifyCoins(
+      anonymitySetCoins: rawCoins,
+      groupId: groupId,
+    );
+
+
+    // add checked txids after identification
+    _mempoolTxidsChecked.addAll(checkedTxids);
+
+    Logging.instance.d(
+      "Finished _refreshSparkCoinsMempoolCheck(). "
+      "Duration=${DateTime.now().difference(start)}",
+    );
+
+    return myCoins;
   }
 
   // returns next percent
@@ -907,10 +977,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     (double startingPercent, double endingPercent)? refreshProgressRange,
   ) async {
     final start = DateTime.now();
+
     try {
       // start by checking if any previous sets are missing from db and add the
       // missing groupIds to the list if sets to check and update
       final latestGroupId = await electrumXClient.getSparkLatestCoinId();
+
       final List<int> groupIds = [];
       if (latestGroupId > 1) {
         for (int id = 1; id < latestGroupId; id++) {
@@ -1016,33 +1088,15 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
-      // get address(es) to get the private key hex strings required for
-      // identifying spark coins
-      final sparkAddresses = await mainDB.isar.addresses
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .typeEqualTo(AddressType.spark)
-          .findAll();
-      final root = await getRootHDNode();
-      final Set<String> privateKeyHexSet = sparkAddresses
-          .map(
-            (e) =>
-                root.derivePath(e.derivationPath!.value).privateKey.data.toHex,
-          )
-          .toSet();
-
       // try to identify any coins in the unchecked set data
       final List<SparkCoin> newlyIdCoins = [];
       for (final groupId in rawCoinsBySetId.keys) {
-        final myCoins = await computeWithLibSparkLogging(_identifyCoins, (
-          anonymitySetCoins: rawCoinsBySetId[groupId]!,
-          groupId: groupId,
-          privateKeyHexSet: privateKeyHexSet,
-          walletId: walletId,
-          isTestNet: cryptoCurrency.network.isTestNet,
-        ));
-        newlyIdCoins.addAll(myCoins);
+        newlyIdCoins.addAll(
+          await identifyCoins(
+            anonymitySetCoins: rawCoinsBySetId[groupId]!,
+            groupId: groupId,
+          ),
+        );
       }
       // if any were found, add to database
       if (newlyIdCoins.isNotEmpty) {
@@ -1064,10 +1118,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       // check for spark coins in mempool
-      final mempoolMyCoins = await _refreshSparkCoinsMempoolCheck(
-        privateKeyHexSet: privateKeyHexSet,
+      final List<SparkCoin> mempoolMyCoins = await _refreshSparkCoinsMempoolCheck(
         groupId: latestGroupId,
       );
+
       // if any were found, add to database
       if (mempoolMyCoins.isNotEmpty) {
         await mainDB.isar.writeTxn(() async {
@@ -1213,12 +1267,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   /// Should only be called within the standard wallet [recover] function due to
   /// mutex locking. Otherwise behaviour MAY be undefined.
   Future<void> recoverSparkWallet({required int latestSparkCoinId}) async {
-    //   generate spark addresses if non existing
-    if (await getCurrentReceivingSparkAddress() == null) {
-      final address = await generateNextSparkAddress();
-      await mainDB.putAddress(address);
-    }
-
     try {
       await refreshSparkData(null);
     } catch (e, s) {
@@ -1229,6 +1277,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
       rethrow;
     }
+  }
+
+  Future<void> recoverViewOnlyWallet() async {
+    await recoverSparkWallet(latestSparkCoinId: 0);
   }
 
   Future<void> refreshSparkNames() async {
@@ -1263,38 +1315,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // TODO revisit this and clean up (track pre gen'd addresses instead of generating every time)
       // arbitrary number of addresses
       const lookAheadCount = 100;
-      final highestStoredDiversifier =
-          (await getCurrentReceivingSparkAddress())?.derivationIndex;
 
-      final root = await getRootHDNode();
-      final String derivationPath;
-      if (cryptoCurrency.network.isTestNet) {
-        derivationPath =
-            "${libSpark.sparkBaseDerivationPathTestnet}$kDefaultSparkIndex";
-      } else {
-        derivationPath =
-            "${libSpark.sparkBaseDerivationPath}$kDefaultSparkIndex";
-      }
-      final keys = root.derivePath(derivationPath);
-
-      // default to starting at 1 if none found
-      int diversifier = (highestStoredDiversifier ?? 0) + 1;
-
+      int diversifier = _currentSparkAddress.derivationIndex;
       final maxDiversifier = diversifier + lookAheadCount;
 
       while (diversifier < maxDiversifier) {
-        // change address check
-        if (diversifier == libSpark.sparkChange) {
-          diversifier++;
-        }
-        final addressString = await libSpark.getAddress(
-          privateKey: keys.privateKey.data,
-          index: kDefaultSparkIndex,
-          diversifier: diversifier,
-          isTestNet: cryptoCurrency.network.isTestNet,
-        );
-
-        myAddresses.add(addressString);
+        final addressString = await generateSparkAddress(diversifier);
+        myAddresses.add(addressString.value);
 
         diversifier++;
       }
@@ -1350,6 +1377,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required bool subtractFeeFromAmount,
     required bool autoMintAll,
   }) async {
+    if (isViewOnly) {
+      throw Exception("Minting is not supported for view only wallets");
+    }
+
     // pre checks
     if (outputs.isEmpty) {
       throw Exception("Cannot mint without some recipients");
@@ -1963,6 +1994,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<void> anonymizeAllSpark() async {
+    if (isViewOnly) {
+      throw Exception("Anonymizing is not supported for view only wallets");
+    }
+
     try {
       const subtractFeeFromAmount = true; // must be true for mint all
       final currentHeight = await chainHeight;
@@ -2020,6 +2055,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   ///
   /// See https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o
   Future<TxData> prepareSparkMintTransaction({required TxData txData}) async {
+    if (isViewOnly) {
+      throw Exception("Minting is not supported for view only wallets");
+    }
+
     try {
       if (txData.sparkRecipients?.isNotEmpty != true) {
         throw Exception("Missing spark recipients.");
@@ -2123,6 +2162,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<TxData> confirmSparkMintTransactions({required TxData txData}) async {
+    if (isViewOnly) {
+      throw Exception("Minting is not supported for view only wallets");
+    }
+
     final futures = txData.sparkMints!.map((e) => confirmSend(txData: e));
     return txData.copyWith(sparkMints: await Future.wait(futures));
   }
@@ -2306,79 +2349,6 @@ _createSparkSend(
   );
 
   return spend;
-}
-
-/// Top level function which should be called wrapped in [compute]
-Future<List<SparkCoin>> _identifyCoins(
-  ({
-    List<dynamic> anonymitySetCoins,
-    int groupId,
-    Set<String> privateKeyHexSet,
-    String walletId,
-    bool isTestNet,
-  })
-  args,
-) async {
-  final List<SparkCoin> myCoins = [];
-
-  for (final privateKeyHex in args.privateKeyHexSet) {
-    for (final dynData in args.anonymitySetCoins) {
-      final data = List<String>.from(dynData as List);
-
-      if (data.length != 3) {
-        throw Exception("Unexpected serialized coin info found");
-      }
-
-      final serializedCoinB64 = data[0];
-      final txHash = data[1].toHexReversedFromBase64;
-      final contextB64 = data[2];
-
-      final coin = libSpark.identifyAndRecoverCoin(
-        serializedCoinB64,
-        privateKeyHex: privateKeyHex,
-        index: kDefaultSparkIndex,
-        context: base64Decode(contextB64),
-        isTestNet: args.isTestNet,
-      );
-
-      // its ours
-      if (coin != null) {
-        final SparkCoinType coinType;
-        switch (coin.type.value) {
-          case 0:
-            coinType = SparkCoinType.mint;
-          case 1:
-            coinType = SparkCoinType.spend;
-          default:
-            throw Exception("Unknown spark coin type detected");
-        }
-        myCoins.add(
-          SparkCoin(
-            walletId: args.walletId,
-            type: coinType,
-            isUsed: false,
-            groupId: args.groupId,
-            nonce: coin.nonceHex?.toUint8ListFromHex,
-            address: coin.address!,
-            txHash: txHash,
-            valueIntString: coin.value!.toString(),
-            memo: coin.memo,
-            serialContext: coin.serialContext,
-            diversifierIntString: coin.diversifier!.toString(),
-            encryptedDiversifier: coin.encryptedDiversifier,
-            serial: coin.serial,
-            tag: coin.tag,
-            lTagHash: coin.lTagHash!,
-            height: coin.height,
-            serializedCoinB64: serializedCoinB64,
-            contextB64: contextB64,
-          ),
-        );
-      }
-    }
-  }
-
-  return myCoins;
 }
 
 BigInt _min(BigInt a, BigInt b) {

@@ -183,16 +183,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
         DerivePathType? type;
         if (wallet.isViewOnly && wallet is ExtendedKeysInterface) {
-          final voData =
-              await wallet.getViewOnlyWalletData()
-                  as ExtendedKeysViewOnlyWalletData;
+          final voData = await wallet.getViewOnlyWalletData();
           for (final t in wallet.cryptoCurrency.supportedDerivationPathTypes) {
             final testPath = wallet.cryptoCurrency.constructDerivePath(
               derivePathType: t,
               chain: 0,
               index: 0,
             );
-            if (testPath.startsWith(voData.xPubs.first.path)) {
+            if (voData is SparkViewOnlyWalletData) {
+              type = t;
+            } else if (testPath.startsWith((voData as ExtendedKeysViewOnlyWalletData).xPubs.first.path)) {
               type = t;
               break;
             }

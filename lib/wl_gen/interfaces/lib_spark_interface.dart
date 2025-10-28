@@ -61,6 +61,25 @@ abstract class LibSparkInterface {
     final bool isTestNet = false,
   });
 
+  WrappedLibSparkCoin? identifyAndRecoverCoinByFullViewKey(
+    final String serializedCoin, {
+    required final String fullViewKeyHex,
+    required final Uint8List context,
+    final bool isTestNet = false,
+  });
+
+  Future<String> getAddressFromFullViewKey({
+    required String fullViewKeyHex,
+    required int index,
+    required int diversifier,
+    bool isTestNet = false,
+  });
+
+  String getFullViewKeyHexFromPrivateKeyData({
+    required String privateKeyHex,
+    required int index,
+  });
+
   ({
     Uint8List serializedSpendPayload,
     List<Uint8List> outputScripts,

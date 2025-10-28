@@ -197,10 +197,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   bool validateSparkAddress(String address) {
-    return SparkInterface.validateSparkAddress(
-      address: address,
-      isTestNet: network.isTestNet,
-    );
+    return SparkInterface.validateSparkAddress(address: address, isTestNet: network.isTestNet);
   }
 
   bool isExchangeAddress(String address) {

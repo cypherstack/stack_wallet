@@ -179,6 +179,67 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   }
 
   @override
+  WrappedLibSparkCoin? identifyAndRecoverCoinByFullViewKey(
+    String serializedCoin, {
+    required String fullViewKeyHex,
+    required Uint8List context,
+    bool isTestNet = false,
+  }) {
+    final coin = LibSpark.identifyAndRecoverCoinByFullViewKey(
+      serializedCoin: serializedCoin,
+      fullViewKeyHex: fullViewKeyHex,
+      context: context,
+      isTestNet: isTestNet,
+    );
+
+    if (coin == null) return null;
+
+    return WrappedLibSparkCoin(
+      type: WrappedLibSparkCoinType.values.firstWhere(
+        (e) => e.value == coin.type.value,
+      ),
+
+      id: coin.id,
+      height: coin.height,
+      isUsed: coin.isUsed,
+      nonceHex: coin.nonceHex,
+      address: coin.address,
+      value: coin.value,
+      serial: coin.serial,
+      memo: coin.memo,
+      txHash: coin.txHash,
+      serialContext: coin.serialContext,
+      diversifier: coin.diversifier,
+      encryptedDiversifier: coin.encryptedDiversifier,
+      tag: coin.tag,
+      lTagHash: coin.lTagHash,
+      serializedCoin: coin.serializedCoin,
+    );
+  }
+
+  @override
+  Future<String> getAddressFromFullViewKey({
+    required String fullViewKeyHex,
+    required int index,
+    required int diversifier,
+    bool isTestNet = false,
+  }) => LibSpark.getAddressFromFullViewKey(
+    fullViewKeyHex: fullViewKeyHex,
+    index: index,
+    diversifier: diversifier,
+    isTestNet: isTestNet,
+  );
+
+  @override
+  String getFullViewKeyHexFromPrivateKeyData({
+    required String privateKeyHex,
+    required int index,
+  }) => LibSpark.getFullViewKeyHexFromPrivateKeyData(
+    privateKeyHex: privateKeyHex,
+    index: index,
+  );
+
+  @override
   ({
     int fee,
     List<Uint8List> outputScripts,

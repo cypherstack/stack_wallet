@@ -103,6 +103,7 @@ import '../send_view/frost_ms/frost_send_view.dart';
 import '../send_view/send_view.dart';
 import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
+import '../settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 import '../spark_names/spark_names_home_view.dart';
 import '../token_view/my_tokens_view.dart';
 import 'sub_widgets/transactions_list.dart';
@@ -420,6 +421,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
+  Future<void> _onShowSparkViewKeyPressed(BuildContext context) async {
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (_) => const LoadingIndicator(width: 100),
+      ),
+    );
+
+    final wallet = ref.read(pWallets).getWallet(walletId) as SparkInterface;
+    await wallet.init();
+    final sparkViewKeyHex = wallet.viewKeyHex;
+
+    if (context.mounted) {
+      Navigator.of(context).pop(); // Close loading dialog
+      await Navigator.of(context).pushNamed(
+        SparkViewKeyView.routeName,
+        arguments: (walletId, sparkViewKeyHex),
+      );
+    }
+  }
+
   Future<void> attemptAnonymize() async {
     bool shouldPop = false;
     unawaited(
@@ -621,7 +643,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             context,
                           ).extension<StackColors>()!.background,
                           icon: _buildNetworkIcon(_currentSyncStatus),
-                          onPressed: () {
+                          onPressed: ()  {
                             Navigator.of(context).pushNamed(
                               WalletNetworkSettingsView.routeName,
                               arguments: Tuple3(
@@ -996,7 +1018,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
               ),
               SafeArea(
                 child: WalletNavigationBar(
-                  items: [
+                  items: <WalletNavigationBarItemData>[
                     WalletNavigationBarItemData(
                       label: "Receive",
                       icon: const ReceiveNavIcon(),
@@ -1080,6 +1102,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         icon: const BuyNavIcon(),
                         onTap: () => _onBuyPressed(context),
                       ),
+                  ],
+                  moreItems: <WalletNavigationBarItemData>[
                     if (wallet is SparkInterface)
                       WalletNavigationBarItemData(
                         label: "Names",
@@ -1091,8 +1115,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                  ],
-                  moreItems: [
+                    if (wallet is SparkInterface)
+                      WalletNavigationBarItemData(
+                        label: "Show Spark View Key",
+                        icon: SvgPicture.asset(
+                          Assets.svg.eye,
+                          height: 20,
+                          width: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.bottomNavIconIcon,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        onTap: () => _onShowSparkViewKeyPressed(context),
+                      ),
                     if (ref.watch(
                       pWallets.select(
                         (value) => value

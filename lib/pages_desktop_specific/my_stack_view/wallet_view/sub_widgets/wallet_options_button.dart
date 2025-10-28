@@ -18,6 +18,7 @@ import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/edit_refresh_height_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -31,6 +32,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import 'desktop_delete_wallet_dialog.dart';
@@ -41,7 +43,8 @@ enum _WalletOptions {
   changeRepresentative,
   showXpub,
   frostOptions,
-  refreshFromHeight;
+  refreshFromHeight,
+  showSparkKey;
 
   String get prettyName {
     switch (this) {
@@ -57,6 +60,8 @@ enum _WalletOptions {
         return "FROST settings";
       case _WalletOptions.refreshFromHeight:
         return "Refresh height";
+      case _WalletOptions.showSparkKey:
+        return "Show Spark View Key";
     }
   }
 }
@@ -133,6 +138,38 @@ class WalletOptionsButton extends ConsumerWidget {
               if (result == true) {
                 if (context.mounted) {
                   Navigator.of(context).pop();
+                }
+              }
+              break;
+            case _WalletOptions.showSparkKey:
+              final wallet = ref.read(pWallets).getWallet(walletId) as SparkInterface;
+              await wallet.init();
+              final sparkViewKeyHex = wallet.viewKeyHex;
+
+              if (context.mounted) {
+                final result = await showDialog<bool?>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Navigator(
+                    initialRoute: SparkViewKeyView.routeName,
+                    onGenerateRoute: RouteGenerator.generateRoute,
+                    onGenerateInitialRoutes: (_, __) {
+                      return [
+                        RouteGenerator.generateRoute(
+                          RouteSettings(
+                            name: SparkViewKeyView.routeName,
+                            arguments: (walletId, sparkViewKeyHex),
+                          ),
+                        ),
+                      ];
+                    },
+                  ),
+                );
+
+                if (result == true) {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
                 }
               }
               break;
@@ -286,6 +323,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 
     final bool isFrost = coin is FrostCurrency;
     final bool isCN = wallet is CryptonoteWallet;
+    final bool isSpark = wallet is SparkInterface;
 
     return Stack(
       children: [
@@ -475,6 +513,45 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                         context,
                                       ).extension<StackColors>()!.textDark,
                                     ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (isSpark)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  if (isSpark)
+                    TransparentButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(_WalletOptions.showSparkKey);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.eye,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.showSparkKey.prettyName,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
                               ),
                             ),
                           ],

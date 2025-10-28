@@ -224,6 +224,7 @@ import 'wallets/wallet/wallet.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 
 /*
  * This file contains all the routes for the app.
@@ -2507,6 +2508,19 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       // == End of desktop specific routes =====================================
+
+      case SparkViewKeyView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SparkViewKeyView(
+              walletId: args.$1,
+              sparkViewKeyHex: args.$2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       default:
         return _routeError("");
