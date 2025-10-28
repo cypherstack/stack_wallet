@@ -39,8 +39,8 @@ dependencies:
 # %%ENABLE_FIRO%%
 #  flutter_libsparkmobile:
 #    git:
-#      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: 84a139a25ab1691762002fafcae351e3d444a5c7
+#      url: https://github.com/cassandras-lies/flutter_libsparkmobile.git
+#      ref: 3b77cc702bdccd2037fd02dfc04f9ae4baa00410
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
