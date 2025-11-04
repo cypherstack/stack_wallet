@@ -40,7 +40,7 @@ dependencies:
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cassandras-lies/flutter_libsparkmobile.git
-#      ref: 3b77cc702bdccd2037fd02dfc04f9ae4baa00410
+#      ref: 9e13dfa07eb55d29431e072336a5211428fd7384
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
