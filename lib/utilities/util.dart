@@ -38,11 +38,10 @@ abstract class Util {
       return false;
     }
 
-    // special check for running under ipad mode in macos
-    if (Platform.isIOS &&
-        libraryPath != null &&
-        !libraryPath!.path.contains("/var/mobile/")) {
-      return true;
+    // iOS devices and simulators should use mobile UI
+    // Only desktop platforms should use desktop UI
+    if (Platform.isIOS) {
+      return false;
     }
 
     return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
