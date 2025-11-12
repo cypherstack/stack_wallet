@@ -26,21 +26,21 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency>
 
   Future<CWKeyData?> getKeys();
 
-  String getTxKeyFor({required String txid});
+  Future<String> getTxKeyFor({required String txid});
 
   Future<(String, String)>
   hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
 
   void setRefreshFromBlockHeight(int newHeight);
 
-  int getRefreshFromBlockHeight();
+  Future<int> getRefreshFromBlockHeight();
 
-  String internalGetAddress({
+  Future<String> internalGetAddress({
     required int accountIndex,
     required int addressIndex,
   });
 
-  BigInt? internalGetUnlockedBalance({int accountIndex = 0});
+  Future<BigInt> internalGetUnlockedBalance({int accountIndex = 0});
   Future<List<CsOutput>> internalGetOutputs({
     bool refresh = false,
     bool includeSpent = false,

@@ -170,7 +170,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   bool walletExists(String path);
 
   @override
-  String getTxKeyFor({required String txid}) {
+  Future<String> getTxKeyFor({required String txid}) async {
     if (wallet == null) {
       throw Exception("Cannot get tx key in uninitialized LibWowneroWallet");
     }
@@ -1426,7 +1426,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  int getRefreshFromBlockHeight() => wallet == null
+  Future<int> getRefreshFromBlockHeight() async => wallet == null
       ? throw Exception(
           "Cannot getRefreshFromBlockHeight when wallet is not open",
         )
@@ -1476,10 +1476,10 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  String internalGetAddress({
+  Future<String> internalGetAddress({
     required int accountIndex,
     required int addressIndex,
-  }) {
+  }) async {
     if (wallet == null) {
       throw Exception("Cannot internalCommitTx when wallet is not open");
     }
@@ -1506,11 +1506,11 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  BigInt? internalGetUnlockedBalance({int accountIndex = 0}) {
+  Future<BigInt> internalGetUnlockedBalance({int accountIndex = 0}) async {
     if (wallet == null) {
       throw Exception("Cannot internalCommitTx when wallet is not open");
     }
-    return csWownero.getUnlockedBalance(wallet!, accountIndex: accountIndex);
+    return csWownero.getUnlockedBalance(wallet!, accountIndex: accountIndex)!;
   }
 
   @override

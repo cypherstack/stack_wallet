@@ -27,7 +27,7 @@ abstract class CsMoneroInterface {
     required String password,
   });
 
-  String getAddress(
+  Future<String> getAddress(
     WrappedWallet wallet, {
     int accountIndex = 0,
     int addressIndex = 0,
@@ -58,32 +58,32 @@ abstract class CsMoneroInterface {
     int height = 0,
   });
 
-  String getTxKey(WrappedWallet wallet, String txid);
+  Future<String> getTxKey(WrappedWallet wallet, String txid);
 
   Future<void> save(WrappedWallet wallet);
 
-  String getPublicViewKey(WrappedWallet wallet);
-  String getPrivateViewKey(WrappedWallet wallet);
-  String getPublicSpendKey(WrappedWallet wallet);
-  String getPrivateSpendKey(WrappedWallet wallet);
+  Future<String> getPublicViewKey(WrappedWallet wallet);
+  Future<String> getPrivateViewKey(WrappedWallet wallet);
+  Future<String> getPublicSpendKey(WrappedWallet wallet);
+  Future<String> getPrivateSpendKey(WrappedWallet wallet);
 
   Future<bool> isSynced(WrappedWallet wallet);
-  void startSyncing(WrappedWallet wallet);
-  void stopSyncing(WrappedWallet wallet);
+  Future<void> startSyncing(WrappedWallet wallet);
+  Future<void> stopSyncing(WrappedWallet wallet);
 
   void startAutoSaving(WrappedWallet wallet);
   void stopAutoSaving(WrappedWallet wallet);
 
   bool hasListeners(WrappedWallet wallet);
   void addListener(WrappedWallet wallet, CsWalletListener listener);
-  void startListeners(WrappedWallet wallet);
-  void stopListeners(WrappedWallet wallet);
+  Future<void> startListeners(WrappedWallet wallet);
+  Future<void> stopListeners(WrappedWallet wallet);
 
-  Future<bool> rescanBlockchain(WrappedWallet wallet);
+  Future<void> rescanBlockchain(WrappedWallet wallet);
   Future<bool> isConnectedToDaemon(WrappedWallet wallet);
 
-  int getRefreshFromBlockHeight(WrappedWallet wallet);
-  void setRefreshFromBlockHeight(WrappedWallet wallet, int height);
+  Future<int> getRefreshFromBlockHeight(WrappedWallet wallet);
+  Future<void> setRefreshFromBlockHeight(WrappedWallet wallet, int height);
 
   Future<void> connect(
     WrappedWallet wallet, {
@@ -101,8 +101,11 @@ abstract class CsMoneroInterface {
     bool refresh = false,
   });
 
-  BigInt? getBalance(WrappedWallet wallet, {int accountIndex = 0});
-  BigInt? getUnlockedBalance(WrappedWallet wallet, {int accountIndex = 0});
+  Future<BigInt> getBalance(WrappedWallet wallet, {int accountIndex = 0});
+  Future<BigInt> getUnlockedBalance(
+    WrappedWallet wallet, {
+    int accountIndex = 0,
+  });
 
   Future<List<CsTransaction>> getAllTxs(
     WrappedWallet wallet, {
@@ -154,7 +157,7 @@ abstract class CsMoneroInterface {
 
   bool validateAddress(String address, int network);
 
-  String getSeed(WrappedWallet wallet);
+  Future<String> getSeed(WrappedWallet wallet);
 
   Future<void> close(WrappedWallet wallet, {bool save = false});
 }

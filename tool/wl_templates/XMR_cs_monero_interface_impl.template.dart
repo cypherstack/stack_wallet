@@ -66,9 +66,16 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     String walletId, {
     required String path,
     required String password,
+    int network = 0, // default to mainnet
   }) async {
     return WrappedWallet(
-      await lib_monero.MoneroWallet.loadWallet(path: path, password: password),
+      await lib_monero.MoneroWallet.loadWallet(
+        path: path,
+        password: password,
+        networkType: lib_monero.Network.values.firstWhere(
+          (e) => e.value == network,
+        ),
+      ),
     );
   }
 
@@ -82,14 +89,14 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
   int getTxPriorityNormal() => lib_monero.TransactionPriority.normal.value;
 
   @override
-  String getAddress(
+  Future<String> getAddress(
     WrappedWallet wallet, {
     int accountIndex = 0,
     int addressIndex = 0,
-  }) => wallet
-      .get<lib_monero.Wallet>()
-      .getAddress(accountIndex: accountIndex, addressIndex: addressIndex)
-      .value;
+  }) async => (await wallet.get<lib_monero.Wallet>().getAddress(
+    accountIndex: accountIndex,
+    addressIndex: addressIndex,
+  )).value;
 
   @override
   Future<WrappedWallet> getCreatedWallet({
@@ -97,6 +104,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     required String password,
     required int wordCount,
     required String seedOffset,
+    int network = 0, // default to mainnet
   }) async {
     final type = switch (wordCount) {
       16 => lib_monero.MoneroSeedType.sixteen,
@@ -109,6 +117,9 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       password: password,
       seedType: type,
       seedOffset: seedOffset,
+      networkType: lib_monero.Network.values.firstWhere(
+        (e) => e.value == network,
+      ),
     );
 
     return WrappedWallet(wallet);
@@ -121,6 +132,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     required String password,
     required String mnemonic,
     required String seedOffset,
+    int network = 0, // default to mainnet
     int height = 0,
   }) async {
     return WrappedWallet(
@@ -130,6 +142,9 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
         seed: mnemonic,
         restoreHeight: height,
         seedOffset: seedOffset,
+        networkType: lib_monero.Network.values.firstWhere(
+          (e) => e.value == network,
+        ),
       ),
     );
   }
@@ -141,6 +156,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
     required String password,
     required String address,
     required String privateViewKey,
+    int network = 0, // default to mainnet
     int height = 0,
   }) async {
     return WrappedWallet(
@@ -150,12 +166,15 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
         address: address,
         viewKey: privateViewKey,
         restoreHeight: height,
+        networkType: lib_monero.Network.values.firstWhere(
+          (e) => e.value == network,
+        ),
       ),
     );
   }
 
   @override
-  String getTxKey(WrappedWallet wallet, String txid) =>
+  Future<String> getTxKey(WrappedWallet wallet, String txid) =>
       wallet.get<lib_monero.Wallet>().getTxKey(txid);
 
   @override
@@ -163,19 +182,19 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       wallet.get<lib_monero.Wallet>().save();
 
   @override
-  String getPublicViewKey(WrappedWallet wallet) =>
+  Future<String> getPublicViewKey(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().getPublicViewKey();
 
   @override
-  String getPrivateViewKey(WrappedWallet wallet) =>
+  Future<String> getPrivateViewKey(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().getPrivateViewKey();
 
   @override
-  String getPublicSpendKey(WrappedWallet wallet) =>
+  Future<String> getPublicSpendKey(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().getPublicSpendKey();
 
   @override
-  String getPrivateSpendKey(WrappedWallet wallet) =>
+  Future<String> getPrivateSpendKey(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().getPrivateSpendKey();
 
   @override
@@ -183,11 +202,11 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       wallet.get<lib_monero.Wallet>().isSynced();
 
   @override
-  void startSyncing(WrappedWallet wallet) =>
+  Future<void> startSyncing(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().startSyncing();
 
   @override
-  void stopSyncing(WrappedWallet wallet) =>
+  Future<void> stopSyncing(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().stopSyncing();
 
   @override
@@ -214,23 +233,23 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       );
 
   @override
-  void startListeners(WrappedWallet wallet) =>
+  Future<void> startListeners(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().startListeners();
 
   @override
-  void stopListeners(WrappedWallet wallet) =>
+  Future<void> stopListeners(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().stopListeners();
 
   @override
-  int getRefreshFromBlockHeight(WrappedWallet wallet) =>
+  Future<int> getRefreshFromBlockHeight(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().getRefreshFromBlockHeight();
 
   @override
-  void setRefreshFromBlockHeight(WrappedWallet wallet, int height) =>
+  Future<void> setRefreshFromBlockHeight(WrappedWallet wallet, int height) =>
       wallet.get<lib_monero.Wallet>().setRefreshFromBlockHeight(height);
 
   @override
-  Future<bool> rescanBlockchain(WrappedWallet wallet) =>
+  Future<void> rescanBlockchain(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().rescanBlockchain();
 
   @override
@@ -266,14 +285,16 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
   }) => wallet.get<lib_monero.Wallet>().getAllTxids(refresh: refresh);
 
   @override
-  BigInt? getBalance(WrappedWallet wallet, {int accountIndex = 0}) =>
+  Future<BigInt> getBalance(WrappedWallet wallet, {int accountIndex = 0}) =>
       wallet.get<lib_monero.Wallet>().getBalance(accountIndex: accountIndex);
 
   @override
-  BigInt? getUnlockedBalance(WrappedWallet wallet, {int accountIndex = 0}) =>
-      wallet.get<lib_monero.Wallet>().getUnlockedBalance(
-        accountIndex: accountIndex,
-      );
+  Future<BigInt> getUnlockedBalance(
+    WrappedWallet wallet, {
+    int accountIndex = 0,
+  }) => wallet.get<lib_monero.Wallet>().getUnlockedBalance(
+    accountIndex: accountIndex,
+  );
 
   @override
   Future<List<CsTransaction>> getAllTxs(
@@ -496,7 +517,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       xmr_wallet_ffi.validateAddress(address, network);
 
   @override
-  String getSeed(WrappedWallet wallet) =>
+  Future<String> getSeed(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().getSeed();
 
   @override
