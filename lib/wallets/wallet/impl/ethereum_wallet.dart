@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:isar_community/isar.dart';
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
+import 'package:wallet/wallet.dart' as eth_wallet;
 
 import '../../../dto/ethereum/eth_tx_dto.dart';
 import '../../../models/balance.dart';
@@ -133,10 +134,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       inputs: List.unmodifiable(inputs),
       outputs: List.unmodifiable(outputs),
       version: -1,
-      type:
-          addressTo == myAddress
-              ? TransactionType.sentToSelf
-              : TransactionType.outgoing,
+      type: addressTo == myAddress
+          ? TransactionType.sentToSelf
+          : TransactionType.outgoing,
       subType: TransactionSubType.none,
       otherData: jsonEncode(otherData),
     );
@@ -175,7 +175,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final address = Address(
         walletId: walletId,
-        value: _credentials!.address.hexEip55,
+        value: _credentials!.address.eip55With0x,
         publicKey: [],
         // maybe store address bytes here? seems a waste of space though
         derivationIndex: 0,
@@ -217,8 +217,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       final client = getEthClient();
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
-      final address = web3.EthereumAddress.fromHex(addressHex);
-      final web3.EtherAmount ethBalance = await client.getBalance(address);
+      final address = eth_wallet.EthereumAddress.fromHex(addressHex);
+      final eth_wallet.EtherAmount ethBalance = await client.getBalance(address);
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,
@@ -429,9 +429,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return false;
   }
 
-  Future<web3.EthereumAddress> getMyWeb3Address() async {
+  Future<eth_wallet.EthereumAddress> getMyWeb3Address() async {
     final myAddress = (await getCurrentReceivingAddress())!.value;
-    final myWeb3Address = web3.EthereumAddress.fromHex(myAddress);
+    final myWeb3Address = eth_wallet.EthereumAddress.fromHex(myAddress);
     return myWeb3Address;
   }
 
@@ -446,7 +446,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   >
   internalSharedPrepareSend({
     required TxData txData,
-    required web3.EthereumAddress myWeb3Address,
+    required eth_wallet.EthereumAddress myWeb3Address,
   }) async {
     if (txData.feeRateType == null) throw Exception("Missing fee rate type.");
     if (txData.feeRateType == FeeRateType.custom &&
@@ -527,16 +527,16 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     }
 
     final tx = web3.Transaction(
-      to: web3.EthereumAddress.fromHex(address),
+      to: eth_wallet.EthereumAddress.fromHex(address),
       maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit,
-      value: web3.EtherAmount.inWei(amount.raw),
+      value: eth_wallet.EtherAmount.inWei(amount.raw),
       nonce: prep.nonce,
-      maxFeePerGas: web3.EtherAmount.fromBigInt(
-        web3.EtherUnit.wei,
+      maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
+        eth_wallet.EtherUnit.wei,
         prep.maxBaseFee,
       ),
-      maxPriorityFeePerGas: web3.EtherAmount.fromBigInt(
-        web3.EtherUnit.wei,
+      maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
+        eth_wallet.EtherUnit.wei,
         prep.priorityFee,
       ),
     );

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:isar_community/isar.dart';
+import 'package:wallet/wallet.dart' as eth_wallet;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 import '../../../../dto/ethereum/eth_token_tx_dto.dart';
@@ -147,7 +148,7 @@ class EthTokenWallet extends Wallet {
     try {
       await super.init();
 
-      final contractAddress = web3dart.EthereumAddress.fromHex(
+      final contractAddress = eth_wallet.EthereumAddress.fromHex(
         tokenContract.address,
       );
 
@@ -155,7 +156,7 @@ class EthTokenWallet extends Wallet {
       try {
         _tokenContract = await _updateTokenABI(
           forContract: tokenContract,
-          usingContractAddress: contractAddress.hex,
+          usingContractAddress: contractAddress.eip55With0x,
         );
       } catch (e, s) {
         Logging.instance.w(
@@ -184,7 +185,7 @@ class EthTokenWallet extends Wallet {
       // Some failure, try for proxy contract
       final contractAddressResponse =
           await EthereumAPI.getProxyTokenImplementationAddress(
-            contractAddress.hex,
+            contractAddress.eip55With0x,
           );
 
       if (contractAddressResponse.value != null) {
@@ -242,15 +243,15 @@ class EthTokenWallet extends Wallet {
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
-      parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
+      parameters: [eth_wallet.EthereumAddress.fromHex(address), amount.raw],
       maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit,
       nonce: prep.nonce,
-      maxFeePerGas: web3dart.EtherAmount.fromBigInt(
-        web3dart.EtherUnit.wei,
+      maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
+        eth_wallet.EtherUnit.wei,
         prep.maxBaseFee,
       ),
-      maxPriorityFeePerGas: web3dart.EtherAmount.fromBigInt(
-        web3dart.EtherUnit.wei,
+      maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
+        eth_wallet.EtherUnit.wei,
         prep.priorityFee,
       ),
     );

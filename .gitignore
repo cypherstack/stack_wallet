@@ -85,6 +85,7 @@ pubspec.yaml
 /android/app/src/main/profile/AndroidManifest.xml
 /android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
 /android/app/src/main/res/**/ic_launcher.png
+/android/app/src/main/res/**/splash.png
 
 /ios/Runner/Info.plist
 /ios/Runner.xcodeproj/project.pbxproj

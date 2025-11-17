@@ -37,10 +37,10 @@ packages:
     dependency: "direct main"
     description:
       name: archive
-      sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
+      sha256: "2fde1607386ab523f7a36bb3e7edb43bd58e6edaf2ffb29d8a6d578b297fdbbd"
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.1"
+    version: "4.0.7"
   args:
     dependency: transitive
     description:
@@ -61,71 +61,64 @@ packages:
     dependency: "direct main"
     description:
       name: basic_utils
-      sha256: "2064b21d3c41ed7654bc82cc476fd65542e04d60059b74d5eed490a4da08fc6c"
+      sha256: "548047bef0b3b697be19fa62f46de54d99c9019a69fb7db92c69e19d87f633c7"
       url: "https://pub.dev"
     source: hosted
-    version: "5.7.0"
+    version: "5.8.2"
   bech32:
     dependency: "direct main"
     description:
       path: "."
-      ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
-      resolved-ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
+      ref: "6a3388ff8f62c1fa5e624bb7f36c8e71fe53428d"
+      resolved-ref: "6a3388ff8f62c1fa5e624bb7f36c8e71fe53428d"
       url: "https://github.com/cypherstack/bech32.git"
     source: git
     version: "0.2.1"
   bip32:
     dependency: "direct main"
     description:
-      name: bip32
-      sha256: "54787cd7a111e9d37394aabbf53d1fc5e2e0e0af2cd01c459147a97c0e3f8a97"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "9a7e9b9bad9872c69dd1383d6b2e6090f85148fc"
+      resolved-ref: "9a7e9b9bad9872c69dd1383d6b2e6090f85148fc"
+      url: "https://github.com/cypherstack/bip32-dart"
+    source: git
     version: "2.0.0"
-  bip340:
-    dependency: "direct main"
-    description:
-      name: bip340
-      sha256: "2a92f6ed68959f75d67c9a304c17928b9c9449587d4f75ee68f34152f7f69e87"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   bip39:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
-      resolved-ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
+      ref: "20bc8ca0bf0a30c6965977a26c41475a9e862020"
+      resolved-ref: "20bc8ca0bf0a30c6965977a26c41475a9e862020"
       url: "https://github.com/cypherstack/stack-bip39.git"
     source: git
-    version: "1.0.6"
+    version: "1.0.7"
   bip47:
     dependency: "direct main"
     description:
       path: "."
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
-      resolved-ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      ref: "3ef6b94375d7b4d972b0bc0bd9597532381a88ec"
+      resolved-ref: "3ef6b94375d7b4d972b0bc0bd9597532381a88ec"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
-    version: "2.0.0"
+    version: "2.1.0"
   bitbox:
     dependency: "direct main"
     description:
       path: "."
-      ref: "50bf29957514a5712466ba37590a851212a244bf"
-      resolved-ref: "50bf29957514a5712466ba37590a851212a244bf"
-      url: "https://github.com/PiRK/bitbox-flutter.git"
+      ref: "4c3c1aadae089dd1ace705aedf012e1c89fe53ad"
+      resolved-ref: "4c3c1aadae089dd1ace705aedf012e1c89fe53ad"
+      url: "https://github.com/cypherstack/bitbox-flutter.git"
     source: git
-    version: "1.0.1"
+    version: "1.0.2"
   bitcoindart:
     dependency: "direct main"
     description:
       path: "."
-      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
-      resolved-ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
+      ref: "7145be16bb88cffbd53326f7fa4570e414be09e4"
+      resolved-ref: "7145be16bb88cffbd53326f7fa4570e414be09e4"
       url: "https://github.com/cypherstack/bitcoindart.git"
     source: git
-    version: "3.0.1"
+    version: "3.0.2"
   blockchain_signer:
     dependency: transitive
     description:
@@ -348,8 +341,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
-      resolved-ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
+      ref: f90600053a4f149a6153f30057ac7f75c21ab962
+      resolved-ref: f90600053a4f149a6153f30057ac7f75c21ab962
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
     version: "4.1.0"
@@ -357,8 +350,8 @@ packages:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
-      resolved-ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
+      ref: f90600053a4f149a6153f30057ac7f75c21ab962
+      resolved-ref: f90600053a4f149a6153f30057ac7f75c21ab962
       url: "https://www.github.com/julian-CStack/coinlib"
     source: git
     version: "4.0.0"
@@ -423,10 +416,10 @@ packages:
     dependency: "direct main"
     description:
       name: crypto
-      sha256: aa274aa7774f8964e4f4f38cc994db7b6158dd36e9187aaceaddc994b35c6c67
+      sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.7"
   cryptography:
     dependency: transitive
     description:
@@ -439,10 +432,10 @@ packages:
     dependency: "direct main"
     description:
       name: cs_monero
-      sha256: "6370649167f46ead5cffac46d164dd749cb4b07989e9f0e08fe081c74c4e6b61"
+      sha256: b174f40e1887eb589e1e9aa99de8e9d0bc97b543f2330d5e5e7b01a6d313a9c2
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.2.0"
   cs_monero_flutter_libs:
     dependency: "direct main"
     description:
@@ -726,10 +719,11 @@ packages:
   dart_bs58check:
     dependency: "direct main"
     description:
-      name: dart_bs58check
-      sha256: "4284e606795a18c1df5a955928bdc4e1b6f908da7ab0e87f49db51b3774e9e6c"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
+      resolved-ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
+      url: "https://github.com/cypherstack/dart-bs58check"
+    source: git
     version: "3.0.2"
   dart_numerics:
     dependency: "direct main"
@@ -767,10 +761,10 @@ packages:
     dependency: "direct main"
     description:
       name: decimal
-      sha256: "24a261d5d5c87e86c7651c417a5dbdf8bcd7080dd592533910e8d0505a279f21"
+      sha256: fc706a5618b81e5b367b01dd62621def37abc096f2b46a9bd9068b64c1fa36d0
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3"
+    version: "3.2.4"
   dependency_validator:
     dependency: "direct dev"
     description:
@@ -888,16 +882,16 @@ packages:
     dependency: transitive
     description:
       name: eip55
-      sha256: "213a9b86add87a5216328e8494b0ab836e401210c4d55eb5e521bd39e39169e1"
+      sha256: a81d6afe386ec965e584541fe8f19719bed8a7ae23a5f5061112e96c50e6521b
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   electrum_adapter:
     dependency: "direct main"
     description:
       path: "."
-      ref: "794ab2d7b88b34d64a89518f9b9f41dcc235aca1"
-      resolved-ref: "794ab2d7b88b34d64a89518f9b9f41dcc235aca1"
+      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      resolved-ref: b6fa44d015d3bfa06934b73219928c29ca48a290
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.2"
@@ -920,11 +914,12 @@ packages:
   ethereum_addresses:
     dependency: "direct main"
     description:
-      name: ethereum_addresses
-      sha256: e6ba01d44ecb9c5634367b017d6e94598fc937be8b28fc406d0e51ed6e9513dd
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
+      path: "."
+      ref: "6a5d3d69e54c175ae44b44040fb2743c9b6405a6"
+      resolved-ref: "6a5d3d69e54c175ae44b44040fb2743c9b6405a6"
+      url: "https://github.com/cypherstack/dart-ethereum_address"
+    source: git
+    version: "1.0.3"
   event_bus:
     dependency: "direct main"
     description:
@@ -1200,8 +1195,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "540d0bc7dc27a97d45d63f412f26818a7f3b8b51"
-      resolved-ref: "540d0bc7dc27a97d45d63f412f26818a7f3b8b51"
+      ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
+      resolved-ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -1313,10 +1308,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.6"
+    version: "1.6.0"
   http2:
     dependency: transitive
     description:
@@ -1353,10 +1348,10 @@ packages:
     dependency: "direct main"
     description:
       name: image
-      sha256: f31d52537dc417fdcde36088fdf11d191026fd5e4fae742491ebd40e5a8bea7d
+      sha256: "4e973fcf4caae1a4be2fa0a13157aa38a8f9cb049db6529aa00b4d71abc4d928"
       url: "https://pub.dev"
     source: hosted
-    version: "4.3.0"
+    version: "4.5.4"
   import_sorter:
     dependency: "direct dev"
     description:
@@ -1374,10 +1369,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
+      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.0"
+    version: "0.19.0"
   io:
     dependency: transitive
     description:
@@ -1435,13 +1430,13 @@ packages:
     source: hosted
     version: "4.9.0"
   json_rpc_2:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: json_rpc_2
-      sha256: "246b321532f0e8e2ba474b4d757eaa558ae4fdd0688fdbc1e1ca9705f9b8ca0e"
+      sha256: "3c46c2633aec07810c3d6a2eb08d575b5b4072980db08f1344e66aeb53d6e4a7"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "4.0.0"
   json_serializable:
     dependency: transitive
     description:
@@ -1559,10 +1554,10 @@ packages:
     dependency: "direct main"
     description:
       name: lottie
-      sha256: a93542cc2d60a7057255405f62252533f8e8956e7e06754955669fd32fb4b216
+      sha256: "8ae0be46dbd9e19641791dc12ee480d34e1fd3f84c749adc05f3ad9342b71b95"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "3.3.2"
   matcher:
     dependency: transitive
     description:
@@ -1664,19 +1659,20 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "819b21164ef93cc0889049d4a8a1be2d0cc36a1b"
-      resolved-ref: "819b21164ef93cc0889049d4a8a1be2d0cc36a1b"
-      url: "https://github.com/Cyrix126/namecoin_dart"
+      ref: "73a29731ba493595fed331d92c7a4b5604fd6e23"
+      resolved-ref: "73a29731ba493595fed331d92c7a4b5604fd6e23"
+      url: "https://github.com/cypherstack/namecoin_dart"
     source: git
-    version: "2.0.0"
+    version: "2.0.1"
   nanodart:
     dependency: "direct main"
     description:
-      name: nanodart
-      sha256: "4b2f42d60307b54e8cf384d6193a567d07f8efd773858c0d5948246153c13282"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
+      path: "."
+      ref: "1d3f30c8abd36d352a8b3147426308b77c77484e"
+      resolved-ref: "1d3f30c8abd36d352a8b3147426308b77c77484e"
+      url: "https://github.com/cypherstack/nanodart"
+    source: git
+    version: "2.0.1"
   nm:
     dependency: transitive
     description:
@@ -1841,12 +1837,12 @@ packages:
     dependency: transitive
     description:
       name: petitparser
-      sha256: cb3798bef7fc021ac45b308f4b51208a152792445cce0448c9a4ba5879dd8750
+      sha256: "07c8f0b1913bcde1ff0d26e57ace2f3012ccbf2b204e070290dad3bb22797646"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "6.1.0"
   pinenacl:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: pinenacl
       sha256: "57e907beaacbc3c024a098910b6240758e899674de07d6949a67b52fd984cbdf"
@@ -1873,10 +1869,10 @@ packages:
     dependency: "direct main"
     description:
       name: pointycastle
-      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.1"
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -1885,6 +1881,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  posix:
+    dependency: transitive
+    description:
+      name: posix
+      sha256: "6323a5b0fa688b6a010df4905a56b00181479e6d10534cecfecede2aa55add61"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.3"
   pretty_dio_logger:
     dependency: transitive
     description:
@@ -2009,10 +2013,10 @@ packages:
     dependency: transitive
     description:
       name: sec
-      sha256: "8bbd56df884502192a441b5f5d667265498f2f8728a282beccd9db79e215f379"
+      sha256: "52a93800943642e0b5225408d0973a1837e2452b9aa8a501fdfbc8e76b6ac135"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   share_plus:
     dependency: "direct main"
     description:
@@ -2184,10 +2188,10 @@ packages:
     dependency: "direct main"
     description:
       name: stellar_flutter_sdk
-      sha256: "7d505963fe11d0f90b3f798964c485ed9fa64731c38f14c9b2fb76d5d5bd6cd8"
+      sha256: eb07752e11c6365ee59a666f7a95964f761ec05250b0cecaf14698ebc66b09b0
       url: "https://pub.dev"
     source: hosted
-    version: "1.8.1"
+    version: "2.1.8"
   stream_channel:
     dependency: "direct main"
     description:
@@ -2264,8 +2268,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: d000cc245e51d3ff50e6467960fb3d9159d5b2a9
-      resolved-ref: d000cc245e51d3ff50e6467960fb3d9159d5b2a9
+      ref: "210fe8bbb93a9e0bcbc8e99894c261f53097d5e2"
+      resolved-ref: "210fe8bbb93a9e0bcbc8e99894c261f53097d5e2"
       url: "https://github.com/cypherstack/tezart.git"
     source: git
     version: "2.0.5"
@@ -2305,10 +2309,10 @@ packages:
     dependency: transitive
     description:
       name: toml
-      sha256: "69756bc12eccf279b72217a87310d217efc4b3752f722e890f672801f19ac485"
+      sha256: d968d149c8bd06dc14e09ea3a140f90a3f2ba71949e7a91df4a46f3107400e71
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.1"
+    version: "0.16.0"
   tor_ffi_plugin:
     dependency: "direct main"
     description:
@@ -2346,10 +2350,10 @@ packages:
     dependency: "direct main"
     description:
       name: unorm_dart
-      sha256: "5b35bff83fce4d76467641438f9e867dc9bcfdb8c1694854f230579d68cd8f4b"
+      sha256: "0c69186b03ca6addab0774bcc0f4f17b88d4ce78d9d4d8f0619e30a99ead58e7"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.3.2"
   url_launcher:
     dependency: "direct main"
     description:
@@ -2418,10 +2422,10 @@ packages:
     dependency: "direct main"
     description:
       name: uuid
-      sha256: "648e103079f7c64a36dc7d39369cabb358d377078a051d6ae2ad3aa539519313"
+      sha256: a11b666489b1954e01d992f3d601b1804a33937b5a8fe677bd26b8a9f96f96e8
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.7"
+    version: "4.5.2"
   vector_graphics:
     dependency: transitive
     description:
@@ -2504,13 +2508,13 @@ packages:
     source: git
     version: "0.2.2"
   wallet:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: wallet
-      sha256: "687fd89a16557649b26189e597792962f405797fc64113e8758eabc2c2605c32"
+      sha256: "20b6d8440039726841bd23b2bac64f888ec1ce1509edcc3ed2ad1753f613521e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.13"
+    version: "0.0.18"
   wasm_interop:
     dependency: transitive
     description:
@@ -2539,10 +2543,10 @@ packages:
     dependency: "direct main"
     description:
       name: web3dart
-      sha256: "0b96223a6b284e3146e65dc842ded139eca68a85c4ab79c5ba1a73284927d3cd"
+      sha256: bde2c92aac6f086988b6a1935c9d884f42a6acb772c93e1e2810f64af0db5600
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.1"
+    version: "3.0.1"
   web_socket_channel:
     dependency: "direct main"
     description:
@@ -2629,10 +2633,10 @@ packages:
     dependency: transitive
     description:
       name: xml
-      sha256: "5bc72e1e45e941d825fd7468b9b4cc3b9327942649aeb6fc5cdbf135f0a86e84"
+      sha256: b015a8ad1c488f66851d762d3090a21c600e479dc75e68328c52774040cf9226
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.0"
+    version: "6.5.0"
   xxh3:
     dependency: transitive
     description:
