@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -83,54 +84,53 @@ class _AutoLockTimeoutSettingsViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 70),
-                      );
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: child,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 70));
+                }
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RoundedWhiteContainer(
             child: RawMaterialButton(
-              splashColor:
-                  Theme.of(context).extension<StackColors>()!.highlight,
+              splashColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.highlight,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
@@ -180,8 +180,8 @@ class _AutoLockTimeoutSettingsViewState
                       TextInputFormatter.withFunction(
                         (oldValue, newValue) =>
                             RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
-                                ? newValue
-                                : oldValue,
+                            ? newValue
+                            : oldValue,
                       ),
                     ],
                     onChanged: (value) {
@@ -210,15 +210,14 @@ class _AutoLockTimeoutSettingsViewState
           if (!isDesktop) const Spacer(),
           ConditionalParent(
             condition: isDesktop,
-            builder:
-                (child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [child],
-                ),
+            builder: (child) => Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [child],
+            ),
             child: PrimaryButton(
               buttonHeight: isDesktop ? ButtonHeight.l : null,
               width: isDesktop ? 200 : null,
-              label: "Save",
+              label: S.of(context)!.save,
               onPressed: _save,
             ),
           ),

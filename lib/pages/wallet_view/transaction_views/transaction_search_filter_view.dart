@@ -819,7 +819,7 @@ class _TransactionSearchViewState
                 onPressed: () async {
                   await _onApplyPressed();
                 },
-                label: "Save",
+                label: S.of(context)!.save,
               ),
             ),
             // Expanded(
@@ -833,7 +833,7 @@ class _TransactionSearchViewState
             //         await _onApplyPressed();
             //       },
             //       child: Text(
-            //         "Save",
+            //         S.of(context)!.save,
             //         style: STextStyles.button(context),
             //       ),
             //     ),

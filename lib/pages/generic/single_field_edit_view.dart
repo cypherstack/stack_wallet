@@ -213,7 +213,7 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
               ),
             ),
             child: PrimaryButton(
-              label: "Save",
+              label: S.of(context)!.save,
               buttonHeight: isDesktop ? ButtonHeight.l : null,
               onPressed: () {
                 if (mounted) {

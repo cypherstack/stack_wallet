@@ -308,7 +308,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 ],
               ),
               child: PrimaryButton(
-                label: "Save",
+                label: S.of(context)!.save,
                 buttonHeight: Util.isDesktop ? ButtonHeight.l : ButtonHeight.xl,
                 onPressed: onSave,
               ),

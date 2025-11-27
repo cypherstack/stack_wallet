@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/text_styles.dart';
@@ -110,8 +111,8 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                           .extension<StackColors>()!
                           .getPrimaryEnabledButtonStyle(context),
                       onPressed: () async {
-                        textEditingController.text =
-                            textEditingController.text.trim();
+                        textEditingController.text = textEditingController.text
+                            .trim();
                         await setBlockExplorerForCoin(
                           coin: widget.coin,
                           url: Uri.parse(textEditingController.text),
@@ -121,7 +122,10 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                           Navigator.of(context).pop();
                         }
                       },
-                      child: Text("Save", style: STextStyles.button(context)),
+                      child: Text(
+                        S.of(context)!.save,
+                        style: STextStyles.button(context),
+                      ),
                     ),
                   ),
                 ),

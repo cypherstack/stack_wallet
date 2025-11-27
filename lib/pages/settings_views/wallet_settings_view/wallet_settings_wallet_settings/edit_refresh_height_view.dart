@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -224,7 +225,7 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
               ),
             ),
             Util.isDesktop ? const SizedBox(height: 32) : const Spacer(),
-            PrimaryButton(label: "Save", onPressed: _save),
+            PrimaryButton(label: S.of(context)!.save, onPressed: _save),
           ],
         ),
       ),

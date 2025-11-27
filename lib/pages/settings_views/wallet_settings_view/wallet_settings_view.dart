@@ -701,7 +701,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
               }
             },
             child: Text(
-              "Save",
+              S.of(context)!.save,
               style: STextStyles.button(context).copyWith(
                 color: Theme.of(
                   context,
@@ -798,7 +798,7 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
               }
             },
             child: Text(
-              "Save",
+              S.of(context)!.save,
               style: STextStyles.button(context).copyWith(
                 color: Theme.of(
                   context,

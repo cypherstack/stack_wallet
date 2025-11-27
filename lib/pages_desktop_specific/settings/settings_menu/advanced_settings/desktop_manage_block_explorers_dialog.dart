@@ -224,7 +224,7 @@ class _DesktopEditBlockExplorerDialogState
                     const SizedBox(width: 16),
                     Expanded(
                       child: PrimaryButton(
-                        label: "Save",
+                        label: S.of(context)!.save,
                         buttonHeight: ButtonHeight.l,
                         onPressed: () async {
                           _textEditingController.text = _textEditingController

@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../models/isar/models/solana/sol_contract.dart';
 import '../../../notifications/show_flush_bar.dart';
@@ -46,8 +47,8 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../../home_view/home_view.dart';
-import 'add_custom_token_view.dart';
 import 'add_custom_solana_token_view.dart';
+import 'add_custom_token_view.dart';
 import 'sub_widgets/add_token_list.dart';
 import 'sub_widgets/add_token_list_element.dart';
 import 'sub_widgets/add_token_text.dart';
@@ -100,11 +101,10 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens =
-        tokenEntities
-            .where((e) => e.selected)
-            .map((e) => e.token.address)
-            .toList();
+    final selectedTokens = tokenEntities
+        .where((e) => e.selected)
+        .map((e) => e.token.address)
+        .toList();
 
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
@@ -177,7 +177,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               tokenEntities.add(
                 AddTokenListElementData(contract!)..selected = true,
               );
-              tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+              tokenEntities.sort(
+                (a, b) => a.token.name.compareTo(b.token.name),
+              );
             }
           });
         }
@@ -199,9 +201,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         ),
       );
     } else {
-      final result = await Navigator.of(
-        context,
-      ).pushNamed(
+      final result = await Navigator.of(context).pushNamed(
         AddCustomSolanaTokenView.routeName,
         arguments: widget.walletId,
       );
@@ -228,9 +228,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           if (tokenEntities
               .where((e) => e.token.address == token!.address)
               .isEmpty) {
-            tokenEntities.add(
-              AddTokenListElementData(token!)..selected = true,
-            );
+            tokenEntities.add(AddTokenListElementData(token!)..selected = true);
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
@@ -367,7 +365,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   width: 480,
                   child: PrimaryButton(
                     label: widget.contractsToMarkSelected != null
-                        ? "Save"
+                        ? S.of(context)!.save
                         : "Next",
                     onPressed: onNextPressed,
                   ),
@@ -626,7 +624,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                     const SizedBox(height: 16),
                     PrimaryButton(
                       label: widget.contractsToMarkSelected != null
-                          ? "Save"
+                          ? S.of(context)!.save
                           : "Next",
                       onPressed: onNextPressed,
                     ),

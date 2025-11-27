@@ -260,7 +260,7 @@ class _EditContactAddressViewState
               const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
-                  label: "Save",
+                  label: S.of(context)!.save,
                   enabled: ref.watch(validContactStateProvider([0])),
                   onPressed: () => save(contact),
                   buttonHeight: isDesktop ? ButtonHeight.l : null,

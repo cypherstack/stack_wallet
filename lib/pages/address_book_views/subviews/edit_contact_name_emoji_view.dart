@@ -372,7 +372,7 @@ class _EditContactNameEmojiViewState
               const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
-                  label: "Save",
+                  label: S.of(context)!.save,
                   enabled: nameController.text.isNotEmpty,
                   buttonHeight: isDesktop ? ButtonHeight.l : null,
                   onPressed: () async {

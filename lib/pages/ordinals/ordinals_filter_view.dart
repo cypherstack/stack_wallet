@@ -743,7 +743,7 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                 onPressed: () async {
                   await _onApplyPressed();
                 },
-                label: "Save",
+                label: S.of(context)!.save,
               ),
             ),
             if (isDesktop) const SizedBox(width: 32),

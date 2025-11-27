@@ -99,6 +99,12 @@ abstract class S {
   /// **'Ok'**
   String get ok;
 
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:

@@ -175,7 +175,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Save",
+                    label: S.of(context)!.save,
                     onPressed: () {
                       ref.read(prefsChangeNotifierProvider).externalCalls =
                           isEasy;

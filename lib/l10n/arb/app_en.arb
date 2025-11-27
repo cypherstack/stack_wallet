@@ -1,5 +1,6 @@
 {
   "ok": "Ok",
+  "save": "Save",
   "cancel": "Cancel",
   "biometricUnlockAppTitle": "Unlock {appPrefix}",
   "@biometricUnlockAppTitle": {

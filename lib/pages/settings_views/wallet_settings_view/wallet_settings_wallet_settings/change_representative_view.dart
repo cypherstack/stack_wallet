@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -147,93 +148,92 @@ class _ChangeRepresentativeViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                title: Text(
-                  "Wallet representative",
-                  style: STextStyles.navBarTitle(context),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        shadows: const [],
-                        icon: SvgPicture.asset(
-                          Assets.svg.copy,
-                          width: 24,
-                          height: 24,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.topNavIconPrimary,
-                        ),
-                        onPressed: () {
-                          if (representative != null) {
-                            _copy();
-                          }
-                        },
-                      ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Wallet representative",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.copy,
+                      width: 24,
+                      height: 24,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                     ),
+                    onPressed: () {
+                      if (representative != null) {
+                        _copy();
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+              child: child,
+            ),
+          ),
+        ),
+      ),
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxWidth: 600,
+          maxHeight: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "Change representative",
+                      style: STextStyles.desktopH2(context),
+                    ),
+                  ),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop,
                   ),
                 ],
               ),
-              body: SafeArea(
+              AnimatedSize(
+                duration: const Duration(milliseconds: 150),
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
                   child: child,
                 ),
               ),
-            ),
+            ],
           ),
-      child: ConditionalParent(
-        condition: isDesktop,
-        builder:
-            (child) => DesktopDialog(
-              maxWidth: 600,
-              maxHeight: double.infinity,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32),
-                        child: Text(
-                          "Change representative",
-                          style: STextStyles.desktopH2(context),
-                        ),
-                      ),
-                      DesktopDialogCloseButton(
-                        onPressedOverride:
-                            Navigator.of(context, rootNavigator: true).pop,
-                      ),
-                    ],
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 150),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                      child: child,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        ),
         child: Column(
           children: [
             if (isDesktop) const SizedBox(height: 24),
@@ -261,43 +261,38 @@ class _ChangeRepresentativeViewState
                       children: [
                         ConditionalParent(
                           condition: !isDesktop,
-                          builder:
-                              (child) => RoundedWhiteContainer(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [child],
-                                ),
-                              ),
+                          builder: (child) => RoundedWhiteContainer(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [child],
+                            ),
+                          ),
                           child: ConditionalParent(
                             condition: isDesktop,
-                            builder:
-                                (child) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Current representative",
-                                      style:
-                                          STextStyles.desktopTextExtraExtraSmall(
-                                            context,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(children: [child]),
-                                  ],
+                            builder: (child) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Current representative",
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ),
                                 ),
+                                const SizedBox(height: 4),
+                                Row(children: [child]),
+                              ],
+                            ),
                             child: SelectableText(
                               representative!,
-                              style:
-                                  isDesktop
-                                      ? STextStyles.desktopTextExtraExtraSmall(
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
                                         context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark,
-                                      )
-                                      : STextStyles.itemSubtitle12(context),
+                                      ).extension<StackColors>()!.textDark,
+                                    )
+                                  : STextStyles.itemSubtitle12(context),
                             ),
                           ),
                         ),
@@ -310,62 +305,62 @@ class _ChangeRepresentativeViewState
                             autocorrect: Util.isDesktop ? false : true,
                             enableSuggestions: Util.isDesktop ? false : true,
                             controller: _textController,
-                            style:
-                                isDesktop
-                                    ? STextStyles.desktopTextExtraSmall(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textFieldActiveText,
-                                      height: 1.8,
-                                    )
-                                    : STextStyles.field(context),
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveText,
+                                    height: 1.8,
+                                  )
+                                : STextStyles.field(context),
                             focusNode: _textFocusNode,
-                            decoration: standardInputDecoration(
-                              "Enter new representative",
-                              _textFocusNode,
-                              context,
-                              desktopMed: isDesktop,
-                            ).copyWith(
-                              contentPadding:
-                                  isDesktop
+                            decoration:
+                                standardInputDecoration(
+                                  "Enter new representative",
+                                  _textFocusNode,
+                                  context,
+                                  desktopMed: isDesktop,
+                                ).copyWith(
+                                  contentPadding: isDesktop
                                       ? const EdgeInsets.only(
-                                        left: 16,
-                                        top: 11,
-                                        bottom: 12,
-                                        right: 5,
-                                      )
+                                          left: 16,
+                                          top: 11,
+                                          bottom: 12,
+                                          right: 5,
+                                        )
                                       : null,
-                              suffixIcon:
-                                  _textController.text.isNotEmpty
+                                  suffixIcon: _textController.text.isNotEmpty
                                       ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 0,
-                                        ),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    _textController.text = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
+                                          padding: const EdgeInsets.only(
+                                            right: 0,
                                           ),
-                                        ),
-                                      )
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              children: [
+                                                TextFieldIconButton(
+                                                  child: const XIcon(),
+                                                  onTap: () async {
+                                                    setState(() {
+                                                      _textController.text = "";
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
                                       : null,
-                            ),
+                                ),
                           ),
                         ),
                         if (isDesktop) const SizedBox(height: 60),
                         if (!isDesktop) const Spacer(),
-                        PrimaryButton(label: "Save", onPressed: _save),
+                        PrimaryButton(
+                          label: S.of(context)!.save,
+                          onPressed: _save,
+                        ),
                         if (!isDesktop) const SizedBox(height: 16),
                       ],
                     );

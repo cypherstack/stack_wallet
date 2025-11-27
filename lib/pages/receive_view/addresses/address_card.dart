@@ -23,6 +23,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -325,7 +326,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                                 // save works on linux at the moment
                                                 await _capturePng(true);
                                               },
-                                              label: "Save",
+                                              label: S.of(context)!.save,
                                               icon: SvgPicture.asset(
                                                 Assets.svg.arrowDown,
                                                 width: 20,

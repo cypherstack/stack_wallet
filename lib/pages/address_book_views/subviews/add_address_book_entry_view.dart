@@ -696,7 +696,7 @@ class _AddAddressBookEntryViewState
                                       validForms && nameExists;
 
                                   return PrimaryButton(
-                                    label: "Save",
+                                    label: S.of(context)!.save,
                                     buttonHeight: isDesktop
                                         ? ButtonHeight.m
                                         : null,

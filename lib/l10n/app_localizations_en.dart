@@ -12,6 +12,9 @@ class SEn extends S {
   String get ok => 'Ok';
 
   @override
+  String get save => 'Save';
+
+  @override
   String get cancel => 'Cancel';
 
   @override

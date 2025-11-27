@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -54,9 +55,7 @@ class _SyncingPreferencesSettings
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(
-            right: 30,
-          ),
+          padding: const EdgeInsets.only(right: 30),
           child: RoundedWhiteContainer(
             radiusMultiplier: 2,
             child: Column(
@@ -76,24 +75,25 @@ class _SyncingPreferencesSettings
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: RoundedContainer(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondaryDisabled,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.buttonBackSecondaryDisabled,
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             _currentTypeDescription(
                               ref.watch(
-                                prefsChangeNotifierProvider
-                                    .select((value) => value.syncType),
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.syncType,
+                                ),
                               ),
                             ),
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark2,
-                            ),
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark2,
+                                ),
                             textAlign: TextAlign.left,
                           ),
                         ),
@@ -131,9 +131,7 @@ class _SyncingPreferencesSettings
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(
-                        10,
-                      ),
+                      padding: const EdgeInsets.all(10),
                       child: changePrefs
                           ? SizedBox(
                               width: 512,
@@ -145,7 +143,7 @@ class _SyncingPreferencesSettings
                                     width: 200,
                                     buttonHeight: ButtonHeight.m,
                                     enabled: true,
-                                    label: "Save",
+                                    label: S.of(context)!.save,
                                     onPressed: () {
                                       setState(() {
                                         changePrefs = false;

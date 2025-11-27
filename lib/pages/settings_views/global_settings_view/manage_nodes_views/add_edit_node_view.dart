@@ -164,7 +164,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: PrimaryButton(
-                                    label: "Save",
+                                    label: S.of(context)!.save,
                                     buttonHeight: isDesktop
                                         ? ButtonHeight.l
                                         : null,
@@ -206,7 +206,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context),
-                  child: Text("Save", style: STextStyles.button(context)),
+                  child: Text(
+                    S.of(context)!.save,
+                    style: STextStyles.button(context),
+                  ),
                 ),
               ),
       ).then((value) {
@@ -723,7 +726,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 if (isDesktop)
                   Expanded(
                     child: PrimaryButton(
-                      label: "Save",
+                      label: S.of(context)!.save,
                       enabled: saveEnabled,
                       buttonHeight: ButtonHeight.l,
                       onPressed: saveEnabled ? attemptSave : null,
@@ -742,7 +745,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                           .extension<StackColors>()!
                           .getPrimaryDisabledButtonStyle(context),
                 onPressed: saveEnabled ? attemptSave : null,
-                child: Text("Save", style: STextStyles.button(context)),
+                child: Text(
+                  S.of(context)!.save,
+                  style: STextStyles.button(context),
+                ),
               ),
           ],
         ),

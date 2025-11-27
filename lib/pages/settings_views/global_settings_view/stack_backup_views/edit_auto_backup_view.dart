@@ -706,7 +706,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Save",
+                    label: S.of(context)!.save,
                     buttonHeight: ButtonHeight.l,
                     enabled: shouldEnableCreate,
                     onPressed: onSavePressed,
@@ -724,7 +724,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         .extension<StackColors>()!
                         .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
-              child: Text("Save", style: STextStyles.button(context)),
+              child: Text(
+                S.of(context)!.save,
+                style: STextStyles.button(context),
+              ),
             ),
         ],
       ),

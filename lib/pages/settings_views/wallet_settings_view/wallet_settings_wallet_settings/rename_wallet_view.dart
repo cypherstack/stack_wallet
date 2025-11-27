@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -90,32 +91,32 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                     focusNode: _focusNode,
                     style: STextStyles.field(context),
                     onChanged: (_) => setState(() {}),
-                    decoration: standardInputDecoration(
-                      "Wallet name",
-                      _focusNode,
-                      context,
-                    ).copyWith(
-                      suffixIcon:
-                          _controller.text.isNotEmpty
+                    decoration:
+                        standardInputDecoration(
+                          "Wallet name",
+                          _focusNode,
+                          context,
+                        ).copyWith(
+                          suffixIcon: _controller.text.isNotEmpty
                               ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _controller.text = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _controller.text = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
+                                )
                               : null,
-                    ),
+                        ),
                   ),
                 ),
                 const Spacer(),
@@ -165,7 +166,10 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                       }
                     }
                   },
-                  child: Text("Save", style: STextStyles.button(context)),
+                  child: Text(
+                    S.of(context)!.save,
+                    style: STextStyles.button(context),
+                  ),
                 ),
               ],
             ),
