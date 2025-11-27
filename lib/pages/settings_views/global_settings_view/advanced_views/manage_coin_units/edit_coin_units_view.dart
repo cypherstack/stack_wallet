@@ -2,7 +2,8 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'choose_unit_sheet.dart';
+
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/amount/amount_formatter.dart';
@@ -22,12 +23,10 @@ import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../../widgets/stack_text_field.dart';
 import '../../../../../widgets/textfield_icon_button.dart';
+import 'choose_unit_sheet.dart';
 
 class EditCoinUnitsView extends ConsumerStatefulWidget {
-  const EditCoinUnitsView({
-    super.key,
-    required this.coin,
-  });
+  const EditCoinUnitsView({super.key, required this.coin});
 
   final CryptoCurrency coin;
 
@@ -51,14 +50,12 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
       return;
     }
 
-    ref.read(prefsChangeNotifierProvider).updateAmountUnit(
-          coin: widget.coin,
-          amountUnit: _currentUnit,
-        );
-    ref.read(prefsChangeNotifierProvider).updateMaxDecimals(
-          coin: widget.coin,
-          maxDecimals: maxDecimals,
-        );
+    ref
+        .read(prefsChangeNotifierProvider)
+        .updateAmountUnit(coin: widget.coin, amountUnit: _currentUnit);
+    ref
+        .read(prefsChangeNotifierProvider)
+        .updateMaxDecimals(coin: widget.coin, maxDecimals: maxDecimals);
 
     Navigator.of(context).pop();
   }
@@ -68,14 +65,10 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
       backgroundColor: Colors.transparent,
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
-        return ChooseUnitSheet(
-          coin: widget.coin,
-        );
+        return ChooseUnitSheet(coin: widget.coin);
       },
     );
 
@@ -126,11 +119,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
                 child: child,
               ),
             ),
@@ -141,8 +130,9 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
         condition: !Util.isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -155,10 +145,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
               ),
             ),
             body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: child,
-              ),
+              child: Padding(padding: const EdgeInsets.all(16), child: child),
             ),
           ),
         ),
@@ -199,19 +186,16 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                     offset: const Offset(0, -10),
                     elevation: 0,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
                     ),
                   ),
                   menuItemStyleData: const MenuItemStyleData(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                 ),
               ),
@@ -227,8 +211,9 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                   ),
                   Positioned.fill(
                     child: RawMaterialButton(
-                      splashColor:
-                          Theme.of(context).extension<StackColors>()!.highlight,
+                      splashColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.highlight,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -236,10 +221,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                       ),
                       onPressed: chooseUnit,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 12,
-                          right: 17,
-                        ),
+                        padding: const EdgeInsets.only(left: 12, right: 17),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -262,9 +244,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                   ),
                 ],
               ),
-            SizedBox(
-              height: Util.isDesktop ? 24 : 8,
-            ),
+            SizedBox(height: Util.isDesktop ? 24 : 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -280,37 +260,37 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                   decimal: false,
                 ),
                 style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Maximum precision",
-                  _decimalsFocusNode,
-                  context,
-                ).copyWith(
-                  labelStyle:
-                      Util.isDesktop ? STextStyles.fieldLabel(context) : null,
-                  suffixIcon: _decimalsController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    _decimalsController.text = "";
-                                    setState(() {});
-                                  },
+                decoration:
+                    standardInputDecoration(
+                      "Maximum precision",
+                      _decimalsFocusNode,
+                      context,
+                    ).copyWith(
+                      labelStyle: Util.isDesktop
+                          ? STextStyles.fieldLabel(context)
+                          : null,
+                      suffixIcon: _decimalsController.text.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        _decimalsController.text = "";
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
+                              ),
+                            )
+                          : null,
+                    ),
               ),
             ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             const Spacer(),
             ConditionalParent(
               condition: Util.isDesktop,
@@ -318,17 +298,13 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       buttonHeight: ButtonHeight.l,
                       onPressed: Navigator.of(context).pop,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Expanded(
-                    child: child,
-                  ),
+                  const SizedBox(width: 16),
+                  Expanded(child: child),
                 ],
               ),
               child: PrimaryButton(

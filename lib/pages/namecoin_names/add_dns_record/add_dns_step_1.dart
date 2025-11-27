@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/namecoin_dns/dns_record_type.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
@@ -47,23 +48,17 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 32,
-                                ),
+                                padding: const EdgeInsets.only(left: 32),
                                 child: Text(
                                   "Add DNS record",
-                                  style: STextStyles.desktopH3(
-                                    context,
-                                  ),
+                                  style: STextStyles.desktopH3(context),
                                 ),
                               ),
                               const DesktopDialogCloseButton(),
                             ],
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
                             child: AddDnsStep2(
                               recordType: _recordType!,
                               name: widget.name,
@@ -73,8 +68,9 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                       ),
                     )
                   : StackDialogBase(
-                      keyboardPaddingAmount:
-                          MediaQuery.of(context).viewInsets.bottom,
+                      keyboardPaddingAmount: MediaQuery.of(
+                        context,
+                      ).viewInsets.bottom,
                       child: AddDnsStep2(
                         recordType: _recordType!,
                         name: widget.name,
@@ -96,13 +92,8 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!Util.isDesktop)
-          Text(
-            "Add DNS record",
-            style: STextStyles.pageTitleH2(context),
-          ),
-        SizedBox(
-          height: Util.isDesktop ? 24 : 16,
-        ),
+          Text("Add DNS record", style: STextStyles.pageTitleH2(context)),
+        SizedBox(height: Util.isDesktop ? 24 : 16),
         Text(
           "Choose a record type",
           style: Util.isDesktop
@@ -113,9 +104,7 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
         ),
-        SizedBox(
-          height: Util.isDesktop ? 12 : 8,
-        ),
+        SizedBox(height: Util.isDesktop ? 12 : 8),
         DropdownButtonHideUnderline(
           child: DropdownButton2<DNSRecordType>(
             hint: Text(
@@ -124,9 +113,9 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
             ),
             buttonStyleData: ButtonStyleData(
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),
@@ -137,19 +126,16 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
               elevation: 0,
               maxHeight: Util.isDesktop ? null : 200,
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),
               ),
             ),
             menuItemStyleData: const MenuItemStyleData(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 4,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             ),
             isExpanded: true,
             value: _recordType,
@@ -181,10 +167,10 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                       e.name,
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
+                          ),
                     ),
                   ),
                 ),
@@ -192,10 +178,7 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
             ],
           ),
         ),
-        if (_recordType != null)
-          SizedBox(
-            height: Util.isDesktop ? 10 : 6,
-          ),
+        if (_recordType != null) SizedBox(height: Util.isDesktop ? 10 : 6),
         if (_recordType != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -206,37 +189,33 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                     _recordType!.info,
                     style: Util.isDesktop
                         ? STextStyles.w500_10(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .infoItemLabel,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemLabel,
                           )
                         : STextStyles.w500_8(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .infoItemLabel,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemLabel,
                           ),
                   ),
                 ),
               ],
             ),
           ),
-        SizedBox(
-          height: Util.isDesktop ? 24 : 16,
-        ),
+        SizedBox(height: Util.isDesktop ? 24 : 16),
         Row(
           children: [
             Expanded(
               child: SecondaryButton(
-                label: "Cancel",
+                label: S.of(context)!.cancel,
                 buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
                 },
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: PrimaryButton(
                 label: "Next",
@@ -247,10 +226,7 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
             ),
           ],
         ),
-        if (Util.isDesktop)
-          const SizedBox(
-            height: 32,
-          ),
+        if (Util.isDesktop) const SizedBox(height: 32),
       ],
     );
   }

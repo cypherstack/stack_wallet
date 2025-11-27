@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -582,7 +583,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       SecondaryButton(
                         width: 183,
                         buttonHeight: ButtonHeight.m,
-                        label: "Cancel",
+                        label: S.of(context)!.cancel,
                         onPressed: () {},
                       ),
                     ],

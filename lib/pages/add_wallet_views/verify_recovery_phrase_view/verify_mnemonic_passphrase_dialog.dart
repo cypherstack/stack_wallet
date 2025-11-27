@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -81,9 +82,7 @@ class _VerifyMnemonicPassphraseDialogState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Verify mnemonic passphrase",
                     style: STextStyles.desktopH3(context),
@@ -93,11 +92,7 @@ class _VerifyMnemonicPassphraseDialogState
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: child,
             ),
           ],
@@ -117,9 +112,7 @@ class _VerifyMnemonicPassphraseDialogState
                 "Verify BIP39 passphrase",
                 style: STextStyles.pageTitleH2(context),
               ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -129,88 +122,72 @@ class _VerifyMnemonicPassphraseDialogState
                 focusNode: passwordFocusNode,
                 controller: passwordController,
                 style: Util.isDesktop
-                    ? STextStyles.desktopTextMedium(context).copyWith(
-                        height: 2,
-                      )
+                    ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
                     : STextStyles.field(context),
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
-                decoration: standardInputDecoration(
-                  "Enter your BIP39 passphrase",
-                  passwordFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon: UnconstrainedBox(
-                    child: ConditionalParent(
-                      condition: Util.isDesktop,
-                      builder: (child) => SizedBox(
-                        height: 70,
-                        child: child,
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: Util.isDesktop ? 24 : 16,
+                decoration:
+                    standardInputDecoration(
+                      "Enter your BIP39 passphrase",
+                      passwordFocusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon: UnconstrainedBox(
+                        child: ConditionalParent(
+                          condition: Util.isDesktop,
+                          builder: (child) =>
+                              SizedBox(height: 70, child: child),
+                          child: Row(
+                            children: [
+                              SizedBox(width: Util.isDesktop ? 24 : 16),
+                              GestureDetector(
+                                key: const Key(
+                                  "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                ),
+                                onTap: () async {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                child: SvgPicture.asset(
+                                  hidePassword
+                                      ? Assets.svg.eye
+                                      : Assets.svg.eyeSlash,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                  width: Util.isDesktop ? 24 : 16,
+                                  height: Util.isDesktop ? 24 : 16,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
                           ),
-                          GestureDetector(
-                            key: const Key(
-                              "mnemonicPassphraseFieldShowPasswordButtonKey",
-                            ),
-                            onTap: () async {
-                              setState(() {
-                                hidePassword = !hidePassword;
-                              });
-                            },
-                            child: SvgPicture.asset(
-                              hidePassword
-                                  ? Assets.svg.eye
-                                  : Assets.svg.eyeSlash,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark3,
-                              width: Util.isDesktop ? 24 : 16,
-                              height: Util.isDesktop ? 24 : 16,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 12,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
               ),
             ),
-            SizedBox(
-              height: Util.isDesktop ? 48 : 24,
-            ),
+            SizedBox(height: Util.isDesktop ? 48 : 24),
             ConditionalParent(
               condition: !Util.isDesktop,
               builder: (child) => Row(
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       onPressed: Navigator.of(
                         context,
                         rootNavigator: Util.isDesktop,
                       ).pop,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Expanded(
-                    child: child,
-                  ),
+                  const SizedBox(width: 16),
+                  Expanded(child: child),
                 ],
               ),
-              child: PrimaryButton(
-                label: "Verify",
-                onPressed: _verify,
-              ),
+              child: PrimaryButton(label: "Verify", onPressed: _verify),
             ),
           ],
         ),

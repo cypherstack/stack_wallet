@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
@@ -912,12 +913,12 @@ class _ConfirmSparkNameTransactionViewState
                       RouteGenerator.getRoute(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
+                        builder: (_) => LockscreenView(
                           showBackButton: true,
                           popOnSuccess: true,
                           routeOnSuccessArguments: true,
                           routeOnSuccess: "",
-                          biometricsCancelButtonString: "CANCEL",
+                          biometricsCancelButtonString: S.of(context)!.cancel,
                           biometricsLocalizedReason:
                               "Authenticate to send transaction",
                           biometricsAuthenticationTitle: "Confirm Transaction",

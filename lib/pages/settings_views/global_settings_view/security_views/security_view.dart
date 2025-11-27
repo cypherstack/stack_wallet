@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/global/duress_provider.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -91,7 +92,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                 ),
@@ -114,10 +115,10 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => const LockscreenView(
+          builder: (_) => LockscreenView(
             showBackButton: true,
             routeOnSuccess: CreateDuressPinView.routeName,
-            biometricsCancelButtonString: "CANCEL",
+            biometricsCancelButtonString: S.of(context)!.cancel,
             biometricsLocalizedReason: "Authenticate to create duress PIN",
             biometricsAuthenticationTitle: "Create duress PIN",
           ),
@@ -154,7 +155,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: Navigator.of(context).pop,
                   ),
                 ),
@@ -228,10 +229,10 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         RouteGenerator.getRoute(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
-                          builder: (_) => const LockscreenView(
+                          builder: (_) => LockscreenView(
                             showBackButton: true,
                             routeOnSuccess: ChangePinView.routeName,
-                            biometricsCancelButtonString: "CANCEL",
+                            biometricsCancelButtonString: S.of(context)!.cancel,
                             biometricsLocalizedReason:
                                 "Authenticate to change PIN",
                             biometricsAuthenticationTitle: "Change PIN",
@@ -626,11 +627,11 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         RouteGenerator.getRoute(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
-                          builder: (_) => const LockscreenView(
+                          builder: (_) => LockscreenView(
                             showBackButton: true,
                             routeOnSuccess:
                                 AutoLockTimeoutSettingsView.routeName,
-                            biometricsCancelButtonString: "CANCEL",
+                            biometricsCancelButtonString: S.of(context)!.cancel,
                             biometricsLocalizedReason:
                                 "Authenticate to change auto lock settings",
                             biometricsAuthenticationTitle: "Auto lock settings",

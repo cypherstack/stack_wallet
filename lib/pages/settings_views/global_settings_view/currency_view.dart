@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/global/base_currencies_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -119,11 +120,10 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
       );
     }
 
-    currenciesWithoutSelected =
-        ref
-            .watch(baseCurrenciesProvider.select((value) => value.map))
-            .keys
-            .toList();
+    currenciesWithoutSelected = ref
+        .watch(baseCurrenciesProvider.select((value) => value.map))
+        .keys
+        .toList();
 
     if (current.isNotEmpty) {
       currenciesWithoutSelected.remove(current);
@@ -137,8 +137,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -180,8 +181,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                 Expanded(
                   child: RoundedWhiteContainer(
                     padding: const EdgeInsets.all(20),
-                    borderColor:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    borderColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     child: child,
                   ),
                 ),
@@ -190,7 +192,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   children: [
                     Expanded(
                       child: SecondaryButton(
-                        label: "Cancel",
+                        label: S.of(context)!.cancel,
                         buttonHeight: ButtonHeight.l,
                         onPressed: Navigator.of(context).pop,
                       ),
@@ -246,44 +248,44 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                           setState(() => filter = newString);
                         },
                         style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon:
-                              _searchController.text.isNotEmpty
+                        decoration:
+                            standardInputDecoration(
+                              "Search",
+                              _searchFocusNode,
+                              context,
+                            ).copyWith(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 16,
+                                ),
+                                child: SvgPicture.asset(
+                                  Assets.svg.search,
+                                  width: 16,
+                                  height: 16,
+                                ),
+                              ),
+                              suffixIcon: _searchController.text.isNotEmpty
                                   ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchController.text = "";
-                                                filter = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  _searchController.text = "";
+                                                  filter = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
+                                    )
                                   : null,
-                        ),
+                            ),
                       ),
                     ),
                   ),
@@ -304,10 +306,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                     delegate: SliverChildBuilderDelegate((context, index) {
                       return Container(
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
                           borderRadius: _borderRadius(index),
                         ),
                         child: Padding(
@@ -317,14 +318,13 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                           ),
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color:
-                                currenciesWithoutSelected[index] == current
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .currencyListItemBG
-                                    : Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.popupBG,
+                            color: currenciesWithoutSelected[index] == current
+                                ? Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.currencyListItemBG
+                                : Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG,
                             child: RawMaterialButton(
                               onPressed: () async {
                                 onTap(index);
@@ -343,10 +343,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                       width: 20,
                                       height: 20,
                                       child: Radio(
-                                        activeColor:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .radioButtonIconEnabled,
+                                        activeColor: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .radioButtonIconEnabled,
                                         materialTapTargetSize:
                                             MaterialTapTargetSize.shrinkWrap,
                                         value: true,
@@ -367,11 +366,11 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                           currenciesWithoutSelected[index],
                                           key:
                                               (currenciesWithoutSelected[index] ==
-                                                      current)
-                                                  ? const Key(
-                                                    "selectedCurrencySettingsCurrencyText",
-                                                  )
-                                                  : null,
+                                                  current)
+                                              ? const Key(
+                                                  "selectedCurrencySettingsCurrencyText",
+                                                )
+                                              : null,
                                           style: STextStyles.largeMedium14(
                                             context,
                                           ),
@@ -386,11 +385,11 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                               "",
                                           key:
                                               (currenciesWithoutSelected[index] ==
-                                                      current)
-                                                  ? const Key(
-                                                    "selectedCurrencySettingsCurrencyTextDescription",
-                                                  )
-                                                  : null,
+                                                  current)
+                                              ? const Key(
+                                                  "selectedCurrencySettingsCurrencyTextDescription",
+                                                )
+                                              : null,
                                           style: STextStyles.itemSubtitle(
                                             context,
                                           ),

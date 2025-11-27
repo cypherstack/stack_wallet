@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/trade_wallet_lookup.dart';
@@ -179,10 +180,9 @@ class _ConfirmChangeNowSendViewState
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
                 ),
               ),
               onPressed: () {
@@ -203,44 +203,38 @@ class _ConfirmChangeNowSendViewState
     if (Util.isDesktop) {
       unlocked = await showDialog<bool?>(
         context: context,
-        builder:
-            (context) => DesktopDialog(
-              maxWidth: 580,
-              maxHeight: double.infinity,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [DesktopDialogCloseButton()],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
-                    ),
-                    child: DesktopAuthSend(coin: coin),
-                  ),
-                ],
+        builder: (context) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [DesktopDialogCloseButton()],
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: DesktopAuthSend(coin: coin),
+              ),
+            ],
+          ),
+        ),
       );
     } else {
       unlocked = await Navigator.push(
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder:
-              (_) => const LockscreenView(
-                showBackButton: true,
-                popOnSuccess: true,
-                routeOnSuccessArguments: true,
-                routeOnSuccess: "",
-                biometricsCancelButtonString: "CANCEL",
-                biometricsLocalizedReason: "Authenticate to send transaction",
-                biometricsAuthenticationTitle: "Confirm Transaction",
-              ),
+          builder: (_) => LockscreenView(
+            showBackButton: true,
+            popOnSuccess: true,
+            routeOnSuccessArguments: true,
+            routeOnSuccess: "",
+            biometricsCancelButtonString: S.of(context)!.cancel,
+            biometricsLocalizedReason: "Authenticate to send transaction",
+            biometricsAuthenticationTitle: "Confirm Transaction",
+          ),
           settings: const RouteSettings(name: "/confirmsendlockscreen"),
         ),
       );
@@ -276,11 +270,13 @@ class _ConfirmChangeNowSendViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+              backgroundColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.backgroundAppBar,
               leading: AppBarBackButton(
                 onPressed: () async {
                   // if (FocusScope.of(context).hasFocus) {
@@ -326,188 +322,167 @@ class _ConfirmChangeNowSendViewState
       },
       child: ConditionalParent(
         condition: isDesktop,
-        builder:
-            (child) => DesktopDialog(
-              maxHeight: double.infinity,
-              maxWidth: 580,
-              child: Column(
+        builder: (child) => DesktopDialog(
+          maxHeight: double.infinity,
+          maxWidth: 580,
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 6),
-                      const AppBarBackButton(isCompact: true, iconSize: 23),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Confirm ${ref.watch(pWalletCoin(walletId)).ticker} transaction",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
-                    ),
-                    child: Column(
-                      children: [
-                        RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          borderColor:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
-                          child: child,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Text(
-                              "Transaction fee",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        RoundedContainer(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                ref
-                                    .watch(
-                                      pAmountFormatter(
-                                        ref.watch(pWalletCoin(walletId)),
-                                      ),
-                                    )
-                                    .format(widget.txData.fee!),
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        RoundedContainer(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.snackBarBackSuccess,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Total amount",
-                                style: STextStyles.titleBold12(
-                                  context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textConfirmTotalAmount,
-                                ),
-                              ),
-                              Builder(
-                                builder: (context) {
-                                  final coin = ref.read(pWalletCoin(walletId));
-                                  final fee = widget.txData.fee!;
-                                  final amount =
-                                      widget.txData.amountWithoutChange!;
-                                  final total = amount + fee;
-
-                                  return Text(
-                                    ref
-                                        .watch(pAmountFormatter(coin))
-                                        .format(total),
-                                    style: STextStyles.itemSubtitle12(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textConfirmTotalAmount,
-                                    ),
-                                    textAlign: TextAlign.right,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: SecondaryButton(
-                                label: "Cancel",
-                                buttonHeight: ButtonHeight.l,
-                                onPressed: Navigator.of(context).pop,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: PrimaryButton(
-                                label: "Send",
-                                buttonHeight: isDesktop ? ButtonHeight.l : null,
-                                onPressed: _confirmSend,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  const SizedBox(width: 6),
+                  const AppBarBackButton(isCompact: true, iconSize: 23),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Confirm ${ref.watch(pWalletCoin(walletId)).ticker} transaction",
+                    style: STextStyles.desktopH3(context),
                   ),
                 ],
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: Column(
+                  children: [
+                    RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      borderColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
+                      child: child,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text(
+                          "Transaction fee",
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    RoundedContainer(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            ref
+                                .watch(
+                                  pAmountFormatter(
+                                    ref.watch(pWalletCoin(walletId)),
+                                  ),
+                                )
+                                .format(widget.txData.fee!),
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    RoundedContainer(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.snackBarBackSuccess,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total amount",
+                            style: STextStyles.titleBold12(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textConfirmTotalAmount,
+                            ),
+                          ),
+                          Builder(
+                            builder: (context) {
+                              final coin = ref.read(pWalletCoin(walletId));
+                              final fee = widget.txData.fee!;
+                              final amount = widget.txData.amountWithoutChange!;
+                              final total = amount + fee;
+
+                              return Text(
+                                ref.watch(pAmountFormatter(coin)).format(total),
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textConfirmTotalAmount,
+                                    ),
+                                textAlign: TextAlign.right,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: S.of(context)!.cancel,
+                            buttonHeight: ButtonHeight.l,
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: PrimaryButton(
+                            label: "Send",
+                            buttonHeight: isDesktop ? ButtonHeight.l : null,
+                            onPressed: _confirmSend,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ConditionalParent(
               condition: isDesktop,
-              builder:
-                  (child) => Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(children: [child]),
-                    ),
+              builder: (child) => Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(Constants.size.circularBorderRadius),
                   ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(children: [child]),
+                ),
+              ),
               child: Text(
                 "Send ${ref.watch(pWalletCoin(walletId)).ticker}",
-                style:
-                    isDesktop
-                        ? STextStyles.desktopTextMedium(context)
-                        : STextStyles.pageTitleH1(context),
+                style: isDesktop
+                    ? STextStyles.desktopTextMedium(context)
+                    : STextStyles.pageTitleH1(context),
               ),
             ),
             isDesktop
                 ? Container(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  height: 1,
-                )
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    height: 1,
+                  )
                 : const SizedBox(height: 12),
             RoundedWhiteContainer(
               child: Column(
@@ -524,9 +499,11 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  height: 1,
-                )
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    height: 1,
+                  )
                 : const SizedBox(height: 12),
             RoundedWhiteContainer(
               child: Column(
@@ -546,9 +523,11 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  height: 1,
-                )
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    height: 1,
+                  )
                 : const SizedBox(height: 12),
             RoundedWhiteContainer(
               child: Row(
@@ -557,57 +536,56 @@ class _ConfirmChangeNowSendViewState
                   Text("Amount", style: STextStyles.smallMed12(context)),
                   ConditionalParent(
                     condition: isDesktop,
-                    builder:
-                        (child) => Row(
-                          children: [
-                            child,
-                            Builder(
-                              builder: (context) {
-                                final coin = ref.watch(pWalletCoin(walletId));
-                                final price = ref.watch(
-                                  priceAnd24hChangeNotifierProvider.select(
-                                    (value) => value.getPrice(coin),
-                                  ),
-                                );
-                                final String extra;
-                                if (price == null) {
-                                  extra = "";
-                                } else {
-                                  final amountWithoutChange =
-                                      widget.txData.amountWithoutChange!;
-                                  final value = (price.value *
-                                          amountWithoutChange.decimal)
+                    builder: (child) => Row(
+                      children: [
+                        child,
+                        Builder(
+                          builder: (context) {
+                            final coin = ref.watch(pWalletCoin(walletId));
+                            final price = ref.watch(
+                              priceAnd24hChangeNotifierProvider.select(
+                                (value) => value.getPrice(coin),
+                              ),
+                            );
+                            final String extra;
+                            if (price == null) {
+                              extra = "";
+                            } else {
+                              final amountWithoutChange =
+                                  widget.txData.amountWithoutChange!;
+                              final value =
+                                  (price.value * amountWithoutChange.decimal)
                                       .toAmount(fractionDigits: 2);
-                                  final currency = ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                      (value) => value.currency,
-                                    ),
-                                  );
-                                  final locale = ref.watch(
-                                    localeServiceChangeNotifierProvider.select(
-                                      (value) => value.locale,
-                                    ),
-                                  );
+                              final currency = ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.currency,
+                                ),
+                              );
+                              final locale = ref.watch(
+                                localeServiceChangeNotifierProvider.select(
+                                  (value) => value.locale,
+                                ),
+                              );
 
-                                  extra =
-                                      " | ${value.fiatString(locale: locale)} $currency";
-                                }
+                              extra =
+                                  " | ${value.fiatString(locale: locale)} $currency";
+                            }
 
-                                return Text(
-                                  extra,
-                                  style: STextStyles.desktopTextExtraExtraSmall(
+                            return Text(
+                              extra,
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle2,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle2,
                                   ),
-                                );
-                              },
-                            ),
-                          ],
+                            );
+                          },
                         ),
+                      ],
+                    ),
                     child: Text(
                       ref
                           .watch(
@@ -623,9 +601,11 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  height: 1,
-                )
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    height: 1,
+                  )
                 : const SizedBox(height: 12),
             RoundedWhiteContainer(
               child: Row(
@@ -649,9 +629,11 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  height: 1,
-                )
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    height: 1,
+                  )
                 : const SizedBox(height: 12),
             RoundedWhiteContainer(
               child: Column(
@@ -668,9 +650,11 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  height: 1,
-                )
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    height: 1,
+                  )
                 : const SizedBox(height: 12),
             RoundedWhiteContainer(
               child: Row(
@@ -688,20 +672,18 @@ class _ConfirmChangeNowSendViewState
             if (!isDesktop) const SizedBox(height: 12),
             if (!isDesktop)
               RoundedContainer(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.snackBarBackSuccess,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.snackBarBackSuccess,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Total amount",
                       style: STextStyles.titleBold12(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textConfirmTotalAmount,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textConfirmTotalAmount,
                       ),
                     ),
                     Builder(
@@ -714,10 +696,9 @@ class _ConfirmChangeNowSendViewState
                         return Text(
                           ref.watch(pAmountFormatter(coin)).format(total),
                           style: STextStyles.itemSubtitle12(context).copyWith(
-                            color:
-                                Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textConfirmTotalAmount,
                           ),
                           textAlign: TextAlign.right,
                         );

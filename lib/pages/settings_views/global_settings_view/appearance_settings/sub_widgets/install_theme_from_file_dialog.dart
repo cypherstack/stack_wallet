@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_service.dart';
 import '../../../../../utilities/assets.dart';
@@ -43,16 +44,12 @@ class _InstallThemeFromFileDialogState
     try {
       final timedFuture = Future<void>.delayed(const Duration(seconds: 2));
       final installFuture = File(controller.text).readAsBytes().then(
-            (fileBytes) => ref.read(pThemeService).install(
-                  themeArchiveData: fileBytes,
-                ),
-          );
+        (fileBytes) =>
+            ref.read(pThemeService).install(themeArchiveData: fileBytes),
+      );
 
       // wait for at least 2 seconds to prevent annoying screen flashing
-      await Future.wait([
-        installFuture,
-        timedFuture,
-      ]);
+      await Future.wait([installFuture, timedFuture]);
       return true;
     } catch (e, s) {
       Logging.instance.w("Failed to install theme: ", error: e, stackTrace: s);
@@ -98,13 +95,8 @@ class _InstallThemeFromFileDialogState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Install theme file",
-            style: STextStyles.pageTitleH2(context),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          Text("Install theme file", style: STextStyles.pageTitleH2(context)),
+          const SizedBox(height: 12),
           TextField(
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
@@ -117,39 +109,32 @@ class _InstallThemeFromFileDialogState
               suffixIcon: UnconstrainedBox(
                 child: Row(
                   children: [
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     SvgPicture.asset(
                       Assets.svg.folder,
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark3,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark3,
                       width: 16,
                       height: 16,
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
+                    const SizedBox(width: 12),
                   ],
                 ),
               ),
             ),
             readOnly: true,
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: SecondaryButton(
-                  label: "Cancel",
+                  label: S.of(context)!.cancel,
                   onPressed: Navigator.of(context).pop,
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
                   label: "Install",

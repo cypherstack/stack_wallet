@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/keys/cw_key_data.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
@@ -92,10 +93,9 @@ class WalletBackupView extends ConsumerWidget {
                     final XPrivData _ => "xpriv(s)",
                     final CWKeyData _ => "keys",
                     final ViewOnlyWalletData _ => "keys",
-                    _ =>
-                      throw UnimplementedError(
-                        "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
-                      ),
+                    _ => throw UnimplementedError(
+                      "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
+                    ),
                   },
                   onTap: () {
                     Navigator.pushNamed(
@@ -111,13 +111,12 @@ class WalletBackupView extends ConsumerWidget {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child:
-                frost
-                    ? _FrostKeys(
-                      frostWalletData: frostWalletData,
-                      walletId: walletId,
-                    )
-                    : _Mnemonic(walletId: walletId, mnemonic: mnemonic),
+            child: frost
+                ? _FrostKeys(
+                    frostWalletData: frostWalletData,
+                    walletId: walletId,
+                  )
+                : _Mnemonic(walletId: walletId, mnemonic: mnemonic),
           ),
         ),
       ),
@@ -244,12 +243,11 @@ class _Mnemonic extends ConsumerWidget {
                                 .extension<StackColors>()!
                                 .getSecondaryEnabledButtonStyle(context),
                             child: Text(
-                              "Cancel",
+                              S.of(context)!.cancel,
                               style: STextStyles.button(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorDark,
                               ),
                             ),
                           ),
@@ -322,19 +320,17 @@ class _FrostKeys extends StatelessWidget {
                   DetailItem(
                     title: "Multisig config",
                     detail: frostWalletData!.config,
-                    button:
-                        Util.isDesktop
-                            ? tdv.IconCopyButton(data: frostWalletData!.config)
-                            : SimpleCopyButton(data: frostWalletData!.config),
+                    button: Util.isDesktop
+                        ? tdv.IconCopyButton(data: frostWalletData!.config)
+                        : SimpleCopyButton(data: frostWalletData!.config),
                   ),
                   const SizedBox(height: 16),
                   DetailItem(
                     title: "Keys",
                     detail: frostWalletData!.keys,
-                    button:
-                        Util.isDesktop
-                            ? tdv.IconCopyButton(data: frostWalletData!.keys)
-                            : SimpleCopyButton(data: frostWalletData!.keys),
+                    button: Util.isDesktop
+                        ? tdv.IconCopyButton(data: frostWalletData!.keys)
+                        : SimpleCopyButton(data: frostWalletData!.keys),
                   ),
                   if (prevGen) const SizedBox(height: 24),
                   if (prevGen)
@@ -349,28 +345,26 @@ class _FrostKeys extends StatelessWidget {
                     DetailItem(
                       title: "Previous multisig config",
                       detail: frostWalletData!.prevGen!.config,
-                      button:
-                          Util.isDesktop
-                              ? tdv.IconCopyButton(
-                                data: frostWalletData!.prevGen!.config,
-                              )
-                              : SimpleCopyButton(
-                                data: frostWalletData!.prevGen!.config,
-                              ),
+                      button: Util.isDesktop
+                          ? tdv.IconCopyButton(
+                              data: frostWalletData!.prevGen!.config,
+                            )
+                          : SimpleCopyButton(
+                              data: frostWalletData!.prevGen!.config,
+                            ),
                     ),
                   if (prevGen) const SizedBox(height: 16),
                   if (prevGen)
                     DetailItem(
                       title: "Previous keys",
                       detail: frostWalletData!.prevGen!.keys,
-                      button:
-                          Util.isDesktop
-                              ? tdv.IconCopyButton(
-                                data: frostWalletData!.prevGen!.keys,
-                              )
-                              : SimpleCopyButton(
-                                data: frostWalletData!.prevGen!.keys,
-                              ),
+                      button: Util.isDesktop
+                          ? tdv.IconCopyButton(
+                              data: frostWalletData!.prevGen!.keys,
+                            )
+                          : SimpleCopyButton(
+                              data: frostWalletData!.prevGen!.keys,
+                            ),
                     ),
                 ],
               ),
@@ -421,40 +415,36 @@ class MobileKeyDataView extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: LayoutBuilder(
-              builder:
-                  (context, constraints) => SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Expanded(
-                              child: switch (keyData) {
-                                final XPrivData e => WalletXPrivs(
-                                  walletId: walletId,
-                                  xprivData: e,
-                                ),
-                                final CWKeyData e => CNWalletKeys(
-                                  walletId: walletId,
-                                  cwKeyData: e,
-                                ),
-                                final ViewOnlyWalletData e =>
-                                  ViewOnlyWalletDataWidget(data: e),
-                                _ =>
-                                  throw UnimplementedError(
-                                    "Don't forget to add your KeyDataInterface here!",
-                                  ),
-                              },
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: switch (keyData) {
+                            final XPrivData e => WalletXPrivs(
+                              walletId: walletId,
+                              xprivData: e,
                             ),
-                            const SizedBox(height: 16),
-                          ],
+                            final CWKeyData e => CNWalletKeys(
+                              walletId: walletId,
+                              cwKeyData: e,
+                            ),
+                            final ViewOnlyWalletData e =>
+                              ViewOnlyWalletDataWidget(data: e),
+                            _ => throw UnimplementedError(
+                              "Don't forget to add your KeyDataInterface here!",
+                            ),
+                          },
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
+                ),
+              ),
             ),
           ),
         ),

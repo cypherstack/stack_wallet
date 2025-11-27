@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/namecoin_dns/dns_record_type.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -19,11 +20,7 @@ import 'sub_widgets/tls_form.dart';
 import 'sub_widgets/txt_form.dart';
 
 class AddDnsStep2 extends StatefulWidget {
-  const AddDnsStep2({
-    super.key,
-    required this.recordType,
-    required this.name,
-  });
+  const AddDnsStep2({super.key, required this.recordType, required this.name});
 
   final String name;
   final DNSRecordType recordType;
@@ -41,29 +38,17 @@ class _AddDnsStep2State extends State<AddDnsStep2> {
     _nextLock = true;
     try {
       final record = _formStateKey.currentState!.buildRecord();
-      Navigator.of(context, rootNavigator: true).pop(
-        record,
-      );
+      Navigator.of(context, rootNavigator: true).pop(record);
     } catch (e, s) {
-      Logging.instance.e(
-        runtimeType,
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e(runtimeType, error: e, stackTrace: s);
 
       final String err;
       switch (e.runtimeType) {
         case const (ArgumentError):
-          err = e.toString().replaceFirst(
-                "Invalid Arguments(s): ",
-                "",
-              );
+          err = e.toString().replaceFirst("Invalid Arguments(s): ", "");
 
         case const (Exception):
-          err = e.toString().replaceFirst(
-                "Exception: ",
-                "",
-              );
+          err = e.toString().replaceFirst("Exception: ", "");
 
         default:
           err = e.toString();
@@ -119,31 +104,22 @@ class _AddDnsStep2State extends State<AddDnsStep2> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!Util.isDesktop)
-          Text(
-            "Add DNS record",
-            style: STextStyles.pageTitleH2(context),
-          ),
-        SizedBox(
-          height: Util.isDesktop ? 24 : 16,
-        ),
+          Text("Add DNS record", style: STextStyles.pageTitleH2(context)),
+        SizedBox(height: Util.isDesktop ? 24 : 16),
         form,
-        SizedBox(
-          height: Util.isDesktop ? 24 : 16,
-        ),
+        SizedBox(height: Util.isDesktop ? 24 : 16),
         Row(
           children: [
             Expanded(
               child: SecondaryButton(
-                label: "Cancel",
+                label: S.of(context)!.cancel,
                 buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: PrimaryButton(
                 label: "Next",
@@ -153,10 +129,7 @@ class _AddDnsStep2State extends State<AddDnsStep2> {
             ),
           ],
         ),
-        if (Util.isDesktop)
-          const SizedBox(
-            height: 32,
-          ),
+        if (Util.isDesktop) const SizedBox(height: 32),
       ],
     );
   }

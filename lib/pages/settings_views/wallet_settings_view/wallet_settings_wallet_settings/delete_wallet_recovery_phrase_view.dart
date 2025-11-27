@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -81,47 +82,45 @@ class _DeleteWalletRecoveryPhraseViewState
       showDialog<dynamic>(
         barrierDismissible: true,
         context: context,
-        builder:
-            (_) => StackDialog(
-              title: "Thanks! Your wallet will be deleted.",
-              leftButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.button(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
-                  ),
-                ),
-              ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                onPressed: () async {
-                  await ref
-                      .read(pWallets)
-                      .deleteWallet(
-                        ref.read(pWalletInfo(widget.walletId)),
-                        ref.read(secureStoreProvider),
-                      );
-
-                  if (mounted) {
-                    Navigator.of(
-                      context,
-                    ).popUntil(ModalRoute.withName(HomeView.routeName));
-                  }
-                },
-                child: Text("Ok", style: STextStyles.button(context)),
+        builder: (_) => StackDialog(
+          title: "Thanks! Your wallet will be deleted.",
+          leftButton: TextButton(
+            style: Theme.of(
+              context,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              S.of(context)!.cancel,
+              style: STextStyles.button(context).copyWith(
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.accentColorDark,
               ),
             ),
+          ),
+          rightButton: TextButton(
+            style: Theme.of(
+              context,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+            onPressed: () async {
+              await ref
+                  .read(pWallets)
+                  .deleteWallet(
+                    ref.read(pWalletInfo(widget.walletId)),
+                    ref.read(secureStoreProvider),
+                  );
+
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(HomeView.routeName));
+              }
+            },
+            child: Text("Ok", style: STextStyles.button(context)),
+          ),
+        ),
       );
     } finally {
       _lock = false;
@@ -163,10 +162,9 @@ class _DeleteWalletRecoveryPhraseViewState
                     Assets.svg.copy,
                     width: 20,
                     height: 20,
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.topNavIconPrimary,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
                   ),
                   onPressed: () async {
                     await _clipboardInterface.setData(
@@ -191,214 +189,192 @@ class _DeleteWalletRecoveryPhraseViewState
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child:
-                frost
-                    ? LayoutBuilder(
-                      builder: (builderContext, constraints) {
-                        return SingleChildScrollView(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: IntrinsicHeight(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
+            child: frost
+                ? LayoutBuilder(
+                    builder: (builderContext, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                RoundedWhiteContainer(
+                                  child: Text(
+                                    "Please write down your backup data. Keep it safe and "
+                                    "never share it with anyone. "
+                                    "Your backup data is the only way you can access your "
+                                    "funds if you forget your PIN, lose your phone, etc."
+                                    "\n\n"
+                                    "${AppConfig.appName} does not keep nor is able to restore "
+                                    "your backup data. "
+                                    "Only you have access to your wallet.",
+                                    style: STextStyles.label(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                // DetailItem(
+                                //   title: "My name",
+                                //   detail: frostWalletData!.myName,
+                                //   button: Util.isDesktop
+                                //       ? IconCopyButton(
+                                //           data: frostWalletData!.myName,
+                                //         )
+                                //       : SimpleCopyButton(
+                                //           data: frostWalletData!.myName,
+                                //         ),
+                                // ),
+                                // const SizedBox(
+                                //   height: 16,
+                                // ),
+                                DetailItem(
+                                  title: "Multisig config",
+                                  detail: widget.frostWalletData!.config,
+                                  button: Util.isDesktop
+                                      ? tdv.IconCopyButton(
+                                          data: widget.frostWalletData!.config,
+                                        )
+                                      : SimpleCopyButton(
+                                          data: widget.frostWalletData!.config,
+                                        ),
+                                ),
+                                const SizedBox(height: 16),
+                                DetailItem(
+                                  title: "Keys",
+                                  detail: widget.frostWalletData!.keys,
+                                  button: Util.isDesktop
+                                      ? tdv.IconCopyButton(
+                                          data: widget.frostWalletData!.keys,
+                                        )
+                                      : SimpleCopyButton(
+                                          data: widget.frostWalletData!.keys,
+                                        ),
+                                ),
+                                if (prevGen) const SizedBox(height: 24),
+                                if (prevGen)
                                   RoundedWhiteContainer(
                                     child: Text(
-                                      "Please write down your backup data. Keep it safe and "
-                                      "never share it with anyone. "
-                                      "Your backup data is the only way you can access your "
-                                      "funds if you forget your PIN, lose your phone, etc."
-                                      "\n\n"
-                                      "${AppConfig.appName} does not keep nor is able to restore "
-                                      "your backup data. "
-                                      "Only you have access to your wallet.",
+                                      "Previous generation info",
                                       style: STextStyles.label(context),
                                     ),
                                   ),
-                                  const SizedBox(height: 24),
-                                  // DetailItem(
-                                  //   title: "My name",
-                                  //   detail: frostWalletData!.myName,
-                                  //   button: Util.isDesktop
-                                  //       ? IconCopyButton(
-                                  //           data: frostWalletData!.myName,
-                                  //         )
-                                  //       : SimpleCopyButton(
-                                  //           data: frostWalletData!.myName,
-                                  //         ),
-                                  // ),
-                                  // const SizedBox(
-                                  //   height: 16,
-                                  // ),
+                                if (prevGen) const SizedBox(height: 12),
+                                if (prevGen)
                                   DetailItem(
-                                    title: "Multisig config",
-                                    detail: widget.frostWalletData!.config,
-                                    button:
-                                        Util.isDesktop
-                                            ? tdv.IconCopyButton(
-                                              data:
-                                                  widget
-                                                      .frostWalletData!
-                                                      .config,
-                                            )
-                                            : SimpleCopyButton(
-                                              data:
-                                                  widget
-                                                      .frostWalletData!
-                                                      .config,
-                                            ),
+                                    title: "Previous multisig config",
+                                    detail:
+                                        widget.frostWalletData!.prevGen!.config,
+                                    button: Util.isDesktop
+                                        ? tdv.IconCopyButton(
+                                            data: widget
+                                                .frostWalletData!
+                                                .prevGen!
+                                                .config,
+                                          )
+                                        : SimpleCopyButton(
+                                            data: widget
+                                                .frostWalletData!
+                                                .prevGen!
+                                                .config,
+                                          ),
                                   ),
-                                  const SizedBox(height: 16),
+                                if (prevGen) const SizedBox(height: 16),
+                                if (prevGen)
                                   DetailItem(
-                                    title: "Keys",
-                                    detail: widget.frostWalletData!.keys,
-                                    button:
-                                        Util.isDesktop
-                                            ? tdv.IconCopyButton(
-                                              data:
-                                                  widget.frostWalletData!.keys,
-                                            )
-                                            : SimpleCopyButton(
-                                              data:
-                                                  widget.frostWalletData!.keys,
-                                            ),
+                                    title: "Previous keys",
+                                    detail:
+                                        widget.frostWalletData!.prevGen!.keys,
+                                    button: Util.isDesktop
+                                        ? tdv.IconCopyButton(
+                                            data: widget
+                                                .frostWalletData!
+                                                .prevGen!
+                                                .keys,
+                                          )
+                                        : SimpleCopyButton(
+                                            data: widget
+                                                .frostWalletData!
+                                                .prevGen!
+                                                .keys,
+                                          ),
                                   ),
-                                  if (prevGen) const SizedBox(height: 24),
-                                  if (prevGen)
-                                    RoundedWhiteContainer(
-                                      child: Text(
-                                        "Previous generation info",
-                                        style: STextStyles.label(context),
-                                      ),
-                                    ),
-                                  if (prevGen) const SizedBox(height: 12),
-                                  if (prevGen)
-                                    DetailItem(
-                                      title: "Previous multisig config",
-                                      detail:
-                                          widget
-                                              .frostWalletData!
-                                              .prevGen!
-                                              .config,
-                                      button:
-                                          Util.isDesktop
-                                              ? tdv.IconCopyButton(
-                                                data:
-                                                    widget
-                                                        .frostWalletData!
-                                                        .prevGen!
-                                                        .config,
-                                              )
-                                              : SimpleCopyButton(
-                                                data:
-                                                    widget
-                                                        .frostWalletData!
-                                                        .prevGen!
-                                                        .config,
-                                              ),
-                                    ),
-                                  if (prevGen) const SizedBox(height: 16),
-                                  if (prevGen)
-                                    DetailItem(
-                                      title: "Previous keys",
-                                      detail:
-                                          widget.frostWalletData!.prevGen!.keys,
-                                      button:
-                                          Util.isDesktop
-                                              ? tdv.IconCopyButton(
-                                                data:
-                                                    widget
-                                                        .frostWalletData!
-                                                        .prevGen!
-                                                        .keys,
-                                              )
-                                              : SimpleCopyButton(
-                                                data:
-                                                    widget
-                                                        .frostWalletData!
-                                                        .prevGen!
-                                                        .keys,
-                                              ),
-                                    ),
 
-                                  const Spacer(),
-                                  const SizedBox(height: 16),
-                                  PrimaryButton(
-                                    label: "Continue",
-                                    onPressed: _continuePressed,
-                                  ),
-                                ],
-                              ),
+                                const Spacer(),
+                                const SizedBox(height: 16),
+                                PrimaryButton(
+                                  label: "Continue",
+                                  onPressed: _continuePressed,
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(
-                          ref.watch(pWalletName(widget.walletId)),
-                          textAlign: TextAlign.center,
-                          style: STextStyles.label(
+                        ),
+                      );
+                    },
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        ref.watch(pWalletName(widget.walletId)),
+                        textAlign: TextAlign.center,
+                        style: STextStyles.label(
+                          context,
+                        ).copyWith(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Recovery Phrase",
+                        textAlign: TextAlign.center,
+                        style: STextStyles.pageTitleH1(context),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(
                             context,
-                          ).copyWith(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Recovery Phrase",
-                          textAlign: TextAlign.center,
-                          style: STextStyles.pageTitleH1(context),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Text(
-                              "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
-                              style: STextStyles.label(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
-                              ),
-                            ),
+                          ).extension<StackColors>()!.popupBG,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: MnemonicTable(
-                              words: _mnemonic,
-                              isDesktop: false,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getPrimaryEnabledButtonStyle(context),
-                          onPressed: _continuePressed,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
                           child: Text(
-                            "Continue",
-                            style: STextStyles.button(context),
+                            "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
+                            style: STextStyles.label(context).copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: MnemonicTable(
+                            words: _mnemonic,
+                            isDesktop: false,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context),
+                        onPressed: _continuePressed,
+                        child: Text(
+                          "Continue",
+                          style: STextStyles.button(context),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),

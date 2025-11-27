@@ -815,7 +815,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
 
   /// Stop the fusion process.
   ///
-  /// This function is called when the user taps the "Cancel" button in the UI
+  /// This function is called when the user taps the S.of(context)!.cancel button in the UI
   /// or closes the fusion progress dialog.
   Future<void> stop() async {
     _stopRequested = true;

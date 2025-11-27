@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../services/ethereum/ethereum_api.dart';
 import '../../../themes/stack_colors.dart';
@@ -54,62 +55,61 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    left: 16,
-                    right: 16,
-                    bottom: 16,
-                  ),
-                  child: child,
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
           ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: 10,
+                left: 16,
+                right: 16,
+                bottom: 16,
+              ),
+              child: child,
+            ),
+          ),
+        ),
+      ),
       child: ConditionalParent(
         condition: isDesktop,
-        builder:
-            (child) => Column(
+        builder: (child) => Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32),
-                      child: Text(
-                        "Add custom ETH token",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                    ),
-                    const DesktopDialogCloseButton(),
-                  ],
-                ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
-                      top: 16,
-                    ),
-                    child: child,
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Add custom ETH token",
+                    style: STextStyles.desktopH3(context),
                   ),
                 ),
+                const DesktopDialogCloseButton(),
               ],
             ),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                  top: 16,
+                ),
+                child: child,
+              ),
+            ),
+          ],
+        ),
         child: Column(
           children: [
             if (!isDesktop)
@@ -152,11 +152,10 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                     unawaited(
                       showDialog<void>(
                         context: context,
-                        builder:
-                            (context) => StackOkDialog(
-                              title: "Failed to look up token",
-                              message: response!.exception?.message,
-                            ),
+                        builder: (context) => StackOkDialog(
+                          title: "Failed to look up token",
+                          message: response!.exception?.message,
+                        ),
                       ),
                     );
                   }
@@ -207,8 +206,8 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                         TextInputFormatter.withFunction(
                           (oldValue, newValue) =>
                               RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
-                                  ? newValue
-                                  : oldValue,
+                              ? newValue
+                              : oldValue,
                         ),
                       ],
                       keyboardType: const TextInputType.numberWithOptions(
@@ -247,8 +246,8 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                   TextInputFormatter.withFunction(
                     (oldValue, newValue) =>
                         RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
-                            ? newValue
-                            : oldValue,
+                        ? newValue
+                        : oldValue,
                   ),
                 ],
                 keyboardType: const TextInputType.numberWithOptions(
@@ -267,7 +266,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 if (isDesktop)
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       onPressed: Navigator.of(context).pop,
                     ),
                   ),

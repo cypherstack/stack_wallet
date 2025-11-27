@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/isar/models/solana/sol_contract.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -458,9 +459,12 @@ class _ConfirmTransactionViewState
     if (widget.isTokenTx) {
       if (wallet is SolanaWallet) {
         // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
-        unit = ref.watch(
-          pCurrentSolanaTokenWallet.select((value) => value?.tokenSymbol),
-        ) ?? widget.txData.tokenSymbol ?? "TOKEN";
+        unit =
+            ref.watch(
+              pCurrentSolanaTokenWallet.select((value) => value?.tokenSymbol),
+            ) ??
+            widget.txData.tokenSymbol ??
+            "TOKEN";
       } else {
         // For Ethereum tokens, use the Ethereum token wallet provider.
         unit = ref.watch(
@@ -626,17 +630,26 @@ class _ConfirmTransactionViewState
                               .watch(pAmountFormatter(coin))
                               .format(
                                 amountWithoutChange,
-                                ethContract: widget.isTokenTx && wallet is! SolanaWallet
+                                ethContract:
+                                    widget.isTokenTx && wallet is! SolanaWallet
                                     ? ref
                                           .watch(pCurrentTokenWallet)!
                                           .tokenContract
                                     : null,
-                                solContract: widget.isTokenTx && wallet is SolanaWallet
+                                solContract:
+                                    widget.isTokenTx && wallet is SolanaWallet
                                     ? SolContract(
-                                        address: widget.txData.tokenMint ?? "unknown",
-                                        name: widget.txData.tokenSymbol ?? "Token",
-                                        symbol: widget.txData.tokenSymbol ?? "TOKEN",
-                                        decimals: widget.txData.tokenDecimals ?? 9,
+                                        address:
+                                            widget.txData.tokenMint ??
+                                            "unknown",
+                                        name:
+                                            widget.txData.tokenSymbol ??
+                                            "Token",
+                                        symbol:
+                                            widget.txData.tokenSymbol ??
+                                            "TOKEN",
+                                        decimals:
+                                            widget.txData.tokenDecimals ?? 9,
                                       )
                                     : null,
                               ),
@@ -825,33 +838,37 @@ class _ConfirmTransactionViewState
                                 if (externalCalls) {
                                   final price = widget.isTokenTx
                                       ? (wallet is SolanaWallet
-                                          ? // For Solana tokens, use tokenMint from provider or TxData.
-                                          ref
-                                              .read(
-                                                priceAnd24hChangeNotifierProvider,
-                                              )
-                                              .getTokenPrice(
-                                                ref
+                                            ? // For Solana tokens, use tokenMint from provider or TxData.
+                                              ref
+                                                  .read(
+                                                    priceAnd24hChangeNotifierProvider,
+                                                  )
+                                                  .getTokenPrice(
+                                                    ref
+                                                            .read(
+                                                              pCurrentSolanaTokenWallet,
+                                                            )
+                                                            ?.tokenMint ??
+                                                        widget
+                                                            .txData
+                                                            .tokenMint ??
+                                                        "unknown",
+                                                  )
+                                                  ?.value
+                                            : // For Ethereum tokens, use contract address.
+                                              ref
+                                                  .read(
+                                                    priceAnd24hChangeNotifierProvider,
+                                                  )
+                                                  .getTokenPrice(
+                                                    ref
                                                         .read(
-                                                          pCurrentSolanaTokenWallet,
-                                                        )
-                                                        ?.tokenMint ??
-                                                    widget.txData.tokenMint ??
-                                                    "unknown",
-                                              )
-                                              ?.value
-                                          : // For Ethereum tokens, use contract address.
-                                          ref
-                                              .read(
-                                                priceAnd24hChangeNotifierProvider,
-                                              )
-                                              .getTokenPrice(
-                                                ref
-                                                    .read(pCurrentTokenWallet)!
-                                                    .tokenContract
-                                                    .address,
-                                              )
-                                              ?.value)
+                                                          pCurrentTokenWallet,
+                                                        )!
+                                                        .tokenContract
+                                                        .address,
+                                                  )
+                                                  ?.value)
                                       : ref
                                             .read(
                                               priceAnd24hChangeNotifierProvider,
@@ -879,19 +896,39 @@ class _ConfirmTransactionViewState
                                           .watch(pAmountFormatter(coin))
                                           .format(
                                             amountWithoutChange,
-                                            ethContract: widget.isTokenTx && wallet is! SolanaWallet
+                                            ethContract:
+                                                widget.isTokenTx &&
+                                                    wallet is! SolanaWallet
                                                 ? ref
                                                       .watch(
                                                         pCurrentTokenWallet,
                                                       )!
                                                       .tokenContract
                                                 : null,
-                                            solContract: widget.isTokenTx && wallet is SolanaWallet
+                                            solContract:
+                                                widget.isTokenTx &&
+                                                    wallet is SolanaWallet
                                                 ? SolContract(
-                                                    address: widget.txData.tokenMint ?? "unknown",
-                                                    name: widget.txData.tokenSymbol ?? "Token",
-                                                    symbol: widget.txData.tokenSymbol ?? "TOKEN",
-                                                    decimals: widget.txData.tokenDecimals ?? 9,
+                                                    address:
+                                                        widget
+                                                            .txData
+                                                            .tokenMint ??
+                                                        "unknown",
+                                                    name:
+                                                        widget
+                                                            .txData
+                                                            .tokenSymbol ??
+                                                        "Token",
+                                                    symbol:
+                                                        widget
+                                                            .txData
+                                                            .tokenSymbol ??
+                                                        "TOKEN",
+                                                    decimals:
+                                                        widget
+                                                            .txData
+                                                            .tokenDecimals ??
+                                                        9,
                                                   )
                                                 : null,
                                           ),
@@ -1376,12 +1413,12 @@ class _ConfirmTransactionViewState
                       RouteGenerator.getRoute(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
+                        builder: (_) => LockscreenView(
                           showBackButton: true,
                           popOnSuccess: true,
                           routeOnSuccessArguments: true,
                           routeOnSuccess: "",
-                          biometricsCancelButtonString: "CANCEL",
+                          biometricsCancelButtonString: S.of(context)!.cancel,
                           biometricsLocalizedReason:
                               "Authenticate to send transaction",
                           biometricsAuthenticationTitle: "Confirm Transaction",

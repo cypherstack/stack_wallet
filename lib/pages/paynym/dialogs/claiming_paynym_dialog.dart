@@ -9,6 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -19,9 +21,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class ClaimingPaynymDialog extends StatefulWidget {
-  const ClaimingPaynymDialog({
-    super.key,
-  });
+  const ClaimingPaynymDialog({super.key});
 
   @override
   State<ClaimingPaynymDialog> createState() => _RestoringDialogState();
@@ -44,10 +44,7 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog> {
                 ),
               ],
             ),
-            const RotatingArrows(
-              width: 40,
-              height: 40,
-            ),
+            const RotatingArrows(width: 40, height: 40),
             Padding(
               padding: const EdgeInsets.all(40),
               child: Column(
@@ -57,21 +54,18 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog> {
                     "Claiming PayNym",
                     style: STextStyles.desktopH2(context),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   Text(
                     "We are generating your PayNym",
                     style: STextStyles.desktopTextMedium(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark3,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark3,
                     ),
                   ),
-                  const SizedBox(
-                    height: 40,
-                  ),
+                  const SizedBox(height: 40),
                   SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     width: 272,
                     onPressed: () {
                       Navigator.of(context).pop(true);
@@ -91,12 +85,9 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog> {
         child: StackDialog(
           title: "Claiming PayNym",
           message: "We are generating your PayNym",
-          icon: const RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
+          icon: const RotatingArrows(width: 24, height: 24),
           rightButton: SecondaryButton(
-            label: "Cancel",
+            label: S.of(context)!.cancel,
             onPressed: () {
               Navigator.of(context).pop(true);
             },

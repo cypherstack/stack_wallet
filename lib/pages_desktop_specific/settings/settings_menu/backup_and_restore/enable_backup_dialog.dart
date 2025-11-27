@@ -9,13 +9,15 @@
  */
 
 import 'package:flutter/material.dart';
-import 'create_auto_backup.dart';
+
+import '../../../../l10n/app_localizations.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import 'create_auto_backup.dart';
 
 class EnableBackupDialog extends StatelessWidget {
   const EnableBackupDialog({super.key});
@@ -52,9 +54,7 @@ class EnableBackupDialog extends StatelessWidget {
               const DesktopDialogCloseButton(),
             ],
           ),
-          const SizedBox(
-            height: 30,
-          ),
+          const SizedBox(height: 30),
           Text(
             "To enable Auto Backup, you need to create a backup file.",
             style: STextStyles.desktopTextSmall(context).copyWith(
@@ -70,15 +70,13 @@ class EnableBackupDialog extends StatelessWidget {
                 Expanded(
                   child: SecondaryButton(
                     buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     buttonHeight: ButtonHeight.l,

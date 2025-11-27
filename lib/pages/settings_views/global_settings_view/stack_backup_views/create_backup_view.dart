@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -599,7 +600,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                       SecondaryButton(
                         width: 183,
                         buttonHeight: ButtonHeight.m,
-                        label: "Cancel",
+                        label: S.of(context)!.cancel,
                         onPressed: () {},
                       ),
                     ],

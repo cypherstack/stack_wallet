@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -32,10 +33,7 @@ class CashFusionState {
 }
 
 class FusionDialogView extends ConsumerStatefulWidget {
-  const FusionDialogView({
-    super.key,
-    required this.walletId,
-  });
+  const FusionDialogView({super.key, required this.walletId});
 
   final String walletId;
 
@@ -126,8 +124,9 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
       );
 
       if (shouldCancel == true && mounted) {
-        final fusionWallet = ref.read(pWallets).getWallet(widget.walletId)
-            as CashFusionInterface;
+        final fusionWallet =
+            ref.read(pWallets).getWallet(widget.walletId)
+                as CashFusionInterface;
 
         await showLoading(
           whileFuture: Future.wait([
@@ -162,11 +161,13 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
 
   @override
   Widget build(BuildContext context) {
-    final bool _succeeded =
-        ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
+    final bool _succeeded = ref
+        .watch(fusionProgressUIStateProvider(widget.walletId))
+        .succeeded;
 
-    final bool _failed =
-        ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
+    final bool _failed = ref
+        .watch(fusionProgressUIStateProvider(widget.walletId))
+        .failed;
 
     final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
@@ -217,37 +218,31 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                           child: Text(
                             "Fusion rounds completed: $_fusionRoundsCompleted",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle1,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         )
                       : RoundedContainer(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarBackError,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.snackBarBackError,
                           child: Text(
                             "Do not close this window. If you exit, "
                             "the process will be canceled.",
                             style: STextStyles.smallMed14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .snackBarTextError,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.snackBarTextError,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  FusionProgress(
-                    walletId: widget.walletId,
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 20),
+                  FusionProgress(walletId: widget.walletId),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       if (_succeeded)
@@ -258,10 +253,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: _fuseAgain,
                           ),
                         ),
-                      if (_succeeded)
-                        const SizedBox(
-                          width: 16,
-                        ),
+                      if (_succeeded) const SizedBox(width: 16),
                       if (_failed)
                         Expanded(
                           child: PrimaryButton(
@@ -270,20 +262,14 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: _fuseAgain,
                           ),
                         ),
-                      if (_failed)
-                        const SizedBox(
-                          width: 16,
-                        ),
+                      if (_failed) const SizedBox(width: 16),
                       if (!_succeeded && !_failed) const Spacer(),
-                      if (!_succeeded && !_failed)
-                        const SizedBox(
-                          width: 16,
-                        ),
+                      if (!_succeeded && !_failed) const SizedBox(width: 16),
                       Expanded(
                         child: SecondaryButton(
                           buttonHeight: ButtonHeight.m,
                           enabled: true,
-                          label: "Cancel",
+                          label: S.of(context)!.cancel,
                           onPressed: () async {
                             if (await _requestAndProcessCancel()) {
                               if (mounted) {
@@ -309,8 +295,9 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
     final fusionWallet =
         ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
-    final fusionInfo =
-        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
+    final fusionInfo = ref
+        .read(prefsChangeNotifierProvider)
+        .getFusionServerInfo(coin);
 
     try {
       fusionWallet.uiState = ref.read(
@@ -318,8 +305,8 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-            "FusionProgressUIState was already set for ${widget.walletId}",
-          )) {
+        "FusionProgressUIState was already set for ${widget.walletId}",
+      )) {
         rethrow;
       }
     }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:namecoin/namecoin.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../providers/providers.dart';
 import '../../../utilities/address_utils.dart';
@@ -441,7 +442,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
             children: [
               Expanded(
                 child: SecondaryButton(
-                  label: "Cancel",
+                  label: S.of(context)!.cancel,
                   buttonHeight: ButtonHeight.l,
                   onPressed: Navigator.of(
                     context,

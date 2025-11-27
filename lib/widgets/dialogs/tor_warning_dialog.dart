@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../desktop/primary_button.dart';
 import '../desktop/secondary_button.dart';
@@ -20,12 +22,13 @@ class TorWarningDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return BasicDialog(
       title: "Warning!  Tor not supported.",
-      message: "${coin.prettyName} is not compatible with Tor.  "
+      message:
+          "${coin.prettyName} is not compatible with Tor.  "
           "Continuing will leak your IP address."
           "\n\nAre you sure you want to continue?",
       // A PrimaryButton widget:
       leftButton: PrimaryButton(
-        label: "Cancel",
+        label: S.of(context)!.cancel,
         onPressed: () {
           onCancel?.call();
           Navigator.of(context).pop(false);

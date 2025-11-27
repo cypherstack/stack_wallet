@@ -20,6 +20,7 @@ import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/ethereum/eth_contract.dart';
@@ -491,7 +492,7 @@ class _TransactionV2DetailsViewState
                 Navigator.of(context).pop(false);
               },
               child: Text(
-                "Cancel",
+                S.of(context)!.cancel,
                 style: STextStyles.button(context).copyWith(
                   color: Theme.of(
                     context,
@@ -563,7 +564,7 @@ class _TransactionV2DetailsViewState
                       SecondaryButton(
                         width: 200,
                         buttonHeight: ButtonHeight.l,
-                        label: "Cancel",
+                        label: S.of(context)!.cancel,
                         onPressed: () {
                           Navigator.of(context, rootNavigator: true).pop(false);
                         },

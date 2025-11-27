@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
@@ -289,7 +290,7 @@ class _UnlockWalletKeysDesktopState
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: Navigator.of(context, rootNavigator: true).pop,
                   ),
                 ),

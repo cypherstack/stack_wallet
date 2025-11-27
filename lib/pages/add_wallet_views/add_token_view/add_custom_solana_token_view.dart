@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/solana/sol_contract.dart';
 import '../../../services/solana/solana_token_api.dart';
 import '../../../themes/stack_colors.dart';
@@ -477,7 +478,7 @@ class _AddCustomSolanaTokenViewState
                 if (isDesktop)
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       onPressed: Navigator.of(context).pop,
                     ),
                   ),

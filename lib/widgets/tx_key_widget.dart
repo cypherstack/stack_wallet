@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../pages/pinpad_views/pinpad_dialog.dart';
 import '../pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
     as tvd;
@@ -40,11 +41,11 @@ class _TxKeyWidgetState extends ConsumerState<TxKeyWidget> {
         context: context,
         builder: (context) => Util.isDesktop
             ? const RequestDesktopAuthDialog(title: "Show private view key")
-            : const PinpadDialog(
+            : PinpadDialog(
                 biometricsAuthenticationTitle: "Show private view key",
                 biometricsLocalizedReason:
                     "Authenticate to show private view key",
-                biometricsCancelButtonString: "CANCEL",
+                biometricsCancelButtonString: S.of(context)!.cancel,
               ),
         barrierDismissible: !Util.isDesktop,
       );

@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/mwc_slatepack_models.dart';
@@ -749,7 +750,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Cancel",
+                    S.of(context)!.cancel,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,

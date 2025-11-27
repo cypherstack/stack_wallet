@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../db/sqlite/firo_cache.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_providers.dart';
@@ -148,7 +149,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 onPressed: () {
                                   Navigator.of(context).pop(false);
                                 },
-                                label: "Cancel",
+                                label: S.of(context)!.cancel,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -254,7 +255,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 onPressed: () {
                                   Navigator.of(context).pop(false);
                                 },
-                                label: "Cancel",
+                                label: S.of(context)!.cancel,
                               ),
                             ),
                             const SizedBox(width: 16),

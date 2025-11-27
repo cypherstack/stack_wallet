@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
@@ -125,10 +126,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     return Text(
       isDateSelected ? "From..." : _fromDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-        color:
-            isDateSelected
-                ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-                : Theme.of(context).extension<StackColors>()!.accentColorDark,
+        color: isDateSelected
+            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+            : Theme.of(context).extension<StackColors>()!.accentColorDark,
       ),
     );
   }
@@ -138,10 +138,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     return Text(
       isDateSelected ? "To..." : _toDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-        color:
-            isDateSelected
-                ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-                : Theme.of(context).extension<StackColors>()!.accentColorDark,
+        color: isDateSelected
+            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+            : Theme.of(context).extension<StackColors>()!.accentColorDark,
       ),
     );
   }
@@ -154,14 +153,13 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     const middleSeparatorWidth = 12.0;
     final isDesktop = Util.isDesktop;
 
-    final width =
-        isDesktop
-            ? null
-            : (MediaQuery.of(context).size.width -
-                    (middleSeparatorWidth +
-                        (2 * middleSeparatorPadding) +
-                        (2 * Constants.size.standardPadding))) /
-                2;
+    final width = isDesktop
+        ? null
+        : (MediaQuery.of(context).size.width -
+                  (middleSeparatorWidth +
+                      (2 * middleSeparatorPadding) +
+                      (2 * Constants.size.standardPadding))) /
+              2;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,15 +191,13 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
 
                   setState(() {
                     if (flag) {
-                      _toDateString =
-                          _selectedToDate == null
-                              ? ""
-                              : Format.formatDate(_selectedToDate!);
+                      _toDateString = _selectedToDate == null
+                          ? ""
+                          : Format.formatDate(_selectedToDate!);
                     }
-                    _fromDateString =
-                        _selectedFromDate == null
-                            ? ""
-                            : Format.formatDate(_selectedFromDate!);
+                    _fromDateString = _selectedFromDate == null
+                        ? ""
+                        : Format.formatDate(_selectedFromDate!);
                   });
                 }
               }
@@ -209,18 +205,16 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
             child: Container(
               width: width,
               decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),
                 border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   width: 1,
                 ),
               ),
@@ -235,10 +229,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                       Assets.svg.calendar,
                       height: 20,
                       width: 20,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle2,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle2,
                     ),
                     const SizedBox(width: 10),
                     Align(
@@ -288,15 +281,13 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
 
                   setState(() {
                     if (flag) {
-                      _fromDateString =
-                          _selectedFromDate == null
-                              ? ""
-                              : Format.formatDate(_selectedFromDate!);
+                      _fromDateString = _selectedFromDate == null
+                          ? ""
+                          : Format.formatDate(_selectedFromDate!);
                     }
-                    _toDateString =
-                        _selectedToDate == null
-                            ? ""
-                            : Format.formatDate(_selectedToDate!);
+                    _toDateString = _selectedToDate == null
+                        ? ""
+                        : Format.formatDate(_selectedToDate!);
                   });
                 }
               }
@@ -304,18 +295,16 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
             child: Container(
               width: width,
               decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),
                 border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   width: 1,
                 ),
               ),
@@ -330,10 +319,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                       Assets.svg.calendar,
                       height: 20,
                       width: 20,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle2,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle2,
                     ),
                     const SizedBox(width: 10),
                     Align(
@@ -365,11 +353,13 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             leading: AppBarBackButton(
               onPressed: () async {
                 if (FocusScope.of(context).hasFocus) {
@@ -573,10 +563,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
           child: FittedBox(
             child: Text(
               "Date",
-              style:
-                  isDesktop
-                      ? STextStyles.labelExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.labelExtraExtraSmall(context)
+                  : STextStyles.smallMed12(context),
             ),
           ),
         ),
@@ -588,10 +577,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
           child: FittedBox(
             child: Text(
               "Inscription",
-              style:
-                  isDesktop
-                      ? STextStyles.labelExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.labelExtraExtraSmall(context)
+                  : STextStyles.smallMed12(context),
             ),
           ),
         ),
@@ -609,51 +597,49 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
               controller: _inscriptionTextEditingController,
               focusNode: inscriptionTextFieldFocusNode,
               onChanged: (_) => setState(() {}),
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
-                        height: 1.8,
-                      )
-                      : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Enter inscription number...",
-                keywordTextFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                contentPadding:
-                    isDesktop
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
+              decoration:
+                  standardInputDecoration(
+                    "Enter inscription number...",
+                    keywordTextFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    contentPadding: isDesktop
                         ? const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 16,
-                        )
+                            vertical: 10,
+                            horizontal: 16,
+                          )
                         : null,
-                suffixIcon:
-                    _inscriptionTextEditingController.text.isNotEmpty
+                    suffixIcon:
+                        _inscriptionTextEditingController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _inscriptionTextEditingController.text =
-                                          "";
-                                    });
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _inscriptionTextEditingController.text =
+                                            "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
         ),
@@ -663,10 +649,9 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
           child: FittedBox(
             child: Text(
               "Keyword",
-              style:
-                  isDesktop
-                      ? STextStyles.labelExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.labelExtraExtraSmall(context)
+                  : STextStyles.smallMed12(context),
             ),
           ),
         ),
@@ -683,51 +668,48 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
               key: const Key("OrdinalsViewKeywordFieldKey"),
               controller: _keywordTextEditingController,
               focusNode: keywordTextFieldFocusNode,
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
-                        height: 1.8,
-                      )
-                      : STextStyles.field(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
               onChanged: (_) => setState(() {}),
-              decoration: standardInputDecoration(
-                "Type keyword...",
-                keywordTextFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                contentPadding:
-                    isDesktop
+              decoration:
+                  standardInputDecoration(
+                    "Type keyword...",
+                    keywordTextFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    contentPadding: isDesktop
                         ? const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 16,
-                        )
+                            vertical: 10,
+                            horizontal: 16,
+                          )
                         : null,
-                suffixIcon:
-                    _keywordTextEditingController.text.isNotEmpty
+                    suffixIcon: _keywordTextEditingController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _keywordTextEditingController.text = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _keywordTextEditingController.text = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
         ),
@@ -737,7 +719,7 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
           children: [
             Expanded(
               child: SecondaryButton(
-                label: "Cancel",
+                label: S.of(context)!.cancel,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (!isDesktop) {

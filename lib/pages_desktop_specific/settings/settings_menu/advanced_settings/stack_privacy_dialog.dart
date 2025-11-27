@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
 import '../../../../db/hive/db.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
@@ -78,9 +79,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          const SizedBox(
-            height: 35,
-          ),
+          const SizedBox(height: 35),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: PrivacyToggle(
@@ -96,18 +95,16 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
           Padding(
             padding: const EdgeInsets.all(32.0),
             child: RoundedWhiteContainer(
-              borderColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
+              borderColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
               child: Center(
                 child: RichText(
                   textAlign: TextAlign.left,
                   text: TextSpan(
                     style: isDesktop
                         ? STextStyles.desktopTextExtraExtraSmall(context)
-                        : STextStyles.label(context).copyWith(
-                            fontSize: 12.0,
-                          ),
+                        : STextStyles.label(context).copyWith(fontSize: 12.0),
                     children: infoToggle
                         ? [
                             if (Constants.enableExchange)
@@ -126,9 +123,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                                       context,
                                     )
                                   : TextStyle(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark,
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
                                       fontWeight: FontWeight.w600,
                                     ),
                             ),
@@ -150,9 +147,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                                       context,
                                     )
                                   : TextStyle(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark,
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
                                       fontWeight: FontWeight.w600,
                                     ),
                             ),
@@ -169,15 +166,13 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: "Save",
@@ -187,22 +182,22 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
 
                       DB.instance
                           .put<dynamic>(
-                        boxName: DB.boxNamePrefs,
-                        key: "externalCalls",
-                        value: isEasy,
-                      )
+                            boxName: DB.boxNamePrefs,
+                            key: "externalCalls",
+                            value: isEasy,
+                          )
                           .then((_) {
-                        if (isEasy) {
-                          if (AppConfig.hasFeature(AppFeature.swap)) {
-                            unawaited(
-                              ExchangeDataLoadingService.instance.loadAll(),
-                            );
-                          }
-                          ref
-                              .read(priceAnd24hChangeNotifierProvider)
-                              .start(true);
-                        }
-                      });
+                            if (isEasy) {
+                              if (AppConfig.hasFeature(AppFeature.swap)) {
+                                unawaited(
+                                  ExchangeDataLoadingService.instance.loadAll(),
+                                );
+                              }
+                              ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .start(true);
+                            }
+                          });
                       if (isDesktop) {
                         Navigator.pop(context);
                       }
@@ -247,10 +242,12 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
-    final easyFile =
-        ref.watch(themeProvider.select((value) => value.assets.personaEasy));
-    final incognitoFile = ref
-        .watch(themeProvider.select((value) => value.assets.personaIncognito));
+    final easyFile = ref.watch(
+      themeProvider.select((value) => value.assets.personaEasy),
+    );
+    final incognitoFile = ref.watch(
+      themeProvider.select((value) => value.assets.personaIncognito),
+    );
 
     return Row(
       children: [
@@ -263,9 +260,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               side: !externalCallsEnabled
                   ? BorderSide.none
                   : BorderSide(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.infoItemIcons,
                       width: 2,
                     ),
               borderRadius: BorderRadius.circular(
@@ -281,38 +278,22 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               widget.onChanged?.call(externalCallsEnabled);
             },
             child: Padding(
-              padding: const EdgeInsets.all(
-                12,
-              ),
+              padding: const EdgeInsets.all(12),
               child: Stack(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
+                      if (isDesktop) const SizedBox(height: 10),
                       //
                       (easyFile.endsWith(".png"))
-                          ? Image.file(
-                              File(
-                                easyFile,
-                              ),
-                              width: 120,
-                              height: 120,
-                            )
+                          ? Image.file(File(easyFile), width: 120, height: 120)
                           : SvgPicture.file(
-                              File(
-                                easyFile,
-                              ),
+                              File(easyFile),
                               width: 120,
                               height: 120,
                             ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -329,10 +310,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               : STextStyles.label(context),
                         ),
                       ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                     ],
                   ),
                   if (externalCallsEnabled)
@@ -343,9 +321,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         Assets.svg.checkCircle,
                         width: 20,
                         height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.infoItemIcons,
                       ),
                     ),
                   if (!externalCallsEnabled)
@@ -357,9 +335,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         height: 20,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(1000),
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldDefaultBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                         ),
                       ),
                     ),
@@ -368,9 +346,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
             ),
           ),
         ),
-        const SizedBox(
-          width: 16,
-        ),
+        const SizedBox(width: 16),
         Expanded(
           child: RawMaterialButton(
             elevation: 0,
@@ -380,9 +356,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               side: externalCallsEnabled
                   ? BorderSide.none
                   : BorderSide(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.infoItemIcons,
                       width: 2,
                     ),
               borderRadius: BorderRadius.circular(
@@ -398,30 +374,21 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               widget.onChanged?.call(externalCallsEnabled);
             },
             child: Padding(
-              padding: const EdgeInsets.all(
-                12,
-              ),
+              padding: const EdgeInsets.all(12),
               child: Stack(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
+                      if (isDesktop) const SizedBox(height: 10),
                       (incognitoFile.endsWith(".png"))
                           ? Image.file(
-                              File(
-                                incognitoFile,
-                              ),
+                              File(incognitoFile),
                               width: 120,
                               height: 120,
                             )
                           : SvgPicture.file(
-                              File(
-                                incognitoFile,
-                              ),
+                              File(incognitoFile),
                               width: 120,
                               height: 120,
                             ),
@@ -430,10 +397,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       //   width: 120,
                       //   height: 120,
                       // ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
                           "Incognito",
@@ -450,10 +414,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               : STextStyles.label(context),
                         ),
                       ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                     ],
                   ),
                   if (!externalCallsEnabled)
@@ -464,9 +425,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         Assets.svg.checkCircle,
                         width: 20,
                         height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.infoItemIcons,
                       ),
                     ),
                   if (externalCallsEnabled)
@@ -478,9 +439,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         height: 20,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(1000),
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldDefaultBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                         ),
                       ),
                     ),

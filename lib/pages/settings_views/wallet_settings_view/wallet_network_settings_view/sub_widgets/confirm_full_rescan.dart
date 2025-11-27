@@ -9,6 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
+
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
@@ -35,9 +37,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Rescan blockchain",
                     style: STextStyles.desktopH3(context),
@@ -60,21 +60,17 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
-                  const SizedBox(
-                    height: 43,
-                  ),
+                  const SizedBox(height: 43),
                   Row(
                     children: [
                       Expanded(
                         child: SecondaryButton(
                           buttonHeight: ButtonHeight.l,
                           onPressed: Navigator.of(context).pop,
-                          label: "Cancel",
+                          label: S.of(context)!.cancel,
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
                           buttonHeight: ButtonHeight.l,
@@ -103,11 +99,11 @@ class ConfirmFullRescanDialog extends StatelessWidget {
           message:
               "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
           leftButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context),
+            style: Theme.of(
+              context,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
             child: Text(
-              "Cancel",
+              S.of(context)!.cancel,
               style: STextStyles.itemSubtitle12(context),
             ),
             onPressed: () {
@@ -115,13 +111,10 @@ class ConfirmFullRescanDialog extends StatelessWidget {
             },
           ),
           rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context),
-            child: Text(
-              "Rescan",
-              style: STextStyles.button(context),
-            ),
+            style: Theme.of(
+              context,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+            child: Text("Rescan", style: STextStyles.button(context)),
             onPressed: () {
               Navigator.of(context).pop();
               onConfirm.call();

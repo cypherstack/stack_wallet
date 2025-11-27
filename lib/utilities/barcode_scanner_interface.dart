@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../l10n/app_localizations.dart';
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
 import '../widgets/qr_scanner.dart';
@@ -65,7 +66,7 @@ Future<void> checkCamPermDeniedMobileAndOpenAppSettings(
           title: "Camera permissions required",
           message: "Open settings?",
           leftButton: SecondaryButton(
-            label: "Cancel",
+            label: S.of(context)!.cancel,
             onPressed: Navigator.of(context).pop,
           ),
           rightButton: PrimaryButton(

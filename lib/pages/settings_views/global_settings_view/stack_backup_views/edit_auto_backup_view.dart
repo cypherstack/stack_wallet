@@ -20,6 +20,7 @@ import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -697,7 +698,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     buttonHeight: ButtonHeight.l,
                     onPressed: Navigator.of(context).pop,
                   ),

@@ -17,6 +17,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../../db/hive/db.dart';
 import '../../../db/sqlite/firo_cache.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../models/keys/key_data_interface.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
@@ -118,7 +119,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             routeOnSuccessArguments: (walletId, sparkViewKeyHex),
             showBackButton: true,
             routeOnSuccess: SparkViewKeyView.routeName,
-            biometricsCancelButtonString: "CANCEL",
+            biometricsCancelButtonString: S.of(context)!.cancel,
             biometricsLocalizedReason: "Authenticate to view spark view key",
             biometricsAuthenticationTitle: "View spark view key",
           ),
@@ -150,7 +151,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             routeOnSuccessArguments: (walletId, xpubData!),
             showBackButton: true,
             routeOnSuccess: XPubView.routeName,
-            biometricsCancelButtonString: "CANCEL",
+            biometricsCancelButtonString: S.of(context)!.cancel,
             biometricsLocalizedReason: "Authenticate to view xpub data",
             biometricsAuthenticationTitle: "View xpub data",
           ),
@@ -225,7 +226,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               routeOnSuccessArguments: (walletId: walletId, keyData: keyData),
               showBackButton: true,
               routeOnSuccess: MobileKeyDataView.routeName,
-              biometricsCancelButtonString: "CANCEL",
+              biometricsCancelButtonString: S.of(context)!.cancel,
               biometricsLocalizedReason: "Authenticate to view recovery data",
               biometricsAuthenticationTitle: "View recovery data",
             ),
@@ -246,7 +247,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               ),
               showBackButton: true,
               routeOnSuccess: WalletBackupView.routeName,
-              biometricsCancelButtonString: "CANCEL",
+              biometricsCancelButtonString: S.of(context)!.cancel,
               biometricsLocalizedReason: "Authenticate to view recovery phrase",
               biometricsAuthenticationTitle: "View recovery phrase",
             ),
@@ -486,7 +487,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             result = value;
                           },
                           leftButton: SecondaryButton(
-                            label: "Cancel",
+                            label: S.of(context)!.cancel,
                             onPressed: () {
                               Navigator.of(context).pop();
                             },

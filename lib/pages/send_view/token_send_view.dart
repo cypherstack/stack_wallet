@@ -425,7 +425,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     //                 .extension<StackColors>()!
     //                 .getSecondaryEnabledButtonStyle(context),
     //             child: Text(
-    //               "Cancel",
+    //               S.of(context)!.cancel,
     //               style: STextStyles.button(context).copyWith(
     //                   color: Theme.of(context)
     //                       .extension<StackColors>()!

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/keys/key_data_interface.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
@@ -147,7 +148,7 @@ class _FiroRescanRecoveryErrorViewState
                                     Navigator.pop(context);
                                   },
                                   child: Text(
-                                    "Cancel",
+                                    S.of(context)!.cancel,
                                     style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
@@ -172,8 +173,9 @@ class _FiroRescanRecoveryErrorViewState
                                           showBackButton: true,
                                           routeOnSuccess:
                                               DeleteWalletWarningView.routeName,
-                                          biometricsCancelButtonString:
-                                              "CANCEL",
+                                          biometricsCancelButtonString: S
+                                              .of(context)!
+                                              .cancel,
                                           biometricsLocalizedReason:
                                               "Authenticate to delete wallet",
                                           biometricsAuthenticationTitle:
@@ -283,7 +285,9 @@ class _FiroRescanRecoveryErrorViewState
                                   ),
                                   showBackButton: true,
                                   routeOnSuccess: WalletBackupView.routeName,
-                                  biometricsCancelButtonString: "CANCEL",
+                                  biometricsCancelButtonString: S
+                                      .of(context)!
+                                      .cancel,
                                   biometricsLocalizedReason:
                                       "Authenticate to view recovery phrase",
                                   biometricsAuthenticationTitle:

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import '../../../providers/global/address_book_service_provider.dart';
@@ -56,9 +57,7 @@ class _DesktopContactOptionsMenuPopupState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Edit contact",
                     style: STextStyles.desktopH3(context),
@@ -75,9 +74,7 @@ class _DesktopContactOptionsMenuPopupState
                   right: 32,
                   bottom: 32,
                 ),
-                child: EditContactNameEmojiView(
-                  contactId: widget.contactId,
-                ),
+                child: EditContactNameEmojiView(contactId: widget.contactId),
               ),
             ),
           ],
@@ -87,8 +84,9 @@ class _DesktopContactOptionsMenuPopupState
   }
 
   void attemptDeleteContact() {
-    final contact =
-        ref.read(addressBookServiceProvider).getContactById(widget.contactId);
+    final contact = ref
+        .read(addressBookServiceProvider)
+        .getContactById(widget.contactId);
 
     // pop context menu
     Navigator.of(context).pop();
@@ -106,9 +104,7 @@ class _DesktopContactOptionsMenuPopupState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Delete ${contact.name}?",
                     style: STextStyles.desktopH3(context),
@@ -119,36 +115,26 @@ class _DesktopContactOptionsMenuPopupState
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Spacer(
-                      flex: 1,
-                    ),
+                    const Spacer(flex: 1),
                     Text(
                       "Contact will be deleted permanently!",
                       style: STextStyles.desktopTextSmall(context),
                     ),
-                    const Spacer(
-                      flex: 2,
-                    ),
+                    const Spacer(flex: 2),
                     Row(
                       children: [
                         Expanded(
                           child: SecondaryButton(
-                            label: "Cancel",
+                            label: S.of(context)!.cancel,
                             onPressed: Navigator.of(context).pop,
                             buttonHeight: ButtonHeight.l,
                           ),
                         ),
-                        const SizedBox(
-                          width: 16,
-                        ),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Consumer(
                             builder: (context, ref, __) => PrimaryButton(
@@ -191,9 +177,7 @@ class _DesktopContactOptionsMenuPopupState
             width: 270,
             decoration: BoxDecoration(
               color: Theme.of(context).extension<StackColors>()!.popupBG,
-              borderRadius: BorderRadius.circular(
-                20,
-              ),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 Theme.of(context).extension<StackColors>()!.standardBoxShadow,
               ],
@@ -214,23 +198,20 @@ class _DesktopContactOptionsMenuPopupState
                       });
                     },
                     child: RawMaterialButton(
-                      hoverColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
+                      hoverColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          1000,
-                        ),
+                        borderRadius: BorderRadius.circular(1000),
                       ),
                       onPressed: () {
-                        final contact =
-                            ref.read(addressBookServiceProvider).getContactById(
-                                  widget.contactId,
-                                );
-                        ref.read(addressBookServiceProvider).editContact(
-                              contact.copyWith(
-                                isFavorite: !contact.isFavorite,
-                              ),
+                        final contact = ref
+                            .read(addressBookServiceProvider)
+                            .getContactById(widget.contactId);
+                        ref
+                            .read(addressBookServiceProvider)
+                            .editContact(
+                              contact.copyWith(isFavorite: !contact.isFavorite),
                             );
                       },
                       child: Padding(
@@ -245,43 +226,39 @@ class _DesktopContactOptionsMenuPopupState
                               width: 24,
                               height: 22,
                               color: hoveredOnStar
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark
+                                  ? Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark
                                   : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultSearchIconLeft,
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultSearchIconLeft,
                             ),
-                            const SizedBox(
-                              width: 12,
-                            ),
+                            const SizedBox(width: 12),
                             Text(
                               ref.watch(
-                                addressBookServiceProvider.select(
-                                  (value) => value
-                                      .getContactById(widget.contactId)
-                                      .isFavorite,
-                                ),
-                              )
+                                    addressBookServiceProvider.select(
+                                      (value) => value
+                                          .getContactById(widget.contactId)
+                                          .isFavorite,
+                                    ),
+                                  )
                                   ? "Remove from favorites"
                                   : "Add to favorites",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
+                                  ),
                             ),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  if (widget.contactId != "default")
-                    const SizedBox(
-                      height: 2,
-                    ),
+                  if (widget.contactId != "default") const SizedBox(height: 2),
                   if (widget.contactId != "default")
                     MouseRegion(
                       onEnter: (_) {
@@ -295,13 +272,11 @@ class _DesktopContactOptionsMenuPopupState
                         });
                       },
                       child: RawMaterialButton(
-                        hoverColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        hoverColor: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            1000,
-                          ),
+                          borderRadius: BorderRadius.circular(1000),
                         ),
                         onPressed: editContact,
                         child: Padding(
@@ -316,35 +291,31 @@ class _DesktopContactOptionsMenuPopupState
                                 width: 24,
                                 height: 22,
                                 color: hoveredOnPencil
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark
+                                    ? Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark
                                     : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultSearchIconLeft,
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultSearchIconLeft,
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
+                              const SizedBox(width: 12),
                               Text(
                                 "Edit contact",
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
                               ),
                             ],
                           ),
                         ),
                       ),
                     ),
-                  if (widget.contactId != "default")
-                    const SizedBox(
-                      height: 2,
-                    ),
+                  if (widget.contactId != "default") const SizedBox(height: 2),
                   if (widget.contactId != "default")
                     MouseRegion(
                       onEnter: (_) {
@@ -358,13 +329,11 @@ class _DesktopContactOptionsMenuPopupState
                         });
                       },
                       child: RawMaterialButton(
-                        hoverColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        hoverColor: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            1000,
-                          ),
+                          borderRadius: BorderRadius.circular(1000),
                         ),
                         onPressed: attemptDeleteContact,
                         child: Padding(
@@ -379,25 +348,24 @@ class _DesktopContactOptionsMenuPopupState
                                 width: 24,
                                 height: 22,
                                 color: hoveredOnTrash
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark
+                                    ? Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark
                                     : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultSearchIconLeft,
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultSearchIconLeft,
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
+                              const SizedBox(width: 12),
                               Text(
                                 "Delete contact",
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
                               ),
                             ],
                           ),

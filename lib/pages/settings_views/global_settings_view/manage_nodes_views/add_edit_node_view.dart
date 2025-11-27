@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/node_model.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/active_wallet_provider.dart';
@@ -150,7 +151,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                               children: [
                                 Expanded(
                                   child: SecondaryButton(
-                                    label: "Cancel",
+                                    label: S.of(context)!.cancel,
                                     buttonHeight: isDesktop
                                         ? ButtonHeight.l
                                         : null,
@@ -190,7 +191,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     Navigator.of(context).pop(false);
                   },
                   child: Text(
-                    "Cancel",
+                    S.of(context)!.cancel,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,

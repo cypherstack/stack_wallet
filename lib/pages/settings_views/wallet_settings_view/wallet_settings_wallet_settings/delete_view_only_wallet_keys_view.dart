@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -49,13 +50,9 @@ class _DeleteViewOnlyWalletKeysViewState
         await Navigator.of(context).push(
           RouteGenerator.getRoute(
             builder: (context) {
-              return ConfirmDelete(
-                walletId: widget.walletId,
-              );
+              return ConfirmDelete(walletId: widget.walletId);
             },
-            settings: const RouteSettings(
-              name: "/desktopConfirmDelete",
-            ),
+            settings: const RouteSettings(name: "/desktopConfirmDelete"),
           ),
         );
       } else {
@@ -72,34 +69,33 @@ class _DeleteViewOnlyWalletKeysViewState
                 Navigator.pop(context);
               },
               child: Text(
-                "Cancel",
+                S.of(context)!.cancel,
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.accentColorDark,
                 ),
               ),
             ),
             rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
+              style: Theme.of(
+                context,
+              ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
               onPressed: () async {
-                await ref.read(pWallets).deleteWallet(
+                await ref
+                    .read(pWallets)
+                    .deleteWallet(
                       ref.read(pWalletInfo(widget.walletId)),
                       ref.read(secureStoreProvider),
                     );
 
                 if (mounted) {
-                  Navigator.of(context).popUntil(
-                    ModalRoute.withName(HomeView.routeName),
-                  );
+                  Navigator.of(
+                    context,
+                  ).popUntil(ModalRoute.withName(HomeView.routeName));
                 }
               },
-              child: Text(
-                "Ok",
-                style: STextStyles.button(context),
-              ),
+              child: Text("Ok", style: STextStyles.button(context)),
             ),
           ),
         );
@@ -156,20 +152,11 @@ class _DeleteViewOnlyWalletKeysViewState
               style: STextStyles.label(context),
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
-          ViewOnlyWalletDataWidget(
-            data: widget.data,
-          ),
+          const SizedBox(height: 24),
+          ViewOnlyWalletDataWidget(data: widget.data),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
-          PrimaryButton(
-            label: "Continue",
-            onPressed: _continuePressed,
-          ),
+          const SizedBox(height: 16),
+          PrimaryButton(label: "Continue", onPressed: _continuePressed),
         ],
       ),
     );

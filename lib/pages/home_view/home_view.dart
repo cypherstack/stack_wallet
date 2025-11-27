@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
@@ -80,12 +81,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => const LockscreenView(
+          builder: (_) => LockscreenView(
             showBackButton: false,
             popOnSuccess: true,
             routeOnSuccessArguments: true,
             routeOnSuccess: "",
-            biometricsCancelButtonString: "CANCEL",
+            biometricsCancelButtonString: S.of(context)!.cancel,
             biometricsLocalizedReason:
                 "Authenticate to unlock ${AppConfig.appName}",
             biometricsAuthenticationTitle: "Unlock ${AppConfig.appName}",

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/mwc_slatepack_models.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -87,14 +88,12 @@ class _MwcSlatepackImportDialogState
         await showDialog<void>(
           context: context,
           useRootNavigator: true,
-          builder:
-              (context) => StackOkDialog(
-                desktopPopRootNavigator: true,
-                maxWidth: Util.isDesktop ? 400 : null,
-                title: "Slatepack receive error",
-                message:
-                    ex?.toString() ?? "Unexpected result without exception",
-              ),
+          builder: (context) => StackOkDialog(
+            desktopPopRootNavigator: true,
+            maxWidth: Util.isDesktop ? 400 : null,
+            title: "Slatepack receive error",
+            message: ex?.toString() ?? "Unexpected result without exception",
+          ),
         );
       }
       return;
@@ -114,14 +113,14 @@ class _MwcSlatepackImportDialogState
     final map = jsonDecode(widget.decoded.slateJson!) as Map;
 
     final rawAmount = BigInt.tryParse(map["amount"].toString());
-    _amount =
-        rawAmount == null
-            ? null
-            : Amount(
-              rawValue: rawAmount,
-              fractionDigits:
-                  ref.read(pWalletCoin(widget.walletId)).fractionDigits,
-            );
+    _amount = rawAmount == null
+        ? null
+        : Amount(
+            rawValue: rawAmount,
+            fractionDigits: ref
+                .read(pWalletCoin(widget.walletId))
+                .fractionDigits,
+          );
 
     // final rawFee = BigInt.tryParse(map["fee"].toString());
     // _fee =
@@ -166,17 +165,15 @@ class _MwcSlatepackImportDialogState
             children: [
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => RoundedWhiteContainer(
-                      borderColor:
-                          isDesktop
-                              ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.backgroundAppBar
-                              : null,
-                      padding: const EdgeInsets.all(0),
-                      child: child,
-                    ),
+                builder: (child) => RoundedWhiteContainer(
+                  borderColor: isDesktop
+                      ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar
+                      : null,
+                  padding: const EdgeInsets.all(0),
+                  child: child,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -240,11 +237,10 @@ class _MwcSlatepackImportDialogState
               const SizedBox(height: 24),
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [child],
-                    ),
+                builder: (child) => Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [child],
+                ),
                 child: PrimaryButton(
                   width: isDesktop ? 220 : null,
 
@@ -256,7 +252,7 @@ class _MwcSlatepackImportDialogState
               if (!isDesktop) const SizedBox(height: 12),
               if (!isDesktop)
                 SecondaryButton(
-                  label: "Cancel",
+                  label: S.of(context)!.cancel,
                   onPressed: Navigator.of(context).pop,
                 ),
             ],
@@ -300,10 +296,9 @@ class SlatepackResponseDialog extends StatelessWidget {
               ),
             ),
           Padding(
-            padding:
-                Util.isDesktop
-                    ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
-                    : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+            padding: Util.isDesktop
+                ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
+                : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -326,11 +321,10 @@ class SlatepackResponseDialog extends StatelessWidget {
                 const SizedBox(height: 8),
                 ConditionalParent(
                   condition: !Util.isDesktop,
-                  builder:
-                      (child) => SizedBox(
-                        height: 220,
-                        child: SingleChildScrollView(child: child),
-                      ),
+                  builder: (child) => SizedBox(
+                    height: 220,
+                    child: SingleChildScrollView(child: child),
+                  ),
                   child: SelectableText(
                     responseSlatepack,
                     style: STextStyles.w500_14(context),
@@ -339,11 +333,10 @@ class SlatepackResponseDialog extends StatelessWidget {
                 const SizedBox(height: 24),
                 ConditionalParent(
                   condition: Util.isDesktop,
-                  builder:
-                      (child) => Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [child],
-                      ),
+                  builder: (child) => Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [child],
+                  ),
                   child: PrimaryButton(
                     label: "Done",
                     width: Util.isDesktop ? 220 : null,

@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/animated_widgets/rotating_arrows.dart';
 import '../../../../../widgets/conditional_parent.dart';
@@ -69,18 +70,12 @@ class _RescanningDialogState extends State<RescanningDialog>
       },
       child: ConditionalParent(
         condition: isDesktop,
-        builder: (child) => DesktopDialog(
-          maxHeight: 150,
-          maxWidth: 500,
-          child: child,
-        ),
+        builder: (child) =>
+            DesktopDialog(maxHeight: 150, maxWidth: 500, child: child),
         child: const StackDialog(
           title: "Rescanning blockchain",
           message: "This may take a while. Please do not exit this screen.",
-          icon: RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
+          icon: RotatingArrows(width: 24, height: 24),
           // rightButton: TextButton(
           //   style: Theme.of(context).textButtonTheme.style?.copyWith(
           //     backgroundColor: MaterialStateProperty.all<Color>(
@@ -88,7 +83,7 @@ class _RescanningDialogState extends State<RescanningDialog>
           //     ),
           //   ),
           //   child: Text(
-          //     "Cancel",
+          //     S.of(context)!.cancel,
           //     style: STextStyles.itemSubtitle12(context),
           //   ),
           //   onPressed: () {

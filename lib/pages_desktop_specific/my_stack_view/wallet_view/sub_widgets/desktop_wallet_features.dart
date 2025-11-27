@@ -18,6 +18,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/monkey/monkey_view.dart';
@@ -181,7 +182,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                   SecondaryButton(
                     width: 200,
                     buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },

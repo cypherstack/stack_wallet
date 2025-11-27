@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -69,19 +70,18 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
     // TODO: optimise
 
-    final transactions =
-        await ref
-            .read(mainDBProvider)
-            .isar
-            .transactions
-            .where()
-            .filter()
-            .anyOf(
-              contact.addresses.map((e) => e.address),
-              (q, String e) => q.address((q) => q.valueEqualTo(e)),
-            )
-            .sortByTimestampDesc()
-            .findAll();
+    final transactions = await ref
+        .read(mainDBProvider)
+        .isar
+        .transactions
+        .where()
+        .filter()
+        .anyOf(
+          contact.addresses.map((e) => e.address),
+          (q, String e) => q.address((q) => q.valueEqualTo(e)),
+        )
+        .sortByTimestampDesc()
+        .findAll();
 
     final List<Tuple2<String, Transaction>> result = [];
 
@@ -143,14 +143,13 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.star,
-                    color:
-                        _contact.isFavorite
-                            ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.favoriteStarActive
-                            : Theme.of(
-                              context,
-                            ).extension<StackColors>()!.favoriteStarInactive,
+                    color: _contact.isFavorite
+                        ? Theme.of(
+                            context,
+                          ).extension<StackColors>()!.favoriteStarActive
+                        : Theme.of(
+                            context,
+                          ).extension<StackColors>()!.favoriteStarInactive,
                     width: 20,
                     height: 20,
                   ),
@@ -177,10 +176,9 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.trash,
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -189,44 +187,43 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       context: context,
                       useSafeArea: true,
                       barrierDismissible: true,
-                      builder:
-                          (_) => StackDialog(
-                            title: "Delete ${_contact.name}?",
-                            message: "Contact will be deleted permanently!",
-                            leftButton: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonStyle(context),
-                              child: Text(
-                                "Cancel",
-                                style: STextStyles.itemSubtitle12(context),
-                              ),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            rightButton: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonStyle(context),
-                              child: Text(
-                                "Delete",
-                                style: STextStyles.button(context),
-                              ),
-                              onPressed: () {
-                                ref
-                                    .read(addressBookServiceProvider)
-                                    .removeContact(_contact.customId);
-                                Navigator.of(context).pop();
-                                Navigator.of(context).pop();
-                                showFloatingFlushBar(
-                                  type: FlushBarType.success,
-                                  message: "${_contact.name} deleted",
-                                  context: context,
-                                );
-                              },
-                            ),
+                      builder: (_) => StackDialog(
+                        title: "Delete ${_contact.name}?",
+                        message: "Contact will be deleted permanently!",
+                        leftButton: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getSecondaryEnabledButtonStyle(context),
+                          child: Text(
+                            S.of(context)!.cancel,
+                            style: STextStyles.itemSubtitle12(context),
                           ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        rightButton: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonStyle(context),
+                          child: Text(
+                            "Delete",
+                            style: STextStyles.button(context),
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(addressBookServiceProvider)
+                                .removeContact(_contact.customId);
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            showFloatingFlushBar(
+                              type: FlushBarType.success,
+                              message: "${_contact.name} deleted",
+                              context: context,
+                            );
+                          },
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -251,23 +248,21 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           width: 48,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(24),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldActiveBG,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveBG,
                           ),
                           child: Center(
-                            child:
-                                _contact.emojiChar == null
-                                    ? SvgPicture.asset(
-                                      Assets.svg.user,
-                                      height: 24,
-                                      width: 24,
-                                    )
-                                    : Text(
-                                      _contact.emojiChar!,
-                                      style: STextStyles.pageTitleH1(context),
-                                    ),
+                            child: _contact.emojiChar == null
+                                ? SvgPicture.asset(
+                                    Assets.svg.user,
+                                    height: 24,
+                                    width: 24,
+                                  )
+                                : Text(
+                                    _contact.emojiChar!,
+                                    style: STextStyles.pageTitleH1(context),
+                                  ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -303,10 +298,9 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -380,14 +374,17 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   GestureDetector(
                                     onTap: () {
                                       ref
-                                          .read(addressEntryDataProvider(0))
-                                          .address = e.address;
+                                              .read(addressEntryDataProvider(0))
+                                              .address =
+                                          e.address;
                                       ref
-                                          .read(addressEntryDataProvider(0))
-                                          .addressLabel = e.label;
+                                              .read(addressEntryDataProvider(0))
+                                              .addressLabel =
+                                          e.label;
                                       ref
-                                          .read(addressEntryDataProvider(0))
-                                          .coin = e.coin;
+                                              .read(addressEntryDataProvider(0))
+                                              .coin =
+                                          e.coin;
 
                                       Navigator.of(context).pushNamed(
                                         EditContactAddressView.routeName,
@@ -395,19 +392,17 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                       );
                                     },
                                     child: RoundedContainer(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textFieldDefaultBG,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultBG,
                                       padding: const EdgeInsets.all(6),
                                       child: SvgPicture.asset(
                                         Assets.svg.pencil,
                                         width: 14,
                                         height: 14,
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
                                       ),
                                     ),
                                   ),
@@ -425,19 +420,17 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                       );
                                     },
                                     child: RoundedContainer(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textFieldDefaultBG,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultBG,
                                       padding: const EdgeInsets.all(6),
                                       child: SvgPicture.asset(
                                         Assets.svg.copy,
                                         width: 16,
                                         height: 16,
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
                                       ),
                                     ),
                                   ),
@@ -456,66 +449,68 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                     const SizedBox(height: 12),
                     FutureBuilder(
                       future: _filteredTransactionsByContact(),
-                      builder: (
-                        _,
-                        AsyncSnapshot<List<Tuple2<String, Transaction>>>
-                        snapshot,
-                      ) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          _cachedTransactions = snapshot.data!;
+                      builder:
+                          (
+                            _,
+                            AsyncSnapshot<List<Tuple2<String, Transaction>>>
+                            snapshot,
+                          ) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.hasData) {
+                              _cachedTransactions = snapshot.data!;
 
-                          if (_cachedTransactions.isNotEmpty) {
-                            return RoundedWhiteContainer(
-                              padding: const EdgeInsets.all(0),
-                              child: Column(
-                                children: [
-                                  ..._cachedTransactions.map(
-                                    (e) => TransactionCard(
-                                      key: Key(
-                                        "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                              if (_cachedTransactions.isNotEmpty) {
+                                return RoundedWhiteContainer(
+                                  padding: const EdgeInsets.all(0),
+                                  child: Column(
+                                    children: [
+                                      ..._cachedTransactions.map(
+                                        (e) => TransactionCard(
+                                          key: Key(
+                                            "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                          ),
+                                          transaction: e.item2,
+                                          walletId: e.item1,
+                                        ),
                                       ),
-                                      transaction: e.item2,
-                                      walletId: e.item1,
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                return RoundedWhiteContainer(
+                                  child: Center(
+                                    child: Text(
+                                      "No transactions found",
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            return RoundedWhiteContainer(
-                              child: Center(
-                                child: Text(
-                                  "No transactions found",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                              ),
-                            );
-                          }
-                        } else {
-                          // TODO: proper loading animation
-                          if (_cachedTransactions.isEmpty) {
-                            return const LoadingIndicator();
-                          } else {
-                            return RoundedWhiteContainer(
-                              padding: const EdgeInsets.all(0),
-                              child: Column(
-                                children: [
-                                  ..._cachedTransactions.map(
-                                    (e) => TransactionCard(
-                                      key: Key(
-                                        "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                );
+                              }
+                            } else {
+                              // TODO: proper loading animation
+                              if (_cachedTransactions.isEmpty) {
+                                return const LoadingIndicator();
+                              } else {
+                                return RoundedWhiteContainer(
+                                  padding: const EdgeInsets.all(0),
+                                  child: Column(
+                                    children: [
+                                      ..._cachedTransactions.map(
+                                        (e) => TransactionCard(
+                                          key: Key(
+                                            "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                          ),
+                                          transaction: e.item2,
+                                          walletId: e.item1,
+                                        ),
                                       ),
-                                      transaction: e.item2,
-                                      walletId: e.item1,
-                                    ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          }
-                        }
-                      },
+                                );
+                              }
+                            }
+                          },
                     ),
                     const SizedBox(height: 16),
                   ],

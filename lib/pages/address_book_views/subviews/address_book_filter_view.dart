@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/ui/address_book_providers/address_book_filter_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -64,11 +65,13 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
+              backgroundColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.background,
               leading: AppBarBackButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
@@ -178,7 +181,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                       width: 248,
                       buttonHeight: ButtonHeight.l,
                       enabled: true,
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       onPressed: () {
                         Navigator.of(context).pop();
                       },

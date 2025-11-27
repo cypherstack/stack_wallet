@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/util.dart';
@@ -34,16 +35,14 @@ Future<DateTime?> showSWDatePicker(BuildContext context) async {
       firstDate: DateTime(2007),
       lastDate: now,
       currentDate: now,
-      buttonPadding: const EdgeInsets.only(
-        right: 16,
-      ),
+      buttonPadding: const EdgeInsets.only(right: 16),
       centerAlignModePicker: true,
-      selectedDayHighlightColor:
-          Theme.of(context).extension<StackColors>()!.accentColorDark,
-      daySplashColor: Theme.of(context)
-          .extension<StackColors>()!
-          .accentColorDark
-          .withOpacity(0.6),
+      selectedDayHighlightColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.accentColorDark,
+      daySplashColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.accentColorDark.withOpacity(0.6),
     ),
   );
   return date?.first;
@@ -63,10 +62,7 @@ Future<List<DateTime?>?> _showDatePickerDialog({
   TransitionBuilder? builder,
 }) {
   final dialog = Dialog(
-    insetPadding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 16,
-    ),
+    insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
     surfaceTintColor: Colors.transparent,
     shadowColor: Colors.transparent,

@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
@@ -142,7 +143,7 @@ class _WalletSettingsWalletSettingsViewState
                     .extension<StackColors>()!
                     .getSecondaryEnabledButtonStyle(context),
                 child: Text(
-                  "Cancel",
+                  S.of(context)!.cancel,
                   style: STextStyles.itemSubtitle12(context),
                 ),
                 onPressed: () {
@@ -196,7 +197,7 @@ class _WalletSettingsWalletSettingsViewState
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },
-                label: "Cancel",
+                label: S.of(context)!.cancel,
               ),
               rightButton: PrimaryButton(
                 onPressed: () {
@@ -651,7 +652,7 @@ class _WalletSettingsWalletSettingsViewState
                                 Navigator.pop(context);
                               },
                               child: Text(
-                                "Cancel",
+                                S.of(context)!.cancel,
                                 style: STextStyles.button(context).copyWith(
                                   color: Theme.of(
                                     context,
@@ -675,7 +676,9 @@ class _WalletSettingsWalletSettingsViewState
                                       showBackButton: true,
                                       routeOnSuccess:
                                           DeleteWalletWarningView.routeName,
-                                      biometricsCancelButtonString: "CANCEL",
+                                      biometricsCancelButtonString: S
+                                          .of(context)!
+                                          .cancel,
                                       biometricsLocalizedReason:
                                           "Authenticate to delete wallet",
                                       biometricsAuthenticationTitle:

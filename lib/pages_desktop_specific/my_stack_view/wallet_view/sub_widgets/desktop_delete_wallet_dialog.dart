@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -29,10 +30,7 @@ import '../../../../widgets/stack_text_field.dart';
 import 'desktop_attention_delete_wallet.dart';
 
 class DesktopDeleteWalletDialog extends ConsumerStatefulWidget {
-  const DesktopDeleteWalletDialog({
-    super.key,
-    required this.walletId,
-  });
+  const DesktopDeleteWalletDialog({super.key, required this.walletId});
 
   final String walletId;
 
@@ -58,12 +56,7 @@ class _DesktopDeleteWalletDialog
         builder: (context) => const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            LoadingIndicator(
-              width: 200,
-              height: 200,
-            ),
-          ],
+          children: [LoadingIndicator(width: 200, height: 200)],
         ),
       ),
     );
@@ -142,16 +135,14 @@ class _DesktopDeleteWalletDialog
             child: Column(
               children: [
                 const SizedBox(height: 16),
-                Text(
-                  "Delete wallet",
-                  style: STextStyles.desktopH2(context),
-                ),
+                Text("Delete wallet", style: STextStyles.desktopH2(context)),
                 const SizedBox(height: 16),
                 Text(
                   "Enter your password",
                   style: STextStyles.desktopTextMedium(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -163,9 +154,9 @@ class _DesktopDeleteWalletDialog
                     key: const Key("desktopDeleteWalletPasswordFieldKey"),
                     focusNode: passwordFocusNode,
                     controller: passwordController,
-                    style: STextStyles.desktopTextMedium(context).copyWith(
-                      height: 2,
-                    ),
+                    style: STextStyles.desktopTextMedium(
+                      context,
+                    ).copyWith(height: 2),
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
@@ -175,51 +166,48 @@ class _DesktopDeleteWalletDialog
                         enterPassphrase();
                       }
                     },
-                    decoration: standardInputDecoration(
-                      "Enter password",
-                      passwordFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle: STextStyles.fieldLabel(context),
-                      suffixIcon: UnconstrainedBox(
-                        child: SizedBox(
-                          height: 70,
-                          child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 24,
-                              ),
-                              GestureDetector(
-                                key: const Key(
-                                  "desktopDeleteWalletShowPasswordButtonKey",
-                                ),
-                                onTap: () async {
-                                  setState(() {
-                                    hidePassword = !hidePassword;
-                                  });
-                                },
-                                child: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: SvgPicture.asset(
-                                    hidePassword
-                                        ? Assets.svg.eye
-                                        : Assets.svg.eyeSlash,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
-                                    width: 24,
-                                    height: 24,
+                    decoration:
+                        standardInputDecoration(
+                          "Enter password",
+                          passwordFocusNode,
+                          context,
+                        ).copyWith(
+                          labelStyle: STextStyles.fieldLabel(context),
+                          suffixIcon: UnconstrainedBox(
+                            child: SizedBox(
+                              height: 70,
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 24),
+                                  GestureDetector(
+                                    key: const Key(
+                                      "desktopDeleteWalletShowPasswordButtonKey",
+                                    ),
+                                    onTap: () async {
+                                      setState(() {
+                                        hidePassword = !hidePassword;
+                                      });
+                                    },
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: SvgPicture.asset(
+                                        hidePassword
+                                            ? Assets.svg.eye
+                                            : Assets.svg.eyeSlash,
+                                        color: Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.textDark3,
+                                        width: 24,
+                                        height: 24,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                ],
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
                     onChanged: (newValue) {
                       setState(() {
                         _continueEnabled = passwordController.text.isNotEmpty;
@@ -234,11 +222,8 @@ class _DesktopDeleteWalletDialog
                     SecondaryButton(
                       width: 250,
                       buttonHeight: ButtonHeight.xl,
-                      label: "Cancel",
-                      onPressed: Navigator.of(
-                        context,
-                        rootNavigator: true,
-                      ).pop,
+                      label: S.of(context)!.cancel,
+                      onPressed: Navigator.of(context, rootNavigator: true).pop,
                     ),
                     const SizedBox(width: 16),
                     PrimaryButton(

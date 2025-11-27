@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/global/barcode_scanner_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
@@ -209,7 +210,7 @@ class _SlatepackEntryDialogState extends ConsumerState<SlatepackEntryDialog> {
           ),
           const SizedBox(height: 16),
           SecondaryButton(
-            label: "Cancel",
+            label: S.of(context)!.cancel,
             onPressed: Navigator.of(context).pop,
           ),
         ],

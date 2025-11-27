@@ -33,11 +33,10 @@ class _CancellingTransactionProgressDialogState
       },
       child: ConditionalParent(
         condition: Util.isDesktop,
-        builder:
-            (child) => Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [SizedBox(width: 400, child: child)],
-            ),
+        builder: (child) => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [SizedBox(width: 400, child: child)],
+        ),
         child: const StackDialog(
           title: "Cancelling transaction",
           message: "This may take a while. Please do not exit this screen.",
@@ -49,7 +48,7 @@ class _CancellingTransactionProgressDialogState
           //     ),
           //   ),
           //   child: Text(
-          //     "Cancel",
+          //     S.of(context)!.cancel,
           //     style: STextStyles.itemSubtitle12(context),
           //   ),
           //   onPressed: () {

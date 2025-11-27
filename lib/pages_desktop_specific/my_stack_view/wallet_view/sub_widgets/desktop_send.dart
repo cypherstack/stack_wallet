@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
@@ -368,7 +369,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           Expanded(
                             child: SecondaryButton(
                               buttonHeight: ButtonHeight.l,
-                              label: "Cancel",
+                              label: S.of(context)!.cancel,
                               onPressed: () {
                                 Navigator.of(context).pop(false);
                               },

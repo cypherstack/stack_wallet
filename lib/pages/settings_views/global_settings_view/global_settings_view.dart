@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -96,21 +97,20 @@ class GlobalSettingsView extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         RouteGenerator.getRoute(
-                                          shouldUseMaterialRoute:
-                                              RouteGenerator
-                                                  .useMaterialPageRoute,
-                                          builder:
-                                              (_) => const LockscreenView(
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    StackBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to access ${AppConfig.prefix} backup & restore settings",
-                                                biometricsAuthenticationTitle:
-                                                    "${AppConfig.prefix} backup",
-                                              ),
+                                          shouldUseMaterialRoute: RouteGenerator
+                                              .useMaterialPageRoute,
+                                          builder: (_) => LockscreenView(
+                                            showBackButton: true,
+                                            routeOnSuccess:
+                                                StackBackupView.routeName,
+                                            biometricsCancelButtonString: S
+                                                .of(context)!
+                                                .cancel,
+                                            biometricsLocalizedReason:
+                                                "Authenticate to access ${AppConfig.prefix} backup & restore settings",
+                                            biometricsAuthenticationTitle:
+                                                "${AppConfig.prefix} backup",
+                                          ),
                                           settings: const RouteSettings(
                                             name: "/swblockscreen",
                                           ),

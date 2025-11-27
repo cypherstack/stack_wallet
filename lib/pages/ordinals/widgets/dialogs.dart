@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../widgets/desktop/primary_button.dart';
@@ -21,7 +23,7 @@ class SendOrdinalUnfreezeDialog extends StatelessWidget {
       ),
       message: "To send this ordinal, you must unfreeze it first.",
       leftButton: SecondaryButton(
-        label: "Cancel",
+        label: S.of(context)!.cancel,
         onPressed: Navigator.of(context).pop,
       ),
       rightButton: PrimaryButton(
@@ -48,7 +50,7 @@ class UnfreezeOrdinalDialog extends StatelessWidget {
         color: Theme.of(context).extension<StackColors>()!.textDark,
       ),
       leftButton: SecondaryButton(
-        label: "Cancel",
+        label: S.of(context)!.cancel,
         onPressed: Navigator.of(context).pop,
       ),
       rightButton: PrimaryButton(

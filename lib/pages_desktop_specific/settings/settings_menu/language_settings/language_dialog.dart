@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -57,20 +58,14 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   BorderRadius? _borderRadius(int index) {
     if (index == 0 && listWithoutSelected.length == 1) {
-      return BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      );
+      return BorderRadius.circular(Constants.size.circularBorderRadius);
     } else if (index == 0) {
       return BorderRadius.vertical(
-        top: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
+        top: Radius.circular(Constants.size.circularBorderRadius),
       );
     } else if (index == listWithoutSelected.length - 1) {
       return BorderRadius.vertical(
-        bottom: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
+        bottom: Radius.circular(Constants.size.circularBorderRadius),
       );
     }
     return null;
@@ -106,8 +101,9 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   @override
   Widget build(BuildContext context) {
-    current = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.language));
+    current = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.language),
+    );
 
     listWithoutSelected = languages;
     if (current.isNotEmpty) {
@@ -148,7 +144,9 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                     sliver: SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 32),
+                          vertical: 16,
+                          horizontal: 32,
+                        ),
                         child: Column(
                           children: [
                             Padding(
@@ -162,51 +160,55 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                   enableSuggestions: false,
                                   controller: searchLanguageController,
                                   focusNode: searchLanguageFocusNode,
-                                  style: STextStyles.desktopTextMedium(context)
-                                      .copyWith(
-                                    height: 2,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                  decoration: standardInputDecoration(
-                                    "Search",
-                                    searchLanguageFocusNode,
+                                  style: STextStyles.desktopTextMedium(
                                     context,
-                                  ).copyWith(
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 16,
-                                      ),
-                                      child: SvgPicture.asset(
-                                        Assets.svg.search,
-                                        width: 16,
-                                        height: 16,
-                                      ),
-                                    ),
-                                    suffixIcon: searchLanguageController
-                                            .text.isNotEmpty
-                                        ? Padding(
-                                            padding:
-                                                const EdgeInsets.only(right: 0),
-                                            child: UnconstrainedBox(
-                                              child: Row(
-                                                children: [
-                                                  TextFieldIconButton(
-                                                    child: const XIcon(),
-                                                    onTap: () async {
-                                                      setState(() {
-                                                        searchLanguageController
-                                                            .text = "";
-                                                        filter = "";
-                                                      });
-                                                    },
+                                  ).copyWith(height: 2),
+                                  textAlign: TextAlign.left,
+                                  decoration:
+                                      standardInputDecoration(
+                                        "Search",
+                                        searchLanguageFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        prefixIcon: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 16,
+                                          ),
+                                          child: SvgPicture.asset(
+                                            Assets.svg.search,
+                                            width: 16,
+                                            height: 16,
+                                          ),
+                                        ),
+                                        suffixIcon:
+                                            searchLanguageController
+                                                .text
+                                                .isNotEmpty
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 0,
+                                                ),
+                                                child: UnconstrainedBox(
+                                                  child: Row(
+                                                    children: [
+                                                      TextFieldIconButton(
+                                                        child: const XIcon(),
+                                                        onTap: () async {
+                                                          setState(() {
+                                                            searchLanguageController
+                                                                    .text =
+                                                                "";
+                                                            filter = "";
+                                                          });
+                                                        },
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        : null,
-                                  ),
+                                                ),
+                                              )
+                                            : null,
+                                      ),
                                 ),
                               ),
                             ),
@@ -227,109 +229,101 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                         ),
                       ),
                       SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG,
-                                borderRadius: _borderRadius(index),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.popupBG,
+                              borderRadius: _borderRadius(index),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              key: Key(
+                                "desktopSelectLanguage_${listWithoutSelected[index]}",
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                key: Key(
-                                  "desktopSelectLanguage_${listWithoutSelected[index]}",
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                  ),
-                                  child: RoundedContainer(
-                                    padding: const EdgeInsets.all(0),
-                                    color: index == 0
-                                        ? Theme.of(context)
+                                child: RoundedContainer(
+                                  padding: const EdgeInsets.all(0),
+                                  color: index == 0
+                                      ? Theme.of(context)
                                             .extension<StackColors>()!
                                             .currencyListItemBG
-                                        : Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .popupBG,
-                                    child: RawMaterialButton(
-                                      onPressed: () async {
-                                        onTap(index);
-                                      },
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
+                                      : Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.popupBG,
+                                  child: RawMaterialButton(
+                                    onPressed: () async {
+                                      onTap(index);
+                                    },
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
                                       ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: Radio(
-                                                activeColor: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .radioButtonIconEnabled,
-                                                value: true,
-                                                groupValue: index == 0,
-                                                onChanged: (_) {
-                                                  onTap(index);
-                                                },
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: Radio(
+                                              activeColor: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .radioButtonIconEnabled,
+                                              value: true,
+                                              groupValue: index == 0,
+                                              onChanged: (_) {
+                                                onTap(index);
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                listWithoutSelected[index],
+                                                key: (index == 0)
+                                                    ? const Key(
+                                                        "desktopSettingsSelectedLanguageText",
+                                                      )
+                                                    : null,
+                                                style:
+                                                    STextStyles.largeMedium14(
+                                                      context,
+                                                    ),
                                               ),
-                                            ),
-                                            const SizedBox(
-                                              width: 12,
-                                            ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  listWithoutSelected[index],
-                                                  key: (index == 0)
-                                                      ? const Key(
-                                                          "desktopSettingsSelectedLanguageText",
-                                                        )
-                                                      : null,
-                                                  style:
-                                                      STextStyles.largeMedium14(
-                                                    context,
-                                                  ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                listWithoutSelected[index],
+                                                key: (index == 0)
+                                                    ? const Key(
+                                                        "desktopSettingsSelectedLanguageTextDescription",
+                                                      )
+                                                    : null,
+                                                style: STextStyles.itemSubtitle(
+                                                  context,
                                                 ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
-                                                Text(
-                                                  listWithoutSelected[index],
-                                                  key: (index == 0)
-                                                      ? const Key(
-                                                          "desktopSettingsSelectedLanguageTextDescription",
-                                                        )
-                                                      : null,
-                                                  style:
-                                                      STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                          childCount: listWithoutSelected.length,
-                        ),
+                            ),
+                          );
+                        }, childCount: listWithoutSelected.length),
                       ),
                     ],
                   );
@@ -344,20 +338,15 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
-                  child: PrimaryButton(
-                    label: "Save Changes",
-                    onPressed: () {},
-                  ),
+                  child: PrimaryButton(label: "Save Changes", onPressed: () {}),
                 ),
               ],
             ),

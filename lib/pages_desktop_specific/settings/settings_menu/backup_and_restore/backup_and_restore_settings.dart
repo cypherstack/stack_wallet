@@ -13,12 +13,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
-import 'create_auto_backup.dart';
-import 'enable_backup_dialog.dart';
 import '../../../../providers/global/auto_swb_service_provider.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -36,7 +37,8 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'create_auto_backup.dart';
+import 'enable_backup_dialog.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({super.key});
@@ -143,11 +145,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
               ],
             ),
             const Padding(
-              padding: EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: EditAutoBackupView(),
             ),
           ],
@@ -174,9 +172,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                   child: Text(
                     "Back",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -187,16 +185,14 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context),
-                  child: Text(
-                    "Disable",
-                    style: STextStyles.button(context),
-                  ),
+                  child: Text("Disable", style: STextStyles.button(context)),
                   onPressed: () {
                     Navigator.of(context).pop();
                     setState(() {
                       ref
-                          .watch(prefsChangeNotifierProvider)
-                          .isAutoBackupEnabled = false;
+                              .watch(prefsChangeNotifierProvider)
+                              .isAutoBackupEnabled =
+                          false;
                     });
                   },
                 ),
@@ -211,9 +207,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(
-                            left: 32,
-                          ),
+                          padding: const EdgeInsets.only(left: 32),
                           child: Text(
                             "Disable Auto Backup",
                             style: STextStyles.desktopH3(context),
@@ -238,22 +232,20 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                               "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
                               style: STextStyles.desktopTextSmall(context)
                                   .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
-                              ),
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
+                                  ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 48,
-                          ),
+                          const SizedBox(height: 48),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: SecondaryButton(
                                   buttonHeight: ButtonHeight.l,
-                                  label: "Cancel",
+                                  label: S.of(context)!.cancel,
                                   onPressed: Navigator.of(context).pop,
                                 ),
                               ),
@@ -264,8 +256,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                   label: "Disable",
                                   onPressed: () {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .isAutoBackupEnabled = false;
+                                            .read(prefsChangeNotifierProvider)
+                                            .isAutoBackupEnabled =
+                                        false;
                                     Navigator.of(context).pop();
                                   },
                                 ),
@@ -331,27 +324,23 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
     );
 
     ref.listen(
-        prefsChangeNotifierProvider
-            .select((value) => value.backupFrequencyType),
-        (previous, BackupFrequencyType next) {
-      frequencyController.text = Format.prettyFrequencyType(next);
-    });
+      prefsChangeNotifierProvider.select((value) => value.backupFrequencyType),
+      (previous, BackupFrequencyType next) {
+        frequencyController.text = Format.prettyFrequencyType(next);
+      },
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight,
-            ),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: IntrinsicHeight(
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                      right: 30,
-                    ),
+                    padding: const EdgeInsets.only(right: 30),
                     child: RoundedWhiteContainer(
                       radiusMultiplier: 2,
                       child: Column(
@@ -368,9 +357,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                   height: 48,
                                 ),
                                 isEnabledAutoBackup
-                                    ? SvgPicture.asset(
-                                        Assets.svg.enableButton,
-                                      )
+                                    ? SvgPicture.asset(Assets.svg.enableButton)
                                     : SvgPicture.asset(
                                         Assets.svg.disableButton,
                                       ),
@@ -398,23 +385,24 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 "\n\nAuto backup is a custom ${AppConfig.appName} feature that offers a convenient backup of your data."
                                                 "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
                                                 "else on the internet before. Your password is not stored.",
-                                            style: STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                              context,
-                                            ),
+                                            style:
+                                                STextStyles.desktopTextExtraExtraSmall(
+                                                  context,
+                                                ),
                                           ),
                                           TextSpan(
                                             text:
                                                 "\n\nFor more information, please see our website ",
-                                            style: STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                              context,
-                                            ),
+                                            style:
+                                                STextStyles.desktopTextExtraExtraSmall(
+                                                  context,
+                                                ),
                                           ),
                                           TextSpan(
                                             text: "stackwallet.com",
-                                            style: STextStyles.richLink(context)
-                                                .copyWith(fontSize: 14),
+                                            style: STextStyles.richLink(
+                                              context,
+                                            ).copyWith(fontSize: 14),
                                             recognizer: TapGestureRecognizer()
                                               ..onTap = () {
                                                 launchUrl(
@@ -466,8 +454,8 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                   "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 ),
                                                 CustomTextButton(
                                                   text: "Back up now",
@@ -482,9 +470,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                               ],
                                             ),
                                           ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
+                                          const SizedBox(height: 20),
                                           Row(
                                             children: [
                                               PrimaryButton(
@@ -515,13 +501,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 25,
-                  ),
+                  const SizedBox(height: 25),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      right: 30,
-                    ),
+                    padding: const EdgeInsets.only(right: 30),
                     child: RoundedWhiteContainer(
                       radiusMultiplier: 2,
                       child: Column(
@@ -557,10 +539,10 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 "\n\nCreate manual backup to easily transfer your data between devices. "
                                                 "You will create a backup file that can be later used in the Restore option. "
                                                 "Use a strong password to encrypt your data.",
-                                            style: STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                              context,
-                                            ),
+                                            style:
+                                                STextStyles.desktopTextExtraExtraSmall(
+                                                  context,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -574,9 +556,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.all(
-                                  10,
-                                ),
+                                padding: const EdgeInsets.all(10),
                                 child: createBackup
                                     ? const SizedBox(
                                         width: 512,
@@ -599,14 +579,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 25,
-                  ),
+                  const SizedBox(height: 25),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      right: 30,
-                      bottom: 40,
-                    ),
+                    padding: const EdgeInsets.only(right: 30, bottom: 40),
                     child: RoundedWhiteContainer(
                       radiusMultiplier: 2,
                       child: Column(
@@ -641,10 +616,10 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                             text:
                                                 "\n\nUse your ${AppConfig.appName} backup file to restore your wallets, address book "
                                                 "and wallet preferences.",
-                                            style: STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                              context,
-                                            ),
+                                            style:
+                                                STextStyles.desktopTextExtraExtraSmall(
+                                                  context,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -658,9 +633,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.all(
-                                  10,
-                                ),
+                                padding: const EdgeInsets.all(10),
                                 child: restoreBackup
                                     ? const SizedBox(
                                         width: 512,

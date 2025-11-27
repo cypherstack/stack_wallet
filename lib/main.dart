@@ -611,7 +611,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         //           biometricsAuthenticationTitle: "Unlock Stack",
         //           biometricsLocalizedReason:
         //               "Unlock your stack wallet using biometrics",
-        //           biometricsCancelButtonString: "Cancel",
+        //           biometricsCancelButtonString: S.of(context)!.cancel,
         //           onSuccess: () {
         //             ref
         //                 .read(shouldShowLockscreenOnResumeStateProvider.state)

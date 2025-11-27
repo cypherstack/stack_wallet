@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../db/hive/db.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -43,38 +44,35 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
       builder: (_) => StackDialog(
         title: "Are you sure you want to delete all Wallets?",
         leftButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonStyle(context),
+          style: Theme.of(
+            context,
+          ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
           onPressed: () {
             Navigator.pop(context);
           },
           child: Text(
-            "Cancel",
+            S.of(context)!.cancel,
             style: STextStyles.button(context).copyWith(
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.accentColorDark,
             ),
           ),
         ),
         rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryEnabledButtonStyle(context),
+          style: Theme.of(
+            context,
+          ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
           onPressed: () async {
             await DB.instance.deleteEverything();
 
             if (mounted) {
-              await Navigator.of(context).pushNamedAndRemoveUntil(
-                IntroView.routeName,
-                (route) => false,
-              );
+              await Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(IntroView.routeName, (route) => false);
             }
           },
-          child: Text(
-            "Delete",
-            style: STextStyles.button(context),
-          ),
+          child: Text("Delete", style: STextStyles.button(context)),
         ),
       ),
     );
@@ -116,10 +114,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
               ),
             ),
             const Spacer(),
-            PrimaryButton(
-              label: "Confirm",
-              onPressed: onConfirmDeleteAccount,
-            ),
+            PrimaryButton(label: "Confirm", onPressed: onConfirmDeleteAccount),
           ],
         ),
       ),

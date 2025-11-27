@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
@@ -162,8 +163,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     return await showModalBottomSheet<bool?>(
       context: context,
-      backgroundColor:
-          Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+      backgroundColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.backgroundAppBar,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Constants.size.circularBorderRadius * 3),
@@ -263,12 +265,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           ),
         );
       } else {
-        final memo =
-            wallet.info.coin is Stellar
-                ? model.trade!.payInExtraId.isNotEmpty
-                    ? model.trade!.payInExtraId
-                    : null
-                : null;
+        final memo = wallet.info.coin is Stellar
+            ? model.trade!.payInExtraId.isNotEmpty
+                  ? model.trade!.payInExtraId
+                  : null
+            : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [recipient],
@@ -297,14 +298,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                builder:
-                    (_) => ConfirmChangeNowSendView(
-                      txData: txData,
-                      walletId: tuple.item1,
-                      routeOnSuccessName: HomeView.routeName,
-                      trade: model.trade!,
-                      shouldSendPublicFiroFunds: firoPublicSend,
-                    ),
+                builder: (_) => ConfirmChangeNowSendView(
+                  txData: txData,
+                  walletId: tuple.item1,
+                  routeOnSuccessName: HomeView.routeName,
+                  trade: model.trade!,
+                  shouldSendPublicFiroFunds: firoPublicSend,
+                ),
                 settings: const RouteSettings(
                   name: ConfirmChangeNowSendView.routeName,
                 ),
@@ -335,10 +335,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonTextSecondary,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonTextSecondary,
                     ),
                   ),
                   onPressed: () {
@@ -362,8 +361,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: Padding(
               padding: const EdgeInsets.all(10),
@@ -375,10 +375,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   Assets.svg.x,
                   width: 24,
                   height: 24,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: _close,
               ),
@@ -415,34 +414,29 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               ),
                               const SizedBox(height: 12),
                               RoundedContainer(
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .warningBackground,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.warningBackground,
                                 child: RichText(
                                   text: TextSpan(
                                     text:
                                         "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
-                                    style: STextStyles.label700(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
+                                    style: STextStyles.label700(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
                                               .extension<StackColors>()!
                                               .warningForeground,
-                                    ),
+                                        ),
                                     children: [
                                       TextSpan(
                                         text:
                                             "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
-                                        style: STextStyles.label(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
+                                        style: STextStyles.label(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .warningForeground,
-                                        ),
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -484,12 +478,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             children: [
                                               SvgPicture.asset(
                                                 Assets.svg.copy,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .infoItemIcons,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .infoItemIcons,
                                                 width: 10,
                                               ),
                                               const SizedBox(width: 4),
@@ -550,12 +541,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             children: [
                                               SvgPicture.asset(
                                                 Assets.svg.copy,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .infoItemIcons,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .infoItemIcons,
                                                 width: 10,
                                               ),
                                               const SizedBox(width: 4),
@@ -618,12 +606,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               children: [
                                                 SvgPicture.asset(
                                                   Assets.svg.copy,
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .infoItemIcons,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .infoItemIcons,
                                                   width: 10,
                                                 ),
                                                 const SizedBox(width: 4),
@@ -686,10 +671,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           },
                                           child: SvgPicture.asset(
                                             Assets.svg.copy,
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .infoItemIcons,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .infoItemIcons,
                                             width: 12,
                                           ),
                                         ),
@@ -710,13 +694,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     ),
                                     Text(
                                       _statusString,
-                                      style: STextStyles.itemSubtitle(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .colorForStatus(_statusString),
-                                      ),
+                                      style: STextStyles.itemSubtitle(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .colorForStatus(_statusString),
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -760,11 +743,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 const Spacer(),
                                                 Expanded(
                                                   child: TextButton(
-                                                    onPressed:
-                                                        () =>
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop(),
+                                                    onPressed: () =>
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop(),
                                                     style: Theme.of(context)
                                                         .extension<
                                                           StackColors
@@ -773,17 +755,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                           context,
                                                         ),
                                                     child: Text(
-                                                      "Cancel",
-                                                      style: STextStyles.button(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            Theme.of(context)
+                                                      S.of(context)!.cancel,
+                                                      style:
+                                                          STextStyles.button(
+                                                            context,
+                                                          ).copyWith(
+                                                            color: Theme.of(context)
                                                                 .extension<
                                                                   StackColors
                                                                 >()!
                                                                 .buttonTextSecondary,
-                                                      ),
+                                                          ),
                                                     ),
                                                   ),
                                                 ),
@@ -811,79 +793,70 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     String buttonTitle =
                                         "Send from ${AppConfig.appName}";
 
-                                    final tuple =
-                                        ref
-                                            .read(
-                                              exchangeSendFromWalletIdStateProvider
-                                                  .state,
-                                            )
-                                            .state;
+                                    final tuple = ref
+                                        .read(
+                                          exchangeSendFromWalletIdStateProvider
+                                              .state,
+                                        )
+                                        .state;
                                     if (tuple != null &&
                                         model.sendTicker.toLowerCase() ==
                                             tuple.item2.ticker.toLowerCase()) {
-                                      final walletName =
-                                          ref
-                                              .read(pWallets)
-                                              .getWallet(tuple.item1)
-                                              .info
-                                              .name;
+                                      final walletName = ref
+                                          .read(pWallets)
+                                          .getWallet(tuple.item1)
+                                          .info
+                                          .name;
                                       buttonTitle = "Send from $walletName";
                                     }
 
                                     return TextButton(
                                       onPressed:
                                           tuple != null &&
-                                                  model.sendTicker
-                                                          .toLowerCase() ==
-                                                      tuple.item2.ticker
-                                                          .toLowerCase()
-                                              ? () async {
-                                                await _confirmSend(tuple);
-                                              }
-                                              : () {
-                                                Navigator.of(context).push(
-                                                  RouteGenerator.getRoute(
-                                                    shouldUseMaterialRoute:
-                                                        RouteGenerator
-                                                            .useMaterialPageRoute,
-                                                    builder: (
-                                                      BuildContext context,
-                                                    ) {
-                                                      final coin = AppConfig
-                                                          .coins
-                                                          .firstWhere(
-                                                            (e) =>
-                                                                e.ticker
-                                                                    .toLowerCase() ==
-                                                                model
-                                                                    .trade!
-                                                                    .payInCurrency
-                                                                    .toLowerCase(),
-                                                          );
+                                              model.sendTicker.toLowerCase() ==
+                                                  tuple.item2.ticker
+                                                      .toLowerCase()
+                                          ? () async {
+                                              await _confirmSend(tuple);
+                                            }
+                                          : () {
+                                              Navigator.of(context).push(
+                                                RouteGenerator.getRoute(
+                                                  shouldUseMaterialRoute:
+                                                      RouteGenerator
+                                                          .useMaterialPageRoute,
+                                                  builder: (BuildContext context) {
+                                                    final coin = AppConfig.coins
+                                                        .firstWhere(
+                                                          (e) =>
+                                                              e.ticker
+                                                                  .toLowerCase() ==
+                                                              model
+                                                                  .trade!
+                                                                  .payInCurrency
+                                                                  .toLowerCase(),
+                                                        );
 
-                                                      return SendFromView(
-                                                        coin: coin,
-                                                        amount: model.sendAmount
-                                                            .toAmount(
-                                                              fractionDigits:
-                                                                  coin.fractionDigits,
-                                                            ),
-                                                        address:
-                                                            model
-                                                                .trade!
-                                                                .payInAddress,
-                                                        trade: model.trade!,
-                                                      );
-                                                    },
-                                                    settings:
-                                                        const RouteSettings(
-                                                          name:
-                                                              SendFromView
-                                                                  .routeName,
-                                                        ),
+                                                    return SendFromView(
+                                                      coin: coin,
+                                                      amount: model.sendAmount
+                                                          .toAmount(
+                                                            fractionDigits: coin
+                                                                .fractionDigits,
+                                                          ),
+                                                      address: model
+                                                          .trade!
+                                                          .payInAddress,
+                                                      trade: model.trade!,
+                                                    );
+                                                  },
+                                                  settings: const RouteSettings(
+                                                    name:
+                                                        SendFromView.routeName,
                                                   ),
-                                                );
-                                              },
+                                                ),
+                                              );
+                                            },
                                       style: Theme.of(context)
                                           .extension<StackColors>()!
                                           .getSecondaryEnabledButtonStyle(
@@ -891,14 +864,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           ),
                                       child: Text(
                                         buttonTitle,
-                                        style: STextStyles.button(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
+                                        style: STextStyles.button(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .buttonTextSecondary,
-                                        ),
+                                            ),
                                       ),
                                     );
                                   },

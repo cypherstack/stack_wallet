@@ -11,6 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -42,7 +44,8 @@ class ConfirmPaynymConnectDialog extends ConsumerWidget {
 
   String get title => "Connect to $nymName";
 
-  String message(String amountString) => "A one-time connection fee of "
+  String message(String amountString) =>
+      "A one-time connection fee of "
       "$amountString "
       "will be charged to connect to this PayNym.\n\nThis fee "
       "covers the cost of creating a one-time transaction to create a "
@@ -72,21 +75,11 @@ class ConfirmPaynymConnectDialog extends ConsumerWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 40,
-                bottom: 32,
-                right: 40,
-              ),
-              child: Text(
-                title,
-                style: STextStyles.desktopH3(context),
-              ),
+              padding: const EdgeInsets.only(left: 40, bottom: 32, right: 40),
+              child: Text(title, style: STextStyles.desktopH3(context)),
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 40,
-                right: 40,
-              ),
+              padding: const EdgeInsets.only(left: 40, right: 40),
               child: Text(
                 message(ref.watch(pAmountFormatter(coin)).format(amount)),
                 style: STextStyles.desktopTextMedium(context).copyWith(
@@ -106,13 +99,11 @@ class ConfirmPaynymConnectDialog extends ConsumerWidget {
                   Expanded(
                     child: SecondaryButton(
                       buttonHeight: ButtonHeight.l,
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       onPressed: Navigator.of(context).pop,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: PrimaryButton(
                       buttonHeight: ButtonHeight.l,
@@ -138,7 +129,7 @@ class ConfirmPaynymConnectDialog extends ConsumerWidget {
         message: message(ref.watch(pAmountFormatter(coin)).format(amount)),
         leftButton: SecondaryButton(
           buttonHeight: ButtonHeight.xl,
-          label: "Cancel",
+          label: S.of(context)!.cancel,
           onPressed: Navigator.of(context).pop,
         ),
         rightButton: PrimaryButton(

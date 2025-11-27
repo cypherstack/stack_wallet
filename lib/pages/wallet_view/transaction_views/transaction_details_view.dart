@@ -19,6 +19,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../notifications/show_flush_bar.dart';
@@ -271,7 +272,7 @@ class _TransactionDetailsViewState
                 Navigator.of(context).pop(false);
               },
               child: Text(
-                "Cancel",
+                S.of(context)!.cancel,
                 style: STextStyles.button(context).copyWith(
                   color: Theme.of(
                     context,
@@ -343,7 +344,7 @@ class _TransactionDetailsViewState
                       SecondaryButton(
                         width: 200,
                         buttonHeight: ButtonHeight.l,
-                        label: "Cancel",
+                        label: S.of(context)!.cancel,
                         onPressed: () {
                           Navigator.of(context, rootNavigator: true).pop(false);
                         },

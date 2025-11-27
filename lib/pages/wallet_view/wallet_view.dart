@@ -20,6 +20,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
 import '../../frost_route_generator.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/spark_coins/spark_coins_view.dart';
@@ -523,7 +524,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     context,
                   ).extension<StackColors>()!.textDark,
                   actionButton: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     onPressed: () async {
                       await showDialog<void>(
                         context: context,
@@ -535,7 +536,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                               " emergency situations where the migration fails"
                               " and will not let you continue. Still skip?",
                           leftButton: SecondaryButton(
-                            label: "Cancel",
+                            label: S.of(context)!.cancel,
                             onPressed: Navigator.of(
                               context,
                               rootNavigator: true,
@@ -852,7 +853,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                               Navigator.of(context).pop();
                                             },
                                             child: Text(
-                                              "Cancel",
+                                              S.of(context)!.cancel,
                                               style: STextStyles.button(context)
                                                   .copyWith(
                                                     color: Theme.of(context)

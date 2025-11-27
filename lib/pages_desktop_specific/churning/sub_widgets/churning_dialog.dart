@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../pages/churning/churn_error_dialog.dart';
 import '../../../providers/churning/churning_service_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -20,10 +21,7 @@ import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 
 class ChurnDialogView extends ConsumerStatefulWidget {
-  const ChurnDialogView({
-    super.key,
-    required this.walletId,
-  });
+  const ChurnDialogView({super.key, required this.walletId});
 
   final String walletId;
 
@@ -211,71 +209,62 @@ class _ChurnDialogViewState extends ConsumerState<ChurnDialogView> {
                           child: Text(
                             "Churn rounds completed: $_roundsCompleted",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle1,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         )
                       : RoundedContainer(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarBackError,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.snackBarBackError,
                           child: Text(
                             "Do not close this window. If you exit, "
                             "the process will be canceled.",
                             style: STextStyles.smallMed14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .snackBarTextError,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.snackBarTextError,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   const MoneroChanDance(),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   ProgressItem(
                     iconAsset: Assets.svg.alertCircle,
-                    label: "Waiting for balance to unlock ${ref.watch(
-                          pChurningService(widget.walletId)
-                              .select((s) => s.confirmsInfo),
-                        ) ?? ""}",
+                    label:
+                        "Waiting for balance to unlock ${ref.watch(pChurningService(widget.walletId).select((s) => s.confirmsInfo)) ?? ""}",
                     status: ref.watch(
-                      pChurningService(widget.walletId)
-                          .select((s) => s.waitingForUnlockedBalance),
+                      pChurningService(
+                        widget.walletId,
+                      ).select((s) => s.waitingForUnlockedBalance),
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   ProgressItem(
                     iconAsset: Assets.svg.churn,
                     label: "Creating churn transaction",
                     status: ref.watch(
-                      pChurningService(widget.walletId)
-                          .select((s) => s.makingChurnTransaction),
+                      pChurningService(
+                        widget.walletId,
+                      ).select((s) => s.makingChurnTransaction),
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   ProgressItem(
                     iconAsset: Assets.svg.checkCircle,
                     label: "Complete",
                     status: ref.watch(
-                      pChurningService(widget.walletId)
-                          .select((s) => s.completedStatus),
+                      pChurningService(
+                        widget.walletId,
+                      ).select((s) => s.completedStatus),
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       if (_succeeded)
@@ -288,20 +277,14 @@ class _ChurnDialogViewState extends ConsumerState<ChurnDialogView> {
                                 .churn,
                           ),
                         ),
-                      if (_succeeded)
-                        const SizedBox(
-                          width: 16,
-                        ),
+                      if (_succeeded) const SizedBox(width: 16),
                       if (!_succeeded) const Spacer(),
-                      if (!_succeeded)
-                        const SizedBox(
-                          width: 16,
-                        ),
+                      if (!_succeeded) const SizedBox(width: 16),
                       Expanded(
                         child: SecondaryButton(
                           buttonHeight: ButtonHeight.m,
                           enabled: true,
-                          label: _succeeded ? "Done" : "Cancel",
+                          label: _succeeded ? "Done" : S.of(context)!.cancel,
                           onPressed: () async {
                             if (_succeeded) {
                               Navigator.of(context).pop();

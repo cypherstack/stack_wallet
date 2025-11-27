@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../models/buy/response_objects/order.dart';
 import '../../../models/buy/response_objects/quote.dart';
 import '../../../services/buy/buy_response.dart';
@@ -32,11 +33,7 @@ import '../../../widgets/stack_dialog.dart';
 import '../buy_order_details.dart';
 
 class BuyWarningPopup extends ConsumerStatefulWidget {
-  const BuyWarningPopup({
-    super.key,
-    required this.quote,
-    this.order,
-  });
+  const BuyWarningPopup({super.key, required this.quote, this.order});
   final SimplexQuote quote;
   final SimplexOrder? order;
   @override
@@ -78,9 +75,7 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(
-                            left: 32,
-                          ),
+                          padding: const EdgeInsets.only(left: 32),
                           child: Text(
                             "Order details",
                             style: STextStyles.desktopH3(context),
@@ -101,9 +96,9 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
+                                borderColor: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.background,
                                 child: BuyOrderDetailsView(
                                   order: order as SimplexOrder,
                                 ),
@@ -116,19 +111,19 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                   ],
                 ),
               )
-            : BuyOrderDetailsView(
-                order: order as SimplexOrder,
-              );
+            : BuyOrderDetailsView(order: order as SimplexOrder);
       },
     );
   }
 
   Future<void> onContinue() async {
-    final BuyResponse<SimplexOrder> orderResponse =
-        await newOrder(widget.quote);
+    final BuyResponse<SimplexOrder> orderResponse = await newOrder(
+      widget.quote,
+    );
     if (orderResponse.exception == null) {
-      await redirect(orderResponse.value as SimplexOrder)
-          .then((_response) async {
+      await redirect(orderResponse.value as SimplexOrder).then((
+        _response,
+      ) async {
         order = orderResponse.value as SimplexOrder;
         Navigator.of(context, rootNavigator: isDesktop).pop();
         Navigator.of(context, rootNavigator: isDesktop).pop();
@@ -152,16 +147,12 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                       "Simplex API error",
                       style: STextStyles.desktopH3(context),
                     ),
-                    const SizedBox(
-                      height: 24,
-                    ),
+                    const SizedBox(height: 24),
                     Text(
                       "${orderResponse.exception?.errorMessage}",
                       style: STextStyles.smallMed14(context),
                     ),
-                    const SizedBox(
-                      height: 56,
-                    ),
+                    const SizedBox(height: 56),
                     Row(
                       children: [
                         const Spacer(),
@@ -194,9 +185,9 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
                 onPressed: () {
@@ -233,10 +224,7 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    title,
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  Text(title, style: STextStyles.desktopH3(context)),
                   SizedBox(
                     width: 64,
                     height: 32,
@@ -249,26 +237,21 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                 ],
               ),
               const Spacer(),
-              Text(
-                message,
-                style: STextStyles.desktopTextSmall(context),
-              ),
-              const Spacer(
-                flex: 2,
-              ),
+              Text(message, style: STextStyles.desktopTextSmall(context)),
+              const Spacer(flex: 2),
               Row(
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: S.of(context)!.cancel,
                       buttonHeight: ButtonHeight.l,
-                      onPressed:
-                          Navigator.of(context, rootNavigator: isDesktop).pop,
+                      onPressed: Navigator.of(
+                        context,
+                        rootNavigator: isDesktop,
+                      ).pop,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: PrimaryButton(
                       buttonHeight: ButtonHeight.l,
@@ -287,20 +270,15 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
         title: title,
         message: message,
         leftButton: SecondaryButton(
-          label: "Cancel",
+          label: S.of(context)!.cancel,
           onPressed: Navigator.of(context, rootNavigator: isDesktop).pop,
         ),
-        rightButton: PrimaryButton(
-          label: "Continue",
-          onPressed: onContinue,
-        ),
+        rightButton: PrimaryButton(label: "Continue", onPressed: onContinue),
         icon: SizedBox(
           width: 64,
           height: 32,
           child: SvgPicture.asset(
-            Assets.buy.simplexLogo(
-              ref.watch(themeProvider).brightness,
-            ),
+            Assets.buy.simplexLogo(ref.watch(themeProvider).brightness),
           ),
         ),
       );

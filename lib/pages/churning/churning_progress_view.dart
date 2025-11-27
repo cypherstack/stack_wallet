@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/churning/churning_service_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -34,24 +35,23 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
     final shouldCancel = await showDialog<bool?>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (_) => StackDialog(
-            title: "Cancel churning?",
-            leftButton: SecondaryButton(
-              label: "No",
-              buttonHeight: null,
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            rightButton: PrimaryButton(
-              label: "Yes",
-              buttonHeight: null,
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ),
+      builder: (_) => StackDialog(
+        title: "Cancel churning?",
+        leftButton: SecondaryButton(
+          label: "No",
+          buttonHeight: null,
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+        ),
+        rightButton: PrimaryButton(
+          label: "Yes",
+          buttonHeight: null,
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+        ),
+      ),
     );
 
     if (shouldCancel == true && mounted) {
@@ -100,11 +100,10 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
           if (context.mounted) {
             showDialog<void>(
               context: context,
-              builder:
-                  (context) => ChurnErrorDialog(
-                    error: n.toString(),
-                    walletId: widget.walletId,
-                  ),
+              builder: (context) => ChurnErrorDialog(
+                error: n.toString(),
+                walletId: widget.walletId,
+              ),
             );
           }
         }
@@ -117,8 +116,9 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: AppBarBackButton(
@@ -152,37 +152,32 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                           children: [
                             if (_roundsCompleted == 0)
                               RoundedContainer(
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .snackBarBackError,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.snackBarBackError,
                                 child: Text(
                                   "Do not close this window. If you exit, "
                                   "the process will be canceled.",
-                                  style: STextStyles.smallMed14(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(context)
+                                  style: STextStyles.smallMed14(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
                                             .extension<StackColors>()!
                                             .snackBarTextError,
-                                  ),
+                                      ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                             if (_roundsCompleted > 0)
                               RoundedContainer(
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .snackBarBackInfo,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.snackBarBackInfo,
                                 child: Text(
                                   "Churning rounds completed: $_roundsCompleted",
                                   style: STextStyles.w500_14(context).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .snackBarTextInfo,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarTextInfo,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -225,14 +220,13 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                             if (_succeeded)
                               PrimaryButton(
                                 label: "Churn again",
-                                onPressed:
-                                    ref
-                                        .read(pChurningService(widget.walletId))
-                                        .churn,
+                                onPressed: ref
+                                    .read(pChurningService(widget.walletId))
+                                    .churn,
                               ),
                             if (_succeeded) const SizedBox(height: 16),
                             SecondaryButton(
-                              label: "Cancel",
+                              label: S.of(context)!.cancel,
                               onPressed: () async {
                                 if (await _requestAndProcessCancel()) {
                                   if (context.mounted) {

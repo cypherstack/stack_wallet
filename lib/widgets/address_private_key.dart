@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/isar/models/isar_models.dart';
 import '../pages/pinpad_views/pinpad_dialog.dart';
 import '../pages_desktop_specific/password/request_desktop_auth_dialog.dart';
@@ -47,11 +48,11 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
         context: context,
         builder: (context) => Util.isDesktop
             ? const RequestDesktopAuthDialog(title: "Show WIF private key")
-            : const PinpadDialog(
+            : PinpadDialog(
                 biometricsAuthenticationTitle: "Show WIF private key",
                 biometricsLocalizedReason:
                     "Authenticate to show WIF private key",
-                biometricsCancelButtonString: "CANCEL",
+                biometricsCancelButtonString: S.of(context)!.cancel,
               ),
         barrierDismissible: !Util.isDesktop,
       );

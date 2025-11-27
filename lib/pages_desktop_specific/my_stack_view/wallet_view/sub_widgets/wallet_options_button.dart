@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../pages/pinpad_views/pinpad_dialog.dart';
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
@@ -85,7 +86,7 @@ class WalletOptionsButton extends ConsumerWidget {
           : PinpadDialog(
               biometricsAuthenticationTitle: message,
               biometricsLocalizedReason: "Authenticate to show view key",
-              biometricsCancelButtonString: "CANCEL",
+              biometricsCancelButtonString: S.of(context)!.cancel,
             ),
       barrierDismissible: !Util.isDesktop,
     );

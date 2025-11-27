@@ -21,6 +21,7 @@ import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import '../../../../providers/global/prefs_provider.dart';
@@ -684,7 +685,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: S.of(context)!.cancel,
                     buttonHeight: ButtonHeight.l,
                     onPressed: Navigator.of(context).pop,
                   ),

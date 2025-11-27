@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -92,58 +93,52 @@ class _EditContactNameEmojiViewState
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 75),
-                      );
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "Edit contact",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        top: 12,
-                        right: 12,
-                      ),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 24,
-                          ),
-                          child: IntrinsicHeight(
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: child,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Edit contact",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: Column(
         children: [
           Row(
@@ -212,26 +207,23 @@ class _EditContactNameEmojiViewState
                         width: emojiSize,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(emojiSize / 2),
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveBG,
                         ),
                         child: Center(
-                          child:
-                              _selectedEmoji == null
-                                  ? SvgPicture.asset(
-                                    Assets.svg.user,
-                                    height: emojiSize / 2,
-                                    width: emojiSize / 2,
-                                  )
-                                  : Text(
-                                    _selectedEmoji!.char,
-                                    style:
-                                        isDesktop
-                                            ? STextStyles.desktopH3(context)
-                                            : STextStyles.pageTitleH1(context),
-                                  ),
+                          child: _selectedEmoji == null
+                              ? SvgPicture.asset(
+                                  Assets.svg.user,
+                                  height: emojiSize / 2,
+                                  width: emojiSize / 2,
+                                )
+                              : Text(
+                                  _selectedEmoji!.char,
+                                  style: isDesktop
+                                      ? STextStyles.desktopH3(context)
+                                      : STextStyles.pageTitleH1(context),
+                                ),
                         ),
                       ),
                       Align(
@@ -241,32 +233,28 @@ class _EditContactNameEmojiViewState
                           width: 14,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorDark,
                           ),
                           child: Center(
-                            child:
-                                _selectedEmoji == null
-                                    ? SvgPicture.asset(
-                                      Assets.svg.plus,
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textWhite,
-                                      width: 12,
-                                      height: 12,
-                                    )
-                                    : SvgPicture.asset(
-                                      Assets.svg.thickX,
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textWhite,
-                                      width: 8,
-                                      height: 8,
-                                    ),
+                            child: _selectedEmoji == null
+                                ? SvgPicture.asset(
+                                    Assets.svg.plus,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textWhite,
+                                    width: 12,
+                                    height: 12,
+                                  )
+                                : SvgPicture.asset(
+                                    Assets.svg.thickX,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textWhite,
+                                    width: 8,
+                                    height: 8,
+                                  ),
                           ),
                         ),
                       ),
@@ -288,32 +276,32 @@ class _EditContactNameEmojiViewState
                       focusNode: nameFocusNode,
                       style: STextStyles.field(context),
                       onChanged: (_) => setState(() {}),
-                      decoration: standardInputDecoration(
-                        "Enter contact name",
-                        nameFocusNode,
-                        context,
-                      ).copyWith(
-                        suffixIcon:
-                            nameController.text.isNotEmpty
+                      decoration:
+                          standardInputDecoration(
+                            "Enter contact name",
+                            nameFocusNode,
+                            context,
+                          ).copyWith(
+                            suffixIcon: nameController.text.isNotEmpty
                                 ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              nameController.text = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                nameController.text = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
+                                  )
                                 : null,
-                      ),
+                          ),
                     ),
                   ),
                 ),
@@ -332,32 +320,32 @@ class _EditContactNameEmojiViewState
                 focusNode: nameFocusNode,
                 style: STextStyles.field(context),
                 onChanged: (_) => setState(() {}),
-                decoration: standardInputDecoration(
-                  "Enter contact name",
-                  nameFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon:
-                      nameController.text.isNotEmpty
+                decoration:
+                    standardInputDecoration(
+                      "Enter contact name",
+                      nameFocusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon: nameController.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        nameController.text = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          nameController.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                           : null,
-                ),
+                    ),
               ),
             ),
           const Spacer(),
@@ -366,7 +354,7 @@ class _EditContactNameEmojiViewState
             children: [
               Expanded(
                 child: SecondaryButton(
-                  label: "Cancel",
+                  label: S.of(context)!.cancel,
                   buttonHeight: isDesktop ? ButtonHeight.l : null,
                   onPressed: () async {
                     if (!isDesktop && FocusScope.of(context).hasFocus) {
@@ -397,8 +385,9 @@ class _EditContactNameEmojiViewState
                     final editedContact = contact.copyWith(
                       shouldCopyEmojiWithNull: true,
                       name: nameController.text,
-                      emojiChar:
-                          _selectedEmoji == null ? null : _selectedEmoji!.char,
+                      emojiChar: _selectedEmoji == null
+                          ? null
+                          : _selectedEmoji!.char,
                     );
                     unawaited(
                       ref
