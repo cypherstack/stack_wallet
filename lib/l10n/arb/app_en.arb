@@ -1,0 +1,39 @@
+{
+  "cancel": "Cancel",
+  "biometricUnlockAppTitle": "Unlock {appPrefix}",
+  "@biometricUnlockAppTitle": {
+    "description": "Biometrics unlock auth title",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricsUnlockAuthReason": "Unlock your {appName} using biometrics",
+  "@biometricsUnlockAuthReason": {
+    "description": "Biometrics unlock app auth reason message",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricRestoreSwbTitle": "Restore {appPrefix} backup",
+  "@biometricRestoreSwbTitle": {
+    "description": "Biometrics restore auth title",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String"
+      }
+    }
+  },
+  "biometricsUnlockToRestoreReason": "Authenticate to restore {appName} backup",
+  "@biometricsUnlockToRestoreReason": {
+    "description": "Biometrics unlock app to restore reason message",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -18,6 +18,7 @@ import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,6 +34,7 @@ import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
 import 'db/special_migrations.dart';
 import 'db/sqlite/firo_cache.dart';
+import 'l10n/app_localizations.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
 import 'models/exchange/response_objects/trade.dart';
@@ -687,11 +689,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               showBackButton: true,
               routeOnSuccess: RestoreFromEncryptedStringView.routeName,
               routeOnSuccessArguments: encrypted,
-              biometricsCancelButtonString: "CANCEL",
-              biometricsLocalizedReason:
-                  "Authenticate to restore ${AppConfig.appName} backup",
-              biometricsAuthenticationTitle:
-                  "Restore ${AppConfig.prefix} backup",
+              biometricsCancelButtonString: S.of(context)!.cancel,
+              biometricsLocalizedReason: S
+                  .of(context)!
+                  .biometricsUnlockToRestoreReason(AppConfig.appName),
+              biometricsAuthenticationTitle: S
+                  .of(context)!
+                  .biometricRestoreSwbTitle(AppConfig.prefix),
             ),
             settings: const RouteSettings(name: "/swbrestorelockscreen"),
           ),
@@ -728,6 +732,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       key: GlobalKey(),
       navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         extensions: [colorScheme],
@@ -872,11 +882,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                         isInitialAppLogin: true,
                         routeOnSuccess: HomeView.routeName,
                         routeOnSuccessArguments: startupWalletId,
-                        biometricsAuthenticationTitle:
-                            "Unlock ${AppConfig.prefix}",
-                        biometricsLocalizedReason:
-                            "Unlock your ${AppConfig.appName} using biometrics",
-                        biometricsCancelButtonString: "Cancel",
+                        biometricsAuthenticationTitle: S
+                            .of(context)!
+                            .biometricUnlockAppTitle(AppConfig.prefix),
+                        biometricsLocalizedReason: S
+                            .of(context)!
+                            .biometricsUnlockAuthReason(AppConfig.appName),
+                        biometricsCancelButtonString: S.of(context)!.cancel,
                       );
                     } else {
                       if (AppConfig.appName == "Campfire" &&
