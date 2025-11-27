@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../db/hive/db.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -16,13 +17,11 @@ const _kOneTimeTorHasBeenAddedDialogWasShown =
 Future<void> showOneTimeTorHasBeenAddedDialogIfRequired(
   BuildContext context,
 ) async {
-  final box =
-      await DB.instance.hive.openBox<bool>(DB.boxNameOneTimeDialogsShown);
+  final box = await DB.instance.hive.openBox<bool>(
+    DB.boxNameOneTimeDialogsShown,
+  );
 
-  if (!box.get(
-        _kOneTimeTorHasBeenAddedDialogWasShown,
-        defaultValue: false,
-      )! &&
+  if (!box.get(_kOneTimeTorHasBeenAddedDialogWasShown, defaultValue: false)! &&
       context.mounted) {
     await showDialog<void>(
       context: context,
@@ -73,10 +72,7 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  child: Text("", style: STextStyles.desktopH3(context)),
                 ),
                 DesktopDialogCloseButton(
                   onPressedOverride: () {
@@ -98,7 +94,7 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
                   PrimaryButton(
                     buttonHeight: ButtonHeight.l,
                     width: 180,
-                    label: "Ok",
+                    label: S.of(context)!.ok,
                     onPressed: () {
                       setDoNotShowAgain();
                       Navigator.of(context).pop();
@@ -116,16 +112,14 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
           child: Column(
             children: [
               child,
-              const SizedBox(
-                height: 28,
-              ),
+              const SizedBox(height: 28),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
                     width: MediaQuery.of(context).size.width / 2,
                     child: PrimaryButton(
-                      label: "Ok",
+                      label: S.of(context)!.ok,
                       onPressed: () {
                         setDoNotShowAgain();
                         Navigator.of(context).pop();
@@ -140,18 +134,14 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
         child: Column(
           children: [
             const StacyOnion(),
-            SizedBox(
-              height: Util.isDesktop ? 24 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 24 : 16),
             Text(
               "Tor has been added to help keep your connections private and secure!",
               style: Util.isDesktop
                   ? STextStyles.desktopTextMedium(context)
                   : STextStyles.smallMed14(context),
             ),
-            SizedBox(
-              height: Util.isDesktop ? 24 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 24 : 16),
             Text(
               "Note: Tor does NOT yet work for Monero, Mimblewimblecoin or Epic Cash wallets. "
               "Opening one of these will leak your IP address.",
@@ -171,11 +161,6 @@ class StacyOnion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image(
-      height: 200,
-      image: AssetImage(
-        Assets.gif.stacyOnion,
-      ),
-    );
+    return Image(height: 200, image: AssetImage(Assets.gif.stacyOnion));
   }
 }

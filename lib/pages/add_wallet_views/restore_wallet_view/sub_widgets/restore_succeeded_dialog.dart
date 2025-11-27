@@ -10,6 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../../../l10n/app_localizations.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
@@ -29,27 +31,22 @@ class RestoreSucceededDialog extends StatelessWidget {
         child: Column(
           children: [
             const DesktopDialogCloseButton(),
-            const Spacer(
-              flex: 1,
-            ),
+            const Spacer(flex: 1),
             SvgPicture.asset(
               Assets.svg.checkCircle,
               width: 40,
               height: 40,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.accentColorDark,
             ),
-            const Spacer(
-              flex: 2,
-            ),
+            const Spacer(flex: 2),
             Text(
               "Wallet restored",
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "You may access your wallet now.",
               style: STextStyles.desktopTextMedium(context).copyWith(
@@ -57,18 +54,12 @@ class RestoreSucceededDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const Spacer(
-              flex: 2,
-            ),
+            const Spacer(flex: 2),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: PrimaryButton(
                 width: 272.5,
-                label: "OK",
+                label: S.of(context)!.ok,
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -88,11 +79,11 @@ class RestoreSucceededDialog extends StatelessWidget {
           color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
         ),
         rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonStyle(context),
+          style: Theme.of(
+            context,
+          ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
           child: Text(
-            "Ok",
+            S.of(context)!.ok,
             style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () {

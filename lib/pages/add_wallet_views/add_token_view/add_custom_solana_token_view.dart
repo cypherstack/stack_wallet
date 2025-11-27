@@ -116,7 +116,7 @@ class _AddCustomSolanaTokenViewState
                           const Spacer(),
                           Expanded(
                             child: PrimaryButton(
-                              label: "OK",
+                              label: S.of(context)!.ok,
                               onPressed: () =>
                                   Navigator.of(dialogContext).pop(),
                             ),
@@ -172,7 +172,7 @@ class _AddCustomSolanaTokenViewState
                         const Spacer(),
                         Expanded(
                           child: PrimaryButton(
-                            label: "OK",
+                            label: S.of(context)!.ok,
                             onPressed: () => Navigator.of(dialogContext).pop(),
                           ),
                         ),
@@ -282,7 +282,7 @@ class _AddCustomSolanaTokenViewState
                         const Spacer(),
                         Expanded(
                           child: PrimaryButton(
-                            label: "OK",
+                            label: S.of(context)!.ok,
                             onPressed: () => Navigator.of(dialogContext).pop(),
                           ),
                         ),

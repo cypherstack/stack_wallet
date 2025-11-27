@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:saf_stream/saf_stream.dart';
 import 'package:saf_util/saf_util.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../services/monkey_service.dart';
@@ -208,7 +209,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                                 padding: const EdgeInsets.all(32),
                                 child: PrimaryButton(
                                   width: 272.5,
-                                  label: "OK",
+                                  label: S.of(context)!.ok,
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },

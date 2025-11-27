@@ -333,7 +333,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    S.of(context)!.ok,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,

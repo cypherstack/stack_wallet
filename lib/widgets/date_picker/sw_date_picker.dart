@@ -145,7 +145,7 @@ class _SWDatePickerState extends State<_SWDatePicker> {
                     builder: (child) => SizedBox(width: 140, child: child),
                     child: PrimaryButton(
                       buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
-                      label: "Ok",
+                      label: S.of(context)!.ok,
                       onPressed: () {
                         setState(() {
                           _values = _editCache;

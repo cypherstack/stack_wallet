@@ -205,7 +205,7 @@ class _ConfirmNameTransactionViewState
                           Expanded(
                             child: PrimaryButton(
                               buttonHeight: ButtonHeight.l,
-                              label: "Ok",
+                              label: S.of(context)!.ok,
                               onPressed: Navigator.of(context).pop,
                             ),
                           ),
@@ -224,7 +224,7 @@ class _ConfirmNameTransactionViewState
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    S.of(context)!.ok,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,

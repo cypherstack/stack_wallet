@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../frost_route_generator.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../utilities/text_styles.dart';
 import '../../desktop/primary_button.dart';
 import '../../stack_dialog.dart';
@@ -28,31 +30,20 @@ class FrostErrorDialog extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
-                  child: Text(
-                    title,
-                    style: STextStyles.pageTitleH2(context),
-                  ),
+                  child: Text(title, style: STextStyles.pageTitleH2(context)),
                 ),
                 icon != null ? icon! : Container(),
               ],
             ),
-            if (message != null)
-              const SizedBox(
-                height: 8,
-              ),
+            if (message != null) const SizedBox(height: 8),
             if (message != null)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message!,
-                    style: STextStyles.smallMed14(context),
-                  ),
+                  Text(message!, style: STextStyles.smallMed14(context)),
                 ],
               ),
-            const SizedBox(
-              height: 8,
-            ),
+            const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -62,20 +53,19 @@ class FrostErrorDialog extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
             Row(
               children: [
                 const Spacer(),
-                const SizedBox(
-                  width: 8,
-                ),
+                const SizedBox(width: 8),
                 PrimaryButton(
-                  label: "Ok",
+                  label: S.of(context)!.ok,
                   onPressed: () {
                     ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
-                    ref.read(pFrostScaffoldArgs)!.parentNav.popUntil(
+                    ref
+                        .read(pFrostScaffoldArgs)!
+                        .parentNav
+                        .popUntil(
                           ModalRoute.withName(
                             ref.read(pFrostScaffoldArgs)!.callerRouteName,
                           ),

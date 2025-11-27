@@ -9,6 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../utilities/text_styles.dart';
 import 'desktop_dialog.dart';
 import 'desktop_dialog_close_button.dart';
@@ -37,10 +39,7 @@ class SimpleDesktopDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: STextStyles.desktopH3(context),
-                ),
+                Text(title, style: STextStyles.desktopH3(context)),
                 const DesktopDialogCloseButton(),
               ],
             ),
@@ -48,34 +47,20 @@ class SimpleDesktopDialog extends StatelessWidget {
           const Spacer(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              message,
-              style: STextStyles.desktopTextSmall(context),
-            ),
+            child: Text(message, style: STextStyles.desktopTextSmall(context)),
           ),
-          const Spacer(
-            flex: 2,
-          ),
+          const Spacer(flex: 2),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 32,
-              right: 32,
-              bottom: 32,
-            ),
+            padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
             child: Row(
               children: [
                 const Spacer(),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Ok",
+                    label: S.of(context)!.ok,
                     buttonHeight: ButtonHeight.l,
-                    onPressed: Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop,
+                    onPressed: Navigator.of(context, rootNavigator: true).pop,
                   ),
                 ),
               ],

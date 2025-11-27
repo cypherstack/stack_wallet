@@ -87,7 +87,7 @@ Future<void> checkCamPermDeniedMobileAndOpenAppSettings(
                 title: "Could not open app settings",
                 message: "You will need manually go find your app settings",
                 rightButton: PrimaryButton(
-                  label: "Ok",
+                  label: S.of(context)!.ok,
                   onPressed: Navigator.of(context).pop,
                 ),
               ),

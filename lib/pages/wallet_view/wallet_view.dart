@@ -543,7 +543,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ).pop,
                           ),
                           rightButton: SecondaryButton(
-                            label: "Ok",
+                            label: S.of(context)!.ok,
                             onPressed: () {
                               Navigator.of(context, rootNavigator: true).pop();
                               setState(() => _rescanningOnOpen = false);

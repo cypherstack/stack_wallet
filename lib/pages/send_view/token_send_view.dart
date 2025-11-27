@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
@@ -551,7 +552,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    S.of(context)!.ok,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,

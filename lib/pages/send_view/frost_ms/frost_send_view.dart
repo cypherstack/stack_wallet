@@ -17,6 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../frost_route_generator.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../providers/providers.dart';
@@ -162,12 +163,11 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    S.of(context)!.ok,
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -242,59 +242,56 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
     return ConditionalParent(
       condition: !Util.isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 50),
-                      );
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "Send ${coin.ticker}",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (builderContext, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          // subtract top and bottom padding set in parent
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: child,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 50));
+                }
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Send ${coin.ticker}",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (builderContext, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      // subtract top and bottom padding set in parent
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: ConditionalParent(
         condition: Util.isDesktop,
-        builder:
-            (child) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: child,
-            ),
+        builder: (child) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: child,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -375,11 +372,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                 for (int i = 0; i < recipientWidgetIndexes.length; i++)
                   ConditionalParent(
                     condition: recipientWidgetIndexes.length > 1,
-                    builder:
-                        (child) => Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: child,
-                        ),
+                    builder: (child) => Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: child,
+                    ),
                     child: Recipient(
                       key: Key("recipientKey_${recipientWidgetIndexes[i]}"),
                       index: recipientWidgetIndexes[i],
@@ -388,21 +384,21 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                       onChanged: () {
                         _validateRecipientFormStates();
                       },
-                      remove:
-                          i == 0 && recipientWidgetIndexes.length == 1
-                              ? null
-                              : () {
-                                ref
-                                    .read(
-                                      pRecipient(
-                                        recipientWidgetIndexes[i],
-                                      ).notifier,
-                                    )
-                                    .state = null;
-                                recipientWidgetIndexes.removeAt(i);
-                                setState(() {});
-                                _validateRecipientFormStates();
-                              },
+                      remove: i == 0 && recipientWidgetIndexes.length == 1
+                          ? null
+                          : () {
+                              ref
+                                      .read(
+                                        pRecipient(
+                                          recipientWidgetIndexes[i],
+                                        ).notifier,
+                                      )
+                                      .state =
+                                  null;
+                              recipientWidgetIndexes.removeAt(i);
+                              setState(() {});
+                              _validateRecipientFormStates();
+                            },
                       addAnotherRecipientTapped: () {
                         // used for tracking recipient forms
                         _greatestWidgetIndex++;
@@ -443,17 +439,15 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                     Text(
                       "Coin control",
                       style: STextStyles.w500_14(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textSubtitle1,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle1,
                       ),
                     ),
                     CustomTextButton(
-                      text:
-                          selectedUTXOs.isEmpty
-                              ? "Select coins"
-                              : "Selected coins (${selectedUTXOs.length})",
+                      text: selectedUTXOs.isEmpty
+                          ? "Select coins"
+                          : "Selected coins (${selectedUTXOs.length})",
                       onTap: () async {
                         if (FocusScope.of(context).hasFocus) {
                           FocusScope.of(context).unfocus();
@@ -506,32 +500,32 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                 focusNode: _noteFocusNode,
                 style: STextStyles.field(context),
                 onChanged: (_) => setState(() {}),
-                decoration: standardInputDecoration(
-                  "Type something...",
-                  _noteFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon:
-                      noteController.text.isNotEmpty
+                decoration:
+                    standardInputDecoration(
+                      "Type something...",
+                      _noteFocusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon: noteController.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        noteController.text = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          noteController.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                           : null,
-                ),
+                    ),
               ),
             ),
             const SizedBox(height: 12),

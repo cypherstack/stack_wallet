@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../pages_desktop_specific/desktop_home_view.dart';
 import '../../providers/global/locale_provider.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -215,7 +216,7 @@ class _SalviumCreateStakeViewState
                                 Expanded(
                                   child: SecondaryButton(
                                     buttonHeight: ButtonHeight.l,
-                                    label: "Ok",
+                                    label: S.of(context)!.ok,
                                     onPressed: () {
                                       Navigator.of(
                                         context,
@@ -239,7 +240,7 @@ class _SalviumCreateStakeViewState
                             .extension<StackColors>()!
                             .getSecondaryEnabledButtonStyle(context),
                         child: Text(
-                          "Ok",
+                          S.of(context)!.ok,
                           style: STextStyles.button(context).copyWith(
                             color: Theme.of(
                               context,

@@ -118,7 +118,7 @@ class _DeleteWalletRecoveryPhraseViewState
                 ).popUntil(ModalRoute.withName(HomeView.routeName));
               }
             },
-            child: Text("Ok", style: STextStyles.button(context)),
+            child: Text(S.of(context)!.ok, style: STextStyles.button(context)),
           ),
         ),
       );

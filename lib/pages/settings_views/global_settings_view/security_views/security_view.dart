@@ -99,7 +99,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Ok",
+                    label: S.of(context)!.ok,
                     onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ),
@@ -162,7 +162,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Ok",
+                    label: S.of(context)!.ok,
                     onPressed: () async {
                       try {
                         await ref

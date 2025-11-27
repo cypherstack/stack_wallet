@@ -495,7 +495,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                         ),
                       );
 
-                      if (result == "OK" && context.mounted) {
+                      if (result == S.of(context)!.ok && context.mounted) {
                         await showLoading(
                           whileFuture: Future.wait<void>([
                             Future.delayed(const Duration(milliseconds: 1500)),

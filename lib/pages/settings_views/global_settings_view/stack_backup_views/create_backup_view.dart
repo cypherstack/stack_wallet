@@ -153,7 +153,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                             children: [
                               Expanded(
                                 child: PrimaryButton(
-                                  label: "Ok",
+                                  label: S.of(context)!.ok,
                                   buttonHeight: ButtonHeight.l,
                                   onPressed: Navigator.of(context).pop,
                                 ),

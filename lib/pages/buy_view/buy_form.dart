@@ -19,6 +19,7 @@ import 'package:intl/intl.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/buy/response_objects/crypto.dart';
 import '../../models/buy/response_objects/fiat.dart';
 import '../../models/buy/response_objects/quote.dart';
@@ -470,7 +471,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           Expanded(
                             child: PrimaryButton(
                               buttonHeight: ButtonHeight.l,
-                              label: "Ok",
+                              label: S.of(context)!.ok,
                               onPressed: Navigator.of(context).pop,
                             ),
                           ),
@@ -489,7 +490,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    S.of(context)!.ok,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,
@@ -555,7 +556,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         Expanded(
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.l,
-                            label: "Ok",
+                            label: S.of(context)!.ok,
                             onPressed: Navigator.of(context).pop,
                           ),
                         ),
@@ -575,7 +576,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     .extension<StackColors>()!
                     .getSecondaryEnabledButtonStyle(context),
                 child: Text(
-                  "Ok",
+                  S.of(context)!.ok,
                   style: STextStyles.button(context).copyWith(
                     color: Theme.of(
                       context,

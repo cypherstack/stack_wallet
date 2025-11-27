@@ -93,6 +93,12 @@ abstract class S {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en')];
 
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Ok'**
+  String get ok;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:

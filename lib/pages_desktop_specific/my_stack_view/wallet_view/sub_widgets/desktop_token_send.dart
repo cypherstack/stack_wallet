@@ -319,7 +319,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                           Expanded(
                             child: SecondaryButton(
                               buttonHeight: ButtonHeight.l,
-                              label: "Ok",
+                              label: S.of(context)!.ok,
                               onPressed: () {
                                 Navigator.of(
                                   context,

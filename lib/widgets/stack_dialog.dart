@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -37,10 +38,9 @@ class StackDialogBase extends StatelessWidget {
           bottom: 16 + keyboardPaddingAmount,
         ),
         child: Column(
-          mainAxisAlignment:
-              !Util.isDesktop
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.center,
+          mainAxisAlignment: !Util.isDesktop
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.center,
           children: [
             Flexible(
               child: SingleChildScrollView(
@@ -48,8 +48,9 @@ class StackDialogBase extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Padding(padding: padding, child: child),
@@ -199,30 +200,29 @@ class StackOkDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextButton(
-                    onPressed:
-                        !Util.isDesktop
-                            ? () {
-                              Navigator.of(context).pop();
-                              onOkPressed?.call("OK");
+                    onPressed: !Util.isDesktop
+                        ? () {
+                            Navigator.of(context).pop();
+                            onOkPressed?.call(S.of(context)!.ok);
+                          }
+                        : () {
+                            if (desktopPopRootNavigator) {
+                              Navigator.of(context, rootNavigator: true).pop();
+                            } else {
+                              int count = 0;
+                              Navigator.of(
+                                context,
+                              ).popUntil((_) => count++ >= 2);
+                              // onOkPressed?.call(S.of(context)!.ok);
                             }
-                            : () {
-                              if (desktopPopRootNavigator) {
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).pop();
-                              } else {
-                                int count = 0;
-                                Navigator.of(
-                                  context,
-                                ).popUntil((_) => count++ >= 2);
-                                // onOkPressed?.call("OK");
-                              }
-                            },
+                          },
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    child: Text("Ok", style: STextStyles.button(context)),
+                    child: Text(
+                      S.of(context)!.ok,
+                      style: STextStyles.button(context),
+                    ),
                   ),
                 ),
               ],

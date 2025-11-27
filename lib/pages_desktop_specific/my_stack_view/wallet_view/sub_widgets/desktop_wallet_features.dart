@@ -295,7 +295,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
-                          label: "Ok",
+                          label: S.of(context)!.ok,
                           buttonHeight: ButtonHeight.l,
                           onPressed: Navigator.of(
                             context,

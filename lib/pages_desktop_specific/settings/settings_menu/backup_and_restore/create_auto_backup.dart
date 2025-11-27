@@ -189,7 +189,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                           const Spacer(),
                           Expanded(
                             child: PrimaryButton(
-                              label: "Ok",
+                              label: S.of(context)!.ok,
                               buttonHeight: ButtonHeight.l,
                               onPressed: () {
                                 Navigator.of(context).pop();

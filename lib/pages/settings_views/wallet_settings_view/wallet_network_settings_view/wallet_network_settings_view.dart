@@ -19,6 +19,7 @@ import 'package:tuple/tuple.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../services/event_bus/events/global/blocks_remaining_event.dart';
@@ -170,7 +171,7 @@ class _WalletNetworkSettingsViewState
                         .extension<StackColors>()!
                         .getSecondaryEnabledButtonStyle(context),
                     child: Text(
-                      "Ok",
+                      S.of(context)!.ok,
                       style: STextStyles.itemSubtitle12(context),
                     ),
                     onPressed: () {
@@ -200,7 +201,10 @@ class _WalletNetworkSettingsViewState
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
-                  child: Text("Ok", style: STextStyles.itemSubtitle12(context)),
+                  child: Text(
+                    S.of(context)!.ok,
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: isDesktop).pop();
                   },

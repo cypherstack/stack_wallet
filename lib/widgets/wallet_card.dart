@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/isar/models/ethereum/eth_contract.dart';
 import '../models/isar/models/solana/sol_contract.dart';
 import '../pages/token_view/sol_token_view.dart';
@@ -21,7 +22,6 @@ import '../pages/wallet_view/wallet_view.dart';
 import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
 import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import '../providers/db/main_db_provider.dart';
 import '../providers/providers.dart';
 import '../utilities/constants.dart';
 import '../utilities/logger.dart';
@@ -66,10 +66,12 @@ class SimpleWalletCard extends ConsumerWidget {
     final old = ref.read(tokenServiceStateProvider);
     // exit previous if there is one
     unawaited(old?.exit());
-    ref.read(tokenServiceStateProvider.state).state = Wallet.loadTokenWallet(
-      ethWallet: wallet as EthereumWallet,
-      contract: contract,
-    ) as EthTokenWallet;
+    ref.read(tokenServiceStateProvider.state).state =
+        Wallet.loadTokenWallet(
+              ethWallet: wallet as EthereumWallet,
+              contract: contract,
+            )
+            as EthTokenWallet;
 
     try {
       await ref.read(pCurrentTokenWallet)!.init();
@@ -83,7 +85,7 @@ class SimpleWalletCard extends ConsumerWidget {
           desktopHeight: double.infinity,
           desktopWidth: 450,
           rightButton: PrimaryButton(
-            label: "OK",
+            label: S.of(context)!.ok,
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
@@ -124,7 +126,7 @@ class SimpleWalletCard extends ConsumerWidget {
           desktopHeight: double.infinity,
           desktopWidth: 450,
           rightButton: PrimaryButton(
-            label: "OK",
+            label: S.of(context)!.ok,
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
@@ -181,12 +183,7 @@ class SimpleWalletCard extends ConsumerWidget {
             ),
           );
         } else {
-          unawaited(
-            nav.pushNamed(
-              WalletView.routeName,
-              arguments: walletId,
-            ),
-          );
+          unawaited(nav.pushNamed(WalletView.routeName, arguments: walletId));
         }
       }
 
@@ -218,9 +215,7 @@ class SimpleWalletCard extends ConsumerWidget {
           );
 
           if (!success!) {
-            Logging.instance.e(
-              "Failed to load token wallet for $token",
-            );
+            Logging.instance.e("Failed to load token wallet for $token");
             return;
           }
 
@@ -237,7 +232,9 @@ class SimpleWalletCard extends ConsumerWidget {
           }
         } else {
           // Handle Ethereum token (default).
-          final contract = ref.read(mainDBProvider).getEthContractSync(contractAddress!);
+          final contract = ref
+              .read(mainDBProvider)
+              .getEthContractSync(contractAddress!);
 
           if (contract == null) {
             Logging.instance.e(
@@ -260,9 +257,7 @@ class SimpleWalletCard extends ConsumerWidget {
           );
 
           if (!success!) {
-            Logging.instance.e(
-              "Failed to load token wallet for $contract",
-            );
+            Logging.instance.e("Failed to load token wallet for $contract");
             return;
           }
 
@@ -305,8 +300,9 @@ class SimpleWalletCard extends ConsumerWidget {
       child: WalletInfoRow(
         walletId: walletId,
         contractAddress: contractAddress,
-        onPressedDesktop:
-            Util.isDesktop ? () => _openWallet(context, ref) : null,
+        onPressedDesktop: Util.isDesktop
+            ? () => _openWallet(context, ref)
+            : null,
       ),
     );
   }

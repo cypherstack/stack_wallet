@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/exchange/aggregate_currency.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
@@ -282,7 +283,7 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
             flex: true,
             desktopHeight: 400,
             rightButton: PrimaryButton(
-              label: "OK",
+              label: S.of(context)!.ok,
               buttonHeight: isDesktop ? ButtonHeight.l : null,
               onPressed: Navigator.of(context).pop,
             ),

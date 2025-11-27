@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -59,22 +60,26 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
         title: "Restore failed",
         message: errorMessage,
         rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonStyle(context),
+          style: Theme.of(
+            context,
+          ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
           child: Text(
-            "Ok",
+            S.of(context)!.ok,
             style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
             try {
-              await ref.read(pWallets).deleteWallet(
+              await ref
+                  .read(pWallets)
+                  .deleteWallet(
                     ref.read(pWalletInfo(walletId)),
                     ref.read(secureStoreProvider),
                   );
             } catch (e, s) {
-              Logging.instance.e("Error while getting wallet info in restore failed dialog\n"
-                "Error: $e\nStack trace: $s");
+              Logging.instance.e(
+                "Error while getting wallet info in restore failed dialog\n"
+                "Error: $e\nStack trace: $s",
+              );
             } finally {
               if (mounted) {
                 Navigator.of(context).pop();

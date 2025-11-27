@@ -277,7 +277,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         Expanded(
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.l,
-                            label: 'OK',
+                            label: S.of(context)!.ok,
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                         ),
@@ -682,7 +682,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           Expanded(
                             child: SecondaryButton(
                               buttonHeight: ButtonHeight.l,
-                              label: "Ok",
+                              label: S.of(context)!.ok,
                               onPressed: () {
                                 Navigator.of(
                                   context,

@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
@@ -27,9 +28,9 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
-import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../utilities/logger.dart';
@@ -401,7 +402,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                     .extension<StackColors>()!
                     .getSecondaryEnabledButtonStyle(context),
                 child: Text(
-                  "Ok",
+                  S.of(context)!.ok,
                   style: STextStyles.button(context).copyWith(
                     color: Theme.of(
                       context,
@@ -521,7 +522,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    S.of(context)!.ok,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(
                         context,
