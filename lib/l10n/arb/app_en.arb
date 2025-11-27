@@ -2,6 +2,22 @@
   "ok": "Ok",
   "save": "Save",
   "cancel": "Cancel",
+  "changePreferences": "Change preferences",
+  "syncingPreferences": "Syncing Preferences",
+  "syncingPreferencesInfo": "Set up your syncing preferences for all wallets in your {appPrefix}.",
+  "@syncingPreferencesInfo": {
+    "description": "Syncing preferences info string",
+    "placeholders": {
+      "appPrefix": {
+        "type": "String"
+      }
+    }
+  },
+  "syncingTypeCurrentWalletOnly": "Sync only currently open wallet",
+  "syncingTypeSelectedWalletsAtStartup": "Sync only selected wallets at startup",
+  "syncingTypeAllWalletsOnStartup": "Sync all wallets at startup",
+  "autoLockSettings": "Auto lock settings",
+  "authAutoLockSettings": "Authenticate to change auto lock settings",
   "biometricUnlockAppTitle": "Unlock {appPrefix}",
   "@biometricUnlockAppTitle": {
     "description": "Biometrics unlock auth title",
@@ -37,5 +53,21 @@
         "type": "String"
       }
     }
-  }
+  },
+  "security": "Security",
+  "changePIN": "Change PIN",
+  "authToChangePIN": "Authenticate to change PIN",
+  "enableBioAuth": "Enable biometric authentication",
+  "randomizePinPad": "Randomize PIN Pad",
+  "autoAcceptCorrectPin": "Auto-accept correct PIN",
+  "coverInBackground": "Cover in background",
+  "disableScreenShots": "Disable screenshots",
+  "duressPin": "Duress PIN",
+  "biometricsOpensDuress": "Biometrics opens duress",
+  "authToCreateDuressPIN": "Authenticate to create duress PIN",
+  "createDuressPIN": "Create duress PIN",
+  "enableDuressPIN": "Enable duress PIN",
+  "disableDuressPIN": "Disable duress PIN",
+  "disableDuressPinDeleteWarning": "Your duress pin will be deleted. You will be asked to create a PIN when you enable this again. Are you sure you want to continue?",
+  "duressPinExplanation": "When unlocking the app with a duress PIN, only wallets marked as visible in duress mode will be loaded and shown. Be aware that providing a duress PIN instead of your real PIN to law enforcement, border agents, or other authorities may be considered deception and could carry legal consequences depending on your jurisdiction. Use with care and according to your threat model."
 }

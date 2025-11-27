@@ -38,12 +38,12 @@ class _SyncingPreferencesSettings
     extends ConsumerState<SyncingPreferencesSettings> {
   String _currentTypeDescription(SyncingType type) {
     switch (type) {
-      case SyncingType.currentWalletOnly:
-        return "Sync only currently open wallet";
-      case SyncingType.selectedWalletsAtStartup:
-        return "Sync only selected wallets at startup";
-      case SyncingType.allWalletsOnStartup:
-        return "Sync all wallets at startup";
+      case .currentWalletOnly:
+        return S.of(context)!.syncingTypeCurrentWalletOnly;
+      case .selectedWalletsAtStartup:
+        return S.of(context)!.syncingTypeSelectedWalletsAtStartup;
+      case .allWalletsOnStartup:
+        return S.of(context)!.syncingTypeAllWalletsOnStartup;
     }
   }
 
@@ -111,12 +111,19 @@ class _SyncingPreferencesSettings
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: "Syncing Preferences",
+                              text: S.of(context)!.syncingPreferences,
                               style: STextStyles.desktopTextSmall(context),
                             ),
                             TextSpan(
-                              text:
-                                  "\n\nSet up your syncing preferences for all wallets in your ${AppConfig.prefix}.",
+                              text: "\n\n",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ),
+                            ),
+                            TextSpan(
+                              text: S
+                                  .of(context)!
+                                  .syncingPreferencesInfo(AppConfig.prefix),
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ),
@@ -160,7 +167,7 @@ class _SyncingPreferencesSettings
                                   width: 200,
                                   buttonHeight: ButtonHeight.m,
                                   enabled: true,
-                                  label: "Change preferences",
+                                  label: S.of(context)!.changePreferences,
                                   onPressed: () {
                                     setState(() {
                                       changePrefs = true;

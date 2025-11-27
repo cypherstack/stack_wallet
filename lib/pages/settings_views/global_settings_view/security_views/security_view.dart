@@ -68,20 +68,16 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Enable duress PIN", style: STextStyles.pageTitleH2(context)),
+            Text(
+              S.of(context)!.enableDuressPIN,
+              style: STextStyles.pageTitleH2(context),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Flexible(
                   child: Text(
-                    "When unlocking the app with a duress PIN, only wallets"
-                    " marked as visible in duress mode will be loaded and"
-                    " shown. Be aware that providing a duress PIN instead"
-                    " of your real PIN to law enforcement, border agents,"
-                    " or other authorities may be considered deception and"
-                    " could carry legal consequences depending on your"
-                    " jurisdiction. Use with care and according to your"
-                    " threat model.",
+                    S.of(context)!.duressPinExplanation,
                     style: STextStyles.smallMed14(context),
                   ),
                 ),
@@ -119,8 +115,8 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
             showBackButton: true,
             routeOnSuccess: CreateDuressPinView.routeName,
             biometricsCancelButtonString: S.of(context)!.cancel,
-            biometricsLocalizedReason: "Authenticate to create duress PIN",
-            biometricsAuthenticationTitle: "Create duress PIN",
+            biometricsLocalizedReason: S.of(context)!.authToCreateDuressPIN,
+            biometricsAuthenticationTitle: S.of(context)!.createDuressPIN,
           ),
           settings: const RouteSettings(name: "/createDuressPinLockscreen"),
         ),
@@ -135,15 +131,16 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Disable duress PIN", style: STextStyles.pageTitleH2(context)),
+            Text(
+              S.of(context)!.disableDuressPIN,
+              style: STextStyles.pageTitleH2(context),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Flexible(
                   child: Text(
-                    "Your duress pin will be deleted. "
-                    "You will be asked to create a PIN when you enable this again. "
-                    "Are you sure you want to continue?",
+                    S.of(context)!.disableDuressPinDeleteWarning,
 
                     style: STextStyles.smallMed14(context),
                   ),
@@ -205,7 +202,10 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Security", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            S.of(context)!.security,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -233,9 +233,12 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             showBackButton: true,
                             routeOnSuccess: ChangePinView.routeName,
                             biometricsCancelButtonString: S.of(context)!.cancel,
-                            biometricsLocalizedReason:
-                                "Authenticate to change PIN",
-                            biometricsAuthenticationTitle: "Change PIN",
+                            biometricsLocalizedReason: S
+                                .of(context)!
+                                .authToChangePIN,
+                            biometricsAuthenticationTitle: S
+                                .of(context)!
+                                .changePIN,
                           ),
                           settings: const RouteSettings(
                             name: "/changepinlockscreen",
@@ -251,7 +254,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                       child: Row(
                         children: [
                           Text(
-                            "Change PIN",
+                            S.of(context)!.changePIN,
                             style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
@@ -290,7 +293,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Enable biometric authentication",
+                                S.of(context)!.enableBioAuth,
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -337,7 +340,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Randomize PIN Pad",
+                                S.of(context)!.randomizePinPad,
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -385,7 +388,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Auto-accept correct PIN",
+                                S.of(context)!.autoAcceptCorrectPin,
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -431,7 +434,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Cover in background",
+                                S.of(context)!.coverInBackground,
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -479,7 +482,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Disable screenshots",
+                                  S.of(context)!.disableScreenShots,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -528,7 +531,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Duress PIN",
+                                  S.of(context)!.duressPin,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -583,7 +586,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Biometrics opens duress",
+                                  S.of(context)!.biometricsOpensDuress,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -632,9 +635,12 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             routeOnSuccess:
                                 AutoLockTimeoutSettingsView.routeName,
                             biometricsCancelButtonString: S.of(context)!.cancel,
-                            biometricsLocalizedReason:
-                                "Authenticate to change auto lock settings",
-                            biometricsAuthenticationTitle: "Auto lock settings",
+                            biometricsLocalizedReason: S
+                                .of(context)!
+                                .authAutoLockSettings,
+                            biometricsAuthenticationTitle: S
+                                .of(context)!
+                                .autoLockSettings,
                           ),
                           settings: const RouteSettings(
                             name: "/autoLockTimeoutSettingsLockScreen",
@@ -650,7 +656,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                       child: Row(
                         children: [
                           Text(
-                            "Auto lock settings",
+                            S.of(context)!.autoLockSettings,
                             style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),

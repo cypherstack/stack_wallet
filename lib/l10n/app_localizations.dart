@@ -111,6 +111,54 @@ abstract class S {
   /// **'Cancel'**
   String get cancel;
 
+  /// No description provided for @changePreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Change preferences'**
+  String get changePreferences;
+
+  /// No description provided for @syncingPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing Preferences'**
+  String get syncingPreferences;
+
+  /// Syncing preferences info string
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your syncing preferences for all wallets in your {appPrefix}.'**
+  String syncingPreferencesInfo(String appPrefix);
+
+  /// No description provided for @syncingTypeCurrentWalletOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync only currently open wallet'**
+  String get syncingTypeCurrentWalletOnly;
+
+  /// No description provided for @syncingTypeSelectedWalletsAtStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync only selected wallets at startup'**
+  String get syncingTypeSelectedWalletsAtStartup;
+
+  /// No description provided for @syncingTypeAllWalletsOnStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync all wallets at startup'**
+  String get syncingTypeAllWalletsOnStartup;
+
+  /// No description provided for @autoLockSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto lock settings'**
+  String get autoLockSettings;
+
+  /// No description provided for @authAutoLockSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to change auto lock settings'**
+  String get authAutoLockSettings;
+
   /// Biometrics unlock auth title
   ///
   /// In en, this message translates to:
@@ -134,6 +182,102 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Authenticate to restore {appName} backup'**
   String biometricsUnlockToRestoreReason(String appName);
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @changePIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePIN;
+
+  /// No description provided for @authToChangePIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to change PIN'**
+  String get authToChangePIN;
+
+  /// No description provided for @enableBioAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable biometric authentication'**
+  String get enableBioAuth;
+
+  /// No description provided for @randomizePinPad.
+  ///
+  /// In en, this message translates to:
+  /// **'Randomize PIN Pad'**
+  String get randomizePinPad;
+
+  /// No description provided for @autoAcceptCorrectPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-accept correct PIN'**
+  String get autoAcceptCorrectPin;
+
+  /// No description provided for @coverInBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover in background'**
+  String get coverInBackground;
+
+  /// No description provided for @disableScreenShots.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable screenshots'**
+  String get disableScreenShots;
+
+  /// No description provided for @duressPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Duress PIN'**
+  String get duressPin;
+
+  /// No description provided for @biometricsOpensDuress.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics opens duress'**
+  String get biometricsOpensDuress;
+
+  /// No description provided for @authToCreateDuressPIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to create duress PIN'**
+  String get authToCreateDuressPIN;
+
+  /// No description provided for @createDuressPIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Create duress PIN'**
+  String get createDuressPIN;
+
+  /// No description provided for @enableDuressPIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable duress PIN'**
+  String get enableDuressPIN;
+
+  /// No description provided for @disableDuressPIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable duress PIN'**
+  String get disableDuressPIN;
+
+  /// No description provided for @disableDuressPinDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Your duress pin will be deleted. You will be asked to create a PIN when you enable this again. Are you sure you want to continue?'**
+  String get disableDuressPinDeleteWarning;
+
+  /// No description provided for @duressPinExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'When unlocking the app with a duress PIN, only wallets marked as visible in duress mode will be loaded and shown. Be aware that providing a duress PIN instead of your real PIN to law enforcement, border agents, or other authorities may be considered deception and could carry legal consequences depending on your jurisdiction. Use with care and according to your threat model.'**
+  String get duressPinExplanation;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
