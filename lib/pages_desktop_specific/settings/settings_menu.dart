@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../l10n/app_localizations.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import 'settings_menu_item.dart';
@@ -20,23 +21,21 @@ import 'settings_menu_item.dart';
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);
 
 class SettingsMenu extends ConsumerStatefulWidget {
-  const SettingsMenu({
-    super.key,
-  });
+  const SettingsMenu({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SettingsMenuState();
 }
 
 class _SettingsMenuState extends ConsumerState<SettingsMenu> {
-  final List<String> labels = [
+  List<String> get labels => [
     "Backup and restore",
-    "Security",
+    S.of(context)!.security,
     "Currency",
     "Language",
     "Tor settings",
     "Nodes",
-    "Syncing preferences",
+    S.of(context)!.syncingPreferences,
     if (AppConfig.hasFeature(AppFeature.themeSelection)) "Appearance",
     "Advanced",
   ];
@@ -57,25 +56,23 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (i > 0)
-                      const SizedBox(
-                        height: 2,
-                      ),
+                    if (i > 0) const SizedBox(height: 2),
                     SettingsMenuItem<int>(
                       icon: SvgPicture.asset(
                         Assets.svg.polygon,
                         width: 11,
                         height: 11,
-                        color: ref
+                        color:
+                            ref
                                     .watch(
                                       selectedSettingsMenuItemStateProvider
                                           .state,
                                     )
                                     .state ==
                                 i
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorBlue
+                            ? Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorBlue
                             : Colors.transparent,
                       ),
                       label: labels[i],
@@ -83,9 +80,13 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       group: ref
                           .watch(selectedSettingsMenuItemStateProvider.state)
                           .state,
-                      onChanged: (newValue) => ref
-                          .read(selectedSettingsMenuItemStateProvider.state)
-                          .state = newValue,
+                      onChanged: (newValue) =>
+                          ref
+                                  .read(
+                                    selectedSettingsMenuItemStateProvider.state,
+                                  )
+                                  .state =
+                              newValue,
                     ),
                   ],
                 ),

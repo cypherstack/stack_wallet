@@ -437,7 +437,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             const SizedBox(height: 8),
             SettingsListButton(
               iconAssetName: Assets.svg.arrowRotate,
-              title: "Syncing preferences",
+              title: S.of(context)!.syncingPreferences,
               onPressed: () {
                 Navigator.of(
                   context,

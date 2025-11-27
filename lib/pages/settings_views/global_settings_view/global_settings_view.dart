@@ -122,7 +122,7 @@ class GlobalSettingsView extends StatelessWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.lock,
                                     iconSize: 16,
-                                    title: "Security",
+                                    title: S.of(context)!.security,
                                     onPressed: () {
                                       Navigator.of(
                                         context,
@@ -177,7 +177,7 @@ class GlobalSettingsView extends StatelessWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.arrowRotate,
                                     iconSize: 18,
-                                    title: "Syncing preferences",
+                                    title: S.of(context)!.syncingPreferences,
                                     onPressed: () {
                                       Navigator.of(context).pushNamed(
                                         SyncingPreferencesView.routeName,

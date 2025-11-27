@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -38,8 +39,9 @@ class SyncingOptionsView extends ConsumerWidget {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -86,8 +88,9 @@ class SyncingOptionsView extends ConsumerWidget {
                       ),
                     ),
                     onPressed: () {
-                      final state =
-                          ref.read(prefsChangeNotifierProvider).syncType;
+                      final state = ref
+                          .read(prefsChangeNotifierProvider)
+                          .syncType;
                       if (state != SyncingType.currentWalletOnly) {
                         ref.read(prefsChangeNotifierProvider).syncType =
                             SyncingType.currentWalletOnly;
@@ -111,10 +114,9 @@ class SyncingOptionsView extends ConsumerWidget {
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: SyncingType.currentWalletOnly,
                                 groupValue: ref.watch(
                                   prefsChangeNotifierProvider.select(
@@ -124,8 +126,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                 onChanged: (value) {
                                   if (value is SyncingType) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .syncType = value;
+                                            .read(prefsChangeNotifierProvider)
+                                            .syncType =
+                                        value;
                                   }
                                 },
                               ),
@@ -136,7 +139,7 @@ class SyncingOptionsView extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Sync only currently open wallet",
+                                    S.of(context)!.syncingTypeCurrentWalletOnly,
                                     style: STextStyles.titleBold12(context),
                                     textAlign: TextAlign.left,
                                   ),
@@ -165,8 +168,9 @@ class SyncingOptionsView extends ConsumerWidget {
                       ),
                     ),
                     onPressed: () {
-                      final state =
-                          ref.read(prefsChangeNotifierProvider).syncType;
+                      final state = ref
+                          .read(prefsChangeNotifierProvider)
+                          .syncType;
                       if (state != SyncingType.allWalletsOnStartup) {
                         ref.read(prefsChangeNotifierProvider).syncType =
                             SyncingType.allWalletsOnStartup;
@@ -189,10 +193,9 @@ class SyncingOptionsView extends ConsumerWidget {
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: SyncingType.allWalletsOnStartup,
                                 groupValue: ref.watch(
                                   prefsChangeNotifierProvider.select(
@@ -202,8 +205,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                 onChanged: (value) {
                                   if (value is SyncingType) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .syncType = value;
+                                            .read(prefsChangeNotifierProvider)
+                                            .syncType =
+                                        value;
                                   }
                                 },
                               ),
@@ -214,7 +218,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Sync all wallets at startup",
+                                    S
+                                        .of(context)!
+                                        .syncingTypeAllWalletsOnStartup,
                                     style: STextStyles.titleBold12(context),
                                     textAlign: TextAlign.left,
                                   ),
@@ -243,8 +249,9 @@ class SyncingOptionsView extends ConsumerWidget {
                       ),
                     ),
                     onPressed: () {
-                      final state =
-                          ref.read(prefsChangeNotifierProvider).syncType;
+                      final state = ref
+                          .read(prefsChangeNotifierProvider)
+                          .syncType;
                       if (state != SyncingType.selectedWalletsAtStartup) {
                         ref.read(prefsChangeNotifierProvider).syncType =
                             SyncingType.selectedWalletsAtStartup;
@@ -269,10 +276,9 @@ class SyncingOptionsView extends ConsumerWidget {
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: SyncingType.selectedWalletsAtStartup,
                                 groupValue: ref.watch(
                                   prefsChangeNotifierProvider.select(
@@ -282,8 +288,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                 onChanged: (value) {
                                   if (value is SyncingType) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .syncType = value;
+                                            .read(prefsChangeNotifierProvider)
+                                            .syncType =
+                                        value;
                                   }
                                 },
                               ),
@@ -294,7 +301,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Sync only selected wallets at startup",
+                                    S
+                                        .of(context)!
+                                        .syncingTypeSelectedWalletsAtStartup,
                                     style: STextStyles.titleBold12(context),
                                     textAlign: TextAlign.left,
                                   ),
@@ -350,50 +359,50 @@ class SyncingOptionsView extends ConsumerWidget {
                               onPressed: () {
                                 !isDesktop
                                     ? Navigator.of(context).pushNamed(
-                                      WalletSyncingOptionsView.routeName,
-                                    )
+                                        WalletSyncingOptionsView.routeName,
+                                      )
                                     : showDialog(
-                                      context: context,
-                                      useSafeArea: false,
-                                      barrierDismissible: true,
-                                      builder: (context) {
-                                        return DesktopDialog(
-                                          maxWidth: 600,
-                                          maxHeight: 800,
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          32,
-                                                        ),
-                                                    child: Text(
-                                                      "Select wallets to sync",
-                                                      style:
-                                                          STextStyles.desktopH3(
-                                                            context,
+                                        context: context,
+                                        useSafeArea: false,
+                                        barrierDismissible: true,
+                                        builder: (context) {
+                                          return DesktopDialog(
+                                            maxWidth: 600,
+                                            maxHeight: 800,
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            32,
                                                           ),
-                                                      textAlign:
-                                                          TextAlign.center,
+                                                      child: Text(
+                                                        "Select wallets to sync",
+                                                        style:
+                                                            STextStyles.desktopH3(
+                                                              context,
+                                                            ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  const DesktopDialogCloseButton(),
-                                                ],
-                                              ),
-                                              const Expanded(
-                                                child:
-                                                    WalletSyncingOptionsView(),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    );
+                                                    const DesktopDialogCloseButton(),
+                                                  ],
+                                                ),
+                                                const Expanded(
+                                                  child:
+                                                      WalletSyncingOptionsView(),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
                               },
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

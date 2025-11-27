@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -27,14 +28,14 @@ class SyncingPreferencesView extends ConsumerWidget {
 
   static const String routeName = "/syncingPreferences";
 
-  String _currentTypeDescription(SyncingType type) {
+  String _currentTypeDescription(SyncingType type, BuildContext context) {
     switch (type) {
       case SyncingType.currentWalletOnly:
-        return "Sync only currently open wallet";
+        return S.of(context)!.syncingTypeCurrentWalletOnly;
       case SyncingType.selectedWalletsAtStartup:
-        return "Sync only selected wallets at startup";
+        return S.of(context)!.syncingTypeSelectedWalletsAtStartup;
       case SyncingType.allWalletsOnStartup:
-        return "Sync all wallets at startup";
+        return S.of(context)!.syncingTypeAllWalletsOnStartup;
     }
   }
 
@@ -50,7 +51,7 @@ class SyncingPreferencesView extends ConsumerWidget {
             },
           ),
           title: Text(
-            "Syncing preferences",
+            S.of(context)!.syncingPreferences,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -108,6 +109,7 @@ class SyncingPreferencesView extends ConsumerWidget {
                                                     (value) => value.syncType,
                                                   ),
                                             ),
+                                            context,
                                           ),
                                           style: STextStyles.itemSubtitle(
                                             context,
@@ -163,10 +165,11 @@ class SyncingPreferencesView extends ConsumerWidget {
                                             ),
                                             onValueChanged: (newValue) {
                                               ref
-                                                  .read(
-                                                    prefsChangeNotifierProvider,
-                                                  )
-                                                  .wifiOnly = newValue;
+                                                      .read(
+                                                        prefsChangeNotifierProvider,
+                                                      )
+                                                      .wifiOnly =
+                                                  newValue;
                                             },
                                           ),
                                         ),
