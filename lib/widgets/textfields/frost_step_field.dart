@@ -80,8 +80,9 @@ class _FrostStepFieldState extends ConsumerState<FrostStepField> {
         }
 
         final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
+        if (qrResult.rawContent == null) return;
 
-        widget.controller.text = qrResult.rawContent;
+        widget.controller.text = qrResult.rawContent!;
 
         _changed(widget.controller.text);
       } else {
@@ -128,15 +129,14 @@ class _FrostStepFieldState extends ConsumerState<FrostStepField> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: widget.label != null,
-      builder:
-          (child) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(widget.label!, style: STextStyles.w500_14(context)),
-              const SizedBox(height: 4),
-              child,
-            ],
-          ),
+      builder: (child) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(widget.label!, style: STextStyles.w500_14(context)),
+          const SizedBox(height: 4),
+          child,
+        ],
+      ),
       child: TextField(
         controller: widget.controller,
         focusNode: widget.focusNode,
@@ -147,60 +147,55 @@ class _FrostStepFieldState extends ConsumerState<FrostStepField> {
         onChanged: _changed,
         decoration: InputDecoration(
           hintText: widget.hint,
-          fillColor:
-              widget.focusNode.hasFocus
-                  ? Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveBG
-                  : Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
-          hintStyle:
-              Util.isDesktop
-                  ? STextStyles.desktopTextFieldLabel(context)
-                  : STextStyles.fieldLabel(context),
+          fillColor: widget.focusNode.hasFocus
+              ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
+              : Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+          hintStyle: Util.isDesktop
+              ? STextStyles.desktopTextFieldLabel(context)
+              : STextStyles.fieldLabel(context),
           enabledBorder: _inputBorder,
           focusedBorder: _inputBorder,
           errorBorder: _inputBorder,
           disabledBorder: _inputBorder,
           focusedErrorBorder: _inputBorder,
           suffixIcon: Padding(
-            padding:
-                _isEmpty
-                    ? const EdgeInsets.only(right: 8)
-                    : const EdgeInsets.only(right: 0),
+            padding: _isEmpty
+                ? const EdgeInsets.only(right: 8)
+                : const EdgeInsets.only(right: 0),
             child: UnconstrainedBox(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   !_isEmpty
                       ? TextFieldIconButton(
-                        semanticsLabel:
-                            "Clear Button. Clears The Frost Step Field Input.",
-                        key: _xKey,
-                        onTap: () {
-                          widget.controller.text = "";
+                          semanticsLabel:
+                              "Clear Button. Clears The Frost Step Field Input.",
+                          key: _xKey,
+                          onTap: () {
+                            widget.controller.text = "";
 
-                          _changed(widget.controller.text);
-                        },
-                        child: const XIcon(),
-                      )
+                            _changed(widget.controller.text);
+                          },
+                          child: const XIcon(),
+                        )
                       : TextFieldIconButton(
-                        semanticsLabel:
-                            "Paste Button. Pastes From Clipboard To Frost Step Field Input.",
-                        key: _pasteKey,
-                        onTap: () async {
-                          final ClipboardData? data = await Clipboard.getData(
-                            Clipboard.kTextPlain,
-                          );
-                          if (data?.text != null && data!.text!.isNotEmpty) {
-                            widget.controller.text = data.text!.trim();
-                          }
+                          semanticsLabel:
+                              "Paste Button. Pastes From Clipboard To Frost Step Field Input.",
+                          key: _pasteKey,
+                          onTap: () async {
+                            final ClipboardData? data = await Clipboard.getData(
+                              Clipboard.kTextPlain,
+                            );
+                            if (data?.text != null && data!.text!.isNotEmpty) {
+                              widget.controller.text = data.text!.trim();
+                            }
 
-                          _changed(widget.controller.text);
-                        },
-                        child: _isEmpty ? const ClipboardIcon() : const XIcon(),
-                      ),
+                            _changed(widget.controller.text);
+                          },
+                          child: _isEmpty
+                              ? const ClipboardIcon()
+                              : const XIcon(),
+                        ),
                   if (_isEmpty && widget.showQrScanOption)
                     TextFieldIconButton(
                       semanticsLabel:

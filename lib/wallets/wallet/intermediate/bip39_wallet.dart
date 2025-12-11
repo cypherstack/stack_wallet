@@ -1,4 +1,5 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../crypto_currency/intermediate/bip39_currency.dart';
 import '../wallet.dart';
@@ -9,26 +10,20 @@ abstract class Bip39Wallet<T extends Bip39Currency> extends Wallet<T>
   Bip39Wallet(super.currency);
 
   List<FilterOperation> get standardReceivingAddressFilters => [
-        FilterCondition.equalTo(
-          property: r"type",
-          value: info.mainAddressType,
-        ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: AddressSubType.receiving,
-        ),
-      ];
+    FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.receiving,
+    ),
+  ];
 
   List<FilterOperation> get standardChangeAddressFilters => [
-        FilterCondition.equalTo(
-          property: r"type",
-          value: info.mainAddressType,
-        ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: AddressSubType.change,
-        ),
-      ];
+    FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.change,
+    ),
+  ];
 
   // ========== Private ========================================================
 

@@ -12,8 +12,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../widgets/background.dart';
@@ -65,21 +64,20 @@ class _FiroRescanRecoveryErrorViewState
                     final result = await showDialog<bool?>(
                       context: context,
                       barrierDismissible: false,
-                      builder:
-                          (context) => Navigator(
-                            initialRoute: DesktopDeleteWalletDialog.routeName,
-                            onGenerateRoute: RouteGenerator.generateRoute,
-                            onGenerateInitialRoutes: (_, __) {
-                              return [
-                                RouteGenerator.generateRoute(
-                                  RouteSettings(
-                                    name: DesktopDeleteWalletDialog.routeName,
-                                    arguments: widget.walletId,
-                                  ),
-                                ),
-                              ];
-                            },
-                          ),
+                      builder: (context) => Navigator(
+                        initialRoute: DesktopDeleteWalletDialog.routeName,
+                        onGenerateRoute: RouteGenerator.generateRoute,
+                        onGenerateInitialRoutes: (_, __) {
+                          return [
+                            RouteGenerator.generateRoute(
+                              RouteSettings(
+                                name: DesktopDeleteWalletDialog.routeName,
+                                arguments: widget.walletId,
+                              ),
+                            ),
+                          ];
+                        },
+                      ),
                     );
 
                     if (result == true) {
@@ -100,8 +98,9 @@ class _FiroRescanRecoveryErrorViewState
           builder: (child) {
             return Background(
               child: Scaffold(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.background,
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
                   actions: [
@@ -120,18 +119,16 @@ class _FiroRescanRecoveryErrorViewState
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                           icon: SvgPicture.asset(
                             Assets.svg.trash,
                             width: 20,
                             height: 20,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.topNavIconPrimary,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.topNavIconPrimary,
                           ),
                           onPressed: () async {
                             final walletName = ref.read(
@@ -140,71 +137,60 @@ class _FiroRescanRecoveryErrorViewState
                             await showDialog<void>(
                               barrierDismissible: true,
                               context: context,
-                              builder:
-                                  (_) => StackDialog(
-                                    title: "Do you want to delete $walletName?",
-                                    leftButton: TextButton(
-                                      style: Theme.of(context)
+                              builder: (_) => StackDialog(
+                                title: "Do you want to delete $walletName?",
+                                leftButton: TextButton(
+                                  style: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .getSecondaryEnabledButtonStyle(context),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    "Cancel",
+                                    style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
                                           .extension<StackColors>()!
-                                          .getSecondaryEnabledButtonStyle(
-                                            context,
-                                          ),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text(
-                                        "Cancel",
-                                        style: STextStyles.button(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorDark,
-                                        ),
-                                      ),
-                                    ),
-                                    rightButton: TextButton(
-                                      style: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonStyle(
-                                            context,
-                                          ),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        Navigator.push(
-                                          context,
-                                          RouteGenerator.getRoute(
-                                            shouldUseMaterialRoute:
-                                                RouteGenerator
-                                                    .useMaterialPageRoute,
-                                            builder:
-                                                (_) => LockscreenView(
-                                                  routeOnSuccessArguments:
-                                                      widget.walletId,
-                                                  showBackButton: true,
-                                                  routeOnSuccess:
-                                                      DeleteWalletWarningView
-                                                          .routeName,
-                                                  biometricsCancelButtonString:
-                                                      "CANCEL",
-                                                  biometricsLocalizedReason:
-                                                      "Authenticate to delete wallet",
-                                                  biometricsAuthenticationTitle:
-                                                      "Delete wallet",
-                                                ),
-                                            settings: const RouteSettings(
-                                              name: "/deleteWalletLockscreen",
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Text(
-                                        "Delete",
-                                        style: STextStyles.button(context),
-                                      ),
+                                          .accentColorDark,
                                     ),
                                   ),
+                                ),
+                                rightButton: TextButton(
+                                  style: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .getPrimaryEnabledButtonStyle(context),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      RouteGenerator.getRoute(
+                                        shouldUseMaterialRoute:
+                                            RouteGenerator.useMaterialPageRoute,
+                                        builder: (_) => LockscreenView(
+                                          routeOnSuccessArguments:
+                                              widget.walletId,
+                                          showBackButton: true,
+                                          routeOnSuccess:
+                                              DeleteWalletWarningView.routeName,
+                                          biometricsCancelButtonString:
+                                              "CANCEL",
+                                          biometricsLocalizedReason:
+                                              "Authenticate to delete wallet",
+                                          biometricsAuthenticationTitle:
+                                              "Delete wallet",
+                                        ),
+                                        settings: const RouteSettings(
+                                          name: "/deleteWalletLockscreen",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "Delete",
+                                    style: STextStyles.button(context),
+                                  ),
+                                ),
+                              ),
                             );
                           },
                         ),
@@ -232,20 +218,18 @@ class _FiroRescanRecoveryErrorViewState
               Util.isDesktop ? const SizedBox(height: 60) : const Spacer(),
               BranchedParent(
                 condition: Util.isDesktop,
-                conditionBranchBuilder:
-                    (children) => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: children,
-                    ),
-                otherBranchBuilder:
-                    (children) => Row(
-                      children: [
-                        Expanded(child: children[0]),
-                        children[1],
-                        Expanded(child: children[2]),
-                      ],
-                    ),
+                conditionBranchBuilder: (children) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: children,
+                ),
+                otherBranchBuilder: (children) => Row(
+                  children: [
+                    Expanded(child: children[0]),
+                    children[1],
+                    Expanded(child: children[2]),
+                  ],
+                ),
                 children: [
                   SecondaryButton(
                     label: "Show mnemonic",
@@ -255,21 +239,20 @@ class _FiroRescanRecoveryErrorViewState
                         await showDialog<void>(
                           context: context,
                           barrierDismissible: false,
-                          builder:
-                              (context) => Navigator(
-                                initialRoute: UnlockWalletKeysDesktop.routeName,
-                                onGenerateRoute: RouteGenerator.generateRoute,
-                                onGenerateInitialRoutes: (_, __) {
-                                  return [
-                                    RouteGenerator.generateRoute(
-                                      RouteSettings(
-                                        name: UnlockWalletKeysDesktop.routeName,
-                                        arguments: widget.walletId,
-                                      ),
-                                    ),
-                                  ];
-                                },
-                              ),
+                          builder: (context) => Navigator(
+                            initialRoute: UnlockWalletKeysDesktop.routeName,
+                            onGenerateRoute: RouteGenerator.generateRoute,
+                            onGenerateInitialRoutes: (_, __) {
+                              return [
+                                RouteGenerator.generateRoute(
+                                  RouteSettings(
+                                    name: UnlockWalletKeysDesktop.routeName,
+                                    arguments: widget.walletId,
+                                  ),
+                                ),
+                              ];
+                            },
+                          ),
                         );
                       } else {
                         final wallet = ref
@@ -282,9 +265,7 @@ class _FiroRescanRecoveryErrorViewState
                           KeyDataInterface? keyData;
                           if (wallet is ExtendedKeysInterface) {
                             keyData = await wallet.getXPrivs();
-                          } else if (wallet is LibMoneroWallet) {
-                            keyData = await wallet.getKeys();
-                          } else if (wallet is LibSalviumWallet) {
+                          } else if (wallet is CryptonoteWallet) {
                             keyData = await wallet.getKeys();
                           }
 
@@ -294,22 +275,20 @@ class _FiroRescanRecoveryErrorViewState
                               RouteGenerator.getRoute(
                                 shouldUseMaterialRoute:
                                     RouteGenerator.useMaterialPageRoute,
-                                builder:
-                                    (_) => LockscreenView(
-                                      routeOnSuccessArguments: (
-                                        walletId: widget.walletId,
-                                        mnemonic: mnemonic,
-                                        keyData: keyData,
-                                      ),
-                                      showBackButton: true,
-                                      routeOnSuccess:
-                                          WalletBackupView.routeName,
-                                      biometricsCancelButtonString: "CANCEL",
-                                      biometricsLocalizedReason:
-                                          "Authenticate to view recovery phrase",
-                                      biometricsAuthenticationTitle:
-                                          "View recovery phrase",
-                                    ),
+                                builder: (_) => LockscreenView(
+                                  routeOnSuccessArguments: (
+                                    walletId: widget.walletId,
+                                    mnemonic: mnemonic,
+                                    keyData: keyData,
+                                  ),
+                                  showBackButton: true,
+                                  routeOnSuccess: WalletBackupView.routeName,
+                                  biometricsCancelButtonString: "CANCEL",
+                                  biometricsLocalizedReason:
+                                      "Authenticate to view recovery phrase",
+                                  biometricsAuthenticationTitle:
+                                      "View recovery phrase",
+                                ),
                                 settings: const RouteSettings(
                                   name: "/viewRecoverPhraseLockscreen",
                                 ),

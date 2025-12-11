@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/balance.dart';
@@ -33,10 +33,11 @@ class CachedEthTokenBalance {
       contractAddress: token.address,
     );
 
-    final info = await mainDB.isar.tokenWalletInfo
-        .where()
-        .walletIdTokenAddressEqualTo(walletId, token.address)
-        .findFirst();
+    final info =
+        await mainDB.isar.tokenWalletInfo
+            .where()
+            .walletIdTokenAddressEqualTo(walletId, token.address)
+            .findFirst();
 
     if (response.value != null && info != null) {
       await info.updateCachedBalance(

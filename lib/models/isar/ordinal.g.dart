@@ -17,11 +17,7 @@ const OrdinalSchema = CollectionSchema(
   name: r'Ordinal',
   id: -7772149326141951436,
   properties: {
-    r'content': PropertySchema(
-      id: 0,
-      name: r'content',
-      type: IsarType.string,
-    ),
+    r'content': PropertySchema(id: 0, name: r'content', type: IsarType.string),
     r'inscriptionId': PropertySchema(
       id: 1,
       name: r'inscriptionId',
@@ -37,17 +33,14 @@ const OrdinalSchema = CollectionSchema(
       name: r'utxoTXID',
       type: IsarType.string,
     ),
-    r'utxoVOUT': PropertySchema(
-      id: 4,
-      name: r'utxoVOUT',
-      type: IsarType.long,
-    ),
+    r'utxoVOUT': PropertySchema(id: 4, name: r'utxoVOUT', type: IsarType.long),
     r'walletId': PropertySchema(
       id: 5,
       name: r'walletId',
       type: IsarType.string,
-    )
+    ),
   },
+
   estimateSize: _ordinalEstimateSize,
   serialize: _ordinalSerialize,
   deserialize: _ordinalDeserialize,
@@ -74,16 +67,17 @@ const OrdinalSchema = CollectionSchema(
           name: r'utxoVOUT',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _ordinalGetId,
   getLinks: _ordinalGetLinks,
   attach: _ordinalAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _ordinalEstimateSize(
@@ -169,88 +163,136 @@ void _ordinalAttach(IsarCollection<dynamic> col, Id id, Ordinal object) {
 
 extension OrdinalByIndex on IsarCollection<Ordinal> {
   Future<Ordinal?> getByInscriptionIdUtxoTXIDUtxoVOUT(
-      String inscriptionId, String utxoTXID, int utxoVOUT) {
-    return getByIndex(r'inscriptionId_utxoTXID_utxoVOUT',
-        [inscriptionId, utxoTXID, utxoVOUT]);
+    String inscriptionId,
+    String utxoTXID,
+    int utxoVOUT,
+  ) {
+    return getByIndex(r'inscriptionId_utxoTXID_utxoVOUT', [
+      inscriptionId,
+      utxoTXID,
+      utxoVOUT,
+    ]);
   }
 
   Ordinal? getByInscriptionIdUtxoTXIDUtxoVOUTSync(
-      String inscriptionId, String utxoTXID, int utxoVOUT) {
-    return getByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT',
-        [inscriptionId, utxoTXID, utxoVOUT]);
+    String inscriptionId,
+    String utxoTXID,
+    int utxoVOUT,
+  ) {
+    return getByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT', [
+      inscriptionId,
+      utxoTXID,
+      utxoVOUT,
+    ]);
   }
 
   Future<bool> deleteByInscriptionIdUtxoTXIDUtxoVOUT(
-      String inscriptionId, String utxoTXID, int utxoVOUT) {
-    return deleteByIndex(r'inscriptionId_utxoTXID_utxoVOUT',
-        [inscriptionId, utxoTXID, utxoVOUT]);
+    String inscriptionId,
+    String utxoTXID,
+    int utxoVOUT,
+  ) {
+    return deleteByIndex(r'inscriptionId_utxoTXID_utxoVOUT', [
+      inscriptionId,
+      utxoTXID,
+      utxoVOUT,
+    ]);
   }
 
   bool deleteByInscriptionIdUtxoTXIDUtxoVOUTSync(
-      String inscriptionId, String utxoTXID, int utxoVOUT) {
-    return deleteByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT',
-        [inscriptionId, utxoTXID, utxoVOUT]);
+    String inscriptionId,
+    String utxoTXID,
+    int utxoVOUT,
+  ) {
+    return deleteByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT', [
+      inscriptionId,
+      utxoTXID,
+      utxoVOUT,
+    ]);
   }
 
   Future<List<Ordinal?>> getAllByInscriptionIdUtxoTXIDUtxoVOUT(
-      List<String> inscriptionIdValues,
-      List<String> utxoTXIDValues,
-      List<int> utxoVOUTValues) {
+    List<String> inscriptionIdValues,
+    List<String> utxoTXIDValues,
+    List<int> utxoVOUTValues,
+  ) {
     final len = inscriptionIdValues.length;
-    assert(utxoTXIDValues.length == len && utxoVOUTValues.length == len,
-        'All index values must have the same length');
+    assert(
+      utxoTXIDValues.length == len && utxoVOUTValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values
-          .add([inscriptionIdValues[i], utxoTXIDValues[i], utxoVOUTValues[i]]);
+      values.add([
+        inscriptionIdValues[i],
+        utxoTXIDValues[i],
+        utxoVOUTValues[i],
+      ]);
     }
 
     return getAllByIndex(r'inscriptionId_utxoTXID_utxoVOUT', values);
   }
 
   List<Ordinal?> getAllByInscriptionIdUtxoTXIDUtxoVOUTSync(
-      List<String> inscriptionIdValues,
-      List<String> utxoTXIDValues,
-      List<int> utxoVOUTValues) {
+    List<String> inscriptionIdValues,
+    List<String> utxoTXIDValues,
+    List<int> utxoVOUTValues,
+  ) {
     final len = inscriptionIdValues.length;
-    assert(utxoTXIDValues.length == len && utxoVOUTValues.length == len,
-        'All index values must have the same length');
+    assert(
+      utxoTXIDValues.length == len && utxoVOUTValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values
-          .add([inscriptionIdValues[i], utxoTXIDValues[i], utxoVOUTValues[i]]);
+      values.add([
+        inscriptionIdValues[i],
+        utxoTXIDValues[i],
+        utxoVOUTValues[i],
+      ]);
     }
 
     return getAllByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT', values);
   }
 
   Future<int> deleteAllByInscriptionIdUtxoTXIDUtxoVOUT(
-      List<String> inscriptionIdValues,
-      List<String> utxoTXIDValues,
-      List<int> utxoVOUTValues) {
+    List<String> inscriptionIdValues,
+    List<String> utxoTXIDValues,
+    List<int> utxoVOUTValues,
+  ) {
     final len = inscriptionIdValues.length;
-    assert(utxoTXIDValues.length == len && utxoVOUTValues.length == len,
-        'All index values must have the same length');
+    assert(
+      utxoTXIDValues.length == len && utxoVOUTValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values
-          .add([inscriptionIdValues[i], utxoTXIDValues[i], utxoVOUTValues[i]]);
+      values.add([
+        inscriptionIdValues[i],
+        utxoTXIDValues[i],
+        utxoVOUTValues[i],
+      ]);
     }
 
     return deleteAllByIndex(r'inscriptionId_utxoTXID_utxoVOUT', values);
   }
 
   int deleteAllByInscriptionIdUtxoTXIDUtxoVOUTSync(
-      List<String> inscriptionIdValues,
-      List<String> utxoTXIDValues,
-      List<int> utxoVOUTValues) {
+    List<String> inscriptionIdValues,
+    List<String> utxoTXIDValues,
+    List<int> utxoVOUTValues,
+  ) {
     final len = inscriptionIdValues.length;
-    assert(utxoTXIDValues.length == len && utxoVOUTValues.length == len,
-        'All index values must have the same length');
+    assert(
+      utxoTXIDValues.length == len && utxoVOUTValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values
-          .add([inscriptionIdValues[i], utxoTXIDValues[i], utxoVOUTValues[i]]);
+      values.add([
+        inscriptionIdValues[i],
+        utxoTXIDValues[i],
+        utxoVOUTValues[i],
+      ]);
     }
 
     return deleteAllByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT', values);
@@ -260,21 +302,32 @@ extension OrdinalByIndex on IsarCollection<Ordinal> {
     return putByIndex(r'inscriptionId_utxoTXID_utxoVOUT', object);
   }
 
-  Id putByInscriptionIdUtxoTXIDUtxoVOUTSync(Ordinal object,
-      {bool saveLinks = true}) {
-    return putByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT', object,
-        saveLinks: saveLinks);
+  Id putByInscriptionIdUtxoTXIDUtxoVOUTSync(
+    Ordinal object, {
+    bool saveLinks = true,
+  }) {
+    return putByIndexSync(
+      r'inscriptionId_utxoTXID_utxoVOUT',
+      object,
+      saveLinks: saveLinks,
+    );
   }
 
   Future<List<Id>> putAllByInscriptionIdUtxoTXIDUtxoVOUT(
-      List<Ordinal> objects) {
+    List<Ordinal> objects,
+  ) {
     return putAllByIndex(r'inscriptionId_utxoTXID_utxoVOUT', objects);
   }
 
-  List<Id> putAllByInscriptionIdUtxoTXIDUtxoVOUTSync(List<Ordinal> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'inscriptionId_utxoTXID_utxoVOUT', objects,
-        saveLinks: saveLinks);
+  List<Id> putAllByInscriptionIdUtxoTXIDUtxoVOUTSync(
+    List<Ordinal> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(
+      r'inscriptionId_utxoTXID_utxoVOUT',
+      objects,
+      saveLinks: saveLinks,
+    );
   }
 }
 
@@ -289,10 +342,7 @@ extension OrdinalQueryWhereSort on QueryBuilder<Ordinal, Ordinal, QWhere> {
 extension OrdinalQueryWhere on QueryBuilder<Ordinal, Ordinal, QWhereClause> {
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -318,8 +368,10 @@ extension OrdinalQueryWhere on QueryBuilder<Ordinal, Ordinal, QWhereClause> {
     });
   }
 
-  QueryBuilder<Ordinal, Ordinal, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Ordinal, Ordinal, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -327,8 +379,10 @@ extension OrdinalQueryWhere on QueryBuilder<Ordinal, Ordinal, QWhereClause> {
     });
   }
 
-  QueryBuilder<Ordinal, Ordinal, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Ordinal, Ordinal, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -343,190 +397,236 @@ extension OrdinalQueryWhere on QueryBuilder<Ordinal, Ordinal, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdEqualToAnyUtxoTXIDUtxoVOUT(String inscriptionId) {
+  inscriptionIdEqualToAnyUtxoTXIDUtxoVOUT(String inscriptionId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-        value: [inscriptionId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+          value: [inscriptionId],
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdNotEqualToAnyUtxoTXIDUtxoVOUT(String inscriptionId) {
+  inscriptionIdNotEqualToAnyUtxoTXIDUtxoVOUT(String inscriptionId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [],
-              upper: [inscriptionId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [],
+                upper: [inscriptionId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [],
-              upper: [inscriptionId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [],
+                upper: [inscriptionId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdUtxoTXIDEqualToAnyUtxoVOUT(
-          String inscriptionId, String utxoTXID) {
+  inscriptionIdUtxoTXIDEqualToAnyUtxoVOUT(
+    String inscriptionId,
+    String utxoTXID,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-        value: [inscriptionId, utxoTXID],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+          value: [inscriptionId, utxoTXID],
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdEqualToUtxoTXIDNotEqualToAnyUtxoVOUT(
-          String inscriptionId, String utxoTXID) {
+  inscriptionIdEqualToUtxoTXIDNotEqualToAnyUtxoVOUT(
+    String inscriptionId,
+    String utxoTXID,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId],
-              upper: [inscriptionId, utxoTXID],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId, utxoTXID],
-              includeLower: false,
-              upper: [inscriptionId],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId],
+                upper: [inscriptionId, utxoTXID],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId, utxoTXID],
+                includeLower: false,
+                upper: [inscriptionId],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId, utxoTXID],
-              includeLower: false,
-              upper: [inscriptionId],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId],
-              upper: [inscriptionId, utxoTXID],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId, utxoTXID],
+                includeLower: false,
+                upper: [inscriptionId],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId],
+                upper: [inscriptionId, utxoTXID],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdUtxoTXIDUtxoVOUTEqualTo(
-          String inscriptionId, String utxoTXID, int utxoVOUT) {
+  inscriptionIdUtxoTXIDUtxoVOUTEqualTo(
+    String inscriptionId,
+    String utxoTXID,
+    int utxoVOUT,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-        value: [inscriptionId, utxoTXID, utxoVOUT],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+          value: [inscriptionId, utxoTXID, utxoVOUT],
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdUtxoTXIDEqualToUtxoVOUTNotEqualTo(
-          String inscriptionId, String utxoTXID, int utxoVOUT) {
+  inscriptionIdUtxoTXIDEqualToUtxoVOUTNotEqualTo(
+    String inscriptionId,
+    String utxoTXID,
+    int utxoVOUT,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId, utxoTXID],
-              upper: [inscriptionId, utxoTXID, utxoVOUT],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId, utxoTXID, utxoVOUT],
-              includeLower: false,
-              upper: [inscriptionId, utxoTXID],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId, utxoTXID],
+                upper: [inscriptionId, utxoTXID, utxoVOUT],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId, utxoTXID, utxoVOUT],
+                includeLower: false,
+                upper: [inscriptionId, utxoTXID],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId, utxoTXID, utxoVOUT],
-              includeLower: false,
-              upper: [inscriptionId, utxoTXID],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-              lower: [inscriptionId, utxoTXID],
-              upper: [inscriptionId, utxoTXID, utxoVOUT],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId, utxoTXID, utxoVOUT],
+                includeLower: false,
+                upper: [inscriptionId, utxoTXID],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+                lower: [inscriptionId, utxoTXID],
+                upper: [inscriptionId, utxoTXID, utxoVOUT],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdUtxoTXIDEqualToUtxoVOUTGreaterThan(
+  inscriptionIdUtxoTXIDEqualToUtxoVOUTGreaterThan(
     String inscriptionId,
     String utxoTXID,
     int utxoVOUT, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-        lower: [inscriptionId, utxoTXID, utxoVOUT],
-        includeLower: include,
-        upper: [inscriptionId, utxoTXID],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+          lower: [inscriptionId, utxoTXID, utxoVOUT],
+          includeLower: include,
+          upper: [inscriptionId, utxoTXID],
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdUtxoTXIDEqualToUtxoVOUTLessThan(
+  inscriptionIdUtxoTXIDEqualToUtxoVOUTLessThan(
     String inscriptionId,
     String utxoTXID,
     int utxoVOUT, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-        lower: [inscriptionId, utxoTXID],
-        upper: [inscriptionId, utxoTXID, utxoVOUT],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+          lower: [inscriptionId, utxoTXID],
+          upper: [inscriptionId, utxoTXID, utxoVOUT],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterWhereClause>
-      inscriptionIdUtxoTXIDEqualToUtxoVOUTBetween(
+  inscriptionIdUtxoTXIDEqualToUtxoVOUTBetween(
     String inscriptionId,
     String utxoTXID,
     int lowerUtxoVOUT,
@@ -535,13 +635,15 @@ extension OrdinalQueryWhere on QueryBuilder<Ordinal, Ordinal, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inscriptionId_utxoTXID_utxoVOUT',
-        lower: [inscriptionId, utxoTXID, lowerUtxoVOUT],
-        includeLower: includeLower,
-        upper: [inscriptionId, utxoTXID, upperUtxoVOUT],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'inscriptionId_utxoTXID_utxoVOUT',
+          lower: [inscriptionId, utxoTXID, lowerUtxoVOUT],
+          includeLower: includeLower,
+          upper: [inscriptionId, utxoTXID, upperUtxoVOUT],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -553,11 +655,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'content',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'content',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -567,12 +671,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'content',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'content',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -582,12 +688,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'content',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'content',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -599,14 +707,16 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'content',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'content',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -615,11 +725,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'content',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'content',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -628,62 +740,67 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'content',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'content',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> contentContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'content',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'content',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> contentMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'content',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'content',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> contentIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'content',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'content', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> contentIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'content',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'content', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -692,11 +809,13 @@ extension OrdinalQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -705,11 +824,13 @@ extension OrdinalQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -720,13 +841,15 @@ extension OrdinalQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -735,27 +858,31 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'inscriptionId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'inscriptionId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition>
-      inscriptionIdGreaterThan(
+  inscriptionIdGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'inscriptionId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'inscriptionId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -765,12 +892,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'inscriptionId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'inscriptionId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -782,14 +911,16 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'inscriptionId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'inscriptionId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -798,11 +929,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'inscriptionId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'inscriptionId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -811,110 +944,115 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'inscriptionId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'inscriptionId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> inscriptionIdContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'inscriptionId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'inscriptionId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> inscriptionIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'inscriptionId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'inscriptionId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> inscriptionIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'inscriptionId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'inscriptionId', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition>
-      inscriptionIdIsNotEmpty() {
+  inscriptionIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'inscriptionId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'inscriptionId', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition>
-      inscriptionNumberEqualTo(int value) {
+  inscriptionNumberEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'inscriptionNumber',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'inscriptionNumber', value: value),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition>
-      inscriptionNumberGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  inscriptionNumberGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'inscriptionNumber',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'inscriptionNumber',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition>
-      inscriptionNumberLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  inscriptionNumberLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'inscriptionNumber',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'inscriptionNumber',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition>
-      inscriptionNumberBetween(
+  inscriptionNumberBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'inscriptionNumber',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'inscriptionNumber',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -923,11 +1061,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'utxoTXID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'utxoTXID',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -937,12 +1077,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'utxoTXID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'utxoTXID',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -952,12 +1094,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'utxoTXID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'utxoTXID',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -969,14 +1113,16 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'utxoTXID',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'utxoTXID',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -985,11 +1131,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'utxoTXID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'utxoTXID',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -998,63 +1146,69 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'utxoTXID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'utxoTXID',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> utxoTXIDContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'utxoTXID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'utxoTXID',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> utxoTXIDMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'utxoTXID',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'utxoTXID',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> utxoTXIDIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'utxoTXID',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'utxoTXID', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> utxoTXIDIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'utxoTXID',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'utxoTXID', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> utxoVOUTEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'utxoVOUT',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'utxoVOUT', value: value),
+      );
     });
   }
 
@@ -1063,11 +1217,13 @@ extension OrdinalQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'utxoVOUT',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'utxoVOUT',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1076,11 +1232,13 @@ extension OrdinalQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'utxoVOUT',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'utxoVOUT',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -1091,13 +1249,15 @@ extension OrdinalQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'utxoVOUT',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'utxoVOUT',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -1106,11 +1266,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1120,12 +1282,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1135,12 +1299,14 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1152,14 +1318,16 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'walletId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1168,11 +1336,13 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -1181,53 +1351,59 @@ extension OrdinalQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> walletIdContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> walletIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'walletId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> walletIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<Ordinal, Ordinal, QAfterFilterCondition> walletIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'walletId', value: ''),
+      );
     });
   }
 }
@@ -1401,18 +1577,22 @@ extension OrdinalQuerySortThenBy
 
 extension OrdinalQueryWhereDistinct
     on QueryBuilder<Ordinal, Ordinal, QDistinct> {
-  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByContent(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByContent({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'content', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByInscriptionId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByInscriptionId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'inscriptionId',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'inscriptionId',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -1422,8 +1602,9 @@ extension OrdinalQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByUtxoTXID(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByUtxoTXID({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'utxoTXID', caseSensitive: caseSensitive);
     });
@@ -1435,8 +1616,9 @@ extension OrdinalQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByWalletId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Ordinal, Ordinal, QDistinct> distinctByWalletId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });

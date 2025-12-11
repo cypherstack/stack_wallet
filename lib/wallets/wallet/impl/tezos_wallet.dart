@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:tuple/tuple.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -51,8 +52,9 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
         // TODO: some kind of better check to see if the address has been used
 
-        final hasHistory =
-            (await TezosAPI.getTransactions(ks.address)).isNotEmpty;
+        final hasHistory = (await TezosAPI.getTransactions(
+          ks.address,
+        )).isNotEmpty;
 
         if (hasHistory) {
           return path;
@@ -113,13 +115,14 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       //   print("customFee: $customFee");
       // }
       final ({InternetAddress host, int port})? proxyInfo =
-          prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null;
+          AppConfig.hasFeature(AppFeature.tor) && prefs.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null;
       final tezartClient = tezart.TezartClient(
         server,
-        proxy:
-            proxyInfo != null
-                ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
-                : null,
+        proxy: proxyInfo != null
+            ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
+            : null,
       );
 
       final opList = await tezartClient.transferOperation(
@@ -595,11 +598,10 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         type: txType,
         subType: TransactionSubType.none,
         amount: theTx.amountInMicroTez,
-        amountString:
-            Amount(
-              rawValue: BigInt.from(theTx.amountInMicroTez),
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ).toJsonString(),
+        amountString: Amount(
+          rawValue: BigInt.from(theTx.amountInMicroTez),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ).toJsonString(),
         fee: theTx.feeInMicroTez,
         height: theTx.height,
         isCancelled: false,

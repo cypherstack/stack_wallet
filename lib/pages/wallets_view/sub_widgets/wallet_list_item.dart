@@ -24,7 +24,9 @@ import '../../../utilities/show_loading.dart';
 import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -80,7 +82,23 @@ class WalletListItem extends ConsumerWidget {
             }
           }
 
-          if (walletCount == 1 && coin is! Ethereum) {
+          // Check if we should show the wallets overview or open wallet directly.
+          bool shouldShowWalletsOverview = walletCount > 1 || coin is Ethereum;
+
+          // For Solana and other token-supporting coins, check if any wallet has tokens.
+          if (!shouldShowWalletsOverview && coin.hasTokenSupport) {
+            final wallet = ref
+                .read(pWallets)
+                .wallets
+                .firstWhere((e) => e.info.coin == coin);
+
+            final tokenAddresses = ref.read(pWalletTokenAddresses(wallet.walletId));
+            if (tokenAddresses.isNotEmpty) {
+              shouldShowWalletsOverview = true;
+            }
+          }
+
+          if (walletCount == 1 && !shouldShowWalletsOverview) {
             final wallet = ref
                 .read(pWallets)
                 .wallets

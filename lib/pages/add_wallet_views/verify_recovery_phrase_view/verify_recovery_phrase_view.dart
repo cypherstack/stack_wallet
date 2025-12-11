@@ -12,10 +12,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
-    as cs_monero_deprecated;
-import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
-    as cs_salvium_deprecated;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,21 +31,25 @@ import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
+import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../home_view/home_view.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
@@ -104,30 +104,31 @@ class _VerifyRecoveryPhraseViewState
     return result == "verified";
   }
 
-  Future<void> _convertToViewOnly() async {
+  Future<void> _convertToViewOnly(bool firoSpark) async {
     int height = 0;
     final Map<String, dynamic> otherDataJson = {
       WalletInfoKeys.isViewOnlyKey: true,
     };
 
     final ViewOnlyWalletType viewOnlyWalletType;
-    if (widget.wallet is ExtendedKeysInterface) {
+    if (firoSpark) {
+      viewOnlyWalletType = .spark;
+    } else if (widget.wallet is ExtendedKeysInterface) {
       viewOnlyWalletType = ViewOnlyWalletType.xPub;
-    } else if (widget.wallet is LibMoneroWallet ||
-        widget.wallet is LibSalviumWallet) {
+    } else if (widget.wallet is CryptonoteWallet) {
       if (widget.wallet.cryptoCurrency is Monero) {
-        height = cs_monero_deprecated.getMoneroHeightByDate(
-          date: DateTime.now().subtract(const Duration(days: 7)),
+        height = csMonero.getHeightByDate(
+          DateTime.now().subtract(const Duration(days: 7)),
         );
       }
       if (widget.wallet.cryptoCurrency is Wownero) {
-        height = cs_monero_deprecated.getWowneroHeightByDate(
-          date: DateTime.now().subtract(const Duration(days: 7)),
+        height = csWownero.getHeightByDate(
+          DateTime.now().subtract(const Duration(days: 7)),
         );
       }
       if (widget.wallet.cryptoCurrency is Salvium) {
-        height = cs_salvium_deprecated.getSalviumHeightByDate(
-          date: DateTime.now().subtract(const Duration(days: 7)),
+        height = csSalvium.getHeightByDate(
+          DateTime.now().subtract(const Duration(days: 7)),
         );
       }
       if (height < 0) height = 0;
@@ -147,12 +148,20 @@ class _VerifyRecoveryPhraseViewState
       name: widget.wallet.info.name,
       restoreHeight: height,
       otherDataJsonString: jsonEncode(otherDataJson),
+      overrideAddressType: viewOnlyWalletType == .spark ? .spark : null,
     );
 
     final ViewOnlyWalletData viewOnlyData;
-    if (widget.wallet is ExtendedKeysInterface) {
-      final extendedKeyInfo =
-          await (widget.wallet as ExtendedKeysInterface).getXPubs();
+    if (viewOnlyWalletType == .spark) {
+      final sparkViewKey = (widget.wallet as SparkInterface).sparkViewKey;
+
+      viewOnlyData = SparkViewOnlyWalletData(
+        walletId: voInfo.walletId,
+        viewKey: sparkViewKey!,
+      );
+    } else if (widget.wallet is ExtendedKeysInterface) {
+      final extendedKeyInfo = await (widget.wallet as ExtendedKeysInterface)
+          .getXPubs();
       final testPath = (_coin as Bip39HDCurrency).constructDerivePath(
         derivePathType: (_coin as Bip39HDCurrency).defaultDerivePathType,
         chain: 0,
@@ -175,28 +184,11 @@ class _VerifyRecoveryPhraseViewState
         walletId: voInfo.walletId,
         xPubs: [xPub],
       );
-    } else if (widget.wallet is LibMoneroWallet) {
-      final w = widget.wallet as LibMoneroWallet;
+    } else if (widget.wallet is CryptonoteWallet) {
+      final w = widget.wallet as CryptonoteWallet;
 
-      final info =
-          await w
-              .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
-      final address = info.$1;
-      final privateViewKey = info.$2;
-
-      await w.exit();
-
-      viewOnlyData = CryptonoteViewOnlyWalletData(
-        walletId: voInfo.walletId,
-        address: address,
-        privateViewKey: privateViewKey,
-      );
-    } else if (widget.wallet is LibSalviumWallet) {
-      final w = widget.wallet as LibSalviumWallet;
-
-      final info =
-          await w
-              .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
+      final info = await w
+          .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
       final address = info.$1;
       final privateViewKey = info.$2;
 
@@ -224,21 +216,21 @@ class _VerifyRecoveryPhraseViewState
 
     try {
       // TODO: extract interface with isRestore param
-      switch (voWallet.runtimeType) {
-        case const (EpiccashWallet):
-          await (voWallet as EpiccashWallet).init(isRestore: true);
+      switch (voWallet) {
+        case EpiccashWallet():
+          await voWallet.init(isRestore: true);
           break;
 
-        case const (MoneroWallet):
-          await (voWallet as MoneroWallet).init(isRestore: true);
+        case MimblewimblecoinWallet():
+          await voWallet.init(isRestore: true);
           break;
 
-        case const (WowneroWallet):
-          await (voWallet as WowneroWallet).init(isRestore: true);
+        case CryptonoteWallet():
+          await voWallet.init(isRestore: true);
           break;
 
-        case const (XelisWallet):
-          await (voWallet as XelisWallet).init(isRestore: true);
+        case XelisWallet():
+          await voWallet.init(isRestore: true);
           break;
 
         default:
@@ -310,8 +302,8 @@ class _VerifyRecoveryPhraseViewState
         ref
             .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
             .state = !ref
-                .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                .state;
+            .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+            .state;
       }
 
       if (mounted &&
@@ -320,7 +312,9 @@ class _VerifyRecoveryPhraseViewState
         try {
           Exception? ex;
           await showLoading(
-            whileFuture: _convertToViewOnly(),
+            whileFuture: _convertToViewOnly(
+              ref.read(pNewWalletOptions)?.convertToViewOnlySpark == true,
+            ),
             context: context,
             message: "Converting to view only wallet",
             rootNavigator: Util.isDesktop,
@@ -338,11 +332,10 @@ class _VerifyRecoveryPhraseViewState
           if (mounted) {
             await showDialog<void>(
               context: context,
-              builder:
-                  (_) => StackOkDialog(
-                    title: e.toString(),
-                    desktopPopRootNavigator: Util.isDesktop,
-                  ),
+              builder: (_) => StackOkDialog(
+                title: e.toString(),
+                desktopPopRootNavigator: Util.isDesktop,
+              ),
             );
           }
 
@@ -365,7 +358,7 @@ class _VerifyRecoveryPhraseViewState
             Navigator.of(
               context,
             ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
-            if (_coin is Ethereum) {
+            if (_coin is Ethereum || _coin is Solana) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -385,7 +378,7 @@ class _VerifyRecoveryPhraseViewState
                 context,
               ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
             );
-            if (_coin is Ethereum) {
+            if (_coin is Ethereum || _coin is Solana) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ref
                     .read(pNavKey)
@@ -485,53 +478,54 @@ class _VerifyRecoveryPhraseViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final correctIndex =
-        ref.watch(verifyMnemonicWordIndexStateProvider.state).state;
+    final correctIndex = ref
+        .watch(verifyMnemonicWordIndexStateProvider.state)
+        .state;
 
     return WillPopScope(
       onWillPop: onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
-        appBar:
-            isDesktop
-                ? DesktopAppBar(
-                  isCompactHeight: false,
-                  leading: AppBarBackButton(
-                    onPressed: () async {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(
-                          NewWalletRecoveryPhraseView.routeName,
-                        ),
-                      );
-                    },
-                  ),
-                  trailing: ExitToMyStackButton(
-                    onPressed: () async {
-                      await delete();
-                      if (context.mounted) {
-                        Navigator.of(context).popUntil(
-                          ModalRoute.withName(DesktopHomeView.routeName),
-                        );
-                      }
-                    },
-                  ),
-                )
-                : AppBar(
-                  leading: AppBarBackButton(
-                    onPressed: () async {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(
-                          NewWalletRecoveryPhraseView.routeName,
-                        ),
-                      );
-                    },
-                  ),
+        appBar: isDesktop
+            ? DesktopAppBar(
+                isCompactHeight: false,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    Navigator.of(context).popUntil(
+                      ModalRoute.withName(
+                        NewWalletRecoveryPhraseView.routeName,
+                      ),
+                    );
+                  },
                 ),
+                trailing: ExitToMyStackButton(
+                  onPressed: () async {
+                    await delete();
+                    if (context.mounted) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(DesktopHomeView.routeName),
+                      );
+                    }
+                  },
+                ),
+              )
+            : AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    Navigator.of(context).popUntil(
+                      ModalRoute.withName(
+                        NewWalletRecoveryPhraseView.routeName,
+                      ),
+                    );
+                  },
+                ),
+              ),
         body: SizedBox(
           width: isDesktop ? 410 : null,
           child: Padding(
-            padding:
-                isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(16),
+            padding: isDesktop
+                ? const EdgeInsets.all(0)
+                : const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -540,27 +534,24 @@ class _VerifyRecoveryPhraseViewState
                 Text(
                   "Verify recovery phrase",
                   textAlign: TextAlign.center,
-                  style:
-                      isDesktop
-                          ? STextStyles.desktopH2(context)
-                          : STextStyles.label(context).copyWith(fontSize: 12),
+                  style: isDesktop
+                      ? STextStyles.desktopH2(context)
+                      : STextStyles.label(context).copyWith(fontSize: 12),
                 ),
                 SizedBox(height: isDesktop ? 16 : 4),
                 Text(
                   isDesktop ? "Select word number" : "Tap word number ",
                   textAlign: TextAlign.center,
-                  style:
-                      isDesktop
-                          ? STextStyles.desktopSubtitleH1(context)
-                          : STextStyles.pageTitleH1(context),
+                  style: isDesktop
+                      ? STextStyles.desktopSubtitleH1(context)
+                      : STextStyles.pageTitleH1(context),
                 ),
                 SizedBox(height: isDesktop ? 16 : 12),
                 Container(
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -591,61 +582,51 @@ class _VerifyRecoveryPhraseViewState
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final selectedWord =
-                              ref
-                                  .watch(
-                                    verifyMnemonicSelectedWordStateProvider
-                                        .state,
-                                  )
-                                  .state;
-                          final correctWord =
-                              ref
-                                  .watch(
-                                    verifyMnemonicCorrectWordStateProvider
-                                        .state,
-                                  )
-                                  .state;
+                          final selectedWord = ref
+                              .watch(
+                                verifyMnemonicSelectedWordStateProvider.state,
+                              )
+                              .state;
+                          final correctWord = ref
+                              .watch(
+                                verifyMnemonicCorrectWordStateProvider.state,
+                              )
+                              .state;
 
                           return ConstrainedBox(
                             constraints: BoxConstraints(
                               minHeight: isDesktop ? 70 : 0,
                             ),
                             child: TextButton(
-                              onPressed:
-                                  selectedWord.isNotEmpty
-                                      ? () async {
-                                        await _continue(
-                                          correctWord == selectedWord,
-                                        );
-                                      }
-                                      : null,
-                              style:
-                                  selectedWord.isNotEmpty
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonStyle(context)
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryDisabledButtonStyle(
-                                            context,
-                                          ),
-                              child:
-                                  isDesktop
-                                      ? Text(
-                                        "Verify",
-                                        style:
-                                            selectedWord.isNotEmpty
-                                                ? STextStyles.desktopButtonEnabled(
-                                                  context,
-                                                )
-                                                : STextStyles.desktopButtonDisabled(
-                                                  context,
-                                                ),
-                                      )
-                                      : Text(
-                                        "Continue",
-                                        style: STextStyles.button(context),
-                                      ),
+                              onPressed: selectedWord.isNotEmpty
+                                  ? () async {
+                                      await _continue(
+                                        correctWord == selectedWord,
+                                      );
+                                    }
+                                  : null,
+                              style: selectedWord.isNotEmpty
+                                  ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryEnabledButtonStyle(context)
+                                  : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryDisabledButtonStyle(context),
+                              child: isDesktop
+                                  ? Text(
+                                      "Verify",
+                                      style: selectedWord.isNotEmpty
+                                          ? STextStyles.desktopButtonEnabled(
+                                              context,
+                                            )
+                                          : STextStyles.desktopButtonDisabled(
+                                              context,
+                                            ),
+                                    )
+                                  : Text(
+                                      "Continue",
+                                      style: STextStyles.button(context),
+                                    ),
                             ),
                           );
                         },

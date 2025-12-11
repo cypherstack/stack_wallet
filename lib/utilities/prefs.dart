@@ -81,6 +81,8 @@ class Prefs extends ChangeNotifier {
       _logsPath = await _getLogsPath();
       _logLevel = await _getLogLevel();
       _autoLockInfo = await _getAutoLockInfo();
+      _privacyScreen = await _getPrivacyScreen();
+      _disableScreenShots = await _getDisableScreenShots();
 
       _initialized = true;
     }
@@ -1382,5 +1384,53 @@ class Prefs extends ChangeNotifier {
         {"enabled": false, "minutes": 10};
 
     return (enabled: map["enabled"] as bool, minutes: map["minutes"] as int);
+  }
+
+  // mobile screen privacy
+  bool _privacyScreen = false;
+  bool get privacyScreen => _privacyScreen;
+  set privacyScreen(bool privacyScreen) {
+    if (_privacyScreen != privacyScreen) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "privacyScreen",
+        value: privacyScreen,
+      );
+      _privacyScreen = privacyScreen;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getPrivacyScreen() async {
+    return await DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "privacyScreen",
+            )
+            as bool? ??
+        false;
+  }
+
+  // android screen shot protection
+  bool _disableScreenShots = false;
+  bool get disableScreenShots => _disableScreenShots;
+  set disableScreenShots(bool disableScreenShots) {
+    if (_disableScreenShots != disableScreenShots) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "disableScreenShots",
+        value: disableScreenShots,
+      );
+      _disableScreenShots = disableScreenShots;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getDisableScreenShots() async {
+    return await DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "disableScreenShots",
+            )
+            as bool? ??
+        false;
   }
 }

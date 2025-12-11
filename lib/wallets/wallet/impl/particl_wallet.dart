@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -45,18 +45,17 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .not()
-            .group(
-              (q) => q
-                  .typeEqualTo(AddressType.nonWallet)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.nonWallet),
-            )
-            .findAll();
+    final allAddresses = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .not()
+        .group(
+          (q) => q
+              .typeEqualTo(AddressType.nonWallet)
+              .or()
+              .subTypeEqualTo(AddressSubType.nonWallet),
+        )
+        .findAll();
     return allAddresses;
   }
 
@@ -115,7 +114,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
+    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
   }
 
   @override
@@ -140,16 +139,14 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.receiving)
-            .map((e) => e.value)
-            .toSet();
-    final Set<String> changeAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.change)
-            .map((e) => e.value)
-            .toSet();
+    final Set<String> receivingAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.receiving)
+        .map((e) => e.value)
+        .toSet();
+    final Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => e.value)
+        .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
@@ -163,11 +160,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
-      final storedTx =
-          await mainDB.isar.transactionV2s
-              .where()
-              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-              .findFirst();
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+          .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -382,31 +378,28 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
       switch (sd.derivePathType) {
         case DerivePathType.bip44:
-          data =
-              bitcoindart
-                  .P2PKH(
-                    data: bitcoindart.PaymentData(pubkey: pubKey),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          data = bitcoindart
+              .P2PKH(
+                data: bitcoindart.PaymentData(pubkey: pubKey),
+                network: convertedNetwork,
+              )
+              .data;
           break;
 
         case DerivePathType.bip49:
-          final p2wpkh =
-              bitcoindart
-                  .P2WPKH(
-                    data: bitcoindart.PaymentData(pubkey: pubKey),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          final p2wpkh = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(pubkey: pubKey),
+                network: convertedNetwork,
+              )
+              .data;
           redeem = p2wpkh.output;
-          data =
-              bitcoindart
-                  .P2SH(
-                    data: bitcoindart.PaymentData(redeem: p2wpkh),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          data = bitcoindart
+              .P2SH(
+                data: bitcoindart.PaymentData(redeem: p2wpkh),
+                network: convertedNetwork,
+              )
+              .data;
           break;
 
         case DerivePathType.bip84:
@@ -414,13 +407,12 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
           //   publicKey: keys.publicKey,
           // );
-          data =
-              bitcoindart
-                  .P2WPKH(
-                    data: bitcoindart.PaymentData(pubkey: pubKey),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          data = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(pubkey: pubKey),
+                network: convertedNetwork,
+              )
+              .data;
           break;
 
         case DerivePathType.bip86:
@@ -469,10 +461,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
             txid: insAndKeys[i].utxo.txid,
             vout: insAndKeys[i].utxo.vout,
           ),
-          addresses:
-              insAndKeys[i].utxo.address == null
-                  ? []
-                  : [insAndKeys[i].utxo.address!],
+          addresses: insAndKeys[i].utxo.address == null
+              ? []
+              : [insAndKeys[i].utxo.address!],
           valueStringSats: insAndKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,

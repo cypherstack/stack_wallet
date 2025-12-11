@@ -14,12 +14,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/solana_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -28,6 +30,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'sub_widgets/my_tokens_list.dart';
+import 'sub_widgets/sol_tokens_list.dart';
 
 class MyTokensView extends ConsumerStatefulWidget {
   const MyTokensView({super.key, required this.walletId});
@@ -66,80 +69,73 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 75),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "${ref.watch(pWalletName(widget.walletId))} Tokens",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 20),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("addTokenAppBarIconButtonKey"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.circlePlusFilled,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: () async {
+                      final result = await Navigator.of(context).pushNamed(
+                        EditWalletTokensView.routeName,
+                        arguments: widget.walletId,
                       );
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "${ref.watch(pWalletName(widget.walletId))} Tokens",
-                  style: STextStyles.navBarTitle(context),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10,
-                      bottom: 10,
-                      right: 20,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        key: const Key("addTokenAppBarIconButtonKey"),
-                        size: 36,
-                        shadows: const [],
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        icon: SvgPicture.asset(
-                          Assets.svg.circlePlusFilled,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.topNavIconPrimary,
-                          width: 20,
-                          height: 20,
-                        ),
-                        onPressed: () async {
-                          final result = await Navigator.of(context).pushNamed(
-                            EditWalletTokensView.routeName,
-                            arguments: widget.walletId,
-                          );
 
-                          if (mounted && result == 42) {
-                            setState(() {});
-                          }
-                        },
-                      ),
-                    ),
+                      if (mounted && result == 42) {
+                        setState(() {});
+                      }
+                    },
                   ),
-                ],
-              ),
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
-                  child: child,
                 ),
               ),
+            ],
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+              child: child,
             ),
           ),
+        ),
+      ),
       child: Column(
         children: [
           Padding(
@@ -166,57 +162,55 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
                             _searchString = value;
                           });
                         },
-                        style:
-                            isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(
                                   context,
-                                ).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFieldActiveText,
-                                  height: 1.8,
-                                )
-                                : STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search...",
-                          searchFieldFocusNode,
-                          context,
-                          desktopMed: isDesktop,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isDesktop ? 12 : 10,
-                              vertical: isDesktop ? 18 : 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: isDesktop ? 20 : 16,
-                              height: isDesktop ? 20 : 16,
-                            ),
-                          ),
-                          suffixIcon:
-                              _searchController.text.isNotEmpty
+                                ).extension<StackColors>()!.textFieldActiveText,
+                                height: 1.8,
+                              )
+                            : STextStyles.field(context),
+                        decoration:
+                            standardInputDecoration(
+                              "Search...",
+                              searchFieldFocusNode,
+                              context,
+                              desktopMed: isDesktop,
+                            ).copyWith(
+                              prefixIcon: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isDesktop ? 12 : 10,
+                                  vertical: isDesktop ? 18 : 16,
+                                ),
+                                child: SvgPicture.asset(
+                                  Assets.svg.search,
+                                  width: isDesktop ? 20 : 16,
+                                  height: isDesktop ? 20 : 16,
+                                ),
+                              ),
+                              suffixIcon: _searchController.text.isNotEmpty
                                   ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchController.text = "";
-                                                _searchString = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  _searchController.text = "";
+                                                  _searchString = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
+                                    )
                                   : null,
-                        ),
+                            ),
                       ),
                     ),
                   ),
@@ -226,10 +220,26 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: MyTokensList(
-              walletId: widget.walletId,
-              searchTerm: _searchString,
-              tokenContracts: ref.watch(pWalletTokenAddresses(widget.walletId)),
+            child: Builder(
+              builder: (context) {
+                final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+                final tokenAddresses = ref.watch(
+                  pWalletTokenAddresses(widget.walletId),
+                );
+                if (wallet is SolanaWallet) {
+                  return SolanaTokensList(
+                    walletId: widget.walletId,
+                    searchTerm: _searchString,
+                    tokenMints: tokenAddresses,
+                  );
+                } else {
+                  return MyTokensList(
+                    walletId: widget.walletId,
+                    searchTerm: _searchString,
+                    tokenContracts: tokenAddresses,
+                  );
+                }
+              },
             ),
           ),
         ],

@@ -1,5 +1,5 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -55,16 +55,15 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .not()
-            .typeEqualTo(AddressType.nonWallet)
-            .and()
-            .not()
-            .subTypeEqualTo(AddressSubType.nonWallet)
-            .findAll();
+    final allAddresses = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .not()
+        .typeEqualTo(AddressType.nonWallet)
+        .and()
+        .not()
+        .subTypeEqualTo(AddressSubType.nonWallet)
+        .findAll();
     return allAddresses;
   }
 
@@ -87,17 +86,15 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     final List<Address> allAddressesOld =
         await fetchAddressesForElectrumXScan();
 
-    final Set<String> receivingAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.receiving)
-            .map((e) => convertAddressString(e.value))
-            .toSet();
+    final Set<String> receivingAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.receiving)
+        .map((e) => convertAddressString(e.value))
+        .toSet();
 
-    final Set<String> changeAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.change)
-            .map((e) => convertAddressString(e.value))
-            .toSet();
+    final Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => convertAddressString(e.value))
+        .toSet();
 
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
@@ -108,11 +105,10 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     final List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
-      final storedTx =
-          await mainDB.isar.transactionV2s
-              .where()
-              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-              .findFirst();
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+          .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -360,7 +356,7 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
+    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
   }
 
   @override

@@ -12,6 +12,7 @@ import 'dart:math' as math;
 
 import 'package:decimal/decimal.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/isar/models/solana/sol_contract.dart';
 import 'amount.dart';
 import '../util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -63,6 +64,7 @@ enum AmountUnit {
     //   case Coin.dogecoin:
     //   case Coin.eCash:
     //   case Coin.epicCash:
+    //   case Coin.mimblewimblecoin:
     //   case Coin.stellar: // TODO: check if this is correct
     //   case Coin.stellarTestnet:
     //   case Coin.tezos:
@@ -174,6 +176,27 @@ extension AmountUnitExt on AmountUnit {
     }
   }
 
+  String unitForSplToken(SolContract token) {
+    switch (this) {
+      case AmountUnit.normal:
+        return token.symbol;
+      case AmountUnit.milli:
+        return "m${token.symbol}";
+      case AmountUnit.micro:
+        return "µ${token.symbol}";
+      case AmountUnit.nano:
+      case AmountUnit.pico:
+      case AmountUnit.femto:
+      case AmountUnit.atto:
+      case AmountUnit.zepto:
+      case AmountUnit.yocto:
+      case AmountUnit.ronto:
+      case AmountUnit.quecto:
+        // For SOL tokens, just use the symbol with the prefix if applicable.
+        return token.symbol;
+    }
+  }
+
   Amount? tryParse(
     String value, {
     required String locale,
@@ -230,6 +253,7 @@ extension AmountUnitExt on AmountUnit {
     bool indicatePrecisionLoss = true,
     String? overrideUnit,
     EthContract? tokenContract,
+    SolContract? splToken,
   }) {
     assert(maxDecimalPlaces >= 0);
 
@@ -272,6 +296,10 @@ extension AmountUnitExt on AmountUnit {
       if (tokenContract != null) {
         updatedMax = maxDecimalPlaces > tokenContract.decimals
             ? tokenContract.decimals
+            : maxDecimalPlaces;
+      } else if (splToken != null) {
+        updatedMax = maxDecimalPlaces > splToken.decimals
+            ? splToken.decimals
             : maxDecimalPlaces;
       } else {
         updatedMax = maxDecimalPlaces > coin.fractionDigits
@@ -328,6 +356,8 @@ extension AmountUnitExt on AmountUnit {
     // return the value with the proper unit symbol
     if (tokenContract != null) {
       overrideUnit = unitForContract(tokenContract);
+    } else if (splToken != null) {
+      overrideUnit = unitForSplToken(splToken);
     }
 
     return "$returnValue ${overrideUnit ?? unitForCoin(coin)}";

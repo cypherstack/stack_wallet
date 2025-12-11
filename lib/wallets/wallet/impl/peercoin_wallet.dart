@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -54,7 +54,11 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
   // ===========================================================================
 
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, BigInt feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     // TODO: actually do this properly for peercoin
     // this is probably wrong for peercoin
     return Amount(
@@ -69,18 +73,14 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
   /// we can just pretend vSize is size for peercoin
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
+    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
   }
 
   // ===========================================================================
 
   @override
-  Future<
-      ({
-        bool blocked,
-        String? blockedReason,
-        String? utxoLabel,
-      })> checkBlockUTXO(
+  Future<({bool blocked, String? blockedReason, String? utxoLabel})>
+  checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
@@ -110,8 +110,9 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
     // Fetch history from ElectrumX.
-    final List<Map<String, dynamic>> allTxHashes =
-        await fetchHistory(allAddressesSet);
+    final List<Map<String, dynamic>> allTxHashes = await fetchHistory(
+      allAddressesSet,
+    );
 
     // Only parse new txs (not in db yet).
     final List<Map<String, dynamic>> allTransactions = [];
@@ -133,8 +134,9 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
         );
 
         // Only tx to list once.
-        if (allTransactions
-                .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+        if (allTransactions.indexWhere(
+              (e) => e["txid"] == tx["txid"] as String,
+            ) ==
             -1) {
           tx["height"] = txHash["height"];
           allTransactions.add(tx);
@@ -284,7 +286,8 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
-        timestamp: txData["blocktime"] as int? ??
+        timestamp:
+            txData["blocktime"] as int? ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),

@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
@@ -78,19 +78,19 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
   void _details() async {
     await showDialog<String?>(
       context: context,
-      builder: (context) => UtxoDetailsView(
-        utxoId: utxo.id,
-        walletId: widget.walletId,
-      ),
+      builder:
+          (context) =>
+              UtxoDetailsView(utxoId: utxo.id, walletId: widget.walletId),
     );
   }
 
   @override
   void initState() {
-    utxo = MainDB.instance.isar.utxos
-        .where()
-        .idEqualTo(widget.data.utxoId)
-        .findFirstSync()!;
+    utxo =
+        MainDB.instance.isar.utxos
+            .where()
+            .idEqualTo(widget.data.utxoId)
+            .findFirstSync()!;
 
     stream = MainDB.instance.watchUTXO(id: utxo.id);
     super.initState();
@@ -110,15 +110,21 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
         }
 
         return RoundedContainer(
-          borderColor: widget.compact && widget.compactWithBorder
-              ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
-              : null,
+          borderColor:
+              widget.compact && widget.compactWithBorder
+                  ? Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG
+                  : null,
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          boxShadow: widget.data.selected && widget.raiseOnSelected
-              ? [
-                  Theme.of(context).extension<StackColors>()!.standardBoxShadow,
-                ]
-              : null,
+          boxShadow:
+              widget.data.selected && widget.raiseOnSelected
+                  ? [
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.standardBoxShadow,
+                  ]
+                  : null,
           child: Row(
             children: [
               if (!(widget.compact && utxo.isBlocked))
@@ -132,36 +138,37 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                   },
                 ),
               if (!(widget.compact && utxo.isBlocked))
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
               UTXOStatusIcon(
                 blocked: utxo.isBlocked,
-                status: (coin is Namecoin
-                        ? (ref.watch(pWallets).getWallet(widget.walletId)
-                                as NamecoinWallet)
-                            .checkUtxoConfirmed(
-                            utxo,
-                            ref.watch(pWalletChainHeight(widget.walletId)),
-                          )
-                        : utxo.isConfirmed(
-                            ref.watch(pWalletChainHeight(widget.walletId)),
-                            coin.minConfirms,
-                            coin.minCoinbaseConfirms,
-                          ))
-                    ? UTXOStatusIconStatus.confirmed
-                    : UTXOStatusIconStatus.unconfirmed,
+                status:
+                    (coin is Namecoin
+                            ? (ref.watch(pWallets).getWallet(widget.walletId)
+                                    as NamecoinWallet)
+                                .checkUtxoConfirmed(
+                                  utxo,
+                                  ref.watch(
+                                    pWalletChainHeight(widget.walletId),
+                                  ),
+                                )
+                            : utxo.isConfirmed(
+                              ref.watch(pWalletChainHeight(widget.walletId)),
+                              coin.minConfirms,
+                              coin.minCoinbaseConfirms,
+                            ))
+                        ? UTXOStatusIconStatus.confirmed
+                        : UTXOStatusIconStatus.unconfirmed,
                 background: Theme.of(context).extension<StackColors>()!.popupBG,
                 selected: false,
                 width: 32,
                 height: 32,
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              const SizedBox(width: 10),
               if (!widget.compact)
                 Text(
-                  ref.watch(pAmountFormatter(coin)).format(
+                  ref
+                      .watch(pAmountFormatter(coin))
+                      .format(
                         Amount(
                           rawValue: BigInt.from(utxo.value),
                           fractionDigits: coin.fractionDigits,
@@ -170,10 +177,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                   textAlign: TextAlign.right,
                   style: STextStyles.w600_14(context),
                 ),
-              if (!widget.compact)
-                const SizedBox(
-                  width: 10,
-                ),
+              if (!widget.compact) const SizedBox(width: 10),
               Expanded(
                 child: ConditionalParent(
                   condition: widget.compact,
@@ -183,7 +187,9 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          ref.watch(pAmountFormatter(coin)).format(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
                                 Amount(
                                   rawValue: BigInt.from(utxo.value),
                                   fractionDigits: coin.fractionDigits,
@@ -192,9 +198,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                           textAlign: TextAlign.right,
                           style: STextStyles.w600_14(context),
                         ),
-                        const SizedBox(
-                          height: 2,
-                        ),
+                        const SizedBox(height: 2),
                         child,
                       ],
                     );
@@ -206,27 +210,23 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                     textAlign:
                         widget.compact ? TextAlign.left : TextAlign.center,
                     style: STextStyles.w500_12(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle1,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              const SizedBox(width: 10),
               widget.compact
-                  ? CustomTextButton(
-                      text: "Details",
-                      onTap: _details,
-                    )
+                  ? CustomTextButton(text: "Details", onTap: _details)
                   : SecondaryButton(
-                      width: 120,
-                      buttonHeight: ButtonHeight.xs,
-                      label: "Details",
-                      onPressed: _details,
-                    ),
+                    width: 120,
+                    buttonHeight: ButtonHeight.xs,
+                    label: "Details",
+                    onPressed: _details,
+                  ),
             ],
           ),
         );

@@ -64,8 +64,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       final coins = [...AppConfig.coins];
       coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
-      final bool showTestNet =
-          ref.read(prefsChangeNotifierProvider).showTestNetCoins;
+      final bool showTestNet = ref
+          .read(prefsChangeNotifierProvider)
+          .showTestNetCoins;
 
       if (showTestNet) {
         ref.read(addressBookFilterProvider).addAll(coins, false);
@@ -88,10 +89,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         final String addressString;
         if (wallet is SparkInterface) {
           Address? address = await wallet.getCurrentReceivingSparkAddress();
-          if (address == null) {
-            address = await wallet.generateNextSparkAddress();
-            await ref.read(mainDBProvider).updateOrPutAddresses([address]);
-          }
+          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
           addressString = address.value;
         } else {
           final address = await wallet.getCurrentReceivingAddress();
@@ -137,8 +135,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -162,16 +161,14 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       key: const Key("addressBookFilterViewButton"),
                       size: 36,
                       shadows: const [],
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -195,16 +192,14 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       key: const Key("addressBookAddNewContactViewButton"),
                       size: 36,
                       shadows: const [],
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
                       icon: SvgPicture.asset(
                         Assets.svg.plus,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -260,38 +255,37 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
             ),
-            child:
-                !isDesktop
-                    ? TextField(
-                      autocorrect: Util.isDesktop ? false : true,
-                      enableSuggestions: Util.isDesktop ? false : true,
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchTerm = value;
-                        });
-                      },
-                      style: STextStyles.field(context),
-                      decoration: standardInputDecoration(
-                        "Search",
-                        _searchFocusNode,
-                        context,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 16,
+            child: !isDesktop
+                ? TextField(
+                    autocorrect: Util.isDesktop ? false : true,
+                    enableSuggestions: Util.isDesktop ? false : true,
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchTerm = value;
+                      });
+                    },
+                    style: STextStyles.field(context),
+                    decoration:
+                        standardInputDecoration(
+                          "Search",
+                          _searchFocusNode,
+                          context,
+                        ).copyWith(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 16,
+                            ),
+                            child: SvgPicture.asset(
+                              Assets.svg.search,
+                              width: 16,
+                              height: 16,
+                            ),
                           ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 16,
-                            height: 16,
-                          ),
-                        ),
-                        suffixIcon:
-                            _searchController.text.isNotEmpty
-                                ? Padding(
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? Padding(
                                   padding: const EdgeInsets.only(right: 0),
                                   child: UnconstrainedBox(
                                     child: Row(
@@ -309,10 +303,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                     ),
                                   ),
                                 )
-                                : null,
-                      ),
-                    )
-                    : null,
+                              : null,
+                        ),
+                  )
+                : null,
           ),
           if (!isDesktop) const SizedBox(height: 16),
           Text("Favorites", style: STextStyles.smallMed12(context)),
@@ -324,16 +318,15 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 children: [
                   ...contacts
                       .where(
-                        (element) =>
-                            element.addressesSorted
-                                .where(
-                                  (e) => ref.watch(
-                                    addressBookFilterProvider.select(
-                                      (value) => value.coins.contains(e.coin),
-                                    ),
-                                  ),
-                                )
-                                .isNotEmpty,
+                        (element) => element.addressesSorted
+                            .where(
+                              (e) => ref.watch(
+                                addressBookFilterProvider.select(
+                                  (value) => value.coins.contains(e.coin),
+                                ),
+                              ),
+                            )
+                            .isNotEmpty,
                       )
                       .where(
                         (e) =>
@@ -375,17 +368,15 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       children: [
                         ...contacts
                             .where(
-                              (element) =>
-                                  element.addressesSorted
-                                      .where(
-                                        (e) => ref.watch(
-                                          addressBookFilterProvider.select(
-                                            (value) =>
-                                                value.coins.contains(e.coin),
-                                          ),
-                                        ),
-                                      )
-                                      .isNotEmpty,
+                              (element) => element.addressesSorted
+                                  .where(
+                                    (e) => ref.watch(
+                                      addressBookFilterProvider.select(
+                                        (value) => value.coins.contains(e.coin),
+                                      ),
+                                    ),
+                                  )
+                                  .isNotEmpty,
                             )
                             .where(
                               (e) => ref

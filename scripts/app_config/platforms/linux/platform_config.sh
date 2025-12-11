@@ -12,6 +12,8 @@ for (( i=0; i<=1; i++ )); do
   fi
 done
 
-# Configure Linux for Duo.
+# Configure Linux
 sed -i "s/${APP_BASIC_NAME_PLACEHOLDER}/${NEW_BASIC_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${LINUX_TF_0}"
 sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${LINUX_TF_1}"
+sed -i "s/INCLUDE_EPIC_SO_FLAG/${INCLUDE_EPIC_SO}/g" "${APP_PROJECT_ROOT_DIR}/${LINUX_TF_0}"
+sed -i "s/INCLUDE_MWC_SO_FLAG/${INCLUDE_MWC_SO}/g" "${APP_PROJECT_ROOT_DIR}/${LINUX_TF_0}"

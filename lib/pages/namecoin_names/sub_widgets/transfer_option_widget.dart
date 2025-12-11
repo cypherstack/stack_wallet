@@ -169,16 +169,15 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,
-              builder:
-                  (context) => SDialog(
-                    child: SizedBox(
-                      width: 580,
-                      child: ConfirmNameTransactionView(
-                        txData: txData,
-                        walletId: widget.walletId,
-                      ),
-                    ),
+              builder: (context) => SDialog(
+                child: SizedBox(
+                  width: 580,
+                  child: ConfirmNameTransactionView(
+                    txData: txData,
+                    walletId: widget.walletId,
                   ),
+                ),
+              ),
             );
           } else {
             await Navigator.of(context).pushNamed(
@@ -203,13 +202,12 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
 
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => StackOkDialog(
-                title: "Error",
-                message: err,
-                desktopPopRootNavigator: Util.isDesktop,
-                maxWidth: Util.isDesktop ? 600 : null,
-              ),
+          builder: (_) => StackOkDialog(
+            title: "Error",
+            message: err,
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 600 : null,
+          ),
         );
       }
     } finally {
@@ -238,12 +236,14 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
       }
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
+      if (qrResult.rawContent == null) return;
+
       final coin = ref.read(pWalletCoin(walletId));
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent,
+        qrResult.rawContent!,
         logging: Logging.instance,
       );
 
@@ -257,7 +257,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
 
         // now check for non standard encoded basic address
       } else {
-        _address = qrResult.rawContent.split("\n").first.trim();
+        _address = qrResult.rawContent!.split("\n").first.trim();
         _addressController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
@@ -313,8 +313,9 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment:
-          Util.isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      crossAxisAlignment: Util.isDesktop
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(
@@ -338,121 +339,120 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
             },
             focusNode: _addressFocusNode,
             style: STextStyles.field(context),
-            decoration: standardInputDecoration(
-              "Enter ${ref.watch(pWalletCoin(walletId)).ticker} address",
-              _addressFocusNode,
-              context,
-            ).copyWith(
-              contentPadding: const EdgeInsets.only(
-                left: 16,
-                top: 6,
-                bottom: 8,
-                right: 5,
-              ),
-              suffixIcon: Padding(
-                padding:
-                    _addressController.text.isEmpty
+            decoration:
+                standardInputDecoration(
+                  "Enter ${ref.watch(pWalletCoin(walletId)).ticker} address",
+                  _addressFocusNode,
+                  context,
+                ).copyWith(
+                  contentPadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 6,
+                    bottom: 8,
+                    right: 5,
+                  ),
+                  suffixIcon: Padding(
+                    padding: _addressController.text.isEmpty
                         ? const EdgeInsets.only(right: 8)
                         : const EdgeInsets.only(right: 0),
-                child: UnconstrainedBox(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _addressController.text.isNotEmpty
-                          ? TextFieldIconButton(
-                            semanticsLabel:
-                                "Clear Button. Clears The Address Field Input.",
-                            key: const Key(
-                              "nameTransferClearAddressFieldButtonKey",
-                            ),
-                            onTap: () {
-                              _addressController.text = "";
-                              _address = "";
-                              _setValidAddressProviders(_address);
-                              setState(() {});
-                            },
-                            child: const XIcon(),
-                          )
-                          : TextFieldIconButton(
-                            semanticsLabel:
-                                "Paste Button. Pastes From Clipboard To Address Field Input.",
-                            key: const Key(
-                              "nameTransferPasteAddressFieldButtonKey",
-                            ),
-                            onTap: () async {
-                              final ClipboardData? data = await clipboard
-                                  .getData(Clipboard.kTextPlain);
-                              if (data?.text != null &&
-                                  data!.text!.isNotEmpty) {
-                                String content = data.text!.trim();
-                                if (content.contains("\n")) {
-                                  content = content.substring(
-                                    0,
-                                    content.indexOf("\n"),
-                                  );
-                                }
+                    child: UnconstrainedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _addressController.text.isNotEmpty
+                              ? TextFieldIconButton(
+                                  semanticsLabel:
+                                      "Clear Button. Clears The Address Field Input.",
+                                  key: const Key(
+                                    "nameTransferClearAddressFieldButtonKey",
+                                  ),
+                                  onTap: () {
+                                    _addressController.text = "";
+                                    _address = "";
+                                    _setValidAddressProviders(_address);
+                                    setState(() {});
+                                  },
+                                  child: const XIcon(),
+                                )
+                              : TextFieldIconButton(
+                                  semanticsLabel:
+                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                  key: const Key(
+                                    "nameTransferPasteAddressFieldButtonKey",
+                                  ),
+                                  onTap: () async {
+                                    final ClipboardData? data = await clipboard
+                                        .getData(Clipboard.kTextPlain);
+                                    if (data?.text != null &&
+                                        data!.text!.isNotEmpty) {
+                                      String content = data.text!.trim();
+                                      if (content.contains("\n")) {
+                                        content = content.substring(
+                                          0,
+                                          content.indexOf("\n"),
+                                        );
+                                      }
 
-                                _addressController.text = content.trim();
-                                _address = content.trim();
+                                      _addressController.text = content.trim();
+                                      _address = content.trim();
 
-                                _setValidAddressProviders(_address);
-                              }
-                            },
-                            child:
-                                _addressController.text.isEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
-                          ),
-                      if (_addressController.text.isEmpty)
-                        TextFieldIconButton(
-                          semanticsLabel:
-                              "Address Book Button. Opens Address Book For Address Field.",
-                          key: const Key("nameTransferAddressBookButtonKey"),
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AddressBookView.routeName,
-                              arguments: ref.read(pWalletCoin(walletId)),
-                            );
-                          },
-                          child: const AddressBookIcon(),
-                        ),
-                      if (_addressController.text.isEmpty)
-                        TextFieldIconButton(
-                          semanticsLabel:
-                              "Scan QR Button. Opens Camera For Scanning QR Code.",
-                          key: const Key("nameTransferScanQrButtonKey"),
-                          onTap: _scanQr,
-                          child: const QrCodeIcon(),
-                        ),
-                    ],
+                                      _setValidAddressProviders(_address);
+                                    }
+                                  },
+                                  child: _addressController.text.isEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                                ),
+                          if (_addressController.text.isEmpty)
+                            TextFieldIconButton(
+                              semanticsLabel:
+                                  "Address Book Button. Opens Address Book For Address Field.",
+                              key: const Key(
+                                "nameTransferAddressBookButtonKey",
+                              ),
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  AddressBookView.routeName,
+                                  arguments: ref.read(pWalletCoin(walletId)),
+                                );
+                              },
+                              child: const AddressBookIcon(),
+                            ),
+                          if (_addressController.text.isEmpty)
+                            TextFieldIconButton(
+                              semanticsLabel:
+                                  "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              key: const Key("nameTransferScanQrButtonKey"),
+                              onTap: _scanQr,
+                              child: const QrCodeIcon(),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
           ),
         ),
         SizedBox(height: Util.isDesktop ? 42 : 16),
         if (!Util.isDesktop) const Spacer(),
         ConditionalParent(
           condition: Util.isDesktop,
-          builder:
-              (child) => Row(
-                children: [
-                  Expanded(
-                    child: SecondaryButton(
-                      label: "Cancel",
-                      buttonHeight: ButtonHeight.l,
-                      onPressed:
-                          Navigator.of(
-                            context,
-                            rootNavigator: Util.isDesktop,
-                          ).pop,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(child: child),
-                ],
+          builder: (child) => Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  label: "Cancel",
+                  buttonHeight: ButtonHeight.l,
+                  onPressed: Navigator.of(
+                    context,
+                    rootNavigator: Util.isDesktop,
+                  ).pop,
+                ),
               ),
+              const SizedBox(width: 16),
+              Expanded(child: child),
+            ],
+          ),
           child: PrimaryButton(
             label: "Transfer",
             enabled: _enableButton,

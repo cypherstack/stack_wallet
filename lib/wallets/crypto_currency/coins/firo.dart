@@ -107,7 +107,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
-          messagePrefix: '\x18Zcoin Signed Message:\n',
+          messagePrefix: '\x16Zcoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
@@ -120,7 +120,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
-          messagePrefix: "\x18Zcoin Signed Message:\n",
+          messagePrefix: "\x16Zcoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
@@ -197,10 +197,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   bool validateSparkAddress(String address) {
-    return SparkInterface.validateSparkAddress(
-      address: address,
-      isTestNet: network.isTestNet,
-    );
+    return SparkInterface.validateSparkAddress(address: address, isTestNet: network.isTestNet);
   }
 
   bool isExchangeAddress(String address) {

@@ -18,17 +18,10 @@ const TransactionBlockExplorerSchema = CollectionSchema(
   name: r'TransactionBlockExplorer',
   id: 4209077296238413906,
   properties: {
-    r'ticker': PropertySchema(
-      id: 0,
-      name: r'ticker',
-      type: IsarType.string,
-    ),
-    r'url': PropertySchema(
-      id: 1,
-      name: r'url',
-      type: IsarType.string,
-    )
+    r'ticker': PropertySchema(id: 0, name: r'ticker', type: IsarType.string),
+    r'url': PropertySchema(id: 1, name: r'url', type: IsarType.string),
   },
+
   estimateSize: _transactionBlockExplorerEstimateSize,
   serialize: _transactionBlockExplorerSerialize,
   deserialize: _transactionBlockExplorerDeserialize,
@@ -45,16 +38,17 @@ const TransactionBlockExplorerSchema = CollectionSchema(
           name: r'ticker',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _transactionBlockExplorerGetId,
   getLinks: _transactionBlockExplorerGetLinks,
   attach: _transactionBlockExplorerAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _transactionBlockExplorerEstimateSize(
@@ -113,12 +107,16 @@ Id _transactionBlockExplorerGetId(TransactionBlockExplorer object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionBlockExplorerGetLinks(
-    TransactionBlockExplorer object) {
+  TransactionBlockExplorer object,
+) {
   return [];
 }
 
 void _transactionBlockExplorerAttach(
-    IsarCollection<dynamic> col, Id id, TransactionBlockExplorer object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  TransactionBlockExplorer object,
+) {
   object.id = id;
 }
 
@@ -141,13 +139,15 @@ extension TransactionBlockExplorerByIndex
   }
 
   Future<List<TransactionBlockExplorer?>> getAllByTicker(
-      List<String> tickerValues) {
+    List<String> tickerValues,
+  ) {
     final values = tickerValues.map((e) => [e]).toList();
     return getAllByIndex(r'ticker', values);
   }
 
   List<TransactionBlockExplorer?> getAllByTickerSync(
-      List<String> tickerValues) {
+    List<String> tickerValues,
+  ) {
     final values = tickerValues.map((e) => [e]).toList();
     return getAllByIndexSync(r'ticker', values);
   }
@@ -174,36 +174,53 @@ extension TransactionBlockExplorerByIndex
     return putAllByIndex(r'ticker', objects);
   }
 
-  List<Id> putAllByTickerSync(List<TransactionBlockExplorer> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByTickerSync(
+    List<TransactionBlockExplorer> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'ticker', objects, saveLinks: saveLinks);
   }
 }
 
-extension TransactionBlockExplorerQueryWhereSort on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QWhere> {
+extension TransactionBlockExplorerQueryWhereSort
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QWhere
+        > {
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterWhere>
-      anyId() {
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension TransactionBlockExplorerQueryWhere on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QWhereClause> {
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> idEqualTo(Id id) {
+extension TransactionBlockExplorerQueryWhere
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QWhereClause
+        > {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -225,8 +242,12 @@ extension TransactionBlockExplorerQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> idGreaterThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -234,8 +255,12 @@ extension TransactionBlockExplorerQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> idLessThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -243,175 +268,235 @@ extension TransactionBlockExplorerQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> idBetween(
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> tickerEqualTo(String ticker) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  tickerEqualTo(String ticker) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'ticker',
-        value: [ticker],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'ticker', value: [ticker]),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterWhereClause> tickerNotEqualTo(String ticker) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterWhereClause
+  >
+  tickerNotEqualTo(String ticker) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'ticker',
-              lower: [],
-              upper: [ticker],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'ticker',
-              lower: [ticker],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ticker',
+                lower: [],
+                upper: [ticker],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ticker',
+                lower: [ticker],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'ticker',
-              lower: [ticker],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'ticker',
-              lower: [],
-              upper: [ticker],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ticker',
+                lower: [ticker],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'ticker',
+                lower: [],
+                upper: [ticker],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 }
 
-extension TransactionBlockExplorerQueryFilter on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QFilterCondition> {
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> idEqualTo(Id value) {
+extension TransactionBlockExplorerQueryFilter
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'ticker',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'ticker',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'ticker',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerLessThan(
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'ticker',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'ticker',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerBetween(
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'ticker',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -419,137 +504,176 @@ extension TransactionBlockExplorerQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'ticker',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'ticker',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'ticker',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'ticker',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'ticker',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'ticker',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-          QAfterFilterCondition>
-      tickerContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'ticker',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'ticker',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-          QAfterFilterCondition>
-      tickerMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'ticker',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'ticker',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerIsEmpty() {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'ticker',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'ticker', value: ''),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> tickerIsNotEmpty() {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  tickerIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'ticker',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'ticker', value: ''),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'url',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'url',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlGreaterThan(
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'url',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'url',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlLessThan(String value, {bool include = false, bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'url',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'url',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlBetween(
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -557,191 +681,245 @@ extension TransactionBlockExplorerQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'url',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'url',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'url',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'url',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'url',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'url',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-          QAfterFilterCondition>
-      urlContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'url',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'url',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-          QAfterFilterCondition>
-      urlMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'url',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'url',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlIsEmpty() {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'url',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'url', value: ''),
+      );
     });
   }
 
-  QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer,
-      QAfterFilterCondition> urlIsNotEmpty() {
+  QueryBuilder<
+    TransactionBlockExplorer,
+    TransactionBlockExplorer,
+    QAfterFilterCondition
+  >
+  urlIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'url',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'url', value: ''),
+      );
     });
   }
 }
 
-extension TransactionBlockExplorerQueryObject on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QFilterCondition> {}
+extension TransactionBlockExplorerQueryObject
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QFilterCondition
+        > {}
 
-extension TransactionBlockExplorerQueryLinks on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QFilterCondition> {}
+extension TransactionBlockExplorerQueryLinks
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QFilterCondition
+        > {}
 
-extension TransactionBlockExplorerQuerySortBy on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QSortBy> {
+extension TransactionBlockExplorerQuerySortBy
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QSortBy
+        > {
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      sortByTicker() {
+  sortByTicker() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticker', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      sortByTickerDesc() {
+  sortByTickerDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticker', Sort.desc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      sortByUrl() {
+  sortByUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'url', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      sortByUrlDesc() {
+  sortByUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'url', Sort.desc);
     });
   }
 }
 
-extension TransactionBlockExplorerQuerySortThenBy on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QSortThenBy> {
+extension TransactionBlockExplorerQuerySortThenBy
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QSortThenBy
+        > {
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      thenById() {
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      thenByIdDesc() {
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      thenByTicker() {
+  thenByTicker() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticker', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      thenByTickerDesc() {
+  thenByTickerDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticker', Sort.desc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      thenByUrl() {
+  thenByUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'url', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QAfterSortBy>
-      thenByUrlDesc() {
+  thenByUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'url', Sort.desc);
     });
   }
 }
 
-extension TransactionBlockExplorerQueryWhereDistinct on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QDistinct> {
+extension TransactionBlockExplorerQueryWhereDistinct
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QDistinct
+        > {
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QDistinct>
-      distinctByTicker({bool caseSensitive = true}) {
+  distinctByTicker({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'ticker', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, TransactionBlockExplorer, QDistinct>
-      distinctByUrl({bool caseSensitive = true}) {
+  distinctByUrl({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'url', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension TransactionBlockExplorerQueryProperty on QueryBuilder<
-    TransactionBlockExplorer, TransactionBlockExplorer, QQueryProperty> {
+extension TransactionBlockExplorerQueryProperty
+    on
+        QueryBuilder<
+          TransactionBlockExplorer,
+          TransactionBlockExplorer,
+          QQueryProperty
+        > {
   QueryBuilder<TransactionBlockExplorer, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
@@ -749,14 +927,14 @@ extension TransactionBlockExplorerQueryProperty on QueryBuilder<
   }
 
   QueryBuilder<TransactionBlockExplorer, String, QQueryOperations>
-      tickerProperty() {
+  tickerProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'ticker');
     });
   }
 
   QueryBuilder<TransactionBlockExplorer, String, QQueryOperations>
-      urlProperty() {
+  urlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'url');
     });

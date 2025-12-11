@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'type_adaptors/epicbox_server_model.g.dart';
 

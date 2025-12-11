@@ -9,9 +9,10 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/isar/stack_theme.dart';
-import 'theme_providers.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import 'theme_providers.dart';
 
 final coinIconProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);

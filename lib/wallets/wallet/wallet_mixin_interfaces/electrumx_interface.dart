@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 
 import '../../../db/drift/database.dart';
@@ -36,11 +37,12 @@ import 'cpfp_interface.dart';
 import 'mweb_interface.dart';
 import 'paynym_interface.dart';
 import 'rbf_interface.dart';
+import 'sign_verify_interface.dart';
 import 'view_only_option_interface.dart';
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>
-    implements ViewOnlyOptionInterface<T> {
+    implements ViewOnlyOptionInterface<T>, SignVerifyInterface {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
@@ -152,9 +154,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     if (txData.type == TxType.mweb || txData.type == TxType.mwebPegOut) {
       if (utxos == null) {
         final db = Drift.get(walletId);
-        final mwebUtxos =
-            await (db.select(db.mwebUtxos)
-              ..where((e) => e.used.equals(false))).get();
+        final mwebUtxos = await (db.select(
+          db.mwebUtxos,
+        )..where((e) => e.used.equals(false))).get();
 
         availableOutputs = mwebUtxos.map((e) => MwebInput(e)).toList();
       } else {
@@ -172,23 +174,22 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final canCPFP = this is CpfpInterface && coinControl;
 
-    final spendableOutputs =
-        availableOutputs.where((e) {
-          if (e is StandardInput) {
-            return !e.utxo.isBlocked &&
-                (e.utxo.used != true) &&
-                (canCPFP ||
-                    e.utxo.isConfirmed(
-                      currentChainHeight,
-                      cryptoCurrency.minConfirms,
-                      cryptoCurrency.minCoinbaseConfirms,
-                    ));
-          } else if (e is MwebInput) {
-            return !e.utxo.blocked && !e.utxo.used;
-          } else {
-            return false;
-          }
-        }).toList();
+    final spendableOutputs = availableOutputs.where((e) {
+      if (e is StandardInput) {
+        return !e.utxo.isBlocked &&
+            (e.utxo.used != true) &&
+            (canCPFP ||
+                e.utxo.isConfirmed(
+                  currentChainHeight,
+                  cryptoCurrency.minConfirms,
+                  cryptoCurrency.minCoinbaseConfirms,
+                ));
+      } else if (e is MwebInput) {
+        return !e.utxo.blocked && !e.utxo.used;
+      } else {
+        return false;
+      }
+    }).toList();
     final spendableSatoshiValue = spendableOutputs.fold(
       BigInt.zero,
       (p, e) => p + e.value,
@@ -296,16 +297,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final int vSizeForOneOutput;
     try {
-      vSizeForOneOutput =
-          (await buildTransaction(
-            inputsWithKeys: inputsWithKeys,
-            txData: txData.copyWith(
-              recipients: await helperRecipientsConvert(
-                [recipientAddress],
-                [satoshisBeingUsed - BigInt.one],
-              ),
-            ),
-          )).vSize!;
+      vSizeForOneOutput = (await buildTransaction(
+        inputsWithKeys: inputsWithKeys,
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress],
+            [satoshisBeingUsed - BigInt.one],
+          ),
+        ),
+      )).vSize!;
     } catch (e, s) {
       Logging.instance.e("vSizeForOneOutput: $e", error: e, stackTrace: s);
       rethrow;
@@ -316,22 +316,21 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     BigInt maxBI(BigInt a, BigInt b) => a > b ? a : b;
 
     try {
-      vSizeForTwoOutPuts =
-          (await buildTransaction(
-            inputsWithKeys: inputsWithKeys,
-            txData: txData.copyWith(
-              recipients: await helperRecipientsConvert(
-                [recipientAddress, (await changeAddress()).value],
-                [
-                  satoshiAmountToSend,
-                  maxBI(
-                    BigInt.zero,
-                    satoshisBeingUsed - (satoshiAmountToSend + BigInt.one),
-                  ),
-                ],
+      vSizeForTwoOutPuts = (await buildTransaction(
+        inputsWithKeys: inputsWithKeys,
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress, (await changeAddress()).value],
+            [
+              satoshiAmountToSend,
+              maxBI(
+                BigInt.zero,
+                satoshisBeingUsed - (satoshiAmountToSend + BigInt.one),
               ),
-            ),
-          )).vSize!;
+            ],
+          ),
+        ),
+      )).vSize!;
     } catch (e, s) {
       Logging.instance.e("vSizeForTwoOutPuts: $e", error: e, stackTrace: s);
       rethrow;
@@ -344,9 +343,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           satsPerVByte != null
               ? (satsPerVByte * vSizeForOneOutput)
               : estimateTxFee(
-                vSize: vSizeForOneOutput,
-                feeRatePerKB: selectedTxFeeRate,
-              ),
+                  vSize: vSizeForOneOutput,
+                  feeRatePerKB: selectedTxFeeRate,
+                ),
         );
     // Assume 2 outputs, one for recipient and one for change
     final feeForTwoOutputs =
@@ -355,9 +354,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           satsPerVByte != null
               ? (satsPerVByte * vSizeForTwoOutPuts)
               : estimateTxFee(
-                vSize: vSizeForTwoOutPuts,
-                feeRatePerKB: selectedTxFeeRate,
-              ),
+                  vSize: vSizeForTwoOutPuts,
+                  feeRatePerKB: selectedTxFeeRate,
+                ),
         );
 
     Logging.instance.d("feeForTwoOutputs: $feeForTwoOutputs");
@@ -405,6 +404,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           utxos: utxos,
           coinControl: coinControl,
           isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
+          overrideFeeAmount: overrideFeeAmount,
         );
       }
       throw Exception("Insufficient balance to pay transaction fee");
@@ -512,28 +512,30 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     BigInt feeForOneOutput;
     if (overrideFeeAmount == null) {
-      final int vSizeForOneOutput =
-          (await buildTransaction(
-            inputsWithKeys: inputsWithKeys,
-            txData: txData.copyWith(
-              recipients: await helperRecipientsConvert(
-                [recipientAddress],
-                [satoshisBeingUsed - BigInt.one],
-              ),
-            ),
-          )).vSize!;
+      final int vSizeForOneOutput = (await buildTransaction(
+        inputsWithKeys: inputsWithKeys,
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress],
+            [satoshisBeingUsed - BigInt.one],
+          ),
+        ),
+      )).vSize!;
       feeForOneOutput = BigInt.from(
         satsPerVByte != null
             ? (satsPerVByte * vSizeForOneOutput)
             : estimateTxFee(
-              vSize: vSizeForOneOutput,
-              feeRatePerKB: feeRatePerKB,
-            ),
+                vSize: vSizeForOneOutput,
+                feeRatePerKB: feeRatePerKB,
+              ),
       );
 
       if (satsPerVByte == null) {
-        final roughEstimate =
-            roughFeeEstimate(inputsWithKeys.length, 1, feeRatePerKB).raw;
+        final roughEstimate = roughFeeEstimate(
+          inputsWithKeys.length,
+          1,
+          feeRatePerKB,
+        ).raw;
         if (feeForOneOutput < roughEstimate) {
           feeForOneOutput = roughEstimate;
         }
@@ -603,8 +605,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               final code = await (this as PaynymInterface)
                   .paymentCodeStringByKey(address.otherData!);
 
-              final bip47base =
-                  await (this as PaynymInterface).getBip47BaseNode();
+              final bip47base = await (this as PaynymInterface)
+                  .getBip47BaseNode();
 
               final privateKey = await (this as PaynymInterface)
                   .getPrivateKeyForPaynymReceivingAddress(
@@ -663,10 +665,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     );
 
     // TODO: [prio=high]: check this opt in rbf
-    final sequence =
-        this is RbfInterface && (this as RbfInterface).flagOptInRBF
-            ? 0xffffffff - 10
-            : 0xffffffff - 1;
+    final sequence = this is RbfInterface && (this as RbfInterface).flagOptInRBF
+        ? 0xffffffff - 10
+        : 0xffffffff - 1;
 
     bool isMweb = false;
     bool hasNonWitnessInput = false;
@@ -906,44 +907,43 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       raw: clTx.toHex(),
       // dirty shortcut for peercoin's weirdness
       vSize: this is PeercoinWallet ? clTx.size : clTx.vSize(),
-      tempTx:
-          txData.type == TxType.mwebPegIn
-              ? null
-              : txData.type.isMweb()
-              ? TransactionV2(
-                walletId: walletId,
-                blockHash: null,
-                hash: clTx.hashHex,
-                txid: clTx.txid,
-                height: null,
-                timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
-                inputs: List.unmodifiable(tempInputs),
-                outputs: List.unmodifiable(tempOutputs),
-                version: clTx.version,
-                type: TransactionType.outgoing,
-                subType: TransactionSubType.mweb,
-                otherData: null,
-              )
-              : TransactionV2(
-                walletId: walletId,
-                blockHash: null,
-                hash: clTx.hashHex,
-                txid: clTx.txid,
-                height: null,
-                timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
-                inputs: List.unmodifiable(tempInputs),
-                outputs: List.unmodifiable(tempOutputs),
-                version: clTx.version,
-                type:
-                    tempOutputs
-                                .map((e) => e.walletOwns)
-                                .fold(true, (p, e) => p &= e) &&
-                            txData.paynymAccountLite == null
-                        ? TransactionType.sentToSelf
-                        : TransactionType.outgoing,
-                subType: TransactionSubType.none,
-                otherData: null,
-              ),
+      tempTx: txData.type == TxType.mwebPegIn
+          ? null
+          : txData.type.isMweb()
+          ? TransactionV2(
+              walletId: walletId,
+              blockHash: null,
+              hash: clTx.hashHex,
+              txid: clTx.txid,
+              height: null,
+              timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+              inputs: List.unmodifiable(tempInputs),
+              outputs: List.unmodifiable(tempOutputs),
+              version: clTx.version,
+              type: TransactionType.outgoing,
+              subType: TransactionSubType.mweb,
+              otherData: null,
+            )
+          : TransactionV2(
+              walletId: walletId,
+              blockHash: null,
+              hash: clTx.hashHex,
+              txid: clTx.txid,
+              height: null,
+              timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+              inputs: List.unmodifiable(tempInputs),
+              outputs: List.unmodifiable(tempOutputs),
+              version: clTx.version,
+              type:
+                  tempOutputs
+                          .map((e) => e.walletOwns)
+                          .fold(true, (p, e) => p &= e) &&
+                      txData.paynymAccountLite == null
+                  ? TransactionType.sentToSelf
+                  : TransactionType.outgoing,
+              subType: TransactionSubType.none,
+              otherData: null,
+            ),
     );
   }
 
@@ -1022,21 +1022,20 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<void> updateElectrumX() async {
-    final failovers =
-        nodeService
-            .failoverNodesFor(currency: cryptoCurrency)
-            .map(
-              (e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-                torEnabled: e.torEnabled,
-                clearnetEnabled: e.clearnetEnabled,
-              ),
-            )
-            .toList();
+    final failovers = nodeService
+        .failoverNodesFor(currency: cryptoCurrency)
+        .map(
+          (e) => ElectrumXNode(
+            address: e.host,
+            port: e.port,
+            name: e.name,
+            id: e.id,
+            useSSL: e.useSSL,
+            torEnabled: e.torEnabled,
+            clearnetEnabled: e.clearnetEnabled,
+          ),
+        )
+        .toList();
 
     final newNode = await _getCurrentElectrumXNode();
     try {
@@ -1073,7 +1072,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   ) async {
     final List<Address> addressArray = [];
     int gapCounter = 0;
-    int highestIndexWithHistory = 0;
+    int highestIndexWithHistory = -1;
 
     for (
       int index = 0;
@@ -1117,10 +1116,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           publicKey: keys.publicKey.data,
           type: addressData.addressType,
           derivationIndex: index + j,
-          derivationPath:
-              isViewOnly ? null : (DerivationPath()..value = derivePath),
-          subType:
-              chain == 0 ? AddressSubType.receiving : AddressSubType.change,
+          derivationPath: isViewOnly
+              ? null
+              : (DerivationPath()..value = derivePath),
+          subType: chain == 0
+              ? AddressSubType.receiving
+              : AddressSubType.change,
         );
 
         addressArray.add(address);
@@ -1162,6 +1163,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final List<Address> addressArray = [];
     int gapCounter = 0;
     int index = 0;
+    int highestIndexWithHistory = -1;
 
     for (; gapCounter < cryptoCurrency.maxUnusedAddressGap; index++) {
       Logging.instance.d(
@@ -1198,8 +1200,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         publicKey: keys.publicKey.data,
         type: addressData.addressType,
         derivationIndex: index,
-        derivationPath:
-            isViewOnly ? null : (DerivationPath()..value = derivePath),
+        derivationPath: isViewOnly
+            ? null
+            : (DerivationPath()..value = derivePath),
         subType: chain == 0 ? AddressSubType.receiving : AddressSubType.change,
       );
 
@@ -1210,10 +1213,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         ),
       );
 
+      addressArray.add(address);
+
       // check and add appropriate addresses
       if (count > 0) {
-        // add address to array
-        addressArray.add(address);
+        highestIndexWithHistory = index;
         // reset counter
         gapCounter = 0;
         // add info to derivations
@@ -1223,7 +1227,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    return (addresses: addressArray, index: index);
+    return (addresses: addressArray, index: highestIndexWithHistory);
   }
 
   Future<List<Map<String, dynamic>>> fetchHistory(
@@ -1390,21 +1394,18 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast:
-            Amount.fromDecimal(
-              fast,
-              fractionDigits: info.coin.fractionDigits,
-            ).raw,
-        medium:
-            Amount.fromDecimal(
-              medium,
-              fractionDigits: info.coin.fractionDigits,
-            ).raw,
-        slow:
-            Amount.fromDecimal(
-              slow,
-              fractionDigits: info.coin.fractionDigits,
-            ).raw,
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: info.coin.fractionDigits,
+        ).raw,
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: info.coin.fractionDigits,
+        ).raw,
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: info.coin.fractionDigits,
+        ).raw,
       );
 
       Logging.instance.d("fetched fees: $feeObject");
@@ -1477,7 +1478,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
-    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) {
+    if (isViewOnly &&
+        (viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            viewOnlyType == ViewOnlyWalletType.spark)) {
       return;
     }
 
@@ -1532,7 +1535,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkChangeAddressForTransactions() async {
-    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) {
+    if (isViewOnly &&
+        (viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            viewOnlyType == ViewOnlyWalletType.spark)) {
       return;
     }
 
@@ -1641,57 +1646,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           Future.wait(changeFutures),
         ]);
 
-        final receiveResults = futuresResult[0];
-        final changeResults = futuresResult[1];
-
-        final List<Address> addressesToStore = [];
-
-        int highestReceivingIndexWithHistory = 0;
-
-        for (final tuple in receiveResults) {
-          if (tuple.addresses.isEmpty) {
-            await checkReceivingAddressForTransactions();
-          } else {
-            highestReceivingIndexWithHistory = max(
-              tuple.index,
-              highestReceivingIndexWithHistory,
-            );
-            addressesToStore.addAll(tuple.addresses);
-          }
-        }
-
-        int highestChangeIndexWithHistory = 0;
-        // If restoring a wallet that never sent any funds with change, then set changeArray
-        // manually. If we didn't do this, it'd store an empty array.
-        for (final tuple in changeResults) {
-          if (tuple.addresses.isEmpty) {
-            await checkChangeAddressForTransactions();
-          } else {
-            highestChangeIndexWithHistory = max(
-              tuple.index,
-              highestChangeIndexWithHistory,
-            );
-            addressesToStore.addAll(tuple.addresses);
-          }
-        }
-
-        // remove extra addresses to help minimize risk of creating a large gap
-        addressesToStore.removeWhere(
-          (e) =>
-              e.subType == AddressSubType.change &&
-              e.derivationIndex > highestChangeIndexWithHistory,
-        );
-        addressesToStore.removeWhere(
-          (e) =>
-              e.subType == AddressSubType.receiving &&
-              e.derivationIndex > highestReceivingIndexWithHistory,
-        );
+        final List<Address> addressesToStore = processGapCheckResults([
+          ...futuresResult[0],
+          ...futuresResult[1],
+        ]);
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
         if (this is PaynymInterface) {
-          final notificationAddress =
-              await (this as PaynymInterface).getMyNotificationAddress();
+          final notificationAddress = await (this as PaynymInterface)
+              .getMyNotificationAddress();
 
           await (this as BitcoinWallet).updateTransactions(
             overrideAddresses: [notificationAddress],
@@ -1823,19 +1787,18 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(
-        usedUTXOs:
-            txData.usedUTXOs!.map((e) {
-              if (e is StandardInput) {
-                return StandardInput(
-                  e.utxo.copyWith(used: true),
-                  derivePathType: e.derivePathType,
-                );
-              } else if (e is MwebInput) {
-                return MwebInput(e.utxo.copyWith(used: true));
-              } else {
-                return e;
-              }
-            }).toList(),
+        usedUTXOs: txData.usedUTXOs!.map((e) {
+          if (e is StandardInput) {
+            return StandardInput(
+              e.utxo.copyWith(used: true),
+              derivePathType: e.derivePathType,
+            );
+          } else if (e is MwebInput) {
+            return MwebInput(e.utxo.copyWith(used: true));
+          } else {
+            return e;
+          }
+        }).toList(),
 
         // TODO revisit setting these both
         txHash: txHash,
@@ -1869,8 +1832,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       final balance =
           txData.type == TxType.mweb || txData.type == TxType.mwebPegOut
-              ? info.cachedBalanceSecondary
-              : info.cachedBalance;
+          ? info.cachedBalanceSecondary
+          : info.cachedBalance;
       final feeRateType = txData.feeRateType;
       final customSatsPerVByte = txData.satsPerVByte;
       final feeRateAmount = txData.feeRateAmount;
@@ -1979,6 +1942,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         final data = await (this as MwebInterface).processMwebTransaction(
           mwebData,
         );
+        Logging.instance.d("prepare MWEB send: $data");
         return data.copyWith(fee: fee);
       }
 
@@ -2037,6 +2001,57 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  @override
+  Future<String> signMessage(
+    final String message, {
+    required final Address address,
+  }) async {
+    if (isViewOnly) {
+      throw Exception("Cannot sign a message in a view only wallet");
+    }
+
+    final root = await getRootHDNode();
+    final keyPair = root.derivePath(address.derivationPath!.value);
+
+    final signed = coinlib.MessageSignature.sign(
+      key: keyPair.privateKey,
+      message: message,
+      prefix: _cleanEncodedPrefixLength(
+        cryptoCurrency.networkParams.messagePrefix,
+      ),
+    );
+
+    return base64Encode(signed.signature.compact);
+  }
+
+  @override
+  Future<bool> verifyMessage(
+    final String message, {
+    required final String address,
+    required final String signature,
+  }) async {
+    final signed = coinlib.MessageSignature.fromBase64(signature);
+
+    coinlib.Address clAddress;
+    try {
+      clAddress = coinlib.Address.fromString(
+        normalizeAddress(address),
+        cryptoCurrency.networkParams,
+      );
+    } catch (e, s) {
+      Logging.instance.i("$e\n$s");
+      return false;
+    }
+
+    return signed.verifyAddress(
+      address: clAddress,
+      message: message,
+      prefix: _cleanEncodedPrefixLength(
+        cryptoCurrency.networkParams.messagePrefix,
+      ),
+    );
+  }
+
   // ===========================================================================
   // ========== Interface functions ============================================
 
@@ -2057,6 +2072,22 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   // ===========================================================================
   // ========== private helpers ================================================
+
+  String _cleanEncodedPrefixLength(String prefix) {
+    final messagePrefixBytes =
+        cryptoCurrency.networkParams.messagePrefix.toUint8ListFromUtf8;
+    // Check if prefix already has length encoded and remove as coinlib
+    // recalculates it. Really not ideal....
+    // TODO: clean up cryptoCurrency.networkParams.messagePrefix once its
+    // determined that every usage of messagePrefix does not expect the length
+    // prefixed.
+    final ignoreFirstByte =
+        messagePrefixBytes.first == messagePrefixBytes.length - 1;
+    return (ignoreFirstByte
+            ? messagePrefixBytes.sublist(1)
+            : messagePrefixBytes)
+        .toUtf8String;
+  }
 
   List<UTXO> _spendableUTXOs(List<UTXO> utxos) {
     return utxos
@@ -2112,6 +2143,24 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     return address;
   }
 
+  List<Address> processGapCheckResults(
+    List<({int index, List<Address> addresses})> results,
+  ) {
+    final List<Address> result = [];
+    for (final tuple in results) {
+      if (tuple.addresses.isNotEmpty) {
+        int highestIndexWithHistory = -1;
+        highestIndexWithHistory = max(tuple.index, highestIndexWithHistory);
+
+        result.addAll(
+          tuple.addresses.where(
+            (e) => e.derivationIndex <= highestIndexWithHistory,
+          ),
+        );
+      }
+    }
+    return result;
+  }
   // ============== View only ==================================================
 
   @override
@@ -2119,7 +2168,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final data = await getViewOnlyWalletData();
 
     final coinlib.HDKey? root;
-    if (data is AddressViewOnlyWalletData) {
+    if (data is AddressViewOnlyWalletData || data is SparkViewOnlyWalletData) {
       root = null;
     } else {
       if ((data as ExtendedKeysViewOnlyWalletData).xPubs.length != 1) {
@@ -2172,11 +2221,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               receiveFutures.add(
                 canBatch
                     ? checkGapsBatched(
-                      txCountBatchSize,
-                      root,
-                      type,
-                      receiveChain,
-                    )
+                        txCountBatchSize,
+                        root,
+                        type,
+                        receiveChain,
+                      )
                     : checkGapsLinearly(root, type, receiveChain),
               );
             }
@@ -2196,11 +2245,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               changeFutures.add(
                 canBatch
                     ? checkGapsBatched(
-                      txCountBatchSize,
-                      root,
-                      type,
-                      changeChain,
-                    )
+                        txCountBatchSize,
+                        root,
+                        type,
+                        changeChain,
+                      )
                     : checkGapsLinearly(root, type, changeChain),
               );
             }
@@ -2212,48 +2261,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             Future.wait(changeFutures),
           ]);
 
-          final receiveResults = futuresResult[0];
-          final changeResults = futuresResult[1];
-
-          int highestReceivingIndexWithHistory = 0;
-
-          for (final tuple in receiveResults) {
-            if (tuple.addresses.isEmpty) {
-              await checkReceivingAddressForTransactions();
-            } else {
-              highestReceivingIndexWithHistory = max(
-                tuple.index,
-                highestReceivingIndexWithHistory,
-              );
-              addressesToStore.addAll(tuple.addresses);
-            }
-          }
-
-          int highestChangeIndexWithHistory = 0;
-          // If restoring a wallet that never sent any funds with change, then set changeArray
-          // manually. If we didn't do this, it'd store an empty array.
-          for (final tuple in changeResults) {
-            if (tuple.addresses.isEmpty) {
-              await checkChangeAddressForTransactions();
-            } else {
-              highestChangeIndexWithHistory = max(
-                tuple.index,
-                highestChangeIndexWithHistory,
-              );
-              addressesToStore.addAll(tuple.addresses);
-            }
-          }
-
-          // remove extra addresses to help minimize risk of creating a large gap
-          addressesToStore.removeWhere(
-            (e) =>
-                e.subType == AddressSubType.change &&
-                e.derivationIndex > highestChangeIndexWithHistory,
-          );
-          addressesToStore.removeWhere(
-            (e) =>
-                e.subType == AddressSubType.receiving &&
-                e.derivationIndex > highestReceivingIndexWithHistory,
+          addressesToStore.addAll(
+            processGapCheckResults([...futuresResult[0], ...futuresResult[1]]),
           );
         } else {
           final clAddress = coinlib.Address.fromString(

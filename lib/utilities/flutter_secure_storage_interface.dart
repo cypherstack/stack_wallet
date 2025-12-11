@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
 
 import '../models/isar/models/encrypted_string_value.dart';
@@ -81,9 +81,7 @@ class DesktopSecureStore {
     await isar.close();
   }
 
-  Future<String?> read({
-    required String key,
-  }) async {
+  Future<String?> read({required String key}) async {
     final value =
         await isar.encryptedStringValues.filter().keyEqualTo(key).findFirst();
 
@@ -95,10 +93,7 @@ class DesktopSecureStore {
     return await handler.decryptValue(key, value.value);
   }
 
-  Future<void> write({
-    required String key,
-    required String? value,
-  }) async {
+  Future<void> write({required String key, required String? value}) async {
     if (value == null) {
       // here we assume that a value is to be deleted
       await isar.writeTxn(() async {
@@ -117,9 +112,7 @@ class DesktopSecureStore {
     }
   }
 
-  Future<void> delete({
-    required String key,
-  }) async {
+  Future<void> delete({required String key}) async {
     await isar.writeTxn(() async {
       await isar.encryptedStringValues.deleteByKey(key);
     });
@@ -138,16 +131,12 @@ class SecureStorageWrapper implements SecureStorageInterface {
   @override
   dynamic get store => _store;
 
-  const SecureStorageWrapper({
-    required dynamic store,
-    required bool isDesktop,
-  })  : assert(
-          isDesktop
-              ? store is DesktopSecureStore
-              : store is FlutterSecureStorage,
-        ),
-        _store = store,
-        _isDesktop = isDesktop;
+  const SecureStorageWrapper({required dynamic store, required bool isDesktop})
+    : assert(
+        isDesktop ? store is DesktopSecureStore : store is FlutterSecureStorage,
+      ),
+      _store = store,
+      _isDesktop = isDesktop;
 
   @override
   Future<String?> read({

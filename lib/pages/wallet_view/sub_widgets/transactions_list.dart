@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../models/isar/models/isar_models.dart';
@@ -36,10 +36,7 @@ import '../wallet_view.dart';
 import 'no_transactions_found.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
-  const TransactionsList({
-    super.key,
-    required this.walletId,
-  });
+  const TransactionsList({super.key, required this.walletId});
 
   final String walletId;
 
@@ -57,23 +54,15 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      topLeft: Radius.circular(Constants.size.circularBorderRadius),
+      topRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   BorderRadius get _borderRadiusLast {
     return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
+      bottomRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
@@ -120,58 +109,62 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                 if (Util.isDesktop) {
                   await showDialog<void>(
                     context: context,
-                    builder: (context) => Navigator(
-                      initialRoute: TradeDetailsView.routeName,
-                      onGenerateRoute: RouteGenerator.generateRoute,
-                      onGenerateInitialRoutes: (_, __) {
-                        return [
-                          FadePageRoute(
-                            DesktopDialog(
-                              maxHeight: null,
-                              maxWidth: 580,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 32,
-                                      bottom: 16,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Trade details",
-                                          style: STextStyles.desktopH3(context),
+                    builder:
+                        (context) => Navigator(
+                          initialRoute: TradeDetailsView.routeName,
+                          onGenerateRoute: RouteGenerator.generateRoute,
+                          onGenerateInitialRoutes: (_, __) {
+                            return [
+                              FadePageRoute(
+                                DesktopDialog(
+                                  maxHeight: null,
+                                  maxWidth: 580,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 32,
+                                          bottom: 16,
                                         ),
-                                        DesktopDialogCloseButton(
-                                          onPressedOverride: Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Trade details",
+                                              style: STextStyles.desktopH3(
+                                                context,
+                                              ),
+                                            ),
+                                            DesktopDialogCloseButton(
+                                              onPressedOverride:
+                                                  Navigator.of(
+                                                    context,
+                                                    rootNavigator: true,
+                                                  ).pop,
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      Flexible(
+                                        child: TradeDetailsView(
+                                          tradeId: trade.tradeId,
+                                          transactionIfSentFromStack: tx,
+                                          walletName: walletName,
+                                          walletId: widget.walletId,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Flexible(
-                                    child: TradeDetailsView(
-                                      tradeId: trade.tradeId,
-                                      transactionIfSentFromStack: tx,
-                                      walletName: walletName,
-                                      walletId: widget.walletId,
-                                    ),
-                                  ),
-                                ],
+                                ),
+                                const RouteSettings(
+                                  name: TradeDetailsView.routeName,
+                                ),
                               ),
-                            ),
-                            const RouteSettings(
-                              name: TradeDetailsView.routeName,
-                            ),
-                          ),
-                        ];
-                      },
-                    ),
+                            ];
+                          },
+                        ),
                   );
                 } else {
                   unawaited(
@@ -209,13 +202,14 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   void initState() {
-    _query = ref
-        .read(mainDBProvider)
-        .isar
-        .transactions
-        .where()
-        .walletIdEqualTo(widget.walletId)
-        .sortByTimestampDesc();
+    _query =
+        ref
+            .read(mainDBProvider)
+            .isar
+            .transactions
+            .where()
+            .walletIdEqualTo(widget.walletId)
+            .sortByTimestampDesc();
 
     _subscription = _query.watch().listen((event) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -252,15 +246,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           return const Column(
             children: [
               Spacer(),
-              Center(
-                child: LoadingIndicator(
-                  height: 50,
-                  width: 50,
-                ),
-              ),
-              Spacer(
-                flex: 4,
-              ),
+              Center(child: LoadingIndicator(height: 50, width: 50)),
+              Spacer(flex: 4),
             ],
           );
         }
@@ -278,64 +265,66 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             onRefresh: () async {
               await ref.read(pWallets).getWallet(widget.walletId).refresh();
             },
-            child: Util.isDesktop
-                ? ListView.separated(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      if (_transactions2.length == 1) {
-                        radius = BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        );
-                      } else if (index == _transactions2.length - 1) {
-                        radius = _borderRadiusLast;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius, coin, height);
-                    },
-                    separatorBuilder: (context, index) {
-                      return Container(
-                        width: double.infinity,
-                        height: 2,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                      );
-                    },
-                    itemCount: _transactions2.length,
-                  )
-                : ListView.builder(
-                    itemCount: _transactions2.length,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      bool shouldWrap = false;
-                      if (_transactions2.length == 1) {
-                        radius = BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        );
-                      } else if (index == _transactions2.length - 1) {
-                        radius = _borderRadiusLast;
-                        shouldWrap = true;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = _transactions2[index];
-                      if (shouldWrap) {
-                        return Column(
-                          children: [
-                            itemBuilder(context, tx, radius, coin, height),
-                            const SizedBox(
-                              height: WalletView.navBarHeight + 14,
-                            ),
-                          ],
-                        );
-                      } else {
+            child:
+                Util.isDesktop
+                    ? ListView.separated(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        BorderRadius? radius;
+                        if (_transactions2.length == 1) {
+                          radius = BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          );
+                        } else if (index == _transactions2.length - 1) {
+                          radius = _borderRadiusLast;
+                        } else if (index == 0) {
+                          radius = _borderRadiusFirst;
+                        }
+                        final tx = _transactions2[index];
                         return itemBuilder(context, tx, radius, coin, height);
-                      }
-                    },
-                  ),
+                      },
+                      separatorBuilder: (context, index) {
+                        return Container(
+                          width: double.infinity,
+                          height: 2,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                        );
+                      },
+                      itemCount: _transactions2.length,
+                    )
+                    : ListView.builder(
+                      itemCount: _transactions2.length,
+                      itemBuilder: (context, index) {
+                        BorderRadius? radius;
+                        bool shouldWrap = false;
+                        if (_transactions2.length == 1) {
+                          radius = BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          );
+                        } else if (index == _transactions2.length - 1) {
+                          radius = _borderRadiusLast;
+                          shouldWrap = true;
+                        } else if (index == 0) {
+                          radius = _borderRadiusFirst;
+                        }
+                        final tx = _transactions2[index];
+                        if (shouldWrap) {
+                          return Column(
+                            children: [
+                              itemBuilder(context, tx, radius, coin, height),
+                              const SizedBox(
+                                height: WalletView.navBarHeight + 14,
+                              ),
+                            ],
+                          );
+                        } else {
+                          return itemBuilder(context, tx, radius, coin, height);
+                        }
+                      },
+                    ),
           );
         }
       },

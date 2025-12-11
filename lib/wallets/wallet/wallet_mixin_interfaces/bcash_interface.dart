@@ -1,6 +1,6 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitbox/src/utils/network.dart' as bitbox_utils;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';

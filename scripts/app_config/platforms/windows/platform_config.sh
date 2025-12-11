@@ -12,7 +12,9 @@ for (( i=0; i<=2; i++ )); do
   fi
 done
 
-# Configure Windows for Duo.
+# Configure Windows
 sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_0}"
 sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_1}"
 sed -i "s/${APP_BASIC_NAME_PLACEHOLDER}/${NEW_BASIC_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_2}"
+sed -i "s/INCLUDE_EPIC_SO_FLAG/${INCLUDE_EPIC_SO}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_2}"
+sed -i "s/INCLUDE_MWC_SO_FLAG/${INCLUDE_MWC_SO}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_2}"

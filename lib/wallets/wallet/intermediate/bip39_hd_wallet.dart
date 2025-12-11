@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -48,8 +48,9 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       ...privateKey.data,
       if (privateKey.compressed) 1,
     ];
-    final checksum =
-        coinlib.sha256DoubleHash(Uint8List.fromList(data)).sublist(0, 4);
+    final checksum = coinlib
+        .sha256DoubleHash(Uint8List.fromList(data))
+        .sublist(0, 4);
     data.addAll(checksum);
 
     return Uint8List.fromList(data).toBase58Encoded;
@@ -64,13 +65,14 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       );
     }
 
-    final current = await mainDB.isar.addresses
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .typeEqualTo(derivePathType.getAddressType())
-        .sortByDerivationIndexDesc()
-        .findFirst();
+    final current =
+        await mainDB.isar.addresses
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .typeEqualTo(derivePathType.getAddressType())
+            .sortByDerivationIndexDesc()
+            .findFirst();
     final index = current == null ? 0 : current.derivationIndex + 1;
     const chain = 0; // receiving address
     final address = await _generateAddress(
@@ -84,31 +86,25 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
   @override
   List<FilterOperation> get standardReceivingAddressFilters => [
-        // view only only have a single derivation path currently
-        if (!isViewOnly)
-          FilterCondition.equalTo(
-            property: r"type",
-            value: info.mainAddressType,
-          ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: AddressSubType.receiving,
-        ),
-      ];
+    // view only only have a single derivation path currently
+    if (!isViewOnly)
+      FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.receiving,
+    ),
+  ];
 
   @override
   List<FilterOperation> get standardChangeAddressFilters => [
-        // view only only have a single derivation path currently
-        if (!isViewOnly)
-          FilterCondition.equalTo(
-            property: r"type",
-            value: info.mainAddressType,
-          ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: AddressSubType.change,
-        ),
-      ];
+    // view only only have a single derivation path currently
+    if (!isViewOnly)
+      FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.change,
+    ),
+  ];
 
   /// Generates a receiving address. If none
   /// are in the current wallet db it will generate at index 0, otherwise the
@@ -214,9 +210,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       }
     }
 
-    throw Exception(
-      "_viewOnlyPathHelper viewOnly failed to match paths",
-    );
+    throw Exception("_viewOnlyPathHelper viewOnly failed to match paths");
   }
 
   DerivePathType _fromAddressType(AddressType addressType) {

@@ -35,7 +35,8 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../home_view/home_view.dart';
-import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tdv;
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
@@ -236,7 +237,7 @@ class _DeleteWalletRecoveryPhraseViewState
                                     detail: widget.frostWalletData!.config,
                                     button:
                                         Util.isDesktop
-                                            ? IconCopyButton(
+                                            ? tdv.IconCopyButton(
                                               data:
                                                   widget
                                                       .frostWalletData!
@@ -255,7 +256,7 @@ class _DeleteWalletRecoveryPhraseViewState
                                     detail: widget.frostWalletData!.keys,
                                     button:
                                         Util.isDesktop
-                                            ? IconCopyButton(
+                                            ? tdv.IconCopyButton(
                                               data:
                                                   widget.frostWalletData!.keys,
                                             )
@@ -283,7 +284,7 @@ class _DeleteWalletRecoveryPhraseViewState
                                               .config,
                                       button:
                                           Util.isDesktop
-                                              ? IconCopyButton(
+                                              ? tdv.IconCopyButton(
                                                 data:
                                                     widget
                                                         .frostWalletData!
@@ -306,7 +307,7 @@ class _DeleteWalletRecoveryPhraseViewState
                                           widget.frostWalletData!.prevGen!.keys,
                                       button:
                                           Util.isDesktop
-                                              ? IconCopyButton(
+                                              ? tdv.IconCopyButton(
                                                 data:
                                                     widget
                                                         .frostWalletData!

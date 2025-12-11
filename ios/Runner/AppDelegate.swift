@@ -7,8 +7,6 @@ import Flutter
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    let dummy = get_mnemonic()
-    print(dummy)
     var flutter_native_splash = 1
     UIApplication.shared.isStatusBarHidden = false
 

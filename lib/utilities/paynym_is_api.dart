@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:tuple/tuple.dart';
 
+import '../app_config.dart';
 import '../models/paynym/created_paynym.dart';
 import '../models/paynym/paynym_account.dart';
 import '../models/paynym/paynym_claim.dart';
@@ -44,14 +45,16 @@ class PaynymIsApi {
 
     final headers = {
       'Content-Type': 'application/json; charset=UTF-8',
-      'content-length':
-          contentLength.toString(), // Set the Content-Length header.
+      'content-length': contentLength
+          .toString(), // Set the Content-Length header.
     }..addAll(additionalHeaders);
     final response = await client.post(
       url: uri,
       headers: headers,
       body: jsonEncode(body),
-      proxyInfo: Prefs.instance.useTor
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
           ? TorService.sharedInstance.getProxyInfo()
           : null,
     );
@@ -414,13 +417,8 @@ class PaynymIsApi {
   ) async {
     final result = await _post(
       "/follow",
-      {
-        "target": target,
-        "signature": signature,
-      },
-      {
-        "auth-token": token,
-      },
+      {"target": target, "signature": signature},
+      {"auth-token": token},
     );
 
     String message;
@@ -495,13 +493,8 @@ class PaynymIsApi {
   ) async {
     final result = await _post(
       "/unfollow",
-      {
-        "target": target,
-        "signature": signature,
-      },
-      {
-        "auth-token": token,
-      },
+      {"target": target, "signature": signature},
+      {"auth-token": token},
     );
 
     String message;
@@ -579,14 +572,8 @@ class PaynymIsApi {
   ) async {
     final result = await _post(
       "/nym/add",
-      {
-        "nym": nym,
-        "code": code,
-        "signature": signature,
-      },
-      {
-        "auth-token": token,
-      },
+      {"nym": nym, "code": code, "signature": signature},
+      {"auth-token": token},
     );
 
     String message;

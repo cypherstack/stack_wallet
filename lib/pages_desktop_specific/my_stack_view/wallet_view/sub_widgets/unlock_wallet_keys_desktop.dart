@@ -23,8 +23,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -61,12 +60,11 @@ class _UnlockWalletKeysDesktopState
     unawaited(
       showDialog(
         context: context,
-        builder:
-            (context) => const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [LoadingIndicator(width: 200, height: 200)],
-            ),
+        builder: (context) => const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [LoadingIndicator(width: 200, height: 200)],
+        ),
       ),
     );
 
@@ -108,10 +106,9 @@ class _UnlockWalletKeysDesktopState
               myName: wallet.frostInfo.myName,
               config: results[1]!,
               keys: results[0]!,
-              prevGen:
-                  results[2] == null || results[3] == null
-                      ? null
-                      : (config: results[3]!, keys: results[2]!),
+              prevGen: results[2] == null || results[3] == null
+                  ? null
+                  : (config: results[3]!, keys: results[2]!),
             );
           }
         } else {
@@ -131,9 +128,7 @@ class _UnlockWalletKeysDesktopState
         keyData = await wallet.getViewOnlyWalletData();
       } else if (wallet is ExtendedKeysInterface) {
         keyData = await wallet.getXPrivs();
-      } else if (wallet is LibMoneroWallet) {
-        keyData = await wallet.getKeys();
-      } else if (wallet is LibSalviumWallet) {
+      } else if (wallet is CryptonoteWallet) {
         keyData = await wallet.getKeys();
       }
 
@@ -191,8 +186,10 @@ class _UnlockWalletKeysDesktopState
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               DesktopDialogCloseButton(
-                onPressedOverride:
-                    Navigator.of(context, rootNavigator: true).pop,
+                onPressedOverride: Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop,
               ),
             ],
           ),
@@ -230,53 +227,53 @@ class _UnlockWalletKeysDesktopState
                     enterPassphrase();
                   }
                 },
-                decoration: standardInputDecoration(
-                  "Enter password",
-                  passwordFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon: UnconstrainedBox(
-                    child: SizedBox(
-                      height: 70,
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            key: const Key(
-                              "enterUnlockWalletKeysDesktopFieldShowPasswordButtonKey",
-                            ),
-                            onTap: () async {
-                              setState(() {
-                                hidePassword = !hidePassword;
-                              });
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(1000),
-                              ),
-                              height: 32,
-                              width: 32,
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  hidePassword
-                                      ? Assets.svg.eye
-                                      : Assets.svg.eyeSlash,
-                                  color:
-                                      Theme.of(
+                decoration:
+                    standardInputDecoration(
+                      "Enter password",
+                      passwordFocusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon: UnconstrainedBox(
+                        child: SizedBox(
+                          height: 70,
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                key: const Key(
+                                  "enterUnlockWalletKeysDesktopFieldShowPasswordButtonKey",
+                                ),
+                                onTap: () async {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(1000),
+                                  ),
+                                  height: 32,
+                                  width: 32,
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                      hidePassword
+                                          ? Assets.svg.eye
+                                          : Assets.svg.eyeSlash,
+                                      color: Theme.of(
                                         context,
                                       ).extension<StackColors>()!.textDark3,
-                                  width: 24,
-                                  height: 19,
+                                      width: 24,
+                                      height: 19,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(width: 10),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
                 onChanged: (newValue) {
                   setState(() {
                     continueEnabled = newValue.isNotEmpty;

@@ -1,18 +1,15 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:cs_monero/cs_monero.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mutex/mutex.dart';
 
-import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../utilities/logger.dart';
+import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../wl_gen/interfaces/cs_monero_interface.dart'
+    show CsRecipient, CsOutput;
 
-enum ChurnStatus {
-  waiting,
-  running,
-  failed,
-  success;
-}
+enum ChurnStatus { waiting, running, failed, success }
 
 class ChurningService extends ChangeNotifier {
   // stack only uses account 0 at this point in time
@@ -20,8 +17,8 @@ class ChurningService extends ChangeNotifier {
 
   ChurningService({required this.wallet});
 
-  final LibMoneroWallet wallet;
-  Wallet get csWallet => wallet.libMoneroWallet!;
+  final CryptonoteWallet wallet;
+  String get walletId => wallet.walletId;
 
   int rounds = 1; // default
   bool ignoreErrors = false; // default
@@ -35,8 +32,10 @@ class ChurningService extends ChangeNotifier {
   bool done = false;
   Object? lastSeenError;
 
-  bool _canChurn() {
-    if (csWallet.getUnlockedBalance(accountIndex: kAccount) > BigInt.zero) {
+  Future<bool> _canChurn() async {
+    if (wallet.wallet != null &&
+        await wallet.internalGetUnlockedBalance(accountIndex: kAccount) >
+            BigInt.zero) {
       return true;
     } else {
       return false;
@@ -50,7 +49,9 @@ class ChurningService extends ChangeNotifier {
       return;
     }
 
-    final outputs = await csWallet.getOutputs(refresh: true);
+    final outputs = wallet.wallet == null
+        ? <CsOutput>[]
+        : await wallet.internalGetOutputs(refresh: true);
     final required = wallet.cryptoCurrency.minConfirms;
 
     int lowestNumberOfConfirms = required;
@@ -120,21 +121,21 @@ class ChurningService extends ChangeNotifier {
     bool complete() => !continuous && roundsCompleted >= roundsToDo;
 
     while (!complete() && _running) {
-      if (_canChurn()) {
+      if (await _canChurn()) {
         waitingForUnlockedBalance = ChurnStatus.success;
         makingChurnTransaction = ChurnStatus.running;
         notifyListeners();
 
         try {
           _stopConfirmsTimer();
-          Logging.log?.i("Doing churn #${roundsCompleted + 1}");
+          Logging.instance.i("Doing churn #${roundsCompleted + 1}");
           await _churnTxSimple();
           waitingForUnlockedBalance = ChurnStatus.success;
           makingChurnTransaction = ChurnStatus.success;
           roundsCompleted++;
           notifyListeners();
         } catch (e, s) {
-          Logging.log?.e(
+          Logging.instance.e(
             "Churning round #${roundsCompleted + 1} failed",
             error: e,
             stackTrace: s,
@@ -154,7 +155,7 @@ class ChurningService extends ChangeNotifier {
           }
         }
       } else {
-        Logging.log?.i("Can't churn yet, waiting...");
+        Logging.instance.i("Can't churn yet, waiting...");
       }
 
       if (!complete() && _running) {
@@ -174,7 +175,7 @@ class ChurningService extends ChangeNotifier {
     done = true;
     _running = false;
     notifyListeners();
-    Logging.log?.i("Churning complete");
+    Logging.instance.i("Churning complete");
   }
 
   void stopChurning() {
@@ -184,24 +185,26 @@ class ChurningService extends ChangeNotifier {
     unpause();
   }
 
-  Future<void> _churnTxSimple({
-    final TransactionPriority priority = TransactionPriority.normal,
-  }) async {
-    final address = csWallet.getAddress(
+  Future<void> _churnTxSimple() async {
+    final address = await wallet.internalGetAddress(
       accountIndex: kAccount,
       addressIndex: 0,
     );
 
-    final pending = await csWallet.createTx(
-      output: Recipient(
-        address: address.value,
-        amount: BigInt.zero, // Doesn't matter if `sweep` is true
+    final height = await wallet.chainHeight;
+
+    final pending = await wallet.internalCreateTx(
+      output: CsRecipient(
+        address,
+        BigInt.zero, // Doesn't matter if `sweep` is true
       ),
-      priority: priority,
+      priority: wallet.getTxPriorityNormal(),
       accountIndex: kAccount,
       sweep: true,
+      minConfirms: wallet.cryptoCurrency.minConfirms,
+      currentHeight: height,
     );
 
-    await csWallet.commitTx(pending);
+    await wallet.internalCommitTx(pending);
   }
 }

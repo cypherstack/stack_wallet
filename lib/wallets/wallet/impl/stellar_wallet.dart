@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;
 
+import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -138,9 +139,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     final currentNode = getCurrentNode();
     HttpClient? _httpClient;
 
-    if (prefs.useTor) {
-      final ({InternetAddress host, int port}) proxyInfo =
-          TorService.sharedInstance.getProxyInfo();
+    if (AppConfig.hasFeature(AppFeature.tor) && prefs.useTor) {
+      final ({InternetAddress host, int port}) proxyInfo = TorService
+          .sharedInstance
+          .getProxyInfo();
 
       _httpClient = HttpClient();
       SocksTCPClient.assignToHttpClient(_httpClient, [
@@ -442,7 +444,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           .order(stellar.RequestBuilderOrder.DESC)
           .limit(1)
           .execute()
-          .then((value) => value.records!.first.sequence);
+          .then((value) => value.records.first.sequence);
       await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.e(
@@ -469,11 +471,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       final List<TransactionV2> transactionList = [];
       stellar.Page<stellar.OperationResponse> payments;
       try {
-        payments =
-            await (await stellarSdk).payments
-                .forAccount(myAddress.value)
-                .order(stellar.RequestBuilderOrder.DESC)
-                .execute();
+        payments = await (await stellarSdk).payments
+            .forAccount(myAddress.value)
+            .order(stellar.RequestBuilderOrder.DESC)
+            .execute();
       } catch (e) {
         if (e is stellar.ErrorResponse &&
             e.body.contains(
@@ -491,13 +492,13 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           rethrow;
         }
       }
-      for (final stellar.OperationResponse response in payments.records!) {
+      for (final stellar.OperationResponse response in payments.records) {
         // PaymentOperationResponse por;
         if (response is stellar.PaymentOperationResponse) {
           final por = response;
 
-          final addressTo = por.to!.accountId;
-          final addressFrom = por.from!.accountId;
+          final addressTo = por.to;
+          final addressFrom = por.from;
 
           final TransactionType type;
           if (addressFrom == myAddress.value) {
@@ -512,7 +513,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           final amount = Amount(
             rawValue: BigInt.parse(
               float
-                  .parse(por.amount!)
+                  .parse(por.amount)
                   .toStringAsFixed(cryptoCurrency.fractionDigits)
                   .replaceAll(".", ""),
             ),
@@ -552,28 +553,27 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           // por.transaction returns a null sometimes
           final stellar.TransactionResponse tx = await (await stellarSdk)
               .transactions
-              .transaction(por.transactionHash!);
+              .transaction(por.transactionHash);
 
           if (tx.hash.isNotEmpty) {
-            fee = tx.feeCharged!;
+            fee = tx.feeCharged;
             height = tx.ledger;
           }
 
           final otherData = {
-            "overrideFee":
-                Amount(
-                  rawValue: BigInt.from(fee),
-                  fractionDigits: cryptoCurrency.fractionDigits,
-                ).toJsonString(),
+            "overrideFee": Amount(
+              rawValue: BigInt.from(fee),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ).toJsonString(),
           };
 
           final theTransaction = TransactionV2(
             walletId: walletId,
             blockHash: "",
-            hash: por.transactionHash!,
-            txid: por.transactionHash!,
+            hash: por.transactionHash,
+            txid: por.transactionHash,
             timestamp:
-                DateTime.parse(por.createdAt!).millisecondsSinceEpoch ~/ 1000,
+                DateTime.parse(por.createdAt).millisecondsSinceEpoch ~/ 1000,
             height: height,
             inputs: inputs,
             outputs: outputs,
@@ -595,7 +595,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           final amount = Amount(
             rawValue: BigInt.parse(
               float
-                  .parse(caor.startingBalance!)
+                  .parse(caor.startingBalance)
                   .toStringAsFixed(cryptoCurrency.fractionDigits)
                   .replaceAll(".", ""),
             ),
@@ -612,9 +612,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
             valueStringSats: amount.raw.toString(),
             addresses: [
               // this is what the previous code was doing and I don't think its correct
-              caor.sourceAccount!,
+              caor.sourceAccount,
             ],
-            walletOwns: caor.sourceAccount! == myAddress.value,
+            walletOwns: caor.sourceAccount == myAddress.value,
           );
           final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
@@ -623,13 +623,13 @@ class StellarWallet extends Bip39Wallet<Stellar> {
             outpoint: null,
             addresses: [
               // this is what the previous code was doing and I don't think its correct
-              caor.sourceAccount!,
+              caor.sourceAccount,
             ],
             valueStringSats: amount.raw.toString(),
             witness: null,
             innerRedeemScriptAsm: null,
             coinbase: null,
-            walletOwns: caor.sourceAccount! == myAddress.value,
+            walletOwns: caor.sourceAccount == myAddress.value,
           );
 
           outputs.add(output);
@@ -638,28 +638,27 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           int fee = 0;
           int height = 0;
           final tx = await (await stellarSdk).transactions.transaction(
-            caor.transactionHash!,
+            caor.transactionHash,
           );
           if (tx.hash.isNotEmpty) {
-            fee = tx.feeCharged!;
+            fee = tx.feeCharged;
             height = tx.ledger;
           }
 
           final otherData = {
-            "overrideFee":
-                Amount(
-                  rawValue: BigInt.from(fee),
-                  fractionDigits: cryptoCurrency.fractionDigits,
-                ).toJsonString(),
+            "overrideFee": Amount(
+              rawValue: BigInt.from(fee),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ).toJsonString(),
           };
 
           final theTransaction = TransactionV2(
             walletId: walletId,
             blockHash: "",
-            hash: caor.transactionHash!,
-            txid: caor.transactionHash!,
+            hash: caor.transactionHash,
+            txid: caor.transactionHash,
             timestamp:
-                DateTime.parse(caor.createdAt!).millisecondsSinceEpoch ~/ 1000,
+                DateTime.parse(caor.createdAt).millisecondsSinceEpoch ~/ 1000,
             height: height,
             inputs: inputs,
             outputs: outputs,

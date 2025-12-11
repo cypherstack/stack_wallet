@@ -21,7 +21,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/prefs.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/rounded_white_container.dart';
-import 'exchange_provider_option.dart';
+import 'sorted_exchange_providers.dart';
 
 class ExchangeProviderOptions extends ConsumerStatefulWidget {
   const ExchangeProviderOptions({
@@ -94,46 +94,55 @@ class _ExchangeProviderOptionsState
 
     return RoundedWhiteContainer(
       padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),
-      borderColor:
-          isDesktop
-              ? Theme.of(context).extension<StackColors>()!.background
-              : null,
-      child: Column(
-        children: [
-          if (showChangeNow)
-            ExchangeOption(
-              exchange: ChangeNowExchange.instance,
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-            ),
-          if (showChangeNow && showTrocador)
-            isDesktop
-                ? Container(
-                  height: 1,
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                )
-                : const SizedBox(height: 16),
-          if (showTrocador)
-            ExchangeOption(
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-              exchange: TrocadorExchange.instance,
-            ),
-          if ((showChangeNow || showTrocador) && showNanswap)
-            isDesktop
-                ? Container(
-                  height: 1,
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                )
-                : const SizedBox(height: 16),
-          if (showNanswap)
-            ExchangeOption(
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-              exchange: NanswapExchange.instance,
-            ),
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.background
+          : null,
+      child: SortedExchangeProviders(
+        exchangees: [
+          if (showChangeNow) ChangeNowExchange.instance,
+          if (showTrocador) TrocadorExchange.instance,
+          if (showNanswap) NanswapExchange.instance,
         ],
+        fixedRate: widget.fixedRate,
+        reversed: widget.reversed,
       ),
+
+      // Column(
+      //   children: [
+      //     if (showChangeNow)
+      //       ExchangeOption(
+      //         exchange: ChangeNowExchange.instance,
+      //         fixedRate: widget.fixedRate,
+      //         reversed: widget.reversed,
+      //       ),
+      //     if (showChangeNow && showTrocador)
+      //       isDesktop
+      //           ? Container(
+      //             height: 1,
+      //             color: Theme.of(context).extension<StackColors>()!.background,
+      //           )
+      //           : const SizedBox(height: 16),
+      //     if (showTrocador)
+      //       ExchangeOption(
+      //         fixedRate: widget.fixedRate,
+      //         reversed: widget.reversed,
+      //         exchange: TrocadorExchange.instance,
+      //       ),
+      //     if ((showChangeNow || showTrocador) && showNanswap)
+      //       isDesktop
+      //           ? Container(
+      //             height: 1,
+      //             color: Theme.of(context).extension<StackColors>()!.background,
+      //           )
+      //           : const SizedBox(height: 16),
+      //     if (showNanswap)
+      //       ExchangeOption(
+      //         fixedRate: widget.fixedRate,
+      //         reversed: widget.reversed,
+      //         exchange: NanswapExchange.instance,
+      //       ),
+      //   ],
+      // ),
     );
   }
 }

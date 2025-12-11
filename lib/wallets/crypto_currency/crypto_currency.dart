@@ -11,6 +11,7 @@ export 'coins/dash.dart';
 export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
 export 'coins/epiccash.dart';
+export 'coins/mimblewimblecoin.dart';
 export 'coins/ethereum.dart';
 export 'coins/fact0rn.dart';
 export 'coins/firo.dart';
@@ -65,7 +66,7 @@ abstract class CryptoCurrency {
   int get minConfirms;
   int get minCoinbaseConfirms => minConfirms;
 
-  // TODO: [prio=low] could be handled differently as (at least) epiccash does not use this
+  // TODO: [prio=low] could be handled differently as (at least) epiccash/mimblewimblecoin does not use this
   String get genesisHash;
 
   bool validateAddress(String address);

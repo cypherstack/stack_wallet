@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/models/frost_wallet_info.dart';
@@ -17,6 +16,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostReshareStep2abd extends ConsumerStatefulWidget {
@@ -60,9 +60,9 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
           resharerStarts.insert(myResharerIndexIndex, myResharerStart);
         }
 
-        final result = Frost.beginReshared(
+        final result = frostInterface.beginReshared(
           myName: ref.read(pFrostResharingData).myName!,
-          resharerConfig: Frost.decodeRConfig(
+          resharerConfig: frostInterface.decodeRConfig(
             ref.read(pFrostResharingData).resharerRConfig!,
           ),
           resharerStarts: resharerStarts,
@@ -79,15 +79,13 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: "Error",
-            message: e.toString(),
-          ),
+          builder: (_) =>
+              FrostErrorDialog(title: "Error", message: e.toString()),
         );
       }
     } finally {
@@ -103,11 +101,14 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
         .isar
         .frostWalletInfo
         .getByWalletIdSync(ref.read(pFrostScaffoldArgs)!.walletId!)!;
-    final myOldIndex =
-        frostInfo.participants.indexOf(ref.read(pFrostResharingData).myName!);
+    final myOldIndex = frostInfo.participants.indexOf(
+      ref.read(pFrostResharingData).myName!,
+    );
 
-    myResharerStart =
-        ref.read(pFrostResharingData).startResharerData!.resharerStart;
+    myResharerStart = ref
+        .read(pFrostResharingData)
+        .startResharerData!
+        .resharerStart;
 
     resharers = ref.read(pFrostResharingData).configData!.resharers;
     myResharerIndexIndex = resharers.values.toList().indexOf(myOldIndex);
@@ -151,20 +152,12 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
             title: "My resharer",
             detail: myResharerStart,
             button: Util.isDesktop
-                ? IconCopyButton(
-                    data: myResharerStart,
-                  )
-                : SimpleCopyButton(
-                    data: myResharerStart,
-                  ),
+                ? IconCopyButton(data: myResharerStart)
+                : SimpleCopyButton(data: myResharerStart),
           ),
           const SizedBox(height: 12),
-          FrostQrDialogPopupButton(
-            data: myResharerStart,
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          FrostQrDialogPopupButton(data: myResharerStart),
+          const SizedBox(height: 12),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,7 +168,8 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
                   focusNode: focusNodes[i],
                   showQrScanOption: true,
                   label: resharers.keys.elementAt(i),
-                  hint: "Enter "
+                  hint:
+                      "Enter "
                       "${resharers.keys.elementAt(i)}"
                       "'s resharer",
                   onChanged: (_) {
@@ -187,9 +181,7 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
             ],
           ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           CheckboxTextButton(
             label: "I have verified that everyone has my resharer",
             onChanged: (value) {
@@ -198,12 +190,11 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Continue",
-            enabled: _userVerifyContinue &&
+            enabled:
+                _userVerifyContinue &&
                 (amOutgoingParticipant ||
                     !fieldIsEmptyFlags.fold(false, (v, e) => v || e)),
             onPressed: _onPressed,

@@ -238,18 +238,4 @@ abstract class StackFileSystem {
 
     return logsDir;
   }
-
-  static Future<Directory> wtfAndroidDocumentsPath() async {
-    const base = "/storage/emulated/";
-    final rootDir = await applicationRootDirectory();
-    final parts = rootDir.path.replaceFirst("/data/user/", "").split("/");
-    if (parts.isNotEmpty) {
-      final id = int.tryParse(parts.first);
-
-      if (id != null) {
-        return Directory(path.join(base, id.toString(), "Documents"));
-      }
-    }
-    throw Exception("Unsupported Android flavor");
-  }
 }

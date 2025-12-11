@@ -8,7 +8,8 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 import '../contract.dart';
 
 part 'eth_contract.g.dart';
@@ -26,13 +27,17 @@ class EthContract extends Contract {
 
   Id id = Isar.autoIncrement;
 
+  @override
   @Index(unique: true, replace: true)
   late final String address;
 
+  @override
   late final String name;
 
+  @override
   late final String symbol;
 
+  @override
   late final int decimals;
 
   late final String? abi;
@@ -50,21 +55,16 @@ class EthContract extends Contract {
     List<String>? walletIds,
     String? abi,
     String? otherData,
-  }) =>
-      EthContract(
-        address: address ?? this.address,
-        name: name ?? this.name,
-        symbol: symbol ?? this.symbol,
-        decimals: decimals ?? this.decimals,
-        type: type ?? this.type,
-        abi: abi ?? this.abi,
-      )..id = id ?? this.id;
+  }) => EthContract(
+    address: address ?? this.address,
+    name: name ?? this.name,
+    symbol: symbol ?? this.symbol,
+    decimals: decimals ?? this.decimals,
+    type: type ?? this.type,
+    abi: abi ?? this.abi,
+  )..id = id ?? this.id;
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
 // in this definition should be done extremely carefully in production
-enum EthContractType {
-  unknown,
-  erc20,
-  erc721;
-}
+enum EthContractType { unknown, erc20, erc721 }

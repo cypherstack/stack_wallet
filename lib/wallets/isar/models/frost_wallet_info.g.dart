@@ -22,11 +22,7 @@ const FrostWalletInfoSchema = CollectionSchema(
       name: r'knownSalts',
       type: IsarType.stringList,
     ),
-    r'myName': PropertySchema(
-      id: 1,
-      name: r'myName',
-      type: IsarType.string,
-    ),
+    r'myName': PropertySchema(id: 1, name: r'myName', type: IsarType.string),
     r'participants': PropertySchema(
       id: 2,
       name: r'participants',
@@ -41,8 +37,9 @@ const FrostWalletInfoSchema = CollectionSchema(
       id: 4,
       name: r'walletId',
       type: IsarType.string,
-    )
+    ),
   },
+
   estimateSize: _frostWalletInfoEstimateSize,
   serialize: _frostWalletInfoSerialize,
   deserialize: _frostWalletInfoDeserialize,
@@ -59,16 +56,17 @@ const FrostWalletInfoSchema = CollectionSchema(
           name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _frostWalletInfoGetId,
   getLinks: _frostWalletInfoGetLinks,
   attach: _frostWalletInfoAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _frostWalletInfoEstimateSize(
@@ -157,7 +155,10 @@ List<IsarLinkBase<dynamic>> _frostWalletInfoGetLinks(FrostWalletInfo object) {
 }
 
 void _frostWalletInfoAttach(
-    IsarCollection<dynamic> col, Id id, FrostWalletInfo object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  FrostWalletInfo object,
+) {
   object.id = id;
 }
 
@@ -210,8 +211,10 @@ extension FrostWalletInfoByIndex on IsarCollection<FrostWalletInfo> {
     return putAllByIndex(r'walletId', objects);
   }
 
-  List<Id> putAllByWalletIdSync(List<FrostWalletInfo> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByWalletIdSync(
+    List<FrostWalletInfo> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'walletId', objects, saveLinks: saveLinks);
   }
 }
@@ -228,17 +231,15 @@ extension FrostWalletInfoQueryWhereSort
 extension FrostWalletInfoQueryWhere
     on QueryBuilder<FrostWalletInfo, FrostWalletInfo, QWhereClause> {
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterWhereClause> idEqualTo(
-      Id id) {
+    Id id,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterWhereClause>
-      idNotEqualTo(Id id) {
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -261,7 +262,7 @@ extension FrostWalletInfoQueryWhere
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -270,8 +271,9 @@ extension FrostWalletInfoQueryWhere
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterWhereClause> idLessThan(
-      Id id,
-      {bool include = false}) {
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -286,56 +288,65 @@ extension FrostWalletInfoQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterWhereClause>
-      walletIdEqualTo(String walletId) {
+  walletIdEqualTo(String walletId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'walletId',
-        value: [walletId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'walletId', value: [walletId]),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterWhereClause>
-      walletIdNotEqualTo(String walletId) {
+  walletIdNotEqualTo(String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [walletId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'walletId',
-              lower: [],
-              upper: [walletId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [walletId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'walletId',
+                lower: [],
+                upper: [walletId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -344,109 +355,111 @@ extension FrostWalletInfoQueryWhere
 extension FrostWalletInfoQueryFilter
     on QueryBuilder<FrostWalletInfo, FrostWalletInfo, QFilterCondition> {
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      idEqualTo(Id value) {
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      idBetween(
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  knownSaltsElementEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'knownSalts',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'knownSalts',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'knownSalts',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementLessThan(
+  knownSaltsElementGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'knownSalts',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'knownSalts',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementBetween(
+  knownSaltsElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'knownSalts',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -454,160 +467,126 @@ extension FrostWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'knownSalts',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'knownSalts',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'knownSalts',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'knownSalts',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'knownSalts',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'knownSalts',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'knownSalts',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'knownSalts',
-        length,
-        true,
-        length,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'knownSalts',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsIsEmpty() {
+  knownSaltsElementStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'knownSalts',
-        0,
-        true,
-        0,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'knownSalts',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsIsNotEmpty() {
+  knownSaltsElementEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'knownSalts',
-        0,
-        false,
-        999999,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'knownSalts',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  knownSaltsElementContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'knownSalts',
-        0,
-        true,
-        length,
-        include,
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'knownSalts',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  knownSaltsElementMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'knownSalts',
-        length,
-        include,
-        999999,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'knownSalts',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      knownSaltsLengthBetween(
+  knownSaltsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'knownSalts', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'knownSalts', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'knownSalts', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'knownSalts', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'knownSalts', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'knownSalts', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'knownSalts', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  knownSaltsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -625,53 +604,56 @@ extension FrostWalletInfoQueryFilter
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  myNameEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'myName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'myName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'myName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameLessThan(
+  myNameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'myName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'myName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameBetween(
+  myNameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'myName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  myNameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -679,135 +661,140 @@ extension FrostWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'myName',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'myName',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  myNameStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'myName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'myName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  myNameEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'myName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'myName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameContains(String value, {bool caseSensitive = true}) {
+  myNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'myName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'myName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameMatches(String pattern, {bool caseSensitive = true}) {
+  myNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'myName',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'myName',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameIsEmpty() {
+  myNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'myName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'myName', value: ''),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      myNameIsNotEmpty() {
+  myNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'myName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'myName', value: ''),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  participantsElementEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'participants',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'participants',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'participants',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementLessThan(
+  participantsElementGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'participants',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'participants',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementBetween(
+  participantsElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'participants',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -815,160 +802,126 @@ extension FrostWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'participants',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'participants',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'participants',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'participants',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'participants',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'participants',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'participants',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'participants',
-        length,
-        true,
-        length,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'participants',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsIsEmpty() {
+  participantsElementStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'participants',
-        0,
-        true,
-        0,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'participants',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsIsNotEmpty() {
+  participantsElementEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'participants',
-        0,
-        false,
-        999999,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'participants',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  participantsElementContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'participants',
-        0,
-        true,
-        length,
-        include,
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'participants',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  participantsElementMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'participants',
-        length,
-        include,
-        999999,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'participants',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      participantsLengthBetween(
+  participantsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'participants', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'participants', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'participants', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'participants', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'participants', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'participants', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'participants', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  participantsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -986,109 +939,111 @@ extension FrostWalletInfoQueryFilter
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      thresholdEqualTo(int value) {
+  thresholdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'threshold',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'threshold', value: value),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      thresholdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  thresholdGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'threshold',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'threshold',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      thresholdLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  thresholdLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'threshold',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'threshold',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      thresholdBetween(
+  thresholdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'threshold',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'threshold',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  walletIdEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdLessThan(
+  walletIdGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdBetween(
+  walletIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
+  walletIdBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1096,84 +1051,86 @@ extension FrostWalletInfoQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'walletId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  walletIdStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  walletIdEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdContains(String value, {bool caseSensitive = true}) {
+  walletIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'walletId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdMatches(String pattern, {bool caseSensitive = true}) {
+  walletIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'walletId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdIsEmpty() {
+  walletIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'walletId', value: ''),
+      );
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterFilterCondition>
-      walletIdIsNotEmpty() {
+  walletIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'walletId', value: ''),
+      );
     });
   }
 }
@@ -1193,35 +1150,35 @@ extension FrostWalletInfoQuerySortBy
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      sortByMyNameDesc() {
+  sortByMyNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myName', Sort.desc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      sortByThreshold() {
+  sortByThreshold() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'threshold', Sort.asc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      sortByThresholdDesc() {
+  sortByThresholdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'threshold', Sort.desc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      sortByWalletId() {
+  sortByWalletId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.asc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      sortByWalletIdDesc() {
+  sortByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
     });
@@ -1249,35 +1206,35 @@ extension FrostWalletInfoQuerySortThenBy
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      thenByMyNameDesc() {
+  thenByMyNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myName', Sort.desc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      thenByThreshold() {
+  thenByThreshold() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'threshold', Sort.asc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      thenByThresholdDesc() {
+  thenByThresholdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'threshold', Sort.desc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      thenByWalletId() {
+  thenByWalletId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.asc);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QAfterSortBy>
-      thenByWalletIdDesc() {
+  thenByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
     });
@@ -1287,35 +1244,37 @@ extension FrostWalletInfoQuerySortThenBy
 extension FrostWalletInfoQueryWhereDistinct
     on QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct> {
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct>
-      distinctByKnownSalts() {
+  distinctByKnownSalts() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'knownSalts');
     });
   }
 
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct> distinctByMyName(
-      {bool caseSensitive = true}) {
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct> distinctByMyName({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'myName', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct>
-      distinctByParticipants() {
+  distinctByParticipants() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'participants');
     });
   }
 
   QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct>
-      distinctByThreshold() {
+  distinctByThreshold() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'threshold');
     });
   }
 
-  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct> distinctByWalletId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<FrostWalletInfo, FrostWalletInfo, QDistinct> distinctByWalletId({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
@@ -1331,7 +1290,7 @@ extension FrostWalletInfoQueryProperty
   }
 
   QueryBuilder<FrostWalletInfo, List<String>, QQueryOperations>
-      knownSaltsProperty() {
+  knownSaltsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'knownSalts');
     });
@@ -1344,7 +1303,7 @@ extension FrostWalletInfoQueryProperty
   }
 
   QueryBuilder<FrostWalletInfo, List<String>, QQueryOperations>
-      participantsProperty() {
+  participantsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'participants');
     });

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../utilities/logger.dart';
 import '../../isar/models/wallet_info.dart';
@@ -13,12 +13,14 @@ extension EpiccashWalletInfoExtension on WalletInfo {
     }
     try {
       return ExtraEpiccashWalletInfo.fromMap(
-        Map<String, dynamic>.from(
-          jsonDecode(data) as Map,
-        ),
+        Map<String, dynamic>.from(jsonDecode(data) as Map),
       );
     } catch (e, s) {
-      Logging.instance.e("ExtraEpiccashWalletInfo.fromMap failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "ExtraEpiccashWalletInfo.fromMap failed: ",
+        error: e,
+        stackTrace: s,
+      );
       return null;
     }
   }
@@ -28,9 +30,7 @@ extension EpiccashWalletInfoExtension on WalletInfo {
     required Isar isar,
   }) async {
     await updateOtherData(
-      newEntries: {
-        WalletInfoKeys.epiccashData: jsonEncode(epicData.toMap()),
-      },
+      newEntries: {WalletInfoKeys.epiccashData: jsonEncode(epicData.toMap())},
       isar: isar,
     );
   }
@@ -73,13 +73,13 @@ class ExtraEpiccashWalletInfo {
   }
 
   ExtraEpiccashWalletInfo.fromMap(Map<String, dynamic> json)
-      : receivingIndex = json['receivingIndex'] as int,
-        changeIndex = json['changeIndex'] as int,
-        slatesToAddresses = json['slatesToAddresses'] as Map,
-        slatesToCommits = json['slatesToCommits'] as Map,
-        lastScannedBlock = json['lastScannedBlock'] as int,
-        restoreHeight = json['restoreHeight'] as int,
-        creationHeight = json['creationHeight'] as int;
+    : receivingIndex = json['receivingIndex'] as int,
+      changeIndex = json['changeIndex'] as int,
+      slatesToAddresses = json['slatesToAddresses'] as Map,
+      slatesToCommits = json['slatesToCommits'] as Map,
+      lastScannedBlock = json['lastScannedBlock'] as int,
+      restoreHeight = json['restoreHeight'] as int,
+      creationHeight = json['creationHeight'] as int;
 
   ExtraEpiccashWalletInfo copyWith({
     int? receivingIndex,

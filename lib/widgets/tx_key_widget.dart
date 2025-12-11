@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../pages/pinpad_views/pinpad_dialog.dart';
-import '../pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import '../pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tvd;
 import '../pages_desktop_specific/password/request_desktop_auth_dialog.dart';
 import '../providers/global/wallets_provider.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
-import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'custom_buttons/blue_text_button.dart';
 import 'custom_buttons/simple_copy_button.dart';
 import 'detail_item.dart';
 
 class TxKeyWidget extends ConsumerStatefulWidget {
-  /// The [walletId] MUST be the id of a [LibMoneroWallet]!
-  const TxKeyWidget({
-    super.key,
-    required this.walletId,
-    required this.txid,
-  });
+  /// The [walletId] MUST be the id of a [CryptonoteWallet]!
+  const TxKeyWidget({super.key, required this.walletId, required this.txid});
 
   final String walletId;
   final String txid;
@@ -54,9 +51,9 @@ class _TxKeyWidgetState extends ConsumerState<TxKeyWidget> {
 
       if (verified == "verified success" && mounted) {
         final wallet =
-            ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet;
+            ref.read(pWallets).getWallet(widget.walletId) as CryptonoteWallet;
 
-        _private = wallet.getTxKeyFor(txid: widget.txid);
+        _private = await wallet.getTxKeyFor(txid: widget.txid);
         if (_private!.isEmpty) {
           _private = "Unavailable";
         }
@@ -82,16 +79,9 @@ class _TxKeyWidgetState extends ConsumerState<TxKeyWidget> {
               enabled: _private == null,
             )
           : Util.isDesktop
-              ? IconCopyButton(
-                  data: _private!,
-                )
-              : SimpleCopyButton(
-                  data: _private!,
-                ),
-      title: Text(
-        "Private view key",
-        style: STextStyles.itemSubtitle(context),
-      ),
+          ? tvd.IconCopyButton(data: _private!)
+          : SimpleCopyButton(data: _private!),
+      title: Text("Private view key", style: STextStyles.itemSubtitle(context)),
       detail: SelectableText(
         // TODO
         _private ?? "*" * 52, // 52 is approx length

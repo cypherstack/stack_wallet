@@ -15,31 +15,24 @@ import 'package:decimal/decimal.dart';
 import '../util.dart';
 
 class Amount {
-  Amount({
-    required BigInt rawValue,
-    required this.fractionDigits,
-  })  : assert(fractionDigits >= 0),
-        _value = rawValue;
+  const Amount({required BigInt rawValue, required this.fractionDigits})
+    : assert(fractionDigits >= 0),
+      _value = rawValue;
 
   /// special zero case with [fractionDigits] set to 0
-  static Amount get zero => Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: 0,
-      );
+  static Amount get zero => .zeroWith(fractionDigits: 0);
 
-  Amount.zeroWith({required this.fractionDigits})
-      : assert(fractionDigits >= 0),
-        _value = BigInt.zero;
+  Amount.zeroWith({required int fractionDigits})
+    : this(rawValue: BigInt.from(0), fractionDigits: fractionDigits);
 
   /// truncate decimal value to [fractionDigits] places
-  Amount.fromDecimal(Decimal amount, {required this.fractionDigits})
-      : assert(fractionDigits >= 0),
-        _value = amount.shift(fractionDigits).toBigInt();
+  Amount.fromDecimal(Decimal amount, {required int fractionDigits})
+    : this(
+        rawValue: amount.shift(fractionDigits).toBigInt(),
+        fractionDigits: fractionDigits,
+      );
 
-  static Amount? tryParseFiatString(
-    String value, {
-    required String locale,
-  }) {
+  static Amount? tryParseFiatString(String value, {required String locale}) {
     final parts = value.split(" ");
 
     if (parts.first.isEmpty) {
@@ -98,9 +91,7 @@ class Amount {
     return jsonEncode(toMap());
   }
 
-  String fiatString({
-    required String locale,
-  }) {
+  String fiatString({required String locale}) {
     final wholeNumber = decimal.truncate();
 
     // get number symbols for decimal place and group separator
@@ -172,10 +163,7 @@ class Amount {
         "fractionDigits do not match: this=$this, other=$other",
       );
     }
-    return Amount(
-      rawValue: raw + other.raw,
-      fractionDigits: fractionDigits,
-    );
+    return Amount(rawValue: raw + other.raw, fractionDigits: fractionDigits);
   }
 
   Amount operator -(Amount other) {
@@ -184,10 +172,7 @@ class Amount {
         "fractionDigits do not match: this=$this, other=$other",
       );
     }
-    return Amount(
-      rawValue: raw - other.raw,
-      fractionDigits: fractionDigits,
-    );
+    return Amount(rawValue: raw - other.raw, fractionDigits: fractionDigits);
   }
 
   Amount operator *(Amount other) {
@@ -196,10 +181,7 @@ class Amount {
         "fractionDigits do not match: this=$this, other=$other",
       );
     }
-    return Amount(
-      rawValue: raw * other.raw,
-      fractionDigits: fractionDigits,
-    );
+    return Amount(rawValue: raw * other.raw, fractionDigits: fractionDigits);
   }
 
   // ===========================================================================
@@ -226,18 +208,12 @@ class Amount {
 
 extension DecimalAmountExt on Decimal {
   Amount toAmount({required int fractionDigits}) {
-    return Amount.fromDecimal(
-      this,
-      fractionDigits: fractionDigits,
-    );
+    return Amount.fromDecimal(this, fractionDigits: fractionDigits);
   }
 }
 
 extension IntAmountExtension on int {
   Amount toAmountAsRaw({required int fractionDigits}) {
-    return Amount(
-      rawValue: BigInt.from(this),
-      fractionDigits: fractionDigits,
-    );
+    return Amount(rawValue: BigInt.from(this), fractionDigits: fractionDigits);
   }
 }

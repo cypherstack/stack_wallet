@@ -10,7 +10,7 @@
 
 import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 part '../type_adaptors/transactions_model.g.dart';
 
@@ -236,7 +236,8 @@ class Transaction {
     return Transaction(
       txid: json['txid'] as String,
       confirmedStatus: json['confirmed_status'] as bool? ?? false,
-      timestamp: json['timestamp'] as int? ??
+      timestamp:
+          json['timestamp'] as int? ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       txType: json['txType'] as String,
       amount: _parse(json["amount"].toString()),

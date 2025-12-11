@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../dto/ordinals/inscription_data.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
@@ -10,14 +10,16 @@ import 'electrumx_interface.dart';
 
 mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T> {
-  final LitescribeAPI _litescribeAPI =
-      LitescribeAPI(baseUrl: 'https://litescribe.io/api');
+  final LitescribeAPI _litescribeAPI = LitescribeAPI(
+    baseUrl: 'https://litescribe.io/api',
+  );
 
   // check if an inscription is in a given <UTXO> output
   Future<bool> _inscriptionInAddress(String address) async {
     try {
-      return (await _litescribeAPI.getInscriptionsByAddress(address))
-          .isNotEmpty;
+      return (await _litescribeAPI.getInscriptionsByAddress(
+        address,
+      )).isNotEmpty;
     } catch (e, s) {
       Logging.instance.e("Litescribe api failure!", error: e, stackTrace: s);
 
@@ -29,7 +31,8 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
     List<String>? overrideAddressesToCheck,
   }) async {
     try {
-      final uniqueAddresses = overrideAddressesToCheck ??
+      final uniqueAddresses =
+          overrideAddressesToCheck ??
           await mainDB
               .getUTXOs(walletId)
               .filter()
@@ -41,9 +44,10 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
         uniqueAddresses.cast<String>(),
       );
 
-      final ords = inscriptions
-          .map((e) => Ordinal.fromInscriptionData(e, walletId))
-          .toList();
+      final ords =
+          inscriptions
+              .map((e) => Ordinal.fromInscriptionData(e, walletId))
+              .toList();
 
       await mainDB.isar.writeTxn(() async {
         await mainDB.isar.ordinals
@@ -54,15 +58,18 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
         await mainDB.isar.ordinals.putAll(ords);
       });
     } catch (e, s) {
-      Logging.instance.w("$runtimeType failed refreshInscriptions(): ",
-          error: e, stackTrace: s);
+      Logging.instance.w(
+        "$runtimeType failed refreshInscriptions(): ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
   // =================== Overrides =============================================
 
   @override
   Future<({bool blocked, String? blockedReason, String? utxoLabel})>
-      checkBlockUTXO(
+  checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
@@ -116,8 +123,9 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
     final List<InscriptionData> allInscriptions = [];
     for (final String address in addresses) {
       try {
-        final inscriptions =
-            await _litescribeAPI.getInscriptionsByAddress(address);
+        final inscriptions = await _litescribeAPI.getInscriptionsByAddress(
+          address,
+        );
         allInscriptions.addAll(inscriptions);
       } catch (e) {
         throw Exception("Error fetching inscriptions for address $address: $e");

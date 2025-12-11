@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'pair.g.dart';
 
@@ -29,12 +29,7 @@ class Pair {
   @Index()
   final String exchangeName;
 
-  @Index(
-    composite: [
-      CompositeIndex("exchangeName"),
-      CompositeIndex("to"),
-    ],
-  )
+  @Index(composite: [CompositeIndex("exchangeName"), CompositeIndex("to")])
   final String from;
 
   final String to;
@@ -61,12 +56,7 @@ class Pair {
       rateType == other.rateType;
 
   @override
-  int get hashCode => Object.hash(
-        exchangeName,
-        from,
-        to,
-        rateType,
-      );
+  int get hashCode => Object.hash(exchangeName, from, to, rateType);
 
   @override
   String toString() => "Pair: ${toMap()}";

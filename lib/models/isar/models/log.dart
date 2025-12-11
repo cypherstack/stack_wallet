@@ -8,7 +8,8 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 // import 'package:stackwallet/models/isar/type_converters/log_level_converter.dart';
 import '../../../utilities/enums/log_level_enum.dart';
 

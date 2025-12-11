@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mweb_client/mweb_client.dart';
 
 import '../../../db/drift/database.dart';
@@ -185,8 +185,45 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
     Logging.instance.i("info.restoreHeight: ${info.restoreHeight}");
     Logging.instance.i(
-      "info.otherData[WalletInfoKeys.mwebScanHeight]: ${info.otherData[WalletInfoKeys.mwebScanHeight]}",
+      "info.otherData[WalletInfoKeys.mwebScanHeight]:"
+      " ${info.otherData[WalletInfoKeys.mwebScanHeight]}",
     );
+
+    // =========================================================================
+    final List<MwebUtxosCompanion> utxos = [];
+    final stream = await client.utxos(
+      UtxosRequest(
+        fromHeight: info.restoreHeight,
+        scanSecret: await _scanSecret,
+      ),
+    );
+    try {
+      await for (final utxo in stream.timeout(const Duration(seconds: 2))) {
+        final newUtxo = MwebUtxosCompanion(
+          outputId: Value(utxo.outputId),
+          address: Value(utxo.address),
+          value: Value(utxo.value.toInt()),
+          height: Value(utxo.height),
+          blockTime: Value(utxo.blockTime),
+          blocked: const Value(false),
+          used: const Value(false),
+        );
+        utxos.add(newUtxo);
+      }
+    } catch (_) {}
+
+    try {
+      await stream.cancel();
+    } catch (_) {}
+    final db = Drift.get(walletId);
+    await db.transaction(() async {
+      await db.delete(db.mwebUtxos).go();
+      for (final utxo in utxos) {
+        await db.into(db.mwebUtxos).insert(utxo);
+      }
+    });
+    // =========================================================================
+
     final fromHeight =
         info.otherData[WalletInfoKeys.mwebScanHeight] as int? ??
         info.restoreHeight;
@@ -196,7 +233,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       scanSecret: await _scanSecret,
     );
 
-    final db = Drift.get(walletId);
     _mwebUtxoSubscription = (await client.utxos(request)).listen((utxo) async {
       Logging.instance.t(
         "Found UTXO in stream: Utxo("
@@ -212,9 +248,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         try {
           await db.transaction(() async {
             final prev =
-                await (db.select(db.mwebUtxos)..where(
-                  (e) => e.outputId.equals(utxo.outputId),
-                )).getSingleOrNull();
+                await (db.select(db.mwebUtxos)
+                      ..where((e) => e.outputId.equals(utxo.outputId)))
+                    .getSingleOrNull();
 
             if (prev == null) {
               final newUtxo = MwebUtxosCompanion(
@@ -254,10 +290,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
             blockHash: null, // ??
             hash: "",
             txid: fakeTxid,
-            timestamp:
-                utxo.height < 1
-                    ? DateTime.now().millisecondsSinceEpoch ~/ 1000
-                    : utxo.blockTime,
+            timestamp: utxo.height < 1
+                ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+                : utxo.blockTime,
             height: utxo.height,
             inputs: [],
             outputs: [
@@ -272,13 +307,11 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
             type: TransactionType.incoming,
             subType: TransactionSubType.mweb,
             otherData: jsonEncode({
-              TxV2OdKeys.overrideFee:
-                  Amount(
-                    rawValue:
-                        BigInt
-                            .zero, // TODO fill in correctly when we have a real txid
-                    fractionDigits: cryptoCurrency.fractionDigits,
-                  ).toJsonString(),
+              TxV2OdKeys.overrideFee: Amount(
+                rawValue: BigInt
+                    .zero, // TODO fill in correctly when we have a real txid
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ).toJsonString(),
             }),
           );
 
@@ -325,7 +358,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   Future<Address> generateNextMwebAddress({bool isChange = false}) async {
     if (!info.isMwebEnabled) {
       throw Exception(
-        "Tried calling generateNextMwebAddress with mweb disabled for $walletId ${info.name}",
+        "Tried calling generateNextMwebAddress with mweb "
+        "disabled for $walletId ${info.name}",
       );
     }
 
@@ -359,21 +393,18 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<void> checkMwebSpends() async {
-    final pending =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .heightIsNull()
-            .and()
-            .blockHashIsNull()
-            .and()
-            .subTypeEqualTo(TransactionSubType.mweb)
-            .and()
-            .typeEqualTo(TransactionType.outgoing)
-            .findAll();
-
-    Logging.instance.f(pending);
+    final pending = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .and()
+        .blockHashIsNull()
+        .and()
+        .subTypeEqualTo(TransactionSubType.mweb)
+        .and()
+        .typeEqualTo(TransactionType.outgoing)
+        .findAll();
 
     final client = await _client;
     for (final tx in pending) {
@@ -388,14 +419,14 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
               SpentRequest(outputId: [input.outpoint!.txid]),
             );
             if (response.outputId.contains(input.outpoint!.txid)) {
-              // dummy to show tx as confirmed. Need a better way to handle this as its kind of stupid, resulting in terrible UX
+              // dummy to show tx as confirmed. Need a better way to handle
+              // this as its kind of stupid, resulting in terrible UX
               final dummyHeight = await chainHeight;
 
-              TransactionV2? transaction =
-                  await mainDB.isar.transactionV2s
-                      .where()
-                      .txidWalletIdEqualTo(tx.txid, walletId)
-                      .findFirst();
+              TransactionV2? transaction = await mainDB.isar.transactionV2s
+                  .where()
+                  .txidWalletIdEqualTo(tx.txid, walletId)
+                  .findFirst();
 
               if (transaction == null || transaction.height == null) {
                 transaction = (transaction ?? tx).copyWith(height: dummyHeight);
@@ -487,7 +518,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   Future<TxData> _confirmSendMweb({required TxData txData}) async {
     if (!info.isMwebEnabled) {
       throw Exception(
-        "Tried calling _confirmSendMweb with mweb disabled for $walletId ${info.name}",
+        "Tried calling _confirmSendMweb with mweb disabled for"
+        " $walletId ${info.name}",
       );
     }
 
@@ -504,19 +536,18 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(
-        usedUTXOs:
-            txData.usedUTXOs!.map((e) {
-              if (e is StandardInput) {
-                return StandardInput(
-                  e.utxo.copyWith(used: true),
-                  derivePathType: e.derivePathType,
-                );
-              } else if (e is MwebInput) {
-                return MwebInput(e.utxo.copyWith(used: true));
-              } else {
-                return e;
-              }
-            }).toList(),
+        usedUTXOs: txData.usedUTXOs!.map((e) {
+          if (e is StandardInput) {
+            return StandardInput(
+              e.utxo.copyWith(used: true),
+              derivePathType: e.derivePathType,
+            );
+          } else if (e is MwebInput) {
+            return MwebInput(e.utxo.copyWith(used: true));
+          } else {
+            return e;
+          }
+        }).toList(),
         txHash: txHash,
         txid: txHash,
       );
@@ -530,8 +561,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       );
 
       // Update used mweb utxos as used in database
-      final usedMwebUtxos =
-          txData.usedUTXOs!.whereType<MwebInput>().map((e) => e.utxo).toList();
+      final usedMwebUtxos = txData.usedUTXOs!
+          .whereType<MwebInput>()
+          .map((e) => e.utxo)
+          .toList();
 
       Logging.instance.i("Used mweb inputs: $usedMwebUtxos");
 
@@ -539,7 +572,11 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         final db = Drift.get(walletId);
         await db.transaction(() async {
           for (final used in usedMwebUtxos) {
-            await db.update(db.mwebUtxos).replace(used);
+            await db
+                .update(db.mwebUtxos)
+                .replace(
+                  used.copyWith(used: true),
+                ); // used should already be set to true here but...
           }
         });
       }
@@ -557,10 +594,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
-    final hasMwebOutputs =
-        txData.recipients!
-            .where((e) => e.addressType == AddressType.mweb)
-            .isNotEmpty;
+    final hasMwebOutputs = txData.recipients!
+        .where((e) => e.addressType == AddressType.mweb)
+        .isNotEmpty;
     if (hasMwebOutputs) {
       // assume pegin tx
       txData = txData.copyWith(type: TxType.mwebPegIn);
@@ -571,10 +607,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   /// prepare mweb transaction where spending mweb outputs
   Future<TxData> prepareSendMweb({required TxData txData}) async {
-    final hasMwebOutputs =
-        txData.recipients!
-            .where((e) => e.addressType == AddressType.mweb)
-            .isNotEmpty;
+    final hasMwebOutputs = txData.recipients!
+        .where((e) => e.addressType == AddressType.mweb)
+        .isNotEmpty;
 
     final type = hasMwebOutputs ? TxType.mweb : TxType.mwebPegOut;
 
@@ -586,7 +621,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   Future<void> anonymizeAllMweb() async {
     if (!info.isMwebEnabled) {
       Logging.instance.e(
-        "Tried calling anonymizeAllMweb with mweb disabled for $walletId ${info.name}",
+        "Tried calling anonymizeAllMweb with mweb disabled for"
+        " $walletId ${info.name}",
       );
       return;
     }
@@ -594,25 +630,23 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     try {
       final currentHeight = await chainHeight;
 
-      final spendableUtxos =
-          await mainDB.isar.utxos
-              .where()
-              .walletIdEqualTo(walletId)
-              .filter()
-              .isBlockedEqualTo(false)
-              .and()
-              .group((q) => q.usedEqualTo(false).or().usedIsNull())
-              .and()
-              .valueGreaterThan(0)
-              .findAll();
+      final spendableUtxos = await mainDB.isar.utxos
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .isBlockedEqualTo(false)
+          .and()
+          .group((q) => q.usedEqualTo(false).or().usedIsNull())
+          .and()
+          .valueGreaterThan(0)
+          .findAll();
 
       spendableUtxos.removeWhere(
-        (e) =>
-            !e.isConfirmed(
-              currentHeight,
-              cryptoCurrency.minConfirms,
-              cryptoCurrency.minCoinbaseConfirms,
-            ),
+        (e) => !e.isConfirmed(
+          currentHeight,
+          cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
+        ),
       );
 
       if (spendableUtxos.isEmpty) {
@@ -713,9 +747,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       try {
         final currentHeight = await chainHeight;
         final db = Drift.get(walletId);
-        final mwebUtxos =
-            await (db.select(db.mwebUtxos)
-              ..where((e) => e.used.equals(false))).get();
+        final mwebUtxos = await (db.select(
+          db.mwebUtxos,
+        )..where((e) => e.used.equals(false))).get();
 
         Amount satoshiBalanceTotal = Amount(
           rawValue: BigInt.zero,
@@ -871,53 +905,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           Future.wait(changeFutures),
         ]);
 
-        final receiveResults = futuresResult[0];
-        final changeResults = futuresResult[1];
-
-        final List<Address> addressesToStore = [];
-
-        int highestReceivingIndexWithHistory = 0;
-
-        for (final tuple in receiveResults) {
-          if (tuple.addresses.isEmpty) {
-            if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-              await checkReceivingAddressForTransactions();
-            }
-          } else {
-            highestReceivingIndexWithHistory = math.max(
-              tuple.index,
-              highestReceivingIndexWithHistory,
-            );
-            addressesToStore.addAll(tuple.addresses);
-          }
-        }
-
-        int highestChangeIndexWithHistory = 0;
-        // If restoring a wallet that never sent any funds with change, then set changeArray
-        // manually. If we didn't do this, it'd store an empty array.
-        for (final tuple in changeResults) {
-          if (tuple.addresses.isEmpty) {
-            await checkChangeAddressForTransactions();
-          } else {
-            highestChangeIndexWithHistory = math.max(
-              tuple.index,
-              highestChangeIndexWithHistory,
-            );
-            addressesToStore.addAll(tuple.addresses);
-          }
-        }
-
-        // remove extra addresses to help minimize risk of creating a large gap
-        addressesToStore.removeWhere(
-          (e) =>
-              e.subType == AddressSubType.change &&
-              e.derivationIndex > highestChangeIndexWithHistory,
-        );
-        addressesToStore.removeWhere(
-          (e) =>
-              e.subType == AddressSubType.receiving &&
-              e.derivationIndex > highestReceivingIndexWithHistory,
-        );
+        final List<Address> addressesToStore = processGapCheckResults([
+          ...futuresResult[0],
+          ...futuresResult[1],
+        ]);
 
         await mainDB.updateOrPutAddresses(addressesToStore);
       });
@@ -962,6 +953,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     final preOutputSum = outputs.fold(BigInt.zero, (p, e) => p + e.amount.raw);
     final fee = sumOfUtxosValue - preOutputSum;
 
+    final feeRate =
+        txData.satsPerVByte ?? (txData.feeRateAmount!.toInt() / 1000).ceil();
+
     final client = await _client;
 
     final resp = await client.create(
@@ -969,7 +963,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(txData.feeRateAmount!.toInt()),
+        feeRatePerKb: Int64(feeRate * 1000),
         dryRun: true,
       ),
     );
@@ -979,18 +973,17 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     );
 
     BigInt maxBI(BigInt a, BigInt b) => a > b ? a : b;
-    final posUtxos =
-        utxos
-            .where(
-              (utxo) => processedTx.inputs.any(
-                (input) =>
-                    input.prevOut.hash.toHex ==
-                    Uint8List.fromList(
-                      utxo.id.toUint8ListFromHex.reversed.toList(),
-                    ).toHex,
-              ),
-            )
-            .toList();
+    final posUtxos = utxos
+        .where(
+          (utxo) => processedTx.inputs.any(
+            (input) =>
+                input.prevOut.hash.toHex ==
+                Uint8List.fromList(
+                  utxo.id.toUint8ListFromHex.reversed.toList(),
+                ).toHex,
+          ),
+        )
+        .toList();
 
     final posOutputSum = processedTx.outputs.fold(
       BigInt.zero,
@@ -1002,14 +995,11 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     BigInt feeIncrease = posOutputSum - expectedPegin;
 
     if (expectedPegin > BigInt.zero) {
-      feeIncrease +=
-          BigInt.from((txData.feeRateAmount! / BigInt.from(1000)).ceil()) *
-          BigInt.from(41);
+      feeIncrease += BigInt.from(feeRate * 41);
     }
 
-    // bandaid: add one to account for a rounding error that happens sometimes
     return Amount(
-      rawValue: fee + feeIncrease + BigInt.one,
+      rawValue: fee + feeIncrease,
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

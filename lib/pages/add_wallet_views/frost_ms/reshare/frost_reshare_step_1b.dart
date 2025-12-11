@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frostdart/frostdart.dart';
+
+// import 'package:frostdart/frostdart.dart';
 
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/secure_store_provider.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
@@ -16,11 +16,10 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/frost_step_user_steps.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 
 class FrostReshareStep1b extends ConsumerStatefulWidget {
-  const FrostReshareStep1b({
-    super.key,
-  });
+  const FrostReshareStep1b({super.key});
 
   static const String routeName = "/frostReshareStep1b";
   static const String title = "Import reshare config";
@@ -70,8 +69,8 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
       String? salt;
       try {
         salt = Format.uint8listToString(
-          resharerSalt(
-            resharerConfig: Frost.decodeRConfig(
+          frostInterface.getResharerSalt(
+            resharerConfig: frostInterface.decodeRConfig(
               ref.read(pFrostResharingData).resharerRConfig!,
             ),
           ),
@@ -95,13 +94,13 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
         });
       }
 
-      final serializedKeys = await ref.read(secureStoreProvider).read(
-            key: "{$walletId}_serializedFROSTKeys",
-          );
+      final serializedKeys = await ref
+          .read(secureStoreProvider)
+          .read(key: "{$walletId}_serializedFROSTKeys");
       if (mounted) {
-        final result = Frost.beginResharer(
+        final result = frostInterface.beginResharer(
           serializedKeys: serializedKeys!,
-          config: Frost.decodeRConfig(
+          config: frostInterface.decodeRConfig(
             ref.read(pFrostResharingData).resharerRConfig!,
           ),
         );
@@ -117,14 +116,12 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
         );
       }
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: e.toString(),
-          ),
+          builder: (_) => FrostErrorDialog(title: e.toString()),
         );
       }
     } finally {
@@ -153,12 +150,8 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            height: 16,
-          ),
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
+          const SizedBox(height: 16),
+          const FrostStepUserSteps(userSteps: info),
           const SizedBox(height: 20),
           FrostStepField(
             controller: configFieldController,
@@ -172,13 +165,9 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           CheckboxTextButton(
             label: "I have verified that everyone has imported the config",
             onChanged: (value) {
@@ -187,9 +176,7 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Start resharing",
             enabled: !_configEmpty && _userVerifyContinue,

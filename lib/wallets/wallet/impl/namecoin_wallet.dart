@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:namecoin/namecoin.dart';
 
 import '../../../models/input.dart';
@@ -72,18 +72,17 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .not()
-            .group(
-              (q) => q
-                  .typeEqualTo(AddressType.nonWallet)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.nonWallet),
-            )
-            .findAll();
+    final allAddresses = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .not()
+        .group(
+          (q) => q
+              .typeEqualTo(AddressType.nonWallet)
+              .or()
+              .subTypeEqualTo(AddressSubType.nonWallet),
+        )
+        .findAll();
     return allAddresses;
   }
 
@@ -140,9 +139,8 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
           blockReason = "Contains name";
 
           try {
-            final rawNameOP =
-                (output["scriptPubKey"]["nameOp"] as Map)
-                    .cast<String, dynamic>();
+            final rawNameOP = (output["scriptPubKey"]["nameOp"] as Map)
+                .cast<String, dynamic>();
 
             otherDataString = jsonEncode({
               UTXOOtherDataKeys.nameOpData: jsonEncode(rawNameOP),
@@ -201,7 +199,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
+    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
   }
 
   // TODO: Check if this is the correct formula for namecoin.
@@ -227,16 +225,14 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.receiving)
-            .map((e) => e.value)
-            .toSet();
-    final Set<String> changeAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.change)
-            .map((e) => e.value)
-            .toSet();
+    final Set<String> receivingAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.receiving)
+        .map((e) => e.value)
+        .toSet();
+    final Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => e.value)
+        .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
@@ -250,11 +246,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
-      final storedTx =
-          await mainDB.isar.transactionV2s
-              .where()
-              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-              .findFirst();
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+          .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -442,8 +437,11 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
   ) async {
     // first check own utxos. Should only need to check NAME NEW here.
     // NAME UPDATE and NAME FIRST UPDATE will appear readable from electrumx
-    final utxos =
-        await mainDB.getUTXOs(walletId).filter().otherDataIsNotNull().findAll();
+    final utxos = await mainDB
+        .getUTXOs(walletId)
+        .filter()
+        .otherDataIsNotNull()
+        .findAll();
     for (final utxo in utxos) {
       final nameOp = getOpNameDataFrom(utxo);
       if (nameOp?.op == OpName.nameNew) {
@@ -509,18 +507,17 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     try {
       final currentHeight = await chainHeight;
       // not ideal filtering
-      final utxos =
-          await mainDB
-              .getUTXOs(walletId)
-              .filter()
-              .otherDataIsNotNull()
-              .and()
-              .blockHeightIsNotNull()
-              .and()
-              .blockHeightGreaterThan(0)
-              .and()
-              .blockHeightLessThan(currentHeight - kNameWaitBlocks)
-              .findAll();
+      final utxos = await mainDB
+          .getUTXOs(walletId)
+          .filter()
+          .otherDataIsNotNull()
+          .and()
+          .blockHeightIsNotNull()
+          .and()
+          .blockHeightGreaterThan(0)
+          .and()
+          .blockHeightLessThan(currentHeight - kNameWaitBlocks)
+          .findAll();
 
       Logging.instance.t(
         "_unknownNameNewOutputs(count=${_unknownNameNewOutputs.length})"
@@ -572,8 +569,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
               data.salt,
             );
 
-            String noteName =
-                data.name.startsWith("d/") ? data.name.substring(2) : data.name;
+            String noteName = data.name.startsWith("d/")
+                ? data.name.substring(2)
+                : data.name;
             if (!noteName.endsWith(".bit")) {
               noteName += ".bit";
             }
@@ -638,8 +636,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     assert(txData.recipients!.where((e) => !e.isChange).length == 1);
 
     if (!isForFeeCalcPurposesOnly) {
-      final nameAmount =
-          txData.recipients!.where((e) => !e.isChange).first.amount;
+      final nameAmount = txData.recipients!
+          .where((e) => !e.isChange)
+          .first
+          .amount;
 
       switch (txData.opNameState!.type) {
         case OpName.nameNew:
@@ -664,10 +664,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     );
 
     // TODO: [prio=high]: check this opt in rbf
-    final sequence =
-        this is RbfInterface && (this as RbfInterface).flagOptInRBF
-            ? 0xffffffff - 10
-            : 0xffffffff - 1;
+    final sequence = this is RbfInterface && (this as RbfInterface).flagOptInRBF
+        ? 0xffffffff - 10
+        : 0xffffffff - 1;
 
     // Add transaction inputs
     for (int i = 0; i < inputsWithKeys.length; i++) {
@@ -737,10 +736,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
             txid: inputsWithKeys[i].utxo.txid,
             vout: inputsWithKeys[i].utxo.vout,
           ),
-          addresses:
-              inputsWithKeys[i].utxo.address == null
-                  ? []
-                  : [inputsWithKeys[i].utxo.address!],
+          addresses: inputsWithKeys[i].utxo.address == null
+              ? []
+              : [inputsWithKeys[i].utxo.address!],
           valueStringSats: inputsWithKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
@@ -872,9 +870,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         version: clTx.version,
         type:
             tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e) &&
-                    txData.paynymAccountLite == null
-                ? TransactionType.sentToSelf
-                : TransactionType.outgoing,
+                txData.paynymAccountLite == null
+            ? TransactionType.sentToSelf
+            : TransactionType.outgoing,
         subType: TransactionSubType.none,
         otherData: null,
       ),
@@ -1023,20 +1021,19 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     final canCPFP = this is CpfpInterface && coinControl;
 
-    final spendableOutputs =
-        availableOutputs
-            .where(
-              (e) =>
-                  !e.isBlocked &&
-                  (e.used != true) &&
-                  (canCPFP ||
-                      e.isConfirmed(
-                        currentChainHeight,
-                        cryptoCurrency.minConfirms,
-                        cryptoCurrency.minCoinbaseConfirms,
-                      )),
-            )
-            .toList();
+    final spendableOutputs = availableOutputs
+        .where(
+          (e) =>
+              !e.isBlocked &&
+              (e.used != true) &&
+              (canCPFP ||
+                  e.isConfirmed(
+                    currentChainHeight,
+                    cryptoCurrency.minConfirms,
+                    cryptoCurrency.minCoinbaseConfirms,
+                  )),
+        )
+        .toList();
 
     if (coinControl) {
       if (spendableOutputs.length < availableOutputs.length) {
@@ -1118,24 +1115,22 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     final List<BigInt> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
-    final inputsWithKeys =
-        (await addSigningKeys(
-          utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
-        )).whereType<StandardInput>().toList();
+    final inputsWithKeys = (await addSigningKeys(
+      utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
+    )).whereType<StandardInput>().toList();
 
     final int vSizeForOneOutput;
     try {
-      vSizeForOneOutput =
-          (await _createNameTx(
-            inputsWithKeys: inputsWithKeys,
-            isForFeeCalcPurposesOnly: true,
-            txData: txData.copyWith(
-              recipients: await helperRecipientsConvert(
-                [recipientAddress],
-                [satoshisBeingUsed],
-              ),
-            ),
-          )).vSize!;
+      vSizeForOneOutput = (await _createNameTx(
+        inputsWithKeys: inputsWithKeys,
+        isForFeeCalcPurposesOnly: true,
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress],
+            [satoshisBeingUsed],
+          ),
+        ),
+      )).vSize!;
     } catch (e, s) {
       Logging.instance.e("vSizeForOneOutput: $e", error: e, stackTrace: s);
       rethrow;
@@ -1146,20 +1141,19 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     BigInt maxBI(BigInt a, BigInt b) => a > b ? a : b;
 
     try {
-      vSizeForTwoOutPuts =
-          (await _createNameTx(
-            inputsWithKeys: inputsWithKeys,
-            isForFeeCalcPurposesOnly: true,
-            txData: txData.copyWith(
-              recipients: await helperRecipientsConvert(
-                [recipientAddress, (await getCurrentChangeAddress())!.value],
-                [
-                  satoshiAmountToSend,
-                  maxBI(BigInt.zero, satoshisBeingUsed - satoshiAmountToSend),
-                ],
-              ),
-            ),
-          )).vSize!;
+      vSizeForTwoOutPuts = (await _createNameTx(
+        inputsWithKeys: inputsWithKeys,
+        isForFeeCalcPurposesOnly: true,
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress, (await getCurrentChangeAddress())!.value],
+            [
+              satoshiAmountToSend,
+              maxBI(BigInt.zero, satoshisBeingUsed - satoshiAmountToSend),
+            ],
+          ),
+        ),
+      )).vSize!;
     } catch (e, s) {
       Logging.instance.e("vSizeForTwoOutPuts: $e", error: e, stackTrace: s);
       rethrow;
@@ -1170,18 +1164,18 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       satsPerVByte != null
           ? (satsPerVByte * vSizeForOneOutput)
           : estimateTxFee(
-            vSize: vSizeForOneOutput,
-            feeRatePerKB: selectedTxFeeRate,
-          ),
+              vSize: vSizeForOneOutput,
+              feeRatePerKB: selectedTxFeeRate,
+            ),
     );
     // Assume 2 outputs, one for recipient and one for change
     final feeForTwoOutputs = BigInt.from(
       satsPerVByte != null
           ? (satsPerVByte * vSizeForTwoOutPuts)
           : estimateTxFee(
-            vSize: vSizeForTwoOutPuts,
-            feeRatePerKB: selectedTxFeeRate,
-          ),
+              vSize: vSizeForTwoOutPuts,
+              feeRatePerKB: selectedTxFeeRate,
+            ),
     );
 
     Logging.instance.d(

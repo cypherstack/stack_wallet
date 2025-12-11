@@ -13,10 +13,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import '../../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import '../../../../models/isar/exchange_cache/currency.dart';
 import '../../../../providers/providers.dart';
 import '../../../../services/exchange/change_now/change_now_exchange.dart';
@@ -27,6 +28,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../widgets/app_icon.dart';
 
 class CoinSelectItem extends ConsumerStatefulWidget {
   const CoinSelectItem({super.key, required this.entity});
@@ -64,6 +66,39 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
             if (mounted) {
               setState(() {
                 tokenImageUri = currency?.image;
+              });
+            }
+          });
+        }
+      });
+    } else if (widget.entity is SolTokenEntity) {
+      final solToken = (widget.entity as SolTokenEntity).token;
+
+      ExchangeDataLoadingService.instance.isar.then((isar) async {
+        final currency =
+            await isar.currencies
+                .where()
+                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+                .filter()
+                .tokenContractEqualTo(
+                  solToken.address,
+                  caseSensitive: false,
+                )
+                .and()
+                .imageIsNotEmpty()
+                .findFirst();
+
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                // Use exchange cache image if available, otherwise use logoUri if it's a PNG.
+                String? fallbackUri;
+                if (solToken.logoUri != null &&
+                    solToken.logoUri!.endsWith('.png')) {
+                  fallbackUri = solToken.logoUri;
+                }
+                tokenImageUri = currency?.image ?? fallbackUri;
               });
             }
           });
@@ -108,7 +143,12 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
           child: Row(
             children: [
               tokenImageUri != null
-                  ? SvgPicture.network(tokenImageUri!, width: 26, height: 26)
+                  ? SvgPicture.network(
+                    tokenImageUri!,
+                    width: 26,
+                    height: 26,
+                    placeholderBuilder: (_) => AppIcon(width: 26, height: 26),
+                  )
                   : SvgPicture.file(
                     File(
                       ref.watch(coinIconProvider(widget.entity.cryptoCurrency)),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
 
+import '../../app_config.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/tor_service.dart';
 import '../logger.dart';
@@ -15,13 +16,12 @@ Future<bool> checkElectrumServer({
   TorService? overrideTorService,
 }) async {
   final _prefs = overridePrefs ?? Prefs.instance;
-  final _torService = overrideTorService ?? TorService.sharedInstance;
 
   ({InternetAddress host, int port})? proxyInfo;
 
   try {
-    // If we're supposed to use Tor...
-    if (_prefs.useTor) {
+    if (AppConfig.hasFeature(AppFeature.tor) && _prefs.useTor) {
+      final _torService = overrideTorService ?? TorService.sharedInstance;
       // But Tor isn't running...
       if (_torService.status != TorConnectionStatus.connected) {
         // And the killswitch isn't set...
@@ -43,29 +43,26 @@ Future<bool> checkElectrumServer({
       }
     }
 
-    final client = await ElectrumClient.connect(
-      host: host,
-      port: port,
-      useSSL: useSSL && !host.endsWith('.onion'),
-      proxyInfo: proxyInfo,
-    ).timeout(
-      Duration(seconds: (proxyInfo == null ? 5 : 30)),
-      onTimeout: () => throw Exception(
-        "The checkElectrumServer connect() call timed out.",
-      ),
-    );
+    final client =
+        await ElectrumClient.connect(
+          host: host,
+          port: port,
+          useSSL: useSSL && !host.endsWith('.onion'),
+          proxyInfo: proxyInfo,
+        ).timeout(
+          Duration(seconds: (proxyInfo == null ? 5 : 30)),
+          onTimeout: () => throw Exception(
+            "The checkElectrumServer connect() call timed out.",
+          ),
+        );
 
-    await client
-        .ping()
-        .timeout(Duration(seconds: (proxyInfo == null ? 5 : 30)));
+    await client.ping().timeout(
+      Duration(seconds: (proxyInfo == null ? 5 : 30)),
+    );
 
     return true;
   } catch (e, s) {
-    Logging.instance.e(
-      "$e\n$s",
-      error: e,
-      stackTrace: s,
-    );
+    Logging.instance.e("$e\n$s", error: e, stackTrace: s);
     return false;
   }
 }

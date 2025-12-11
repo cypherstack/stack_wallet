@@ -1,4 +1,5 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 import '../isar_id_interface.dart';
 
 part 'frost_wallet_info.g.dart';

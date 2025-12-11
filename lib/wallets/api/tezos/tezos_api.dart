@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../app_config.dart';
 import '../../../networking/http.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
@@ -17,7 +18,9 @@ abstract final class TezosAPI {
       final response = await _client.get(
         url: Uri.parse(uriString),
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -25,7 +28,11 @@ abstract final class TezosAPI {
       final result = jsonDecode(response.body);
       return result as int;
     } catch (e, s) {
-      Logging.instance.e("Error occurred in TezosAPI while getting counter for $address: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error occurred in TezosAPI while getting counter for $address: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -39,7 +46,9 @@ abstract final class TezosAPI {
       final response = await _client.get(
         url: Uri.parse(uriString),
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -50,7 +59,11 @@ abstract final class TezosAPI {
 
       return account;
     } catch (e, s) {
-      Logging.instance.e("Error occurred in TezosAPI while getting account for $address: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error occurred in TezosAPI while getting account for $address: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -63,7 +76,9 @@ abstract final class TezosAPI {
       final response = await _client.get(
         url: Uri.parse(transactionsCall),
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -78,9 +93,10 @@ abstract final class TezosAPI {
             hash: tx["hash"] as String,
             type: tx["type"] as String,
             height: tx["level"] as int,
-            timestamp: DateTime.parse(tx["timestamp"].toString())
-                    .toUtc()
-                    .millisecondsSinceEpoch ~/
+            timestamp:
+                DateTime.parse(
+                  tx["timestamp"].toString(),
+                ).toUtc().millisecondsSinceEpoch ~/
                 1000,
             cycle: tx["cycle"] as int?,
             counter: tx["counter"] as int,
@@ -91,7 +107,8 @@ abstract final class TezosAPI {
             gasUsed: tx["gasUsed"] as int,
             storageLimit: tx["storageLimit"] as int?,
             amountInMicroTez: tx["amount"] as int,
-            feeInMicroTez: (tx["bakerFee"] as int? ?? 0) +
+            feeInMicroTez:
+                (tx["bakerFee"] as int? ?? 0) +
                 (tx["storageFee"] as int? ?? 0) +
                 (tx["allocationFee"] as int? ?? 0),
             burnedAmountInMicroTez: tx["burned"] as int?,
@@ -103,7 +120,11 @@ abstract final class TezosAPI {
       }
       return txs;
     } catch (e, s) {
-      Logging.instance.e("Error occurred in TezosAPI while getting transactions for $address: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Error occurred in TezosAPI while getting transactions for $address: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

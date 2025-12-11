@@ -180,7 +180,7 @@ class StackOkDialog extends StatelessWidget {
               child: Row(
                 children: [
                   Flexible(
-                    child: Text(
+                    child: SelectableText(
                       message!,
                       style: STextStyles.smallMed14(context),
                     ),

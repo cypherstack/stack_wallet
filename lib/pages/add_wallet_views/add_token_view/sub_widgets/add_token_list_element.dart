@@ -11,9 +11,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../models/isar/exchange_cache/currency.dart';
+import '../../../../models/isar/models/contract.dart';
 import '../../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
@@ -29,7 +30,7 @@ import '../../../../widgets/rounded_white_container.dart';
 class AddTokenListElementData {
   AddTokenListElementData(this.token);
 
-  final EthContract token;
+  final Contract token;
   bool selected = false;
 }
 
@@ -102,13 +103,7 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
                     placeholderBuilder:
                         (_) => AppIcon(width: iconSize, height: iconSize),
                   )
-                  : SvgPicture.asset(
-                    widget.data.token.symbol == "BNB"
-                        ? Assets.svg.bnbIcon
-                        : Assets.svg.ethereum,
-                    width: iconSize,
-                    height: iconSize,
-                  ),
+                  : AppIcon(width: iconSize, height: iconSize),
               const SizedBox(width: 12),
               ConditionalParent(
                 condition: isDesktop,

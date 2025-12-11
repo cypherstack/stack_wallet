@@ -22,28 +22,17 @@ const PairSchema = CollectionSchema(
       name: r'exchangeName',
       type: IsarType.string,
     ),
-    r'from': PropertySchema(
-      id: 1,
-      name: r'from',
-      type: IsarType.string,
-    ),
-    r'hashCode': PropertySchema(
-      id: 2,
-      name: r'hashCode',
-      type: IsarType.long,
-    ),
+    r'from': PropertySchema(id: 1, name: r'from', type: IsarType.string),
+    r'hashCode': PropertySchema(id: 2, name: r'hashCode', type: IsarType.long),
     r'rateType': PropertySchema(
       id: 3,
       name: r'rateType',
       type: IsarType.byte,
       enumMap: _PairrateTypeEnumValueMap,
     ),
-    r'to': PropertySchema(
-      id: 4,
-      name: r'to',
-      type: IsarType.string,
-    )
+    r'to': PropertySchema(id: 4, name: r'to', type: IsarType.string),
   },
+
   estimateSize: _pairEstimateSize,
   serialize: _pairSerialize,
   deserialize: _pairDeserialize,
@@ -60,7 +49,7 @@ const PairSchema = CollectionSchema(
           name: r'exchangeName',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
     ),
     r'from_exchangeName_to': IndexSchema(
@@ -83,16 +72,17 @@ const PairSchema = CollectionSchema(
           name: r'to',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _pairGetId,
   getLinks: _pairGetLinks,
   attach: _pairAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _pairEstimateSize(
@@ -129,7 +119,8 @@ Pair _pairDeserialize(
   final object = Pair(
     exchangeName: reader.readString(offsets[0]),
     from: reader.readString(offsets[1]),
-    rateType: _PairrateTypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+    rateType:
+        _PairrateTypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
         SupportedRateType.fixed,
     to: reader.readString(offsets[4]),
   );
@@ -152,7 +143,8 @@ P _pairDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 3:
       return (_PairrateTypeValueEnumMap[reader.readByteOrNull(offset)] ??
-          SupportedRateType.fixed) as P;
+              SupportedRateType.fixed)
+          as P;
     case 4:
       return (reader.readString(offset)) as P;
     default:
@@ -160,11 +152,7 @@ P _pairDeserializeProp<P>(
   }
 }
 
-const _PairrateTypeEnumValueMap = {
-  'fixed': 0,
-  'estimated': 1,
-  'both': 2,
-};
+const _PairrateTypeEnumValueMap = {'fixed': 0, 'estimated': 1, 'both': 2};
 const _PairrateTypeValueEnumMap = {
   0: SupportedRateType.fixed,
   1: SupportedRateType.estimated,
@@ -194,10 +182,7 @@ extension PairQueryWhereSort on QueryBuilder<Pair, Pair, QWhere> {
 extension PairQueryWhere on QueryBuilder<Pair, Pair, QWhereClause> {
   QueryBuilder<Pair, Pair, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -223,8 +208,10 @@ extension PairQueryWhere on QueryBuilder<Pair, Pair, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Pair, Pair, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -232,8 +219,10 @@ extension PairQueryWhere on QueryBuilder<Pair, Pair, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<Pair, Pair, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -248,192 +237,246 @@ extension PairQueryWhere on QueryBuilder<Pair, Pair, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause> exchangeNameEqualTo(
-      String exchangeName) {
+    String exchangeName,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'exchangeName',
-        value: [exchangeName],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'exchangeName',
+          value: [exchangeName],
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause> exchangeNameNotEqualTo(
-      String exchangeName) {
+    String exchangeName,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'exchangeName',
-              lower: [],
-              upper: [exchangeName],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'exchangeName',
-              lower: [exchangeName],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'exchangeName',
+                lower: [],
+                upper: [exchangeName],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'exchangeName',
+                lower: [exchangeName],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'exchangeName',
-              lower: [exchangeName],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'exchangeName',
-              lower: [],
-              upper: [exchangeName],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'exchangeName',
+                lower: [exchangeName],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'exchangeName',
+                lower: [],
+                upper: [exchangeName],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause> fromEqualToAnyExchangeNameTo(
-      String from) {
+    String from,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'from_exchangeName_to',
-        value: [from],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'from_exchangeName_to',
+          value: [from],
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause> fromNotEqualToAnyExchangeNameTo(
-      String from) {
+    String from,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [],
-              upper: [from],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [],
+                upper: [from],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [],
-              upper: [from],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [],
+                upper: [from],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause> fromExchangeNameEqualToAnyTo(
-      String from, String exchangeName) {
+    String from,
+    String exchangeName,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'from_exchangeName_to',
-        value: [from, exchangeName],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'from_exchangeName_to',
+          value: [from, exchangeName],
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause>
-      fromEqualToExchangeNameNotEqualToAnyTo(String from, String exchangeName) {
+  fromEqualToExchangeNameNotEqualToAnyTo(String from, String exchangeName) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from],
-              upper: [from, exchangeName],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from, exchangeName],
-              includeLower: false,
-              upper: [from],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from],
+                upper: [from, exchangeName],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from, exchangeName],
+                includeLower: false,
+                upper: [from],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from, exchangeName],
-              includeLower: false,
-              upper: [from],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from],
-              upper: [from, exchangeName],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from, exchangeName],
+                includeLower: false,
+                upper: [from],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from],
+                upper: [from, exchangeName],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause> fromExchangeNameToEqualTo(
-      String from, String exchangeName, String to) {
+    String from,
+    String exchangeName,
+    String to,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'from_exchangeName_to',
-        value: [from, exchangeName, to],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'from_exchangeName_to',
+          value: [from, exchangeName, to],
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterWhereClause>
-      fromExchangeNameEqualToToNotEqualTo(
-          String from, String exchangeName, String to) {
+  fromExchangeNameEqualToToNotEqualTo(
+    String from,
+    String exchangeName,
+    String to,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from, exchangeName],
-              upper: [from, exchangeName, to],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from, exchangeName, to],
-              includeLower: false,
-              upper: [from, exchangeName],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from, exchangeName],
+                upper: [from, exchangeName, to],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from, exchangeName, to],
+                includeLower: false,
+                upper: [from, exchangeName],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from, exchangeName, to],
-              includeLower: false,
-              upper: [from, exchangeName],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'from_exchangeName_to',
-              lower: [from, exchangeName],
-              upper: [from, exchangeName, to],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from, exchangeName, to],
+                includeLower: false,
+                upper: [from, exchangeName],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'from_exchangeName_to',
+                lower: [from, exchangeName],
+                upper: [from, exchangeName, to],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -445,11 +488,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'exchangeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'exchangeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -459,12 +504,14 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'exchangeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'exchangeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -474,12 +521,14 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'exchangeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'exchangeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -491,14 +540,16 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'exchangeName',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'exchangeName',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -507,11 +558,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'exchangeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'exchangeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -520,53 +573,59 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'exchangeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'exchangeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> exchangeNameContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'exchangeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'exchangeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> exchangeNameMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'exchangeName',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'exchangeName',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> exchangeNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'exchangeName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'exchangeName', value: ''),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> exchangeNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'exchangeName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'exchangeName', value: ''),
+      );
     });
   }
 
@@ -575,11 +634,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'from',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'from',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -589,12 +650,14 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'from',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'from',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -604,12 +667,14 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'from',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'from',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -621,14 +686,16 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'from',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'from',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -637,11 +704,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'from',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'from',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -650,60 +719,67 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'from',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'from',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromContains(String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'from',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'from',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromMatches(String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'from',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'from',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> fromIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'from',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'from', value: ''),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> fromIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'from',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'from', value: ''),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> hashCodeEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hashCode',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'hashCode', value: value),
+      );
     });
   }
 
@@ -712,11 +788,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'hashCode',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -725,11 +803,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'hashCode',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -740,38 +820,39 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'hashCode',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'hashCode',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'id',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'id'),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> idIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'id',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'id'),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -780,11 +861,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -793,11 +876,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -808,23 +893,25 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> rateTypeEqualTo(
-      SupportedRateType value) {
+    SupportedRateType value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'rateType',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'rateType', value: value),
+      );
     });
   }
 
@@ -833,11 +920,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'rateType',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'rateType',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -846,11 +935,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'rateType',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'rateType',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -861,13 +952,15 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'rateType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'rateType',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -876,11 +969,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'to',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'to',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -890,12 +985,14 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'to',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'to',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -905,12 +1002,14 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'to',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'to',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -922,14 +1021,16 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'to',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'to',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -938,11 +1039,13 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'to',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'to',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -951,51 +1054,59 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'to',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'to',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toContains(String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> toContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'to',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'to',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toMatches(String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> toMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'to',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'to',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> toIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'to',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'to', value: ''),
+      );
     });
   }
 
   QueryBuilder<Pair, Pair, QAfterFilterCondition> toIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'to',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'to', value: ''),
+      );
     });
   }
 }
@@ -1141,15 +1252,17 @@ extension PairQuerySortThenBy on QueryBuilder<Pair, Pair, QSortThenBy> {
 }
 
 extension PairQueryWhereDistinct on QueryBuilder<Pair, Pair, QDistinct> {
-  QueryBuilder<Pair, Pair, QDistinct> distinctByExchangeName(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QDistinct> distinctByExchangeName({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'exchangeName', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Pair, Pair, QDistinct> distinctByFrom(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QDistinct> distinctByFrom({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'from', caseSensitive: caseSensitive);
     });
@@ -1167,8 +1280,9 @@ extension PairQueryWhereDistinct on QueryBuilder<Pair, Pair, QDistinct> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QDistinct> distinctByTo(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pair, Pair, QDistinct> distinctByTo({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'to', caseSensitive: caseSensitive);
     });

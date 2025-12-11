@@ -9,7 +9,7 @@ APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app>"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-i] [-f]"
     exit 1
 }
 
@@ -33,15 +33,17 @@ unset -v APP_NAMED_ID
 
 # optional args (with defaults)
 BUILD_CRYPTO_PLUGINS=0
+BUILD_ISAR_FROM_SOURCE=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:i" opt; do
+while getopts "v:b:p:a:i:f" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
         i) BUILD_CRYPTO_PLUGINS=1 ;;
+        f) BUILD_ISAR_FROM_SOURCE=1 ;;
         *) usage ;;
     esac
 done
@@ -70,6 +72,8 @@ confirmDisclaimer
 set -x
 
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"
+
+export BUILD_ISAR_FROM_SOURCE
 
 # checks for the correct platform dir and pushes it for later
 if printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then

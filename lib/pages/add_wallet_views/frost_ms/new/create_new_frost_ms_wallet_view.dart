@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../services/frost.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -20,6 +20,7 @@ import '../../../../widgets/frost_mascot.dart';
 import '../../../../widgets/frost_scaffold.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 
 class CreateNewFrostMsWalletView extends ConsumerStatefulWidget {
   const CreateNewFrostMsWalletView({
@@ -114,31 +115,22 @@ class _NewFrostMsWalletViewState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "What is a threshold?",
-              style: STextStyles.w600_20(context),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
+            Text("What is a threshold?", style: STextStyles.w600_20(context)),
+            const SizedBox(height: 12),
             Text(
               "A threshold is the amount of people required to perform an "
               "action. This does not have to be the same number as the "
               "total number in the group.",
               style: STextStyles.w400_16(context),
             ),
-            const SizedBox(
-              height: 6,
-            ),
+            const SizedBox(height: 6),
             Text(
               "For example, if you have 3 people in the group, but a threshold "
               "of 2, then you only need 2 out of the 3 people to sign for an "
               "action to take place.",
               style: STextStyles.w400_16(context),
             ),
-            const SizedBox(
-              height: 6,
-            ),
+            const SizedBox(height: 6),
             Text(
               "Conversely if you have a group of 3 AND a threshold of 3, you "
               "will need all 3 people in the group to sign to approve any "
@@ -177,17 +169,15 @@ class _NewFrostMsWalletViewState
                 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
           ),
         ),
-        body: SizedBox(
-          width: 480,
-          child: child,
-        ),
+        body: SizedBox(width: 480, child: child),
       ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -229,8 +219,9 @@ class _NewFrostMsWalletViewState
                 Text(
                   "Threshold",
                   style: STextStyles.w500_14(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
                   ),
                 ),
                 CustomTextButton(
@@ -239,9 +230,7 @@ class _NewFrostMsWalletViewState
                 ),
               ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             TextField(
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -251,18 +240,14 @@ class _NewFrostMsWalletViewState
                 hintStyle: STextStyles.fieldLabel(context),
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "Number of participants",
               style: STextStyles.w500_14(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -277,9 +262,7 @@ class _NewFrostMsWalletViewState
                     hintStyle: STextStyles.fieldLabel(context),
                   ),
                 ),
-                const SizedBox(
-                  height: 6,
-                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Expanded(
@@ -294,9 +277,7 @@ class _NewFrostMsWalletViewState
                 ),
               ],
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             if (controllers.isNotEmpty)
               Text(
                 "My name",
@@ -304,10 +285,7 @@ class _NewFrostMsWalletViewState
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
               ),
-            if (controllers.isNotEmpty)
-              const SizedBox(
-                height: 10,
-              ),
+            if (controllers.isNotEmpty) const SizedBox(height: 10),
             if (controllers.isNotEmpty)
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -320,9 +298,7 @@ class _NewFrostMsWalletViewState
                       hintStyle: STextStyles.fieldLabel(context),
                     ),
                   ),
-                  const SizedBox(
-                    height: 6,
-                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
@@ -337,10 +313,7 @@ class _NewFrostMsWalletViewState
                   ),
                 ],
               ),
-            if (controllers.length > 1)
-              const SizedBox(
-                height: 16,
-              ),
+            if (controllers.length > 1) const SizedBox(height: 16),
             if (controllers.length > 1)
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -349,13 +322,12 @@ class _NewFrostMsWalletViewState
                   Text(
                     "Remaining participants",
                     style: STextStyles.w500_14(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark3,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark3,
                     ),
                   ),
-                  const SizedBox(
-                    height: 6,
-                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
@@ -375,9 +347,7 @@ class _NewFrostMsWalletViewState
                 children: [
                   for (int i = 1; i < controllers.length; i++)
                     Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                      ),
+                      padding: const EdgeInsets.only(top: 10),
                       child: TextField(
                         controller: controllers[i],
                         decoration: InputDecoration(
@@ -389,9 +359,7 @@ class _NewFrostMsWalletViewState
                 ],
               ),
             if (!Util.isDesktop) const Spacer(),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             PrimaryButton(
               label: "Create new group",
               onPressed: () async {
@@ -411,14 +379,14 @@ class _NewFrostMsWalletViewState
                   );
                 }
 
-                final config = Frost.createMultisigConfig(
+                final config = frostInterface.createMultisigConfig(
                   name: controllers.first.text.trim(),
                   threshold: int.parse(_thresholdController.text),
                   participants: controllers.map((e) => e.text.trim()).toList(),
                 );
 
-                ref.read(pFrostMyName.notifier).state =
-                    controllers.first.text.trim();
+                ref.read(pFrostMyName.notifier).state = controllers.first.text
+                    .trim();
                 ref.read(pFrostMultisigConfig.notifier).state = config;
 
                 ref.read(pFrostScaffoldArgs.state).state = (
@@ -434,9 +402,9 @@ class _NewFrostMsWalletViewState
                   callerRouteName: CreateNewFrostMsWalletView.routeName,
                 );
 
-                await Navigator.of(context).pushNamed(
-                  FrostStepScaffold.routeName,
-                );
+                await Navigator.of(
+                  context,
+                ).pushNamed(FrostStepScaffold.routeName);
               },
             ),
           ],

@@ -7,7 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:saf_stream/saf_stream.dart';
+import 'package:saf_util/saf_util.dart';
 
+import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
 import '../../networking/http.dart';
@@ -20,8 +23,8 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/fs.dart';
 import '../../utilities/show_loading.dart';
-import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
@@ -64,8 +67,9 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           leading: const AppBarBackButton(),
           title: Text(
             "Ordinal details",
@@ -104,17 +108,16 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
                   const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
                     title: "Amount",
-                    data:
-                        utxo == null
-                            ? "ERROR"
-                            : ref
-                                .watch(pAmountFormatter(coin))
-                                .format(
-                                  Amount(
-                                    rawValue: BigInt.from(utxo!.value),
-                                    fractionDigits: coin.fractionDigits,
-                                  ),
+                    data: utxo == null
+                        ? "ERROR"
+                        : ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
+                                Amount(
+                                  rawValue: BigInt.from(utxo!.value),
+                                  fractionDigits: coin.fractionDigits,
                                 ),
+                              ),
                   ),
                   const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
@@ -170,20 +173,18 @@ class _DetailsItemWCopy extends StatelessWidget {
                   children: [
                     SvgPicture.asset(
                       Assets.svg.copy,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.infoItemIcons,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.infoItemIcons,
                       width: 12,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       "Copy",
                       style: STextStyles.infoSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.infoItemIcons,
                       ),
                     ),
                   ],
@@ -211,15 +212,28 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
   static const _spacing = 12.0;
 
+  Future<String?> _getDocsDir() async {
+    try {
+      if (Platform.isAndroid) {
+        return await FS.pickDirectory();
+      }
+
+      return (await getApplicationDocumentsDirectory()).path;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String> _savePngToFile(WidgetRef ref) async {
     final HTTP client = HTTP();
 
     final response = await client.get(
       url: Uri.parse(ordinal.content),
-      proxyInfo:
-          ref.read(prefsChangeNotifierProvider).useTor
-              ? ref.read(pTorService).getProxyInfo()
-              : null,
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : ref.read(prefsChangeNotifierProvider).useTor
+          ? ref.read(pTorService).getProxyInfo()
+          : null,
     );
 
     if (response.code != 200) {
@@ -230,22 +244,36 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     final bytes = response.bodyBytes;
 
-    final dir =
-        Platform.isAndroid
-            ? await StackFileSystem.wtfAndroidDocumentsPath()
-            : await getApplicationDocumentsDirectory();
-    final filePath = path.join(
-      dir.path,
-      "ordinal_${ordinal.inscriptionNumber}.png",
-    );
-
-    final File imgFile = File(filePath);
-
-    if (imgFile.existsSync()) {
-      throw Exception("File already exists");
+    final dirPath = await _getDocsDir();
+    if (dirPath == null) {
+      throw Exception("Failed to get directory path to save ordinal image");
     }
 
-    await imgFile.writeAsBytes(bytes);
+    final fileName = "ordinal_${ordinal.inscriptionNumber}.png";
+
+    final filePath = path.join(dirPath, fileName);
+
+    if (Platform.isAndroid) {
+      if (await SafUtil().exists(filePath, false)) {
+        throw Exception("File already exists");
+      }
+
+      await SafStream().writeFileBytes(
+        dirPath,
+        fileName,
+        "png",
+        Uint8List.fromList(bytes),
+      );
+    } else {
+      final File imgFile = File(filePath);
+
+      if (imgFile.existsSync()) {
+        throw Exception("File already exists");
+      }
+
+      await imgFile.writeAsBytes(bytes);
+    }
+
     return filePath;
   }
 
@@ -289,10 +317,9 @@ class _OrdinalImageGroup extends ConsumerWidget {
                   Assets.svg.arrowDown,
                   width: 10,
                   height: 12,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
                 ),
                 buttonHeight: ButtonHeight.l,
                 iconSpacing: 4,

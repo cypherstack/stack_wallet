@@ -10,7 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../themes/stack_colors.dart';
@@ -47,10 +48,11 @@ class _TokenContractDetailsViewState
 
   @override
   void initState() {
-    contract = MainDB.instance.isar.ethContracts
-        .where()
-        .addressEqualTo(widget.contractAddress)
-        .findFirstSync()!;
+    contract =
+        MainDB.instance.isar.ethContracts
+            .where()
+            .addressEqualTo(widget.contractAddress)
+            .findFirstSync()!;
 
     super.initState();
   }
@@ -59,92 +61,77 @@ class _TokenContractDetailsViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            titleSpacing: 0,
-            title: Text(
-              "Contract details",
-              style: STextStyles.navBarTitle(context),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.backgroundAppBar,
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                titleSpacing: 0,
+                title: Text(
+                  "Contract details",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (builderContext, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (builderContext, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: child,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _Item(
             title: "Contract address",
             data: contract.address,
-            button: SimpleCopyButton(
-              data: contract.address,
-            ),
+            button: SimpleCopyButton(data: contract.address),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           _Item(
             title: "Name",
             data: contract.name,
-            button: SimpleCopyButton(
-              data: contract.name,
-            ),
+            button: SimpleCopyButton(data: contract.name),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           _Item(
             title: "Symbol",
             data: contract.symbol,
-            button: SimpleCopyButton(
-              data: contract.symbol,
-            ),
+            button: SimpleCopyButton(data: contract.symbol),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           _Item(
             title: "Type",
             data: contract.type.name,
-            button: SimpleCopyButton(
-              data: contract.type.name,
-            ),
+            button: SimpleCopyButton(data: contract.type.name),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           _Item(
             title: "Decimals",
             data: contract.decimals.toString(),
-            button: SimpleCopyButton(
-              data: contract.decimals.toString(),
-            ),
+            button: SimpleCopyButton(data: contract.decimals.toString()),
           ),
         ],
       ),
@@ -173,29 +160,20 @@ class _Item extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: STextStyles.itemSubtitle(context),
-              ),
+              Text(title, style: STextStyles.itemSubtitle(context)),
               button,
             ],
           ),
-          const SizedBox(
-            height: 5,
-          ),
+          const SizedBox(height: 5),
           data.isNotEmpty
-              ? SelectableText(
-                  data,
-                  style: STextStyles.w500_14(context),
-                )
+              ? SelectableText(data, style: STextStyles.w500_14(context))
               : Text(
-                  "$title will appear here",
-                  style: STextStyles.w500_14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle3,
-                  ),
+                "$title will appear here",
+                style: STextStyles.w500_14(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle3,
                 ),
+              ),
         ],
       ),
     );

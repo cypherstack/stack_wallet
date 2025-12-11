@@ -4,7 +4,7 @@ set -x -e
 
 export TEMPLATES_DIR="${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates"
 
-export T_PUBSPEC="${TEMPLATES_DIR}/pubspec.template"
+export T_PUBSPEC="${TEMPLATES_DIR}/pubspec.template.yaml"
 export ACTUAL_PUBSPEC="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
 export ANDROID_TF_0="android/app/build.gradle"
@@ -66,3 +66,8 @@ for TF in "${TEMPLATE_FILES[@]}"; do
   fi
   cp -rp "${TEMPLATES_DIR}/${TF}" "${FILE}"
 done
+
+if [ "$BUILD_ISAR_FROM_SOURCE" -eq 1 ]; then
+  source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/isar_build.sh"
+  build_isar_source
+fi

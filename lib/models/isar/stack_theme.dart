@@ -12,7 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../utilities/extensions/impl/box_shadow.dart';
@@ -1943,6 +1943,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wownero;
   late final String namecoin;
   late final String particl;
+  late final String mimblewimblecoin;
   late final String bitcoinImage;
   late final String bitcoincashImage;
   late final String dogecoinImage;

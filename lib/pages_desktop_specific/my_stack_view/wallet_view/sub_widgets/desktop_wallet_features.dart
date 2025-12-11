@@ -24,6 +24,8 @@ import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
+import '../../../../pages/salvium_stake/salvium_create_stake_view.dart';
+import '../../../../pages/signing/signing_view.dart';
 import '../../../../pages/spark_names/spark_names_home_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
@@ -38,9 +40,10 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/coins/banano.dart';
 import '../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/impl/namecoin_wallet.dart';
-import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
@@ -50,10 +53,12 @@ import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/sign_verify_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
@@ -85,12 +90,15 @@ enum WalletFeature {
   churn("Churn", "Churning"),
   namecoinName("Domains", "Namecoin DNS"),
   sparkNames("Names", "Spark names"),
+  salviumStaking("Staking", "Staking"),
+  sign("Sign/Verify", "Sign / Verify messages"),
 
   // special cases
   clearSparkCache("", ""),
   rbf("", ""),
   reuseAddress("", ""),
-  enableMweb("", "");
+  enableMweb("", ""),
+  enableLegacyAddresses("", "");
 
   final String label;
   final String description;
@@ -126,9 +134,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   ) async {
     await showDialog<void>(
       context: context,
-      builder:
-          (_) =>
-              MoreFeaturesDialog(walletId: widget.walletId, options: options),
+      builder: (_) =>
+          MoreFeaturesDialog(walletId: widget.walletId, options: options),
     );
   }
 
@@ -154,49 +161,48 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => DesktopDialog(
-            maxWidth: 500,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-              child: Column(
+      builder: (context) => DesktopDialog(
+        maxWidth: 500,
+        maxHeight: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          child: Column(
+            children: [
+              Text("Attention!", style: STextStyles.desktopH2(context)),
+              const SizedBox(height: 16),
+              Text(
+                "You're about to privatize all of your public funds.",
+                style: STextStyles.desktopTextSmall(context),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Attention!", style: STextStyles.desktopH2(context)),
-                  const SizedBox(height: 16),
-                  Text(
-                    "You're about to privatize all of your public funds.",
-                    style: STextStyles.desktopTextSmall(context),
+                  SecondaryButton(
+                    width: 200,
+                    buttonHeight: ButtonHeight.l,
+                    label: "Cancel",
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SecondaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.l,
-                        label: "Cancel",
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      PrimaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.l,
-                        label: "Continue",
-                        onPressed: () {
-                          Navigator.of(context).pop();
+                  const SizedBox(width: 20),
+                  PrimaryButton(
+                    width: 200,
+                    buttonHeight: ButtonHeight.l,
+                    label: "Continue",
+                    onPressed: () {
+                      Navigator.of(context).pop();
 
-                          unawaited(_attemptAnonymize());
-                        },
-                      ),
-                    ],
+                      unawaited(_attemptAnonymize());
+                    },
                   ),
                 ],
               ),
-            ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -205,14 +211,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     unawaited(
       showDialog(
         context: context,
-        builder:
-            (context) => WillPopScope(
-              child: const CustomLoadingOverlay(
-                message: "Privatizing balance",
-                eventBus: null,
-              ),
-              onWillPop: () async => shouldPop,
-            ),
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Privatizing balance",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
       ),
     );
 
@@ -265,46 +270,44 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         await showDialog<dynamic>(
           context: context,
-          builder:
-              (_) => DesktopDialog(
-                maxWidth: 400,
-                maxHeight: 300,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          builder: (_) => DesktopDialog(
+            maxWidth: 400,
+            maxHeight: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Privatize all failed",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const Spacer(flex: 1),
+                  Text(
+                    "Reason: $e",
+                    style: STextStyles.desktopTextSmall(context),
+                  ),
+                  const Spacer(flex: 2),
+                  Row(
                     children: [
-                      Text(
-                        "Privatize all failed",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const Spacer(flex: 1),
-                      Text(
-                        "Reason: $e",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const Spacer(flex: 2),
-                      Row(
-                        children: [
-                          const Spacer(),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: PrimaryButton(
-                              label: "Ok",
-                              buttonHeight: ButtonHeight.l,
-                              onPressed:
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop,
-                            ),
-                          ),
-                        ],
+                      const Spacer(),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Ok",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          ).pop,
+                        ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
+            ),
+          ),
         );
       }
     }
@@ -386,6 +389,71 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     ).pushNamed(SparkNamesHomeView.routeName, arguments: widget.walletId);
   }
 
+  Future<void> _onSalviumStakePressed() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxWidth: 500,
+        maxHeight: double.infinity,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Create stake transaction",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: SalviumCreateStakeView(walletId: widget.walletId),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onSignPressed() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxWidth: 580,
+        maxHeight: double.infinity,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Sign/Verify",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: SigningView(walletId: widget.walletId),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<(WalletFeature, String, FutureOr<void> Function())> _getOptions(
     Wallet wallet,
     bool showExchange,
@@ -394,6 +462,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   ) {
     final coin = wallet.info.coin;
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+    final isSparkViewOnly = isViewOnly && wallet.viewOnlyType == .spark;
 
     return [
       if (!isViewOnly &&
@@ -405,7 +474,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           _onAnonymizeAllPressed,
         ),
 
-      if (wallet is SparkInterface)
+      if (wallet is SparkInterface && !isViewOnly || isSparkViewOnly)
         (WalletFeature.sparkNames, Assets.svg.robotHead, _onSparkNamesPressed),
 
       if (!isViewOnly &&
@@ -416,6 +485,16 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (showExchange && AppConfig.hasFeature(AppFeature.buy))
         (WalletFeature.buy, Assets.svg.swap, _onBuyPressed),
+
+      if (wallet is LibSalviumWallet)
+        (
+          WalletFeature.salviumStaking,
+          Assets.svg.recycle,
+          _onSalviumStakePressed,
+        ),
+
+      if (wallet is SignVerifyInterface && !isViewOnly)
+        (WalletFeature.sign, Assets.svg.pencil, _onSignPressed),
 
       if (showCoinControl)
         (
@@ -447,11 +526,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (wallet.info.coin is Banano)
         (WalletFeature.monkey, Assets.svg.monkey, _onMonkeyPressed),
 
-      if (!isViewOnly && wallet is CashFusionInterface)
+      if (AppConfig.hasFeature(AppFeature.tor) &&
+          !isViewOnly &&
+          wallet is CashFusionInterface)
         (WalletFeature.fusion, Assets.svg.cashFusion, _onFusionPressed),
 
-      if (!isViewOnly &&
-          (wallet is LibMoneroWallet || wallet is LibSalviumWallet))
+      if (!isViewOnly && (wallet is CryptonoteWallet))
         (WalletFeature.churn, Assets.svg.churn, _onChurnPressed),
 
       if (wallet is NamecoinWallet)
@@ -493,17 +573,21 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       canGen =
           (wallet is MultiAddressInterface ||
-              wallet is SparkInterface ||
-              supportsMweb);
+          wallet is SparkInterface ||
+          supportsMweb);
     }
 
     final showMwebOption = wallet is MwebInterface && !wallet.isViewOnly;
 
     final extraOptions = [
-      if (wallet is SparkInterface && !isViewOnly)
+      if (wallet is SparkInterface &&
+          (!isViewOnly || (isViewOnly && wallet.viewOnlyType == .spark)))
         (WalletFeature.clearSparkCache, Assets.svg.key, () => ()),
 
       if (wallet is RbfInterface) (WalletFeature.rbf, Assets.svg.key, () => ()),
+
+      if (wallet is BitcoinWallet)
+        (WalletFeature.enableLegacyAddresses, Assets.svg.key, () => ()),
 
       if (canGen) (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
 
@@ -523,16 +607,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Assets.svg.bars,
               height: 20,
               width: 20,
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.buttonTextSecondary,
             ),
-            onPressed:
-                () => _onMorePressed([
-                  ...options.sublist(options.length - count),
-                  ...extraOptions,
-                ]),
+            onPressed: () => _onMorePressed([
+              ...options.sublist(options.length - count),
+              ...extraOptions,
+            ]),
           ),
         );
       },
@@ -545,30 +627,27 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                 label: option.$1.label,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 buttonHeight: ButtonHeight.l,
-                icon:
-                    option.$1 == WalletFeature.buy
-                        ? SvgPicture.file(
-                          File(
-                            ref.watch(
-                              themeProvider.select((value) => value.assets.buy),
-                            ),
+                icon: option.$1 == WalletFeature.buy
+                    ? SvgPicture.file(
+                        File(
+                          ref.watch(
+                            themeProvider.select((value) => value.assets.buy),
                           ),
-                          height: 20,
-                          width: 20,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonTextSecondary,
-                        )
-                        : SvgPicture.asset(
-                          option.$2,
-                          height: 20,
-                          width: 20,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonTextSecondary,
                         ),
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.buttonTextSecondary,
+                      )
+                    : SvgPicture.asset(
+                        option.$2,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.buttonTextSecondary,
+                      ),
                 onPressed: () => option.$3(),
               ),
             ),

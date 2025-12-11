@@ -27,6 +27,7 @@ import '../utilities/constants.dart';
 import '../utilities/format.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import '../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'desktop/desktop_dialog.dart';
 
@@ -60,6 +61,10 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
     int currentHeight,
   ) {
     if (coin is Epiccash && _transaction.slateId == null) {
+      return "Restored Funds";
+    }
+
+    if (coin is Mimblewimblecoin && _transaction.slateId == null) {
       return "Restored Funds";
     }
 
@@ -193,6 +198,20 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
               );
               return;
             }
+
+            if (coin is Mimblewimblecoin && _transaction.slateId == null) {
+              unawaited(
+                showFloatingFlushBar(
+                  context: context,
+                  message:
+                      "Restored Mimblewimblecoin funds from your Seed have no Data.",
+                  type: FlushBarType.warning,
+                  duration: const Duration(seconds: 5),
+                ),
+              );
+              return;
+            }
+
             if (Util.isDesktop) {
               await showDialog<void>(
                 context: context,

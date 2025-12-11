@@ -14,7 +14,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../../models/isar/stack_theme.dart';
 import '../../../../../notifications/show_flush_bar.dart';
@@ -34,10 +34,7 @@ import '../../../../../widgets/rounded_white_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
 
 class StackThemeCard extends ConsumerStatefulWidget {
-  const StackThemeCard({
-    super.key,
-    required this.data,
-  });
+  const StackThemeCard({super.key, required this.data});
 
   final StackThemeMetaData data;
 
@@ -57,29 +54,33 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     final service = ref.read(pThemeService);
 
     try {
-      final data = await service.fetchTheme(
-        themeMetaData: widget.data,
-      );
+      final data = await service.fetchTheme(themeMetaData: widget.data);
 
       await service.install(themeArchiveData: data);
       return true;
     } catch (e, s) {
-      Logging.instance.w("Failed _downloadAndInstall of ${widget.data.id}: ", error: e, stackTrace: s);
+      Logging.instance.w(
+        "Failed _downloadAndInstall of ${widget.data.id}: ",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
 
   Future<void> _downloadPressed() async {
-    final result = (await showLoading(
-      whileFuture: _downloadAndInstall(),
-      context: context,
-      message: "Downloading and installing theme...",
-    ))!;
+    final result =
+        (await showLoading(
+          whileFuture: _downloadAndInstall(),
+          context: context,
+          message: "Downloading and installing theme...",
+        ))!;
 
     if (mounted) {
-      final message = result
-          ? "${widget.data.name} theme installed!"
-          : "Failed to install ${widget.data.name} theme";
+      final message =
+          result
+              ? "${widget.data.name} theme installed!"
+              : "Failed to install ${widget.data.name} theme";
       if (isDesktop) {
         await showFloatingFlushBar(
           type: result ? FlushBarType.success : FlushBarType.warning,
@@ -89,15 +90,16 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
       } else {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: message,
-            onOkPressed: (_) {
-              setState(() {
-                _needsUpdate = !result;
-                _hasTheme = result;
-              });
-            },
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: message,
+                onOkPressed: (_) {
+                  setState(() {
+                    _needsUpdate = !result;
+                    _hasTheme = result;
+                  });
+                },
+              ),
         );
       }
     }
@@ -128,8 +130,9 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     final themeDir = Directory("${themesDir.path}/${widget.data.id}");
     int bytes = 0;
     if (await themeDir.exists()) {
-      await for (final FileSystemEntity entity
-          in themeDir.list(recursive: true)) {
+      await for (final FileSystemEntity entity in themeDir.list(
+        recursive: true,
+      )) {
         if (entity is File) {
           bytes += await entity.length();
         }
@@ -152,13 +155,14 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     }
   }
 
-  StackTheme? getInstalled() => ref
-      .read(mainDBProvider)
-      .isar
-      .stackThemes
-      .where()
-      .themeIdEqualTo(widget.data.id)
-      .findFirstSync();
+  StackTheme? getInstalled() =>
+      ref
+          .read(mainDBProvider)
+          .isar
+          .stackThemes
+          .where()
+          .themeIdEqualTo(widget.data.id)
+          .findFirstSync();
 
   @override
   void initState() {
@@ -174,20 +178,20 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
         .stackThemes
         .watchLazy()
         .listen((event) async {
-      final installedTheme = getInstalled();
-      final hasTheme = installedTheme != null;
-      if (_hasTheme != hasTheme && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          setState(() {
-            _hasTheme = hasTheme;
-            if (hasTheme) {
-              _needsUpdate =
-                  widget.data.version > (installedTheme.version ?? 0);
-            }
-          });
+          final installedTheme = getInstalled();
+          final hasTheme = installedTheme != null;
+          if (_hasTheme != hasTheme && mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              setState(() {
+                _hasTheme = hasTheme;
+                if (hasTheme) {
+                  _needsUpdate =
+                      widget.data.version > (installedTheme.version ?? 0);
+                }
+              });
+            });
+          }
         });
-      }
-    });
 
     _subscription.resume();
     super.initState();
@@ -203,67 +207,46 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   Widget build(BuildContext context) {
     return RoundedWhiteContainer(
       radiusMultiplier: isDesktop ? 2.5 : 1,
-      borderColor: isDesktop
-          ? Theme.of(context).extension<StackColors>()!.textSubtitle6
-          : null,
+      borderColor:
+          isDesktop
+              ? Theme.of(context).extension<StackColors>()!.textSubtitle6
+              : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 18,
-            ),
-            child: widget.data.previewImageUrl.isNotEmpty
-                ? AspectRatio(
-                    aspectRatio: 1,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
-                      child: Image.network(
-                        widget.data.previewImageUrl,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child:
+                widget.data.previewImageUrl.isNotEmpty
+                    ? AspectRatio(
+                      aspectRatio: 1,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: Image.network(widget.data.previewImageUrl),
                       ),
-                    ),
-                  )
-                : Builder(
-                    builder: (context) {
-                      final themePreview = ref
-                              .watch(pThemeService)
-                              .getTheme(themeId: widget.data.id)
-                              ?.assets
-                              .themePreview ??
-                          "";
+                    )
+                    : Builder(
+                      builder: (context) {
+                        final themePreview =
+                            ref
+                                .watch(pThemeService)
+                                .getTheme(themeId: widget.data.id)
+                                ?.assets
+                                .themePreview ??
+                            "";
 
-                      return (themePreview.endsWith(".png"))
-                          ? Image.file(
-                              File(
-                                themePreview,
-                              ),
-                              height: 100,
-                            )
-                          : SvgPicture.file(
-                              File(
-                                themePreview,
-                              ),
-                              height: 100,
-                            );
-                    },
-                  ),
+                        return (themePreview.endsWith(".png"))
+                            ? Image.file(File(themePreview), height: 100)
+                            : SvgPicture.file(File(themePreview), height: 100);
+                      },
+                    ),
           ),
-          const SizedBox(
-            height: 12,
-          ),
-          Text(
-            widget.data.name,
-            style: STextStyles.itemSubtitle12(context),
-          ),
-          const SizedBox(
-            height: 6,
-          ),
+          const SizedBox(height: 12),
+          Text(widget.data.name, style: STextStyles.itemSubtitle12(context)),
+          const SizedBox(height: 6),
           FutureBuilder(
             future: getThemeDirectorySize(),
-            builder: (
-              context,
-              AsyncSnapshot<String> snapshot,
-            ) {
+            builder: (context, AsyncSnapshot<String> snapshot) {
               if (snapshot.connectionState == ConnectionState.done &&
                   snapshot.hasData) {
                 _cachedSize = snapshot.data;
@@ -279,31 +262,24 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
                   style: STextStyles.label(context),
                 );
               } else {
-                return Text(
-                  _cachedSize!,
-                  style: STextStyles.label(context),
-                );
+                return Text(_cachedSize!, style: STextStyles.label(context));
               }
             },
           ),
-          if (_hasTheme && _needsUpdate)
-            const SizedBox(
-              height: 12,
-            ),
+          if (_hasTheme && _needsUpdate) const SizedBox(height: 12),
           if (_hasTheme && _needsUpdate)
             PrimaryButton(
               label: "Update",
               buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
               onPressed: _downloadPressed,
             ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 300),
-            crossFadeState: _hasTheme
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
+            crossFadeState:
+                _hasTheme
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
             firstChild: PrimaryButton(
               label: "Download",
               buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,

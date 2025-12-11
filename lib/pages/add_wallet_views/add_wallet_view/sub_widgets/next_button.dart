@@ -11,8 +11,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import '../../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import '../../create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import '../../select_wallet_for_token_view.dart';
+import '../../select_wallet_for_sol_token_view.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
@@ -40,6 +42,11 @@ class AddWalletNextButton extends ConsumerWidget {
               if (selectedCoin is EthTokenEntity) {
                 Navigator.of(context).pushNamed(
                   SelectWalletForTokenView.routeName,
+                  arguments: selectedCoin,
+                );
+              } else if (selectedCoin is SolTokenEntity) {
+                Navigator.of(context).pushNamed(
+                  SelectWalletForSolTokenView.routeName,
                   arguments: selectedCoin,
                 );
               } else {

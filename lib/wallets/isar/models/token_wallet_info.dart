@@ -1,4 +1,5 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../utilities/amount/amount.dart';
@@ -14,9 +15,7 @@ class TokenWalletInfo implements IsarId {
   @Index(
     unique: true,
     replace: false,
-    composite: [
-      CompositeIndex("tokenAddress"),
-    ],
+    composite: [CompositeIndex("tokenAddress")],
   )
   final String walletId;
 
@@ -39,25 +38,18 @@ class TokenWalletInfo implements IsarId {
   // token balance cache
   Balance getCachedBalance() {
     if (cachedBalanceJsonString == null) {
+      final amount = Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: tokenFractionDigits,
+      );
       return Balance(
-        total: Amount.zeroWith(
-          fractionDigits: tokenFractionDigits,
-        ),
-        spendable: Amount.zeroWith(
-          fractionDigits: tokenFractionDigits,
-        ),
-        blockedTotal: Amount.zeroWith(
-          fractionDigits: tokenFractionDigits,
-        ),
-        pendingSpendable: Amount.zeroWith(
-          fractionDigits: tokenFractionDigits,
-        ),
+        total: amount,
+        spendable: amount,
+        blockedTotal: amount,
+        pendingSpendable: amount,
       );
     }
-    return Balance.fromJson(
-      cachedBalanceJsonString!,
-      tokenFractionDigits,
-    );
+    return Balance.fromJson(cachedBalanceJsonString!, tokenFractionDigits);
   }
 
   Future<void> updateCachedBalance(
@@ -65,19 +57,18 @@ class TokenWalletInfo implements IsarId {
     required Isar isar,
   }) async {
     // // ensure we are updating using the latest entry of this in the db
-    final thisEntry = await isar.tokenWalletInfo
-        .where()
-        .walletIdTokenAddressEqualTo(walletId, tokenAddress)
-        .findFirst();
+    final thisEntry =
+        await isar.tokenWalletInfo
+            .where()
+            .walletIdTokenAddressEqualTo(walletId, tokenAddress)
+            .findFirst();
     if (thisEntry == null) {
       throw Exception(
         "Attempted to update cached token balance before object was saved in db",
       );
     } else {
       await isar.writeTxn(() async {
-        await isar.tokenWalletInfo.delete(
-          thisEntry.id,
-        );
+        await isar.tokenWalletInfo.delete(thisEntry.id);
         await isar.tokenWalletInfo.put(
           TokenWalletInfo(
             walletId: walletId,

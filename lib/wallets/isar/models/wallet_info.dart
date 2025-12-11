@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../app_config.dart';
@@ -75,6 +75,28 @@ class WalletInfo implements IsarId {
     }
   }
 
+  @ignore
+  List<String> get solanaTokenMintAddresses {
+    if (otherData[WalletInfoKeys.solanaTokenMintAddresses] is List) {
+      return List<String>.from(
+        otherData[WalletInfoKeys.solanaTokenMintAddresses] as List,
+      );
+    } else {
+      return [];
+    }
+  }
+
+  @ignore
+  List<String> get solanaCustomTokenMintAddresses {
+    if (otherData[WalletInfoKeys.solanaCustomTokenMintAddresses] is List) {
+      return List<String>.from(
+        otherData[WalletInfoKeys.solanaCustomTokenMintAddresses] as List,
+      );
+    } else {
+      return [];
+    }
+  }
+
   /// Special case for coins such as firo lelantus
   @ignore
   Balance get cachedBalanceSecondary {
@@ -114,10 +136,9 @@ class WalletInfo implements IsarId {
   }
 
   @ignore
-  Map<String, dynamic> get otherData =>
-      otherDataJsonString == null
-          ? {}
-          : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
+  Map<String, dynamic> get otherData => otherDataJsonString == null
+      ? {}
+      : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
 
   @ignore
   bool get isViewOnly =>
@@ -142,6 +163,10 @@ class WalletInfo implements IsarId {
   @ignore
   bool get isMwebEnabled =>
       otherData[WalletInfoKeys.mwebEnabled] as bool? ?? false;
+
+  @ignore
+  bool get isLegacyAddressesEnabled =>
+      otherData[WalletInfoKeys.enableLegacyAddresses] as bool? ?? false;
 
   //============================================================================
   //=============    Updaters   ================================================
@@ -248,12 +273,11 @@ class WalletInfo implements IsarId {
     if (customIndexOverride != null) {
       index = customIndexOverride;
     } else if (flag) {
-      final highest =
-          await isar.walletInfo
-              .where()
-              .sortByFavouriteOrderIndexDesc()
-              .favouriteOrderIndexProperty()
-              .findFirst();
+      final highest = await isar.walletInfo
+          .where()
+          .sortByFavouriteOrderIndexDesc()
+          .favouriteOrderIndexProperty()
+          .findFirst();
       index = (highest ?? 0) + 1;
     } else {
       index = -1;
@@ -336,8 +360,10 @@ class WalletInfo implements IsarId {
 
   /// Can be dangerous. Don't use unless you know the consequences
   Future<void> setMnemonicVerified({required Isar isar}) async {
-    final meta =
-        await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst();
+    final meta = await isar.walletInfoMeta
+        .where()
+        .walletIdEqualTo(walletId)
+        .findFirst();
     if (meta == null) {
       await isar.writeTxn(() async {
         await isar.walletInfoMeta.put(
@@ -391,6 +417,32 @@ class WalletInfo implements IsarId {
     await updateOtherData(
       newEntries: {
         WalletInfoKeys.tokenContractAddresses: newContractAddresses.toList(),
+      },
+      isar: isar,
+    );
+  }
+
+  /// Update Solana token mint addresses and update the db.
+  Future<void> updateSolanaTokenMintAddresses({
+    required Set<String> newMintAddresses,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {
+        WalletInfoKeys.solanaTokenMintAddresses: newMintAddresses.toList(),
+      },
+      isar: isar,
+    );
+  }
+
+  /// Update custom Solana token mint addresses and update the db.
+  Future<void> updateSolanaCustomTokenMintAddresses({
+    required List<String> newMintAddresses,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {
+        WalletInfoKeys.solanaCustomTokenMintAddresses: newMintAddresses.toList(),
       },
       isar: isar,
     );
@@ -464,12 +516,13 @@ class WalletInfo implements IsarId {
     int restoreHeight = 0,
     String? walletIdOverride,
     String? otherDataJsonString,
+    AddressType? overrideAddressType, // added hack for spark view only wallets
   }) {
     return WalletInfo(
       coinName: coin.identifier,
       walletId: walletIdOverride ?? const Uuid().v1(),
       name: name,
-      mainAddressType: coin.defaultAddressType,
+      mainAddressType: overrideAddressType ?? coin.defaultAddressType,
       restoreHeight: restoreHeight,
       otherDataJsonString: otherDataJsonString,
     );
@@ -508,6 +561,7 @@ class WalletInfo implements IsarId {
 abstract class WalletInfoKeys {
   static const String tokenContractAddresses = "tokenContractAddressesKey";
   static const String epiccashData = "epiccashDataKey";
+  static const String mimblewimblecoinData = "mimblewimblecoinDataKey";
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
   static const String tezosDerivationPath = "tezosDerivationPathKey";
   static const String xelisDerivationPath = "xelisDerivationPathKey";
@@ -523,4 +577,8 @@ abstract class WalletInfoKeys {
   static const String mwebScanHeight = "mwebScanHeightKey";
   static const String firoSparkUsedTagsCacheResetVersion =
       "firoSparkUsedTagsCacheResetVersionKey";
+  static const String enableLegacyAddresses = "enableLegacyAddressesKey";
+  static const String solanaTokenMintAddresses = "solanaTokenMintAddressesKey";
+  static const String solanaCustomTokenMintAddresses =
+      "solanaCustomTokenMintAddressesKey";
 }

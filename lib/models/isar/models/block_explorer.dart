@@ -8,7 +8,8 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
+
 import '../../../app_config.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 
@@ -16,10 +17,7 @@ part 'block_explorer.g.dart';
 
 @collection
 class TransactionBlockExplorer {
-  TransactionBlockExplorer({
-    required this.ticker,
-    required this.url,
-  });
+  TransactionBlockExplorer({required this.ticker, required this.url});
 
   Id id = Isar.autoIncrement;
 
@@ -37,10 +35,6 @@ class TransactionBlockExplorer {
     }
   }
 
-  Uri? getUrlFor({required String txid}) => Uri.tryParse(
-        url.replaceFirst(
-          "%5BTXID%5D",
-          txid,
-        ),
-      );
+  Uri? getUrlFor({required String txid}) =>
+      Uri.tryParse(url.replaceFirst("%5BTXID%5D", txid));
 }

@@ -11,94 +11,63 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../../app_config.dart';
-import '../../../../../utilities/stack_file_system.dart';
-import '../../../../../utilities/util.dart';
+import '../../../../../utilities/fs.dart';
 
 class SWBFileSystem {
-  Directory? rootPath;
-  Directory? startPath;
-
-  String? filePath;
-  String? dirPath;
-
-  final bool isDesktop = Util.isDesktop;
+  Directory? _startPath;
 
   Future<Directory> prepareStorage() async {
-    if (Platform.isAndroid) {
-      rootPath = await StackFileSystem.wtfAndroidDocumentsPath();
-    } else {
-      rootPath = await getApplicationDocumentsDirectory();
-    }
-    //todo: check if print needed
-    // debugPrint(rootPath!.absolute.toString());
+    if (_startPath != null) _startPath;
+
+    final _rootPath = await getApplicationDocumentsDirectory();
 
     late Directory sampleFolder;
     const dirName = "${AppConfig.prefix}_backup";
 
     if (Platform.isIOS) {
-      sampleFolder = Directory(rootPath!.path);
+      sampleFolder = Directory(_rootPath.path);
     } else if (Platform.isAndroid ||
         Platform.isLinux ||
         Platform.isWindows ||
         Platform.isMacOS) {
-      sampleFolder = Directory(path.join(rootPath!.path, dirName));
+      sampleFolder = Directory(path.join(_rootPath.path, dirName));
     }
 
-    try {
-      if (!sampleFolder.existsSync()) {
-        sampleFolder.createSync(recursive: true);
-      }
-    } catch (e, s) {
-      // todo: come back to this
-      debugPrint("$e $s");
+    if (!sampleFolder.existsSync()) {
+      sampleFolder.createSync(recursive: true);
     }
 
     File sampleFile = File('${sampleFolder.path}/Backups_Go_Here.info');
     if (Platform.isIOS) {
-      sampleFile = File('${rootPath!.path}/Backups_Go_Here.info');
+      sampleFile = File('${_rootPath.path}/Backups_Go_Here.info');
     }
 
-    try {
-      if (!sampleFile.existsSync()) {
-        sampleFile.createSync();
-      }
-    } catch (e, s) {
-      // todo: come back to this
-      debugPrint("$e $s");
+    if (!sampleFile.existsSync()) {
+      sampleFile.createSync();
     }
-    startPath = sampleFolder;
+
+    _startPath = sampleFolder;
     return sampleFolder;
   }
 
-  Future<void> pickDir(BuildContext context) async {
-    final String? chosenPath;
-    if (Platform.isIOS) {
-      chosenPath = startPath?.path;
-    } else {
-      final String path =
-          Platform.isWindows
-              ? startPath!.path.replaceAll("/", "\\")
-              : startPath!.path;
-      chosenPath = await FilePicker.platform.getDirectoryPath(
-        dialogTitle: "Choose Backup location",
-        initialDirectory: path,
-        lockParentWindow: true,
-      );
-    }
-    dirPath = chosenPath;
+  Future<String?> pickDir() {
+    return FS.pickDirectory(
+      initialDirectory: Platform.isWindows
+          ? _startPath?.path.replaceAll("/", "\\")
+          : _startPath?.path,
+    );
   }
 
-  Future<void> openFile(BuildContext context) async {
+  Future<String?> openFile() async {
     FilePickerResult? result;
     if (Platform.isAndroid) {
       result = await FilePicker.platform.pickFiles(
         dialogTitle: "Load backup file",
-        initialDirectory: startPath!.path,
+        initialDirectory: _startPath!.path,
         type: FileType.any,
         allowCompression: false,
         lockParentWindow: true,
@@ -106,7 +75,7 @@ class SWBFileSystem {
     } else if (Platform.isIOS) {
       result = await FilePicker.platform.pickFiles(
         dialogTitle: "Load backup file",
-        initialDirectory: startPath!.path,
+        initialDirectory: _startPath!.path,
         type: FileType.any,
         allowCompression: false,
         lockParentWindow: true,
@@ -114,7 +83,7 @@ class SWBFileSystem {
     } else {
       result = await FilePicker.platform.pickFiles(
         dialogTitle: "Load backup file",
-        initialDirectory: startPath!.path,
+        initialDirectory: _startPath!.path,
         type: FileType.custom,
         allowedExtensions: ['bin', 'swb'],
         allowCompression: false,
@@ -122,6 +91,6 @@ class SWBFileSystem {
       );
     }
 
-    filePath = result?.paths.first;
+    return result?.paths.first;
   }
 }

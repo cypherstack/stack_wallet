@@ -46,6 +46,7 @@ class AddTokenList extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: AddTokenListElement(
+              key: Key(items[index].token.address),
               data: items[index],
             ),
           ),

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +5,6 @@ import '../../../../frost_route_generator.dart';
 import '../../../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/models/frost_wallet_info.dart';
@@ -18,6 +15,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../wallet_view/wallet_view.dart';
 
@@ -58,7 +56,10 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
       if (amOutgoingParticipant) {
         ref.read(pFrostResharingData).reset();
         ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
-        ref.read(pFrostScaffoldArgs)?.parentNav.popUntil(
+        ref
+            .read(pFrostScaffoldArgs)
+            ?.parentNav
+            .popUntil(
               ModalRoute.withName(
                 Util.isDesktop
                     ? DesktopWalletView.routeName
@@ -72,8 +73,8 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
           resharerCompletes.insert(myResharerIndexIndex!, myResharerComplete!);
         }
 
-        final data = Frost.finishReshared(
-          prior: ref.read(pFrostResharingData).startResharedData!.prior.ref,
+        final data = frostInterface.finishReshared(
+          prior: ref.read(pFrostResharingData).startResharedData!.prior,
           resharerCompletes: resharerCompletes,
         );
 
@@ -88,14 +89,12 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
         );
       }
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: "Error",
-            message: e.toString(),
-          ),
+          builder: (_) =>
+              FrostErrorDialog(title: "Error", message: e.toString()),
         );
       }
     } finally {
@@ -107,9 +106,9 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
   void initState() {
     amNewParticipant =
         ref.read(pFrostResharingData).startResharerData == null &&
-            ref.read(pFrostResharingData).incompleteWallet != null &&
-            ref.read(pFrostResharingData).incompleteWallet?.walletId ==
-                ref.read(pFrostScaffoldArgs)!.walletId!;
+        ref.read(pFrostResharingData).incompleteWallet != null &&
+        ref.read(pFrostResharingData).incompleteWallet?.walletId ==
+            ref.read(pFrostScaffoldArgs)!.walletId!;
 
     myName = ref.read(pFrostResharingData).myName!;
 
@@ -127,8 +126,9 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
           .isar
           .frostWalletInfo
           .getByWalletIdSync(ref.read(pFrostScaffoldArgs)!.walletId!)!;
-      final myOldIndex =
-          frostInfo.participants.indexOf(ref.read(pFrostResharingData).myName!);
+      final myOldIndex = frostInfo.participants.indexOf(
+        ref.read(pFrostResharingData).myName!,
+      );
 
       myResharerIndexIndex = resharers.values.toList().indexOf(myOldIndex);
       if (myResharerIndexIndex! >= 0) {
@@ -173,22 +173,13 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
               title: "My resharer complete",
               detail: myResharerComplete!,
               button: Util.isDesktop
-                  ? IconCopyButton(
-                      data: myResharerComplete!,
-                    )
-                  : SimpleCopyButton(
-                      data: myResharerComplete!,
-                    ),
+                  ? IconCopyButton(data: myResharerComplete!)
+                  : SimpleCopyButton(data: myResharerComplete!),
             ),
           if (myResharerComplete != null) const SizedBox(height: 12),
           if (myResharerComplete != null)
-            FrostQrDialogPopupButton(
-              data: myResharerComplete!,
-            ),
-          if (!amOutgoingParticipant)
-            const SizedBox(
-              height: 16,
-            ),
+            FrostQrDialogPopupButton(data: myResharerComplete!),
+          if (!amOutgoingParticipant) const SizedBox(height: 16),
           if (!amOutgoingParticipant)
             Column(
               mainAxisSize: MainAxisSize.min,
@@ -202,7 +193,8 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
                       focusNode: focusNodes[i],
                       showQrScanOption: true,
                       label: resharers.keys.elementAt(i),
-                      hint: "Enter "
+                      hint:
+                          "Enter "
                           "${resharers.keys.elementAt(i)}"
                           "'s resharer",
                       onChanged: (_) {
@@ -215,9 +207,7 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
               ],
             ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           if (!amNewParticipant)
             CheckboxTextButton(
               label: "I have verified that everyone has my resharer complete",
@@ -227,13 +217,11 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
                 });
               },
             ),
-          if (!amNewParticipant)
-            const SizedBox(
-              height: 16,
-            ),
+          if (!amNewParticipant) const SizedBox(height: 16),
           PrimaryButton(
             label: amOutgoingParticipant ? "Done" : "Complete",
-            enabled: (amNewParticipant || _userVerifyContinue) &&
+            enabled:
+                (amNewParticipant || _userVerifyContinue) &&
                 (amOutgoingParticipant ||
                     !fieldIsEmptyFlags.fold(false, (v, e) => v || e)),
             onPressed: _onPressed,

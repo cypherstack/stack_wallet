@@ -11,11 +11,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/isar/models/contract.dart';
+import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_solana_wallet_card.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import '../../providers/providers.dart';
 import '../../services/event_bus/events/wallet_added_event.dart';
@@ -59,7 +60,7 @@ class WalletsOverview extends ConsumerStatefulWidget {
   ConsumerState<WalletsOverview> createState() => _EthWalletsOverviewState();
 }
 
-typedef WalletListItemData = ({Wallet wallet, List<EthContract> contracts});
+typedef WalletListItemData = ({Wallet wallet, List<Contract> contracts});
 
 class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final isDesktop = Util.isDesktop;
@@ -73,14 +74,13 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   List<WalletListItemData> _filter(String searchTerm) {
     // clean out deleted wallets
-    final existingWalletIds =
-        ref
-            .read(mainDBProvider)
-            .isar
-            .walletInfo
-            .where()
-            .walletIdProperty()
-            .findAllSync();
+    final existingWalletIds = ref
+        .read(mainDBProvider)
+        .isar
+        .walletInfo
+        .where()
+        .walletIdProperty()
+        .findAllSync();
     wallets.removeWhere((k, v) => !existingWalletIds.contains(k));
 
     if (searchTerm.isEmpty) {
@@ -100,14 +100,12 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         term,
       );
 
-      final List<EthContract> contracts = [];
+      final List<Contract> contracts = [];
 
       for (final contract in entry.value.contracts) {
         if (_elementContains(contract.name, term)) {
           contracts.add(contract);
         } else if (_elementContains(contract.symbol, term)) {
-          contracts.add(contract);
-        } else if (_elementContains(contract.type.name, term)) {
           contracts.add(contract);
         } else if (_elementContains(contract.address, term)) {
           contracts.add(contract);
@@ -128,13 +126,13 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   }
 
   void updateWallets() {
-    final walletsData = ref.read(pAllWalletsInfo);
+    final walletsData = ref.read(pAllWalletsInfo).toList();
 
     walletsData.removeWhere((e) => e.coin != widget.coin);
 
     if (widget.coin is Ethereum) {
       for (final data in walletsData) {
-        final List<EthContract> contracts = [];
+        final List<Contract> contracts = [];
         final contractAddresses = ref.read(
           pWalletTokenAddresses(data.walletId),
         );
@@ -148,6 +146,31 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
           // add it to list if it exists in DB
           if (contract != null) {
             contracts.add(contract);
+          }
+        }
+
+        // add tuple to list
+        wallets[data.walletId] = (
+          wallet: ref.read(pWallets).getWallet(data.walletId),
+          contracts: contracts,
+        );
+      }
+    } else if (widget.coin is Solana) {
+      for (final data in walletsData) {
+        final List<Contract> contracts = [];
+        final tokenMintAddresses = ref.read(
+          pWalletTokenAddresses(data.walletId),
+        );
+
+        // fetch each token
+        for (final tokenAddress in tokenMintAddresses) {
+          final token = ref
+              .read(mainDBProvider)
+              .getSolContractSync(tokenAddress);
+
+          // add it to list if it exists in DB
+          if (token != null) {
+            contracts.add(token);
           }
         }
 
@@ -205,45 +228,44 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop && !AppConfig.isSingleCoinApp,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: const AppBarBackButton(),
-                title: Text(
-                  "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
-                  style: STextStyles.navBarTitle(context),
-                ),
-                actions: [
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      icon: SvgPicture.asset(
-                        Assets.svg.plus,
-                        width: 18,
-                        height: 18,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.topNavIconPrimary,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          CreateOrRestoreWalletView.routeName,
-                          arguments: CoinEntity(widget.coin),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              body: SafeArea(
-                child: Padding(padding: const EdgeInsets.all(16), child: child),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: const AppBarBackButton(),
+            title: Text(
+              "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+              style: STextStyles.navBarTitle(context),
             ),
+            actions: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  icon: SvgPicture.asset(
+                    Assets.svg.plus,
+                    width: 18,
+                    height: 18,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      CreateOrRestoreWalletView.routeName,
+                      arguments: CoinEntity(widget.coin),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
+          body: SafeArea(
+            child: Padding(padding: const EdgeInsets.all(16), child: child),
+          ),
+        ),
+      ),
       child: Column(
         children: [
           ClipRRect(
@@ -260,55 +282,53 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                   _searchString = value;
                 });
               },
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
-                        height: 1.8,
-                      )
-                      : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search...",
-                searchFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop ? 12 : 10,
-                    vertical: isDesktop ? 18 : 16,
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: isDesktop ? 20 : 16,
-                    height: isDesktop ? 20 : 16,
-                  ),
-                ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldActiveText,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
+              decoration:
+                  standardInputDecoration(
+                    "Search...",
+                    searchFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 12 : 10,
+                        vertical: isDesktop ? 18 : 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: isDesktop ? 20 : 16,
+                        height: isDesktop ? 20 : 16,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                      _searchString = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchString = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
           const SizedBox(height: 16),
@@ -323,13 +343,23 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
                     if (wallet.cryptoCurrency.hasTokenSupport) {
                       if (isDesktop) {
-                        return DesktopExpandingWalletCard(
-                          key: Key(
-                            "${wallet.walletId}_${entry.contracts.map((e) => e.address).join()}",
-                          ),
-                          data: entry,
-                          navigatorState: widget.navigatorState!,
-                        );
+                        if (wallet.cryptoCurrency is Solana) {
+                          return DesktopExpandingSolanaWalletCard(
+                            key: Key(
+                              "${wallet.walletId}_${entry.contracts.map((e) => e.address).join()}",
+                            ),
+                            data: entry,
+                            navigatorState: widget.navigatorState!,
+                          );
+                        } else {
+                          return DesktopExpandingWalletCard(
+                            key: Key(
+                              "${wallet.walletId}_${entry.contracts.map((e) => e.address).join()}",
+                            ),
+                            data: entry,
+                            navigatorState: widget.navigatorState!,
+                          );
+                        }
                       } else {
                         return MasterWalletCard(
                           key: Key(wallet.walletId),
@@ -340,34 +370,33 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                       return ConditionalParent(
                         key: Key(wallet.walletId),
                         condition: isDesktop,
-                        builder:
-                            (child) => RoundedWhiteContainer(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 14,
-                                horizontal: 20,
-                              ),
-                              borderColor:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.backgroundAppBar,
-                              child: child,
-                            ),
+                        builder: (child) => RoundedWhiteContainer(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 20,
+                          ),
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar,
+                          child: child,
+                        ),
                         child: SimpleWalletCard(
                           walletId: wallet.walletId,
                           popPrevious:
                               widget.overrideSimpleWalletCardPopPreviousValueWith ==
-                                      null
-                                  ? isDesktop
-                                  : widget
-                                      .overrideSimpleWalletCardPopPreviousValueWith!,
-                          desktopNavigatorState:
-                              isDesktop ? widget.navigatorState : null,
+                                  null
+                              ? isDesktop
+                              : widget
+                                    .overrideSimpleWalletCardPopPreviousValueWith!,
+                          desktopNavigatorState: isDesktop
+                              ? widget.navigatorState
+                              : null,
                         ),
                       );
                     }
                   },
-                  separatorBuilder:
-                      (_, __) => SizedBox(height: isDesktop ? 10 : 8),
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: isDesktop ? 10 : 8),
                   itemCount: data.length,
                 );
               },

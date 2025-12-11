@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../external_api_keys.dart';
 import '../../../models/exchange/response_objects/fixed_rate_market.dart';
@@ -48,7 +49,9 @@ class SimpleSwapAPI {
     try {
       final response = await client.get(
         url: uri,
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -59,22 +62,24 @@ class SimpleSwapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance
-          .e("_makeRequest($uri) HTTP:$code threw: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "_makeRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
-  Future<dynamic> _makePostRequest(
-    Uri uri,
-    Map<String, dynamic> body,
-  ) async {
+  Future<dynamic> _makePostRequest(Uri uri, Map<String, dynamic> body) async {
     try {
       final response = await client.post(
         url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -86,11 +91,7 @@ class SimpleSwapAPI {
 
       throw Exception("response: ${response.body}");
     } catch (e, s) {
-      Logging.instance.e(
-        "_makeRequest($uri) threw",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("_makeRequest($uri) threw", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -117,8 +118,9 @@ class SimpleSwapAPI {
       "extraIdTo": extraIdTo,
     };
 
-    final uri =
-        _buildUri("/create_exchange", {"api_key": apiKey ?? kSimpleSwapApiKey});
+    final uri = _buildUri("/create_exchange", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+    });
 
     try {
       final jsonObject = await _makePostRequest(uri, body);
@@ -150,8 +152,11 @@ class SimpleSwapAPI {
       );
       return ExchangeResponse(value: trade, exception: null);
     } catch (e, s) {
-      Logging.instance
-          .e("getAvailableCurrencies exception: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "getAvailableCurrencies exception: ",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -166,18 +171,20 @@ class SimpleSwapAPI {
     String? apiKey,
     required bool fixedRate,
   }) async {
-    final uri = _buildUri(
-      "/get_all_currencies",
-      {"api_key": apiKey ?? kSimpleSwapApiKey},
-    );
+    final uri = _buildUri("/get_all_currencies", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+    });
 
     try {
       final jsonArray = await _makeGetRequest(uri);
 
       return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
     } catch (e, s) {
-      Logging.instance
-          .e("getAvailableCurrencies exception: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "getAvailableCurrencies exception: ",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -195,8 +202,9 @@ class SimpleSwapAPI {
 
       for (final json in jsonArray) {
         try {
-          currencies
-              .add(SPCurrency.fromJson(Map<String, dynamic>.from(json as Map)));
+          currencies.add(
+            SPCurrency.fromJson(Map<String, dynamic>.from(json as Map)),
+          );
         } catch (_) {
           return ExchangeResponse(
             exception: ExchangeException(
@@ -227,13 +235,10 @@ class SimpleSwapAPI {
     required String symbol,
     String? apiKey,
   }) async {
-    final uri = _buildUri(
-      "/get_currency",
-      {
-        "api_key": apiKey ?? kSimpleSwapApiKey,
-        "symbol": symbol,
-      },
-    );
+    final uri = _buildUri("/get_currency", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+      "symbol": symbol,
+    });
 
     try {
       final jsonObject = await _makeGetRequest(uri);
@@ -244,11 +249,7 @@ class SimpleSwapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.e(
-        "getCurrency exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getCurrency exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -264,13 +265,10 @@ class SimpleSwapAPI {
     required bool isFixedRate,
     String? apiKey,
   }) async {
-    final uri = _buildUri(
-      "/get_all_pairs",
-      {
-        "api_key": apiKey ?? kSimpleSwapApiKey,
-        "fixed": isFixedRate.toString(),
-      },
-    );
+    final uri = _buildUri("/get_all_pairs", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+      "fixed": isFixedRate.toString(),
+    });
 
     try {
       final jsonObject = await _makeGetRequest(uri);
@@ -280,11 +278,7 @@ class SimpleSwapAPI {
       );
       return result;
     } catch (e, s) {
-      Logging.instance.e(
-        "getAllPairs exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getAllPairs exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -347,27 +341,20 @@ class SimpleSwapAPI {
     required String amount,
     String? apiKey,
   }) async {
-    final uri = _buildUri(
-      "/get_estimated",
-      {
-        "api_key": apiKey ?? kSimpleSwapApiKey,
-        "fixed": isFixedRate.toString(),
-        "currency_from": currencyFrom,
-        "currency_to": currencyTo,
-        "amount": amount,
-      },
-    );
+    final uri = _buildUri("/get_estimated", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+      "fixed": isFixedRate.toString(),
+      "currency_from": currencyFrom,
+      "currency_to": currencyTo,
+      "amount": amount,
+    });
 
     try {
       final jsonObject = await _makeGetRequest(uri);
 
       return ExchangeResponse(value: jsonObject as String);
     } catch (e, s) {
-      Logging.instance.e(
-        "getEstimated exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getEstimated exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -383,13 +370,10 @@ class SimpleSwapAPI {
     String? apiKey,
     Trade? oldTrade,
   }) async {
-    final uri = _buildUri(
-      "/get_exchange",
-      {
-        "api_key": apiKey ?? kSimpleSwapApiKey,
-        "id": exchangeId,
-      },
-    );
+    final uri = _buildUri("/get_exchange", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+      "id": exchangeId,
+    });
 
     try {
       final jsonObject = await _makeGetRequest(uri);
@@ -423,11 +407,7 @@ class SimpleSwapAPI {
 
       return ExchangeResponse(value: trade);
     } catch (e, s) {
-      Logging.instance.e(
-        "getExchange exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getExchange exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -444,15 +424,12 @@ class SimpleSwapAPI {
     required String currencyTo,
     String? apiKey,
   }) async {
-    final uri = _buildUri(
-      "/get_ranges",
-      {
-        "api_key": apiKey ?? kSimpleSwapApiKey,
-        "fixed": isFixedRate.toString(),
-        "currency_from": currencyFrom,
-        "currency_to": currencyTo,
-      },
-    );
+    final uri = _buildUri("/get_ranges", {
+      "api_key": apiKey ?? kSimpleSwapApiKey,
+      "fixed": isFixedRate.toString(),
+      "currency_from": currencyFrom,
+      "currency_to": currencyTo,
+    });
 
     try {
       final jsonObject = await _makeGetRequest(uri);
@@ -465,11 +442,7 @@ class SimpleSwapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.e(
-        "getRange exception",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("getRange exception", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),

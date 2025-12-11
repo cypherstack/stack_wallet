@@ -16,7 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/buy/response_objects/crypto.dart';
@@ -163,14 +163,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       unawaited(
         showDialog(
           context: context,
-          builder:
-              (context) => WillPopScope(
-                child: const CustomLoadingOverlay(
-                  message: "Loading currency data",
-                  eventBus: null,
-                ),
-                onWillPop: () async => shouldPop,
-              ),
+          builder: (context) => WillPopScope(
+            child: const CustomLoadingOverlay(
+              message: "Loading currency data",
+              eventBus: null,
+            ),
+            onWillPop: () async => shouldPop,
+          ),
         ),
       );
       await _loadSimplexCryptos();
@@ -204,62 +203,60 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     _fiatFocusNode.unfocus();
     _cryptoFocusNode.unfocus();
 
-    final result =
-        isDesktop
-            ? await showDialog<Crypto?>(
-              context: context,
-              builder: (context) {
-                return DesktopDialog(
-                  maxHeight: 700,
-                  maxWidth: 580,
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 32),
-                            child: Text(
-                              "Choose a crypto to buy",
-                              style: STextStyles.desktopH3(context),
-                            ),
-                          ),
-                          const DesktopDialogCloseButton(),
-                        ],
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 32,
-                            right: 32,
-                            bottom: 32,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: RoundedWhiteContainer(
-                                  padding: const EdgeInsets.all(16),
-                                  borderColor:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.background,
-                                  child: CryptoSelectionView(coins: coins),
-                                ),
-                              ),
-                            ],
+    final result = isDesktop
+        ? await showDialog<Crypto?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Text(
+                            "Choose a crypto to buy",
+                            style: STextStyles.desktopH3(context),
                           ),
                         ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.background,
+                                child: CryptoSelectionView(coins: coins),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            )
-            : await Navigator.of(context).push(
-              MaterialPageRoute<dynamic>(
-                builder: (_) => CryptoSelectionView(coins: coins),
-              ),
-            );
+                    ),
+                  ],
+                ),
+              );
+            },
+          )
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => CryptoSelectionView(coins: coins),
+            ),
+          );
 
     if (mounted && result is Crypto) {
       onSelected(result);
@@ -272,14 +269,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       unawaited(
         showDialog(
           context: context,
-          builder:
-              (context) => WillPopScope(
-                child: const CustomLoadingOverlay(
-                  message: "Loading currency data",
-                  eventBus: null,
-                ),
-                onWillPop: () async => shouldPop,
-              ),
+          builder: (context) => WillPopScope(
+            child: const CustomLoadingOverlay(
+              message: "Loading currency data",
+              eventBus: null,
+            ),
+            onWillPop: () async => shouldPop,
+          ),
         ),
       );
       await _loadSimplexFiats();
@@ -333,62 +329,60 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     _fiatFocusNode.unfocus();
     _cryptoFocusNode.unfocus();
 
-    final result =
-        isDesktop
-            ? await showDialog<Fiat?>(
-              context: context,
-              builder: (context) {
-                return DesktopDialog(
-                  maxHeight: 700,
-                  maxWidth: 580,
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 32),
-                            child: Text(
-                              "Choose a fiat with which to pay",
-                              style: STextStyles.desktopH3(context),
-                            ),
-                          ),
-                          const DesktopDialogCloseButton(),
-                        ],
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 32,
-                            right: 32,
-                            bottom: 32,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: RoundedWhiteContainer(
-                                  padding: const EdgeInsets.all(16),
-                                  borderColor:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.background,
-                                  child: FiatSelectionView(fiats: fiats),
-                                ),
-                              ),
-                            ],
+    final result = isDesktop
+        ? await showDialog<Fiat?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Text(
+                            "Choose a fiat with which to pay",
+                            style: STextStyles.desktopH3(context),
                           ),
                         ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.background,
+                                child: FiatSelectionView(fiats: fiats),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            )
-            : await Navigator.of(context).push(
-              MaterialPageRoute<dynamic>(
-                builder: (_) => FiatSelectionView(fiats: fiats),
-              ),
-            );
+                    ),
+                  ],
+                ),
+              );
+            },
+          )
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => FiatSelectionView(fiats: fiats),
+            ),
+          );
 
     if (mounted && result is Fiat) {
       onSelected(result);
@@ -406,28 +400,25 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     unawaited(
       showDialog(
         context: context,
-        builder:
-            (context) => WillPopScope(
-              child: const CustomLoadingOverlay(
-                message: "Loading quote data",
-                eventBus: null,
-              ),
-              onWillPop: () async => shouldPop,
-            ),
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Loading quote data",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
       ),
     );
 
     quote = SimplexQuote(
       crypto: selectedCrypto!,
       fiat: selectedFiat!,
-      youPayFiatPrice:
-          buyWithFiat
-              ? Decimal.parse(_buyAmountController.text)
-              : Decimal.parse("100"), // dummy value
-      youReceiveCryptoAmount:
-          buyWithFiat
-              ? Decimal.parse("0.000420282") // dummy value
-              : Decimal.parse(_buyAmountController.text), // Ternary for this
+      youPayFiatPrice: buyWithFiat
+          ? Decimal.parse(_buyAmountController.text)
+          : Decimal.parse("100"), // dummy value
+      youReceiveCryptoAmount: buyWithFiat
+          ? Decimal.parse("0.000420282") // dummy value
+          : Decimal.parse(_buyAmountController.text), // Ternary for this
       id: "id", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
       buyWithFiat: buyWithFiat,
@@ -500,10 +491,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -587,10 +577,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
                 onPressed: () {
@@ -628,62 +617,60 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     _fiatFocusNode.unfocus();
     _cryptoFocusNode.unfocus();
 
-    final result =
-        isDesktop
-            ? await showDialog<Fiat?>(
-              context: context,
-              builder: (context) {
-                return DesktopDialog(
-                  maxHeight: 700,
-                  maxWidth: 580,
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 32),
-                            child: Text(
-                              "Preview quote",
-                              style: STextStyles.desktopH3(context),
-                            ),
-                          ),
-                          const DesktopDialogCloseButton(),
-                        ],
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 32,
-                            right: 32,
-                            bottom: 32,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: RoundedWhiteContainer(
-                                  padding: const EdgeInsets.all(16),
-                                  borderColor:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.background,
-                                  child: BuyQuotePreviewView(quote: quote),
-                                ),
-                              ),
-                            ],
+    final result = isDesktop
+        ? await showDialog<Fiat?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Text(
+                            "Preview quote",
+                            style: STextStyles.desktopH3(context),
                           ),
                         ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.background,
+                                child: BuyQuotePreviewView(quote: quote),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            )
-            : await Navigator.of(context).push(
-              MaterialPageRoute<dynamic>(
-                builder: (_) => BuyQuotePreviewView(quote: quote),
-              ),
-            );
+                    ),
+                  ],
+                ),
+              );
+            },
+          )
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => BuyQuotePreviewView(quote: quote),
+            ),
+          );
 
     if (mounted && result is SimplexQuote) {
       onSelected(result);
@@ -698,11 +685,12 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       }
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
+      if (qrResult.rawContent == null) return;
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent,
+        qrResult.rawContent!,
         logging: Logging.instance,
       );
 
@@ -816,18 +804,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       builder: (child) => SizedBox(width: 458, child: child),
       child: ConditionalParent(
         condition: !isDesktop,
-        builder:
-            (child) => LayoutBuilder(
-              builder:
-                  (context, constraints) => SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(child: child),
-                    ),
-                  ),
+        builder: (child) => LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(child: child),
             ),
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -852,15 +836,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     vertical: 6,
                     horizontal: 2,
                   ),
-                  color:
-                      _hovering1
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .currencyListItemBG
-                              .withOpacity(_hovering1 ? 0.3 : 0)
-                          : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: _hovering1
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .currencyListItemBG
+                            .withOpacity(_hovering1 ? 0.3 : 0)
+                      : Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
@@ -878,10 +861,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         ),
                         SvgPicture.asset(
                           Assets.svg.chevronDown,
-                          color:
-                              Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .buttonTextSecondaryDisabled,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondaryDisabled,
                           width: 10,
                           height: 5,
                         ),
@@ -899,8 +881,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   "I want to pay with",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
                   ),
                 ),
               ],
@@ -919,15 +902,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     vertical: 3,
                     horizontal: 2,
                   ),
-                  color:
-                      _hovering2
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .currencyListItemBG
-                              .withOpacity(_hovering2 ? 0.3 : 0)
-                          : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: _hovering2
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .currencyListItemBG
+                            .withOpacity(_hovering2 ? 0.3 : 0)
+                      : Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.only(
                       left: 12.0,
@@ -943,10 +925,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             horizontal: 6,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.currencyListItemBG,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.currencyListItemBG,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -955,10 +936,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             ),
                             textAlign: TextAlign.center,
                             style: STextStyles.smallMed12(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
                             ),
                           ),
                         ),
@@ -976,10 +956,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         ),
                         SvgPicture.asset(
                           Assets.svg.chevronDown,
-                          color:
-                              Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .buttonTextSecondaryDisabled,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondaryDisabled,
                           width: 10,
                           height: 5,
                         ),
@@ -997,8 +976,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   buyWithFiat ? "Enter amount" : "Enter crypto amount",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
                   ),
                 ),
                 CustomTextButton(
@@ -1026,13 +1006,12 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               //     ? _BuyFormState.minFiat.toStringAsFixed(2) ?? '50.00'
               //     : _BuyFormState.minCrypto.toStringAsFixed(8),
               focusNode: _buyAmountFocusNode,
-              keyboardType:
-                  Util.isDesktop
-                      ? null
-                      : const TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
               textAlign: TextAlign.left,
               // inputFormatters: [NumericalRangeFormatter()],
               onChanged: (_) {
@@ -1050,10 +1029,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
                 hintText: "0",
                 hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultText,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultText,
                 ),
                 prefixIcon: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -1064,34 +1042,33 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         const SizedBox(width: 2),
                         buyWithFiat
                             ? Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 3,
-                                horizontal: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .currencyListItemBG,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                format.simpleCurrencySymbol(
-                                  selectedFiat?.ticker.toUpperCase() ?? "ERR",
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3,
+                                  horizontal: 6,
                                 ),
-                                textAlign: TextAlign.center,
-                                style: STextStyles.smallMed12(context).copyWith(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .currencyListItemBG,
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                              ),
-                            )
+                                child: Text(
+                                  format.simpleCurrencySymbol(
+                                    selectedFiat?.ticker.toUpperCase() ?? "ERR",
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  style: STextStyles.smallMed12(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
+                                ),
+                              )
                             : CoinIconForTicker(
-                              ticker: selectedCrypto?.ticker ?? "BTC",
-                              size: 20,
-                            ),
+                                ticker: selectedCrypto?.ticker ?? "BTC",
+                                size: 20,
+                              ),
                         SizedBox(
                           width: buyWithFiat ? 8 : 10,
                         ), // maybe make isDesktop-aware?
@@ -1100,10 +1077,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               ? selectedFiat?.ticker ?? "ERR"
                               : selectedCrypto?.ticker ?? "ERR",
                           style: STextStyles.smallMed14(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorDark,
                           ),
                         ),
                       ],
@@ -1118,50 +1094,49 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       children: [
                         _buyAmountController.text.isNotEmpty
                             ? TextFieldIconButton(
-                              key: const Key(
-                                "buyViewClearAmountFieldButtonKey",
-                              ),
-                              onTap: () {
-                                // if (_BuyFormState.buyWithFiat) {
-                                //   _buyAmountController.text = _BuyFormState
-                                //       .minFiat
-                                //       .toStringAsFixed(2);
-                                // } else {
-                                //   if (selectedCrypto?.ticker ==
-                                //       _BuyFormState.boundedCryptoTicker) {
-                                //     _buyAmountController.text = _BuyFormState
-                                //         .minCrypto
-                                //         .toStringAsFixed(8);
-                                //   }
-                                // }
-                                _buyAmountController.text = "";
-                                validateAmount();
-                              },
-                              child: const XIcon(),
-                            )
-                            : TextFieldIconButton(
-                              key: const Key(
-                                "buyViewPasteAddressFieldButtonKey",
-                              ),
-                              onTap: () async {
-                                final ClipboardData? data = await clipboard
-                                    .getData(Clipboard.kTextPlain);
-
-                                final amountString = Decimal.tryParse(
-                                  data?.text ?? "",
-                                );
-                                if (amountString != null) {
-                                  _buyAmountController.text =
-                                      amountString.toString();
-
+                                key: const Key(
+                                  "buyViewClearAmountFieldButtonKey",
+                                ),
+                                onTap: () {
+                                  // if (_BuyFormState.buyWithFiat) {
+                                  //   _buyAmountController.text = _BuyFormState
+                                  //       .minFiat
+                                  //       .toStringAsFixed(2);
+                                  // } else {
+                                  //   if (selectedCrypto?.ticker ==
+                                  //       _BuyFormState.boundedCryptoTicker) {
+                                  //     _buyAmountController.text = _BuyFormState
+                                  //         .minCrypto
+                                  //         .toStringAsFixed(8);
+                                  //   }
+                                  // }
+                                  _buyAmountController.text = "";
                                   validateAmount();
-                                }
-                              },
-                              child:
-                                  _buyAmountController.text.isEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                            ),
+                                },
+                                child: const XIcon(),
+                              )
+                            : TextFieldIconButton(
+                                key: const Key(
+                                  "buyViewPasteAddressFieldButtonKey",
+                                ),
+                                onTap: () async {
+                                  final ClipboardData? data = await clipboard
+                                      .getData(Clipboard.kTextPlain);
+
+                                  final amountString = Decimal.tryParse(
+                                    data?.text ?? "",
+                                  );
+                                  if (amountString != null) {
+                                    _buyAmountController.text = amountString
+                                        .toString();
+
+                                    validateAmount();
+                                  }
+                                },
+                                child: _buyAmountController.text.isEmpty
+                                    ? const ClipboardIcon()
+                                    : const XIcon(),
+                              ),
                       ],
                     ),
                   ),
@@ -1182,8 +1157,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   "Enter receiving address",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark3,
                   ),
                 ),
                 if (AppConfig.isStackCoin(selectedCrypto?.ticker))
@@ -1209,8 +1185,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 // model.recipientAddress =
                                 //     await manager.currentReceivingAddress;
 
-                                final address =
-                                    await wallet.getCurrentReceivingAddress();
+                                final address = await wallet
+                                    .getCurrentReceivingAddress();
 
                                 if (address!.type == AddressType.p2tr &&
                                     wallet is Bip39HDWallet) {
@@ -1289,85 +1265,87 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 },
                 focusNode: _receiveAddressFocusNode,
                 style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Enter ${selectedCrypto?.ticker} address",
-                  _receiveAddressFocusNode,
-                  context,
-                ).copyWith(
-                  contentPadding: const EdgeInsets.only(
-                    left: 13,
-                    top: 6,
-                    bottom: 8,
-                    right: 5,
-                  ),
-                  suffixIcon: Padding(
-                    padding:
-                        _receiveAddressController.text.isEmpty
+                decoration:
+                    standardInputDecoration(
+                      "Enter ${selectedCrypto?.ticker} address",
+                      _receiveAddressFocusNode,
+                      context,
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.only(
+                        left: 13,
+                        top: 6,
+                        bottom: 8,
+                        right: 5,
+                      ),
+                      suffixIcon: Padding(
+                        padding: _receiveAddressController.text.isEmpty
                             ? const EdgeInsets.only(right: 8)
                             : const EdgeInsets.only(right: 0),
-                    child: UnconstrainedBox(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _addressToggleFlag
-                              ? TextFieldIconButton(
-                                key: const Key(
-                                  "buyViewClearAddressFieldButtonKey",
-                                ),
-                                onTap: () {
-                                  _receiveAddressController.text = "";
-                                  _address = "";
-                                  setState(() {
-                                    _addressToggleFlag = false;
-                                  });
-                                },
-                                child: const XIcon(),
-                              )
-                              : TextFieldIconButton(
-                                key: const Key(
-                                  "buyViewPasteAddressFieldButtonKey",
-                                ),
-                                onTap: () async {
-                                  final ClipboardData? data = await clipboard
-                                      .getData(Clipboard.kTextPlain);
-                                  if (data?.text != null &&
-                                      data!.text!.isNotEmpty) {
-                                    String content = data.text!.trim();
-                                    if (content.contains("\n")) {
-                                      content = content.substring(
-                                        0,
-                                        content.indexOf("\n"),
-                                      );
-                                    }
+                        child: UnconstrainedBox(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _addressToggleFlag
+                                  ? TextFieldIconButton(
+                                      key: const Key(
+                                        "buyViewClearAddressFieldButtonKey",
+                                      ),
+                                      onTap: () {
+                                        _receiveAddressController.text = "";
+                                        _address = "";
+                                        setState(() {
+                                          _addressToggleFlag = false;
+                                        });
+                                      },
+                                      child: const XIcon(),
+                                    )
+                                  : TextFieldIconButton(
+                                      key: const Key(
+                                        "buyViewPasteAddressFieldButtonKey",
+                                      ),
+                                      onTap: () async {
+                                        final ClipboardData? data =
+                                            await clipboard.getData(
+                                              Clipboard.kTextPlain,
+                                            );
+                                        if (data?.text != null &&
+                                            data!.text!.isNotEmpty) {
+                                          String content = data.text!.trim();
+                                          if (content.contains("\n")) {
+                                            content = content.substring(
+                                              0,
+                                              content.indexOf("\n"),
+                                            );
+                                          }
 
-                                    _receiveAddressController.text = content;
-                                    _address = content;
+                                          _receiveAddressController.text =
+                                              content;
+                                          _address = content;
 
-                                    setState(() {
-                                      _addressToggleFlag =
-                                          _receiveAddressController
-                                              .text
-                                              .isNotEmpty;
-                                    });
-                                  }
-                                },
-                                child:
-                                    _receiveAddressController.text.isEmpty
-                                        ? const ClipboardIcon()
-                                        : const XIcon(),
-                              ),
-                          if (_receiveAddressController.text.isEmpty &&
-                              AppConfig.isStackCoin(selectedCrypto?.ticker) &&
-                              isDesktop)
-                            TextFieldIconButton(
-                              key: const Key("buyViewAddressBookButtonKey"),
-                              onTap: () async {
-                                final entry = await showDialog<
-                                  ContactAddressEntry?
-                                >(
-                                  context: context,
-                                  builder:
-                                      (context) => DesktopDialog(
+                                          setState(() {
+                                            _addressToggleFlag =
+                                                _receiveAddressController
+                                                    .text
+                                                    .isNotEmpty;
+                                          });
+                                        }
+                                      },
+                                      child:
+                                          _receiveAddressController.text.isEmpty
+                                          ? const ClipboardIcon()
+                                          : const XIcon(),
+                                    ),
+                              if (_receiveAddressController.text.isEmpty &&
+                                  AppConfig.isStackCoin(
+                                    selectedCrypto?.ticker,
+                                  ) &&
+                                  isDesktop)
+                                TextFieldIconButton(
+                                  key: const Key("buyViewAddressBookButtonKey"),
+                                  onTap: () async {
+                                    final entry = await showDialog<ContactAddressEntry?>(
+                                      context: context,
+                                      builder: (context) => DesktopDialog(
                                         maxWidth: 696,
                                         maxHeight: 600,
                                         child: Column(
@@ -1410,45 +1388,47 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                           ],
                                         ),
                                       ),
-                                );
+                                    );
 
-                                if (entry != null) {
-                                  _receiveAddressController.text =
-                                      entry.address;
-                                  _address = entry.address;
+                                    if (entry != null) {
+                                      _receiveAddressController.text =
+                                          entry.address;
+                                      _address = entry.address;
 
-                                  setState(() {
-                                    _addressToggleFlag = true;
-                                  });
-                                }
-                              },
-                              child: const AddressBookIcon(),
-                            ),
-                          if (_receiveAddressController.text.isEmpty &&
-                              AppConfig.isStackCoin(selectedCrypto?.ticker) &&
-                              !isDesktop)
-                            TextFieldIconButton(
-                              key: const Key("buyViewAddressBookButtonKey"),
-                              onTap: () {
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: isDesktop,
-                                ).pushNamed(AddressBookView.routeName);
-                              },
-                              child: const AddressBookIcon(),
-                            ),
-                          if (_receiveAddressController.text.isEmpty &&
-                              !isDesktop)
-                            TextFieldIconButton(
-                              key: const Key("buyViewScanQrButtonKey"),
-                              onTap: _onQrTapped,
-                              child: const QrCodeIcon(),
-                            ),
-                        ],
+                                      setState(() {
+                                        _addressToggleFlag = true;
+                                      });
+                                    }
+                                  },
+                                  child: const AddressBookIcon(),
+                                ),
+                              if (_receiveAddressController.text.isEmpty &&
+                                  AppConfig.isStackCoin(
+                                    selectedCrypto?.ticker,
+                                  ) &&
+                                  !isDesktop)
+                                TextFieldIconButton(
+                                  key: const Key("buyViewAddressBookButtonKey"),
+                                  onTap: () {
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: isDesktop,
+                                    ).pushNamed(AddressBookView.routeName);
+                                  },
+                                  child: const AddressBookIcon(),
+                                ),
+                              if (_receiveAddressController.text.isEmpty &&
+                                  !isDesktop)
+                                TextFieldIconButton(
+                                  key: const Key("buyViewScanQrButtonKey"),
+                                  onTap: _onQrTapped,
+                                  child: const QrCodeIcon(),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
               ),
             ),
             SizedBox(height: isDesktop ? 10 : 4),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../../frost_route_generator.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/custom_buttons/checkbox_text_button.dart';
@@ -11,6 +11,7 @@ import '../../../../../widgets/frost_step_user_steps.dart';
 import '../../../../../widgets/rounded_white_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
 import '../../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 
 class FrostCreateStep1b extends ConsumerStatefulWidget {
   const FrostCreateStep1b({super.key});
@@ -62,12 +63,8 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const FrostStepUserSteps(
-            userSteps: info,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
+          const FrostStepUserSteps(userSteps: info),
+          const SizedBox(height: 16),
           FrostStepField(
             controller: configFieldController,
             focusNode: configFocusNode,
@@ -80,9 +77,7 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           FrostStepField(
             controller: myNameFieldController,
             focusNode: myNameFocusNode,
@@ -95,9 +90,7 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 6,
-          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               Expanded(
@@ -111,13 +104,9 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
               ),
             ],
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           CheckboxTextButton(
             label: "I have verified that everyone has joined the group",
             onChanged: (value) {
@@ -126,9 +115,7 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Start key generation",
             enabled: _userVerifyContinue && !_nameEmpty && !_configEmpty,
@@ -139,7 +126,9 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
 
               final config = configFieldController.text;
 
-              if (!Frost.validateEncodedMultisigConfig(encodedConfig: config)) {
+              if (!frostInterface.validateEncodedMultisigConfig(
+                encodedConfig: config,
+              )) {
                 return await showDialog<void>(
                   context: context,
                   builder: (_) => StackOkDialog(
@@ -149,7 +138,8 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
                 );
               }
 
-              if (!Frost.getParticipants(multisigConfig: config)
+              if (!frostInterface
+                  .getParticipants(multisigConfig: config)
                   .contains(myNameFieldController.text)) {
                 return await showDialog<void>(
                   context: context,
@@ -163,11 +153,11 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
               ref.read(pFrostMyName.state).state = myNameFieldController.text;
               ref.read(pFrostMultisigConfig.notifier).state = config;
 
-              ref.read(pFrostStartKeyGenData.state).state =
-                  Frost.startKeyGeneration(
-                multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
-                myName: ref.read(pFrostMyName.state).state!,
-              );
+              ref.read(pFrostStartKeyGenData.state).state = frostInterface
+                  .startKeyGeneration(
+                    multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
+                    myName: ref.read(pFrostMyName.state).state!,
+                  );
               ref.read(pFrostCreateCurrentStep.state).state = 2;
               await Navigator.of(context).pushNamed(
                 ref

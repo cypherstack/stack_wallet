@@ -11,7 +11,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -38,7 +38,8 @@ import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/transaction_card.dart';
 import '../../wallet_view/sub_widgets/no_transactions_found.dart';
-import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../wallet_view/transaction_views/transaction_details_view.dart'
+    as tdv;
 import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import 'address_tag.dart';
 
@@ -306,7 +307,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   detail: address.value,
                   button:
                       isDesktop
-                          ? IconCopyButton(data: address.value)
+                          ? tdv.IconCopyButton(data: address.value)
                           : SimpleCopyButton(data: address.value),
                 ),
                 const _Div(height: 12),

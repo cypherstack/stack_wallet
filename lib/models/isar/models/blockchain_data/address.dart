@@ -10,7 +10,7 @@
 
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../../exceptions/address/address_exception.dart';
 import 'crypto_currency_address.dart';

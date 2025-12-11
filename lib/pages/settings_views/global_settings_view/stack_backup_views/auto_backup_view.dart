@@ -101,8 +101,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -155,8 +156,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -313,14 +315,13 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                           TextSpan(
                             text: "stackwallet.com.",
                             style: STextStyles.richLink(context),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap = () {
-                                    launchUrl(
-                                      Uri.parse("https://stackwallet.com"),
-                                      mode: LaunchMode.externalApplication,
-                                    );
-                                  },
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                launchUrl(
+                                  Uri.parse("https://stackwallet.com"),
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              },
                           ),
                         ],
                       ),

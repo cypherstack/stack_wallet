@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
@@ -18,6 +17,7 @@ import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/frost_step_user_steps.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostSendStep3 extends ConsumerStatefulWidget {
@@ -62,13 +62,12 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
     myIndex = frostInfo.participants.indexOf(frostInfo.myName);
     myShare = ref.read(pFrostContinueSignData.state).state!.share;
 
-    participantsWithoutMe =
-        frostInfo.participants
-            .toSet()
-            .intersection(
-              ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet(),
-            )
-            .toList();
+    participantsWithoutMe = frostInfo.participants
+        .toSet()
+        .intersection(
+          ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet(),
+        )
+        .toList();
 
     participantsWithoutMe.remove(myName);
 
@@ -104,19 +103,17 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
           DetailItem(
             title: "My name",
             detail: myName,
-            button:
-                Util.isDesktop
-                    ? IconCopyButton(data: myName)
-                    : SimpleCopyButton(data: myName),
+            button: Util.isDesktop
+                ? IconCopyButton(data: myName)
+                : SimpleCopyButton(data: myName),
           ),
           const SizedBox(height: 12),
           DetailItem(
             title: "My share",
             detail: myShare,
-            button:
-                Util.isDesktop
-                    ? IconCopyButton(data: myShare)
-                    : SimpleCopyButton(data: myShare),
+            button: Util.isDesktop
+                ? IconCopyButton(data: myShare)
+                : SimpleCopyButton(data: myShare),
           ),
           const SizedBox(height: 12),
           FrostQrDialogPopupButton(data: myShare),
@@ -172,9 +169,11 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
               }
 
               try {
-                final rawTx = Frost.completeSigning(
-                  machinePtr:
-                      ref.read(pFrostContinueSignData.state).state!.machinePtr,
+                final rawTx = frostInterface.completeSigning(
+                  machinePtr: ref
+                      .read(pFrostContinueSignData.state)
+                      .state!
+                      .machinePtr,
                   shares: shares,
                 );
 
@@ -216,10 +215,9 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,
-                    builder:
-                        (_) => const FrostErrorDialog(
-                          title: "Failed to complete signing process",
-                        ),
+                    builder: (_) => const FrostErrorDialog(
+                      title: "Failed to complete signing process",
+                    ),
                   );
                 }
               }

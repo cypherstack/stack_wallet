@@ -18,17 +18,10 @@ const EncryptedStringValueSchema = CollectionSchema(
   name: r'EncryptedStringValue',
   id: 4826543019451092626,
   properties: {
-    r'key': PropertySchema(
-      id: 0,
-      name: r'key',
-      type: IsarType.string,
-    ),
-    r'value': PropertySchema(
-      id: 1,
-      name: r'value',
-      type: IsarType.string,
-    )
+    r'key': PropertySchema(id: 0, name: r'key', type: IsarType.string),
+    r'value': PropertySchema(id: 1, name: r'value', type: IsarType.string),
   },
+
   estimateSize: _encryptedStringValueEstimateSize,
   serialize: _encryptedStringValueSerialize,
   deserialize: _encryptedStringValueDeserialize,
@@ -45,16 +38,17 @@ const EncryptedStringValueSchema = CollectionSchema(
           name: r'key',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
+
   getId: _encryptedStringValueGetId,
   getLinks: _encryptedStringValueGetLinks,
   attach: _encryptedStringValueAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.2',
 );
 
 int _encryptedStringValueEstimateSize(
@@ -112,12 +106,16 @@ Id _encryptedStringValueGetId(EncryptedStringValue object) {
 }
 
 List<IsarLinkBase<dynamic>> _encryptedStringValueGetLinks(
-    EncryptedStringValue object) {
+  EncryptedStringValue object,
+) {
   return [];
 }
 
 void _encryptedStringValueAttach(
-    IsarCollection<dynamic> col, Id id, EncryptedStringValue object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  EncryptedStringValue object,
+) {
   object.id = id;
 }
 
@@ -170,8 +168,10 @@ extension EncryptedStringValueByIndex on IsarCollection<EncryptedStringValue> {
     return putAllByIndex(r'key', objects);
   }
 
-  List<Id> putAllByKeySync(List<EncryptedStringValue> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByKeySync(
+    List<EncryptedStringValue> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'key', objects, saveLinks: saveLinks);
   }
 }
@@ -179,7 +179,7 @@ extension EncryptedStringValueByIndex on IsarCollection<EncryptedStringValue> {
 extension EncryptedStringValueQueryWhereSort
     on QueryBuilder<EncryptedStringValue, EncryptedStringValue, QWhere> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhere>
-      anyId() {
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
@@ -189,17 +189,14 @@ extension EncryptedStringValueQueryWhereSort
 extension EncryptedStringValueQueryWhere
     on QueryBuilder<EncryptedStringValue, EncryptedStringValue, QWhereClause> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idEqualTo(Id id) {
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idNotEqualTo(Id id) {
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -222,7 +219,7 @@ extension EncryptedStringValueQueryWhere
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -231,7 +228,7 @@ extension EncryptedStringValueQueryWhere
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idLessThan(Id id, {bool include = false}) {
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -240,174 +237,218 @@ extension EncryptedStringValueQueryWhere
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idBetween(
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      keyEqualTo(String key) {
+  keyEqualTo(String key) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'key',
-        value: [key],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'key', value: [key]),
+      );
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      keyNotEqualTo(String key) {
+  keyNotEqualTo(String key) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'key',
-              lower: [],
-              upper: [key],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'key',
-              lower: [key],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'key',
+                lower: [],
+                upper: [key],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'key',
+                lower: [key],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'key',
-              lower: [key],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'key',
-              lower: [],
-              upper: [key],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'key',
+                lower: [key],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'key',
+                lower: [],
+                upper: [key],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 }
 
-extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
-    EncryptedStringValue, QFilterCondition> {
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> idEqualTo(Id value) {
+extension EncryptedStringValueQueryFilter
+    on
+        QueryBuilder<
+          EncryptedStringValue,
+          EncryptedStringValue,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'key',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'key',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'key',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyLessThan(
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'key',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'key',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyBetween(
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyLessThan(String value, {bool include = false, bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'key',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -415,137 +456,180 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'key',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'key',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'key',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'key',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'key',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'key',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-          QAfterFilterCondition>
-      keyContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'key',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'key',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-          QAfterFilterCondition>
-      keyMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'key',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'key',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyIsEmpty() {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'key',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'key', value: ''),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> keyIsNotEmpty() {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  keyIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'key',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'key', value: ''),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueGreaterThan(
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueLessThan(
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueBetween(
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -553,121 +637,155 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'value',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'value',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-          QAfterFilterCondition>
-      valueContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'value',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-          QAfterFilterCondition>
-      valueMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'value',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'value',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueIsEmpty() {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'value', value: ''),
+      );
     });
   }
 
-  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> valueIsNotEmpty() {
+  QueryBuilder<
+    EncryptedStringValue,
+    EncryptedStringValue,
+    QAfterFilterCondition
+  >
+  valueIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'value',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'value', value: ''),
+      );
     });
   }
 }
 
-extension EncryptedStringValueQueryObject on QueryBuilder<EncryptedStringValue,
-    EncryptedStringValue, QFilterCondition> {}
+extension EncryptedStringValueQueryObject
+    on
+        QueryBuilder<
+          EncryptedStringValue,
+          EncryptedStringValue,
+          QFilterCondition
+        > {}
 
-extension EncryptedStringValueQueryLinks on QueryBuilder<EncryptedStringValue,
-    EncryptedStringValue, QFilterCondition> {}
+extension EncryptedStringValueQueryLinks
+    on
+        QueryBuilder<
+          EncryptedStringValue,
+          EncryptedStringValue,
+          QFilterCondition
+        > {}
 
 extension EncryptedStringValueQuerySortBy
     on QueryBuilder<EncryptedStringValue, EncryptedStringValue, QSortBy> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      sortByKey() {
+  sortByKey() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.asc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      sortByKeyDesc() {
+  sortByKeyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.desc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      sortByValue() {
+  sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      sortByValueDesc() {
+  sortByValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.desc);
     });
@@ -677,42 +795,42 @@ extension EncryptedStringValueQuerySortBy
 extension EncryptedStringValueQuerySortThenBy
     on QueryBuilder<EncryptedStringValue, EncryptedStringValue, QSortThenBy> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      thenById() {
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      thenByIdDesc() {
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      thenByKey() {
+  thenByKey() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.asc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      thenByKeyDesc() {
+  thenByKeyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'key', Sort.desc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      thenByValue() {
+  thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterSortBy>
-      thenByValueDesc() {
+  thenByValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.desc);
     });
@@ -722,22 +840,27 @@ extension EncryptedStringValueQuerySortThenBy
 extension EncryptedStringValueQueryWhereDistinct
     on QueryBuilder<EncryptedStringValue, EncryptedStringValue, QDistinct> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QDistinct>
-      distinctByKey({bool caseSensitive = true}) {
+  distinctByKey({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'key', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QDistinct>
-      distinctByValue({bool caseSensitive = true}) {
+  distinctByValue({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension EncryptedStringValueQueryProperty on QueryBuilder<
-    EncryptedStringValue, EncryptedStringValue, QQueryProperty> {
+extension EncryptedStringValueQueryProperty
+    on
+        QueryBuilder<
+          EncryptedStringValue,
+          EncryptedStringValue,
+          QQueryProperty
+        > {
   QueryBuilder<EncryptedStringValue, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 
+import '../app_config.dart';
 import '../networking/http.dart' as http;
 import '../services/tor_service.dart';
 import 'prefs.dart';
@@ -14,7 +15,9 @@ Future<bool> testStellarNodeConnection(String host, int port) async {
       .get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       )

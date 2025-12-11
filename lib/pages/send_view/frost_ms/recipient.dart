@@ -125,8 +125,10 @@ class _RecipientState extends ConsumerState<Recipient> {
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
+      if (qrResult.rawContent == null) return;
+
       final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent,
+        qrResult.rawContent!,
         logging: Logging.instance,
       );
 
@@ -148,7 +150,7 @@ class _RecipientState extends ConsumerState<Recipient> {
               .format(amount, withUnitName: false);
         }
       } else {
-        addressController.text = qrResult.rawContent.trim();
+        addressController.text = qrResult.rawContent!.trim();
       }
 
       setState(() {
@@ -244,8 +246,9 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
               CustomTextButton(
                 text: isSingle ? "Add another recipient" : "Remove",
-                onTap:
-                    isSingle ? widget.addAnotherRecipientTapped : widget.remove,
+                onTap: isSingle
+                    ? widget.addAnotherRecipientTapped
+                    : widget.remove,
               ),
             ],
           ),
@@ -268,93 +271,92 @@ class _RecipientState extends ConsumerState<Recipient> {
                   _addressIsEmpty = addressController.text.isEmpty;
                 });
               },
-              decoration: standardInputDecoration(
-                "Enter ${widget.coin.ticker} address",
-                addressFocusNode,
-                context,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 6,
-                  bottom: 8,
-                  right: 5,
-                ),
-                suffixIcon: Padding(
-                  padding:
-                      _addressIsEmpty
+              decoration:
+                  standardInputDecoration(
+                    "Enter ${widget.coin.ticker} address",
+                    addressFocusNode,
+                    context,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      top: 6,
+                      bottom: 8,
+                      right: 5,
+                    ),
+                    suffixIcon: Padding(
+                      padding: _addressIsEmpty
                           ? const EdgeInsets.only(right: 8)
                           : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        !_addressIsEmpty
-                            ? TextFieldIconButton(
-                              semanticsLabel:
-                                  "Clear Button. Clears The Address Field Input.",
-                              key: const Key(
-                                "sendViewClearAddressFieldButtonKey",
+                      child: UnconstrainedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            !_addressIsEmpty
+                                ? TextFieldIconButton(
+                                    semanticsLabel:
+                                        "Clear Button. Clears The Address Field Input.",
+                                    key: const Key(
+                                      "sendViewClearAddressFieldButtonKey",
+                                    ),
+                                    onTap: () {
+                                      addressController.text = "";
+
+                                      setState(() {
+                                        _addressIsEmpty = true;
+                                      });
+
+                                      _updateRecipientData();
+                                    },
+                                    child: const XIcon(),
+                                  )
+                                : TextFieldIconButton(
+                                    semanticsLabel:
+                                        "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                    key: const Key(
+                                      "sendViewPasteAddressFieldButtonKey",
+                                    ),
+                                    onTap: () async {
+                                      final ClipboardData? data = await ref
+                                          .read(pClipboard)
+                                          .getData(Clipboard.kTextPlain);
+                                      if (data?.text != null &&
+                                          data!.text!.isNotEmpty) {
+                                        String content = data.text!.trim();
+                                        if (content.contains("\n")) {
+                                          content = content.substring(
+                                            0,
+                                            content.indexOf("\n"),
+                                          );
+                                        }
+
+                                        addressController.text = content.trim();
+
+                                        setState(() {
+                                          _addressIsEmpty =
+                                              addressController.text.isEmpty;
+                                        });
+
+                                        _updateRecipientData();
+                                      }
+                                    },
+                                    child: _addressIsEmpty
+                                        ? const ClipboardIcon()
+                                        : const XIcon(),
+                                  ),
+                            if (_addressIsEmpty)
+                              TextFieldIconButton(
+                                semanticsLabel:
+                                    "Scan QR Button. "
+                                    "Opens Camera For Scanning QR Code.",
+                                key: const Key("sendViewScanQrButtonKey"),
+                                onTap: _onQrTapped,
+                                child: const QrCodeIcon(),
                               ),
-                              onTap: () {
-                                addressController.text = "";
-
-                                setState(() {
-                                  _addressIsEmpty = true;
-                                });
-
-                                _updateRecipientData();
-                              },
-                              child: const XIcon(),
-                            )
-                            : TextFieldIconButton(
-                              semanticsLabel:
-                                  "Paste Button. Pastes From Clipboard To Address Field Input.",
-                              key: const Key(
-                                "sendViewPasteAddressFieldButtonKey",
-                              ),
-                              onTap: () async {
-                                final ClipboardData? data = await ref
-                                    .read(pClipboard)
-                                    .getData(Clipboard.kTextPlain);
-                                if (data?.text != null &&
-                                    data!.text!.isNotEmpty) {
-                                  String content = data.text!.trim();
-                                  if (content.contains("\n")) {
-                                    content = content.substring(
-                                      0,
-                                      content.indexOf("\n"),
-                                    );
-                                  }
-
-                                  addressController.text = content.trim();
-
-                                  setState(() {
-                                    _addressIsEmpty =
-                                        addressController.text.isEmpty;
-                                  });
-
-                                  _updateRecipientData();
-                                }
-                              },
-                              child:
-                                  _addressIsEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                            ),
-                        if (_addressIsEmpty)
-                          TextFieldIconButton(
-                            semanticsLabel:
-                                "Scan QR Button. "
-                                "Opens Camera For Scanning QR Code.",
-                            key: const Key("sendViewScanQrButtonKey"),
-                            onTap: _onQrTapped,
-                            child: const QrCodeIcon(),
-                          ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
             ),
           ),
           SizedBox(height: isSingle ? 12 : 8),
@@ -391,13 +393,12 @@ class _RecipientState extends ConsumerState<Recipient> {
             onChanged: (_) {
               _updateRecipientData();
             },
-            keyboardType:
-                Util.isDesktop
-                    ? null
-                    : const TextInputType.numberWithOptions(
-                      signed: false,
-                      decimal: true,
-                    ),
+            keyboardType: Util.isDesktop
+                ? null
+                : const TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
@@ -419,10 +420,9 @@ class _RecipientState extends ConsumerState<Recipient> {
                         .watch(pAmountUnit(widget.coin))
                         .unitForCoin(widget.coin),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),

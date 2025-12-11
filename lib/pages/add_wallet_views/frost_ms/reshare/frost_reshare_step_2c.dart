@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 
 class FrostReshareStep2c extends ConsumerStatefulWidget {
   const FrostReshareStep2c({super.key});
@@ -41,9 +41,9 @@ class _FrostReshareStep2cState extends ConsumerState<FrostReshareStep2c> {
       // collect resharer strings
       final resharerStarts = controllers.map((e) => e.text).toList();
 
-      final result = Frost.beginReshared(
+      final result = frostInterface.beginReshared(
         myName: ref.read(pFrostResharingData).myName!,
-        resharerConfig: Frost.decodeRConfig(
+        resharerConfig: frostInterface.decodeRConfig(
           ref.read(pFrostResharingData).resharerRConfig!,
         ),
         resharerStarts: resharerStarts,
@@ -59,15 +59,13 @@ class _FrostReshareStep2cState extends ConsumerState<FrostReshareStep2c> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: "Error",
-            message: e.toString(),
-          ),
+          builder: (_) =>
+              FrostErrorDialog(title: "Error", message: e.toString()),
         );
       }
     } finally {
@@ -116,7 +114,8 @@ class _FrostReshareStep2cState extends ConsumerState<FrostReshareStep2c> {
                     focusNode: focusNodes[i],
                     showQrScanOption: true,
                     label: resharers.keys.elementAt(i),
-                    hint: "Enter "
+                    hint:
+                        "Enter "
                         "${resharers.keys.elementAt(i)}"
                         "'s resharer",
                     onChanged: (_) {
@@ -129,9 +128,7 @@ class _FrostReshareStep2cState extends ConsumerState<FrostReshareStep2c> {
             ],
           ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Continue",
             enabled: !fieldIsEmptyFlags.reduce((v, e) => v |= e),

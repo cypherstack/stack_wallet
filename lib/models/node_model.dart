@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 import '../utilities/default_nodes.dart';
 import '../utilities/flutter_secure_storage_interface.dart';

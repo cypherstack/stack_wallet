@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../app_config.dart';
 import '../../../networking/http.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/paynym_is_api.dart';
@@ -52,12 +53,15 @@ class PayNymBot extends StatelessWidget {
 
   Future<Uint8List> _fetchImage() async {
     final HTTP client = HTTP();
-    final Uri uri =
-        Uri.parse("${PaynymIsApi.baseURL}/$paymentCodeString/avatar");
+    final Uri uri = Uri.parse(
+      "${PaynymIsApi.baseURL}/$paymentCodeString/avatar",
+    );
 
     final response = await client.get(
       url: uri,
-      proxyInfo: Prefs.instance.useTor
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
           ? TorService.sharedInstance.getProxyInfo()
           : null,
     );

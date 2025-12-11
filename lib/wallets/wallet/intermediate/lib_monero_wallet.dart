@@ -4,11 +4,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
+import '../../../app_config.dart';
 import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
 import '../../../models/input.dart';
@@ -34,6 +34,9 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart'
+    show WrappedWallet;
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
@@ -99,14 +102,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
               await onUTXOsChanged(utxos);
               await updateBalance(shouldUpdateUtxos: false);
             } catch (e, s) {
-              lib_monero.Logging.log?.i("_startInit", error: e, stackTrace: s);
+              Logging.instance.e("_startInit", error: e, stackTrace: s);
             }
           });
     });
   }
 
   final lib_monero_compat.WalletType compatType;
-  lib_monero.Wallet? libMoneroWallet;
 
   lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
   lib_monero_compat.SyncStatus? _syncStatus;
@@ -132,19 +134,20 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   bool _txRefreshLock = false;
   int _lastCheckedHeight = -1;
   int _txCount = 0;
-  int currentKnownChainHeight = 0;
-  double highestPercentCached = 0;
 
-  Future<void> loadWallet({required String path, required String password});
+  Future<WrappedWallet> loadWallet({
+    required String path,
+    required String password,
+  });
 
-  Future<lib_monero.Wallet> getCreatedWallet({
+  Future<WrappedWallet> getCreatedWallet({
     required String path,
     required String password,
     required int wordCount,
     required String seedOffset,
   });
 
-  Future<lib_monero.Wallet> getRestoredWallet({
+  Future<WrappedWallet> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
@@ -152,7 +155,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     int height = 0,
   });
 
-  Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
+  Future<WrappedWallet> getRestoredFromViewKeyWallet({
     required String path,
     required String password,
     required String address,
@@ -164,17 +167,19 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   bool walletExists(String path);
 
-  String getTxKeyFor({required String txid}) {
-    if (libMoneroWallet == null) {
+  @override
+  Future<String> getTxKeyFor({required String txid}) {
+    if (wallet == null) {
       throw Exception("Cannot get tx key in uninitialized libMoneroWallet");
     }
-    return libMoneroWallet!.getTxKey(txid);
+    return csMonero.getTxKey(wallet!, txid);
   }
 
   void _setListener() {
-    if (libMoneroWallet != null && libMoneroWallet!.getListeners().isEmpty) {
-      libMoneroWallet?.addListener(
-        lib_monero.WalletListener(
+    if (wallet != null && !csMonero.hasListeners(wallet!)) {
+      csMonero.addListener(
+        wallet!,
+        CsWalletListener(
           onSyncingUpdate: onSyncingUpdate,
           onNewBlock: onNewBlock,
           onBalancesChanged: onBalancesChanged,
@@ -190,22 +195,21 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<void> open() async {
     bool wasNull = false;
 
-    if (libMoneroWallet == null) {
+    if (wallet == null) {
       wasNull = true;
       // libMoneroWalletT?.close();
       final path = await pathForWallet(name: walletId, type: compatType);
 
       final String password;
       try {
-        password =
-            (await secureStorageInterface.read(
-              key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
-            ))!;
+        password = (await secureStorageInterface.read(
+          key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+        ))!;
       } catch (e, s) {
         throw Exception("Password not found $e, $s");
       }
 
-      await loadWallet(path: path, password: password);
+      wallet = await loadWallet(path: path, password: password);
 
       _setListener();
 
@@ -214,7 +218,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     Address? currentAddress = await getCurrentReceivingAddress();
     if (currentAddress == null) {
-      currentAddress = addressFor(index: 0);
+      currentAddress = await addressFor(index: 0);
       await mainDB.updateOrPutAddresses([currentAddress]);
     }
     if (info.cachedReceivingAddress != currentAddress.value) {
@@ -227,15 +231,15 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     if (wasNull) {
       try {
         _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
-        libMoneroWallet?.startSyncing();
+        await csMonero.startSyncing(wallet!);
       } catch (_) {
         _setSyncStatus(lib_monero_compat.FailedSyncStatus());
         // TODO log
       }
     }
     _setListener();
-    libMoneroWallet?.startListeners();
-    libMoneroWallet?.startAutoSaving();
+    await csMonero.startListeners(wallet!);
+    csMonero.startAutoSaving(wallet!);
 
     unawaited(refresh());
   }
@@ -260,16 +264,17 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         appRoot: appRoot,
       );
     }
-    await libMoneroWallet!.save();
+    await csMonero.save(wallet!);
   }
 
-  Address addressFor({required int index, int account = 0}) {
-    final address = libMoneroWallet!.getAddress(
+  Future<Address> addressFor({required int index, int account = 0}) async {
+    final address = await csMonero.getAddress(
+      wallet!,
       accountIndex: account,
       addressIndex: index,
     );
 
-    if (address.value.contains("111")) {
+    if (address.contains("111")) {
       throw Exception("111 address found!");
     }
 
@@ -277,7 +282,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       walletId: walletId,
       derivationIndex: index,
       derivationPath: null,
-      value: address.value,
+      value: address,
       publicKey: [],
       type: AddressType.cryptonote,
       subType: AddressSubType.receiving,
@@ -286,20 +291,19 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     return newReceivingAddress;
   }
 
+  @override
   Future<CWKeyData?> getKeys() async {
-    final base = libMoneroWallet;
-
     final oldInfo = getLibMoneroWalletInfo(walletId);
-    if (base == null || (oldInfo != null && oldInfo.name != walletId)) {
+    if (wallet == null || (oldInfo != null && oldInfo.name != walletId)) {
       return null;
     }
     try {
       return CWKeyData(
         walletId: walletId,
-        publicViewKey: base.getPublicViewKey(),
-        privateViewKey: base.getPrivateViewKey(),
-        publicSpendKey: base.getPublicSpendKey(),
-        privateSpendKey: base.getPrivateSpendKey(),
+        publicViewKey: await csMonero.getPublicViewKey(wallet!),
+        privateViewKey: await csMonero.getPrivateViewKey(wallet!),
+        publicSpendKey: await csMonero.getPublicSpendKey(wallet!),
+        privateSpendKey: await csMonero.getPrivateSpendKey(wallet!),
       );
     } catch (e, s) {
       Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
@@ -313,21 +317,23 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     }
   }
 
+  @override
   Future<(String, String)>
   hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing() async {
     final path = await pathForWallet(name: walletId, type: compatType);
     final String password;
     try {
-      password =
-          (await secureStorageInterface.read(
-            key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
-          ))!;
+      password = (await secureStorageInterface.read(
+        key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+      ))!;
     } catch (e, s) {
       throw Exception("Password not found $e, $s");
     }
-    await loadWallet(path: path, password: password);
-    final wallet = libMoneroWallet!;
-    return (wallet.getAddress().value, wallet.getPrivateViewKey());
+    wallet = await loadWallet(path: path, password: password);
+    return (
+      await csMonero.getAddress(wallet!),
+      await csMonero.getPrivateViewKey(wallet!),
+    );
   }
 
   @override
@@ -335,7 +341,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final path = await pathForWallet(name: walletId, type: compatType);
     if (!(walletExists(path)) && isRestore != true) {
       if (wordCount == null) {
-        throw Exception("Missing word count for new xmr/wow wallet!");
+        throw Exception("Missing word count for new xmr wallet!");
       }
       try {
         final password = generatePassword();
@@ -343,6 +349,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
           value: password,
         );
+
         final wallet = await getCreatedWallet(
           path: path,
           password: password,
@@ -350,27 +357,29 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           seedOffset: "", // default for non restored wallets for now
         );
 
-        final height = wallet.getRefreshFromBlockHeight();
-
         await info.updateRestoreHeight(
-          newRestoreHeight: height,
+          newRestoreHeight: await csMonero.getRefreshFromBlockHeight(wallet),
           isar: mainDB.isar,
         );
 
-        // special case for xmr/wow. Normally mnemonic + passphrase is saved
+        // special case for xmr. Normally mnemonic + passphrase is saved
         // before wallet.init() is called
         await secureStorageInterface.write(
           key: Wallet.mnemonicKey(walletId: walletId),
-          value: wallet.getSeed().trim(),
+          value: await csMonero.getSeed(wallet),
         );
         await secureStorageInterface.write(
           key: Wallet.mnemonicPassphraseKey(walletId: walletId),
           value: "",
         );
+
+        this.wallet = wallet;
+        await updateNode();
+        await csMonero.close(wallet, save: true);
+        this.wallet = null;
       } catch (e, s) {
         Logging.instance.f("", error: e, stackTrace: s);
       }
-      await updateNode();
     }
 
     return super.init();
@@ -384,9 +393,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         await mainDB.deleteWalletBlockchainData(walletId);
 
         highestPercentCached = 0;
-        unawaited(libMoneroWallet?.rescanBlockchain());
-        libMoneroWallet?.startSyncing();
-        // unawaited(save());
+        await csMonero.rescanBlockchain(wallet!);
+        await csMonero.startSyncing(wallet!);
+        unawaited(save());
       });
       unawaited(refresh());
       return;
@@ -422,6 +431,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
             value: password,
           );
+
           final wallet = await getRestoredWallet(
             path: path,
             password: password,
@@ -430,11 +440,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             seedOffset: seedOffset,
           );
 
-          if (libMoneroWallet != null) {
+          if (this.wallet != null) {
             await exit();
           }
 
-          libMoneroWallet = wallet;
+          this.wallet = wallet;
 
           _setListener();
 
@@ -444,7 +454,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
                 walletId: walletId,
                 derivationIndex: 0,
                 derivationPath: null,
-                value: wallet.getAddress().value,
+                value: await csMonero.getAddress(this.wallet!),
                 publicKey: [],
                 type: AddressType.cryptonote,
                 subType: AddressSubType.receiving,
@@ -463,12 +473,12 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         _setListener();
 
         // libMoneroWallet?.setRecoveringFromSeed(isRecovery: true);
-        unawaited(libMoneroWallet?.rescanBlockchain());
-        libMoneroWallet?.startSyncing();
+        await csMonero.rescanBlockchain(wallet!);
+        await csMonero.startSyncing(wallet!);
 
         // await save();
-        libMoneroWallet?.startListeners();
-        libMoneroWallet?.startAutoSaving();
+        await csMonero.startListeners(wallet!);
+        csMonero.startAutoSaving(wallet!);
       } catch (e, s) {
         Logging.instance.e(
           "Exception rethrown from recoverFromMnemonic(): ",
@@ -484,11 +494,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   bool _canPing = false;
 
   @override
-  Future<bool> pingCheck() async {
+  Future<bool> pingCheck() {
     if (_canPing) {
-      return (await libMoneroWallet?.isConnectedToDaemon()) ?? false;
+      return csMonero.isConnectedToDaemon(wallet!);
     } else {
-      return false;
+      return Future.value(false);
     }
   }
 
@@ -496,54 +506,54 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<void> updateNode() async {
     final node = getCurrentNode();
 
-    if (_torNodeMismatchGuard(node)) {
+    if (await _torNodeMismatchGuard(node)) {
       throw Exception("TOR – clearnet mismatch");
     }
 
-    final host =
-        node.host.endsWith(".onion") ? node.host : Uri.parse(node.host).host;
-    ({InternetAddress host, int port})? proxy;
-    proxy =
-        prefs.useTor && !node.forceNoTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null;
+    final host = node.host.endsWith(".onion")
+        ? node.host
+        : Uri.parse(node.host).host;
+    final ({InternetAddress host, int port})? proxy =
+        AppConfig.hasFeature(AppFeature.tor) && prefs.useTor && !node.forceNoTor
+        ? TorService.sharedInstance.getProxyInfo()
+        : null;
 
     _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
     try {
       if (_requireMutex) {
         await _torConnectingLock.protect(() async {
-          await libMoneroWallet?.connect(
+          await csMonero.connect(
+            wallet!,
             daemonAddress: "$host:${node.port}",
             daemonUsername: node.loginName,
             daemonPassword: await node.getPassword(secureStorageInterface),
             trusted: node.trusted ?? false,
             useSSL: node.useSSL,
-            socksProxyAddress:
-                node.forceNoTor
-                    ? null
-                    : proxy == null
-                    ? null
-                    : "${proxy.host.address}:${proxy.port}",
+            socksProxyAddress: node.forceNoTor
+                ? null
+                : proxy == null
+                ? null
+                : "${proxy.host.address}:${proxy.port}",
           );
         });
       } else {
-        await libMoneroWallet?.connect(
+        await csMonero.connect(
+          wallet!,
           daemonAddress: "$host:${node.port}",
           daemonUsername: node.loginName,
           daemonPassword: await node.getPassword(secureStorageInterface),
           trusted: node.trusted ?? false,
           useSSL: node.useSSL,
-          socksProxyAddress:
-              node.forceNoTor
-                  ? null
-                  : proxy == null
-                  ? null
-                  : "${proxy.host.address}:${proxy.port}",
+          socksProxyAddress: node.forceNoTor
+              ? null
+              : proxy == null
+              ? null
+              : "${proxy.host.address}:${proxy.port}",
         );
       }
-      libMoneroWallet?.startSyncing();
-      libMoneroWallet?.startListeners();
-      libMoneroWallet?.startAutoSaving();
+      await csMonero.startSyncing(wallet!);
+      await csMonero.startListeners(wallet!);
+      csMonero.startAutoSaving(wallet!);
 
       _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
     } catch (e, s) {
@@ -560,22 +570,19 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> updateTransactions() async {
-    final base = libMoneroWallet;
-
-    if (base == null) {
+    if (wallet == null) {
       return;
     }
 
-    final localTxids =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .heightGreaterThan(0)
-            .txidProperty()
-            .findAll();
+    final localTxids = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightGreaterThan(0)
+        .txidProperty()
+        .findAll();
 
-    final allTxids = await base.getAllTxids(refresh: true);
+    final allTxids = await csMonero.getAllTxids(wallet!, refresh: true);
 
     final txidsToFetch = allTxids.toSet().difference(localTxids.toSet());
 
@@ -583,9 +590,17 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       return;
     }
 
-    final transactions = await base.getTxs(txids: txidsToFetch, refresh: false);
+    final transactions = await csMonero.getTxs(
+      wallet!,
+      txids: txidsToFetch,
+      refresh: false,
+    );
 
-    final allOutputs = await base.getOutputs(includeSpent: true, refresh: true);
+    final allOutputs = await csMonero.getOutputs(
+      wallet!,
+      includeSpent: true,
+      refresh: true,
+    );
 
     // final cachedTransactions =
     // DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
@@ -671,16 +686,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         type: type,
         subType: TransactionSubType.none,
         otherData: jsonEncode({
-          TxV2OdKeys.overrideFee:
-              Amount(
-                rawValue: tx.fee,
-                fractionDigits: cryptoCurrency.fractionDigits,
-              ).toJsonString(),
-          TxV2OdKeys.moneroAmount:
-              Amount(
-                rawValue: tx.amount,
-                fractionDigits: cryptoCurrency.fractionDigits,
-              ).toJsonString(),
+          TxV2OdKeys.overrideFee: Amount(
+            rawValue: tx.fee,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
+          TxV2OdKeys.moneroAmount: Amount(
+            rawValue: tx.amount,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
           TxV2OdKeys.moneroAccountIndex: tx.accountIndex,
           TxV2OdKeys.isMoneroTransaction: true,
         }),
@@ -695,7 +708,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<Amount> get availableBalance async {
     try {
       return Amount(
-        rawValue: libMoneroWallet!.getUnlockedBalance(),
+        rawValue: await csMonero.getUnlockedBalance(wallet!),
         fractionDigits: cryptoCurrency.fractionDigits,
       );
     } catch (_) {
@@ -705,28 +718,12 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   Future<Amount> get totalBalance async {
     try {
-      final full = libMoneroWallet?.getBalance();
-      if (full != null) {
-        return Amount(
-          rawValue: full,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        );
-      } else {
-        final transactions = await libMoneroWallet!.getAllTxs(refresh: true);
-        BigInt transactionBalance = BigInt.zero;
-        for (final tx in transactions) {
-          if (!tx.isSpend) {
-            transactionBalance += tx.amount;
-          } else {
-            transactionBalance += -tx.amount - tx.fee;
-          }
-        }
+      final full = await csMonero.getBalance(wallet!);
 
-        return Amount(
-          rawValue: transactionBalance,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        );
-      }
+      return Amount(
+        rawValue: full,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
     } catch (_) {
       return info.cachedBalance.total;
     }
@@ -734,11 +731,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> exit() async {
-    Logging.instance.i("exit called on $walletId");
-    libMoneroWallet?.stopAutoSaving();
-    libMoneroWallet?.stopListeners();
-    libMoneroWallet?.stopSyncing();
-    await libMoneroWallet?.save();
+    Logging.instance.i("exit called on monero $walletId!");
+    if (wallet != null) {
+      csMonero.stopAutoSaving(wallet!);
+      await csMonero.stopListeners(wallet!);
+      await csMonero.stopSyncing(wallet!);
+      await csMonero.save(wallet!);
+    }
+    Logging.instance.i("exit call completed monero $walletId!");
   }
 
   Future<String> pathForWalletDir({
@@ -819,8 +819,17 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   final _utxosUpdateLock = Mutex();
   Future<void> onUTXOsChanged(List<UTXO> utxos) async {
+    if (wallet == null) {
+      Logging.instance.w(
+        "onUTXOsChanged triggered while cs_monero wallet is null. If this "
+        "occurs while not in a monero wallet this warning can be "
+        "ignored.",
+      );
+      return;
+    }
+
     await _utxosUpdateLock.protect(() async {
-      final cwUtxos = await libMoneroWallet?.getOutputs(refresh: true) ?? [];
+      final cwUtxos = await csMonero.getOutputs(wallet!, refresh: true);
 
       // bool changed = false;
 
@@ -837,12 +846,12 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
           if (u.isBlocked) {
             if (!cw.isFrozen) {
-              await libMoneroWallet?.freezeOutput(cw.keyImage);
+              await csMonero.freezeOutput(wallet!, cw.keyImage);
               // changed = true;
             }
           } else {
             if (cw.isFrozen) {
-              await libMoneroWallet?.thawOutput(cw.keyImage);
+              await csMonero.thawOutput(wallet!, cw.keyImage);
               // changed = true;
             }
           }
@@ -990,7 +999,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     }
   }
 
-  bool _torNodeMismatchGuard(NodeModel node) {
+  Future<bool> _torNodeMismatchGuard(NodeModel node) async {
     _canPing = true; // Reset.
 
     final bool mismatch =
@@ -999,9 +1008,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     if (mismatch) {
       _canPing = false;
-      libMoneroWallet?.stopAutoSaving();
-      libMoneroWallet?.stopListeners();
-      libMoneroWallet?.stopSyncing();
+      if (wallet != null) {
+        csMonero.stopAutoSaving(wallet!);
+        await csMonero.stopListeners(wallet!);
+        await csMonero.stopSyncing(wallet!);
+      }
       _setSyncStatus(lib_monero_compat.FailedSyncStatus());
     }
 
@@ -1019,27 +1030,25 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   @override
   Future<bool> updateUTXOs() async {
     final List<UTXO> outputArray = [];
-    final utxos =
-        await libMoneroWallet?.getOutputs(refresh: true) ??
-        <lib_monero.Output>[];
+    final utxos = wallet == null
+        ? <CsOutput>[]
+        : await csMonero.getOutputs(wallet!, refresh: true);
     for (final rawUTXO in utxos) {
       if (!rawUTXO.spent) {
-        final current =
-            await mainDB.isar.utxos
-                .where()
-                .walletIdEqualTo(walletId)
-                .filter()
-                .voutEqualTo(rawUTXO.vout)
-                .and()
-                .txidEqualTo(rawUTXO.hash)
-                .findFirst();
-        final tx =
-            await mainDB.isar.transactionV2s
-                .where()
-                .walletIdEqualTo(walletId)
-                .filter()
-                .txidEqualTo(rawUTXO.hash)
-                .findFirst();
+        final current = await mainDB.isar.utxos
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .voutEqualTo(rawUTXO.vout)
+            .and()
+            .txidEqualTo(rawUTXO.hash)
+            .findFirst();
+        final tx = await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .txidEqualTo(rawUTXO.hash)
+            .findFirst();
 
         final otherDataMap = {
           UTXOOtherDataKeys.keyImage: rawUTXO.keyImage,
@@ -1099,36 +1108,75 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     // Awaiting this lock could be dangerous.
     // Since refresh is periodic (generally)
     if (refreshMutex.isLocked) {
+      Logging.instance.t(
+        "$runtimeType refresh() refreshMutex.isLocked=true, returning...",
+      );
       return;
-    }
-
-    final node = getCurrentNode();
-
-    if (_torNodeMismatchGuard(node)) {
-      throw Exception("TOR – clearnet mismatch");
     }
 
     // this acquire should be almost instant due to above check.
     // Slight possibility of race but should be irrelevant
+    Logging.instance.t(
+      "$runtimeType refresh() refreshMutex.acquire() waiting...",
+    );
     await refreshMutex.acquire();
+    Logging.instance.t(
+      "$runtimeType refresh() refreshMutex.acquire() acquired!",
+    );
 
-    libMoneroWallet?.startSyncing();
+    Logging.instance.t("$runtimeType refresh() final node = getCurrentNode();");
+    final node = getCurrentNode();
+
+    Logging.instance.i(
+      "$runtimeType refresh() await _torNodeMismatchGuard(node)",
+    );
+    if (await _torNodeMismatchGuard(node)) {
+      throw Exception("TOR – clearnet mismatch");
+    }
+
+    Logging.instance.t(
+      "$runtimeType refresh() it csMonero.startSyncing(wallet!);",
+    );
+    await csMonero.startSyncing(wallet!);
+    Logging.instance.t(
+      "$runtimeType refresh() _setSyncStatus(lib_monero_compat.StartingSyncStatus());",
+    );
     _setSyncStatus(lib_monero_compat.StartingSyncStatus());
 
+    Logging.instance.t("$runtimeType refresh() await updateTransactions();");
     await updateTransactions();
+    Logging.instance.t("$runtimeType refresh() await updateBalance();");
     await updateBalance();
 
+    Logging.instance.t(
+      "$runtimeType refresh() await checkReceivingAddressForTransactions();",
+    );
     if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
       await checkReceivingAddressForTransactions();
     }
 
+    Logging.instance.t(
+      "$runtimeType refresh() refreshMutex.isLocked=${refreshMutex.isLocked} pre release.",
+    );
     if (refreshMutex.isLocked) {
       refreshMutex.release();
+      Logging.instance.t(
+        "$runtimeType refresh() refreshMutex.isLocked manually released.",
+      );
     }
 
-    final synced = await libMoneroWallet?.isSynced();
+    Logging.instance.t(
+      "$runtimeType refresh() wallet != null && await csMonero.isSynced(wallet!)",
+    );
+    final synced = wallet != null && await csMonero.isSynced(wallet!);
 
-    if (synced == true) {
+    Logging.instance.t(
+      "$runtimeType refresh() wallet != null && await csMonero.isSynced(wallet!) == $synced",
+    );
+    if (synced) {
+      Logging.instance.t(
+        "$runtimeType refresh() _setSyncStatus(lib_monero_compat.SyncedSyncStatus());",
+      );
       _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
     }
   }
@@ -1138,10 +1186,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     try {
       final currentReceiving = await getCurrentReceivingAddress();
 
-      final newReceivingIndex =
-          currentReceiving == null ? 0 : currentReceiving.derivationIndex + 1;
+      final newReceivingIndex = currentReceiving == null
+          ? 0
+          : currentReceiving.derivationIndex + 1;
 
-      final newReceivingAddress = addressFor(index: newReceivingIndex);
+      final newReceivingAddress = await addressFor(index: newReceivingIndex);
 
       // Add that new receiving address
       await mainDB.putAddress(newReceivingAddress);
@@ -1174,17 +1223,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     try {
       int highestIndex = -1;
-      final entries = await libMoneroWallet?.getAllTxs(refresh: true);
-      if (entries != null) {
-        for (final element in entries) {
-          if (!element.isSpend) {
-            final int curAddressIndex =
-                element.addressIndexes.isEmpty
-                    ? 0
-                    : element.addressIndexes.reduce(max);
-            if (curAddressIndex > highestIndex) {
-              highestIndex = curAddressIndex;
-            }
+      final entries = await csMonero.getAllTxs(wallet!, refresh: true);
+      for (final element in entries) {
+        if (!element.isSpend) {
+          final int curAddressIndex = element.addressIndexes.isEmpty
+              ? 0
+              : element.addressIndexes.reduce(max);
+          if (curAddressIndex > highestIndex) {
+            highestIndex = curAddressIndex;
           }
         }
       }
@@ -1198,14 +1244,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         final newReceivingIndex = curIndex + 1;
 
         // Use new index to derive a new receiving address
-        final newReceivingAddress = addressFor(index: newReceivingIndex);
+        final newReceivingAddress = await addressFor(index: newReceivingIndex);
 
-        final existing =
-            await mainDB
-                .getAddresses(walletId)
-                .filter()
-                .valueEqualTo(newReceivingAddress.value)
-                .findFirst();
+        final existing = await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newReceivingAddress.value)
+            .findFirst();
         if (existing == null) {
           // Add that new change address
           await mainDB.putAddress(newReceivingAddress);
@@ -1241,9 +1286,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     numberOfBlocksFast: 10,
     numberOfBlocksAverage: 15,
     numberOfBlocksSlow: 20,
-    fast: BigInt.from(lib_monero.TransactionPriority.high.value),
-    medium: BigInt.from(lib_monero.TransactionPriority.medium.value),
-    slow: BigInt.from(lib_monero.TransactionPriority.normal.value),
+    fast: BigInt.from(csMonero.getTxPriorityHigh()),
+    medium: BigInt.from(csMonero.getTxPriorityMedium()),
+    slow: BigInt.from(csMonero.getTxPriorityNormal()),
   );
 
   @override
@@ -1269,16 +1314,16 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     try {
       final feeRate = txData.feeRateType;
       if (feeRate is FeeRateType) {
-        lib_monero.TransactionPriority feePriority;
+        final int feePriority;
         switch (feeRate) {
           case FeeRateType.fast:
-            feePriority = lib_monero.TransactionPriority.high;
+            feePriority = csMonero.getTxPriorityHigh();
             break;
           case FeeRateType.average:
-            feePriority = lib_monero.TransactionPriority.medium;
+            feePriority = csMonero.getTxPriorityMedium();
             break;
           case FeeRateType.slow:
-            feePriority = lib_monero.TransactionPriority.normal;
+            feePriority = csMonero.getTxPriorityNormal();
             break;
           default:
             throw ArgumentError("Invalid use of custom fee");
@@ -1303,12 +1348,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             throw Exception("Send all not supported with multiple recipients");
           }
 
-          final List<lib_monero.Recipient> outputs = [];
+          final List<CsRecipient> outputs = [];
           for (final recipient in txData.recipients!) {
-            final output = lib_monero.Recipient(
-              address: recipient.address,
-              amount: recipient.amount.raw,
-            );
+            final output = CsRecipient(recipient.address, recipient.amount.raw);
 
             outputs.add(output);
           }
@@ -1318,44 +1360,27 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           }
 
           final height = await chainHeight;
-          final inputs =
-              txData.utxos
-                  ?.whereType<StandardInput>()
-                  .map(
-                    (e) => lib_monero.Output(
-                      address: e.address!,
-                      hash: e.utxo.txid,
-                      keyImage: e.utxo.keyImage!,
-                      value: e.value,
-                      isFrozen: e.utxo.isBlocked,
-                      isUnlocked:
-                          e.utxo.blockHeight != null &&
-                          (height - (e.utxo.blockHeight ?? 0)) >=
-                              cryptoCurrency.minConfirms,
-                      height: e.utxo.blockHeight ?? 0,
-                      vout: e.utxo.vout,
-                      spent: e.utxo.used ?? false,
-                      spentHeight: null, // doesn't matter here
-                      coinbase: e.utxo.isCoinbase,
-                    ),
-                  )
-                  .toList();
+          final inputs = txData.utxos?.whereType<StandardInput>().toList();
 
           return await prepareSendMutex.protect(() async {
-            final lib_monero.PendingTransaction pendingTransaction;
+            final CsPendingTransaction pendingTransaction;
             if (outputs.length == 1) {
-              pendingTransaction = await libMoneroWallet!.createTx(
+              pendingTransaction = await csMonero.createTx(
+                wallet!,
+                minConfirms: cryptoCurrency.minConfirms,
+                currentHeight: height,
                 output: outputs.first,
-                paymentId: "",
                 sweep: sweep,
                 priority: feePriority,
                 preferredInputs: inputs,
                 accountIndex: 0, // sw only uses account 0 at this time
               );
             } else {
-              pendingTransaction = await libMoneroWallet!.createTxMultiDest(
+              pendingTransaction = await csMonero.createTxMultiDest(
+                wallet!,
+                minConfirms: cryptoCurrency.minConfirms,
+                currentHeight: height,
                 outputs: outputs,
-                paymentId: "",
                 priority: feePriority,
                 preferredInputs: inputs,
                 sweep: sweep,
@@ -1398,7 +1423,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
       try {
-        await libMoneroWallet!.commitTx(txData.pendingTransaction!);
+        await csMonero.commitTx(wallet!, txData.pendingTransaction!);
 
         Logging.instance.d(
           "transaction ${txData.pendingTransaction!.txid} has been sent",
@@ -1420,6 +1445,102 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       );
       rethrow;
     }
+  }
+
+  @override
+  Future<int> getRefreshFromBlockHeight() => wallet == null
+      ? throw Exception(
+          "Cannot getRefreshFromBlockHeight when wallet is not open",
+        )
+      : csMonero.getRefreshFromBlockHeight(wallet!);
+
+  @override
+  int getTxPriorityHigh() => csMonero.getTxPriorityHigh();
+
+  @override
+  int getTxPriorityMedium() => csMonero.getTxPriorityMedium();
+
+  @override
+  int getTxPriorityNormal() => csMonero.getTxPriorityNormal();
+
+  @override
+  Future<void> internalCommitTx(CsPendingTransaction tx) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+
+    return csMonero.commitTx(wallet!, tx);
+  }
+
+  @override
+  Future<CsPendingTransaction> internalCreateTx({
+    required CsRecipient output,
+    required int priority,
+    required bool sweep,
+    List<StandardInput>? preferredInputs,
+    required int accountIndex,
+    required int minConfirms,
+    required int currentHeight,
+  }) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csMonero.createTx(
+      wallet!,
+      output: output,
+      priority: priority,
+      sweep: sweep,
+      accountIndex: accountIndex,
+      minConfirms: minConfirms,
+      currentHeight: currentHeight,
+      preferredInputs: preferredInputs,
+    );
+  }
+
+  @override
+  Future<String> internalGetAddress({
+    required int accountIndex,
+    required int addressIndex,
+  }) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csMonero.getAddress(
+      wallet!,
+      accountIndex: accountIndex,
+      addressIndex: addressIndex,
+    );
+  }
+
+  @override
+  Future<List<CsOutput>> internalGetOutputs({
+    bool refresh = false,
+    bool includeSpent = false,
+  }) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csMonero.getOutputs(
+      wallet!,
+      refresh: refresh,
+      includeSpent: includeSpent,
+    );
+  }
+
+  @override
+  Future<BigInt> internalGetUnlockedBalance({int accountIndex = 0}) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csMonero.getUnlockedBalance(wallet!, accountIndex: accountIndex);
+  }
+
+  @override
+  void setRefreshFromBlockHeight(int newHeight) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    csMonero.setRefreshFromBlockHeight(wallet!, newHeight);
   }
 
   // ============== View only ==================================================
@@ -1447,6 +1568,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
           value: password,
         );
+
         final wallet = await getRestoredFromViewKeyWallet(
           path: path,
           password: password,
@@ -1455,11 +1577,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           height: height,
         );
 
-        if (libMoneroWallet != null) {
+        if (this.wallet == null) {
           await exit();
         }
-
-        libMoneroWallet = wallet;
+        this.wallet = wallet;
 
         _setListener();
 
@@ -1469,7 +1590,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
               walletId: walletId,
               derivationIndex: 0,
               derivationPath: null,
-              value: wallet.getAddress().value,
+              value: await csMonero.getAddress(this.wallet!),
               publicKey: [],
               type: AddressType.cryptonote,
               subType: AddressSubType.receiving,
@@ -1484,12 +1605,12 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         await updateNode();
         _setListener();
 
-        unawaited(libMoneroWallet?.rescanBlockchain());
-        libMoneroWallet?.startSyncing();
+        await csMonero.rescanBlockchain(this.wallet!);
+        await csMonero.startSyncing(this.wallet!);
 
         // await save();
-        libMoneroWallet?.startListeners();
-        libMoneroWallet?.startAutoSaving();
+        await csMonero.startListeners(this.wallet!);
+        csMonero.startAutoSaving(this.wallet!);
       } catch (e, s) {
         Logging.instance.e(
           "Exception rethrown from recoverViewOnly(): ",

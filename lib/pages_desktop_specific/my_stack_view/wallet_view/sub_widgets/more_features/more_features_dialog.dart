@@ -69,6 +69,27 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     }
   }
 
+  bool _switchLegacyToggledLock = false; // Mutex.
+  Future<void> _switchLegacyToggled(bool newValue) async {
+    if (_switchLegacyToggledLock) {
+      return;
+    }
+    _switchLegacyToggledLock = true; // Lock mutex.
+
+    try {
+      // Toggle enableLegacyAddresses in wallet info.
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateOtherData(
+            newEntries: {WalletInfoKeys.enableLegacyAddresses: newValue},
+            isar: ref.read(mainDBProvider).isar,
+          );
+    } finally {
+      // ensure _switchLegacyToggledLock is set to false no matter what
+      _switchLegacyToggledLock = false;
+    }
+  }
+
   late final DSBController _switchControllerAddressReuse;
   late final DSBController _switchControllerMwebToggle;
 
@@ -113,7 +134,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
+                          "Reusing addresses reduces your privacy and "
+                          "security. Are you sure you want to reuse "
+                          "addresses by default?",
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         const SizedBox(height: 43),
@@ -217,8 +240,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "Activating MWEB requires synchronizing on-chain MWEB related data. "
-                          "This currently requires about 800 MB of storage.",
+                          "Activating MWEB requires synchronizing on-chain "
+                          "MWEB related data. This currently requires about "
+                          "800 MB of storage.",
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         const SizedBox(height: 43),
@@ -382,6 +406,40 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                   ),
                 );
 
+              case WalletFeature.enableLegacyAddresses:
+                return _MoreFeaturesItemBase(
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 3),
+                      SizedBox(
+                        height: 20,
+                        width: 40,
+                        child: DraggableSwitchButton(
+                          isOn:
+                              ref.watch(
+                                    pWalletInfo(
+                                      widget.walletId,
+                                    ).select((value) => value.otherData),
+                                  )[WalletInfoKeys.enableLegacyAddresses]
+                                  as bool? ??
+                              false,
+                          onValueChanged: _switchLegacyToggled,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Enable legacy (P2PKH) address generation",
+                            style: STextStyles.w600_20(context),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+
               case WalletFeature.reuseAddress:
                 return _MoreFeaturesItemBase(
                   onPressed: _switchReuseAddressToggled,
@@ -525,26 +583,23 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
             height: _MoreFeaturesItem.iconSizeBG,
             radiusMultiplier: _MoreFeaturesItem.iconSizeBG,
             child: Center(
-              child:
-                  widget.isSvgFile
-                      ? SvgPicture.file(
-                        File(widget.iconAsset),
-                        width: _MoreFeaturesItem.iconSize,
-                        height: _MoreFeaturesItem.iconSize,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.settingsIconIcon,
-                      )
-                      : SvgPicture.asset(
-                        widget.iconAsset,
-                        width: _MoreFeaturesItem.iconSize,
-                        height: _MoreFeaturesItem.iconSize,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.settingsIconIcon,
-                      ),
+              child: widget.isSvgFile
+                  ? SvgPicture.file(
+                      File(widget.iconAsset),
+                      width: _MoreFeaturesItem.iconSize,
+                      height: _MoreFeaturesItem.iconSize,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.settingsIconIcon,
+                    )
+                  : SvgPicture.asset(
+                      widget.iconAsset,
+                      width: _MoreFeaturesItem.iconSize,
+                      height: _MoreFeaturesItem.iconSize,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.settingsIconIcon,
+                    ),
             ),
           ),
           const SizedBox(width: 16),
@@ -576,8 +631,9 @@ class _MoreFeaturesItemBase extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 32),
       child: RoundedContainer(
         color: Colors.transparent,
-        borderColor:
-            Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+        borderColor: Theme.of(
+          context,
+        ).extension<StackColors>()!.textFieldDefaultBG,
         onPressed: onPressed,
         child: child,
       ),
@@ -636,10 +692,9 @@ class _MoreFeaturesClearSparkCacheItemState
                 Assets.svg.x,
                 width: _MoreFeaturesItem.iconSize,
                 height: _MoreFeaturesItem.iconSize,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.settingsIconIcon,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.settingsIconIcon,
               ),
             ),
           ),

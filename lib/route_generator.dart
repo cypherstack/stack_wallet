@@ -10,12 +10,14 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import 'app_config.dart';
 import 'db/drift/database.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import 'models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import 'models/buy/response_objects/quote.dart';
 import 'models/exchange/incomplete_exchange.dart';
 import 'models/exchange/response_objects/trade.dart';
@@ -28,6 +30,7 @@ import 'models/keys/view_only_wallet_data.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
+import 'pages/add_wallet_views/add_token_view/add_custom_solana_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
@@ -42,6 +45,7 @@ import 'pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_
 import 'pages/add_wallet_views/restore_wallet_view/restore_view_only_wallet_view.dart';
 import 'pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'pages/add_wallet_views/select_wallet_for_token_view.dart';
+import 'pages/add_wallet_views/select_wallet_for_sol_token_view.dart';
 import 'pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'pages/address_book_views/address_book_view.dart';
 import 'pages/address_book_views/subviews/add_address_book_entry_view.dart';
@@ -68,6 +72,7 @@ import 'pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'pages/exchange_view/send_from_view.dart';
 import 'pages/exchange_view/trade_details_view.dart';
 import 'pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'pages/finalize_view/finalize_view.dart';
 import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -91,9 +96,12 @@ import 'pages/receive_view/addresses/edit_address_label_view.dart';
 import 'pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'pages/receive_view/receive_view.dart';
+import 'pages/receive_view/sol_token_receive_view.dart';
+import 'pages/salvium_stake/salvium_create_stake_view.dart';
 import 'pages/send_view/confirm_transaction_view.dart';
 import 'pages/send_view/frost_ms/frost_send_view.dart';
 import 'pages/send_view/send_view.dart';
+import 'pages/send_view/sol_token_send_view.dart';
 import 'pages/send_view/token_send_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
@@ -150,6 +158,8 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_info.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import 'pages/signing/signing_view.dart';
+import 'pages/signing/sub_widgets/address_list.dart';
 import 'pages/spark_names/buy_spark_name_view.dart';
 import 'pages/spark_names/confirm_spark_name_transaction_view.dart';
 import 'pages/spark_names/spark_names_home_view.dart';
@@ -157,6 +167,8 @@ import 'pages/spark_names/sub_widgets/spark_name_details.dart';
 import 'pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'pages/stack_privacy_calls.dart';
 import 'pages/token_view/my_tokens_view.dart';
+import 'pages/token_view/sol_token_view.dart';
+import 'pages/token_view/solana_token_contract_details_view.dart';
 import 'pages/token_view/token_contract_details_view.dart';
 import 'pages/token_view/token_view.dart';
 import 'pages/wallet_view/transaction_views/all_transactions_view.dart';
@@ -166,7 +178,8 @@ import 'pages/wallet_view/transaction_views/transaction_search_filter_view.dart'
 import 'pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/boost_transaction_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
-import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    as tvd;
 import 'pages/wallet_view/wallet_view.dart';
 import 'pages/wallets_view/wallets_overview.dart';
 import 'pages/wallets_view/wallets_view.dart';
@@ -182,6 +195,7 @@ import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
+import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
@@ -221,6 +235,7 @@ import 'wallets/wallet/wallet.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 
 /*
  * This file contains all the routes for the app.
@@ -288,12 +303,11 @@ class RouteGenerator {
         if (args is Tuple3<String, String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => ChooseCoinView(
-                  title: args.item1,
-                  coinAdditional: args.item2,
-                  nextRouteName: args.item3,
-                ),
+            builder: (_) => ChooseCoinView(
+              title: args.item1,
+              coinAdditional: args.item2,
+              nextRouteName: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -343,11 +357,10 @@ class RouteGenerator {
         } else if (args is Tuple2<String, List<String>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => EditWalletTokensView(
-                  walletId: args.item1,
-                  contractsToMarkSelected: args.item2,
-                ),
+            builder: (_) => EditWalletTokensView(
+              walletId: args.item1,
+              contractsToMarkSelected: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -363,6 +376,19 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case DesktopSolTokenView.routeName:
+        if (args is ({String walletId, String tokenMint})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopSolTokenView(
+              walletId: args.walletId,
+              tokenMint: args.tokenMint,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case SelectWalletForTokenView.routeName:
         if (args is EthTokenEntity) {
           return getRoute(
@@ -373,10 +399,28 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SelectWalletForSolTokenView.routeName:
+        if (args is SolTokenEntity) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SelectWalletForSolTokenView(entity: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case AddCustomTokenView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AddCustomTokenView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case AddCustomSolanaTokenView.routeName:
+        final walletId = args is String ? args : null;
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => AddCustomSolanaTokenView(walletId: walletId),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -394,11 +438,23 @@ class RouteGenerator {
         if (args is Tuple2<String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => TokenContractDetailsView(
-                  contractAddress: args.item1,
-                  walletId: args.item2,
-                ),
+            builder: (_) => TokenContractDetailsView(
+              contractAddress: args.item1,
+              walletId: args.item2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SolanaTokenContractDetailsView.routeName:
+        if (args is Tuple2<String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolanaTokenContractDetailsView(
+              tokenMint: args.item1,
+              walletId: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -408,11 +464,10 @@ class RouteGenerator {
         if (args is Tuple2<String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => SingleFieldEditView(
-                  initialValue: args.item1,
-                  label: args.item2,
-                ),
+            builder: (_) => SingleFieldEditView(
+              initialValue: args.item1,
+              label: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -428,15 +483,34 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SigningView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SigningView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CompactAddressListView.routeName:
+        if (args is String) {
+          return getRoute<Address>(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CompactAddressListView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case CreateNewFrostMsWalletView.routeName:
         if (args is ({String walletName, FrostCurrency frostCurrency})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => CreateNewFrostMsWalletView(
-                  walletName: args.walletName,
-                  frostCurrency: args.frostCurrency,
-                ),
+            builder: (_) => CreateNewFrostMsWalletView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -446,11 +520,10 @@ class RouteGenerator {
         if (args is ({String walletName, FrostCurrency frostCurrency})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => RestoreFrostMsWalletView(
-                  walletName: args.walletName,
-                  frostCurrency: args.frostCurrency,
-                ),
+            builder: (_) => RestoreFrostMsWalletView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -460,11 +533,10 @@ class RouteGenerator {
         if (args is ({String walletName, FrostCurrency frostCurrency})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => SelectNewFrostImportTypeView(
-                  walletName: args.walletName,
-                  frostCurrency: args.frostCurrency,
-                ),
+            builder: (_) => SelectNewFrostImportTypeView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -511,11 +583,10 @@ class RouteGenerator {
         if (args is ({String walletId, Map<String, int> resharers})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => CompleteReshareConfigView(
-                  walletId: args.walletId,
-                  resharers: args.resharers,
-                ),
+            builder: (_) => CompleteReshareConfigView(
+              walletId: args.walletId,
+              resharers: args.resharers,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -525,8 +596,8 @@ class RouteGenerator {
         if (args is ({String walletId, CryptoCurrency coin})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => FrostSendView(walletId: args.walletId, coin: args.coin),
+            builder: (_) =>
+                FrostSendView(walletId: args.walletId, coin: args.coin),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -551,21 +622,20 @@ class RouteGenerator {
         if (args is Tuple2<String, CoinControlViewType>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => CoinControlView(walletId: args.item1, type: args.item2),
+            builder: (_) =>
+                CoinControlView(walletId: args.item1, type: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
             is Tuple4<String, CoinControlViewType, Amount?, Set<UTXO>?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => CoinControlView(
-                  walletId: args.item1,
-                  type: args.item2,
-                  requestedTotal: args.item3,
-                  selectedUTXOs: args.item4,
-                ),
+            builder: (_) => CoinControlView(
+              walletId: args.item1,
+              type: args.item2,
+              requestedTotal: args.item3,
+              selectedUTXOs: args.item4,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -595,11 +665,10 @@ class RouteGenerator {
         if (args is ({Ordinal ordinal, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => OrdinalDetailsView(
-                  walletId: args.walletId,
-                  ordinal: args.ordinal,
-                ),
+            builder: (_) => OrdinalDetailsView(
+              walletId: args.walletId,
+              ordinal: args.ordinal,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -609,11 +678,10 @@ class RouteGenerator {
         if (args is ({Ordinal ordinal, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => DesktopOrdinalDetailsView(
-                  walletId: args.walletId,
-                  ordinal: args.ordinal,
-                ),
+            builder: (_) => DesktopOrdinalDetailsView(
+              walletId: args.walletId,
+              ordinal: args.ordinal,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -630,9 +698,8 @@ class RouteGenerator {
         if (args is Tuple2<Id, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) =>
-                    UtxoDetailsView(walletId: args.item2, utxoId: args.item1),
+            builder: (_) =>
+                UtxoDetailsView(walletId: args.item2, utxoId: args.item1),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -682,7 +749,9 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CashFusionView(walletId: args),
+            builder: (_) => AppConfig.hasFeature(AppFeature.tor)
+                ? CashFusionView(walletId: args)
+                : throw Exception("Tor not configured in prebuild setup"),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -698,13 +767,22 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SalviumCreateStakeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SalviumCreateStakeView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case ManageDomainView.routeName:
         if (args is ({String walletId, UTXO utxo})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) =>
-                    ManageDomainView(walletId: args.walletId, utxo: args.utxo),
+            builder: (_) =>
+                ManageDomainView(walletId: args.walletId, utxo: args.utxo),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -824,21 +902,19 @@ class RouteGenerator {
         if (args is ({String walletId, String name})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) =>
-                    BuySparkNameView(walletId: args.walletId, name: args.name),
+            builder: (_) =>
+                BuySparkNameView(walletId: args.walletId, name: args.name),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
             is ({String walletId, String name, SparkName? nameToRenew})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => BuySparkNameView(
-                  walletId: args.walletId,
-                  name: args.name,
-                  nameToRenew: args.nameToRenew,
-                ),
+            builder: (_) => BuySparkNameView(
+              walletId: args.walletId,
+              name: args.name,
+              nameToRenew: args.nameToRenew,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -848,11 +924,10 @@ class RouteGenerator {
         if (args is ({String walletId, TxData txData})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => ConfirmSparkNameTransactionView(
-                  walletId: args.walletId,
-                  txData: args.txData,
-                ),
+            builder: (_) => ConfirmSparkNameTransactionView(
+              walletId: args.walletId,
+              txData: args.txData,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -862,11 +937,8 @@ class RouteGenerator {
         if (args is ({String walletId, SparkName name})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => SparkNameDetailsView(
-                  walletId: args.walletId,
-                  name: args.name,
-                ),
+            builder: (_) =>
+                SparkNameDetailsView(walletId: args.walletId, name: args.name),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -876,7 +948,9 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => FusionProgressView(walletId: args),
+            builder: (_) => AppConfig.hasFeature(AppFeature.tor)
+                ? FusionProgressView(walletId: args)
+                : throw Exception("Tor not configured in prebuild setup"),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1023,14 +1097,18 @@ class RouteGenerator {
       case TorSettingsView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const TorSettingsView(),
+          builder: (_) => AppConfig.hasFeature(AppFeature.tor)
+              ? const TorSettingsView()
+              : throw Exception("Tor not configured in prebuild setup"),
           settings: RouteSettings(name: settings.name),
         );
 
       case TorSettings.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const TorSettings(),
+          builder: (_) => AppConfig.hasFeature(AppFeature.tor)
+              ? const TorSettings()
+              : throw Exception("Tor not configured in prebuild setup"),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -1214,12 +1292,11 @@ class RouteGenerator {
         if (args is Tuple3<CryptoCurrency, String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => NodeDetailsView(
-                  coin: args.item1,
-                  nodeId: args.item2,
-                  popRouteName: args.item3,
-                ),
+            builder: (_) => NodeDetailsView(
+              coin: args.item1,
+              nodeId: args.item2,
+              popRouteName: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1229,8 +1306,8 @@ class RouteGenerator {
         if (args is Tuple2<String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => EditNoteView(txid: args.item1, walletId: args.item2),
+            builder: (_) =>
+                EditNoteView(txid: args.item1, walletId: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1250,8 +1327,8 @@ class RouteGenerator {
         if (args is Tuple2<String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => EditTradeNoteView(tradeId: args.item1, note: args.item2),
+            builder: (_) =>
+                EditTradeNoteView(tradeId: args.item1, note: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1262,13 +1339,12 @@ class RouteGenerator {
             is Tuple4<AddEditNodeViewType, CryptoCurrency, String?, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => AddEditNodeView(
-                  viewType: args.item1,
-                  coin: args.item2,
-                  nodeId: args.item3,
-                  routeOnSuccessOrDelete: args.item4,
-                ),
+            builder: (_) => AddEditNodeView(
+              viewType: args.item1,
+              coin: args.item2,
+              nodeId: args.item3,
+              routeOnSuccessOrDelete: args.item4,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1308,11 +1384,10 @@ class RouteGenerator {
         if (args is Tuple2<String, ContactAddressEntry>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => EditContactAddressView(
-                  contactId: args.item1,
-                  addressEntry: args.item2,
-                ),
+            builder: (_) => EditContactAddressView(
+              contactId: args.item1,
+              addressEntry: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1329,12 +1404,11 @@ class RouteGenerator {
         if (args is Tuple3<String, WalletSyncStatus, NodeConnectionStatus>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => WalletNetworkSettingsView(
-                  walletId: args.item1,
-                  initialSyncStatus: args.item2,
-                  initialNodeStatus: args.item3,
-                ),
+            builder: (_) => WalletNetworkSettingsView(
+              walletId: args.item1,
+              initialSyncStatus: args.item2,
+              initialNodeStatus: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1344,11 +1418,10 @@ class RouteGenerator {
         if (args is ({String walletId, List<String> mnemonic})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => WalletBackupView(
-                  walletId: args.walletId,
-                  mnemonic: args.mnemonic,
-                ),
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
@@ -1365,12 +1438,11 @@ class RouteGenerator {
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => WalletBackupView(
-                  walletId: args.walletId,
-                  mnemonic: args.mnemonic,
-                  frostWalletData: args.frostWalletData,
-                ),
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
@@ -1381,12 +1453,11 @@ class RouteGenerator {
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => WalletBackupView(
-                  walletId: args.walletId,
-                  mnemonic: args.mnemonic,
-                  keyData: args.keyData,
-                ),
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              keyData: args.keyData,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
@@ -1404,13 +1475,12 @@ class RouteGenerator {
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => WalletBackupView(
-                  walletId: args.walletId,
-                  mnemonic: args.mnemonic,
-                  frostWalletData: args.frostWalletData,
-                  keyData: args.keyData,
-                ),
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
+              keyData: args.keyData,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1420,11 +1490,10 @@ class RouteGenerator {
         if (args is ({String walletId, KeyDataInterface keyData})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => MobileKeyDataView(
-                  walletId: args.walletId,
-                  keyData: args.keyData,
-                ),
+            builder: (_) => MobileKeyDataView(
+              walletId: args.walletId,
+              keyData: args.keyData,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1474,11 +1543,8 @@ class RouteGenerator {
         if (args is Tuple2<AddWalletType, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => NameYourWalletView(
-                  addWalletType: args.item1,
-                  coin: args.item2,
-                ),
+            builder: (_) =>
+                NameYourWalletView(addWalletType: args.item1, coin: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1488,11 +1554,10 @@ class RouteGenerator {
         if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => NewWalletRecoveryPhraseWarningView(
-                  walletName: args.item1,
-                  coin: args.item2,
-                ),
+            builder: (_) => NewWalletRecoveryPhraseWarningView(
+              walletName: args.item1,
+              coin: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1502,11 +1567,8 @@ class RouteGenerator {
         if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => RestoreOptionsView(
-                  walletName: args.item1,
-                  coin: args.item2,
-                ),
+            builder: (_) =>
+                RestoreOptionsView(walletName: args.item1, coin: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1516,11 +1578,8 @@ class RouteGenerator {
         if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => NewWalletOptionsView(
-                  walletName: args.item1,
-                  coin: args.item2,
-                ),
+            builder: (_) =>
+                NewWalletOptionsView(walletName: args.item1, coin: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1530,14 +1589,13 @@ class RouteGenerator {
         if (args is Tuple5<String, CryptoCurrency, int, int, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => RestoreWalletView(
-                  walletName: args.item1,
-                  coin: args.item2,
-                  seedWordsLength: args.item3,
-                  restoreBlockHeight: args.item4,
-                  mnemonicPassphrase: args.item5,
-                ),
+            builder: (_) => RestoreWalletView(
+              walletName: args.item1,
+              coin: args.item2,
+              seedWordsLength: args.item3,
+              restoreBlockHeight: args.item4,
+              mnemonicPassphrase: args.item5,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1552,12 +1610,11 @@ class RouteGenerator {
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => RestoreViewOnlyWalletView(
-                  walletName: args.walletName,
-                  coin: args.coin,
-                  restoreBlockHeight: args.restoreBlockHeight,
-                ),
+            builder: (_) => RestoreViewOnlyWalletView(
+              walletName: args.walletName,
+              coin: args.coin,
+              restoreBlockHeight: args.restoreBlockHeight,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1567,11 +1624,10 @@ class RouteGenerator {
         if (args is Tuple2<Wallet, List<String>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => NewWalletRecoveryPhraseView(
-                  wallet: args.item1,
-                  mnemonic: args.item2,
-                ),
+            builder: (_) => NewWalletRecoveryPhraseView(
+              wallet: args.item1,
+              mnemonic: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1581,11 +1637,10 @@ class RouteGenerator {
         if (args is Tuple2<Wallet, List<String>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => VerifyRecoveryPhraseView(
-                  wallet: args.item1,
-                  mnemonic: args.item2,
-                ),
+            builder: (_) => VerifyRecoveryPhraseView(
+              wallet: args.item1,
+              mnemonic: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1611,28 +1666,26 @@ class RouteGenerator {
         if (args is Tuple3<Transaction, CryptoCurrency, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => TransactionDetailsView(
-                  transaction: args.item1,
-                  coin: args.item2,
-                  walletId: args.item3,
-                ),
+            builder: (_) => TransactionDetailsView(
+              transaction: args.item1,
+              coin: args.item2,
+              walletId: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case TransactionV2DetailsView.routeName:
+      case tvd.TransactionV2DetailsView.routeName:
         if (args
             is ({TransactionV2 tx, CryptoCurrency coin, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => TransactionV2DetailsView(
-                  transaction: args.tx,
-                  coin: args.coin,
-                  walletId: args.walletId,
-                ),
+            builder: (_) => tvd.TransactionV2DetailsView(
+              transaction: args.tx,
+              coin: args.coin,
+              walletId: args.walletId,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1647,12 +1700,11 @@ class RouteGenerator {
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => FusionGroupDetailsView(
-                  transactions: args.transactions,
-                  coin: args.coin,
-                  walletId: args.walletId,
-                ),
+            builder: (_) => FusionGroupDetailsView(
+              transactions: args.transactions,
+              coin: args.coin,
+              walletId: args.walletId,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1679,11 +1731,10 @@ class RouteGenerator {
         if (args is ({String walletId, String contractAddress})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => AllTransactionsV2View(
-                  walletId: args.walletId,
-                  contractAddress: args.contractAddress,
-                ),
+            builder: (_) => AllTransactionsV2View(
+              walletId: args.walletId,
+              contractAddress: args.contractAddress,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1709,11 +1760,18 @@ class RouteGenerator {
         } else if (args is Tuple2<String, EthContract?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => ReceiveView(
-                  walletId: args.item1,
-                  tokenContract: args.item2,
-                ),
+            builder: (_) =>
+                ReceiveView(walletId: args.item1, tokenContract: args.item2),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FinalizeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FinalizeView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1733,11 +1791,8 @@ class RouteGenerator {
         if (args is Tuple2<Id, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => AddressDetailsView(
-                  walletId: args.item2,
-                  addressId: args.item1,
-                ),
+            builder: (_) =>
+                AddressDetailsView(walletId: args.item2, addressId: args.item1),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1754,23 +1809,21 @@ class RouteGenerator {
             is Tuple3<String, CryptoCurrency, SendViewAutoFillData>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => SendView(
-                  walletId: args.item1,
-                  coin: args.item2,
-                  autoFillData: args.item3,
-                ),
+            builder: (_) => SendView(
+              walletId: args.item1,
+              coin: args.item2,
+              autoFillData: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args is Tuple3<String, CryptoCurrency, PaynymAccountLite>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => SendView(
-                  walletId: args.item1,
-                  coin: args.item2,
-                  accountLite: args.item3,
-                ),
+            builder: (_) => SendView(
+              walletId: args.item1,
+              coin: args.item2,
+              accountLite: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args is ({CryptoCurrency coin, String walletId})) {
@@ -1787,12 +1840,37 @@ class RouteGenerator {
         if (args is Tuple3<String, CryptoCurrency, EthContract>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => TokenSendView(
-                  walletId: args.item1,
-                  coin: args.item2,
-                  tokenContract: args.item3,
-                ),
+            builder: (_) => TokenSendView(
+              walletId: args.item1,
+              coin: args.item2,
+              tokenContract: args.item3,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SolTokenSendView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolTokenSendView(
+              walletId: args.$1,
+              tokenMint: args.$2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SolTokenReceiveView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolTokenReceiveView(
+              walletId: args.$1,
+              tokenMint: args.$2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1802,12 +1880,11 @@ class RouteGenerator {
         if (args is (TxData, String, VoidCallback)) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => ConfirmTransactionView(
-                  txData: args.$1,
-                  walletId: args.$2,
-                  onSuccess: args.$3,
-                ),
+            builder: (_) => ConfirmTransactionView(
+              txData: args.$1,
+              walletId: args.$2,
+              onSuccess: args.$3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1817,11 +1894,8 @@ class RouteGenerator {
         if (args is (TxData, String)) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => ConfirmNameTransactionView(
-                  txData: args.$1,
-                  walletId: args.$2,
-                ),
+            builder: (_) =>
+                ConfirmNameTransactionView(txData: args.$1, walletId: args.$2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1831,37 +1905,35 @@ class RouteGenerator {
         if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => Stack(
-                  children: [
-                    WalletInitiatedExchangeView(
-                      walletId: args.item1,
-                      coin: args.item2,
-                    ),
-                    // ExchangeLoadingOverlayView(
-                    //   unawaitedLoad: args.item3,
-                    // ),
-                  ],
+            builder: (_) => Stack(
+              children: [
+                WalletInitiatedExchangeView(
+                  walletId: args.item1,
+                  coin: args.item2,
                 ),
+                // ExchangeLoadingOverlayView(
+                //   unawaitedLoad: args.item3,
+                // ),
+              ],
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
         if (args is Tuple3<String, CryptoCurrency, EthContract?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => Stack(
-                  children: [
-                    WalletInitiatedExchangeView(
-                      walletId: args.item1,
-                      coin: args.item2,
-                      contract: args.item3,
-                    ),
-                    // ExchangeLoadingOverlayView(
-                    //   unawaitedLoad: args.item3,
-                    // ),
-                  ],
+            builder: (_) => Stack(
+              children: [
+                WalletInitiatedExchangeView(
+                  walletId: args.item1,
+                  coin: args.item2,
+                  contract: args.item3,
                 ),
+                // ExchangeLoadingOverlayView(
+                //   unawaitedLoad: args.item3,
+                // ),
+              ],
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1887,13 +1959,12 @@ class RouteGenerator {
             >) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => WalletSettingsView(
-                  walletId: args.item1,
-                  coin: args.item2,
-                  initialSyncStatus: args.item3,
-                  initialNodeStatus: args.item4,
-                ),
+            builder: (_) => WalletSettingsView(
+              walletId: args.item1,
+              coin: args.item2,
+              initialSyncStatus: args.item3,
+              initialNodeStatus: args.item4,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1903,11 +1974,10 @@ class RouteGenerator {
         if (args is ({String walletId, List<String> mnemonicWords})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => DeleteWalletRecoveryPhraseView(
-                  mnemonic: args.mnemonicWords,
-                  walletId: args.walletId,
-                ),
+            builder: (_) => DeleteWalletRecoveryPhraseView(
+              mnemonic: args.mnemonicWords,
+              walletId: args.walletId,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
@@ -1924,12 +1994,11 @@ class RouteGenerator {
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => DeleteWalletRecoveryPhraseView(
-                  mnemonic: args.mnemonicWords,
-                  walletId: args.walletId,
-                  frostWalletData: args.frostWalletData,
-                ),
+            builder: (_) => DeleteWalletRecoveryPhraseView(
+              mnemonic: args.mnemonicWords,
+              walletId: args.walletId,
+              frostWalletData: args.frostWalletData,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1939,11 +2008,10 @@ class RouteGenerator {
         if (args is ({String walletId, ViewOnlyWalletData data})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => DeleteViewOnlyWalletKeysView(
-                  data: args.data,
-                  walletId: args.walletId,
-                ),
+            builder: (_) => DeleteViewOnlyWalletKeysView(
+              data: args.data,
+              walletId: args.walletId,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1995,13 +2063,12 @@ class RouteGenerator {
         if (args is Tuple4<String, Transaction?, String?, String?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => TradeDetailsView(
-                  tradeId: args.item1,
-                  transactionIfSentFromStack: args.item2,
-                  walletId: args.item3,
-                  walletName: args.item4,
-                ),
+            builder: (_) => TradeDetailsView(
+              tradeId: args.item1,
+              transactionIfSentFromStack: args.item2,
+              walletId: args.item3,
+              walletName: args.item4,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2021,13 +2088,12 @@ class RouteGenerator {
         if (args is Tuple4<CryptoCurrency, Amount, String, Trade>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => SendFromView(
-                  coin: args.item1,
-                  amount: args.item2,
-                  trade: args.item4,
-                  address: args.item3,
-                ),
+            builder: (_) => SendFromView(
+              coin: args.item1,
+              amount: args.item2,
+              trade: args.item4,
+              address: args.item3,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2037,11 +2103,10 @@ class RouteGenerator {
         if (args is Tuple2<CryptoCurrency, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => GenerateUriQrCodeView(
-                  coin: args.item1,
-                  receivingAddress: args.item2,
-                ),
+            builder: (_) => GenerateUriQrCodeView(
+              coin: args.item1,
+              receivingAddress: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2091,11 +2156,10 @@ class RouteGenerator {
         if (args is ({String walletId, String domainName})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => BuyDomainView(
-                  walletId: args.walletId,
-                  domainName: args.domainName,
-                ),
+            builder: (_) => BuyDomainView(
+              walletId: args.walletId,
+              domainName: args.domainName,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2179,8 +2243,8 @@ class RouteGenerator {
         if (args is Tuple2<CryptoCurrency, EthContract?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => BuyInWalletView(coin: args.item1, contract: args.item2),
+            builder: (_) =>
+                BuyInWalletView(coin: args.item1, contract: args.item2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2542,11 +2606,33 @@ class RouteGenerator {
         } else if (args is ({String walletId, bool popPrevious})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder:
-                (_) => TokenView(
-                  walletId: args.walletId,
-                  popPrevious: args.popPrevious,
-                ),
+            builder: (_) => TokenView(
+              walletId: args.walletId,
+              popPrevious: args.popPrevious,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SolTokenView.routeName:
+        if (args is ({String walletId, String tokenMint})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolTokenView(
+              walletId: args.walletId,
+              tokenMint: args.tokenMint,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        } else if (args is ({String walletId, String tokenMint, bool popPrevious})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolTokenView(
+              walletId: args.walletId,
+              tokenMint: args.tokenMint,
+              popPrevious: args.popPrevious,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2554,12 +2640,25 @@ class RouteGenerator {
 
       // == End of desktop specific routes =====================================
 
+      case SparkViewKeyView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SparkViewKeyView(
+              walletId: args.$1,
+              sparkViewKeyHex: args.$2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       default:
         return _routeError("");
     }
   }
 
-  static Route<dynamic> getRoute({
+  static Route<T> getRoute<T>({
     bool shouldUseMaterialRoute = useMaterialPageRoute,
     required Widget Function(BuildContext) builder,
     String? title,
@@ -2568,14 +2667,14 @@ class RouteGenerator {
     bool fullscreenDialog = false,
   }) {
     if (shouldUseMaterialRoute) {
-      return MaterialPageRoute(
+      return MaterialPageRoute<T>(
         builder: builder,
         settings: settings,
         maintainState: maintainState,
         fullscreenDialog: fullscreenDialog,
       );
     } else {
-      return CupertinoPageRoute(
+      return CupertinoPageRoute<T>(
         builder: builder,
         settings: settings,
         title: title,
@@ -2585,7 +2684,7 @@ class RouteGenerator {
     }
   }
 
-  static Route<dynamic> createSlideTransitionRoute(Widget viewToInsert) {
+  static Route<T> createSlideTransitionRoute<T>(Widget viewToInsert) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => viewToInsert,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -2603,7 +2702,7 @@ class RouteGenerator {
     );
   }
 
-  static Route<dynamic> _routeError(String message) {
+  static Route<T> _routeError<T>(String message) {
     // Replace with robust ErrorView page
     final Widget errorView = Scaffold(
       appBar: AppBar(
@@ -2617,7 +2716,7 @@ class RouteGenerator {
       ),
     );
 
-    return getRoute(
+    return getRoute<T>(
       shouldUseMaterialRoute: useMaterialPageRoute,
       builder: (_) => errorView,
     );

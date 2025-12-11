@@ -3,14 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frostdart/frostdart.dart';
+
+// import 'package:frostdart/frostdart.dart';
 
 import '../../../../../frost_route_generator.dart';
 import '../../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../../providers/global/wallets_provider.dart';
-import '../../../../../services/frost.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/format.dart';
 import '../../../../../utilities/logger.dart';
@@ -27,6 +27,7 @@ import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/frost_scaffold.dart';
 import '../../../../../widgets/rounded_white_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
+import '../../../../../wl_gen/interfaces/frost_interface.dart';
 
 final class CompleteReshareConfigView extends ConsumerStatefulWidget {
   const CompleteReshareConfigView({
@@ -84,20 +85,21 @@ class _CompleteReshareConfigViewState
         );
       }
 
-      final List<String> newParticipants =
-          controllers.map((e) => e.text.trim()).toList();
+      final List<String> newParticipants = controllers
+          .map((e) => e.text.trim())
+          .toList();
       if (_includeMeInReshare) {
         newParticipants.insert(0, myName);
       }
 
-      final config = Frost.createResharerConfig(
+      final config = frostInterface.createResharerConfig(
         newThreshold: int.parse(_newThresholdController.text),
         resharers: widget.resharers.values.toList(),
         newParticipants: newParticipants,
       );
 
       final salt = Format.uint8listToString(
-        resharerSalt(resharerConfig: config),
+        frostInterface.getResharerSalt(resharerConfig: config),
       );
 
       if (frostInfo.knownSalts.contains(salt)) {
@@ -122,10 +124,8 @@ class _CompleteReshareConfigViewState
       }
 
       ref.read(pFrostResharingData).myName = myName;
-      ref.read(pFrostResharingData).resharerRConfig = Frost.encodeRConfig(
-        config,
-        widget.resharers,
-      );
+      ref.read(pFrostResharingData).resharerRConfig = frostInterface
+          .encodeRConfig(config, widget.resharers);
 
       final wallet =
           ref.read(pWallets).getWallet(widget.walletId) as BitcoinFrostWallet;
@@ -143,12 +143,10 @@ class _CompleteReshareConfigViewState
           callerRouteName: CompleteReshareConfigView.routeName,
         );
 
-        await Navigator.of(context).pushNamed(
-          FrostStepScaffold.routeName,
-        );
+        await Navigator.of(context).pushNamed(FrostStepScaffold.routeName);
       }
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         await showDialog<void>(
           context: context,
@@ -269,17 +267,15 @@ class _CompleteReshareConfigViewState
           leading: AppBarBackButton(),
           trailing: ExitToMyStackButton(),
         ),
-        body: SizedBox(
-          width: 480,
-          child: child,
-        ),
+        body: SizedBox(width: 480, child: child),
       ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -318,9 +314,7 @@ class _CompleteReshareConfigViewState
               ? CrossAxisAlignment.start
               : CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(
-              height: 8,
-            ),
+            const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -340,18 +334,14 @@ class _CompleteReshareConfigViewState
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         value: _includeMeInReshare,
                         onChanged: (value) {
-                          setState(
-                            () => _includeMeInReshare = value == true,
-                          );
+                          setState(() => _includeMeInReshare = value == true);
                           _participantsCountChanged(
                             _newParticipantsCountController.text,
                           );
                         },
                       ),
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         "I will be a signer in the new config",
@@ -362,19 +352,16 @@ class _CompleteReshareConfigViewState
                 ),
               ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
             Text(
               "New threshold",
               style: STextStyles.w500_14(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle1,
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             TextField(
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -384,31 +371,27 @@ class _CompleteReshareConfigViewState
                 hintStyle: STextStyles.fieldLabel(context),
               ),
             ),
-            const SizedBox(
-              height: 6,
-            ),
+            const SizedBox(height: 6),
             RoundedWhiteContainer(
               child: Text(
                 "Enter number of signatures required for fund management.",
                 style: STextStyles.w500_12(context).copyWith(
-                  color:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textSubtitle2,
                 ),
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "New number of participants",
               style: STextStyles.w500_14(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle1,
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             TextField(
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -419,42 +402,37 @@ class _CompleteReshareConfigViewState
                 hintStyle: STextStyles.fieldLabel(context),
               ),
             ),
-            const SizedBox(
-              height: 6,
-            ),
+            const SizedBox(height: 6),
             RoundedWhiteContainer(
               child: Text(
                 "The number of participants must be equal to or greater than the"
                 " number of required signatures.",
                 style: STextStyles.w500_12(context).copyWith(
-                  color:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textSubtitle2,
                 ),
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             if (controllers.isNotEmpty)
               Text(
                 "Participants",
                 style: STextStyles.w500_14(context).copyWith(
-                  color:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textSubtitle1,
                 ),
               ),
-            if (controllers.isNotEmpty)
-              const SizedBox(
-                height: 10,
-              ),
+            if (controllers.isNotEmpty) const SizedBox(height: 10),
             if (controllers.isNotEmpty)
               RoundedWhiteContainer(
                 child: Text(
                   "Type each name in one word without spaces.",
                   style: STextStyles.w500_12(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle2,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle2,
                   ),
                 ),
               ),
@@ -463,9 +441,7 @@ class _CompleteReshareConfigViewState
                 children: [
                   for (int i = 0; i < controllers.length; i++)
                     Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                      ),
+                      padding: const EdgeInsets.only(top: 10),
                       child: TextField(
                         controller: controllers[i],
                         decoration: InputDecoration(
@@ -477,9 +453,7 @@ class _CompleteReshareConfigViewState
                 ],
               ),
             if (!Util.isDesktop) const Spacer(),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             PrimaryButton(
               label: "Generate config",
               onPressed: () async {

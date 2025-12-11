@@ -9,7 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
+
+import '../../../../utilities/util.dart';
 import '../../../../widgets/animated_widgets/rotating_arrows.dart';
+import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/stack_dialog.dart';
 
 class CancellingTransactionProgressDialog extends StatefulWidget {
@@ -28,28 +31,33 @@ class _CancellingTransactionProgressDialogState
       onWillPop: () async {
         return false;
       },
-      child: const StackDialog(
-        title: "Cancelling transaction",
-        message: "This may take a while. Please do not exit this screen.",
-        icon: RotatingArrows(
-          width: 24,
-          height: 24,
+      child: ConditionalParent(
+        condition: Util.isDesktop,
+        builder:
+            (child) => Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [SizedBox(width: 400, child: child)],
+            ),
+        child: const StackDialog(
+          title: "Cancelling transaction",
+          message: "This may take a while. Please do not exit this screen.",
+          icon: RotatingArrows(width: 24, height: 24),
+          // rightButton: TextButton(
+          //   style: Theme.of(context).textButtonTheme.style?.copyWith(
+          //     backgroundColor: MaterialStateProperty.all<Color>(
+          //       CFColors.buttonGray,
+          //     ),
+          //   ),
+          //   child: Text(
+          //     "Cancel",
+          //     style: STextStyles.itemSubtitle12(context),
+          //   ),
+          //   onPressed: () {
+          //     Navigator.of(context).pop();
+          //     onCancel.call();
+          //   },
+          // ),
         ),
-        // rightButton: TextButton(
-        //   style: Theme.of(context).textButtonTheme.style?.copyWith(
-        //     backgroundColor: MaterialStateProperty.all<Color>(
-        //       CFColors.buttonGray,
-        //     ),
-        //   ),
-        //   child: Text(
-        //     "Cancel",
-        //     style: STextStyles.itemSubtitle12(context),
-        //   ),
-        //   onPressed: () {
-        //     Navigator.of(context).pop();
-        //     onCancel.call();
-        //   },
-        // ),
       ),
     );
   }

@@ -10,6 +10,7 @@
 
 import 'dart:convert';
 
+import '../../app_config.dart';
 import '../../dto/ethereum/eth_token_tx_dto.dart';
 import '../../dto/ethereum/eth_tx_dto.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
@@ -57,10 +58,11 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock&unripe=true",
         ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -110,10 +112,11 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&emitter=$tokenContractAddress&logs=true",
         ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -164,10 +167,11 @@ abstract class EthereumAPI {
       );
       final response = await client.get(
         url: uri,
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -203,10 +207,11 @@ abstract class EthereumAPI {
     try {
       final response = await client.get(
         url: Uri.parse("$stackBaseServer/gas-prices"),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -267,10 +272,11 @@ abstract class EthereumAPI {
       url: Uri.parse(
         "$stackBaseServer/names?terms=$contractAddress&autoname=$contractAddress&all",
       ),
-      proxyInfo:
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null,
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
   }
 
@@ -284,10 +290,11 @@ abstract class EthereumAPI {
           // "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
           "$stackBaseServer/names?terms=$contractAddress&all",
         ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -371,10 +378,11 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/abis?addrs=$contractAddress&verbose=true",
         ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -408,10 +416,11 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/state?addrs=$contractAddress&parts=proxy",
         ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       if (response.code == 200) {
         final json = jsonDecode(response.body);

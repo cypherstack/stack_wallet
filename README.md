@@ -10,18 +10,32 @@ Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use u
 ## Feature List
 
 Highlights include:
-- 11 Different cryptocurrencies:
+- 23 Different cryptocurrencies:
     - [Bitcoin](https://bitcoin.org/en/)
+    - Bitcoin Frost
     - [Bitcoin Cash](https://bch.info/en/)
+    - [Banano](https://banano.cc/)
+    - [Cardano](https://cardano.org/)
+    - [Dash](https://www.dash.org/)
     - [Dogecoin](https://dogecoin.com/)
     - [Epic Cash](https://linktr.ee/epiccash)
+    - [MimbleWimbleCoin](https://mwc.mw)
     - [Ethereum](https://ethereum.org/en/)
+    - [Ecash](https://e.cash/)
+    - [Fact0rn](https://www.fact0rn.io/)
     - [Firo](https://firo.org/)
     - [Litecoin](https://litecoin.org/)
     - [Monero](https://www.getmonero.org/)
+    - [Nano](https://nano.org/)
     - [Namecoin](https://www.namecoin.org/)
     - [Particl](https://particl.io/)
+    - [Peercoin](https://www.peercoin.net/)
+    - [Salvium](https://salvium.io/)
+    - [Solana](https://solana.com/)
+    - [Stellar](https://stellar.org/)
+    - [Tezos](https://tezos.com/)
     - [Wownero](https://wownero.org/)
+    - [Xelis](https://xelis.org/)
 - All private keys and seeds stay on device and are never shared.
 - Easy backup and restore feature to save all the information that's important to you.
 - Trading cryptocurrencies through our partners.
@@ -30,8 +44,6 @@ Highlights include:
 - Custom Nodes.
 - Open source software.
 - No ads.
-
-> You can find the roadmap [here](docs/roadmap.md).
 
 ## Building
 

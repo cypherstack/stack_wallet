@@ -4,7 +4,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
-- The only OS supported for building Android and Linux desktop is Ubuntu 20.04.  Windows builds require using Ubuntu 20.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
+- The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
 - Install go: [https://go.dev/doc/install](https://go.dev/doc/install)
@@ -77,12 +77,12 @@ pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3
 ```
 
 ### Flutter
-Install Flutter 3.29.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.29.2` tag, and add its `flutter/bin` folder to your PATH as in
+Install Flutter 3.35.7 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.35.7` tag, and add its `flutter/bin` folder to your PATH as in
 ```sh
 FLUTTER_DIR="$HOME/development/flutter"
 git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
 cd "$FLUTTER_DIR"
-git checkout 3.29.2
+git checkout 3.35.7
 echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
 source "$HOME/.profile"
 flutter precache
@@ -165,6 +165,7 @@ cd scripts/windows
 ```
 
 install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `x86_64-w64-mingw32-gcc` 
+go version should be at least 1.24
 
 and use `scripts/build_app.sh` to build plugins:
 ```
@@ -292,13 +293,13 @@ If the DLLs were built on the WSL filesystem instead of on Windows, copy the res
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.29.2 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.29.2` tag, and adding its `flutter/bin` folder to your PATH as in
+Install Flutter 3.35.7 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.35.7` tag, and adding its `flutter/bin` folder to your PATH as in
 ```bat
 @echo off
 set "FLUTTER_DIR=%USERPROFILE%\development\flutter"
 git clone https://github.com/flutter/flutter.git "%FLUTTER_DIR%"
 cd /d "%FLUTTER_DIR%"
-git checkout 3.29.2
+git checkout 3.35.7
 setx PATH "%PATH%;%FLUTTER_DIR%\bin"
 echo Flutter setup completed. Please restart your command prompt.
 ```

@@ -70,10 +70,6 @@ secp256k1.dll
 /lib/app_config.g.dart
 /android/app/src/main/app_icon-playstore.png
 
-# Dart generated files (Freezed, Riverpod, GoRouter etc..)
-lib/**/*.g.dart
-lib/**/*.freezed.dart
-
 ## other generated project files
 
 pubspec.yaml
@@ -85,6 +81,7 @@ pubspec.yaml
 /android/app/src/main/profile/AndroidManifest.xml
 /android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
 /android/app/src/main/res/**/ic_launcher.png
+/android/app/src/main/res/**/splash.png
 
 /ios/Runner/Info.plist
 /ios/Runner.xcodeproj/project.pbxproj
@@ -112,3 +109,16 @@ crypto_plugins/cs_monero/built_outputs
 crypto_plugins/cs_monero/build
 crypto_plugins/*.diff
 /devtools_options.yaml
+
+# generated interfaces
+lib/wl_gen/generated/
+
+# normally these aren't ignored but WL changes them...
+/linux/flutter/generated_plugin_registrant.cc
+/windows/flutter/generated_plugin_registrant.cc
+/linux/flutter/generated_plugins.cmake
+/windows/flutter/generated_plugins.cmake
+/macos/Flutter/GeneratedPluginRegistrant.swift
+
+/assets/windows/mwebd.exe
+/tool/build

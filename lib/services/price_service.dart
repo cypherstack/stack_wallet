@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../db/isar/main_db.dart';
 import '../models/isar/models/isar_models.dart';
@@ -24,6 +24,9 @@ class PriceService extends ChangeNotifier {
   late final String baseTicker;
   Future<Set<String>> get tokenContractAddressesToCheck async =>
       (await MainDB.instance.getEthContracts().addressProperty().findAll())
+          .toSet();
+  Future<Set<String>> get solTokenContractAddressesToCheck async =>
+      (await MainDB.instance.getSolContracts().addressProperty().findAll())
           .toSet();
   final Duration updateInterval = const Duration(seconds: 60);
 
@@ -66,6 +69,22 @@ class PriceService extends ChangeNotifier {
       );
 
       for (final map in tokenPriceMap.entries) {
+        if (_cachedTokenPrices[map.key] != map.value) {
+          _cachedTokenPrices[map.key] = map.value;
+          shouldNotify = true;
+        }
+      }
+    }
+
+    final _solTokenContractAddressesToCheck = await solTokenContractAddressesToCheck;
+
+    if (_solTokenContractAddressesToCheck.isNotEmpty) {
+      final solTokenPriceMap = await _priceAPI.getPricesAnd24hChangeForSolTokens(
+        contractAddresses: _solTokenContractAddressesToCheck,
+        baseCurrency: baseTicker,
+      );
+
+      for (final map in solTokenPriceMap.entries) {
         if (_cachedTokenPrices[map.key] != map.value) {
           _cachedTokenPrices[map.key] = map.value;
           shouldNotify = true;

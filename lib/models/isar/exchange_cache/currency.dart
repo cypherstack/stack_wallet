@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../app_config.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';

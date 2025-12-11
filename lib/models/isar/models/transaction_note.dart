@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'transaction_note.g.dart';
 
@@ -25,18 +25,12 @@ class TransactionNote {
   @Index()
   late String walletId;
 
-  @Index(
-    unique: true,
-    replace: true,
-    composite: [CompositeIndex("walletId")],
-  )
+  @Index(unique: true, replace: true, composite: [CompositeIndex("walletId")])
   late String txid;
 
   late String value;
 
-  TransactionNote copyWith({
-    String? value,
-  }) {
+  TransactionNote copyWith({String? value}) {
     return TransactionNote(
       walletId: walletId,
       txid: txid,

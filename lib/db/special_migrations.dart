@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive/hive.dart' show Box;
-import 'package:hive/src/hive_impl.dart';
+import 'package:hive_ce/hive.dart' show Box;
+import 'package:hive_ce/src/hive_impl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../app_config.dart';
@@ -13,10 +13,8 @@ abstract class CampfireMigration {
   static const _didRunKey = "campfire_one_time_migration_done_key";
 
   static bool get didRun =>
-      DB.instance.get<dynamic>(
-        boxName: DB.boxNameDBInfo,
-        key: _didRunKey,
-      ) as bool? ??
+      DB.instance.get<dynamic>(boxName: DB.boxNameDBInfo, key: _didRunKey)
+          as bool? ??
       false;
 
   static Future<void> setDidRun() async {

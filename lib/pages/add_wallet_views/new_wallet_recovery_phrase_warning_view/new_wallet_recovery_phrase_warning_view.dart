@@ -30,8 +30,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -81,12 +80,11 @@ class _NewWalletRecoveryPhraseWarningViewState
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => StackOkDialog(
-                title: "Create Wallet Error",
-                message: ex?.toString() ?? "Unknown error",
-                maxWidth: 600,
-              ),
+          builder: (_) => StackOkDialog(
+            title: "Create Wallet Error",
+            message: ex?.toString() ?? "Unknown error",
+            maxWidth: 600,
+          ),
         );
       }
       return;
@@ -195,17 +193,23 @@ class _NewWalletRecoveryPhraseWarningViewState
       } else if (wordCount > 0) {
         if (ref.read(pNewWalletOptions.state).state != null) {
           if (coin.hasMnemonicPassphraseSupport) {
-            mnemonicPassphrase =
-                ref.read(pNewWalletOptions.state).state!.mnemonicPassphrase;
+            mnemonicPassphrase = ref
+                .read(pNewWalletOptions.state)
+                .state!
+                .mnemonicPassphrase;
           } else {
             // this may not be epiccash and sol specific?
-            if (coin is Epiccash || coin is Solana) {
+            if (coin is Epiccash ||
+                coin is Mimblewimblecoin ||
+                coin is Solana) {
               mnemonicPassphrase = "";
             }
           }
 
-          wordCount =
-              ref.read(pNewWalletOptions.state).state!.mnemonicWordsCount;
+          wordCount = ref
+              .read(pNewWalletOptions.state)
+              .state!
+              .mnemonicWordsCount;
         } else {
           mnemonicPassphrase = "";
         }
@@ -230,9 +234,7 @@ class _NewWalletRecoveryPhraseWarningViewState
         privateKey: privateKey,
       );
 
-      if (wallet is LibMoneroWallet) {
-        await wallet.init(wordCount: wordCount);
-      } else if (wallet is LibSalviumWallet) {
+      if (wallet is CryptonoteWallet) {
         await wallet.init(wordCount: wordCount);
       } else {
         await wallet.init();
@@ -241,8 +243,8 @@ class _NewWalletRecoveryPhraseWarningViewState
       // set checkbox back to unchecked to annoy users to agree again :P
       ref.read(checkBoxStateProvider.state).state = false;
 
-      final fetchedMnemonic =
-          await (wallet as MnemonicInterface).getMnemonicAsWords();
+      final fetchedMnemonic = await (wallet as MnemonicInterface)
+          .getMnemonicAsWords();
 
       return (wallet, fetchedMnemonic);
     } catch (e, s) {
@@ -269,46 +271,43 @@ class _NewWalletRecoveryPhraseWarningViewState
 
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar:
-          isDesktop
-              ? const DesktopAppBar(
-                isCompactHeight: false,
-                leading: AppBarBackButton(),
-                trailing: ExitToMyStackButton(),
-              )
-              : AppBar(
-                leading: const AppBarBackButton(),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10,
-                      bottom: 10,
-                      right: 10,
-                    ),
-                    child: AppBarIconButton(
-                      semanticsLabel:
-                          "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
-                      icon: SvgPicture.asset(
-                        Assets.svg.circleQuestion,
-                        width: 20,
-                        height: 20,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
-                      ),
-                      onPressed: () async {
-                        await showDialog<void>(
-                          context: context,
-                          builder:
-                              (context) =>
-                                  const RecoveryPhraseExplanationDialog(),
-                        );
-                      },
-                    ),
+      appBar: isDesktop
+          ? const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
+            )
+          : AppBar(
+              leading: const AppBarBackButton(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
                   ),
-                ],
-              ),
+                  child: AppBarIconButton(
+                    semanticsLabel:
+                        "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
+                    icon: SvgPicture.asset(
+                      Assets.svg.circleQuestion,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
+                    ),
+                    onPressed: () async {
+                      await showDialog<void>(
+                        context: context,
+                        builder: (context) =>
+                            const RecoveryPhraseExplanationDialog(),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
       body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -319,10 +318,9 @@ class _NewWalletRecoveryPhraseWarningViewState
               padding: const EdgeInsets.all(16),
               child: Center(
                 child: Column(
-                  crossAxisAlignment:
-                      isDesktop
-                          ? CrossAxisAlignment.center
-                          : CrossAxisAlignment.stretch,
+                  crossAxisAlignment: isDesktop
+                      ? CrossAxisAlignment.center
+                      : CrossAxisAlignment.stretch,
                   children: [
                     /*if (isDesktop)
                       const Spacer(
@@ -341,233 +339,206 @@ class _NewWalletRecoveryPhraseWarningViewState
                     Text(
                       "Recovery Phrase",
                       textAlign: TextAlign.center,
-                      style:
-                          isDesktop
-                              ? STextStyles.desktopH2(context)
-                              : STextStyles.pageTitleH1(context),
+                      style: isDesktop
+                          ? STextStyles.desktopH2(context)
+                          : STextStyles.pageTitleH1(context),
                     ),
                     SizedBox(height: isDesktop ? 32 : 16),
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(32),
                       width: isDesktop ? 480 : null,
-                      child:
-                          isDesktop
-                              ? Text(
-                                "On the next screen you will see "
-                                "$seedCount "
-                                "words that make up your recovery phrase.\n\nPlease "
-                                "write it down. Keep it safe and never share it with "
-                                "anyone. Your recovery phrase is the only way you can"
-                                " access your funds if you forget your PIN, lose your"
-                                " phone, etc.\n\n${AppConfig.appName} does not keep nor is "
-                                "able to restore your recover phrase. Only you have "
-                                "access to your wallet.",
-                                style:
-                                    isDesktop
-                                        ? STextStyles.desktopTextMediumRegular(
-                                          context,
-                                        )
-                                        : STextStyles.subtitle(
-                                          context,
-                                        ).copyWith(fontSize: 12),
-                              )
-                              : Column(
-                                children: [
-                                  Text(
-                                    "Important",
+                      child: isDesktop
+                          ? Text(
+                              "On the next screen you will see "
+                              "$seedCount "
+                              "words that make up your recovery phrase.\n\nPlease "
+                              "write it down. Keep it safe and never share it with "
+                              "anyone. Your recovery phrase is the only way you can"
+                              " access your funds if you forget your PIN, lose your"
+                              " phone, etc.\n\n${AppConfig.appName} does not keep nor is "
+                              "able to restore your recover phrase. Only you have "
+                              "access to your wallet.",
+                              style: isDesktop
+                                  ? STextStyles.desktopTextMediumRegular(
+                                      context,
+                                    )
+                                  : STextStyles.subtitle(
+                                      context,
+                                    ).copyWith(fontSize: 12),
+                            )
+                          : Column(
+                              children: [
+                                Text(
+                                  "Important",
+                                  style: STextStyles.desktopH3(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorBlue,
+                                      ),
+                                ),
+                                const SizedBox(height: 24),
+                                RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
                                     style: STextStyles.desktopH3(
                                       context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorBlue,
-                                    ),
+                                    ).copyWith(fontSize: 18),
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            "On the next screen you will be given ",
+                                        style: STextStyles.desktopH3(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                              fontSize: 18,
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                      TextSpan(
+                                        text: "$seedCount words",
+                                        style: STextStyles.desktopH3(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorBlue,
+                                              fontSize: 18,
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                      TextSpan(
+                                        text: ". They are your ",
+                                        style: STextStyles.desktopH3(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                              fontSize: 18,
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                      TextSpan(
+                                        text: "recovery phrase",
+                                        style: STextStyles.desktopH3(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorBlue,
+                                              fontSize: 18,
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                      TextSpan(
+                                        text: ".",
+                                        style: STextStyles.desktopH3(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                              fontSize: 18,
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 24),
-                                  RichText(
-                                    textAlign: TextAlign.center,
-                                    text: TextSpan(
-                                      style: STextStyles.desktopH3(
-                                        context,
-                                      ).copyWith(fontSize: 18),
+                                ),
+                                const SizedBox(height: 40),
+                                Column(
+                                  children: [
+                                    Row(
                                       children: [
-                                        TextSpan(
-                                          text:
-                                              "On the next screen you will be given ",
-                                          style: STextStyles.desktopH3(
-                                            context,
-                                          ).copyWith(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                            fontSize: 18,
-                                            height: 1.3,
+                                        SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: RoundedContainer(
+                                            radiusMultiplier: 20,
+                                            padding: const EdgeInsets.all(9),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonBackSecondary,
+                                            child: SvgPicture.asset(
+                                              Assets.svg.pencil,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorDark,
+                                            ),
                                           ),
                                         ),
-                                        TextSpan(
-                                          text: "$seedCount words",
-                                          style: STextStyles.desktopH3(
+                                        const SizedBox(width: 20),
+                                        Text(
+                                          "Write them down.",
+                                          style: STextStyles.navBarTitle(
                                             context,
-                                          ).copyWith(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .accentColorBlue,
-                                            fontSize: 18,
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: ". They are your ",
-                                          style: STextStyles.desktopH3(
-                                            context,
-                                          ).copyWith(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                            fontSize: 18,
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: "recovery phrase",
-                                          style: STextStyles.desktopH3(
-                                            context,
-                                          ).copyWith(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .accentColorBlue,
-                                            fontSize: 18,
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: ".",
-                                          style: STextStyles.desktopH3(
-                                            context,
-                                          ).copyWith(
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                            fontSize: 18,
-                                            height: 1.3,
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  const SizedBox(height: 40),
-                                  Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            width: 32,
-                                            height: 32,
-                                            child: RoundedContainer(
-                                              radiusMultiplier: 20,
-                                              padding: const EdgeInsets.all(9),
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .buttonBackSecondary,
-                                              child: SvgPicture.asset(
-                                                Assets.svg.pencil,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .accentColorDark,
-                                              ),
+                                    const SizedBox(height: 30),
+                                    Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: RoundedContainer(
+                                            radiusMultiplier: 20,
+                                            padding: const EdgeInsets.all(8),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonBackSecondary,
+                                            child: SvgPicture.asset(
+                                              Assets.svg.lock,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorDark,
                                             ),
                                           ),
-                                          const SizedBox(width: 20),
-                                          Text(
-                                            "Write them down.",
+                                        ),
+                                        const SizedBox(width: 20),
+                                        Text(
+                                          "Keep them safe.",
+                                          style: STextStyles.navBarTitle(
+                                            context,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 30),
+                                    Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: RoundedContainer(
+                                            radiusMultiplier: 20,
+                                            padding: const EdgeInsets.all(8),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonBackSecondary,
+                                            child: SvgPicture.asset(
+                                              Assets.svg.eyeSlash,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorDark,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 20),
+                                        Expanded(
+                                          child: Text(
+                                            "Do not show them to anyone.",
                                             style: STextStyles.navBarTitle(
                                               context,
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 30),
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            width: 32,
-                                            height: 32,
-                                            child: RoundedContainer(
-                                              radiusMultiplier: 20,
-                                              padding: const EdgeInsets.all(8),
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .buttonBackSecondary,
-                                              child: SvgPicture.asset(
-                                                Assets.svg.lock,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .accentColorDark,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(
-                                            "Keep them safe.",
-                                            style: STextStyles.navBarTitle(
-                                              context,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 30),
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            width: 32,
-                                            height: 32,
-                                            child: RoundedContainer(
-                                              radiusMultiplier: 20,
-                                              padding: const EdgeInsets.all(8),
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .buttonBackSecondary,
-                                              child: SvgPicture.asset(
-                                                Assets.svg.eyeSlash,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .accentColorDark,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Expanded(
-                                            child: Text(
-                                              "Do not show them to anyone.",
-                                              style: STextStyles.navBarTitle(
-                                                context,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                     ),
                     if (!isDesktop) const Spacer(),
                     if (!isDesktop) const SizedBox(height: 16),
@@ -584,10 +555,9 @@ class _NewWalletRecoveryPhraseWarningViewState
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  final value =
-                                      ref
-                                          .read(checkBoxStateProvider.state)
-                                          .state;
+                                  final value = ref
+                                      .read(checkBoxStateProvider.state)
+                                      .state;
                                   ref.read(checkBoxStateProvider.state).state =
                                       !value;
                                 },
@@ -603,18 +573,19 @@ class _NewWalletRecoveryPhraseWarningViewState
                                         child: Checkbox(
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
-                                          value:
-                                              ref
-                                                  .watch(
-                                                    checkBoxStateProvider.state,
-                                                  )
-                                                  .state,
+                                          value: ref
+                                              .watch(
+                                                checkBoxStateProvider.state,
+                                              )
+                                              .state,
                                           onChanged: (newValue) {
                                             ref
-                                                .read(
-                                                  checkBoxStateProvider.state,
-                                                )
-                                                .state = newValue!;
+                                                    .read(
+                                                      checkBoxStateProvider
+                                                          .state,
+                                                    )
+                                                    .state =
+                                                newValue!;
                                           },
                                         ),
                                       ),
@@ -622,14 +593,13 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       Flexible(
                                         child: Text(
                                           "I understand that ${AppConfig.appName} does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
-                                          style:
-                                              isDesktop
-                                                  ? STextStyles.desktopTextMedium(
-                                                    context,
-                                                  )
-                                                  : STextStyles.baseXS(
-                                                    context,
-                                                  ).copyWith(height: 1.3),
+                                          style: isDesktop
+                                              ? STextStyles.desktopTextMedium(
+                                                  context,
+                                                )
+                                              : STextStyles.baseXS(
+                                                  context,
+                                                ).copyWith(height: 1.3),
                                         ),
                                       ),
                                     ],
@@ -644,41 +614,39 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 child: TextButton(
                                   onPressed:
                                       ref
-                                              .read(checkBoxStateProvider.state)
-                                              .state
-                                          ? _initNewWallet
-                                          : null,
+                                          .read(checkBoxStateProvider.state)
+                                          .state
+                                      ? _initNewWallet
+                                      : null,
                                   style:
                                       ref
-                                              .read(checkBoxStateProvider.state)
-                                              .state
-                                          ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .getPrimaryEnabledButtonStyle(
-                                                context,
-                                              )
-                                          : Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .getPrimaryDisabledButtonStyle(
-                                                context,
-                                              ),
+                                          .read(checkBoxStateProvider.state)
+                                          .state
+                                      ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryEnabledButtonStyle(
+                                              context,
+                                            )
+                                      : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryDisabledButtonStyle(
+                                              context,
+                                            ),
                                   child: Text(
                                     "View recovery phrase",
-                                    style:
-                                        isDesktop
-                                            ? ref
-                                                    .read(
-                                                      checkBoxStateProvider
-                                                          .state,
-                                                    )
-                                                    .state
-                                                ? STextStyles.desktopButtonEnabled(
+                                    style: isDesktop
+                                        ? ref
+                                                  .read(
+                                                    checkBoxStateProvider.state,
+                                                  )
+                                                  .state
+                                              ? STextStyles.desktopButtonEnabled(
                                                   context,
                                                 )
-                                                : STextStyles.desktopButtonDisabled(
+                                              : STextStyles.desktopButtonDisabled(
                                                   context,
                                                 )
-                                            : STextStyles.button(context),
+                                        : STextStyles.button(context),
                                   ),
                                 ),
                               ),

@@ -42,6 +42,9 @@ class Solana extends Bip39Currency {
   String get ticker => _ticker;
 
   @override
+  bool get hasTokenSupport => true;
+
+  @override
   NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:

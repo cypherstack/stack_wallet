@@ -13,10 +13,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../models/isar/models/solana/sol_contract.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../providers/global/price_provider.dart';
@@ -25,10 +26,12 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/default_sol_tokens.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/ethereum_wallet.dart';
+import '../../../wallets/wallet/impl/solana_wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -44,6 +47,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../../home_view/home_view.dart';
 import 'add_custom_token_view.dart';
+import 'add_custom_solana_token_view.dart';
 import 'sub_widgets/add_token_list.dart';
 import 'sub_widgets/add_token_list_element.dart';
 import 'sub_widgets/add_token_text.dart';
@@ -102,10 +106,14 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
             .map((e) => e.token.address)
             .toList();
 
-    final ethWallet =
-        ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet;
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-    await ethWallet.updateTokenContracts(selectedTokens);
+    // Handle tokens.
+    if (wallet is EthereumWallet) {
+      await wallet.updateTokenContracts(selectedTokens);
+    } else if (wallet is SolanaWallet) {
+      await wallet.updateSolanaTokens(selectedTokens);
+    }
     if (mounted) {
       if (widget.contractsToMarkSelected == null) {
         Navigator.of(context).pop(42);
@@ -123,7 +131,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.success,
-              message: "${ethWallet.info.name} tokens saved",
+              message: "${wallet.info.name} tokens saved",
               context: context,
             ),
           );
@@ -133,35 +141,95 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> _addToken() async {
-    EthContract? contract;
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+    if (wallet is SolanaWallet) {
+      // For Solana wallets, navigate to custom token addition screen.
+      await _addCustomSolanaToken();
+    } else {
+      // Original Ethereum token handling.
+      EthContract? contract;
+
+      if (isDesktop) {
+        contract = await showDialog(
+          context: context,
+          builder: (context) => const DesktopDialog(
+            maxWidth: 580,
+            maxHeight: 500,
+            child: AddCustomTokenView(),
+          ),
+        );
+      } else {
+        final result = await Navigator.of(
+          context,
+        ).pushNamed(AddCustomTokenView.routeName);
+        contract = result as EthContract?;
+      }
+
+      if (contract != null) {
+        await MainDB.instance.putEthContract(contract);
+        unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+        if (mounted) {
+          setState(() {
+            if (tokenEntities
+                .where((e) => e.token.address == contract!.address)
+                .isEmpty) {
+              tokenEntities.add(
+                AddTokenListElementData(contract!)..selected = true,
+              );
+              tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+            }
+          });
+        }
+      }
+    }
+  }
+
+  /// Navigate to add custom Solana token view and handle the result.
+  Future<void> _addCustomSolanaToken() async {
+    SolContract? token;
 
     if (isDesktop) {
-      contract = await showDialog(
+      token = await showDialog(
         context: context,
-        builder:
-            (context) => const DesktopDialog(
-              maxWidth: 580,
-              maxHeight: 500,
-              child: AddCustomTokenView(),
-            ),
+        builder: (context) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: 500,
+          child: AddCustomSolanaTokenView(walletId: widget.walletId),
+        ),
       );
     } else {
       final result = await Navigator.of(
         context,
-      ).pushNamed(AddCustomTokenView.routeName);
-      contract = result as EthContract?;
+      ).pushNamed(
+        AddCustomSolanaTokenView.routeName,
+        arguments: widget.walletId,
+      );
+      token = result as SolContract?;
     }
 
-    if (contract != null) {
-      await MainDB.instance.putEthContract(contract);
+    if (token != null) {
+      await MainDB.instance.putSolContract(token);
+
+      // Also add the custom token mint address to the wallet's custom token list.
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+      if (wallet is SolanaWallet) {
+        final currentCustomTokens = wallet.info.solanaCustomTokenMintAddresses;
+        currentCustomTokens.add(token.address);
+        await wallet.info.updateSolanaCustomTokenMintAddresses(
+          newMintAddresses: currentCustomTokens,
+          isar: MainDB.instance.isar,
+        );
+      }
+
       unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
       if (mounted) {
         setState(() {
           if (tokenEntities
-              .where((e) => e.token.address == contract!.address)
+              .where((e) => e.token.address == token!.address)
               .isEmpty) {
             tokenEntities.add(
-              AddTokenListElementData(contract!)..selected = true,
+              AddTokenListElementData(token!)..selected = true,
             );
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
@@ -175,20 +243,43 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
 
-    final contracts =
-        MainDB.instance.getEthContracts().sortByName().findAllSync();
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-    if (contracts.isEmpty) {
-      contracts.addAll(DefaultTokens.list);
-      MainDB.instance
-          .putEthContracts(contracts)
-          .then(
-            (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
-          );
+    if (wallet is SolanaWallet) {
+      final contracts = MainDB.instance
+          .getSolContracts()
+          .sortByName()
+          .findAllSync();
+
+      if (contracts.isEmpty) {
+        contracts.addAll(DefaultSolTokens.list);
+        MainDB.instance
+            .putSolContracts(contracts)
+            .then(
+              (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+            );
+      }
+
+      tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
+    } else {
+      final contracts = MainDB.instance
+          .getEthContracts()
+          .sortByName()
+          .findAllSync();
+
+      if (contracts.isEmpty) {
+        contracts.addAll(DefaultTokens.list);
+        MainDB.instance
+            .putEthContracts(contracts)
+            .then(
+              (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+            );
+      }
+
+      tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
     }
 
-    tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
-
+    // Get token addresses.
     final walletContracts = ref.read(pWalletTokenAddresses(widget.walletId));
 
     final shouldMarkAsSelectedContracts = [
@@ -218,135 +309,129 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     if (isDesktop) {
       return ConditionalParent(
         condition: !widget.isDesktopPopup,
-        builder:
-            (child) => DesktopScaffold(
-              appBar: DesktopAppBar(
-                isCompactHeight: false,
-                useSpacers: false,
-                leading: const AppBarBackButton(),
-                overlayCenter: Text(
-                  walletName,
-                  style: STextStyles.desktopSubtitleH2(context),
-                ),
-                trailing:
-                    widget.contractsToMarkSelected == null
-                        ? Padding(
-                          padding: const EdgeInsets.only(right: 24),
-                          child: SizedBox(
-                            height: 56,
-                            child: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSmallSecondaryEnabledButtonStyle(context),
-                              onPressed: _addToken,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 30,
-                                ),
-                                child: Text(
-                                  "Add custom token",
-                                  style:
-                                      STextStyles.desktopButtonSmallSecondaryEnabled(
-                                        context,
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                        : null,
-              ),
-              body: SizedBox(
-                width: 480,
-                child: Column(
-                  children: [
-                    const AddTokenText(isDesktop: true),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: RoundedWhiteContainer(
-                        radiusMultiplier: 2,
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          top: 20,
-                          right: 20,
-                          bottom: 0,
-                        ),
-                        child: child,
-                      ),
-                    ),
-                    const SizedBox(height: 26),
-                    SizedBox(
-                      height: 70,
-                      width: 480,
-                      child: PrimaryButton(
-                        label:
-                            widget.contractsToMarkSelected != null
-                                ? "Save"
-                                : "Next",
-                        onPressed: onNextPressed,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
+        builder: (child) => DesktopScaffold(
+          appBar: DesktopAppBar(
+            isCompactHeight: false,
+            useSpacers: false,
+            leading: const AppBarBackButton(),
+            overlayCenter: Text(
+              walletName,
+              style: STextStyles.desktopSubtitleH2(context),
             ),
+            trailing: widget.contractsToMarkSelected == null
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: SizedBox(
+                      height: 56,
+                      child: TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getSmallSecondaryEnabledButtonStyle(context),
+                        onPressed: _addToken,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 30),
+                          child: Text(
+                            "Add custom token",
+                            style:
+                                STextStyles.desktopButtonSmallSecondaryEnabled(
+                                  context,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          body: SizedBox(
+            width: 480,
+            child: Column(
+              children: [
+                const AddTokenText(isDesktop: true),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: RoundedWhiteContainer(
+                    radiusMultiplier: 2,
+                    padding: const EdgeInsets.only(
+                      left: 20,
+                      top: 20,
+                      right: 20,
+                      bottom: 0,
+                    ),
+                    child: child,
+                  ),
+                ),
+                const SizedBox(height: 26),
+                SizedBox(
+                  height: 70,
+                  width: 480,
+                  child: PrimaryButton(
+                    label: widget.contractsToMarkSelected != null
+                        ? "Save"
+                        : "Next",
+                    onPressed: onNextPressed,
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
         child: ConditionalParent(
           condition: widget.isDesktopPopup,
-          builder:
-              (child) => DesktopDialog(
-                maxHeight: 670,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+          builder: (child) => DesktopDialog(
+            maxHeight: 670,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 32),
-                          child: Text(
-                            "Edit tokens",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        child: child,
-                      ),
-                    ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: SecondaryButton(
-                              label: "Add custom token",
-                              buttonHeight: ButtonHeight.l,
-                              onPressed: _addToken,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: PrimaryButton(
-                              label: "Done",
-                              buttonHeight: ButtonHeight.l,
-                              onPressed: onNextPressed,
-                            ),
-                          ),
-                        ],
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Edit tokens",
+                        style: STextStyles.desktopH3(context),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const DesktopDialogCloseButton(),
                   ],
                 ),
-              ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    child: child,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          label: "Add custom token",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: _addToken,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Done",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: onNextPressed,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
           child: Column(
             children: [
               ClipRRect(
@@ -366,49 +451,53 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   style: STextStyles.desktopTextMedium(
                     context,
                   ).copyWith(height: 2),
-                  decoration: standardInputDecoration(
-                    "Search",
-                    _searchFocusNode,
-                    context,
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        // vertical: 20,
-                      ),
-                      child: SvgPicture.asset(
-                        Assets.svg.search,
-                        width: 24,
-                        height: 24,
-                        color:
-                            Theme.of(context)
+                  decoration:
+                      standardInputDecoration(
+                        "Search",
+                        _searchFocusNode,
+                        context,
+                      ).copyWith(
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                        ),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            // vertical: 20,
+                          ),
+                          child: SvgPicture.asset(
+                            Assets.svg.search,
+                            width: 24,
+                            height: 24,
+                            color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textFieldDefaultSearchIconLeft,
-                      ),
-                    ),
-                    suffixIcon:
-                        _searchFieldController.text.isNotEmpty
+                          ),
+                        ),
+                        suffixIcon: _searchFieldController.text.isNotEmpty
                             ? Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: UnconstrainedBox(
-                                child: Row(
-                                  children: [
-                                    TextFieldIconButton(
-                                      child: const XIcon(width: 24, height: 24),
-                                      onTap: () async {
-                                        setState(() {
-                                          _searchFieldController.text = "";
-                                          _searchTerm = "";
-                                        });
-                                      },
-                                    ),
-                                  ],
+                                padding: const EdgeInsets.only(right: 10),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(
+                                          width: 24,
+                                          height: 24,
+                                        ),
+                                        onTap: () async {
+                                          setState(() {
+                                            _searchFieldController.text = "";
+                                            _searchTerm = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            )
+                              )
                             : null,
-                  ),
+                      ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -427,8 +516,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -443,14 +533,14 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   child: AppBarIconButton(
                     size: 36,
                     shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
                       Assets.svg.circlePlusFilled,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
@@ -480,49 +570,49 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                         enableSuggestions: !isDesktop,
                         controller: _searchFieldController,
                         focusNode: _searchFocusNode,
-                        onChanged:
-                            (value) => setState(() => _searchTerm = value),
+                        onChanged: (value) =>
+                            setState(() => _searchTerm = value),
                         style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                          desktopMed: isDesktop,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon:
-                              _searchFieldController.text.isNotEmpty
+                        decoration:
+                            standardInputDecoration(
+                              "Search",
+                              _searchFocusNode,
+                              context,
+                              desktopMed: isDesktop,
+                            ).copyWith(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 16,
+                                ),
+                                child: SvgPicture.asset(
+                                  Assets.svg.search,
+                                  width: 16,
+                                  height: 16,
+                                ),
+                              ),
+                              suffixIcon: _searchFieldController.text.isNotEmpty
                                   ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchFieldController.text =
-                                                    "";
-                                                _searchTerm = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  _searchFieldController.text =
+                                                      "";
+                                                  _searchTerm = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
+                                    )
                                   : null,
-                        ),
+                            ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -535,10 +625,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                     ),
                     const SizedBox(height: 16),
                     PrimaryButton(
-                      label:
-                          widget.contractsToMarkSelected != null
-                              ? "Save"
-                              : "Next",
+                      label: widget.contractsToMarkSelected != null
+                          ? "Save"
+                          : "Next",
                       onPressed: onNextPressed,
                     ),
                   ],

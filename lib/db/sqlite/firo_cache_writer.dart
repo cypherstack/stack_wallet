@@ -15,10 +15,9 @@ class FCResult {
 /// returns true if successful, otherwise some exception
 FCResult _updateSparkUsedTagsWith(Database db, List<List<dynamic>> tags) {
   // hash the tags here since this function is called in a background isolate
-  final hashedTags =
-      LibSpark.hashTags(
-        base64Tags: tags.map((e) => e[0] as String).toList(),
-      ).toList();
+  final hashedTags = hashTags(
+    base64Tags: tags.map((e) => e[0] as String).toList(),
+  ).toList();
   if (hashedTags.isEmpty) {
     // nothing to add, return early
     return FCResult(success: true);

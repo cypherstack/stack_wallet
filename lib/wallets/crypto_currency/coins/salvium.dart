@@ -1,9 +1,7 @@
-import 'package:cs_salvium/src/ffi_bindings/salvium_wallet_bindings.dart'
-    as sal_wallet_ffi;
-
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
@@ -16,6 +14,10 @@ class Salvium extends CryptonoteCurrency {
         _id = _idMain;
         _name = "Salvium";
         _ticker = "SAL";
+      case CryptoCurrencyNetwork.test:
+        _id = "${_idMain}TestNet";
+        _name = "tSalvium";
+        _ticker = "tSAL";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -54,7 +56,9 @@ class Salvium extends CryptonoteCurrency {
     }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return sal_wallet_ffi.validateAddress(address, 0);
+        return csSalvium.validateAddress(address, 0);
+      case CryptoCurrencyNetwork.test:
+        return csSalvium.validateAddress(address, 1);
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -70,6 +74,22 @@ class Salvium extends CryptonoteCurrency {
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          trusted: true,
+          torEnabled: true,
+          clearnetEnabled: true,
+          isPrimary: isPrimary,
+        );
+      case CryptoCurrencyNetwork.test:
+        return NodeModel(
+          host: "http://127.0.0.1",
+          port: 29081,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: false,
           enabled: true,
           coinName: identifier,
           isFailover: true,
@@ -107,10 +127,9 @@ class Salvium extends CryptonoteCurrency {
   int get targetBlockTimeSeconds => 120;
 
   @override
-  DerivePathType get defaultDerivePathType =>
-      throw UnsupportedError(
-        "$runtimeType does not use bitcoin style derivation paths",
-      );
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
+    "$runtimeType does not use bitcoin style derivation paths",
+  );
 
   @override
   Uri defaultBlockExplorer(String txid) {

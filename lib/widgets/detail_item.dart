@@ -12,12 +12,15 @@ class DetailItem extends StatelessWidget {
     required this.title,
     required this.detail,
     this.button,
+    this.titleStyle,
     this.overrideDetailTextColor,
     this.showEmptyDetail = true,
     this.horizontal = false,
     this.disableSelectableText = false,
     this.borderColor,
     this.expandDetail = false,
+    this.detailPlaceholder,
+    this.noPadding = false,
   });
 
   final String title;
@@ -29,19 +32,22 @@ class DetailItem extends StatelessWidget {
   final Color? overrideDetailTextColor;
   final Color? borderColor;
   final bool expandDetail;
+  final String? detailPlaceholder;
+  final TextStyle? titleStyle;
+  final bool noPadding;
 
   @override
   Widget build(BuildContext context) {
     TextStyle detailStyle = STextStyles.w500_14(context);
     String _detail = detail;
     if (overrideDetailTextColor != null) {
-      detailStyle = STextStyles.w500_14(context).copyWith(
-        color: overrideDetailTextColor,
-      );
+      detailStyle = STextStyles.w500_14(
+        context,
+      ).copyWith(color: overrideDetailTextColor);
     }
 
     if (detail.isEmpty && showEmptyDetail) {
-      _detail = "$title will appear here";
+      _detail = detailPlaceholder ?? "$title will appear here";
       detailStyle = detailStyle.copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       );
@@ -51,24 +57,17 @@ class DetailItem extends StatelessWidget {
       horizontal: horizontal,
       borderColor: borderColor,
       expandDetail: expandDetail,
+      noPadding: noPadding,
       title: disableSelectableText
-          ? Text(
-              title,
-              style: STextStyles.itemSubtitle(context),
-            )
+          ? Text(title, style: titleStyle ?? STextStyles.itemSubtitle(context))
           : SelectableText(
               title,
-              style: STextStyles.itemSubtitle(context),
+              style: titleStyle ?? STextStyles.itemSubtitle(context),
             ),
       detail: disableSelectableText
-          ? Text(
-              _detail,
-              style: detailStyle,
-            )
-          : SelectableText(
-              _detail,
-              style: detailStyle,
-            ),
+          ? Text(_detail, style: detailStyle)
+          : SelectableText(_detail, style: detailStyle),
+      button: button,
     );
   }
 }
@@ -82,6 +81,7 @@ class DetailItemBase extends StatelessWidget {
     this.horizontal = false,
     this.borderColor,
     this.expandDetail = false,
+    this.noPadding = false,
   });
 
   final Widget title;
@@ -90,13 +90,16 @@ class DetailItemBase extends StatelessWidget {
   final bool horizontal;
   final Color? borderColor;
   final bool expandDetail;
+  final bool noPadding;
 
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !Util.isDesktop || borderColor != null,
       builder: (child) => RoundedWhiteContainer(
-        padding: Util.isDesktop
+        padding: noPadding
+            ? EdgeInsets.zero
+            : Util.isDesktop
             ? const EdgeInsets.all(16)
             : const EdgeInsets.all(12),
         borderColor: borderColor,
@@ -105,7 +108,7 @@ class DetailItemBase extends StatelessWidget {
       child: ConditionalParent(
         condition: Util.isDesktop && borderColor == null,
         builder: (child) => Padding(
-          padding: const EdgeInsets.all(16),
+          padding: noPadding ? EdgeInsets.zero : const EdgeInsets.all(16),
           child: child,
         ),
         child: horizontal
@@ -113,10 +116,7 @@ class DetailItemBase extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   title,
-                  if (expandDetail)
-                    const SizedBox(
-                      width: 16,
-                    ),
+                  if (expandDetail) const SizedBox(width: 16),
                   ConditionalParent(
                     condition: expandDetail,
                     builder: (child) => Expanded(child: child),
@@ -129,14 +129,9 @@ class DetailItemBase extends StatelessWidget {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      title,
-                      button ?? Container(),
-                    ],
+                    children: [title, button ?? Container()],
                   ),
-                  const SizedBox(
-                    height: 5,
-                  ),
+                  const SizedBox(height: 5),
                   ConditionalParent(
                     condition: expandDetail,
                     builder: (child) => Expanded(child: child),
@@ -146,5 +141,21 @@ class DetailItemBase extends StatelessWidget {
               ),
       ),
     );
+  }
+}
+
+class DetailDivider extends StatelessWidget {
+  const DetailDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (Util.isDesktop) {
+      return Container(
+        height: 1,
+        color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+      );
+    } else {
+      return const SizedBox(height: 12);
+    }
   }
 }

@@ -23,6 +23,46 @@ else
   sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 fi
 
+dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
+      "${PUBSPEC_FILE}" \
+      MWC \
+      MWEBD \
+      XMR \
+      WOW \
+      SAL \
+      TOR \
+      EPIC \
+      FIRO \
+      XEL \
+      FROST
+
+dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
+      "${APP_PROJECT_ROOT_DIR}/tool/wl_templates" \
+      "${APP_PROJECT_ROOT_DIR}/lib/wl_gen/generated" \
+      MWC \
+      MWEBD \
+      XMR \
+      WOW \
+      SAL \
+      TOR \
+      EPIC \
+      FIRO \
+      XEL \
+      FROST
+
+
+MWEBD_EXE_SHA256=""
+if  [[ "$1" == "windows" ]]; then
+  dart "${APP_PROJECT_ROOT_DIR}/tool/build_standalone_mwebd_windows.dart"
+  MWEBD_EXE_SHA256="$(sha256sum "${APP_PROJECT_ROOT_DIR}/assets/windows/mwebd.exe" | awk '{print $1}')"
+  dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
+        "${PUBSPEC_FILE}" MWEBDEXE
+fi
+
+
+export INCLUDE_EPIC_SO="ON"
+export INCLUDE_MWC_SO="ON"
+
 pushd "${APP_PROJECT_ROOT_DIR}"
 BUILT_COMMIT_HASH=$(git log -1 --pretty=format:"%H")
 popd
@@ -43,9 +83,12 @@ const _appDataDirName = "stackwallet";
 const _shortDescriptionText = "An open-source, multicoin wallet for everyone";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
+const _mwebdExeHash = "$MWEBD_EXE_SHA256";
+
 const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
+  AppFeature.tor,
   AppFeature.swap
 };
 
@@ -66,6 +109,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
+  if (!Platform.isMacOS) Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
@@ -85,6 +129,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Firo(CryptoCurrencyNetwork.test),
   Litecoin(CryptoCurrencyNetwork.test),
   Peercoin(CryptoCurrencyNetwork.test),
+  Salvium(CryptoCurrencyNetwork.test),
   Stellar(CryptoCurrencyNetwork.test),
   Xelis(CryptoCurrencyNetwork.test),
 ]);

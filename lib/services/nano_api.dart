@@ -2,16 +2,14 @@ import 'dart:convert';
 
 import 'package:nanodart/nanodart.dart';
 
+import '../app_config.dart';
 import '../networking/http.dart';
 import '../utilities/prefs.dart';
 import 'tor_service.dart';
 
 class NanoAPI {
-  static Future<
-      ({
-        NAccountInfo? accountInfo,
-        Exception? exception,
-      })> getAccountInfo({
+  static Future<({NAccountInfo? accountInfo, Exception? exception})>
+  getAccountInfo({
     required Uri server,
     required bool representative,
     required String account,
@@ -31,7 +29,9 @@ class NanoAPI {
           "representative": "true",
           "account": account,
         }),
-        proxyInfo: Prefs.instance.useTor
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
       );
@@ -99,11 +99,7 @@ class NanoAPI {
 
     block["signature"] = signature;
 
-    final map = await postBlock(
-      server: server,
-      block: block,
-      headers: headers,
-    );
+    final map = await postBlock(server: server, block: block, headers: headers);
 
     if (map is Map && map["error"] != null) {
       throw Exception(map["error"].toString());
@@ -129,7 +125,9 @@ class NanoAPI {
         "subtype": "change",
         "block": block,
       }),
-      proxyInfo: Prefs.instance.useTor
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
           ? TorService.sharedInstance.getProxyInfo()
           : null,
     );

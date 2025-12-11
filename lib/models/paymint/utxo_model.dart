@@ -9,7 +9,7 @@
  */
 
 import 'package:dart_numerics/dart_numerics.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 part '../type_adaptors/utxo_model.g.dart';
 

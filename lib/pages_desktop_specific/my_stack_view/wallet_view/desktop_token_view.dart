@@ -12,9 +12,11 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../pages/token_view/sub_widgets/token_transaction_list_widget.dart';
+import '../../../pages/token_view/token_contract_details_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import '../../../providers/providers.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -102,32 +104,48 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
         ),
         center: Expanded(
           flex: 4,
-          child: Row(
-            children: [
-              EthTokenIcon(
-                contractAddress: ref.watch(
-                  pCurrentTokenWallet.select(
-                    (value) => value!.tokenContract.address,
+          child: GestureDetector(
+            onTap: () {
+              final contractAddress = ref.watch(
+                pCurrentTokenWallet.select(
+                  (value) => value!.tokenContract.address,
+                ),
+              );
+              Navigator.of(context).pushNamed(
+                TokenContractDetailsView.routeName,
+                arguments: Tuple2(contractAddress, widget.walletId),
+              );
+            },
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Row(
+                children: [
+                  EthTokenIcon(
+                    contractAddress: ref.watch(
+                      pCurrentTokenWallet.select(
+                        (value) => value!.tokenContract.address,
+                      ),
+                    ),
+                    size: 32,
                   ),
-                ),
-                size: 32,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                ref.watch(
-                  pCurrentTokenWallet.select(
-                    (value) => value!.tokenContract.name,
+                  const SizedBox(width: 12),
+                  Text(
+                    ref.watch(
+                      pCurrentTokenWallet.select(
+                        (value) => value!.tokenContract.name,
+                      ),
+                    ),
+                    style: STextStyles.desktopH3(context),
                   ),
-                ),
-                style: STextStyles.desktopH3(context),
+                  const SizedBox(width: 12),
+                  CoinTickerTag(
+                    ticker: ref.watch(
+                      pWalletCoin(widget.walletId).select((s) => s.ticker),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              CoinTickerTag(
-                ticker: ref.watch(
-                  pWalletCoin(widget.walletId).select((s) => s.ticker),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
         useSpacers: false,

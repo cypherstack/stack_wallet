@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
@@ -13,6 +12,7 @@ import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/stack_file_system.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wl_gen/interfaces/lib_spark_interface.dart';
 
 part 'firo_cache_coordinator.dart';
 part 'firo_cache_reader.dart';
@@ -30,12 +30,12 @@ abstract class _FiroCache {
 
   static String sparkSetCacheFileName(CryptoCurrencyNetwork network) =>
       network == CryptoCurrencyNetwork.main
-          ? "spark_set_v$_setCacheVersion.sqlite3"
-          : "spark_set_v${_setCacheVersion}_${network.name}.sqlite3";
+      ? "spark_set_v$_setCacheVersion.sqlite3"
+      : "spark_set_v${_setCacheVersion}_${network.name}.sqlite3";
   static String sparkUsedTagsCacheFileName(CryptoCurrencyNetwork network) =>
       network == CryptoCurrencyNetwork.main
-          ? "spark_tags_v$_tagsCacheVersion.sqlite3"
-          : "spark_tags_v${_tagsCacheVersion}_${network.name}.sqlite3";
+      ? "spark_tags_v$_tagsCacheVersion.sqlite3"
+      : "spark_tags_v${_tagsCacheVersion}_${network.name}.sqlite3";
 
   static final Map<CryptoCurrencyNetwork, Database> _setCacheDB = {};
   static final Map<CryptoCurrencyNetwork, Database> _usedTagsCacheDB = {};

@@ -1,11 +1,8 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../services/frost.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
@@ -15,6 +12,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wl_gen/interfaces/frost_interface.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostReshareStep3abd extends ConsumerStatefulWidget {
@@ -55,8 +53,8 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
         encryptionKeys.insert(myIndex, myEncryptionKey!);
       }
 
-      final result = Frost.finishResharer(
-        machine: ref.read(pFrostResharingData).startResharerData!.machine.ref,
+      final result = frostInterface.finishResharer(
+        machine: ref.read(pFrostResharingData).startResharerData!.machine,
         encryptionKeysOfResharedTo: encryptionKeys,
       );
 
@@ -70,14 +68,12 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => FrostErrorDialog(
-            title: "Error",
-            message: e.toString(),
-          ),
+          builder: (_) =>
+              FrostErrorDialog(title: "Error", message: e.toString()),
         );
       }
     } finally {
@@ -87,8 +83,10 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
 
   @override
   void initState() {
-    myEncryptionKey =
-        ref.read(pFrostResharingData).startResharedData?.resharedStart;
+    myEncryptionKey = ref
+        .read(pFrostResharingData)
+        .startResharedData
+        ?.resharedStart;
 
     newParticipants = ref.read(pFrostResharingData).configData!.newParticipants;
     myIndex = newParticipants.indexOf(ref.read(pFrostResharingData).myName!);
@@ -136,22 +134,13 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
               title: "My encryption key",
               detail: myEncryptionKey!,
               button: Util.isDesktop
-                  ? IconCopyButton(
-                      data: myEncryptionKey!,
-                    )
-                  : SimpleCopyButton(
-                      data: myEncryptionKey!,
-                    ),
+                  ? IconCopyButton(data: myEncryptionKey!)
+                  : SimpleCopyButton(data: myEncryptionKey!),
             ),
           if (!amOutgoingParticipant) const SizedBox(height: 12),
           if (!amOutgoingParticipant)
-            FrostQrDialogPopupButton(
-              data: myEncryptionKey!,
-            ),
-          if (!amOutgoingParticipant)
-            const SizedBox(
-              height: 12,
-            ),
+            FrostQrDialogPopupButton(data: myEncryptionKey!),
+          if (!amOutgoingParticipant) const SizedBox(height: 12),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +153,8 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
                     focusNode: focusNodes[i],
                     showQrScanOption: true,
                     label: newParticipants[i],
-                    hint: "Enter "
+                    hint:
+                        "Enter "
                         "${newParticipants[i]}"
                         "'s encryption key",
                     onChanged: (_) {
@@ -177,10 +167,7 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
             ],
           ),
           if (!Util.isDesktop) const Spacer(),
-          if (!amOutgoingParticipant)
-            const SizedBox(
-              height: 12,
-            ),
+          if (!amOutgoingParticipant) const SizedBox(height: 12),
           if (!amOutgoingParticipant)
             CheckboxTextButton(
               label: "I have verified that everyone has my encryption key",
@@ -190,12 +177,11 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
                 });
               },
             ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: "Continue",
-            enabled: (amOutgoingParticipant || _userVerifyContinue) &&
+            enabled:
+                (amOutgoingParticipant || _userVerifyContinue) &&
                 !fieldIsEmptyFlags.reduce((v, e) => v |= e),
             onPressed: _onPressed,
           ),

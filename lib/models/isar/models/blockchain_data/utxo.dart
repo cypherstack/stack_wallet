@@ -11,7 +11,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'utxo.g.dart';
 
@@ -42,10 +42,7 @@ class UTXO {
   @Index(
     unique: true,
     replace: true,
-    composite: [
-      CompositeIndex("walletId"),
-      CompositeIndex("vout"),
-    ],
+    composite: [CompositeIndex("walletId"), CompositeIndex("vout")],
   )
   late final String txid;
 
@@ -132,26 +129,26 @@ class UTXO {
     String? address,
     bool? used,
     String? otherData,
-  }) =>
-      UTXO(
-        walletId: walletId ?? this.walletId,
-        txid: txid ?? this.txid,
-        vout: vout ?? this.vout,
-        value: value ?? this.value,
-        name: name ?? this.name,
-        isBlocked: isBlocked ?? this.isBlocked,
-        blockedReason: blockedReason ?? this.blockedReason,
-        isCoinbase: isCoinbase ?? this.isCoinbase,
-        blockHash: blockHash ?? this.blockHash,
-        blockHeight: blockHeight ?? this.blockHeight,
-        blockTime: blockTime ?? this.blockTime,
-        address: address ?? this.address,
-        used: used ?? this.used,
-        otherData: otherData ?? this.otherData,
-      )..id = id ?? this.id;
+  }) => UTXO(
+    walletId: walletId ?? this.walletId,
+    txid: txid ?? this.txid,
+    vout: vout ?? this.vout,
+    value: value ?? this.value,
+    name: name ?? this.name,
+    isBlocked: isBlocked ?? this.isBlocked,
+    blockedReason: blockedReason ?? this.blockedReason,
+    isCoinbase: isCoinbase ?? this.isCoinbase,
+    blockHash: blockHash ?? this.blockHash,
+    blockHeight: blockHeight ?? this.blockHeight,
+    blockTime: blockTime ?? this.blockTime,
+    address: address ?? this.address,
+    used: used ?? this.used,
+    otherData: otherData ?? this.otherData,
+  )..id = id ?? this.id;
 
   @override
-  String toString() => "{ "
+  String toString() =>
+      "{ "
       "id: $id, "
       "walletId: $walletId, "
       "txid: $txid, "

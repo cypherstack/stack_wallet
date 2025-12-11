@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_chain/ada/ada.dart';
 import 'package:socks5_proxy/socks.dart';
 
+import '../app_config.dart';
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
@@ -18,24 +19,21 @@ import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart'
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../wallets/wallet/impl/solana_wallet.dart';
+import '../wl_gen/interfaces/lib_xelis_interface.dart';
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
 import 'test_eth_node_connection.dart';
 import 'test_monero_node_connection.dart';
+import 'test_mwcmqs_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
-
-import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
   BuildContext context,
   void Function(NodeFormData)? onSuccess,
-  ({
-    InternetAddress host,
-    int port,
-  })? proxyInfo,
+  ({InternetAddress host, int port})? proxyInfo,
 ) async {
   final data = nodeFormData;
   final url = data.host!;
@@ -128,17 +126,28 @@ Future<bool> testNodeConnection({
           onSuccess?.call(data);
         }
       } catch (e, s) {
-        Logging.instance.w(
-          "$e\n$s",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.w("$e\n$s", error: e, stackTrace: s);
+      }
+      break;
+
+    case Mimblewimblecoin():
+      try {
+        final data = await testMwcNodeConnection(formData);
+
+        if (data != null) {
+          testPassed = true;
+          onSuccess?.call(data);
+        }
+      } catch (e, s) {
+        Logging.instance.w("$e\n$s");
       }
       break;
 
     case CryptonoteCurrency():
       try {
-        final proxyInfo = ref.read(prefsChangeNotifierProvider).useTor
+        final proxyInfo = !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : ref.read(prefsChangeNotifierProvider).useTor
             ? ref.read(pTorService).getProxyInfo()
             : null;
 
@@ -179,11 +188,7 @@ Future<bool> testNodeConnection({
           }
         }
       } catch (e, s) {
-        Logging.instance.w(
-          "$e\n$s",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.w("$e\n$s", error: e, stackTrace: s);
       }
 
       break;
@@ -214,8 +219,10 @@ Future<bool> testNodeConnection({
 
     case Stellar():
       try {
-        testPassed =
-            await testStellarNodeConnection(formData.host!, formData.port!);
+        testPassed = await testStellarNodeConnection(
+          formData.host!,
+          formData.port!,
+        );
       } catch (_) {}
       break;
 
@@ -226,12 +233,10 @@ Future<bool> testNodeConnection({
         final response = await HTTP().post(
           url: uri,
           headers: {"Content-Type": "application/json"},
-          body: jsonEncode(
-            {
-              "action": "version",
-            },
-          ),
-          proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
+          body: jsonEncode({"action": "version"}),
+          proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+              ? null
+              : ref.read(prefsChangeNotifierProvider).useTor
               ? ref.read(pTorService).getProxyInfo()
               : null,
         );
@@ -259,9 +264,7 @@ Future<bool> testNodeConnection({
         );
 
         final health = await rpcClient.getHealth();
-        Logging.instance.i(
-          "Solana testNodeConnection \"health=$health\"",
-        );
+        Logging.instance.i("Solana testNodeConnection \"health=$health\"");
         return true;
       } catch (_) {
         testPassed = false;
@@ -271,12 +274,10 @@ Future<bool> testNodeConnection({
     case Cardano():
       try {
         final client = HttpClient();
-        if (ref.read(prefsChangeNotifierProvider).useTor) {
+        if (AppConfig.hasFeature(AppFeature.tor) &&
+            ref.read(prefsChangeNotifierProvider).useTor) {
           final proxyInfo = TorService.sharedInstance.getProxyInfo();
-          final proxySettings = ProxySettings(
-            proxyInfo.host,
-            proxyInfo.port,
-          );
+          final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
           SocksTCPClient.assignToHttpClient(client, [proxySettings]);
         }
         final blockfrostProvider = BlockforestProvider(
@@ -290,9 +291,7 @@ Future<bool> testNodeConnection({
           BlockfrostRequestBackendHealthStatus(),
         );
 
-        Logging.instance.i(
-          "Cardano testNodeConnection \"health=$health\"",
-        );
+        Logging.instance.i("Cardano testNodeConnection \"health=$health\"");
 
         return health;
       } catch (_) {
@@ -302,22 +301,11 @@ Future<bool> testNodeConnection({
 
     case Xelis():
       try {
-        final daemon = xelis_sdk.DaemonClient(
-          endPoint: "${formData.host!}:${formData.port!}",
-          secureWebSocket: formData.useSSL ?? false,
-          timeout: 5000
+        testPassed = await libXelis.testDaemonConnection(
+          "${formData.host!}:${formData.port!}",
+          formData.useSSL ?? false,
         );
-        daemon.connect();
-
-        final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
-        testPassed = networkInfo.height != null;
-
-        daemon.disconnect();
-
-        Logging.instance.i(
-          "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
-        );
-      } catch (e, s) {
+      } catch (_) {
         testPassed = false;
       }
       break;
