@@ -9,9 +9,13 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_libepiccash/lib.dart' as lib_epic;
+import 'package:path_provider/path_provider.dart';
+import 'package:stack_wallet_backup/generate_password.dart';
 import '../../../utilities/logger.dart';
 import '../test_suite_interface.dart';
 import '../testing_models.dart';
@@ -49,6 +53,8 @@ class EpiccashIntegrationTestSuite implements TestSuiteInterface {
 
       await _testEpicCashMnemonicGeneration();
       await _testEpicCashAddressValidation();
+      await _testEpicCashWalletCreation();
+      await _testEpicCashWalletRestore();
       
       stopwatch.stop();
       _updateStatus(TestSuiteStatus.passed);
@@ -114,7 +120,7 @@ class EpiccashIntegrationTestSuite implements TestSuiteInterface {
 
   Future<void> _testEpicCashAddressValidation() async {
     Logging.instance.log(Level.info, "Testing Epic Cash address validation...");
-    
+
     try {
       // Test valid Epic Cash addresses (different formats).
       final validAddresses = [
@@ -122,7 +128,7 @@ class EpiccashIntegrationTestSuite implements TestSuiteInterface {
         "esXrtQYZzs7DveZV4pxmXr8nntSjEkmxLddCF4hoEjVUh9nQYP7j@epicbox.stackwallet.com",
         "epicbox://esXrtQYZzs7DveZV4pxmXr8nntSjEkmxLddCF4hoEjVUh9nQYP7j@epicbox.fastepic.eu",
       ];
-      
+
       final invalidAddresses = [
         "",
         "invalid_address",
@@ -134,7 +140,7 @@ class EpiccashIntegrationTestSuite implements TestSuiteInterface {
         "http://example.com:3415/v2/foreign",
         "https://example.com:3415/v2/foreign",
       ];
-      
+
       // Test valid addresses.
       for (final address in validAddresses) {
         final isValid = lib_epic.LibEpiccash.validateSendAddress(address: address);
@@ -142,7 +148,7 @@ class EpiccashIntegrationTestSuite implements TestSuiteInterface {
           throw Exception("Valid Epic Cash address marked as invalid: $address");
         }
       }
-      
+
       // Test invalid addresses.
       for (final address in invalidAddresses) {
         final isValid = lib_epic.LibEpiccash.validateSendAddress(address: address);
@@ -150,13 +156,217 @@ class EpiccashIntegrationTestSuite implements TestSuiteInterface {
           throw Exception("Invalid Epic Cash address marked as valid: $address");
         }
       }
-      
-      Logging.instance.log(Level.info, 
+
+      Logging.instance.log(Level.info,
         "👍 Epic Cash address validation test passed"
       );
-      
+
     } catch (e) {
       throw Exception("Epic Cash address validation test failed: $e");
+    }
+  }
+
+  Future<void> _testEpicCashWalletCreation() async {
+    Logging.instance.log(
+      Level.info,
+      "Testing Epic Cash wallet creation (init)..."
+    );
+
+    Directory? testWalletDir;
+
+    try {
+      // Create a temporary directory for the test wallet.
+      final tempDir = await getTemporaryDirectory();
+      testWalletDir = Directory('${tempDir.path}/epic_test_wallet_${DateTime.now().millisecondsSinceEpoch}');
+      await testWalletDir.create(recursive: true);
+
+      Logging.instance.log(
+        Level.info,
+        "Created test wallet directory: ${testWalletDir.path}"
+      );
+
+      // Generate a test mnemonic.
+      final mnemonic = lib_epic.LibEpiccash.getMnemonic();
+
+      // Generate a password.
+      final password = generatePassword();
+
+      // Create config similar to what epiccash_wallet.dart creates.
+      final config = {
+        "wallet_dir": testWalletDir.path,
+        "check_node_api_http_addr": "http://epiccash.stackwallet.com:3413",
+        "chain": "mainnet",
+        "account": "default",
+        "api_listen_port": 3413,
+        "api_listen_interface": "://epiccash.stackwallet.com:3413",
+      };
+      final configString = jsonEncode(config);
+
+      final walletName = "test_wallet_${DateTime.now().millisecondsSinceEpoch}";
+
+      Logging.instance.log(
+        Level.info,
+        "Attempting to initialize new Epic Cash wallet..."
+      );
+
+      // This should crash with the database error.
+      final initResult = await lib_epic.LibEpiccash.initializeNewWallet(
+        config: configString,
+        mnemonic: mnemonic,
+        password: password,
+        name: walletName,
+      );
+
+      Logging.instance.log(
+        Level.info,
+        "Initialize wallet result: $initResult"
+      );
+
+      // Try to open the wallet.
+      Logging.instance.log(
+        Level.info,
+        "Attempting to open Epic Cash wallet..."
+      );
+
+      final openResult = await lib_epic.LibEpiccash.openWallet(
+        config: configString,
+        password: password,
+      );
+
+      Logging.instance.log(
+        Level.info,
+        "Open wallet result: ${openResult.substring(0, 50)}..."
+      );
+
+      Logging.instance.log(
+        Level.info,
+        "👍 Epic Cash wallet creation test passed"
+      );
+
+    } catch (e, stackTrace) {
+      Logging.instance.log(
+        Level.error,
+        "Epic Cash wallet creation test failed: $e\n$stackTrace"
+      );
+      throw Exception("Epic Cash wallet creation test failed: $e");
+    } finally {
+      // Clean up test wallet directory.
+      if (testWalletDir != null && await testWalletDir.exists()) {
+        try {
+          await testWalletDir.delete(recursive: true);
+          Logging.instance.log(
+            Level.info,
+            "Cleaned up test wallet directory"
+          );
+        } catch (e) {
+          Logging.instance.log(
+            Level.warning,
+            "Failed to clean up test wallet directory: $e"
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _testEpicCashWalletRestore() async {
+    Logging.instance.log(
+      Level.info,
+      "Testing Epic Cash wallet restoration (recover)..."
+    );
+
+    Directory? testWalletDir;
+
+    try {
+      // Create a temporary directory for the test wallet.
+      final tempDir = await getTemporaryDirectory();
+      testWalletDir = Directory('${tempDir.path}/epic_test_restore_${DateTime.now().millisecondsSinceEpoch}');
+      await testWalletDir.create(recursive: true);
+
+      Logging.instance.log(
+        Level.info,
+        "Created test wallet directory: ${testWalletDir.path}"
+      );
+
+      // Generate a test mnemonic.
+      final mnemonic = lib_epic.LibEpiccash.getMnemonic();
+
+      // Generate a password.
+      final password = generatePassword();
+
+      // Create config similar to what epiccash_wallet.dart creates.
+      final config = {
+        "wallet_dir": testWalletDir.path,
+        "check_node_api_http_addr": "http://epiccash.stackwallet.com:3413",
+        "chain": "mainnet",
+        "account": "default",
+        "api_listen_port": 3413,
+        "api_listen_interface": "://epiccash.stackwallet.com:3413",
+      };
+      final configString = jsonEncode(config);
+
+      final walletName = "test_restore_${DateTime.now().millisecondsSinceEpoch}";
+
+      Logging.instance.log(
+        Level.info,
+        "Attempting to recover Epic Cash wallet..."
+      );
+
+      // This should crash with the database error.
+      await lib_epic.LibEpiccash.recoverWallet(
+        config: configString,
+        password: password,
+        mnemonic: mnemonic,
+        name: walletName,
+      );
+
+      Logging.instance.log(
+        Level.info,
+        "Recover wallet completed"
+      );
+
+      // Try to open the wallet.
+      Logging.instance.log(
+        Level.info,
+        "Attempting to open recovered Epic Cash wallet..."
+      );
+
+      final openResult = await lib_epic.LibEpiccash.openWallet(
+        config: configString,
+        password: password,
+      );
+
+      Logging.instance.log(
+        Level.info,
+        "Open wallet result: ${openResult.substring(0, 50)}..."
+      );
+
+      Logging.instance.log(
+        Level.info,
+        "👍 Epic Cash wallet restoration test passed"
+      );
+
+    } catch (e, stackTrace) {
+      Logging.instance.log(
+        Level.error,
+        "Epic Cash wallet restoration test failed: $e\n$stackTrace"
+      );
+      throw Exception("Epic Cash wallet restoration test failed: $e");
+    } finally {
+      // Clean up test wallet directory.
+      if (testWalletDir != null && await testWalletDir.exists()) {
+        try {
+          await testWalletDir.delete(recursive: true);
+          Logging.instance.log(
+            Level.info,
+            "Cleaned up test wallet directory"
+          );
+        } catch (e) {
+          Logging.instance.log(
+            Level.warning,
+            "Failed to clean up test wallet directory: $e"
+          );
+        }
+      }
     }
   }
 
