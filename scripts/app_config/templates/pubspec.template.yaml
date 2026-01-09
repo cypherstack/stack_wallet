@@ -316,9 +316,9 @@ dependency_overrides:
   # coinlib_flutter requires this
   coinlib:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cassandras-lies/coinlib.git
       path: coinlib
-      ref: f90600053a4f149a6153f30057ac7f75c21ab962
+      ref: 22778c0899d761f86e1080a0f9e2b4004d2d033e
 
   bip47:
     git:
