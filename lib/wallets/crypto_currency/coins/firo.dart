@@ -14,42 +14,62 @@ import '../interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_currency.dart';
 
 class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
-  Firo(super.network) {
-    _idMain = "firo";
-    _uriScheme = "firo";
+  Firo(super.network);
+
+  String get identifier {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        _id = _idMain;
-        _name = "Firo";
-        _ticker = "FIRO";
+        return "firo";
       case CryptoCurrencyNetwork.test:
-        _id = "firoTestNet";
-        _name = "tFiro";
-        _ticker = "tFIRO";
+        return "firoTestNet";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
 
-  late final String _id;
-  @override
-  String get identifier => _id;
+  String get ticker {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return "FIRO";
+      case CryptoCurrencyNetwork.test:
+        return "tFIRO";
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
-  late final String _idMain;
-  @override
-  String get mainNetId => _idMain;
+  String get mainNetId {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return "Firo";
+      case CryptoCurrencyNetwork.test:
+        return "tFiro";
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
-  late final String _name;
-  @override
-  String get prettyName => _name;
+  String get prettyName {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return "Firo";
+      case CryptoCurrencyNetwork.test:
+        return "tFiro";
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
-  late final String _uriScheme;
-  @override
-  String get uriScheme => _uriScheme;
-
-  late final String _ticker;
-  @override
-  String get ticker => _ticker;
+  String get uriScheme {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return "firo";
+      case CryptoCurrencyNetwork.test:
+        return "tfiro";
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
   @override
   int get minConfirms => 1;
@@ -197,7 +217,10 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   bool validateSparkAddress(String address) {
-    return SparkInterface.validateSparkAddress(address: address, isTestNet: network.isTestNet);
+    return SparkInterface.validateSparkAddress(
+      address: address,
+      isTestNet: network.isTestNet,
+    );
   }
 
   bool isExchangeAddress(String address) {

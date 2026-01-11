@@ -73,10 +73,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       } else {
         ref
             .read(addressBookFilterProvider)
-            .addAll(
-              coins.where((e) => e.network != CryptoCurrencyNetwork.test),
-              false,
-            );
+            .addAll(coins.where((e) => !e.network.isTestNet), false);
       }
     } else {
       ref.read(addressBookFilterProvider).add(widget.coin!, false);
