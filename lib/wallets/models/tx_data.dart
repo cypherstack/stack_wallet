@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -7,6 +9,7 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/extensions/impl/uint8_list.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../wl_gen/interfaces/cs_monero_interface.dart'
     show CsPendingTransaction;
@@ -94,6 +97,8 @@ class TxData {
     int validBlocks,
   })?
   sparkNameInfo;
+  final Uint8List? vExtraData;
+  final int? overrideVersion;
 
   // xelis specific
   final String? otherData;
@@ -147,6 +152,8 @@ class TxData {
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
     this.sparkNameInfo,
+    this.vExtraData,
+    this.overrideVersion,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
   });
@@ -299,6 +306,8 @@ class TxData {
       int validBlocks,
     })?
     sparkNameInfo,
+    Uint8List? vExtraData,
+    int? overrideVersion,
     TxType? type,
   }) {
     return TxData(
@@ -342,6 +351,8 @@ class TxData {
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
+      vExtraData: vExtraData ?? this.vExtraData,
+      overrideVersion: overrideVersion ?? this.overrideVersion,
       type: type ?? this.type,
     );
   }
@@ -381,6 +392,8 @@ class TxData {
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
+      'vExtraData: ${vExtraData?.toHex}, '
+      'overrideVersion: $overrideVersion, '
       'type: $type, '
       '}';
 }

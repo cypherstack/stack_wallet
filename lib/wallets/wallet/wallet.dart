@@ -53,11 +53,11 @@ import 'impl/wownero_wallet.dart';
 import 'impl/xelis_wallet.dart';
 import 'intermediate/cryptonote_wallet.dart';
 import 'wallet_mixin_interfaces/electrumx_interface.dart';
+import 'wallet_mixin_interfaces/spark_interface.dart';
 import 'wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'wallet_mixin_interfaces/multi_address_interface.dart';
 import 'wallet_mixin_interfaces/paynym_interface.dart';
 import 'wallet_mixin_interfaces/private_key_interface.dart';
-import 'wallet_mixin_interfaces/spark_interface.dart';
 import 'wallet_mixin_interfaces/view_only_option_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
@@ -244,11 +244,10 @@ abstract class Wallet<T extends CryptoCurrency> {
     required NodeService nodeService,
     required Prefs prefs,
   }) async {
-    final walletInfo =
-        await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .findFirst();
+    final walletInfo = await mainDB.isar.walletInfo
+        .where()
+        .walletIdEqualTo(walletId)
+        .findFirst();
 
     Logging.instance.i(
       "Wallet.load loading"
@@ -438,10 +437,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     final bool hasNetwork = await pingCheck();
 
     if (_isConnected != hasNetwork) {
-      final NodeConnectionStatus status =
-          hasNetwork
-              ? NodeConnectionStatus.connected
-              : NodeConnectionStatus.disconnected;
+      final NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
       if (!doNotFireRefreshEvents) {
         GlobalEventBus.instance.fire(
           NodeConnectionStatusChangedEvent(status, walletId, cryptoCurrency),
@@ -756,11 +754,10 @@ abstract class Wallet<T extends CryptoCurrency> {
           // Check if there's another wallet of this coin on the sync list.
           final List<String> walletIds = [];
           for (final id in prefs.walletIdsSyncOnStartup) {
-            final wallet =
-                mainDB.isar.walletInfo
-                    .where()
-                    .walletIdEqualTo(id)
-                    .findFirstSync()!;
+            final wallet = mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(id)
+                .findFirstSync()!;
 
             if (wallet.coin == cryptoCurrency) {
               walletIds.add(id);

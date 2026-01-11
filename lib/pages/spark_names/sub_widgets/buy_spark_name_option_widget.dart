@@ -47,7 +47,7 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
         ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
 
     try {
-      await wallet.electrumXClient.getSparkNameData(sparkName: name);
+      await wallet.getSparkNameData(sparkName: name);
       // name exists
       return false;
     } catch (e) {

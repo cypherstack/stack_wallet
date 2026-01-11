@@ -1,10 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart'
+    show base58Decode, P2SH, Base58Address, P2PKH;
+import 'package:crypto/crypto.dart' as Cryptography;
 import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../db/sqlite/firo_cache.dart';
+import '../../../models/buy/response_objects/crypto.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -16,6 +23,7 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/util.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
@@ -25,7 +33,45 @@ import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
 
-const sparkStartBlock = 819300; // (approx 18 Jan 2024)
+class MasternodeInfo {
+  final String proTxHash;
+  final String collateralHash;
+  final int collateralIndex;
+  final String collateralAddress;
+  final int operatorReward;
+  final String serviceAddr;
+  final int servicePort;
+  final int registeredHeight;
+  final int lastPaidHeight;
+  final int posePenalty;
+  final int poseRevivedHeight;
+  final int poseBanHeight;
+  final int revocationReason;
+  final String ownerAddress;
+  final String votingAddress;
+  final String payoutAddress;
+  final String pubKeyOperator;
+
+  MasternodeInfo({
+    required this.proTxHash,
+    required this.collateralHash,
+    required this.collateralIndex,
+    required this.collateralAddress,
+    required this.operatorReward,
+    required this.serviceAddr,
+    required this.servicePort,
+    required this.registeredHeight,
+    required this.lastPaidHeight,
+    required this.posePenalty,
+    required this.poseRevivedHeight,
+    required this.poseBanHeight,
+    required this.revocationReason,
+    required this.ownerAddress,
+    required this.votingAddress,
+    required this.payoutAddress,
+    required this.pubKeyOperator,
+  });
+}
 
 class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     with
@@ -814,5 +860,310 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
     return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
+  }
+
+  Future<String> registerMasternode(
+    String ip,
+    int port,
+    String operatorPubKey,
+    String votingAddress,
+    int operatorReward,
+    String payoutAddress,
+  ) async {
+    if (info.cachedBalance.spendable <
+        Amount.fromDecimal(
+          Decimal.fromInt(1000),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        )) {
+      throw Exception(
+        'Not enough funds to register a masternode. You must have at least 1000 FIRO in your public balance.',
+      );
+    }
+
+    Address? collateralAddress = await getCurrentReceivingAddress();
+    if (collateralAddress == null) {
+      await generateNewReceivingAddress();
+      collateralAddress = await getCurrentReceivingAddress();
+    }
+    await generateNewReceivingAddress();
+
+    Address? ownerAddress = await getCurrentReceivingAddress();
+    if (ownerAddress == null) {
+      await generateNewReceivingAddress();
+      ownerAddress = await getCurrentReceivingAddress();
+    }
+    await generateNewReceivingAddress();
+
+    // Create the registration transaction.
+    final registrationTx = BytesBuilder();
+
+    // nVersion (16 bit)
+    registrationTx.add(
+      (ByteData(2)..setInt16(0, 1, Endian.little)).buffer.asUint8List(),
+    );
+
+    // nType (16 bit) (this is separate from the tx nType)
+    registrationTx.add(
+      (ByteData(2)..setInt16(0, 0, Endian.little)).buffer.asUint8List(),
+    );
+
+    // nMode (16 bit)
+    registrationTx.add(
+      (ByteData(2)..setInt16(0, 0, Endian.little)).buffer.asUint8List(),
+    );
+
+    // collateralOutpoint.hash (256 bit)
+    // This is null, referring to our own transaction.
+    registrationTx.add(ByteData(32).buffer.asUint8List());
+
+    // collateralOutpoint.index (2 bytes)
+    // This is going to be 0. (The only other output will be change at position 1.)
+    registrationTx.add(
+      (ByteData(4)..setInt16(0, 0, Endian.little)).buffer.asUint8List(),
+    );
+
+    // addr.ip (4 bytes)
+    final ipParts = ip
+        .split('.')
+        .map((e) => int.parse(e))
+        .toList()
+        .reversed
+        .toList(); // network byte order
+    if (ipParts.length != 4) {
+      throw Exception("Invalid IP address: $ip");
+    }
+    for (final part in ipParts) {
+      if (part < 0 || part > 255) {
+        throw Exception("Invalid IP part: $part");
+      }
+    }
+    // This is serialized as an IPv6 address (which it cannot be), so there will be 12 bytes of padding.
+    registrationTx.add(ByteData(10).buffer.asUint8List());
+    registrationTx.add([0xff, 0xff]);
+    registrationTx.add(ipParts);
+
+    // addr.port (2 bytes)
+    if (port < 0 || port > 65535) {
+      throw Exception("Invalid port: $port");
+    }
+    registrationTx.add(
+      (ByteData(2)..setInt16(0, port, Endian.little)).buffer.asUint8List(),
+    );
+
+    // keyIDOwner (20 bytes)
+    assert(ownerAddress!.value != collateralAddress!.value);
+    if (!cryptoCurrency.validateAddress(ownerAddress!.value)) {
+      throw Exception("Invalid owner address: ${ownerAddress.value}");
+    }
+    final ownerAddressBytes = base58Decode(ownerAddress.value);
+    assert(ownerAddressBytes.length == 21); // should be infallible
+    registrationTx.add(ownerAddressBytes.sublist(1)); // remove version byte
+
+    // pubKeyOperator (48 bytes)
+    final operatorPubKeyBytes = operatorPubKey.toUint8ListFromHex;
+    if (operatorPubKeyBytes.length != 48) {
+      // These actually have a required format, but we're not going to check it. The transaction will fail if it's not
+      // valid.
+      throw Exception("Invalid operator public key: $operatorPubKey");
+    }
+    registrationTx.add(operatorPubKeyBytes);
+
+    // keyIDVoting (40 bytes)
+    if (votingAddress == payoutAddress) {
+      throw Exception("Voting address and payout address cannot be the same.");
+    } else if (votingAddress == collateralAddress!.value) {
+      throw Exception(
+        "Voting address cannot be the same as the collateral address.",
+      );
+    } else if (votingAddress.isNotEmpty) {
+      if (!cryptoCurrency.validateAddress(votingAddress)) {
+        throw Exception("Invalid voting address: $votingAddress");
+      }
+
+      final votingAddressBytes = base58Decode(votingAddress);
+      assert(votingAddressBytes.length == 21); // should be infallible
+      registrationTx.add(votingAddressBytes.sublist(1)); // remove version byte
+    } else {
+      registrationTx.add(ownerAddressBytes.sublist(1)); // remove version byte
+    }
+
+    // nOperatorReward (16 bit); the operator gets nOperatorReward/10,000 of the reward.
+    if (operatorReward < 0 || operatorReward > 10000) {
+      throw Exception("Invalid operator reward: $operatorReward");
+    }
+    registrationTx.add(
+      (ByteData(
+        2,
+      )..setInt16(0, operatorReward, Endian.little)).buffer.asUint8List(),
+    );
+
+    // scriptPayout (variable)
+    if (!cryptoCurrency.validateAddress(payoutAddress)) {
+      throw Exception("Invalid payout address: $payoutAddress");
+    }
+    final payoutAddressScript = P2PKH.fromHash(
+      base58Decode(payoutAddress).sublist(1),
+    );
+    final payoutAddressScriptLength =
+        payoutAddressScript.script.compiled.length;
+    assert(payoutAddressScriptLength < 253);
+    registrationTx.addByte(payoutAddressScriptLength);
+    registrationTx.add(payoutAddressScript.script.compiled);
+
+    final partialTxData = TxData(
+      // nVersion: 3, nType: 1 (TRANSACTION_PROVIDER_REGISTER)
+      overrideVersion: 3 + (1 << 16),
+      // coinSelection fee calculation uses a heuristic that doesn't know about vExtraData, so we'll just use a really
+      // big fee to make sure the transaction confirms.
+      feeRateAmount: cryptoCurrency.defaultFeeRate * BigInt.from(10),
+      recipients: [
+        TxRecipient(
+          address: collateralAddress!.value,
+          addressType: AddressType.p2pkh,
+          amount: Amount.fromDecimal(
+            Decimal.fromInt(1000),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+          isChange: false,
+        ),
+      ],
+    );
+
+    final partialTx = await coinSelection(
+      txData: partialTxData,
+      coinControl: false,
+      isSendAll: false,
+      isSendAllCoinControlUtxos: false,
+    );
+
+    // Calculate inputsHash (32 bytes).
+    final inputsHashInput = BytesBuilder();
+    for (final input in partialTx.usedUTXOs!) {
+      final standardInput = input as StandardInput;
+      // we reverse the txid bytes because fuck it, why not.
+      final reversedTxidBytes = standardInput
+          .utxo
+          .txid
+          .toUint8ListFromHex
+          .reversed
+          .toList();
+      inputsHashInput.add(reversedTxidBytes);
+      inputsHashInput.add(
+        (ByteData(4)..setInt32(0, standardInput.utxo.vout, Endian.little))
+            .buffer
+            .asUint8List(),
+      );
+    }
+    final inputsHash = Cryptography.sha256
+        .convert(inputsHashInput.toBytes())
+        .bytes;
+    final inputsHashHash = Cryptography.sha256.convert(inputsHash).bytes;
+    registrationTx.add(inputsHashHash);
+
+    // vchSig is a variable length field that we need iff the collateral is NOT in the same transaction, but for us it is.
+    registrationTx.addByte(0);
+
+    final finalTxData = partialTx.copyWith(
+      vExtraData: registrationTx.toBytes(),
+    );
+    final finalTx = await buildTransaction(
+      txData: finalTxData,
+      inputsWithKeys: partialTx.usedUTXOs!,
+    );
+
+    final finalTransactionHex = finalTx.raw!;
+    assert(finalTransactionHex.contains(registrationTx.toBytes().toHex));
+
+    final broadcastedTxHash = await electrumXClient.broadcastTransaction(
+      rawTx: finalTransactionHex,
+    );
+    if (broadcastedTxHash.toUint8ListFromHex.length != 32) {
+      throw Exception("Failed to broadcast transaction: $broadcastedTxHash");
+    }
+    Logging.instance.i(
+      "Successfully broadcasted masternode registration transaction: $finalTransactionHex (txid $broadcastedTxHash)",
+    );
+
+    await updateSentCachedTxData(txData: finalTx);
+
+    return broadcastedTxHash;
+  }
+
+  Future<List<MasternodeInfo>> getMyMasternodes() async {
+    final proTxHashes = await getMyMasternodeProTxHashes();
+
+    return (await Future.wait(
+      proTxHashes.map(
+        (e) => Future(() async {
+          try {
+            final info = await electrumXClient.request(
+              command: 'protx.info',
+              args: [e],
+            );
+            return MasternodeInfo(
+              proTxHash: info["proTxHash"] as String,
+              collateralHash: info["collateralHash"] as String,
+              collateralIndex: info["collateralIndex"] as int,
+              collateralAddress: info["collateralAddress"] as String,
+              operatorReward: info["operatorReward"] as int,
+              serviceAddr: (info["state"]["service"] as String).substring(
+                0,
+                (info["state"]["service"] as String).lastIndexOf(":"),
+              ),
+              servicePort: int.parse(
+                (info["state"]["service"] as String).substring(
+                  (info["state"]["service"] as String).lastIndexOf(":") + 1,
+                ),
+              ),
+              registeredHeight: info["state"]["registeredHeight"] as int,
+              lastPaidHeight: info["state"]["lastPaidHeight"] as int,
+              posePenalty: info["state"]["PoSePenalty"] as int,
+              poseRevivedHeight: info["state"]["PoSeRevivedHeight"] as int,
+              poseBanHeight: info["state"]["PoSeBanHeight"] as int,
+              revocationReason: info["state"]["revocationReason"] as int,
+              ownerAddress: info["state"]["ownerAddress"] as String,
+              votingAddress: info["state"]["votingAddress"] as String,
+              payoutAddress: info["state"]["payoutAddress"] as String,
+              pubKeyOperator: info["state"]["pubKeyOperator"] as String,
+            );
+          } catch (err) {
+            // getMyMasternodeProTxHashes() may give non-masternode txids, so only log as info.
+            Logging.instance.i("Error getting masternode info for $e: $err");
+            return null;
+          }
+        }),
+      ),
+    )).where((e) => e != null).map((e) => e!).toList();
+  }
+
+  Future<List<String>> getMyMasternodeProTxHashes() async {
+    // - This registers only masternodes which have collateral in the same transaction.
+    // - If this seed is shared with firod or such and a masternode is created there, it will probably not appear here
+    //   because that doesn't put collateral in the protx tx.
+    // - An exactly 1000 FIRO vout will show up here even if it's not a masternode collateral. This will just log an
+    //   info in getMyMasternodes.
+    // - If this wallet created a masternode not owned by this wallet it will erroneously be emitted here and actually
+    //   shown to the user as our own masternode, but this is contrived and nothing actually produces transactions like
+    //   that.
+
+    // utxos are UNSPENT txos, so broken masternodes will not show up here by design.
+    final utxos = await mainDB.getUTXOs(walletId).sortByBlockHeight().findAll();
+
+    final List<String> r = [];
+
+    for (final utxo in utxos) {
+      if (utxo.value != cryptoCurrency.satsPerCoin.toInt() * 1000) {
+        continue;
+      }
+
+      // A duplicate could occur if a protx transaction has a non-collateral 1000 FIRO vout.
+      if (r.contains(utxo.txid)) {
+        continue;
+      }
+
+      r.add(utxo.txid);
+    }
+
+    return r;
   }
 }

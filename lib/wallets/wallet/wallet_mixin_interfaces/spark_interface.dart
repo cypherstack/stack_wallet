@@ -218,7 +218,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           isTestNet: args.isTestNet_,
         );
       } catch (e) {
-        Logging.instance.e("Failed to identify coin", error: e);
+        Logging.instance.e(
+          "Error identifying coin in tx $txHash (this is not expected)",
+          error: e,
+        );
         continue;
       }
 
@@ -269,7 +272,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<String> hashTag(String tag) async {
     try {
-      return await computeWithLibSparkLogging(_hashTag, tag);
+      return await computeWithLibSparkLogging((t) {
+        final components = t.split(",");
+        final x = components[0].substring(1);
+        final y = components[1].substring(0, components[1].length - 1);
+        return libSpark.hashTag(x, y);
+      }, tag);
     } catch (_) {
       throw ArgumentError("Invalid tag string format", "tag");
     }
@@ -1339,6 +1347,15 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  Future<void> recoverViewOnlyWallet() async {
+    await recoverSparkWallet(latestSparkCoinId: 0);
+  }
+
+  Future<({String address, int validUntil, String additionalInfo})>
+  getSparkNameData({required String sparkName}) async {
+    return await electrumXClient.getSparkNameData(sparkName: sparkName);
+  }
+
   Future<void> refreshSparkNames() async {
     try {
       Logging.instance.i("Refreshing spark names for $walletId ${info.name}");
@@ -1398,9 +1415,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         data = [];
 
         for (final name in names) {
-          final info = await electrumXClient.getSparkNameData(
-            sparkName: name.name,
-          );
+          final info = await getSparkNameData(sparkName: name.name);
 
           data.add((
             name: name.name,

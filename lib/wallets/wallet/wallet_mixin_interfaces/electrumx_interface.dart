@@ -659,7 +659,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final List<coinlib.Output> prevOuts = [];
 
     coinlib.Transaction clTx = coinlib.Transaction(
-      version: txData.type.isMweb() ? 2 : cryptoCurrency.transactionVersion,
+      vExtraData: txData.vExtraData,
+      version:
+          txData.overrideVersion ??
+          (txData.type.isMweb() ? 2 : cryptoCurrency.transactionVersion),
       inputs: [],
       outputs: [],
     );

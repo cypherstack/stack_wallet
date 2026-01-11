@@ -106,6 +106,7 @@ import '../settings_views/wallet_settings_view/wallet_network_settings_view/wall
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../signing/signing_view.dart';
 import '../spark_names/spark_names_home_view.dart';
+import '../masternodes/masternodes_home_view.dart';
 import '../token_view/my_tokens_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
@@ -1181,6 +1182,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             SparkCoinsView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (!viewOnly && wallet is FiroWallet)
+                      WalletNavigationBarItemData(
+                        label: "Masternodes",
+                        icon: SvgPicture.asset(
+                          Assets.svg.recycle,
+                          height: 20,
+                          width: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.bottomNavIconIcon,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MasternodesHomeView.routeName,
                             arguments: widget.walletId,
                           );
                         },

@@ -27,6 +27,7 @@ import '../../../../pages/paynym/paynym_home_view.dart';
 import '../../../../pages/salvium_stake/salvium_create_stake_view.dart';
 import '../../../../pages/signing/signing_view.dart';
 import '../../../../pages/spark_names/spark_names_home_view.dart';
+import '../../../../pages/masternodes/masternodes_home_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
@@ -92,6 +93,7 @@ enum WalletFeature {
   sparkNames("Names", "Spark names"),
   salviumStaking("Staking", "Staking"),
   sign("Sign/Verify", "Sign / Verify messages"),
+  masternodes("Masternodes", "Manage masternodes"),
 
   // special cases
   clearSparkCache("", ""),
@@ -454,6 +456,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
   }
 
+  void _onMasternodesPressed() {
+    Navigator.of(
+      context,
+    ).pushNamed(MasternodesHomeView.routeName, arguments: widget.walletId);
+  }
+
   List<(WalletFeature, String, FutureOr<void> Function())> _getOptions(
     Wallet wallet,
     bool showExchange,
@@ -495,6 +503,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (wallet is SignVerifyInterface && !isViewOnly)
         (WalletFeature.sign, Assets.svg.pencil, _onSignPressed),
+
+      if (!isViewOnly && wallet is FiroWallet)
+        (WalletFeature.masternodes, Assets.svg.recycle, _onMasternodesPressed),
 
       if (showCoinControl)
         (
