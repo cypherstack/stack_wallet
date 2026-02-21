@@ -153,6 +153,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     String? mnemonicPassphrase,
     String? privateKey,
     ViewOnlyWalletData? viewOnlyData,
+    String? keysRestoreData,
   }) async {
     // TODO: rework soon?
     if (walletInfo.isViewOnly && viewOnlyData == null) {
@@ -220,6 +221,13 @@ abstract class Wallet<T extends CryptoCurrency> {
       await secureStorageInterface.write(
         key: privateKeyKey(walletId: walletInfo.walletId),
         value: privateKey!,
+      );
+    }
+
+    if (keysRestoreData != null) {
+      await secureStorageInterface.write(
+        key: keysRestoreDataKey(walletId: walletInfo.walletId),
+        value: keysRestoreData,
       );
     }
 
@@ -320,6 +328,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   // secure storage key
   static String getViewOnlyWalletDataSecStoreKey({required String walletId}) =>
       "${walletId}_viewOnlyWalletData";
+
+  // secure storage key
+  static String keysRestoreDataKey({required String walletId}) =>
+      "${walletId}_keysRestoreData";
 
   //============================================================================
   // ========== Private ========================================================
