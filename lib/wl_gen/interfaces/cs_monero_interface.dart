@@ -58,6 +58,16 @@ abstract class CsMoneroInterface {
     int height = 0,
   });
 
+  Future<WrappedWallet> getRestoredFromKeysWallet({
+    required String walletId,
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    required String privateSpendKey,
+    int height = 0,
+  });
+
   Future<String> getTxKey(WrappedWallet wallet, String txid);
 
   Future<void> save(WrappedWallet wallet);
