@@ -1190,7 +1190,7 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
   void _onUriChanged(String value) {
     WalletUriData? parsed;
     try {
-      parsed = WalletUriData.fromUriString(value);
+      parsed = WalletUriData.fromUriString(value.trim());
     } catch (_) {
       parsed = null;
     }
