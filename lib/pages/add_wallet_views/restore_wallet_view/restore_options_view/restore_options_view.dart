@@ -1203,6 +1203,13 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
     } catch (_) {
       parsed = null;
     }
+
+    // If the URI contains a height, switch to block height mode and populate.
+    if (parsed?.height != null) {
+      ref.read(_pIsUsingDate.notifier).state = false;
+      widget.blockHeightController.text = parsed!.height.toString();
+    }
+
     widget.onParsed(parsed);
   }
 
