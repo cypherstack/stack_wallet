@@ -119,7 +119,11 @@ class _UnlockWalletKeysDesktopState
             (wallet as ViewOnlyOptionInterface).isViewOnly) {
           // TODO: is something needed here?
         } else {
-          words = await wallet.getMnemonicAsWords();
+          try {
+            words = await wallet.getMnemonicAsWords();
+          } catch (_) {
+            // Key-restored wallets may not have a mnemonic.
+          }
         }
       }
 

@@ -166,7 +166,12 @@ class _DesktopAttentionDeleteWallet
                           // TODO: [prio=med] handle other types wallet deletion
                           // All wallets currently are mnemonic based
                           if (wallet is MnemonicInterface) {
-                            final words = await wallet.getMnemonicAsWords();
+                            List<String> words = [];
+                            try {
+                              words = await wallet.getMnemonicAsWords();
+                            } catch (_) {
+                              // Key-restored wallets may not have a mnemonic.
+                            }
 
                             if (context.mounted) {
                               await Navigator.of(context).pushNamed(
