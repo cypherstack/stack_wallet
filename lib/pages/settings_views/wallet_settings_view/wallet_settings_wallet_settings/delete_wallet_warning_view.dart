@@ -141,7 +141,11 @@ class DeleteWalletWarningView extends ConsumerWidget {
                           wallet.isViewOnly) {
                         viewOnlyData = await wallet.getViewOnlyWalletData();
                       } else if (wallet is MnemonicInterface) {
-                        mnemonic = await wallet.getMnemonicAsWords();
+                        try {
+                          mnemonic = await wallet.getMnemonicAsWords();
+                        } catch (_) {
+                          // Key-restored wallets may not have a mnemonic.
+                        }
                       }
                     }
                     if (context.mounted) {
