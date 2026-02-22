@@ -198,6 +198,13 @@ class AddressUtils {
   static Map<String, dynamic>? _parseWalletUri(String uri) {
     final String scheme;
     final Map<String, dynamic> parsedData = {};
+
+    final rawScheme = uri.split(":")[0];
+    final normalizedScheme = rawScheme.replaceAll("-", "_");
+    if (normalizedScheme != rawScheme) {
+      uri = normalizedScheme + uri.substring(rawScheme.length);
+    }
+
     if (uri.split(":")[0].contains("_")) {
       // We need to check if the uri is compatible because RFC 3986
       // does not allow underscores in the scheme.
