@@ -88,6 +88,7 @@ import 'pages/more_view/services_view.dart';
 import 'pages/shopinbit/shopinbit_step_1.dart';
 import 'pages/shopinbit/shopinbit_step_2.dart';
 import 'pages/shopinbit/shopinbit_step_3.dart';
+import 'pages/shopinbit/shopinbit_car_fee_view.dart';
 import 'pages/shopinbit/shopinbit_offer_view.dart';
 import 'pages/shopinbit/shopinbit_shipping_view.dart';
 import 'pages/shopinbit/shopinbit_step_4.dart';
@@ -1139,6 +1140,16 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ShopInBitShippingView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitCarFeeView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitCarFeeView(model: args),
             settings: RouteSettings(name: settings.name),
           );
         }
