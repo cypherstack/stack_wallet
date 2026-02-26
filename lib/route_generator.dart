@@ -89,6 +89,9 @@ import 'pages/shopinbit/shopinbit_step_1.dart';
 import 'pages/shopinbit/shopinbit_step_2.dart';
 import 'pages/shopinbit/shopinbit_step_3.dart';
 import 'pages/shopinbit/shopinbit_step_4.dart';
+import 'pages/shopinbit/shopinbit_ticket_detail.dart';
+import 'pages/shopinbit/shopinbit_tickets_view.dart';
+import 'pages/shopinbit/shopinbit_order_created.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/manage_domain_view.dart';
@@ -1087,6 +1090,33 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ShopInBitStep4(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitOrderCreated.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitOrderCreated(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitTicketsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitTicketsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitTicketDetail.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitTicketDetail(model: args),
             settings: RouteSettings(name: settings.name),
           );
         }
