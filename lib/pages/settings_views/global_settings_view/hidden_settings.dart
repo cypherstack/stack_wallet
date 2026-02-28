@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../db/isar/main_db.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -41,19 +42,17 @@ class HiddenSettings extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: AppBarIconButton(
               size: 32,
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.topNavIconPrimary,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),
@@ -81,8 +80,8 @@ class HiddenSettings extends StatelessWidget {
                                   ref
                                       .read(prefsChangeNotifierProvider)
                                       .advancedFiroFeatures = !ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .advancedFiroFeatures;
+                                      .read(prefsChangeNotifierProvider)
+                                      .advancedFiroFeatures;
                                 },
                                 child: RoundedWhiteContainer(
                                   child: Text(
@@ -94,10 +93,9 @@ class HiddenSettings extends StatelessWidget {
                                         ? "Hide advanced Firo features"
                                         : "Show advanced Firo features",
                                     style: STextStyles.button(context).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
                                     ),
                                   ),
                                 ),
@@ -109,10 +107,9 @@ class HiddenSettings extends StatelessWidget {
                             builder: (_, ref, __) {
                               return GestureDetector(
                                 onTap: () async {
-                                  final notifs =
-                                      ref
-                                          .read(notificationsProvider)
-                                          .notifications;
+                                  final notifs = ref
+                                      .read(notificationsProvider)
+                                      .notifications;
 
                                   for (final n in notifs) {
                                     await ref
@@ -137,10 +134,9 @@ class HiddenSettings extends StatelessWidget {
                                   child: Text(
                                     "Delete notifications",
                                     style: STextStyles.button(context).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
                                     ),
                                   ),
                                 ),
@@ -153,17 +149,17 @@ class HiddenSettings extends StatelessWidget {
                               return GestureDetector(
                                 onTap: () async {
                                   ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .logsPath = null;
+                                          .read(prefsChangeNotifierProvider)
+                                          .logsPath =
+                                      null;
                                 },
                                 child: RoundedWhiteContainer(
                                   child: Text(
                                     "Reset log location",
                                     style: STextStyles.button(context).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
                                     ),
                                   ),
                                 ),
@@ -285,14 +281,14 @@ class HiddenSettings extends StatelessWidget {
                                   6) {
                                 return GestureDetector(
                                   onTap: () async {
-                                    final familiarity =
-                                        ref
-                                            .read(prefsChangeNotifierProvider)
-                                            .familiarity;
+                                    final familiarity = ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .familiarity;
                                     if (familiarity < 6) {
                                       ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .familiarity = 6;
+                                              .read(prefsChangeNotifierProvider)
+                                              .familiarity =
+                                          6;
 
                                       Constants.exchangeForExperiencedUsers(6);
                                     }
@@ -300,14 +296,12 @@ class HiddenSettings extends StatelessWidget {
                                   child: RoundedWhiteContainer(
                                     child: Text(
                                       "Enable exchange",
-                                      style: STextStyles.button(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
+                                      style: STextStyles.button(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .accentColorDark,
-                                      ),
+                                          ),
                                     ),
                                   ),
                                 );
@@ -317,28 +311,56 @@ class HiddenSettings extends StatelessWidget {
                             },
                           ),
                           const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () async {
+                              final tickets = MainDB.instance
+                                  .getShopInBitTickets();
+                              for (final t in tickets) {
+                                await MainDB.instance.deleteShopInBitTicket(
+                                  t.ticketId,
+                                );
+                              }
+                              if (context.mounted) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.success,
+                                    message:
+                                        "Deleted ${tickets.length} ShopInBit ticket(s)",
+                                    context: context,
+                                  ),
+                                );
+                              }
+                            },
+                            child: RoundedWhiteContainer(
+                              child: Text(
+                                "Delete all ShopInBit tickets",
+                                style: STextStyles.button(context).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           Consumer(
                             builder: (_, ref, __) {
                               return GestureDetector(
                                 onTap: () async {
                                   await showDialog<bool>(
                                     context: context,
-                                    builder:
-                                        (_) => TorWarningDialog(
-                                          coin: Stellar(
-                                            CryptoCurrencyNetwork.main,
-                                          ),
-                                        ),
+                                    builder: (_) => TorWarningDialog(
+                                      coin: Stellar(CryptoCurrencyNetwork.main),
+                                    ),
                                   );
                                 },
                                 child: RoundedWhiteContainer(
                                   child: Text(
                                     "Show Tor warning popup",
                                     style: STextStyles.button(context).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
                                     ),
                                   ),
                                 ),
