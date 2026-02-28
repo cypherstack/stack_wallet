@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -18,6 +19,8 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/ethereum_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -39,6 +42,7 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     required this.model,
+    this.tokenContract,
   });
 
   static const String routeName = "/shopInBitConfirmSend";
@@ -47,6 +51,7 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
   final String walletId;
   final String routeOnSuccessName;
   final ShopInBitOrderModel model;
+  final EthContract? tokenContract;
 
   @override
   ConsumerState<ShopInBitConfirmSendView> createState() =>
@@ -62,8 +67,8 @@ class _ShopInBitConfirmSendViewState
   final isDesktop = Util.isDesktop;
 
   Future<void> _attemptSend(BuildContext context) async {
-    final wallet = ref.read(pWallets).getWallet(walletId);
-    final coin = wallet.info.coin;
+    final parentWallet = ref.read(pWallets).getWallet(walletId);
+    final coin = parentWallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
 
@@ -89,6 +94,13 @@ class _ShopInBitConfirmSendViewState
     final String note = widget.txData.note ?? "";
 
     try {
+      final wallet = widget.tokenContract != null
+          ? Wallet.loadTokenWallet(
+              ethWallet: parentWallet as EthereumWallet,
+              contract: widget.tokenContract!,
+            )
+          : parentWallet;
+
       txidFuture = wallet.confirmSend(txData: widget.txData);
 
       unawaited(wallet.refresh());
@@ -109,15 +121,19 @@ class _ShopInBitConfirmSendViewState
 
       // Update model status after successful broadcast
       model.status = ShopInBitOrderStatus.paymentPending;
-      model.paymentMethod = coin.ticker.toUpperCase();
+      model.paymentMethod = widget.tokenContract != null
+          ? widget.tokenContract!.symbol.toUpperCase()
+          : coin.ticker.toUpperCase();
+
+      unawaited(MainDB.instance.putShopInBitTicket(model.toIsarTicket()));
 
       // pop back to wallet
       if (context.mounted) {
-        if (Util.isDesktop) {
-          // pop sending dialog
-          Navigator.of(context, rootNavigator: true).pop();
+        // pop sending dialog (pushed via showDialog which uses root navigator)
+        Navigator.of(context, rootNavigator: true).pop();
 
-          // one day we'll do routing right
+        if (Util.isDesktop) {
+          // pop the confirm send desktop dialog
           Navigator.of(context, rootNavigator: true).pop();
         }
 
@@ -130,8 +146,8 @@ class _ShopInBitConfirmSendViewState
         stackTrace: s,
       );
 
-      // pop sending dialog
-      Navigator.of(context).pop();
+      // pop sending dialog (pushed via showDialog which uses root navigator)
+      Navigator.of(context, rootNavigator: true).pop();
 
       await showDialog<dynamic>(
         context: context,
@@ -297,7 +313,7 @@ class _ShopInBitConfirmSendViewState
                   const AppBarBackButton(isCompact: true, iconSize: 23),
                   const SizedBox(width: 12),
                   Text(
-                    "Confirm ${ref.watch(pWalletCoin(walletId)).ticker} transaction",
+                    "Confirm ${widget.tokenContract?.symbol ?? ref.watch(pWalletCoin(walletId)).ticker} transaction",
                     style: STextStyles.desktopH3(context),
                   ),
                 ],
@@ -373,8 +389,26 @@ class _ShopInBitConfirmSendViewState
                               final coin = ref.read(pWalletCoin(walletId));
                               final fee = widget.txData.fee!;
                               final amount = widget.txData.amountWithoutChange!;
-                              final total = amount + fee;
 
+                              if (widget.tokenContract != null) {
+                                final amountStr =
+                                    "${amount.decimal.toStringAsFixed(widget.tokenContract!.decimals)} ${widget.tokenContract!.symbol}";
+                                final feeStr = ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(fee);
+                                return Text(
+                                  "$amountStr + $feeStr",
+                                  style: STextStyles.itemSubtitle12(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textConfirmTotalAmount,
+                                      ),
+                                  textAlign: TextAlign.right,
+                                );
+                              }
+
+                              final total = amount + fee;
                               return Text(
                                 ref.watch(pAmountFormatter(coin)).format(total),
                                 style: STextStyles.itemSubtitle12(context)
@@ -434,7 +468,7 @@ class _ShopInBitConfirmSendViewState
                 ),
               ),
               child: Text(
-                "Send ${ref.watch(pWalletCoin(walletId)).ticker}",
+                "Send ${widget.tokenContract?.symbol ?? ref.watch(pWalletCoin(walletId)).ticker}",
                 style: isDesktop
                     ? STextStyles.desktopTextMedium(context)
                     : STextStyles.pageTitleH1(context),
@@ -455,7 +489,9 @@ class _ShopInBitConfirmSendViewState
                   Text("Send from", style: STextStyles.smallMed12(context)),
                   const SizedBox(height: 4),
                   Text(
-                    ref.watch(pWalletName(walletId)),
+                    widget.tokenContract != null
+                        ? "${ref.watch(pWalletName(walletId))} (${widget.tokenContract!.symbol})"
+                        : ref.watch(pWalletName(walletId)),
                     style: STextStyles.itemSubtitle12(context),
                   ),
                 ],
@@ -503,59 +539,64 @@ class _ShopInBitConfirmSendViewState
                     builder: (child) => Row(
                       children: [
                         child,
-                        Builder(
-                          builder: (context) {
-                            final coin = ref.watch(pWalletCoin(walletId));
-                            final price = ref.watch(
-                              priceAnd24hChangeNotifierProvider.select(
-                                (value) => value.getPrice(coin),
-                              ),
-                            );
-                            final String extra;
-                            if (price == null) {
-                              extra = "";
-                            } else {
-                              final amountWithoutChange =
-                                  widget.txData.amountWithoutChange!;
-                              final value =
-                                  (price.value * amountWithoutChange.decimal)
-                                      .toAmount(fractionDigits: 2);
-                              final currency = ref.watch(
-                                prefsChangeNotifierProvider.select(
-                                  (value) => value.currency,
+                        if (widget.tokenContract == null)
+                          Builder(
+                            builder: (context) {
+                              final coin = ref.watch(pWalletCoin(walletId));
+                              final price = ref.watch(
+                                priceAnd24hChangeNotifierProvider.select(
+                                  (value) => value.getPrice(coin),
                                 ),
                               );
-                              final locale = ref.watch(
-                                localeServiceChangeNotifierProvider.select(
-                                  (value) => value.locale,
-                                ),
-                              );
-
-                              extra =
-                                  " | ${value.fiatString(locale: locale)} $currency";
-                            }
-
-                            return Text(
-                              extra,
-                              style:
-                                  STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textSubtitle2,
+                              final String extra;
+                              if (price == null) {
+                                extra = "";
+                              } else {
+                                final amountWithoutChange =
+                                    widget.txData.amountWithoutChange!;
+                                final value =
+                                    (price.value * amountWithoutChange.decimal)
+                                        .toAmount(fractionDigits: 2);
+                                final currency = ref.watch(
+                                  prefsChangeNotifierProvider.select(
+                                    (value) => value.currency,
                                   ),
-                            );
-                          },
-                        ),
+                                );
+                                final locale = ref.watch(
+                                  localeServiceChangeNotifierProvider.select(
+                                    (value) => value.locale,
+                                  ),
+                                );
+
+                                extra =
+                                    " | ${value.fiatString(locale: locale)} $currency";
+                              }
+
+                              return Text(
+                                extra,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textSubtitle2,
+                                    ),
+                              );
+                            },
+                          ),
                       ],
                     ),
                     child: Text(
-                      ref
-                          .watch(
-                            pAmountFormatter(ref.watch(pWalletCoin(walletId))),
-                          )
-                          .format(widget.txData.amountWithoutChange!),
+                      widget.tokenContract != null
+                          ? "${widget.txData.amountWithoutChange!.decimal.toStringAsFixed(widget.tokenContract!.decimals)} ${widget.tokenContract!.symbol}"
+                          : ref
+                                .watch(
+                                  pAmountFormatter(
+                                    ref.watch(pWalletCoin(walletId)),
+                                  ),
+                                )
+                                .format(widget.txData.amountWithoutChange!),
                       style: STextStyles.itemSubtitle12(context),
                       textAlign: TextAlign.right,
                     ),
@@ -655,8 +696,25 @@ class _ShopInBitConfirmSendViewState
                         final coin = ref.watch(pWalletCoin(walletId));
                         final fee = widget.txData.fee!;
                         final amount = widget.txData.amountWithoutChange!;
-                        final total = amount + fee;
 
+                        if (widget.tokenContract != null) {
+                          final amountStr =
+                              "${amount.decimal.toStringAsFixed(widget.tokenContract!.decimals)} ${widget.tokenContract!.symbol}";
+                          final feeStr = ref
+                              .watch(pAmountFormatter(coin))
+                              .format(fee);
+                          return Text(
+                            "$amountStr + $feeStr",
+                            style: STextStyles.itemSubtitle12(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textConfirmTotalAmount,
+                            ),
+                            textAlign: TextAlign.right,
+                          );
+                        }
+
+                        final total = amount + fee;
                         return Text(
                           ref.watch(pAmountFormatter(coin)).format(total),
                           style: STextStyles.itemSubtitle12(context).copyWith(

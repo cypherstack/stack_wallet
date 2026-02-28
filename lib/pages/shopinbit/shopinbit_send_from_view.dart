@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -20,10 +22,13 @@ import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
+import '../../wallets/wallet/impl/ethereum_wallet.dart';
 import '../../wallets/wallet/intermediate/external_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -31,6 +36,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../../pages_desktop_specific/desktop_home_view.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import 'shopinbit_confirm_send_view.dart';
@@ -43,6 +49,7 @@ class ShopInBitSendFromView extends ConsumerStatefulWidget {
     this.amount,
     required this.address,
     this.shouldPopRoot = false,
+    this.tokenContract,
   });
 
   static const String routeName = "/shopInBitSendFrom";
@@ -52,6 +59,7 @@ class ShopInBitSendFromView extends ConsumerStatefulWidget {
   final String address;
   final ShopInBitOrderModel model;
   final bool shouldPopRoot;
+  final EthContract? tokenContract;
 
   @override
   ConsumerState<ShopInBitSendFromView> createState() =>
@@ -63,6 +71,7 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
   late final Amount? amount;
   late final String address;
   late final ShopInBitOrderModel model;
+  late final EthContract? tokenContract;
 
   @override
   void initState() {
@@ -70,17 +79,32 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
     address = widget.address;
     amount = widget.amount;
     model = widget.model;
+    tokenContract = widget.tokenContract;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final walletIds = ref
-        .watch(pWallets)
-        .wallets
-        .where((e) => e.info.coin == coin)
-        .map((e) => e.walletId)
-        .toList();
+    final List<String> walletIds;
+    if (tokenContract != null) {
+      walletIds = ref
+          .watch(pWallets)
+          .wallets
+          .where(
+            (w) =>
+                w.info.coin == coin &&
+                w.info.tokenContractAddresses.contains(tokenContract!.address),
+          )
+          .map((e) => e.walletId)
+          .toList();
+    } else {
+      walletIds = ref
+          .watch(pWallets)
+          .wallets
+          .where((e) => e.info.coin == coin)
+          .map((e) => e.walletId)
+          .toList();
+    }
 
     final isDesktop = Util.isDesktop;
 
@@ -144,7 +168,9 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
               children: [
                 Text(
                   amount != null
-                      ? "You need to send ${ref.watch(pAmountFormatter(coin)).format(amount!)}"
+                      ? tokenContract != null
+                            ? "You need to send ${amount!.decimal.toStringAsFixed(tokenContract!.decimals)} ${tokenContract!.symbol}"
+                            : "You need to send ${ref.watch(pAmountFormatter(coin)).format(amount!)}"
                       : "Select a wallet to pay",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -168,6 +194,7 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
                       amount: amount,
                       address: address,
                       model: model,
+                      tokenContract: tokenContract,
                     ),
                   );
                 },
@@ -187,12 +214,14 @@ class ShopInBitSendFromCard extends ConsumerStatefulWidget {
     this.amount,
     required this.address,
     required this.model,
+    this.tokenContract,
   });
 
   final String walletId;
   final Amount? amount;
   final String address;
   final ShopInBitOrderModel model;
+  final EthContract? tokenContract;
 
   @override
   ConsumerState<ShopInBitSendFromCard> createState() =>
@@ -204,18 +233,21 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
   late final Amount? amount;
   late final String address;
   late final ShopInBitOrderModel model;
+  late final EthContract? tokenContract;
 
   Future<void> _send() async {
     final coin = ref.read(pWalletCoin(walletId));
 
+    final int fractionDigits = tokenContract != null
+        ? tokenContract!.decimals
+        : coin.fractionDigits;
+
     Amount? sendAmount = amount;
     if (sendAmount == null) {
       if (ShopInBitService.instance.client.sandbox) {
-        // Sandbox URIs omit ?amount=, use a small fallback so prepareSend
-        // can build a real transaction for UI testing.
         sendAmount = Amount(
           rawValue: BigInt.from(10000),
-          fractionDigits: coin.fractionDigits,
+          fractionDigits: fractionDigits,
         );
       } else {
         await showDialog<dynamic>(
@@ -250,7 +282,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
     try {
       bool wasCancelled = false;
 
-      final wallet = ref.read(pWallets).getWallet(walletId);
+      final parentWallet = ref.read(pWallets).getWallet(walletId);
 
       unawaited(
         showDialog<dynamic>(
@@ -279,20 +311,37 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
         ),
       );
 
-      if (wallet is ExternalWallet) {
-        await wallet.init();
-        await wallet.open();
+      if (parentWallet is ExternalWallet) {
+        await parentWallet.init();
+        await parentWallet.open();
       }
 
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       TxData txData;
 
+      // Use token wallet for ERC-20 tokens, parent wallet otherwise
+      final wallet = tokenContract != null
+          ? Wallet.loadTokenWallet(
+              ethWallet: parentWallet as EthereumWallet,
+              contract: tokenContract!,
+            )
+          : parentWallet;
+
+      if (tokenContract != null) {
+        await wallet.init();
+      }
+
+      final addressType =
+          wallet.cryptoCurrency.getAddressType(address) ??
+          parentWallet.cryptoCurrency.getAddressType(address) ??
+          AddressType.ethereum;
+
       final recipient = TxRecipient(
         address: address,
         amount: sendAmount,
         isChange: false,
-        addressType: wallet.cryptoCurrency.getAddressType(address)!,
+        addressType: addressType,
       );
 
       final txDataFuture = wallet.prepareSend(
@@ -308,7 +357,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
 
       if (!wasCancelled) {
         if (mounted) {
-          Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+          Navigator.of(context, rootNavigator: true).pop();
         }
 
         txData = txData.copyWith(note: "ShopInBit payment");
@@ -320,8 +369,11 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
               builder: (_) => ShopInBitConfirmSendView(
                 txData: txData,
                 walletId: walletId,
-                routeOnSuccessName: HomeView.routeName,
+                routeOnSuccessName: Util.isDesktop
+                    ? DesktopHomeView.routeName
+                    : HomeView.routeName,
                 model: model,
+                tokenContract: tokenContract,
               ),
               settings: const RouteSettings(
                 name: ShopInBitConfirmSendView.routeName,
@@ -333,7 +385,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
-        Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+        Navigator.of(context, rootNavigator: true).pop();
 
         await showDialog<dynamic>(
           context: context,
@@ -372,6 +424,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
     amount = widget.amount;
     address = widget.address;
     model = widget.model;
+    tokenContract = widget.tokenContract;
     super.initState();
   }
 
@@ -421,16 +474,36 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    ref.watch(pWalletName(walletId)),
+                    tokenContract != null
+                        ? "${ref.watch(pWalletName(walletId))} (${tokenContract!.symbol})"
+                        : ref.watch(pWalletName(walletId)),
                     style: STextStyles.titleBold12(context),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    ref
-                        .watch(pAmountFormatter(coin))
-                        .format(ref.watch(pWalletBalance(walletId)).spendable),
-                    style: STextStyles.itemSubtitle(context),
-                  ),
+                  if (tokenContract != null)
+                    Builder(
+                      builder: (context) {
+                        final balance = ref.watch(
+                          pTokenBalance((
+                            walletId: walletId,
+                            contractAddress: tokenContract!.address,
+                          )),
+                        );
+                        return Text(
+                          "${balance.spendable.decimal.toStringAsFixed(tokenContract!.decimals)} ${tokenContract!.symbol}",
+                          style: STextStyles.itemSubtitle(context),
+                        );
+                      },
+                    )
+                  else
+                    Text(
+                      ref
+                          .watch(pAmountFormatter(coin))
+                          .format(
+                            ref.watch(pWalletBalance(walletId)).spendable,
+                          ),
+                      style: STextStyles.itemSubtitle(context),
+                    ),
                 ],
               ),
             ),

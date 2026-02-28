@@ -9,8 +9,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_config.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/payment.dart';
@@ -20,6 +22,7 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -160,26 +163,98 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
+  Future<void> _checkForPayment() async {
+    _pollTimer?.cancel();
+    setState(() => _loading = true);
+    try {
+      final resp = await ShopInBitService.instance.client.getPayment(
+        widget.model.apiTicketId,
+      );
+      if (!resp.hasError && resp.value != null && mounted) {
+        setState(() => _applyPaymentInfo(resp.value!));
+        final status = resp.value!.status;
+        if (const {
+          'paid',
+          'paid_over',
+          'paid_late',
+          'payment_processing',
+        }.contains(status)) {
+          if (mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.success,
+                message: "Payment received!",
+                context: context,
+              ),
+            );
+          }
+        } else if (status == 'underpaid') {
+          if (mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.warning,
+                message: "Underpaid. Remaining: ${resp.value!.due ?? '?'} EUR.",
+                context: context,
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.info,
+                message: "No payment detected yet.",
+                context: context,
+              ),
+            );
+          }
+        }
+      } else if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: resp.exception?.message ?? "Failed to check payment.",
+            context: context,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e.toString(),
+            context: context,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+        if (!_isTerminal) {
+          _startPolling();
+        }
+      }
+    }
+  }
+
   void _confirmPayment() {
     _pollTimer?.cancel();
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
 
-    // Only BTC and XMR have Stack Wallet coin classes for sending
-    final coin = (ticker == "BTC" || ticker == "XMR")
-        ? AppConfig.getCryptoCurrencyForTicker(ticker)
-        : null;
+    final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
 
-    if (coin != null && _currentAddress.isNotEmpty) {
-      // Try to parse BIP21/Monero URI for address + amount
+    String address = "";
+    Amount? amount;
+    EthContract? tokenContract;
+
+    if (_currentAddress.isNotEmpty) {
       final parsed = AddressUtils.parsePaymentUri(_currentAddress);
 
-      // Extract address: from parsed URI, or strip scheme manually
-      String address;
       if (parsed?.address != null && parsed!.address.isNotEmpty) {
         address = parsed.address;
       } else {
-        // Fallback: strip URI scheme prefix if present
         final raw = _currentAddress;
         final colonIdx = raw.indexOf(':');
         if (colonIdx != -1) {
@@ -191,10 +266,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
         }
       }
 
-      // Try amount from: 1) parsed URI, 2) raw query param, 3) due
       String? amountStr = parsed?.amount;
       if (amountStr == null || amountStr.isEmpty) {
-        // Try extracting from raw URI query string
         final uri = Uri.tryParse(_currentAddress);
         if (uri != null) {
           amountStr = uri.queryParameters['amount'];
@@ -204,52 +277,47 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
         amountStr = _paymentInfo?.due;
       }
 
-      Amount? amount;
+      final int fractionDigits;
+      if (coin != null) {
+        fractionDigits = coin.fractionDigits;
+      } else if (ticker == "USDT") {
+        fractionDigits = 6;
+      } else {
+        fractionDigits = 8;
+      }
+
       if (amountStr != null && amountStr.isNotEmpty) {
         try {
           amount = Amount.fromDecimal(
             Decimal.parse(amountStr),
-            fractionDigits: coin.fractionDigits,
+            fractionDigits: fractionDigits,
           );
-        } catch (_) {
-          // amount stays null
-        }
+        } catch (_) {}
       }
+    }
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitSendFromView(
-              coin: coin,
-              amount: amount,
-              address: address,
-              model: widget.model,
-              shouldPopRoot: true,
-            ),
-          ),
-        );
-      } else {
-        Navigator.of(context).push(
-          RouteGenerator.getRoute<dynamic>(
-            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-            builder: (_) => ShopInBitSendFromView(
-              coin: coin,
-              amount: amount,
-              address: address,
-              model: widget.model,
-            ),
-            settings: const RouteSettings(
-              name: ShopInBitSendFromView.routeName,
-            ),
-          ),
-        );
-      }
+    if (coin != null && address.isNotEmpty) {
+      _navigateToSendFrom(coin: coin, amount: amount, address: address);
       return;
     }
 
-    // USDT or other unsupported coins: keep existing behavior
+    if (ticker == "USDT" && address.isNotEmpty) {
+      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+      tokenContract = ref.read(mainDBProvider).getEthContractSync(usdtAddress);
+      if (tokenContract != null) {
+        final ethCoin = AppConfig.getCryptoCurrencyForTicker("ETH");
+        if (ethCoin != null) {
+          _navigateToSendFrom(
+            coin: ethCoin,
+            amount: amount,
+            address: address,
+            tokenContract: tokenContract,
+          );
+          return;
+        }
+      }
+    }
+
     widget.model.status = ShopInBitOrderStatus.paymentPending;
     widget.model.paymentMethod = method;
 
@@ -257,6 +325,44 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       Navigator.of(context, rootNavigator: true).pop();
     } else {
       Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  void _navigateToSendFrom({
+    required CryptoCurrency coin,
+    required Amount? amount,
+    required String address,
+    EthContract? tokenContract,
+  }) {
+    if (Util.isDesktop) {
+      Navigator.of(context, rootNavigator: true).pop();
+      unawaited(
+        showDialog<void>(
+          context: context,
+          builder: (_) => ShopInBitSendFromView(
+            coin: coin,
+            amount: amount,
+            address: address,
+            model: widget.model,
+            shouldPopRoot: true,
+            tokenContract: tokenContract,
+          ),
+        ),
+      );
+    } else {
+      Navigator.of(context).push(
+        RouteGenerator.getRoute<dynamic>(
+          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+          builder: (_) => ShopInBitSendFromView(
+            coin: coin,
+            amount: amount,
+            address: address,
+            model: widget.model,
+            tokenContract: tokenContract,
+          ),
+          settings: const RouteSettings(name: ShopInBitSendFromView.routeName),
+        ),
+      );
     }
   }
 
@@ -273,6 +379,30 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
+    final ticker = _selectedMethod < _methods.length
+        ? _methods[_selectedMethod].toUpperCase()
+        : "";
+
+    bool hasWallets = false;
+    if (ticker == "USDT") {
+      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+      hasWallets = ref
+          .watch(pWallets)
+          .wallets
+          .any(
+            (w) =>
+                w.info.coin is Ethereum &&
+                w.info.tokenContractAddresses.contains(usdtAddress),
+          );
+    } else {
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      if (coin != null) {
+        hasWallets = ref
+            .watch(pWallets)
+            .wallets
+            .any((e) => e.info.coin == coin);
+      }
+    }
 
     const loadingOverlay = Center(
       child: SizedBox(
@@ -585,9 +715,11 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
         ),
         SizedBox(height: isDesktop ? 16 : 12),
         PrimaryButton(
-          label: "PAY NOW",
+          label: hasWallets ? "PAY NOW" : "CHECK FOR PAYMENT",
           enabled: _payNowEnabled,
-          onPressed: _payNowEnabled ? _confirmPayment : null,
+          onPressed: _payNowEnabled
+              ? (hasWallets ? _confirmPayment : _checkForPayment)
+              : null,
         ),
       ],
     );
