@@ -14,6 +14,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../shopinbit/shopinbit_settings_view.dart';
 import '../shopinbit/shopinbit_step_1.dart';
 import '../shopinbit/shopinbit_tickets_view.dart';
 
@@ -184,9 +185,26 @@ class _ServicesViewState extends State<ServicesView> {
                           height: 32,
                         ),
                         const SizedBox(width: 12),
-                        Text(
-                          "ShopInBit",
-                          style: STextStyles.titleBold12(context),
+                        Expanded(
+                          child: Text(
+                            "ShopInBit",
+                            style: STextStyles.titleBold12(context),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).pushNamed(ShopInBitSettingsView.routeName);
+                          },
+                          child: SvgPicture.asset(
+                            Assets.svg.gear,
+                            width: 20,
+                            height: 20,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark3,
+                          ),
                         ),
                       ],
                     ),

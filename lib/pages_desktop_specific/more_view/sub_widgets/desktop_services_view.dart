@@ -1,30 +1,35 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../app_config.dart';
 import '../../../db/isar/main_db.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
-import '../../../themes/stack_colors.dart';
+import '../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../desktop_menu.dart';
+import '../../settings/settings_menu.dart';
 
-class DesktopServicesView extends StatefulWidget {
+class DesktopServicesView extends ConsumerStatefulWidget {
   const DesktopServicesView({super.key});
 
   static const String routeName = "/desktopServicesView";
 
   @override
-  State<DesktopServicesView> createState() => _DesktopServicesViewState();
+  ConsumerState<DesktopServicesView> createState() =>
+      _DesktopServicesViewState();
 }
 
-class _DesktopServicesViewState extends State<DesktopServicesView> {
+class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
   Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
     final uri = Uri.parse(url);
     final shouldContinue = await showDialog<bool>(
@@ -273,6 +278,27 @@ class _DesktopServicesViewState extends State<DesktopServicesView> {
                               if (mounted) setState(() {});
                             },
                           );
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      SecondaryButton(
+                        width: 140,
+                        buttonHeight: ButtonHeight.m,
+                        label: "Settings",
+                        onPressed: () {
+                          // ShopInBit is the last settings menu item.
+                          var idx = 8;
+                          if (AppConfig.hasFeature(AppFeature.themeSelection)) {
+                            idx++;
+                          }
+                          ref
+                                  .read(
+                                    selectedSettingsMenuItemStateProvider.state,
+                                  )
+                                  .state =
+                              idx;
+                          ref.read(currentDesktopMenuItemProvider.state).state =
+                              DesktopMenuItemId.settings;
                         },
                       ),
                     ],

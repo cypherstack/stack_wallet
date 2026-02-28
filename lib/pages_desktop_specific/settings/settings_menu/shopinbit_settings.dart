@@ -11,7 +11,10 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 
@@ -135,50 +138,78 @@ class _ShopInBitDesktopSettingsState
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AlertDialog(
-        title: Text(
-          "Save your current key",
-          style: STextStyles.desktopH3(context),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (ctx) => DesktopDialog(
+        maxWidth: 550,
+        maxHeight: double.infinity,
+        child: Column(
           children: [
-            Text(
-              "Your current customer key is:",
-              style: STextStyles.desktopTextExtraExtraSmall(context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    "Save your current key",
+                    style: STextStyles.desktopH3(ctx),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
             ),
-            const SizedBox(height: 8),
-            SelectableText(
-              _currentKey!,
-              style: STextStyles.desktopTextSmall(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "Changing your key will disconnect you from existing "
-              "ShopInBit conversations. Make sure you have saved "
-              "your current key before proceeding.",
-              style: STextStyles.desktopTextExtraExtraSmall(context),
+            Padding(
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Your current customer key is:",
+                    style: STextStyles.desktopTextExtraExtraSmall(ctx),
+                  ),
+                  const SizedBox(height: 8),
+                  RoundedWhiteContainer(
+                    borderColor: Theme.of(
+                      ctx,
+                    ).extension<StackColors>()!.textSubtitle6,
+                    child: SelectableText(
+                      _currentKey!,
+                      style: STextStyles.desktopTextSmall(ctx),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Changing your key will disconnect you from "
+                    "existing ShopInBit conversations. Make sure "
+                    "you have saved your current key before "
+                    "proceeding.",
+                    style: STextStyles.desktopTextExtraExtraSmall(ctx),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          label: "Cancel",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () =>
+                              Navigator.of(ctx, rootNavigator: true).pop(false),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "I saved my key",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () =>
+                              Navigator.of(ctx, rootNavigator: true).pop(null),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              "Cancel",
-              style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: Text("I saved my key", style: STextStyles.button(context)),
-          ),
-        ],
       ),
     );
 
@@ -196,56 +227,87 @@ class _ShopInBitDesktopSettingsState
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             final matches = _verifyKeyController.text.trim() == _currentKey;
-            return AlertDialog(
-              title: Text("Verify your key", style: STextStyles.desktopH3(ctx)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            return DesktopDialog(
+              maxWidth: 550,
+              maxHeight: double.infinity,
+              child: Column(
                 children: [
-                  Text(
-                    "Enter your current customer key to confirm "
-                    "you have saved it.",
-                    style: STextStyles.desktopTextExtraExtraSmall(ctx),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: 400,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: TextField(
-                        controller: _verifyKeyController,
-                        focusNode: _verifyKeyFocusNode,
-                        style: STextStyles.field(ctx),
-                        decoration: standardInputDecoration(
-                          "Enter current key",
-                          _verifyKeyFocusNode,
-                          ctx,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          "Verify your key",
+                          style: STextStyles.desktopH3(ctx),
                         ),
-                        onChanged: (_) => setDialogState(() {}),
                       ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                      right: 32,
+                      bottom: 32,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Enter your current customer key to "
+                          "confirm you have saved it.",
+                          style: STextStyles.desktopTextExtraExtraSmall(ctx),
+                        ),
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            controller: _verifyKeyController,
+                            focusNode: _verifyKeyFocusNode,
+                            style: STextStyles.field(ctx),
+                            decoration: standardInputDecoration(
+                              "Enter current key",
+                              _verifyKeyFocusNode,
+                              ctx,
+                            ),
+                            onChanged: (_) => setDialogState(() {}),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SecondaryButton(
+                                label: "Cancel",
+                                buttonHeight: ButtonHeight.l,
+                                onPressed: () => Navigator.of(
+                                  ctx,
+                                  rootNavigator: true,
+                                ).pop(false),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: PrimaryButton(
+                                label: "Confirm",
+                                buttonHeight: ButtonHeight.l,
+                                enabled: matches,
+                                onPressed: () => Navigator.of(
+                                  ctx,
+                                  rootNavigator: true,
+                                ).pop(true),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(
-                    "Cancel",
-                    style: STextStyles.button(ctx).copyWith(
-                      color: Theme.of(
-                        ctx,
-                      ).extension<StackColors>()!.accentColorDark,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: matches ? () => Navigator.of(ctx).pop(true) : null,
-                  child: Text("Confirm", style: STextStyles.button(ctx)),
-                ),
-              ],
             );
           },
         );

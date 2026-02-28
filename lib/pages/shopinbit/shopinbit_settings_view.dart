@@ -138,33 +138,76 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (context) => StackDialog(
-        title: "Save your current key",
-        message:
-            "Your current customer key is:\n\n$_currentKey\n\n"
-            "Changing your key will disconnect you from existing "
-            "ShopInBit conversations. Make sure you have saved your "
-            "current key before proceeding.",
-        leftButton: TextButton(
-          style: Theme.of(
-            context,
-          ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(
-            "Cancel",
-            style: STextStyles.button(context).copyWith(
+      builder: (context) => StackDialogBase(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Save your current key",
+              style: STextStyles.pageTitleH2(context),
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              "Your current customer key is:",
+              style: STextStyles.smallMed14(context),
+            ),
+            const SizedBox(height: 8),
+            RoundedContainer(
               color: Theme.of(
                 context,
-              ).extension<StackColors>()!.accentColorDark,
+              ).extension<StackColors>()!.warningBackground,
+              child: SelectableText(
+                _currentKey!,
+                style: STextStyles.smallMed14(context).copyWith(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.warningForeground,
+                ),
+              ),
             ),
-          ),
-        ),
-        rightButton: TextButton(
-          style: Theme.of(
-            context,
-          ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
-          onPressed: () => Navigator.of(context).pop(null),
-          child: Text("I saved my key", style: STextStyles.button(context)),
+            const SizedBox(height: 8),
+            SelectableText(
+              "Changing your key will disconnect you from "
+              "existing ShopInBit conversations. Make sure "
+              "you have saved your current key before "
+              "proceeding.",
+              style: STextStyles.smallMed14(context),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(
+                      "Cancel",
+                      style: STextStyles.button(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context),
+                    onPressed: () => Navigator.of(context).pop(null),
+                    child: Text(
+                      "I saved my key",
+                      style: STextStyles.button(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -183,14 +226,18 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             final matches = _verifyKeyController.text.trim() == _currentKey;
-            return StackDialog(
-              title: "Verify your key",
-              message:
-                  "Enter your current customer key to confirm "
-                  "you have saved it.",
-              leftButton: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            return StackDialogBase(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text("Verify your key", style: STextStyles.pageTitleH2(ctx)),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Enter your current customer key to "
+                    "confirm you have saved it.",
+                    style: STextStyles.smallMed14(ctx),
+                  ),
+                  const SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -207,7 +254,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                       onChanged: (_) => setDialogState(() {}),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
