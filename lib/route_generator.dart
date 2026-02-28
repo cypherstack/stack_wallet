@@ -97,6 +97,7 @@ import 'pages/shopinbit/shopinbit_step_4.dart';
 import 'pages/shopinbit/shopinbit_ticket_detail.dart';
 import 'pages/shopinbit/shopinbit_tickets_view.dart';
 import 'pages/shopinbit/shopinbit_order_created.dart';
+import 'pages/shopinbit/shopinbit_settings_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/manage_domain_view.dart';
@@ -244,6 +245,7 @@ import 'pages_desktop_specific/settings/settings_menu/desktop_support_view.dart'
 import 'pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
+import 'pages_desktop_specific/settings/settings_menu/shopinbit_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
@@ -1114,6 +1116,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const ShopInBitTicketsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitSettingsView(),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -2627,6 +2636,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AdvancedSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitDesktopSettings.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitDesktopSettings(),
           settings: RouteSettings(name: settings.name),
         );
 

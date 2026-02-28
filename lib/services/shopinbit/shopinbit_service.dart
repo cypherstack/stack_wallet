@@ -20,6 +20,20 @@ class ShopInBitService {
 
   String? get customerKey => _customerKey;
 
+  String? loadCustomerKey() {
+    if (_customerKey != null) return _customerKey;
+    _customerKey =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "shopInBitCustomerKey",
+            )
+            as String?;
+    if (_customerKey != null) {
+      client.externalCustomerKey = _customerKey;
+    }
+    return _customerKey;
+  }
+
   Future<String> ensureCustomerKey() async {
     if (_customerKey != null) return _customerKey!;
     _customerKey =
