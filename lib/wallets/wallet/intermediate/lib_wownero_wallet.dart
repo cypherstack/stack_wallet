@@ -85,30 +85,9 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     ) async {
       await updateNode();
     });
-
-    // Potentially dangerous hack. See comments in _startInit()
-    _startInit();
   }
-  // cw based wallet listener to handle synchronization of utxo frozen states
-  late final StreamSubscription<List<UTXO>> _streamSub;
-  Future<void> _startInit() async {
-    // Delay required as `mainDB` is not initialized in constructor.
-    // This is a hack and could lead to a race condition.
-    Future.delayed(const Duration(seconds: 2), () {
-      _streamSub = mainDB.isar.utxos
-          .where()
-          .walletIdEqualTo(walletId)
-          .watch(fireImmediately: true)
-          .listen((utxos) async {
-            try {
-              await onUTXOsChanged(utxos);
-              await updateBalance(shouldUpdateUtxos: false);
-            } catch (e, s) {
-              Logging.instance.e("_startInit", error: e, stackTrace: s);
-            }
-          });
-    });
-  }
+  // Listener to handle synchronization of utxo frozen states.
+  StreamSubscription<List<UTXO>>? _utxoStreamSub;
 
   final lib_monero_compat.WalletType compatType;
 
@@ -242,6 +221,19 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     _setListener();
     csWownero.startListeners(wallet!);
     csWownero.startAutoSaving(wallet!);
+
+    _utxoStreamSub ??= mainDB.isar.utxos
+        .where()
+        .walletIdEqualTo(walletId)
+        .watch(fireImmediately: true)
+        .listen((utxos) async {
+          try {
+            await onUTXOsChanged(utxos);
+            await updateBalance(shouldUpdateUtxos: false);
+          } catch (e, s) {
+            Logging.instance.e("utxo stream error", error: e, stackTrace: s);
+          }
+        });
 
     unawaited(refresh());
   }
