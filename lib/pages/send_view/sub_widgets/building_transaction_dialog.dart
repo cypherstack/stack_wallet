@@ -116,7 +116,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                               style: STextStyles.itemSubtitle12(context),
                             ),
                             onPressed: () {
-                              Navigator.of(context).pop();
                               onCancel.call();
                             },
                           ),
@@ -141,7 +140,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                     style: STextStyles.itemSubtitle12(context),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pop();
                     onCancel.call();
                   },
                 ),
