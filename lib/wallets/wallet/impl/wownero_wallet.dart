@@ -1,15 +1,10 @@
-import 'dart:async';
-
 import 'package:compat/compat.dart' as lib_monero_compat;
 
-import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
-import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../wl_gen/interfaces/cs_salvium_interface.dart'
     show WrappedWallet;
 import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
-import '../../models/tx_data.dart';
 import '../intermediate/lib_wownero_wallet.dart';
 
 class WowneroWallet extends LibWowneroWallet {
@@ -22,67 +17,19 @@ class WowneroWallet extends LibWowneroWallet {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
-    FeeRateType feeRateType = FeeRateType.slow;
-    switch (feeRate.toInt()) {
-      case 1:
-        feeRateType = FeeRateType.average;
-        break;
-      case 2:
-        feeRateType = FeeRateType.average;
-        break;
-      case 3:
-        feeRateType = FeeRateType.fast;
-        break;
-      case 4:
-        feeRateType = FeeRateType.fast;
-        break;
-      case 0:
-      default:
-        feeRateType = FeeRateType.slow;
-        break;
-    }
-
-    dynamic approximateFee;
+    int approximateFee = 0;
     await estimateFeeMutex.protect(() async {
-      {
-        try {
-          final data = await prepareSend(
-            txData: TxData(
-              recipients: [
-                // This address is only used for getting an approximate fee, never for sending
-                TxRecipient(
-                  address:
-                      "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
-                  amount: amount,
-                  isChange: false,
-                  addressType: AddressType.cryptonote,
-                ),
-              ],
-              feeRateType: feeRateType,
-            ),
-          );
-          approximateFee = data.fee!;
-
-          // unsure why this delay?
-          await Future<void>.delayed(const Duration(milliseconds: 500));
-        } catch (e) {
-          approximateFee = await csWownero.estimateFee(
-            feeRate.toInt(),
-            amount.raw,
-            wallet: wallet!,
-          );
-        }
-      }
+      approximateFee = await csWownero.estimateFee(
+        feeRate.toInt(),
+        amount.raw,
+        wallet: wallet!,
+      );
     });
 
-    if (approximateFee is Amount) {
-      return approximateFee as Amount;
-    } else {
-      return Amount(
-        rawValue: BigInt.from(approximateFee as int),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-    }
+    return Amount(
+      rawValue: BigInt.from(approximateFee),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
   }
 
   @override
