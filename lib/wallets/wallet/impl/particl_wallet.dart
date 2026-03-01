@@ -73,34 +73,36 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     String? blockedReason;
     String? utxoLabel;
 
+    // Only check the specific output this UTXO corresponds to, not all outputs.
+    final vout = jsonUTXO["tx_pos"] as int;
     final outputs = jsonTX["vout"] as List? ?? [];
 
-    for (final output in outputs) {
-      if (output is Map) {
-        if (output['ct_fee'] != null) {
-          // Blind output, ignore for now.
+    final output = outputs.cast<Map<String, dynamic>?>().firstWhere(
+      (e) => e?["n"] == vout,
+      orElse: () => null,
+    );
+
+    if (output != null) {
+      if (output['ct_fee'] != null) {
+        blocked = true;
+        blockedReason = "Blind output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['rangeproof'] != null) {
+        blocked = true;
+        blockedReason = "Confidential output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['data_hex'] != null) {
+        blocked = true;
+        blockedReason = "Data output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['scriptPubKey'] != null) {
+        if (output['scriptPubKey']?['asm'] is String &&
+            (output['scriptPubKey']['asm'] as String).contains(
+              "OP_ISCOINSTAKE",
+            )) {
           blocked = true;
-          blockedReason = "Blind output.";
+          blockedReason = "Spending staking";
           utxoLabel = "Unsupported output type.";
-        } else if (output['rangeproof'] != null) {
-          // Private RingCT output, ignore for now.
-          blocked = true;
-          blockedReason = "Confidential output.";
-          utxoLabel = "Unsupported output type.";
-        } else if (output['data_hex'] != null) {
-          // Data output, ignore for now.
-          blocked = true;
-          blockedReason = "Data output.";
-          utxoLabel = "Unsupported output type.";
-        } else if (output['scriptPubKey'] != null) {
-          if (output['scriptPubKey']?['asm'] is String &&
-              (output['scriptPubKey']['asm'] as String).contains(
-                "OP_ISCOINSTAKE",
-              )) {
-            blocked = true;
-            blockedReason = "Spending staking";
-            utxoLabel = "Unsupported output type.";
-          }
         }
       }
     }
