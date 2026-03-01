@@ -73,9 +73,9 @@ class _SalviumCreateStakeViewState
     if (_lock) return;
     _lock = true;
 
-    try {
-      bool wasCancelled = false;
+    bool wasCancelled = false;
 
+    try {
       unawaited(
         showDialog<dynamic>(
           context: context,
@@ -169,7 +169,7 @@ class _SalviumCreateStakeViewState
     } catch (e, s) {
       Logging.instance.e("Salvium stake preview: ", error: e, stackTrace: s);
 
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
 

@@ -225,9 +225,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   Future<void> _send({bool? shouldSendPublicFiroFunds}) async {
     final coin = ref.read(pWalletCoin(walletId));
 
-    try {
-      bool wasCancelled = false;
+    bool wasCancelled = false;
 
+    try {
       final wallet = ref.read(pWallets).getWallet(walletId);
 
       unawaited(
@@ -362,7 +362,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
 

@@ -867,9 +867,9 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     }
 
-    try {
-      bool wasCancelled = false;
+    bool wasCancelled = false;
 
+    try {
       if (mounted) {
         unawaited(
           showDialog<void>(
@@ -1084,7 +1084,7 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();
 
