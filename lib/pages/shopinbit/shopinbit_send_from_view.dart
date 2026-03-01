@@ -279,9 +279,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
       }
     }
 
-    try {
-      bool wasCancelled = false;
+    bool wasCancelled = false;
 
+    try {
       final parentWallet = ref.read(pWallets).getWallet(walletId);
 
       unawaited(
@@ -384,7 +384,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         Navigator.of(context, rootNavigator: true).pop();
 
         await showDialog<dynamic>(

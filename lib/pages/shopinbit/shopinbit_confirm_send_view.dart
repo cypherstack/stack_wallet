@@ -146,36 +146,38 @@ class _ShopInBitConfirmSendViewState
         stackTrace: s,
       );
 
-      // pop sending dialog (pushed via showDialog which uses root navigator)
-      Navigator.of(context, rootNavigator: true).pop();
+      if (context.mounted) {
+        // pop sending dialog (pushed via showDialog which uses root navigator)
+        Navigator.of(context, rootNavigator: true).pop();
 
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return StackDialog(
-            title: "Broadcast transaction failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+        await showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return StackDialog(
+              title: "Broadcast transaction failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.buttonTextSecondary,
+                  ),
                 ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
+      }
     }
   }
 
@@ -199,7 +201,10 @@ class _ShopInBitConfirmSendViewState
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
-                child: DesktopAuthSend(coin: coin),
+                child: DesktopAuthSend(
+                  coin: coin,
+                  tokenTicker: widget.tokenContract?.symbol,
+                ),
               ),
             ],
           ),
