@@ -451,7 +451,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigHex: txb.inputs[i].script?.toHex,
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
