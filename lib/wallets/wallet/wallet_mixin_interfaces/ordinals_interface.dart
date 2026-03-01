@@ -1,53 +1,73 @@
 import 'package:isar_community/isar.dart';
 
 import '../../../dto/ordinals/inscription_data.dart';
-import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/isar/ordinal.dart';
-import '../../../services/litescribe_api.dart';
+import '../../../services/ord_api.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'electrumx_interface.dart';
 
 mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T> {
-  final LitescribeAPI _litescribeAPI = LitescribeAPI(
-    baseUrl: 'https://litescribe.io/api',
-  );
+  /// Subclasses must provide the base URL for their ord server.
+  /// e.g. 'https://ord-litecoin.stackwallet.com'
+  String get ordServerBaseUrl;
 
-  // check if an inscription is in a given <UTXO> output
-  Future<bool> _inscriptionInAddress(String address) async {
+  late final OrdAPI _ordAPI = OrdAPI(baseUrl: ordServerBaseUrl);
+
+  /// Check whether a specific output contains inscriptions.
+  Future<bool> _inscriptionInOutput(String txid, int vout) async {
     try {
-      return (await _litescribeAPI.getInscriptionsByAddress(
-        address,
-      )).isNotEmpty;
+      final ids = await _ordAPI.getInscriptionIdsForOutput(txid, vout);
+      return ids.isNotEmpty;
     } catch (e, s) {
-      Logging.instance.e("Litescribe api failure!", error: e, stackTrace: s);
-
+      Logging.instance.e(
+        "Ord API output check failure!",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
 
-  Future<void> refreshInscriptions({
-    List<String>? overrideAddressesToCheck,
-  }) async {
+  Future<void> refreshInscriptions() async {
     try {
-      final uniqueAddresses =
-          overrideAddressesToCheck ??
-          await mainDB
-              .getUTXOs(walletId)
-              .filter()
-              .addressIsNotNull()
-              .distinctByAddress()
-              .addressProperty()
-              .findAll();
-      final inscriptions = await _getInscriptionDataFromAddresses(
-        uniqueAddresses.cast<String>(),
-      );
+      final utxos = await mainDB.getUTXOs(walletId).findAll();
 
-      final ords =
-          inscriptions
-              .map((e) => Ordinal.fromInscriptionData(e, walletId))
-              .toList();
+      final List<InscriptionData> allInscriptions = [];
+
+      for (final utxo in utxos) {
+        try {
+          final ids = await _ordAPI.getInscriptionIdsForOutput(
+            utxo.txid,
+            utxo.vout,
+          );
+
+          for (final inscriptionId in ids) {
+            try {
+              final json = await _ordAPI.getInscriptionData(inscriptionId);
+              allInscriptions.add(
+                InscriptionData.fromOrdJson(
+                  json,
+                  _ordAPI.contentUrl(inscriptionId),
+                ),
+              );
+            } catch (e) {
+              Logging.instance.w(
+                "Failed to fetch inscription $inscriptionId: $e",
+              );
+            }
+          }
+        } catch (e) {
+          Logging.instance.w(
+            "Failed to check output ${utxo.txid}:${utxo.vout}: $e",
+          );
+        }
+      }
+
+      final ords = allInscriptions
+          .map((e) => Ordinal.fromInscriptionData(e, walletId))
+          .toList();
 
       await mainDB.isar.writeTxn(() async {
         await mainDB.isar.ordinals
@@ -65,6 +85,7 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
       );
     }
   }
+
   // =================== Overrides =============================================
 
   @override
@@ -79,58 +100,20 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
     String? blockReason;
     String? label;
 
+    final txid = jsonTX["txid"] as String;
+    final vout = jsonUTXO["tx_pos"] as int;
     final utxoAmount = jsonUTXO["value"] as int;
 
-    // TODO: [prio=med] check following 3 todos
-
-    // TODO check the specific output, not just the address in general
-    // TODO optimize by freezing output in OrdinalsInterface, so one ordinal API calls is made (or at least many less)
-    if (utxoOwnerAddress != null &&
-        await _inscriptionInAddress(utxoOwnerAddress)) {
+    if (await _inscriptionInOutput(txid, vout)) {
       shouldBlock = true;
       blockReason = "Ordinal";
-      label = "Ordinal detected at address";
-    } else {
-      // TODO implement inscriptionInOutput
-      if (utxoAmount <= 10000) {
-        shouldBlock = true;
-        blockReason = "May contain ordinal";
-        label = "Possible ordinal";
-      }
+      label = "Ordinal detected at output";
+    } else if (utxoAmount <= 10000) {
+      shouldBlock = true;
+      blockReason = "May contain ordinal";
+      label = "Possible ordinal";
     }
 
     return (blockedReason: blockReason, blocked: shouldBlock, utxoLabel: label);
-  }
-
-  @override
-  Future<bool> updateUTXOs() async {
-    final newUtxosAdded = await super.updateUTXOs();
-    if (newUtxosAdded) {
-      try {
-        await refreshInscriptions();
-      } catch (_) {
-        // do nothing but do not block/fail this updateUTXOs call based on litescribe call failures
-      }
-    }
-
-    return newUtxosAdded;
-  }
-
-  // ===================== Private =============================================
-  Future<List<InscriptionData>> _getInscriptionDataFromAddresses(
-    List<String> addresses,
-  ) async {
-    final List<InscriptionData> allInscriptions = [];
-    for (final String address in addresses) {
-      try {
-        final inscriptions = await _litescribeAPI.getInscriptionsByAddress(
-          address,
-        );
-        allInscriptions.addAll(inscriptions);
-      } catch (e) {
-        throw Exception("Error fetching inscriptions for address $address: $e");
-      }
-    }
-    return allInscriptions;
   }
 }
