@@ -42,6 +42,7 @@ Future<T?> showLoading<T>({
   unawaited(
     showDialog<void>(
       context: context,
+      useRootNavigator: rootNavigator,
       barrierDismissible: false,
       builder: (_) => WillPopScope(
         onWillPop: () async => false,
