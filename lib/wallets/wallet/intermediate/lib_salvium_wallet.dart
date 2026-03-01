@@ -228,9 +228,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       try {
         _setSyncStatus(ConnectingSyncStatus());
         csSalvium.startSyncing(wallet!);
-      } catch (_) {
+      } catch (e, s) {
         _setSyncStatus(FailedSyncStatus());
-        // TODO log
+        Logging.instance.w("startSyncing failed", error: e, stackTrace: s);
       }
     }
     _setListener();
@@ -356,7 +356,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         await csSalvium.close(wallet, save: true);
         this.wallet = null;
       } catch (e, s) {
-        Logging.instance.f("", error: e, stackTrace: s);
+        Logging.instance.f("wallet init failed", error: e, stackTrace: s);
       }
     }
 
@@ -444,7 +444,11 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
             isar: mainDB.isar,
           );
         } catch (e, s) {
-          Logging.instance.f("", error: e, stackTrace: s);
+          Logging.instance.f(
+            "recoverFromMnemonic failed",
+            error: e,
+            stackTrace: s,
+          );
           rethrow;
         }
         await updateNode();
@@ -690,7 +694,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         rawValue: csSalvium.getUnlockedBalance(wallet!)!,
         fractionDigits: cryptoCurrency.fractionDigits,
       );
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.w(
+        "availableBalance failed, returning cached",
+        error: e,
+        stackTrace: s,
+      );
       return info.cachedBalance.spendable;
     }
   }
@@ -719,7 +728,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       }
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.w(
+        "totalBalance failed, returning cached",
+        error: e,
+        stackTrace: s,
+      );
       return info.cachedBalance.total;
     }
   }

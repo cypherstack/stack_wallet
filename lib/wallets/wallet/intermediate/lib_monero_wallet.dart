@@ -232,9 +232,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       try {
         _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
         await csMonero.startSyncing(wallet!);
-      } catch (_) {
+      } catch (e, s) {
         _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        // TODO log
+        Logging.instance.w("startSyncing failed", error: e, stackTrace: s);
       }
     }
     _setListener();
@@ -378,7 +378,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         await csMonero.close(wallet, save: true);
         this.wallet = null;
       } catch (e, s) {
-        Logging.instance.f("", error: e, stackTrace: s);
+        Logging.instance.f("wallet init failed", error: e, stackTrace: s);
       }
     }
 
@@ -466,7 +466,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             isar: mainDB.isar,
           );
         } catch (e, s) {
-          Logging.instance.f("", error: e, stackTrace: s);
+          Logging.instance.f(
+            "recoverFromMnemonic failed",
+            error: e,
+            stackTrace: s,
+          );
           rethrow;
         }
         await updateNode();
@@ -711,7 +715,12 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         rawValue: await csMonero.getUnlockedBalance(wallet!),
         fractionDigits: cryptoCurrency.fractionDigits,
       );
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.w(
+        "availableBalance failed, returning cached",
+        error: e,
+        stackTrace: s,
+      );
       return info.cachedBalance.spendable;
     }
   }
@@ -724,7 +733,12 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         rawValue: full,
         fractionDigits: cryptoCurrency.fractionDigits,
       );
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.w(
+        "totalBalance failed, returning cached",
+        error: e,
+        stackTrace: s,
+      );
       return info.cachedBalance.total;
     }
   }

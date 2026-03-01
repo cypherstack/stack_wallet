@@ -234,9 +234,9 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
       try {
         _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
         csWownero.startSyncing(wallet!);
-      } catch (_) {
+      } catch (e, s) {
         _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        // TODO log
+        Logging.instance.w("startSyncing failed", error: e, stackTrace: s);
       }
     }
     _setListener();
@@ -380,7 +380,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         await csWownero.close(wallet, save: true);
         this.wallet = null;
       } catch (e, s) {
-        Logging.instance.f("", error: e, stackTrace: s);
+        Logging.instance.f("wallet init failed", error: e, stackTrace: s);
       }
     }
 
@@ -468,7 +468,11 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
             isar: mainDB.isar,
           );
         } catch (e, s) {
-          Logging.instance.f("", error: e, stackTrace: s);
+          Logging.instance.f(
+            "recoverFromMnemonic failed",
+            error: e,
+            stackTrace: s,
+          );
           rethrow;
         }
         await updateNode();
@@ -713,7 +717,12 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         rawValue: csWownero.getUnlockedBalance(wallet!)!,
         fractionDigits: cryptoCurrency.fractionDigits,
       );
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.w(
+        "availableBalance failed, returning cached",
+        error: e,
+        stackTrace: s,
+      );
       return info.cachedBalance.spendable;
     }
   }
@@ -742,7 +751,12 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       }
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.w(
+        "totalBalance failed, returning cached",
+        error: e,
+        stackTrace: s,
+      );
       return info.cachedBalance.total;
     }
   }
