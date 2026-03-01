@@ -1555,7 +1555,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
           height: height,
         );
 
-        if (this.wallet == null) {
+        if (this.wallet != null) {
           await exit();
         }
         this.wallet = wallet;
