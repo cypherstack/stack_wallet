@@ -239,17 +239,12 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           addresses.addAll(prevOut.addresses);
         }
 
-        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: map["scriptSig"]?["hex"] as String?,
-          scriptSigAsm: map["scriptSig"]?["asm"] as String?,
-          sequence: map["sequence"] as int?,
+        InputV2 input = InputV2.fromElectrumxJson(
+          json: map,
           outpoint: outpoint,
-          valueStringSats: valueStringSats,
           addresses: addresses,
-          witness: map["witness"] as String?,
+          valueStringSats: valueStringSats,
           coinbase: coinbase,
-          innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
-          // Need addresses before we can know if the wallet owns this input.
           walletOwns: false,
         );
 
