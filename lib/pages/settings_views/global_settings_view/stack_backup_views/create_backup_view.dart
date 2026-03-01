@@ -121,7 +121,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
           await showDialog<dynamic>(
             context: context,
             barrierDismissible: false,
-            builder: (_) => !Util.isDesktop
+            builder: (dialogContext) => !Util.isDesktop
                 ? StackOkDialog(title: "Backup saved to:", message: savedPath)
                 : DesktopDialog(
                     maxHeight: double.infinity,
@@ -154,7 +154,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                                 child: PrimaryButton(
                                   label: "Ok",
                                   buttonHeight: ButtonHeight.l,
-                                  onPressed: Navigator.of(context).pop,
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
                                 ),
                               ),
                             ],
