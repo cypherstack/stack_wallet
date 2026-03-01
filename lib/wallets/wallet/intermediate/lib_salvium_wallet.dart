@@ -1153,7 +1153,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
       try {
         throw Exception();
-      } catch (_, s) {
+      } catch (e, s) {
         Logging.instance.e(
           "checkReceivingAddressForTransactions called but reuse address flag set: $s",
           error: e,
@@ -1208,7 +1208,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     } on SocketException catch (se, s) {
       Logging.instance.e(
         "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
-        error: e,
+        error: se,
         stackTrace: s,
       );
       return;
