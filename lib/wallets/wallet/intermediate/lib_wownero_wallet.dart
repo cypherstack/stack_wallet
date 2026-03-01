@@ -756,6 +756,8 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   @override
   Future<void> exit() async {
     Logging.instance.i("exit called on $wallet!");
+    await _utxoStreamSub?.cancel();
+    _utxoStreamSub = null;
     if (wallet != null) {
       csWownero.stopAutoSaving(wallet!);
       csWownero.stopListeners(wallet!);

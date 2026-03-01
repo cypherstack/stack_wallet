@@ -733,6 +733,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   @override
   Future<void> exit() async {
     Logging.instance.i("exit called on $walletId");
+    await _utxoStreamSub?.cancel();
+    _utxoStreamSub = null;
     if (wallet != null) {
       csSalvium.stopAutoSaving(wallet!);
       csSalvium.stopListeners(wallet!);
