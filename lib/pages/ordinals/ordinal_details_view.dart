@@ -30,6 +30,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/ordinal_image.dart';
 import '../../widgets/rounded_white_container.dart';
 
 class OrdinalDetailsView extends ConsumerStatefulWidget {
@@ -298,12 +299,7 @@ class _OrdinalImageGroup extends ConsumerWidget {
             aspectRatio: 1,
             child: Container(
               color: Colors.transparent,
-              child: Image.network(
-                ordinal.content, // Use the preview URL as the image source
-                fit: BoxFit.cover,
-                filterQuality:
-                    FilterQuality.none, // Set the filter mode to nearest
-              ),
+              child: OrdinalImage(url: ordinal.content),
             ),
           ),
         ),

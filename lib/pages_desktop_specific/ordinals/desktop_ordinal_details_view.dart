@@ -27,6 +27,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/ordinal_image.dart';
 import '../../widgets/rounded_white_container.dart';
 
 class DesktopOrdinalDetailsView extends ConsumerStatefulWidget {
@@ -141,14 +142,7 @@ class _DesktopOrdinalDetailsViewState
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),
-                child: Image.network(
-                  widget
-                      .ordinal
-                      .content, // Use the preview URL as the image source
-                  fit: BoxFit.cover,
-                  filterQuality:
-                      FilterQuality.none, // Set the filter mode to nearest
-                ),
+                child: OrdinalImage(url: widget.ordinal.content),
               ),
             ),
             const SizedBox(width: 16),
