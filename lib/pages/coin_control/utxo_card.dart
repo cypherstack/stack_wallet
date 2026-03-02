@@ -94,8 +94,9 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
         focusElevation: 0,
         highlightElevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(Constants.size.circularBorderRadius),
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
         ),
         onPressed: widget.onPressed,
         child: child,
@@ -124,45 +125,43 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                   ),
                   child: UTXOStatusIcon(
                     blocked: utxo.isBlocked,
-                    status: _isConfirmed(
-                      utxo,
-                      currentHeight,
-                      ref.watch(
-                        pWallets.select(
-                          (s) => s.getWallet(
-                            widget.walletId,
+                    status:
+                        _isConfirmed(
+                          utxo,
+                          currentHeight,
+                          ref.watch(
+                            pWallets.select(
+                              (s) => s.getWallet(widget.walletId),
+                            ),
                           ),
-                        ),
-                      ),
-                    )
+                        )
                         ? UTXOStatusIconStatus.confirmed
                         : UTXOStatusIconStatus.unconfirmed,
-                    background:
-                        Theme.of(context).extension<StackColors>()!.popupBG,
+                    background: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.popupBG,
                     selected: _selected,
                     width: 32,
                     height: 32,
                   ),
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        ref.watch(pAmountFormatter(coin)).format(
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(
                               utxo.value.toAmountAsRaw(
                                 fractionDigits: coin.fractionDigits,
                               ),
                             ),
                         style: STextStyles.w600_14(context),
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           Flexible(
@@ -171,9 +170,9 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                                   ? utxo.name
                                   : utxo.address ?? utxo.txid,
                               style: STextStyles.w500_12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textSubtitle1,
                               ),
                             ),
                           ),
