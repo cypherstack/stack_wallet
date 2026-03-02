@@ -89,7 +89,13 @@ import 'pages/masternodes/create_masternode_view.dart';
 import 'pages/masternodes/masternode_details_view.dart';
 import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
-// import 'pages/more_view/gift_cards_view.dart';
+import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'pages/cakepay/cakepay_confirm_send_view.dart';
+import 'pages/cakepay/cakepay_order_view.dart';
+import 'pages/cakepay/cakepay_orders_view.dart';
+import 'pages/cakepay/cakepay_send_from_view.dart';
+import 'pages/cakepay/cakepay_vendors_view.dart';
+import 'pages/more_view/gift_cards_view.dart';
 import 'pages/more_view/services_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
@@ -1082,6 +1088,58 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayVendorsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CakePayVendorsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePayCardDetailView.routeName:
+        if (args is int) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePayCardDetailView(cardId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayOrderView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePayOrderView(orderId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayOrdersView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CakePayOrdersView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePaySendFromView.routeName:
+        if (args is Map<String, dynamic>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePaySendFromView(
+              address: args['address'] as String,
+              orderId: args['orderId'] as String,
+              coin: args['coin'] as CryptoCurrency?,
+              amount: args['amount'] as Amount?,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayConfirmSendView.routeName:
+        return _routeError("${settings.name} should be pushed directly");
 
       case ShopInBitStep1.routeName:
         if (args is ShopInBitOrderModel) {
