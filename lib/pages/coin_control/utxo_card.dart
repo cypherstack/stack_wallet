@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/address_label_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -111,6 +112,15 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
             if (snapshot.hasData) {
               utxo = snapshot.data!;
             }
+            final addressLabel = utxo.address == null
+                ? null
+                : ref.watch(
+                    pAddressLabel((
+                      walletId: widget.walletId,
+                      address: utxo.address!,
+                    )),
+                  );
+
             return Row(
               children: [
                 ConditionalParent(
@@ -178,6 +188,21 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                           ),
                         ],
                       ),
+                      if (addressLabel != null && addressLabel.value.isNotEmpty)
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                addressLabel.value,
+                                style: STextStyles.w500_12(context).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
