@@ -20,7 +20,22 @@ import 'util.dart';
 abstract class StackFileSystem {
   static String? _overrideDesktopDirPath;
   static bool _overrideDirSet = false;
+  static bool _isPortable = false;
+
+  static bool get isPortableMode => _isPortable;
+
   static void setDesktopOverrideDir(String dirPath) {
+    _setDesktopDataDirectory(dirPath, portable: false);
+  }
+
+  static void setPortableDesktopDataDirectory(String dirPath) {
+    _setDesktopDataDirectory(dirPath, portable: true);
+  }
+
+  static void _setDesktopDataDirectory(
+    String dirPath, {
+    required bool portable,
+  }) {
     if (_overrideDirSet) {
       throw Exception(
         "Attempted to change StackFileSystem._overrideDir unexpectedly",
@@ -28,6 +43,51 @@ abstract class StackFileSystem {
     }
     _overrideDesktopDirPath = dirPath;
     _overrideDirSet = true;
+    _isPortable = portable;
+  }
+
+  /// Resolves an explicit AppImage portable-data request.
+  ///
+  /// `-d <dir>` is authoritative wherever it appears in [arguments]. Portable
+  /// mode is otherwise enabled by `--portable` or an `<AppImage>.portable`
+  /// marker. An existing data directory alone is deliberately not treated as
+  /// consent.
+  ///
+  /// Throws an [ArgumentError] when `-d` is given without a directory.
+  static ({String path, bool portable})? desktopDataDirectoryOverride({
+    required List<String> arguments,
+    required String? appImagePath,
+    required String appDataDirectoryName,
+    required bool portableMarkerExists,
+  }) {
+    final dataDirFlagIndex = arguments.indexOf("-d");
+    if (dataDirFlagIndex != -1) {
+      final dataDirPath = dataDirFlagIndex + 1 < arguments.length
+          ? arguments[dataDirFlagIndex + 1]
+          : null;
+      if (dataDirPath == null ||
+          dataDirPath.isEmpty ||
+          dataDirPath.startsWith("-")) {
+        throw ArgumentError("-d requires a directory path");
+      }
+      return (path: dataDirPath, portable: false);
+    }
+
+    if (!arguments.contains("--portable") && !portableMarkerExists) {
+      return null;
+    }
+
+    if (appImagePath == null || appImagePath.trim().isEmpty) {
+      return null;
+    }
+
+    return (
+      path: path.join(
+        path.dirname(path.absolute(appImagePath)),
+        ".$appDataDirectoryName",
+      ),
+      portable: true,
+    );
   }
 
   static bool get _createSubDirs =>
@@ -213,23 +273,24 @@ abstract class StackFileSystem {
       }
     }
 
-    final appDocsDir = await getApplicationDocumentsDirectory();
-    const logsDirName = "${AppConfig.prefix}_Logs";
     final Directory logsDir;
 
-    if (Platform.isIOS) {
-      logsDir = Directory(path.join(appDocsDir.path, "logs"));
-    } else if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
-      // TODO check this is correct for macos
-      logsDir = Directory(path.join(appDocsDir.path, logsDirName));
-    } else if (Platform.isAndroid) {
-      // final dir = await wtfAndroidDocumentsPath();
-      // final logsDirPath = path.join(dir.path, logsDirName);
-      // logsDir = Directory(logsDirPath);
-
-      logsDir = Directory(path.join(appDocsDir.path, "logs"));
+    if (_isPortable && _overrideDesktopDirPath != null) {
+      logsDir = Directory(path.join(_overrideDesktopDirPath!, "logs"));
     } else {
-      throw Exception("Unsupported Platform");
+      final appDocsDir = await getApplicationDocumentsDirectory();
+      const logsDirName = "${AppConfig.prefix}_Logs";
+
+      if (Platform.isIOS) {
+        logsDir = Directory(path.join(appDocsDir.path, "logs"));
+      } else if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+        // TODO check this is correct for macos
+        logsDir = Directory(path.join(appDocsDir.path, logsDirName));
+      } else if (Platform.isAndroid) {
+        logsDir = Directory(path.join(appDocsDir.path, "logs"));
+      } else {
+        throw Exception("Unsupported Platform");
+      }
     }
 
     if (!logsDir.existsSync()) {
