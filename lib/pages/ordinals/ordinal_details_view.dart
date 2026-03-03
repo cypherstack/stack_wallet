@@ -15,8 +15,11 @@ import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
 import '../../networking/http.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../pages/send_view/confirm_transaction_view.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../route_generator.dart';
 import '../../services/tor_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -27,11 +30,14 @@ import '../../utilities/fs.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/ordinal_image.dart';
 import '../../widgets/rounded_white_container.dart';
+import 'widgets/dialogs.dart';
 
 class OrdinalDetailsView extends ConsumerStatefulWidget {
   const OrdinalDetailsView({
@@ -350,33 +356,129 @@ class _OrdinalImageGroup extends ConsumerWidget {
                 },
               ),
             ),
-            // const SizedBox(
-            //   width: _spacing,
-            // ),
-            // Expanded(
-            //   child: PrimaryButton(
-            //     label: "Send",
-            //     icon: SvgPicture.asset(
-            //       Assets.svg.send,
-            //       width: 10,
-            //       height: 10,
-            //       color: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .buttonTextPrimary,
-            //     ),
-            //     buttonHeight: ButtonHeight.l,
-            //     iconSpacing: 4,
-            //     onPressed: () async {
-            //       final response = await showDialog<String?>(
-            //         context: context,
-            //         builder: (_) => const SendOrdinalUnfreezeDialog(),
-            //       );
-            //       if (response == "unfreeze") {
-            //         // TODO: unfreeze and go to send ord screen
-            //       }
-            //     },
-            //   ),
-            // ),
+            const SizedBox(width: _spacing),
+            Expanded(
+              child: PrimaryButton(
+                label: "Send",
+                icon: SvgPicture.asset(
+                  Assets.svg.send,
+                  width: 10,
+                  height: 10,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextPrimary,
+                ),
+                buttonHeight: ButtonHeight.l,
+                iconSpacing: 4,
+                onPressed: () async {
+                  final utxo = ordinal.getUTXO(ref.read(mainDBProvider));
+                  if (utxo == null) {
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: "Could not find ordinal UTXO",
+                        context: context,
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Step 1: Confirm unfreeze
+                  if (utxo.isBlocked) {
+                    final unfreezeResponse = await showDialog<String?>(
+                      context: context,
+                      builder: (_) => const SendOrdinalUnfreezeDialog(),
+                    );
+                    if (unfreezeResponse != "unfreeze") return;
+                  }
+
+                  if (!context.mounted) return;
+
+                  // Step 2: Get recipient address
+                  final address = await showDialog<String?>(
+                    context: context,
+                    builder: (_) => OrdinalRecipientAddressDialog(
+                      inscriptionNumber: ordinal.inscriptionNumber,
+                    ),
+                  );
+                  if (address == null || address.isEmpty) return;
+
+                  // Validate address
+                  final wallet = ref.read(pWallets).getWallet(walletId);
+                  if (!wallet.cryptoCurrency.validateAddress(address)) {
+                    if (context.mounted) {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "Invalid address",
+                          context: context,
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
+                  if (!context.mounted) return;
+
+                  // Step 3: Prepare the transaction
+                  final OrdinalsInterface? ordinalsWallet =
+                      wallet is OrdinalsInterface ? wallet : null;
+                  if (ordinalsWallet == null) {
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: "Wallet does not support ordinals",
+                        context: context,
+                      ),
+                    );
+                    return;
+                  }
+
+                  bool didError = false;
+                  final txData = await showLoading(
+                    whileFuture: ordinalsWallet.prepareOrdinalSend(
+                      ordinalUtxo: utxo,
+                      recipientAddress: address,
+                    ),
+                    context: context,
+                    rootNavigator: true,
+                    message: "Preparing transaction...",
+                    onException: (e) {
+                      didError = true;
+                      String msg = e.toString();
+                      while (msg.isNotEmpty && msg.startsWith("Exception:")) {
+                        msg = msg.substring(10).trim();
+                      }
+                      if (context.mounted) {
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: msg,
+                          context: context,
+                        );
+                      }
+                    },
+                  );
+
+                  if (didError || txData == null || !context.mounted) return;
+
+                  // Step 4: Navigate to confirm transaction view
+                  await Navigator.of(context).push(
+                    RouteGenerator.getRoute<void>(
+                      shouldUseMaterialRoute:
+                          RouteGenerator.useMaterialPageRoute,
+                      builder: (_) => ConfirmTransactionView(
+                        walletId: walletId,
+                        txData: txData,
+                        onSuccess: () {},
+                      ),
+                      settings: const RouteSettings(
+                        name: ConfirmTransactionView.routeName,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ],
