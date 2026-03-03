@@ -77,10 +77,14 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final vout = jsonUTXO["tx_pos"] as int;
     final outputs = jsonTX["vout"] as List? ?? [];
 
-    final output = outputs.cast<Map<String, dynamic>?>().firstWhere(
-      (e) => e?["n"] == vout,
-      orElse: () => null,
-    );
+    // Use Map<dynamic, dynamic>? because ElectrumX returns _Map<dynamic,dynamic>.
+    Map<dynamic, dynamic>? output;
+    for (final o in outputs) {
+      if (o is Map && o["n"] == vout) {
+        output = o;
+        break;
+      }
+    }
 
     if (output != null) {
       if (output['ct_fee'] != null) {
@@ -508,6 +512,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           ),
           witnessValue: insAndKeys[i].utxo.value,
           redeemScript: extraData[i].redeem,
+          isParticl: true,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );
       }
@@ -523,30 +528,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
     final vSize = builtTx.virtualSize();
 
-    // Strip trailing 0x00 bytes from hex.
-    //
-    // This is done to match the previous particl_wallet implementation.
-    // TODO: [prio=low] Rework Particl tx construction so as to obviate this.
-    String hexString = builtTx.toHex(isParticl: true).toString();
-    if (hexString.length % 2 != 0) {
-      // Ensure the string has an even length.
-      Logging.instance.e(
-        "Hex string has odd length, which is unexpected.",
-        stackTrace: StackTrace.current,
-      );
-      throw Exception("Invalid hex string length.");
-    }
-    // int maxStrips = 3; // Strip up to 3 0x00s (match previous particl_wallet).
-    while (hexString.endsWith('00') && hexString.length > 2) {
-      hexString = hexString.substring(0, hexString.length - 2);
-      // maxStrips--;
-      // if (maxStrips <= 0) {
-      //   break;
-      // }
-    }
-
     return txData.copyWith(
-      raw: hexString,
+      raw: builtTx.toHex(isParticl: true),
       vSize: vSize,
       tempTx: null,
       //  builtTx.getId() requires an isParticl flag as well but the lib does not support that yet
