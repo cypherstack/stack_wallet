@@ -178,8 +178,31 @@ void main(List<String> args) async {
     (await StackFileSystem.applicationHiveDirectory()).path,
   );
 
-  await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
-  await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
+  try {
+    await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
+  } on FileSystemException catch (e) {
+    if (e.osError?.errorCode == 11 || e.message.contains('lock failed')) {
+      // Another instance of the app already holds the Hive database lock.
+      // Show a simple error screen rather than crashing to a black screen.
+      runApp(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: Center(
+              child: Text(
+                '${AppConfig.appName} is already running.\n'
+                'Close the other window and try again.',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    rethrow;
+  }
   await Prefs.instance.init();
 
   await Logging.instance.initialize(
