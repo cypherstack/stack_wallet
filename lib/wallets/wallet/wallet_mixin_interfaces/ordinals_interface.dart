@@ -1,10 +1,16 @@
 import 'package:isar_community/isar.dart';
 
 import '../../../dto/ordinals/inscription_data.dart';
+import '../../../models/input.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/isar/ordinal.dart';
 import '../../../services/ord_api.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../models/tx_data.dart';
 import 'electrumx_interface.dart';
 
 mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
@@ -83,6 +89,69 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
         error: e,
         stackTrace: s,
       );
+    }
+  }
+
+  /// Build a transaction that sends the ordinal UTXO to [recipientAddress].
+  ///
+  /// Uses coin-control send-all from the single ordinal UTXO so the ordinal
+  /// (at input offset 0) lands on the only output (the recipient) via FIFO.
+  /// If the UTXO value can't cover the fee, an exception is thrown.
+  Future<TxData> prepareOrdinalSend({
+    required UTXO ordinalUtxo,
+    required String recipientAddress,
+    FeeRateType feeRateType = FeeRateType.average,
+  }) async {
+    // Temporarily unblock so coinSelection accepts it.
+    final wasBlocked = ordinalUtxo.isBlocked;
+    // utxoForTx is the in-memory object passed to coinSelection; it must have
+    // isBlocked=false or the spendable-outputs filter will reject it.
+    UTXO utxoForTx = ordinalUtxo;
+    if (wasBlocked) {
+      final unblocked = ordinalUtxo.copyWith(
+        isBlocked: false,
+        blockedReason: null,
+      );
+      unblocked.id = ordinalUtxo.id;
+      await mainDB.putUTXO(unblocked);
+      utxoForTx = unblocked;
+    }
+
+    try {
+      final utxoValue = Amount(
+        rawValue: BigInt.from(ordinalUtxo.value),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+
+      final txData = TxData(
+        feeRateType: feeRateType,
+        recipients: [
+          TxRecipient(
+            address: recipientAddress,
+            amount: utxoValue,
+            isChange: false,
+            addressType:
+                cryptoCurrency.getAddressType(recipientAddress) ??
+                AddressType.unknown,
+          ),
+        ],
+        utxos: {StandardInput(utxoForTx)},
+        ignoreCachedBalanceChecks: true,
+        note:
+            "Send ordinal #${(await mainDB.isar.ordinals.where().filter().walletIdEqualTo(walletId).and().utxoTXIDEqualTo(ordinalUtxo.txid).and().utxoVOUTEqualTo(ordinalUtxo.vout).findFirst())?.inscriptionNumber ?? "unknown"}",
+      );
+
+      return await prepareSend(txData: txData);
+    } finally {
+      // Re-block regardless of success or failure.
+      if (wasBlocked) {
+        final reblocked = ordinalUtxo.copyWith(
+          isBlocked: true,
+          blockedReason: "Ordinal",
+        );
+        reblocked.id = ordinalUtxo.id;
+        await mainDB.putUTXO(reblocked);
+      }
     }
   }
 
