@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../themes/stack_colors.dart';
+import '../../../pages/cakepay/cakepay_orders_view.dart';
+import '../../../pages/cakepay/cakepay_vendors_view.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 
 class DesktopGiftCardsView extends StatelessWidget {
@@ -48,6 +51,41 @@ class DesktopGiftCardsView extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: PrimaryButton(
+                          buttonHeight: ButtonHeight.m,
+                          label: "Browse Gift Cards",
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const CakePayVendorsView(),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SecondaryButton(
+                          buttonHeight: ButtonHeight.m,
+                          label: "My Orders",
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const CakePayOrdersView(),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
