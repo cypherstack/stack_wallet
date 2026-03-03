@@ -41,6 +41,7 @@ import 'models/models.dart';
 import 'models/node_model.dart';
 import 'models/notification_model.dart';
 import 'models/trade_wallet_lookup.dart';
+import 'pages/already_running_view.dart';
 import 'pages/campfire_migrate_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -183,22 +184,48 @@ void main(List<String> args) async {
     await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
   } on FileSystemException catch (e) {
     if (e.osError?.errorCode == 11 || e.message.contains('lock failed')) {
-      // Another instance of the app already holds the Hive database lock.
-      // Show a simple error screen rather than crashing to a black screen.
-      runApp(
-        MaterialApp(
+      // Another instance already holds the Hive database lock.
+      // Try to bootstrap just enough of the theme system (Isar is independent
+      // of Hive) so the error screen looks like a real Stack Wallet screen.
+      Widget errorApp;
+      try {
+        await StackFileSystem.initThemesDir();
+        await MainDB.instance.initMainDB();
+        ThemeService.instance.init(MainDB.instance);
+        errorApp = const ProviderScope(child: AlreadyRunningApp());
+      } catch (_) {
+        // Isar is also unavailable (e.g., another error). Fall back to a
+        // minimal but still Inter-font styled screen.
+        errorApp = MaterialApp(
           debugShowCheckedModeBanner: false,
+          theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
           home: Scaffold(
             body: Center(
-              child: Text(
-                '${AppConfig.appName} is already running.\n'
-                'Close the other window and try again.',
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppConfig.appName,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'is already running.\n'
+                    'Close the other window and try again.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontSize: 16),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
-      );
+        );
+      }
+      runApp(errorApp);
       return;
     }
     rethrow;
