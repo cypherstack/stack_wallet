@@ -14,10 +14,13 @@ import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../models/input.dart';
 import '../../models/isar/models/transaction_note.dart';
+import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
@@ -1418,6 +1421,71 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
+            // Ordinal UTXO spend warning
+            Builder(
+              builder: (context) {
+                final usedUtxos = widget.txData.usedUTXOs;
+                if (usedUtxos == null || usedUtxos.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                final db = ref.read(mainDBProvider);
+                bool hasOrdinal = false;
+                for (final input in usedUtxos) {
+                  if (input is StandardInput) {
+                    final ordinal = db.isar.ordinals
+                        .where()
+                        .filter()
+                        .walletIdEqualTo(walletId)
+                        .and()
+                        .utxoTXIDEqualTo(input.utxo.txid)
+                        .and()
+                        .utxoVOUTEqualTo(input.utxo.vout)
+                        .findFirstSync();
+                    if (ordinal != null) {
+                      hasOrdinal = true;
+                      break;
+                    }
+                  }
+                }
+
+                if (!hasOrdinal) return const SizedBox.shrink();
+
+                return Padding(
+                  padding: isDesktop
+                      ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                      : const EdgeInsets.symmetric(vertical: 8),
+                  child: RoundedContainer(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningBackground,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.warningForeground,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "This transaction spends a UTXO containing "
+                            "an ordinal inscription.",
+                            style: STextStyles.smallMed12(context).copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.warningForeground,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop
