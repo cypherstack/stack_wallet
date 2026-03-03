@@ -95,7 +95,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 7145be16bb88cffbd53326f7fa4570e414be09e4
+      ref: b02aaf6c6b40fd5a6b3d77f875324717103f2019
 
   stack_wallet_backup:
     git:
