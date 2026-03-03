@@ -582,6 +582,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final String nodeApiAddress = uri.toString();
     final walletDir = await _currentWalletDirPath();
 
+    await _ensureApiSecret(walletDir, nodeApiAddress);
+
     final Map<String, dynamic> config = {};
     config["wallet_dir"] = walletDir;
     config["check_node_api_http_addr"] = nodeApiAddress;
@@ -589,6 +591,21 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     config["account"] = "default";
     final String stringConfig = jsonEncode(config);
     return stringConfig;
+  }
+
+  /// Write the node API secret to .api_secret in the wallet directory so that
+  /// the Rust HTTPNodeClient can authenticate to the MWC node.
+  Future<void> _ensureApiSecret(String walletDir, String nodeUrl) async {
+    const defaultNodeHost = 'mwc713.mwc.mw';
+    const defaultNodeSecret = '11ne3EAUtOXVKwhxm84U';
+
+    final file = File('$walletDir/.api_secret');
+    if (nodeUrl.contains(defaultNodeHost)) {
+      await Directory(walletDir).create(recursive: true);
+      await file.writeAsString(defaultNodeSecret);
+    } else if (await file.exists()) {
+      await file.delete();
+    }
   }
 
   Future<String> _currentWalletDirPath() async {
