@@ -220,7 +220,7 @@ dependencies:
     git:
       url: https://www.github.com/cypherstack/coinlib
       path: coinlib_flutter
-      ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
+      ref: cdfa62dd81eff78f83cdfa60332375db0011f229
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
