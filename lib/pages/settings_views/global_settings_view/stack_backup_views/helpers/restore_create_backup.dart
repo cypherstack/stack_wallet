@@ -269,63 +269,72 @@ abstract class SWB {
 
       final List<dynamic> backupWallets = [];
       for (final wallet in _wallets.wallets) {
-        final Map<String, dynamic> backupWallet = {};
-        backupWallet['name'] = wallet.info.name;
-        backupWallet['id'] = wallet.walletId;
-        backupWallet['isFavorite'] = wallet.info.isFavourite;
-        backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
+        try {
+          final Map<String, dynamic> backupWallet = {};
+          backupWallet['name'] = wallet.info.name;
+          backupWallet['id'] = wallet.walletId;
+          backupWallet['isFavorite'] = wallet.info.isFavourite;
+          backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
-        if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
-          backupWallet['viewOnlyWalletDataKey'] =
-              (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
-        } else if (wallet is MnemonicInterface) {
-          backupWallet['mnemonic'] = await wallet.getMnemonic();
-          backupWallet['mnemonicPassphrase'] = await wallet
-              .getMnemonicPassphrase();
-        } else if (wallet is PrivateKeyInterface) {
-          backupWallet['privateKey'] = await wallet.getPrivateKey();
-        } else if (wallet is BitcoinFrostWallet) {
-          final String? keys = await wallet.getSerializedKeys();
-          final String? config = await wallet.getMultisigConfig();
-          if (keys == null || config == null) {
-            final String err =
-                "${wallet.info.coin.identifier} wallet ${wallet.info.name} "
-                "has null keys or config";
-            Logging.instance.e(err);
-            throw Exception(err);
+          if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+            backupWallet['viewOnlyWalletDataKey'] =
+                (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
+          } else if (wallet is MnemonicInterface) {
+            backupWallet['mnemonic'] = await wallet.getMnemonic();
+            backupWallet['mnemonicPassphrase'] = await wallet
+                .getMnemonicPassphrase();
+          } else if (wallet is PrivateKeyInterface) {
+            backupWallet['privateKey'] = await wallet.getPrivateKey();
+          } else if (wallet is BitcoinFrostWallet) {
+            final String? keys = await wallet.getSerializedKeys();
+            final String? config = await wallet.getMultisigConfig();
+            if (keys == null || config == null) {
+              final String err =
+                  "${wallet.info.coin.identifier} wallet ${wallet.info.name} "
+                  "has null keys or config";
+              Logging.instance.e(err);
+              throw Exception(err);
+            }
+            //This case should never actually happen in practice unless the whole
+            // wallet is somehow corrupt
+            // TODO [prio=low]: solve case in which either keys or config is null.
+
+            // Format keys & config as a JSON string and set otherDataJsonString.
+            final Map<String, dynamic> frostData = {};
+            frostData["keys"] = keys;
+            frostData["config"] = config;
+            backupWallet['frostWalletData'] = jsonEncode(frostData);
           }
-          //This case should never actually happen in practice unless the whole
-          // wallet is somehow corrupt
-          // TODO [prio=low]: solve case in which either keys or config is null.
+          backupWallet['coinName'] = wallet.info.coin.identifier;
+          backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
 
-          // Format keys & config as a JSON string and set otherDataJsonString.
-          final Map<String, dynamic> frostData = {};
-          frostData["keys"] = keys;
-          frostData["config"] = config;
-          backupWallet['frostWalletData'] = jsonEncode(frostData);
+          // backupWallet['txidList'] = DB.instance.get<dynamic>(
+          //     boxName: wallet.walletId, key: "cachedTxids") as List?;
+          // the following can cause a deadlock
+          // (await manager.transactionData).getAllTransactions().keys.toList();
+
+          backupWallet['restoreHeight'] = wallet.info.restoreHeight;
+
+          final isarNotes = await MainDB.instance.isar.transactionNotes
+              .where()
+              .walletIdEqualTo(wallet.walletId)
+              .findAll();
+
+          final notes = isarNotes.asMap().map(
+            (key, value) => MapEntry(value.txid, value.value),
+          );
+
+          backupWallet['notes'] = notes;
+
+          backupWallets.add(backupWallet);
+        } catch (e, s) {
+          Logging.instance.w(
+            "SWB skipping wallet ${wallet.info.name} "
+            "(${wallet.info.coin.identifier})",
+            error: e,
+            stackTrace: s,
+          );
         }
-        backupWallet['coinName'] = wallet.info.coin.identifier;
-        backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
-
-        // backupWallet['txidList'] = DB.instance.get<dynamic>(
-        //     boxName: wallet.walletId, key: "cachedTxids") as List?;
-        // the following can cause a deadlock
-        // (await manager.transactionData).getAllTransactions().keys.toList();
-
-        backupWallet['restoreHeight'] = wallet.info.restoreHeight;
-
-        final isarNotes = await MainDB.instance.isar.transactionNotes
-            .where()
-            .walletIdEqualTo(wallet.walletId)
-            .findAll();
-
-        final notes = isarNotes.asMap().map(
-          (key, value) => MapEntry(value.txid, value.value),
-        );
-
-        backupWallet['notes'] = notes;
-
-        backupWallets.add(backupWallet);
       }
       backupJson['wallets'] = backupWallets;
 
