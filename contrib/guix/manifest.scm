@@ -46,6 +46,9 @@
   ;; Clang/LLVM (needed by some Rust crates' build.rs)
   "clang-toolchain"
 
+  ;; Go (needed by flutter_mwebd plugin for Litecoin MWEB)
+  "go"
+
   ;; CA certificates (for Rust vendored-openssl verification)
   "nss-certs"
 
