@@ -276,9 +276,34 @@ abstract class SWB {
           backupWallet['isFavorite'] = wallet.info.isFavourite;
           backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
-          if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
-            backupWallet['viewOnlyWalletDataKey'] =
-                (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
+          // Check secure storage for view-only data even if flag is missing.
+          String? rawViewOnlyData;
+          if (wallet is ViewOnlyOptionInterface) {
+            rawViewOnlyData = await _secureStore.read(
+              key: Wallet.getViewOnlyWalletDataSecStoreKey(
+                walletId: wallet.walletId,
+              ),
+            );
+          }
+
+          if (rawViewOnlyData != null) {
+            backupWallet['viewOnlyWalletDataKey'] = rawViewOnlyData;
+            // Patch missing isViewOnlyKey flag in otherDataJsonString.
+            if (wallet.info.otherData[WalletInfoKeys.isViewOnlyKey] != true) {
+              final patchedOtherData = Map<String, dynamic>.from(
+                wallet.info.otherData,
+              );
+              patchedOtherData[WalletInfoKeys.isViewOnlyKey] = true;
+              final parsed = ViewOnlyWalletData.fromJsonEncodedString(
+                rawViewOnlyData,
+                walletId: wallet.walletId,
+              );
+              patchedOtherData[WalletInfoKeys.viewOnlyTypeIndexKey] =
+                  parsed.type.index;
+              backupWallet['otherDataJsonString'] = jsonEncode(
+                patchedOtherData,
+              );
+            }
           } else if (wallet is MnemonicInterface) {
             backupWallet['mnemonic'] = await wallet.getMnemonic();
             backupWallet['mnemonicPassphrase'] = await wallet
@@ -387,7 +412,7 @@ abstract class SWB {
     String? mnemonic, mnemonicPassphrase, privateKey;
 
     ViewOnlyWalletData? viewOnlyData;
-    if (info.isViewOnly) {
+    if (info.isViewOnly || walletbackup['viewOnlyWalletDataKey'] is String) {
       final viewOnlyDataEncoded =
           walletbackup['viewOnlyWalletDataKey'] as String;
 
@@ -782,6 +807,28 @@ abstract class SWB {
           error: e,
           stackTrace: s,
         );
+      }
+
+      // Patch missing isViewOnlyKey if backup has view-only data.
+      if (walletbackup['viewOnlyWalletDataKey'] is String &&
+          otherData?[WalletInfoKeys.isViewOnlyKey] != true) {
+        otherData ??= {};
+        otherData[WalletInfoKeys.isViewOnlyKey] = true;
+        if (otherData[WalletInfoKeys.viewOnlyTypeIndexKey] == null) {
+          try {
+            final parsed = ViewOnlyWalletData.fromJsonEncodedString(
+              walletbackup['viewOnlyWalletDataKey'] as String,
+              walletId: walletId,
+            );
+            otherData[WalletInfoKeys.viewOnlyTypeIndexKey] = parsed.type.index;
+          } catch (e, s) {
+            Logging.instance.e(
+              "SWB restore: failed to recover viewOnlyTypeIndexKey",
+              error: e,
+              stackTrace: s,
+            );
+          }
+        }
       }
 
       final info = WalletInfo(
