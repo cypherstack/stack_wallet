@@ -80,8 +80,14 @@ if [ "$BUILD_WITH_GUIX" -eq 1 ]; then
         echo "Error: -g (Guix build) is only supported with -p linux"
         exit 1
     fi
+    GUIX_BUILD="${APP_PROJECT_ROOT_DIR}/contrib/guix/guix-build"
+    if [ ! -x "$GUIX_BUILD" ]; then
+        echo "guix-build not found at: $GUIX_BUILD"
+        echo "Ensure contrib/guix/ exists (e.g. feat/guix branch)."
+        exit 1
+    fi
     export SOURCE_DIR="$APP_PROJECT_ROOT_DIR"
-    exec "${APP_PROJECT_ROOT_DIR}/contrib/guix/guix-build" \
+    exec "$GUIX_BUILD" \
         --app "$APP_NAMED_ID" \
         --version "$APP_VERSION_STRING" \
         --build-number "$APP_BUILD_NUMBER"
