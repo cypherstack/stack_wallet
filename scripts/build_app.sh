@@ -9,7 +9,8 @@ APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-i] [-f]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-i] [-f] [-g]"
+    echo "  -g  Guix reproducible build (linux only). Delegates to contrib/guix/guix-build."
     exit 1
 }
 
@@ -34,9 +35,10 @@ unset -v APP_NAMED_ID
 # optional args (with defaults)
 BUILD_CRYPTO_PLUGINS=0
 BUILD_ISAR_FROM_SOURCE=0
+BUILD_WITH_GUIX=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:i:f" opt; do
+while getopts "v:b:p:a:ifg" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
@@ -44,6 +46,7 @@ while getopts "v:b:p:a:i:f" opt; do
         a) APP_NAMED_ID="$OPTARG" ;;
         i) BUILD_CRYPTO_PLUGINS=1 ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
+        g) BUILD_WITH_GUIX=1 ;;
         *) usage ;;
     esac
 done
@@ -69,6 +72,21 @@ if [ -z "$APP_NAMED_ID" ]; then
 fi
 
 confirmDisclaimer
+
+# Guix reproducible build: short-circuit before any configure/build steps.
+# guix-build handles its own source mounting, config, and build inside a container.
+if [ "$BUILD_WITH_GUIX" -eq 1 ]; then
+    if [ "$APP_BUILD_PLATFORM" != "linux" ]; then
+        echo "Error: -g (Guix build) is only supported with -p linux"
+        exit 1
+    fi
+    export SOURCE_DIR="$APP_PROJECT_ROOT_DIR"
+    exec "${APP_PROJECT_ROOT_DIR}/contrib/guix/guix-build" \
+        --app "$APP_NAMED_ID" \
+        --version "$APP_VERSION_STRING" \
+        --build-number "$APP_BUILD_NUMBER"
+fi
+
 set -x
 
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"
