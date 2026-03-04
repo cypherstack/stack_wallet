@@ -41,9 +41,10 @@ export FLUTTER_CHANNEL="stable"
 export RUST_VERSION_DEFAULT="1.89.0"
 export RUST_VERSION_MWC="1.85.1"
 export RUST_VERSION_FROSTDART="1.71.0"
+export RUST_VERSION_XELIS="1.91.0"
 
 # All Rust versions we need toolchains for.
-export RUST_VERSIONS=("${RUST_VERSION_DEFAULT}" "${RUST_VERSION_MWC}" "${RUST_VERSION_FROSTDART}")
+export RUST_VERSIONS=("${RUST_VERSION_DEFAULT}" "${RUST_VERSION_MWC}" "${RUST_VERSION_FROSTDART}" "${RUST_VERSION_XELIS}")
 
 ################
 # Build config #
@@ -105,7 +106,8 @@ auto_detect_version() {
 # Compute SOURCE_DATE_EPOCH from git log.
 compute_source_date_epoch() {
     if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
-        if [ -d "${SOURCE_DIR}/.git" ]; then
+        # -e handles both regular .git dirs and worktree .git files.
+        if [ -e "${SOURCE_DIR}/.git" ]; then
             SOURCE_DATE_EPOCH="$(git -C "${SOURCE_DIR}" log -1 --format=%ct)"
         else
             SOURCE_DATE_EPOCH="$(date +%s)"

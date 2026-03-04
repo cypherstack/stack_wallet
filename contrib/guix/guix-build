@@ -38,7 +38,7 @@ auto_detect_version
 compute_source_date_epoch
 
 # Compute commit hash outside the container (source .git is not mounted).
-if [ -d "${SOURCE_DIR}/.git" ]; then
+if [ -e "${SOURCE_DIR}/.git" ]; then
     BUILT_COMMIT_HASH="$(git -C "${SOURCE_DIR}" log -1 --pretty=format:"%H")"
 else
     BUILT_COMMIT_HASH="0000000000000000000000000000000000000000"
@@ -78,7 +78,7 @@ if [ ! -x "${RUST_DIR}/${RUST_VERSION_DEFAULT}/bin/rustc" ]; then
 fi
 
 # Verify source directory.
-if [ ! -f "${SOURCE_DIR}/pubspec.yaml" ]; then
+if [ ! -f "${SOURCE_DIR}/pubspec.yaml" ] && [ ! -f "${SOURCE_DIR}/scripts/app_config/templates/pubspec.template.yaml" ]; then
     die "Source directory does not look like a Stack Wallet checkout: ${SOURCE_DIR}"
 fi
 
@@ -111,6 +111,7 @@ for HOST in $HOSTS; do
         --share="${FLUTTER_SDK_DIR}=/sw/flutter-sdk" \
         --expose="${RUST_DIR}=/sw/rust" \
         --expose="${BASE_CACHE}/native-sources=/sw/native-sources" \
+        --expose="${BASE_CACHE}/go-cache=/sw/go-cache" \
         --no-cwd \
         -- env \
             HOME="/tmp" \

@@ -16,6 +16,9 @@ export LC_ALL=C
 export TZ=UTC
 umask 0022
 
+# Force single codegen unit in Rust release builds for deterministic output.
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+
 # Disable Dart/Flutter analytics and telemetry.
 export CI=true
 export FLUTTER_SUPPRESS_ANALYTICS=true
@@ -52,9 +55,17 @@ APP_NAME_ID="${APP_NAME_ID:?APP_NAME_ID not set}"
 APP_VERSION="${APP_VERSION:?APP_VERSION not set}"
 APP_BUILD_NUMBER="${APP_BUILD_NUMBER:?APP_BUILD_NUMBER not set}"
 
+# Go: offline builds for flutter_mwebd.
+export GOMODCACHE="/sw/go-cache"
+export GOFLAGS="-buildvcs=false"
+export GONOSUMCHECK="*"
+export GONOSUMDB="*"
+export GOPROXY=off
+
 RUST_VERSION_DEFAULT="${RUST_VERSION_DEFAULT:-1.89.0}"
 RUST_VERSION_MWC="${RUST_VERSION_MWC:-1.85.1}"
 RUST_VERSION_FROSTDART="${RUST_VERSION_FROSTDART:-1.71.0}"
+RUST_VERSION_XELIS="${RUST_VERSION_XELIS:-1.91.0}"
 
 echo "--- [build] Host: ${HOST}"
 echo "--- [build] App:  ${APP_NAME_ID} v${APP_VERSION}+${APP_BUILD_NUMBER}"
@@ -74,6 +85,10 @@ set_rust_version() {
     export PATH="/tmp/shims:${rust_prefix}/bin:${PATH_ORIG}"
     export CARGO_HOME="${CARGO_CACHE_MOUNT}"
     export RUSTUP_HOME="/tmp/fake-rustup"
+
+    # Rust 1.91+ build scripts need libgcc_s.so.1 which lives at /lib/ in the
+    # Guix FHS emulation.  Set LD_LIBRARY_PATH so the linker can find it.
+    export LD_LIBRARY_PATH="/lib:/lib64:/usr/lib"
 
     echo "--- [build] Rust version: $(rustc --version)"
 }
@@ -146,7 +161,7 @@ case "\$*" in
         echo "${BUILT_COMMIT_HASH:-0000000000000000000000000000000000000000}"
         exit 0
         ;;
-    *pull*)
+    *pull*|*fetch*)
         exit 0
         ;;
     *clone*)
@@ -346,6 +361,11 @@ source "$BUILD_DIR/scripts/app_config/configure_${APP_NAME_ID}.sh" linux
 # Step 5: Linux platform config.
 source "$BUILD_DIR/scripts/app_config/platforms/linux/platform_config.sh"
 
+# Step 6: Run prebuild.sh to create stub external_api_keys.dart etc.
+pushd "$BUILD_DIR/scripts" > /dev/null
+bash prebuild.sh
+popd > /dev/null
+
 ################
 # GCC compat   #
 ################
@@ -428,6 +448,10 @@ case "$APP_NAME_ID" in
         setup_cargo_vendor "epiccash" "${CRYPTO_DIR}/flutter_libepiccash/rust"
         (
             cd "${CRYPTO_DIR}/flutter_libepiccash/scripts/linux"
+            # GCC 15 in Guix: libstdc++ was built without C99 fenv support,
+            # so <cfenv> never exposes fesetround/fegetround.  Force the
+            # config macros so the C++ wrapper actually includes <fenv.h>.
+            export CXXFLAGS="${CXXFLAGS:-} -D_GLIBCXX_HAVE_FENV_H=1 -D_GLIBCXX_USE_C99_FENV=1"
             bash build_all.sh
         )
 
@@ -479,16 +503,55 @@ set_rust_version "$RUST_VERSION_DEFAULT"
 # Cargokit prep #
 ################
 
-# Set up cargo vendoring for the tor_ffi_plugin.  Cargokit builds tor's Rust
-# code during `flutter build linux` via cmake.  The vendor config must be in
-# place before cmake runs.
-for _tor_rust in "${PUB_CACHE_MOUNT}"/git/tor-*/rust; do
-    if [ -f "$_tor_rust/Cargo.toml" ]; then
-        echo "--- [build] Setting up cargo vendor for tor_ffi_plugin ..."
-        setup_cargo_vendor "tor" "$_tor_rust"
+# Cargokit plugins (tor_ffi_plugin, xelis_flutter) build Rust code during
+# `flutter build linux` via cmake.  Cargokit's run_build_tool.sh changes
+# directory to a temp folder before invoking cargo.  Cargo searches for
+# .cargo/config.toml from CWD upwards, so per-workspace configs are not
+# found.  Solution: give each Cargokit plugin its own CARGO_HOME with the
+# correct vendor config.  We patch each plugin's run_build_tool.sh to
+# export CARGO_HOME before running the Dart build tool.
+
+echo "--- [build] Setting up Cargokit vendor configs for offline Rust builds ..."
+
+# Helper: create a per-plugin CARGO_HOME with vendor config.
+setup_cargokit_plugin() {
+    local plugin_name="$1"
+    local plugin_dir="$2"  # root of the plugin (contains cargokit/, rust/, linux/)
+    local rust_dir="$plugin_dir/rust"
+
+    # Set up workspace-level vendor config (for any direct cargo invocations).
+    setup_cargo_vendor "$plugin_name" "$rust_dir"
+
+    # Create a per-plugin CARGO_HOME with the same config.
+    local cargo_home="/tmp/cargo-home-${plugin_name}"
+    mkdir -p "$cargo_home"
+    cp "$rust_dir/.cargo/config.toml" "$cargo_home/config.toml"
+
+    # Patch run_build_tool.sh to export this CARGO_HOME before running Dart.
+    local rbt="$plugin_dir/cargokit/run_build_tool.sh"
+    if [ -f "$rbt" ]; then
+        sed -i "2i export CARGO_HOME=\"${cargo_home}\"" "$rbt"
+    fi
+}
+
+for _tor_dir in "${PUB_CACHE_MOUNT}"/git/tor-*/; do
+    if [ -f "$_tor_dir/rust/Cargo.toml" ]; then
+        setup_cargokit_plugin "tor" "$_tor_dir"
         break
     fi
 done
+for _xelis_dir in "${PUB_CACHE_MOUNT}"/git/xelis-flutter-ffi-*/ "${PUB_CACHE_MOUNT}"/git/xelis_flutter-*/ "${PUB_CACHE_MOUNT}"/git/xelis-flutter-*/; do
+    if [ -f "$_xelis_dir/rust/Cargo.toml" ]; then
+        setup_cargokit_plugin "xelis" "$_xelis_dir"
+        break
+    fi
+done
+
+# Use the highest Rust version for the flutter build phase.
+# Cargokit plugins (tor, xelis) build via cmake during `flutter build linux`.
+# Our rustup shim ignores rust-toolchain.toml, so we must set PATH to a
+# version that satisfies all plugins.  1.91.0 >= all requirements.
+set_rust_version "$RUST_VERSION_XELIS"
 
 ################
 # Flutter build #
