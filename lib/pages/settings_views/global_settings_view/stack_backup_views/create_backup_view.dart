@@ -180,6 +180,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
             builder: (_) => StackOkDialog(
               title: "Backup creation failed",
               message: ex?.toString() ?? "Unexpected error",
+              desktopPopRootNavigator: true,
             ),
           );
         }
