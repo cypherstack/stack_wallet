@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
@@ -19,9 +20,14 @@ import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/stack_dialog.dart';
 
 class ConfirmFullRescanDialog extends StatelessWidget {
-  const ConfirmFullRescanDialog({super.key, required this.onConfirm});
+  const ConfirmFullRescanDialog({
+    super.key,
+    required this.coin,
+    required this.onConfirm,
+  });
 
-  final VoidCallback onConfirm;
+  final CryptoCurrency coin;
+  final void Function(int height) onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +86,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                           buttonHeight: ButtonHeight.l,
                           onPressed: () {
                             Navigator.of(context).pop();
-                            onConfirm.call();
+                            onConfirm(0);
                           },
                           label: "Rescan",
                         ),
@@ -124,7 +130,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
             ),
             onPressed: () {
               Navigator.of(context).pop();
-              onConfirm.call();
+              onConfirm(0);
             },
           ),
         ),
