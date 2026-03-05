@@ -9,17 +9,34 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
+
 import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/constants.dart';
+import '../../../../../utilities/format.dart';
+import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../../../widgets/date_picker/date_picker.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/desktop/secondary_button.dart';
+import '../../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../../widgets/rounded_white_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
+import '../../../../../widgets/stack_text_field.dart';
+import '../../../../../widgets/textfield_icon_button.dart';
+import '../../../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../../../wl_gen/interfaces/cs_salvium_interface.dart';
+import '../../../../../wl_gen/interfaces/cs_wownero_interface.dart';
+import '../../../../add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
 
-class ConfirmFullRescanDialog extends StatelessWidget {
+class ConfirmFullRescanDialog extends StatefulWidget {
   const ConfirmFullRescanDialog({
     super.key,
     required this.coin,
@@ -28,6 +45,205 @@ class ConfirmFullRescanDialog extends StatelessWidget {
 
   final CryptoCurrency coin;
   final void Function(int height) onConfirm;
+
+  @override
+  State<ConfirmFullRescanDialog> createState() =>
+      _ConfirmFullRescanDialogState();
+}
+
+class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
+  late final TextEditingController _dateController;
+  late final TextEditingController _blockHeightController;
+  late final FocusNode _blockHeightFocusNode;
+
+  bool _isUsingDate = true;
+  DateTime? _restoreFromDate;
+  bool _blockFieldEmpty = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateController = TextEditingController();
+    _blockHeightController = TextEditingController();
+    _blockHeightFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    _blockHeightController.dispose();
+    _blockHeightFocusNode.dispose();
+    super.dispose();
+  }
+
+  int _getBlockHeightFromDate(DateTime? date) {
+    try {
+      int height = 0;
+      if (date != null) {
+        if (widget.coin is Monero) {
+          height = csMonero.getHeightByDate(date);
+        }
+        if (widget.coin is Wownero) {
+          height = csWownero.getHeightByDate(date);
+        }
+        if (widget.coin is Salvium) {
+          height = csSalvium.getHeightByDate(
+            DateTime.now().subtract(const Duration(days: 7)),
+          );
+        }
+        if (height < 0) {
+          height = 0;
+        }
+
+        if (widget.coin is Epiccash) {
+          final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
+          const int epicCashFirstBlock = 1565370278;
+          const double overestimateSecondsPerBlock = 61;
+          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+          final int approximateHeight =
+              chosenSeconds ~/ overestimateSecondsPerBlock;
+
+          height = approximateHeight;
+          if (height < 0) {
+            height = 0;
+          }
+        }
+      } else {
+        height = 0;
+      }
+      return height;
+    } catch (e) {
+      Logging.instance.log(
+        Level.info,
+        "Error getting block height from date: $e",
+      );
+      return 0;
+    }
+  }
+
+  Future<void> _chooseDate() async {
+    if (!Util.isDesktop && FocusScope.of(context).hasFocus) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 125));
+    }
+    if (mounted) {
+      final date = await showSWDatePicker(context);
+      if (date != null) {
+        setState(() {
+          _restoreFromDate = date;
+          _dateController.text = Format.formatDate(date);
+        });
+      }
+    }
+  }
+
+  int get _selectedHeight {
+    if (_isUsingDate) {
+      return _getBlockHeightFromDate(_restoreFromDate);
+    } else {
+      return int.tryParse(_blockHeightController.text) ?? 0;
+    }
+  }
+
+  Widget _buildHeightPickerSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              _isUsingDate ? "Choose start date" : "Block height",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark3,
+                    )
+                  : STextStyles.smallMed12(context),
+              textAlign: TextAlign.left,
+            ),
+            CustomTextButton(
+              text: _isUsingDate ? "Use block height" : "Use date",
+              onTap: () => setState(() => _isUsingDate = !_isUsingDate),
+            ),
+          ],
+        ),
+        SizedBox(height: Util.isDesktop ? 16 : 8),
+        _isUsingDate
+            ? RestoreFromDatePicker(
+                onTap: _chooseDate,
+                controller: _dateController,
+              )
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  focusNode: _blockHeightFocusNode,
+                  controller: _blockHeightController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.done,
+                  style: Util.isDesktop
+                      ? STextStyles.desktopTextMedium(
+                          context,
+                        ).copyWith(height: 2)
+                      : STextStyles.field(context),
+                  onChanged: (value) {
+                    setState(() {
+                      _blockFieldEmpty = value.isEmpty;
+                    });
+                  },
+                  decoration: standardInputDecoration(
+                    "Start scanning from...",
+                    _blockHeightFocusNode,
+                    context,
+                  ).copyWith(
+                    suffixIcon: UnconstrainedBox(
+                      child: TextFieldIconButton(
+                        child: Semantics(
+                          label:
+                              "Clear Block Height Field Button. Clears the block height field",
+                          excludeSemantics: true,
+                          child: !_blockFieldEmpty
+                              ? XIcon(
+                                  width: Util.isDesktop ? 24 : 16,
+                                  height: Util.isDesktop ? 24 : 16,
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                        onTap: () {
+                          _blockHeightController.text = "";
+                          setState(() {
+                            _blockFieldEmpty = true;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+        const SizedBox(height: 8),
+        RoundedWhiteContainer(
+          child: Center(
+            child: Text(
+              _isUsingDate
+                  ? "Choose the date you made the wallet (approximate is fine)"
+                  : "Enter the block height to start rescanning from",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle1,
+                    )
+                  : STextStyles.smallMed12(context).copyWith(fontSize: 10),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +282,8 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
+                  const SizedBox(height: 24),
+                  _buildHeightPickerSection(),
                   const SizedBox(
                     height: 43,
                   ),
@@ -86,7 +304,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                           buttonHeight: ButtonHeight.l,
                           onPressed: () {
                             Navigator.of(context).pop();
-                            onConfirm(0);
+                            widget.onConfirm(_selectedHeight);
                           },
                           label: "Rescan",
                         ),
@@ -104,34 +322,57 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         onWillPop: () async {
           return true;
         },
-        child: StackDialog(
-          title: "Rescan blockchain",
-          message:
-              "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
-          leftButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context),
-            child: Text(
-              "Rescan",
-              style: STextStyles.button(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              onConfirm(0);
-            },
+        child: StackDialogBase(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(
+                "Rescan blockchain",
+                style: STextStyles.pageTitleH2(context),
+              ),
+              const SizedBox(height: 8),
+              SelectableText(
+                "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
+                style: STextStyles.smallMed14(context),
+              ),
+              const SizedBox(height: 16),
+              _buildHeightPickerSection(),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getSecondaryEnabledButtonStyle(context),
+                      child: Text(
+                        "Cancel",
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getPrimaryEnabledButtonStyle(context),
+                      child: Text(
+                        "Rescan",
+                        style: STextStyles.button(context),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        widget.onConfirm(_selectedHeight);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       );
