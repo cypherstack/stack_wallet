@@ -137,7 +137,13 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
     }
   }
 
+  bool get _showHeightPicker =>
+      widget.coin is CryptonoteCurrency ||
+      widget.coin is Epiccash ||
+      widget.coin is Mimblewimblecoin;
+
   int get _selectedHeight {
+    if (!_showHeightPicker) return 0;
     if (_isUsingDate) {
       return _getBlockHeightFromDate(_restoreFromDate);
     } else {
@@ -282,8 +288,10 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
                     "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
-                  const SizedBox(height: 24),
-                  _buildHeightPickerSection(),
+                  if (_showHeightPicker) ...[
+                    const SizedBox(height: 24),
+                    _buildHeightPickerSection(),
+                  ],
                   const SizedBox(
                     height: 43,
                   ),
@@ -335,8 +343,10 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
                 "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
                 style: STextStyles.smallMed14(context),
               ),
-              const SizedBox(height: 16),
-              _buildHeightPickerSection(),
+              if (_showHeightPicker) ...[
+                const SizedBox(height: 16),
+                _buildHeightPickerSection(),
+              ],
               const SizedBox(height: 20),
               Row(
                 children: [
