@@ -9,32 +9,18 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:logger/logger.dart';
 
 import '../../../../../themes/stack_colors.dart';
-import '../../../../../utilities/constants.dart';
-import '../../../../../utilities/format.dart';
-import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import '../../../../../widgets/custom_buttons/blue_text_button.dart';
-import '../../../../../widgets/date_picker/date_picker.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/desktop/secondary_button.dart';
-import '../../../../../widgets/icon_widgets/x_icon.dart';
-import '../../../../../widgets/rounded_white_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
-import '../../../../../widgets/stack_text_field.dart';
-import '../../../../../widgets/textfield_icon_button.dart';
-import '../../../../../wl_gen/interfaces/cs_monero_interface.dart';
-import '../../../../../wl_gen/interfaces/cs_salvium_interface.dart';
-import '../../../../../wl_gen/interfaces/cs_wownero_interface.dart';
-import '../../../../add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
+import '../../../../../widgets/start_height_picker.dart';
 
 class ConfirmFullRescanDialog extends StatefulWidget {
   const ConfirmFullRescanDialog({
@@ -52,89 +38,18 @@ class ConfirmFullRescanDialog extends StatefulWidget {
 }
 
 class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
-  late final TextEditingController _dateController;
-  late final TextEditingController _blockHeightController;
-  late final FocusNode _blockHeightFocusNode;
-
-  bool _isUsingDate = true;
-  DateTime? _restoreFromDate;
-  bool _blockFieldEmpty = true;
+  late final StartHeightPickerController _heightController;
 
   @override
   void initState() {
     super.initState();
-    _dateController = TextEditingController();
-    _blockHeightController = TextEditingController();
-    _blockHeightFocusNode = FocusNode();
+    _heightController = StartHeightPickerController();
   }
 
   @override
   void dispose() {
-    _dateController.dispose();
-    _blockHeightController.dispose();
-    _blockHeightFocusNode.dispose();
+    _heightController.dispose();
     super.dispose();
-  }
-
-  int _getBlockHeightFromDate(DateTime? date) {
-    try {
-      int height = 0;
-      if (date != null) {
-        if (widget.coin is Monero) {
-          height = csMonero.getHeightByDate(date);
-        }
-        if (widget.coin is Wownero) {
-          height = csWownero.getHeightByDate(date);
-        }
-        if (widget.coin is Salvium) {
-          height = csSalvium.getHeightByDate(
-            DateTime.now().subtract(const Duration(days: 7)),
-          );
-        }
-        if (height < 0) {
-          height = 0;
-        }
-
-        if (widget.coin is Epiccash) {
-          final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-          const int epicCashFirstBlock = 1565370278;
-          const double overestimateSecondsPerBlock = 61;
-          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-          final int approximateHeight =
-              chosenSeconds ~/ overestimateSecondsPerBlock;
-
-          height = approximateHeight;
-          if (height < 0) {
-            height = 0;
-          }
-        }
-      } else {
-        height = 0;
-      }
-      return height;
-    } catch (e) {
-      Logging.instance.log(
-        Level.info,
-        "Error getting block height from date: $e",
-      );
-      return 0;
-    }
-  }
-
-  Future<void> _chooseDate() async {
-    if (!Util.isDesktop && FocusScope.of(context).hasFocus) {
-      FocusScope.of(context).unfocus();
-      await Future<void>.delayed(const Duration(milliseconds: 125));
-    }
-    if (mounted) {
-      final date = await showSWDatePicker(context);
-      if (date != null) {
-        setState(() {
-          _restoreFromDate = date;
-          _dateController.text = Format.formatDate(date);
-        });
-      }
-    }
   }
 
   bool get _showHeightPicker =>
@@ -142,114 +57,7 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
       widget.coin is Epiccash ||
       widget.coin is Mimblewimblecoin;
 
-  int get _selectedHeight {
-    if (!_showHeightPicker) return 0;
-    if (_isUsingDate) {
-      return _getBlockHeightFromDate(_restoreFromDate);
-    } else {
-      return int.tryParse(_blockHeightController.text) ?? 0;
-    }
-  }
-
-  Widget _buildHeightPickerSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _isUsingDate ? "Choose start date" : "Block height",
-              style: Util.isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark3,
-                    )
-                  : STextStyles.smallMed12(context),
-              textAlign: TextAlign.left,
-            ),
-            CustomTextButton(
-              text: _isUsingDate ? "Use block height" : "Use date",
-              onTap: () => setState(() => _isUsingDate = !_isUsingDate),
-            ),
-          ],
-        ),
-        SizedBox(height: Util.isDesktop ? 16 : 8),
-        _isUsingDate
-            ? RestoreFromDatePicker(
-                onTap: _chooseDate,
-                controller: _dateController,
-              )
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  focusNode: _blockHeightFocusNode,
-                  controller: _blockHeightController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textInputAction: TextInputAction.done,
-                  style: Util.isDesktop
-                      ? STextStyles.desktopTextMedium(
-                          context,
-                        ).copyWith(height: 2)
-                      : STextStyles.field(context),
-                  onChanged: (value) {
-                    setState(() {
-                      _blockFieldEmpty = value.isEmpty;
-                    });
-                  },
-                  decoration: standardInputDecoration(
-                    "Start scanning from...",
-                    _blockHeightFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon: UnconstrainedBox(
-                      child: TextFieldIconButton(
-                        child: Semantics(
-                          label:
-                              "Clear Block Height Field Button. Clears the block height field",
-                          excludeSemantics: true,
-                          child: !_blockFieldEmpty
-                              ? XIcon(
-                                  width: Util.isDesktop ? 24 : 16,
-                                  height: Util.isDesktop ? 24 : 16,
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                        onTap: () {
-                          _blockHeightController.text = "";
-                          setState(() {
-                            _blockFieldEmpty = true;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-        const SizedBox(height: 8),
-        RoundedWhiteContainer(
-          child: Center(
-            child: Text(
-              _isUsingDate
-                  ? "Choose the date you made the wallet (approximate is fine)"
-                  : "Enter the block height to start rescanning from",
-              style: Util.isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
-                    )
-                  : STextStyles.smallMed12(context).copyWith(fontSize: 10),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  int get _selectedHeight => _showHeightPicker ? _heightController.height : 0;
 
   @override
   Widget build(BuildContext context) {
@@ -263,9 +71,7 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Rescan blockchain",
                     style: STextStyles.desktopH3(context),
@@ -290,11 +96,12 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
                   ),
                   if (_showHeightPicker) ...[
                     const SizedBox(height: 24),
-                    _buildHeightPickerSection(),
+                    StartHeightPicker(
+                      coin: widget.coin,
+                      controller: _heightController,
+                    ),
                   ],
-                  const SizedBox(
-                    height: 43,
-                  ),
+                  const SizedBox(height: 43),
                   Row(
                     children: [
                       Expanded(
@@ -304,9 +111,7 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
                           label: "Cancel",
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
                           buttonHeight: ButtonHeight.l,
@@ -345,7 +150,10 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
               ),
               if (_showHeightPicker) ...[
                 const SizedBox(height: 16),
-                _buildHeightPickerSection(),
+                StartHeightPicker(
+                  coin: widget.coin,
+                  controller: _heightController,
+                ),
               ],
               const SizedBox(height: 20),
               Row(
@@ -370,10 +178,7 @@ class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
                       style: Theme.of(context)
                           .extension<StackColors>()!
                           .getPrimaryEnabledButtonStyle(context),
-                      child: Text(
-                        "Rescan",
-                        style: STextStyles.button(context),
-                      ),
+                      child: Text("Rescan", style: STextStyles.button(context)),
                       onPressed: () {
                         Navigator.of(context).pop();
                         widget.onConfirm(_selectedHeight);
