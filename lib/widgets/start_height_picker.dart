@@ -62,6 +62,22 @@ class StartHeightPickerController extends ChangeNotifier {
     _hasBlockHeight = hasBlockHeight;
     notifyListeners();
   }
+
+  /// Switches the picker to block height mode and fills in a value. Called
+  /// externally, e.g. when a URI containing a height is parsed. The picker
+  /// listens to this controller and updates its UI accordingly.
+  void setBlockHeight(int height) {
+    _requestedHeight = height;
+    _update(
+      isUsingDate: false,
+      height: height,
+      hasBlockHeight: height > 0,
+    );
+  }
+
+  /// Non-null while a [setBlockHeight] request has not yet been consumed by the
+  /// widget.
+  int? _requestedHeight;
 }
 
 /// Lets the user choose either a calendar date or a block height as the
@@ -96,6 +112,7 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
     _dateController = TextEditingController();
     _blockHeightController = TextEditingController();
     _blockHeightFocusNode = FocusNode();
+    widget.controller.addListener(_onControllerChanged);
     // Notify after the first frame so a watching ListenableBuilder does not
     // rebuild during its own build phase.
     WidgetsBinding.instance.addPostFrameCallback((_) => _notifyController());
@@ -103,10 +120,24 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
 
   @override
   void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
     _dateController.dispose();
     _blockHeightController.dispose();
     _blockHeightFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    final req = widget.controller._requestedHeight;
+    if (req != null) {
+      widget.controller._requestedHeight = null; // consume
+      setState(() {
+        _isUsingDate = false;
+        _blockHeightController.text = req.toString();
+        _blockFieldEmpty = req == 0;
+      });
+      _notifyController();
+    }
   }
 
   void _notifyController() {
