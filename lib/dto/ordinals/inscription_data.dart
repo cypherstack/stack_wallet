@@ -51,6 +51,44 @@ class InscriptionData {
     );
   }
 
+  /// Parse the response from an ord server's /inscription/{id} endpoint.
+  /// [contentUrl] should be pre-built as `$baseUrl/content/$inscriptionId`.
+  factory InscriptionData.fromOrdJson(
+    Map<String, dynamic> json,
+    String contentUrl,
+  ) {
+    final inscriptionId = json['inscription_id'] as String;
+    final satpoint = json['satpoint'] as String? ?? '';
+    // satpoint format: "txid:vout:offset"
+    final satpointParts = satpoint.split(':');
+    if (satpointParts.length < 2 || satpointParts[0].isEmpty) {
+      throw FormatException(
+        'Invalid satpoint for inscription $inscriptionId: "$satpoint"',
+      );
+    }
+    final output = '${satpointParts[0]}:${satpointParts[1]}';
+    final offset = satpointParts.length >= 3
+        ? int.tryParse(satpointParts[2]) ?? 0
+        : 0;
+
+    return InscriptionData(
+      inscriptionId: inscriptionId,
+      inscriptionNumber: json['inscription_number'] as int? ?? 0,
+      address: json['address'] as String? ?? '',
+      preview: contentUrl,
+      content: contentUrl,
+      contentLength: json['content_length'] as int? ?? 0,
+      contentType: json['content_type'] as String? ?? '',
+      contentBody: '',
+      timestamp: json['timestamp'] as int? ?? 0,
+      genesisTransaction: inscriptionId.split('i').first,
+      location: satpoint,
+      output: output,
+      outputValue: json['output_value'] as int? ?? 0,
+      offset: offset,
+    );
+  }
+
   @override
   String toString() {
     return 'InscriptionData {'
