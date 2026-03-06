@@ -376,6 +376,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(15, secureStore: secureStore);
 
+      case 15:
+        // No-op: nodeApiSecret field added to NodeModel (Hive field 15).
+        // Existing nodes read null; updateDefaults() backfills from defaultNode.
+
+        // update version
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 16,
+        );
+
+        // try to continue migrating
+        return await migrate(16, secureStore: secureStore);
+
       default:
         // finally return
         return;
