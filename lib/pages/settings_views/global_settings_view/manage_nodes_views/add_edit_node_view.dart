@@ -751,7 +751,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 }
 
 class NodeFormData {
-  String? name, host, login, password;
+  String? name, host, login, password, apiSecret;
   int? port;
   bool? useSSL, isFailover, trusted, forceNoTor, isPrimary;
   TorPlainNetworkOption? netOption;

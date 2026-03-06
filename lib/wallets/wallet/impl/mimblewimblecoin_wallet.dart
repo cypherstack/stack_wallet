@@ -569,6 +569,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   // ================= Private =================================================
 
+  Future<void> _ensureApiSecret(String walletDir) async {
+    final file = File('$walletDir/.api_secret');
+    final secret = _mimblewimblecoinNode?.nodeApiSecret;
+    if (secret != null) {
+      await Directory(walletDir).create(recursive: true);
+      await file.writeAsString(secret);
+    } else if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   Future<String> _getConfig() async {
     if (_mimblewimblecoinNode == null) {
       await updateNode();
@@ -582,7 +593,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final String nodeApiAddress = uri.toString();
     final walletDir = await _currentWalletDirPath();
 
-    await _ensureApiSecret(walletDir, nodeApiAddress);
+    await _ensureApiSecret(walletDir);
 
     final Map<String, dynamic> config = {};
     config["wallet_dir"] = walletDir;
@@ -593,20 +604,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return stringConfig;
   }
 
-  /// Write the node API secret to .api_secret in the wallet directory so that
-  /// the Rust HTTPNodeClient can authenticate to the MWC node.
-  Future<void> _ensureApiSecret(String walletDir, String nodeUrl) async {
-    const defaultNodeHost = 'mwc713.mwc.mw';
-    const defaultNodeSecret = '11ne3EAUtOXVKwhxm84U';
-
-    final file = File('$walletDir/.api_secret');
-    if (nodeUrl.contains(defaultNodeHost)) {
-      await Directory(walletDir).create(recursive: true);
-      await file.writeAsString(defaultNodeSecret);
-    } else if (await file.exists()) {
-      await file.delete();
-    }
-  }
 
   Future<String> _currentWalletDirPath() async {
     final Directory appDir = await StackFileSystem.applicationRootDirectory();
@@ -1535,7 +1532,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             NodeFormData()
               ..host = node!.host
               ..useSSL = node.useSSL
-              ..port = node.port,
+              ..port = node.port
+              ..apiSecret = node.nodeApiSecret,
           ) !=
           null;
     } catch (e, s) {
