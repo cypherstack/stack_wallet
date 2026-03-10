@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
@@ -1550,17 +1551,79 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final random = Random.secure();
     final List<TxData> results = [];
 
+    // Pre-compute signing keys for all UTXOs to avoid repeated calls to
+    // getRootHDNode() (which re-derives from mnemonic seed each time) and
+    // individual DB lookups inside the hot loop.
+    final root = await getRootHDNode();
+    final Map<String, ({DerivePathType derivePathType, coinlib.HDPrivateKey key})>
+        signingKeyCache = {};
+    for (final utxo in availableUtxos) {
+      final address = utxo.address!;
+      if (!signingKeyCache.containsKey(address)) {
+        final derivePathType = cryptoCurrency.addressType(address: address);
+        final dbAddress = await mainDB.getAddress(walletId, address);
+        if (dbAddress?.derivationPath != null) {
+          final key = root.derivePath(dbAddress!.derivationPath!.value);
+          signingKeyCache[address] =
+              (derivePathType: derivePathType, key: key);
+        }
+      }
+    }
+
+    // Cache addresses used repeatedly inside the loop.
+    final sparkAddress = (await getCurrentReceivingSparkAddress())!.value;
+    final changeAddress = await getCurrentChangeAddress();
+
+    // Pre-cache the change address signing key so change UTXOs that get
+    // recycled back into valueAndUTXOs can be signed without re-deriving.
+    if (changeAddress != null &&
+        !signingKeyCache.containsKey(changeAddress.value)) {
+      final derivePathType = cryptoCurrency.addressType(
+        address: changeAddress.value,
+      );
+      final dbAddress = await mainDB.getAddress(
+        walletId,
+        changeAddress.value,
+      );
+      if (dbAddress?.derivationPath != null) {
+        final key = root.derivePath(dbAddress!.derivationPath!.value);
+        signingKeyCache[changeAddress.value] =
+            (derivePathType: derivePathType, key: key);
+      }
+    }
+
+    // Pre-fetch wallet-owned addresses for output ownership checks.
+    final walletAddresses = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .valueProperty()
+        .findAll();
+    final walletAddressSet = walletAddresses.toSet();
+
     valueAndUTXOs.shuffle(random);
+
+    // Tracks the minimum fee for the current UTXO group across retries.
+    // When the real transaction turns out to be larger than the dummy estimate,
+    // this is raised and the group is retried.
+    BigInt minFeeForGroup = BigInt.zero;
+    int feeRetryCount = 0;
+    const maxFeeRetries = 3;
 
     while (valueAndUTXOs.isNotEmpty) {
       final lockTime = random.nextInt(10) == 0
           ? max(0, currentHeight - random.nextInt(100))
           : currentHeight;
       const txVersion = 1;
-      final List<StandardInput> vin = [];
-      final List<(dynamic, int, String?)> vout = [];
+      List<StandardInput> vin = [];
+      List<(dynamic, int, String?)> vout = [];
 
-      BigInt nFeeRet = BigInt.zero;
+      BigInt nFeeRet = minFeeForGroup;
+
+      // Save outputs_ state before this UTXO group so it can be restored
+      // if a fee retry is needed.
+      final outputsBeforeGroup = outputs_
+          .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
+          .toList();
 
       final itr = valueAndUTXOs.first;
       BigInt valueToMintInTx = _sum(itr);
@@ -1610,7 +1673,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         if (autoMintAll) {
           singleTxOutputs.add(
             MutableSparkRecipient(
-              (await getCurrentReceivingSparkAddress())!.value,
+              sparkAddress,
               mintedValue,
               "",
             ),
@@ -1694,11 +1757,19 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         BigInt nValueIn = BigInt.zero;
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
-            setCoins.add(
-              (await addSigningKeys([
-                StandardInput(utxo),
-              ])).whereType<StandardInput>().first,
+            final cached = signingKeyCache[utxo.address!];
+            if (cached == null) {
+              throw Exception(
+                "Signing key not found for address ${utxo.address}. "
+                "Local db may be corrupt. Rescan wallet.",
+              );
+            }
+            final input = StandardInput(
+              utxo,
+              derivePathType: cached.derivePathType,
             );
+            input.key = cached.key;
+            setCoins.add(input);
             nValueIn += BigInt.from(utxo.value);
           }
         }
@@ -1720,7 +1791,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               throw Exception("Change index out of range");
             }
 
-            final changeAddress = await getCurrentChangeAddress();
             vout.insert(nChangePosInOut, (
               changeAddress!.value,
               nChange.toInt(),
@@ -1984,19 +2054,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             addresses: [
               if (addressOrScript is String) addressOrScript.toString(),
             ],
-            walletOwns:
-                (await mainDB.isar.addresses
-                    .where()
-                    .walletIdEqualTo(walletId)
-                    .filter()
-                    .valueEqualTo(
-                      addressOrScript is Uint8List
-                          ? output.$3!
-                          : addressOrScript as String,
-                    )
-                    .valueProperty()
-                    .findFirst()) !=
-                null,
+            walletOwns: walletAddressSet.contains(
+              addressOrScript is Uint8List
+                  ? output.$3!
+                  : addressOrScript as String,
+            ),
           ),
         );
       }
@@ -2077,11 +2139,55 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       Logging.instance.i("nFeeRet=$nFeeRet, vSize=${data.vSize}");
       if (nFeeRet.toInt() < data.vSize!) {
-        Logging.instance.w(
-          "Spark mint transaction failed: $nFeeRet is less than ${data.vSize}",
+        feeRetryCount++;
+        if (feeRetryCount > maxFeeRetries) {
+          throw Exception(
+            "fee is less than vSize after $maxFeeRetries retries "
+            "(fee=$nFeeRet, vSize=${data.vSize})",
+          );
+        }
+        // The real transaction (with generate: true) can be larger than the
+        // dummy used for fee estimation (generate: false) because the real
+        // Spark mint proofs are larger than the dummy placeholders. When this
+        // happens, set a minimum fee based on the real vSize and retry the
+        // entire UTXO group from the top of the outer loop.
+        final realFeeNeeded = BigInt.from(
+          estimateTxFee(
+            vSize: data.vSize!,
+            feeRatePerKB: feesObject.medium,
+          ),
         );
-        throw Exception("fee is less than vSize");
+        Logging.instance.w(
+          "Spark mint fee $nFeeRet < vSize ${data.vSize}. "
+          "Retrying ($feeRetryCount/$maxFeeRetries) with "
+          "realFeeNeeded=$realFeeNeeded",
+        );
+        // Restore the UTXOs used in this attempt back to itr so they can be
+        // re-selected on the next try.
+        for (final usedCoin in vin) {
+          if (!itr.any(
+            (u) =>
+                u.txid == usedCoin.utxo.txid && u.vout == usedCoin.utxo.vout,
+          )) {
+            itr.add(usedCoin.utxo);
+          }
+        }
+        // Ensure itr is back in valueAndUTXOs if it was removed.
+        if (!valueAndUTXOs.contains(itr)) {
+          valueAndUTXOs.insert(0, itr);
+        }
+        // Restore outputs_ to the state before the fee loop consumed it,
+        // so the retry processes the same mint amounts.
+        outputs_ = outputsBeforeGroup;
+        // Set the minimum fee for the retry and continue the outer loop,
+        // which will restart fee estimation for this same UTXO group.
+        minFeeForGroup = realFeeNeeded;
+        continue;
       }
+
+      // Successfully built transaction, reset for next UTXO group.
+      minFeeForGroup = BigInt.zero;
+      feeRetryCount = 0;
 
       results.add(data);
 
