@@ -49,9 +49,21 @@ check-reqs-windows: ## Specific checks for Windows/WSL environments
 init: ## Clones the repository and initializes all submodules
 	git submodule update --init --recursive
 
-clean: ## Cleans all Flutter, Dart, and Rust build artifacts
+clean: ## Cleans all Flutter, Dart, Rust, and flaky dependency artifacts
+	@echo "1. Cleaning local Flutter and Rust artifacts..."
 	$(FLUTTER) clean
-	cargo clean
+	@if [ -f "Cargo.toml" ]; then cargo clean; fi
+	
+	@echo "2. Cleaning local platform specific artifacts..."
+	rm -rf macos/Pods macos/Podfile.lock
+	rm -rf ios/Pods ios/Podfile.lock
+	rm -rf build/
+	
+	@echo "3. Cleaning flaky external dependency residues (Pub-Cache)..."
+	@chmod -R u+w $(HOME)/.pub-cache/git/ 2>/dev/null || true
+	@find $(HOME)/.pub-cache/git/ -type d \( -name "build" -o -name "target" \) \
+		-path "*flutter_lib*" -exec rm -rf {} + 2>/dev/null || true
+	@echo "All clean. You can now run build-macos or build-linux starting from a fresh state."
 
 prebuild-unix: ## Executes the prebuild script (keys/parameters) for Unix systems
 	cd scripts && ./prebuild.sh
