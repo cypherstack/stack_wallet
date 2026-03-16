@@ -95,7 +95,7 @@ build-macos: check-reqs check-macos-sdk init patch-submodules prebuild-unix ## C
 	@echo "4. Building secp256k1 (coinlib)..."
 	$(FLUTTER) pub run coinlib:build_macos
 	@echo "5. Compiling Flutter App..."
-	$(FLUTTER) build macos --release
+	env -u CXXFLAGS -u CFLAGS -u LDFLAGS -u CPATH -u LIBRARY_PATH $(FLUTTER) build macos --release
 
 # --- IOS ---
 
