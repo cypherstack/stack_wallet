@@ -51,6 +51,7 @@ init: ## Clones the repository and initializes all submodules
 
 clean: ## Cleans all Flutter, Dart, Rust, and flaky dependency artifacts
 	@echo "1. Cleaning local Flutter and Rust artifacts..."
+	@chmod -R u+w crypto_plugins/ 2>/dev/null || true
 	$(FLUTTER) clean
 	@if [ -f "Cargo.toml" ]; then cargo clean; fi
 	
@@ -73,6 +74,7 @@ prebuild-windows: ## Executes the prebuild script for Windows (via PowerShell)
 
 patch-submodules: ## Patches non-portable sed calls and version logic in submodules
 	@echo "Cleaning up old build artifacts..."
+	@chmod -R u+w crypto_plugins/ 2>/dev/null || true
 	@rm -rf crypto_plugins/*/scripts/macos/build
 	@echo "Patching submodules for portability (Bash & Dart)..."
 	@find crypto_plugins -name "build_all.sh" -exec sed -i.bak 's|/\$${OS}_VERSION/c\\.*|s\|/\\\*\$${OSX}_VERSION\\\*/.*\|/\\\*\$${OSX}_VERSION\\\*/ const \$${OSX}_VERSION = \\"$$COMMIT\\";\|g|g' {} \;
