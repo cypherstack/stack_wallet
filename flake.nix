@@ -46,7 +46,20 @@
             echo "Stack Wallet Dev-Environment activated!"
             echo "Target System: ${system}"
             echo "==================================================="
-            
+          
+	    export APP_PROJECT_ROOT_DIR=$(pwd)
+	    export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+	    export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+	    export PATH="$HOME/.cargo/bin:$PWD/.nix-bin:$PATH"
+	    unset CPATH
+	    export CPATH="$SDKROOT/usr/include"
+	    export LIBRARY_PATH="$SDKROOT/usr/lib"
+	    export CXXFLAGS="-isysroot $SDKROOT -I$SDKROOT/usr/include/c++/v1"
+	    export CFLAGS="-isysroot $SDKROOT"
+	    export LDFLAGS="-isysroot $SDKROOT"
+	     
+
+ 
             export PATH="$HOME/.cargo/bin:$PATH"
             
             # ==========================================
@@ -67,6 +80,8 @@
               cargo install cargo-ndk cbindgen cargo-lipo
             fi
 
+	    export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT"
+
             # ==========================================
             # MACOS XCODE SANDBOX ESCAPE
             # ==========================================
@@ -78,6 +93,9 @@
               ln -sf /usr/bin/xcodebuild .nix-bin/xcodebuild
               ln -sf /usr/bin/xcrun .nix-bin/xcrun
               ln -sf /usr/bin/lipo .nix-bin/lipo
+	      ln -sf /usr/bin/clang .nix-bin/clang
+	      ln -sf /usr/bin/clang++ .nix-bin/clang++
+	      																			
               export PATH="$PWD/.nix-bin:$PATH"
             ''}
           '';
