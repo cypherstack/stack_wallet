@@ -13,15 +13,12 @@ export NEW_BASIC_NAME="stack_wallet"
 NEW_PUBSPEC_NAME="stackwallet"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
-# String replacements.
-if [[ "$(uname)" == 'Darwin' ]]; then
-  # macos specific sed
-  sed -i '' "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-else
-  sed -i "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-fi
+# ==========================================
+# FIX: Cross-Platform sed (macOS, Linux, Nix)
+# ==========================================
+sed -i.bak "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
+sed -i.bak "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \
