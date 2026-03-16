@@ -87,13 +87,13 @@ patch-submodules: ## Patches non-portable sed calls and version logic in submodu
 deps-linux: ## Builds Linux-specific secure storage dependencies
 	cd scripts/linux && ./build_secure_storage_deps.sh
 
-build-linux: check-reqs init prebuild-unix deps-linux ## Complete release build for Linux
+build-linux: check-reqs init patch-submodules prebuild-unix deps-linux
 	@echo "1. Generating pubspec.yaml and building native crypto plugins..."
-	cd scripts && ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
+	cd scripts && yes "yes" | BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
 	@echo "2. Fetching Dart dependencies..."
 	$(FLUTTER) pub get
 	@echo "3. Building secp256k1 (coinlib)..."
-	$(DART) run coinlib:build_linux
+	$(FLUTTER) pub run coinlib:build_linux
 	@echo "4. Compiling Flutter App..."
 	$(FLUTTER) build linux --release
 
