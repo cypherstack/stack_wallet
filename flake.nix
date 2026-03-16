@@ -1,4 +1,4 @@
-
+{
   description = "Stack Wallet Build Environment";
 
   inputs = {
