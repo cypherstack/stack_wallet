@@ -59,10 +59,14 @@ prebuild-unix: ## Executes the prebuild script (keys/parameters) for Unix system
 prebuild-windows: ## Executes the prebuild script for Windows (via PowerShell)
 	cd scripts && powershell.exe -ExecutionPolicy Bypass -File prebuild.ps1
 
-patch-submodules: ## Patches non-portable sed calls in submodules
-	@echo "Patching submodules for portability..."
+patch-submodules: ## Patches non-portable sed calls and version logic in submodules
+	@echo "Cleaning up old build artifacts..."
+	@rm -rf crypto_plugins/*/scripts/macos/build
+	@echo "Patching submodules for portability (Bash & Dart)..."
 	@find crypto_plugins -name "build_all.sh" -exec sed -i.bak 's|/\$${OS}_VERSION/c\\.*|s\|/\\\*\$${OSX}_VERSION\\\*/.*\|/\\\*\$${OSX}_VERSION\\\*/ const \$${OSX}_VERSION = \\"$$COMMIT\\";\|g|g' {} \;
+	@find crypto_plugins/frostdart -name "build_macos.dart" -type f -exec sed -i.bak 's/\["-i", ".bak",/\["-i.bak",/g' {} +
 	@find crypto_plugins -name "*.bak" -delete
+	@echo "All submodules patched and ready."
 
 # --- LINUX ---
 
@@ -89,7 +93,7 @@ build-macos: check-reqs check-macos-sdk init patch-submodules prebuild-unix ## C
 	@echo "3. Generating app config and building native crypto plugins..."
 	cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p macos -v $(VERSION) -b $(BUILD_NUM) -	
 	@echo "4. Building secp256k1 (coinlib)..."
-	$(DART) run coinlib:build_macos
+	$(FLUTTER) pub run coinlib:build_macos
 	@echo "5. Compiling Flutter App..."
 	$(FLUTTER) build macos --release
 
