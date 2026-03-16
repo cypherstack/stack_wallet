@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 find_isar_core_lib() {
     local isar_core_path
-    isar_core_path=$(find "${HOME}/.pub-cache/git" -type d -path "*/isar_core_ffi" -print -quit 2>/dev/null)
+    isar_core_path=$(find "${HOME}/.pub-cache" -type d -path "*/isar_core_ffi" -print -quit 2>/dev/null)
     [[ -z "${isar_core_path}" ]] && return 1
     echo "${isar_core_path}"
 }
