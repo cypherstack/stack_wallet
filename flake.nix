@@ -84,12 +84,12 @@
               export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
               export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
               
-              unset CPATH
-              export CPATH="$SDKROOT/usr/include"
-              export LIBRARY_PATH="$SDKROOT/usr/lib"
-              export CXXFLAGS="-isysroot $SDKROOT -I$SDKROOT/usr/include/c++/v1"
-              export CFLAGS="-isysroot $SDKROOT"
-              export LDFLAGS="-isysroot $SDKROOT"
+              #unset CPATH
+              #export CPATH="$SDKROOT/usr/include"
+              #export LIBRARY_PATH="$SDKROOT/usr/lib"
+              #export CXXFLAGS="-isysroot $SDKROOT -I$SDKROOT/usr/include/c++/v1"
+              #export CFLAGS="-isysroot $SDKROOT"
+              #export LDFLAGS="-isysroot $SDKROOT"
               export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT"
               
               mkdir -p .nix-bin
