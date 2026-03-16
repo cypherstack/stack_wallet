@@ -92,7 +92,7 @@ deps-linux: ## Builds Linux-specific secure storage dependencies
 build-linux: check-reqs init patch-submodules prebuild-unix deps-linux
 	@echo "1. Generating pubspec.yaml and building native crypto plugins..."
 	#cd scripts && yes "yes" | BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
-	cd scripts && PROTOC=$(shell which protoc) BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
+	bash -c 'rustup() { echo "1.89.0-stable"; echo "1.85.1-stable"; return 0; }; export -f rustup; ./build_app.sh -a $(APP_NAME) -p macos -v $(VERSION) -b $(BUILD_NUM) -f'
 	@echo "2. Fetching Dart dependencies..."
 	$(FLUTTER) pub get
 	@echo "3. Building secp256k1 (coinlib)..."
@@ -117,8 +117,7 @@ build-macos: check-reqs check-macos-sdk init patch-submodules prebuild-unix ## C
 	
 	@echo "3. Generating app config and building native crypto plugins..."
 	cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 \
-	bash -c 'rustup() { echo "1.89.0 stable installed"; return 0; }; export -f rustup; ./build_app.sh -a $(APP_NAME) -p macos -v $(VERSION) -b $(BUILD_NUM) -f'
-	
+	bash -c 'rustup() { echo "1.89.0-stable"; echo "1.85.1-stable"; return 0; }; export -f rustup; ./build_app.sh -a $(APP_NAME) -p macos -v $(VERSION) -b $(BUILD_NUM) -f'	
 	@echo "4. Building secp256k1 (coinlib)..."
 	$(FLUTTER) pub run coinlib:build_macos
 	
