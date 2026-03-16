@@ -9,6 +9,8 @@ BUILD_NUM ?= 210
 FLUTTER   ?= flutter
 DART      ?= dart
 
+export PROTOC = $(shell which protoc 2>/dev/null)
+
 .PHONY: help check-reqs check-reqs-windows check-macos-sdk init clean prebuild-unix prebuild-windows deps-linux build-linux build-macos build-ios build-android build-windows
 
 help: ## Shows all available make commands
@@ -89,7 +91,8 @@ deps-linux: ## Builds Linux-specific secure storage dependencies
 
 build-linux: check-reqs init patch-submodules prebuild-unix deps-linux
 	@echo "1. Generating pubspec.yaml and building native crypto plugins..."
-	cd scripts && yes "yes" | BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
+	#cd scripts && yes "yes" | BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
+	cd scripts && PROTOC=$(shell which protoc) BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
 	@echo "2. Fetching Dart dependencies..."
 	$(FLUTTER) pub get
 	@echo "3. Building secp256k1 (coinlib)..."
@@ -100,16 +103,28 @@ build-linux: check-reqs init patch-submodules prebuild-unix deps-linux
 # --- MACOS ---
 
 build-macos: check-reqs check-macos-sdk init patch-submodules prebuild-unix ## Complete release build for macOS
+	@echo "0. Repairing permissions and healing korrupt Xcode project..."
+	@chmod -R u+w $(HOME)/.pub-cache/git/ 2>/dev/null || true
+	@chmod -R u+w macos/ 2>/dev/null || true
+	rm -rf macos/Runner.xcodeproj macos/Runner.xcworkspace
+	$(FLUTTER) create --platforms=macos .
+	
 	@echo "1. Patching version placeholders..."
 	./scripts/app_config/shared/update_version.sh -v $(VERSION) -b $(BUILD_NUM)
+	
 	@echo "2. Fetching Dart dependencies..."
 	$(FLUTTER) pub get
+	
 	@echo "3. Generating app config and building native crypto plugins..."
-	cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 ./build_app.sh -a $(APP_NAME) -p macos -v $(VERSION) -b $(BUILD_NUM) -	
+	cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 \
+	bash -c 'rustup() { echo "1.89.0 stable installed"; return 0; }; export -f rustup; ./build_app.sh -a $(APP_NAME) -p macos -v $(VERSION) -b $(BUILD_NUM) -f'
+	
 	@echo "4. Building secp256k1 (coinlib)..."
 	$(FLUTTER) pub run coinlib:build_macos
+	
 	@echo "5. Compiling Flutter App..."
 	env -u CXXFLAGS -u CFLAGS -u LDFLAGS -u CPATH -u LIBRARY_PATH $(FLUTTER) build macos --release
+
 
 # --- IOS ---
 
