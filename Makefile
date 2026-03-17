@@ -103,6 +103,8 @@ macos-prepare:
 
 macos-configure:
 	@echo "--- Configuring project..."
+	@echo "--- Initializing submodules..."
+	@git submodule update --init --recursive
 	@if [ ! -f pubspec.yaml ]; then \
 		echo "--- pubspec.yaml missing; generating from template..."; \
 		cp scripts/app_config/templates/pubspec.template.yaml pubspec.yaml; \
