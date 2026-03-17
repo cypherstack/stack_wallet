@@ -147,6 +147,9 @@ macos-restore-metadata:
 
 macos-build-native:
 	@echo "--- Building native dependencies..."
+	@echo "--- Applying local patch for flutter_libepiccash macOS build script..."
+	@cp scripts/patches/flutter_libepiccash_macos_build_all.sh crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh
+	@chmod +x crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		RUSTUP_HOME="$$HOME/.rustup" \
 		CARGO_HOME="$$HOME/.cargo" \
