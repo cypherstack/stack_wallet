@@ -37,7 +37,10 @@
 
         macPackages = lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
           cocoapods 
-          libiconv 
+          libiconv
+          autoconf
+          automake
+          libtool
         ]);
 
       in

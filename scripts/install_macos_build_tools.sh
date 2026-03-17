@@ -13,7 +13,7 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 
 echo "Installing Homebrew packages..."
-brew install direnv rustup-init cmake ninja pkg-config gnu-sed cocoapods go protobuf
+brew install direnv rustup-init cmake ninja pkg-config gnu-sed cocoapods go protobuf autoconf automake libtool
 
 echo "Installing Flutter cask..."
 brew install --cask flutter
@@ -58,5 +58,7 @@ rustc --version
 rustup run stable rustc --version
 pod --version
 go version
+autoreconf --version | head -n 1 || true
+aclocal --version | head -n 1 || true
 
 echo "Done."
