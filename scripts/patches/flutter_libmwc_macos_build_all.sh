@@ -21,6 +21,8 @@ cd build/rust
 
 # some people need this apparently
 export PROTOC=/opt/homebrew/bin/protoc
+unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS
+export CARGO_BUILD_JOBS=1
 
 # building
 cbindgen src/lib.rs -l c > libmwc_wallet.h

@@ -181,6 +181,10 @@ macos-build-native:
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		RUSTUP_HOME="$$HOME/.rustup" \
 		CARGO_HOME="$$HOME/.cargo" \
+		MAKEFLAGS= \
+		MFLAGS= \
+		CARGO_MAKEFLAGS= \
+		CARGO_BUILD_JOBS=1 \
 		CC="/usr/bin/clang" \
 		CXX="/usr/bin/clang++" \
 		AR="/usr/bin/ar" \
