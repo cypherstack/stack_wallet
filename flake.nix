@@ -59,7 +59,7 @@
             # ==========================================
             if ! rustup toolchain list | grep -q "1.89.0"; then
               echo "Initializing Rust toolchains (this happens only once)..."
-              rustup install 1.89.0 1.85.1 1.81.0
+              rustup install 1.89.0 1.85.1 1.81.0 stable
               rustup default 1.89.0
               
               if [[ "${system}" == *"darwin"* ]]; then
@@ -89,24 +89,53 @@
             ${lib.optionalString pkgs.stdenv.isDarwin ''
               export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
               export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+              export MACOSX_DEPLOYMENT_TARGET="11.0"
               
-              #unset CPATH
-              #export CPATH="$SDKROOT/usr/include"
-              #export LIBRARY_PATH="$SDKROOT/usr/lib"
-              #export CXXFLAGS="-isysroot $SDKROOT -I$SDKROOT/usr/include/c++/v1"
-              #export CFLAGS="-isysroot $SDKROOT"
-              #export LDFLAGS="-isysroot $SDKROOT"
-              export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT"
+              # --- NIX C++ COMPILER OVERRIDE ---
+              export CC=/usr/bin/clang
+              export CXX=/usr/bin/clang++
+              export AR=/usr/bin/ar
+              export AS=/usr/bin/as
+              export NM=/usr/bin/nm
+              export RANLIB=/usr/bin/ranlib
+              export STRIP=/usr/bin/strip
               
+              export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT" 
+
               mkdir -p .nix-bin
               ln -sf /usr/bin/xcodebuild .nix-bin/xcodebuild
-              ln -sf /usr/bin/xcrun .nix-bin/xcrun
-              ln -sf /usr/bin/lipo .nix-bin/lipo
               ln -sf /usr/bin/clang .nix-bin/clang
               ln -sf /usr/bin/clang++ .nix-bin/clang++
-                                                            
+              
+              # SMART LIPO & XCRUN WRAPPER
+              rm -f .nix-bin/lipo .nix-bin/xcrun
+              
+              echo '#!/bin/bash' > .nix-bin/lipo
+              echo 'for arg in "$@"; do' >> .nix-bin/lipo
+              echo '    if [[ "$arg" == *"FlutterMacOS.framework"* ]]; then' >> .nix-bin/lipo
+              echo '        chmod -R u+w "$(dirname "$arg")" 2>/dev/null || true' >> .nix-bin/lipo
+              echo '    fi' >> .nix-bin/lipo
+              echo 'done' >> .nix-bin/lipo
+              echo 'exec /usr/bin/lipo "$@"' >> .nix-bin/lipo
+              chmod +x .nix-bin/lipo 
+
+              echo '#!/bin/bash' > .nix-bin/xcrun
+              echo 'if [ "$1" = "-f" ] && [ "$2" = "lipo" ]; then' >> .nix-bin/xcrun
+              echo '    echo "'$PWD'/.nix-bin/lipo"' >> .nix-bin/xcrun
+              echo '    exit 0' >> .nix-bin/xcrun
+              echo 'fi' >> .nix-bin/xcrun
+              echo "" >> .nix-bin/xcrun
+              echo '# Keep xcrun tool invocations pinned to macOS deployment context.' >> .nix-bin/xcrun
+              echo 'unset IPHONEOS_DEPLOYMENT_TARGET TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET' >> .nix-bin/xcrun
+              echo 'unset XROS_DEPLOYMENT_TARGET XR_DEPLOYMENT_TARGET VISIONOS_DEPLOYMENT_TARGET DRIVERKIT_DEPLOYMENT_TARGET' >> .nix-bin/xcrun
+              echo 'export MACOSX_DEPLOYMENT_TARGET="''${MACOSX_DEPLOYMENT_TARGET:-11.0}"' >> .nix-bin/xcrun
+              echo 'export SDKROOT="''${SDKROOT:-$(/usr/bin/xcrun --sdk macosx --show-sdk-path)}"' >> .nix-bin/xcrun
+              echo 'exec /usr/bin/xcrun "$@"' >> .nix-bin/xcrun
+              chmod +x .nix-bin/xcrun
+                                                              
               export PATH="$PWD/.nix-bin:$PATH"
             ''}
+
           '';
         };
       }
