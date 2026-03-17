@@ -18,7 +18,7 @@ if ! command -v rustup >/dev/null 2>&1; then
 fi
 
 echo "Installing Nix profile packages..."
-nix profile install \
+nix --extra-experimental-features "nix-command flakes" profile add \
   nixpkgs#direnv \
   nixpkgs#flutter \
   nixpkgs#go \
