@@ -20,12 +20,21 @@ export NEW_BASIC_NAME="stack_wallet"
 NEW_PUBSPEC_NAME="stackwallet"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
+if [[ ! -f "${PUBSPEC_FILE}" ]]; then
+  echo "Error: pubspec.yaml not found at ${PUBSPEC_FILE}" >&2
+  echo "Run from repo root and restore it with: git checkout -- pubspec.yaml" >&2
+  exit 1
+fi
+
 # ==========================================
 # FIX: Cross-Platform sed (macOS, Linux, Nix)
 # ==========================================
 sed -i.bak "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
 sed -i.bak "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 rm -f "${PUBSPEC_FILE}.bak"
+
+# Ensure app assets are linked for this flavor/platform.
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${NEW_BASIC_NAME}" "$1"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \
