@@ -44,3 +44,19 @@ if ! [ -x "$(command -v ninja)" ]; then
   exit 1
 fi
 ninja -C _build
+
+# Publish a local pkg-config file that points at the locally built libsecret.
+# This avoids relying on distro-specific libsecret/glib pkg-config metadata.
+mkdir -p "$LINUX_DIRECTORY/pc"
+cat > "$LINUX_DIRECTORY/pc/libsecret-1.pc" <<EOF
+prefix=$LINUX_DIRECTORY/build/libsecret
+exec_prefix=\${prefix}
+libdir=\${prefix}/_build/libsecret
+includedir=\${prefix}
+
+Name: libsecret-1
+Description: GObject bindings for Secret Service API
+Version: $LIBSECRET_TAG
+Libs: -L\${libdir} -lsecret-1
+Cflags: -I\${includedir} -I\${includedir}/_build
+EOF
