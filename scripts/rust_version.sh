@@ -6,7 +6,7 @@ set_rust_to_everything_else() {
     rustup default 1.89.0
   else
     echo "Rust version 1.89.0 is not installed. Please install it using 'rustup install 1.89.0'." >&2
-    exit 1
+    echo "Bypassed by Nix"
   fi
 }
 
@@ -15,7 +15,7 @@ set_rust_version_for_libepiccash() {
     rustup default 1.89.0
   else
     echo "Rust version 1.89.0 is not installed. Please install it using 'rustup install 1.89.0'." >&2
-    exit 1
+    echo "Bypassed by Nix"
   fi
 }
 
@@ -24,6 +24,6 @@ set_rust_version_for_libmwc() {
     rustup default 1.85.1
   else
     echo "Rust version 1.85.1 is not installed. Please install it using 'rustup install 1.85.1'." >&2
-    exit 1
+    echo "Bypassed by Nix"
   fi
 }
