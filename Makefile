@@ -92,7 +92,7 @@ patch-submodules: ## Apply portability patches to submodules
 
 # --- PLATFORM BUILDS ---
 
-build-macos: macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app ## Build MacOS Release (Self-healing)
+build-macos: check-reqs check-macos-sdk macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app ## Build MacOS Release (Single source of truth)
 
 macos-prepare:
 	@echo "--- Sanitizing environment..."
