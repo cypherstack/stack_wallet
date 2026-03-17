@@ -134,10 +134,22 @@ macos-restore-metadata:
 	@rm -f macos/Flutter/Flutter-Debug.xcconfig.bak macos/Flutter/Flutter-Release.xcconfig.bak
 	@# Keep app target deployment aligned with plugin minimums (e.g. camera_macos >= 11.0).
 	@sed -i.bak -e "s/MACOSX_DEPLOYMENT_TARGET = 10\\.15;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g" macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+	@# Ensure Runner configs inherit app metadata (PRODUCT_NAME/BUNDLE ID) from AppInfo.
+	@grep -q 'AppInfo.xcconfig' macos/Runner/Configs/Debug.xcconfig || \
+		sed -i.bak -e '/Flutter-Debug.xcconfig/a\
+#include "AppInfo.xcconfig"' macos/Runner/Configs/Debug.xcconfig 2>/dev/null || true
+	@grep -q 'AppInfo.xcconfig' macos/Runner/Configs/Release.xcconfig || \
+		sed -i.bak -e '/Flutter-Release.xcconfig/a\
+#include "AppInfo.xcconfig"' macos/Runner/Configs/Release.xcconfig 2>/dev/null || true
+	@rm -f macos/Runner/Configs/Debug.xcconfig.bak macos/Runner/Configs/Release.xcconfig.bak
 	@# Runner target configs must inherit Debug/Release xcconfigs (not AppInfo) so Pods module paths are available.
 	@perl -0777 -i.bak -pe 's/(33CC10FC2044A3C60003C045 \/\* Debug \*\/ = \{\s*isa = XCBuildConfiguration;\s*)baseConfigurationReference = 33E5194F232828860026EE4D \/\* AppInfo\.xcconfig \*\//$${1}baseConfigurationReference = 9740EEB21CF90195004384FC \/\* Debug.xcconfig \*\//s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@perl -0777 -i.bak -pe 's/(33CC10FD2044A3C60003C045 \/\* Release \*\/ = \{\s*isa = XCBuildConfiguration;\s*)baseConfigurationReference = 33E5194F232828860026EE4D \/\* AppInfo\.xcconfig \*\//$${1}baseConfigurationReference = 7AFA3C8E1D35360C0083082E \/\* Release.xcconfig \*\//s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@perl -0777 -i.bak -pe 's/(338D0CEA231458BD00FA5F75 \/\* Profile \*\/ = \{\s*isa = XCBuildConfiguration;\s*)baseConfigurationReference = 33E5194F232828860026EE4D \/\* AppInfo\.xcconfig \*\//$${1}baseConfigurationReference = 7AFA3C8E1D35360C0083082E \/\* Release.xcconfig \*\//s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+	@# Force a valid Swift module identifier for Runner even when PRODUCT_NAME is space-separated.
+	@perl -0777 -i.bak -pe 's/(33CC10FC2044A3C60003C045 \/\* Debug \*\/ = \{\s*isa = XCBuildConfiguration;.*?buildSettings = \{.*?)(\n\s*PROVISIONING_PROFILE_SPECIFIER = "";)/$${1}\n\t\t\t\tPRODUCT_MODULE_NAME = stack_wallet;$${2}/s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+	@perl -0777 -i.bak -pe 's/(33CC10FD2044A3C60003C045 \/\* Release \*\/ = \{\s*isa = XCBuildConfiguration;.*?buildSettings = \{.*?)(\n\s*PROVISIONING_PROFILE_SPECIFIER = "";)/$${1}\n\t\t\t\tPRODUCT_MODULE_NAME = stack_wallet;$${2}/s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+	@perl -0777 -i.bak -pe 's/(338D0CEA231458BD00FA5F75 \/\* Profile \*\/ = \{\s*isa = XCBuildConfiguration;.*?buildSettings = \{.*?)(\n\s*PROVISIONING_PROFILE_SPECIFIER = "";)/$${1}\n\t\t\t\tPRODUCT_MODULE_NAME = stack_wallet;$${2}/s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
 	@$(FLUTTER) pub get
 	@# Ensure generated build settings are single-line key/value entries for CocoaPods xcconfig parser.
