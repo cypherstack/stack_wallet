@@ -177,7 +177,7 @@ macos-build-native:
 		PATH="/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
 		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
-	@$(DART) run coinlib:build_macos
+	@$(FLUTTER) pub run coinlib:build_macos
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
 	@# Force deterministic arm64-only CocoaPods builds on Apple Silicon (avoid x86_64 Swift header failures).
