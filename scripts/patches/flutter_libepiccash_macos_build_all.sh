@@ -21,9 +21,8 @@ cd build/rust
 
 mkdir -p target
 unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS MAKELEVEL MAKE_TERMOUT MAKE_TERMERR
-export CARGO_BUILD_JOBS=1
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
-export CARGO_TARGET_DIR="$(pwd)/target"
+export CARGO_TARGET_DIR="$(mktemp -d "${TMPDIR:-/tmp}/epiccash-target.XXXXXX")"
 mkdir -p "${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/deps"
 
 run_cargo_build() {
@@ -43,12 +42,13 @@ mkdir -p Headers
 cp target/epic_cash_wallet.h Headers/libepic_cash_wallet.h
 cp target/epic_cash_wallet.h ../../../../macos/Classes/FlutterLibepiccashPlugin.h
 
-RANDOMX_LIB=$(find target/aarch64-apple-darwin/release/build -name "librandomx.a" | head -n 1 || true)
+BASE_LIB="${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/libepic_cash_wallet.a"
+RANDOMX_LIB=$(find "${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/build" -name "librandomx.a" | head -n 1 || true)
 if [ -n "${RANDOMX_LIB}" ] && [ -f "${RANDOMX_LIB}" ]; then
   echo "Found RandomX library at: ${RANDOMX_LIB}"
-  COMBINED_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet_combined.a
+  COMBINED_LIB="${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/libepic_cash_wallet_combined.a"
   if /usr/bin/libtool -static -o "${COMBINED_LIB}" \
-      target/aarch64-apple-darwin/release/libepic_cash_wallet.a \
+      "${BASE_LIB}" \
       "${RANDOMX_LIB}" && \
      [ -f "${COMBINED_LIB}" ]; then
     /usr/bin/ranlib "${COMBINED_LIB}" || true
@@ -56,15 +56,15 @@ if [ -n "${RANDOMX_LIB}" ] && [ -f "${RANDOMX_LIB}" ]; then
       MAIN_LIB="${COMBINED_LIB}"
     else
       echo "Warning: combined archive is invalid, falling back to libepic_cash_wallet.a"
-      MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet.a
+      MAIN_LIB="${BASE_LIB}"
     fi
   else
     echo "Warning: failed to create combined archive, falling back to libepic_cash_wallet.a"
-    MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet.a
+    MAIN_LIB="${BASE_LIB}"
   fi
 else
   echo "Warning: librandomx.a not found, using libepic_cash_wallet.a only"
-  MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet.a
+  MAIN_LIB="${BASE_LIB}"
 fi
 
 xcodebuild -create-xcframework \

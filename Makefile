@@ -184,7 +184,6 @@ macos-build-native:
 		MAKEFLAGS= \
 		MFLAGS= \
 		CARGO_MAKEFLAGS= \
-		CARGO_BUILD_JOBS=1 \
 		CC="/usr/bin/clang" \
 		CXX="/usr/bin/clang++" \
 		AR="/usr/bin/ar" \
