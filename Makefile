@@ -103,6 +103,10 @@ macos-prepare:
 
 macos-configure:
 	@echo "--- Configuring project..."
+	@if [ ! -f pubspec.yaml ]; then \
+		echo "--- pubspec.yaml missing; generating from template..."; \
+		cp scripts/app_config/templates/pubspec.template.yaml pubspec.yaml; \
+	fi
 	@./scripts/app_config/configure_stack_wallet.sh macos
 	@./scripts/app_config/shared/update_version.sh -v $(VERSION) -b $(BUILD_NUM)
 
