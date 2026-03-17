@@ -80,12 +80,14 @@ patch-submodules: ## Apply portability patches to submodules
 	@rm -rf crypto_plugins/*/scripts/macos/build
 	@# NOTE: avoid brittle cross-platform in-place sed rewrites for build_all.sh files here.
 	@# Platform-specific script patching is handled explicitly in build targets via scripts/patches/*.
-	@find crypto_plugins/frostdart -name "build_*.dart" -type f -exec sed -i.bak 's/\["-i", ".bak",/\["-i.bak",/g' {} + 2>/dev/null || true
+	@find crypto_plugins/frostdart -name "build_*.dart" -type f -exec perl -0777 -i.bak -pe 's/\["-i"\s*,\s*"\.bak"\s*,/\["-i.bak",/g' {} + 2>/dev/null || true
 	@echo "Fixing Epic Cash header logic..."
 	@sed -i.bak 's|cp target/epic_cash_wallet.h libepic_cash_wallet.h|mkdir -p target \&\& touch target/epic_cash_wallet.h \&\& cp target/epic_cash_wallet.h libepic_cash_wallet.h|g' crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh 2>/dev/null || true
 	@sed -i.bak 's|cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h|cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h \&\& cp target/epic_cash_wallet.h libepic_cash_wallet.h|g' crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh 2>/dev/null || true
 	@echo "Fixing Frostdart binary path..."
-	@find crypto_plugins/frostdart/scripts -name "build_all.sh" -exec sed -i.bak "s|.*dart build_|$(shell which dart) build_|g" {} + 2>/dev/null || true
+	@find crypto_plugins/frostdart/scripts -name "build_all.sh" -exec perl -0777 -i.bak -pe 's|^.*dart\s+build_|dart build_|mg' {} + 2>/dev/null || true
+	@# GNU/BSD sed compatibility: ensure Frostdart macOS script uses -i.bak form.
+	@perl -0777 -i.bak -pe 's/_run\("sed",\s*\["-i"\s*,\s*"\.bak"\s*,\s*"s\/frostdart\/hrf-api\/",\s*"cargo\.toml"\]\);/_run("sed", ["-i.bak", "s\/frostdart\/hrf-api\/", "cargo.toml"]);/g' crypto_plugins/frostdart/scripts/macos/build_macos.dart 2>/dev/null || true
 	@echo "Disabling strict Rust checks..."
 	@find crypto_plugins scripts -type f -name "rust_version.sh" -exec sed -i.bak 's/exit 1/echo "Bypassed by Nix"/g' {} + 2>/dev/null || true
 	@find crypto_plugins -name "*.bak" -delete 2>/dev/null || true
