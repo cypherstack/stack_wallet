@@ -8,9 +8,20 @@ VERSION      ?= 2.1.0
 BUILD_NUM    ?= 210
 FLUTTER      ?= flutter
 DART         ?= dart
+APP_PROJECT_ROOT_DIR ?= $(CURDIR)
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
+MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
+	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
+	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
+	-u IPHONEOS_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET \
+	-u XROS_DEPLOYMENT_TARGET -u XR_DEPLOYMENT_TARGET
+MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=11.0
 
-.PHONY: help check-reqs check-reqs-windows check-macos-sdk init clean prebuild-unix prebuild-windows deps-linux patch-submodules build-linux build-macos build-ios build-android build-windows
+export APP_PROJECT_ROOT_DIR
+
+.PHONY: help check-reqs check-reqs-windows check-macos-sdk init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
+	build-linux build-macos build-ios build-android build-windows \
+	macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app diagnose-macos-env
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -22,7 +33,11 @@ check-reqs: ## Verify essential build tools
 	@echo "Checking core prerequisites..."
 	@command -v $(FLUTTER) >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v $(DART) >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed."; exit 1; }
-	@command -v cargo >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust not installed."; exit 1; }
+	@command -v rustup >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup not installed."; exit 1; }
+	@rustup which rustc >/dev/null 2>&1 || { echo >&2 "[ERROR] rustc toolchain not available via rustup."; exit 1; }
+	@rustup which cargo >/dev/null 2>&1 || { echo >&2 "[ERROR] cargo toolchain not available via rustup."; exit 1; }
+	@rustup run stable rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup stable toolchain not available."; exit 1; }
+	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
 	@command -v pkg-config >/dev/null 2>&1 || { echo >&2 "[ERROR] pkg-config not installed."; exit 1; }
 	@echo "[OK] All core CLI requirements found!"
@@ -77,15 +92,21 @@ patch-submodules: ## Apply portability patches to submodules
 
 # --- PLATFORM BUILDS ---
 
-build-macos: ## Build MacOS Release (Self-healing)
+build-macos: macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app ## Build MacOS Release (Self-healing)
+
+macos-prepare:
 	@echo "--- Sanitizing environment..."
 	@sed -i 's/xelis_dart_sdk: 0.30.9/xelis_dart_sdk:/g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
 	@sed -i 's/\xc2\xa0/ /g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
 	@chmod -R u+w . 2>/dev/null || true
 	@rm -rf build/secp256k1 macos/Runner.xcworkspace crypto_plugins/*/scripts/macos/build
+
+macos-configure:
 	@echo "--- Configuring project..."
 	@./scripts/app_config/configure_stack_wallet.sh macos
 	@./scripts/app_config/shared/update_version.sh -v $(VERSION) -b $(BUILD_NUM)
+
+macos-restore-metadata:
 	@echo "--- Restoring metadata..."
 	@$(FLUTTER) create --platforms=macos . > /dev/null
 	@# Nix-provided Flutter templates can be copied as read-only; CocoaPods must rewrite these files.
@@ -98,22 +119,47 @@ build-macos: ## Build MacOS Release (Self-healing)
 	@[ -f macos/Flutter/ephemeral/Flutter-Generated.xcconfig ] && \
 		sed -i.bak -E 's/[[:space:]]+$$//' macos/Flutter/ephemeral/Flutter-Generated.xcconfig && \
 		rm -f macos/Flutter/ephemeral/Flutter-Generated.xcconfig.bak || true
+
+macos-build-native:
 	@echo "--- Building native dependencies..."
 	@rm -rf build/secp256k1
-	@$(FLUTTER) pub run coinlib:build_macos
+	@$(DART) run coinlib:build_macos
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
 	@rm -f macos/Podfile.bak
+
+macos-build-app:
 	@echo "--- Final Compilation..."
 	@rm -rf macos/Pods macos/Podfile.lock
-	@env \
-		-u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
-		-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
-		-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
-		-u IPHONEOS_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET \
-		-u XROS_DEPLOYMENT_TARGET -u XR_DEPLOYMENT_TARGET \
-		MACOSX_DEPLOYMENT_TARGET=11.0 \
+	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
+		RUSTUP_HOME="$$HOME/.rustup" \
+		CARGO_HOME="$$HOME/.cargo" \
+		RUSTUP_TOOLCHAIN=stable \
+		PATH="$$(dirname "$$(/opt/homebrew/bin/rustup which rustc)"):/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
 		$(FLUTTER) build macos --release
+
+diagnose-macos-env: ## Print macOS build env and tool resolution
+	@echo "--- Toolchain diagnostics ---"
+	@echo "flutter: $$(command -v $(FLUTTER) || echo missing)"
+	@echo "dart: $$(command -v $(DART) || echo missing)"
+	@echo "xcrun: $$(command -v xcrun || echo missing)"
+	@echo "clang: $$(command -v clang || echo missing)"
+	@echo "go: $$(command -v go || echo missing)"
+	@echo "rustup: $$(command -v rustup || echo missing)"
+	@echo "rustc: $$(command -v rustc || echo missing)"
+	@echo "cargo: $$(command -v cargo || echo missing)"
+	@echo "rustup rustc: $$(rustup which rustc 2>/dev/null || echo missing)"
+	@echo "rustup cargo: $$(rustup which cargo 2>/dev/null || echo missing)"
+	@echo "xcode-select: $$(xcode-select -p 2>/dev/null || echo missing)"
+	@echo "SDKROOT=$${SDKROOT:-<unset>}"
+	@echo "MACOSX_DEPLOYMENT_TARGET=$${MACOSX_DEPLOYMENT_TARGET:-<unset>}"
+	@echo "IPHONEOS_DEPLOYMENT_TARGET=$${IPHONEOS_DEPLOYMENT_TARGET:-<unset>}"
+	@echo "TVOS_DEPLOYMENT_TARGET=$${TVOS_DEPLOYMENT_TARGET:-<unset>}"
+	@echo "WATCHOS_DEPLOYMENT_TARGET=$${WATCHOS_DEPLOYMENT_TARGET:-<unset>}"
+	@echo "XROS_DEPLOYMENT_TARGET=$${XROS_DEPLOYMENT_TARGET:-<unset>}"
+	@echo "XR_DEPLOYMENT_TARGET=$${XR_DEPLOYMENT_TARGET:-<unset>}"
+	@echo "NIX_LDFLAGS=$${NIX_LDFLAGS:-<unset>}"
+	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
 build-ios: check-reqs check-macos-sdk init ## Build iOS Release
 	@echo "--- Configuring project..."
