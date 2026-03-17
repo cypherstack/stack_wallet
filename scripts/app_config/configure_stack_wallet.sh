@@ -7,7 +7,7 @@ set -x -e
 export NEW_NAME="Stack Wallet"
 export NEW_APP_ID="com.cypherstack.stackwallet"
 export NEW_APP_ID_CAMEL="com.cypherstack.stackWallet"
-export NEW_APP_ID_SNAKE="com.cypherstack.stack_wallet"
+export NEW_APP_ID_SNAKE="com.cypherstack.stackwallet"
 export NEW_BASIC_NAME="stack_wallet"
 
 NEW_PUBSPEC_NAME="stackwallet"

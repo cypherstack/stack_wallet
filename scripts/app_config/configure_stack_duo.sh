@@ -7,7 +7,7 @@ set -x -e
 export NEW_NAME="Stack Duo"
 export NEW_APP_ID="com.cypherstack.stackduo"
 export NEW_APP_ID_CAMEL="com.cypherstack.stackDuo"
-export NEW_APP_ID_SNAKE="com.cypherstack.stack_duo"
+export NEW_APP_ID_SNAKE="com.cypherstack.stackduo"
 export NEW_BASIC_NAME="stack_duo"
 
 NEW_PUBSPEC_NAME="stackduo"
