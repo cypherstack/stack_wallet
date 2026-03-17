@@ -104,6 +104,16 @@ macos-configure:
 	@echo "--- Configuring project..."
 	@echo "--- Initializing submodules..."
 	@git submodule update --init --recursive
+	@echo "--- Bootstrapping local config files..."
+	@bash scripts/prebuild.sh
+	@if [ ! -f crypto_plugins/flutter_libepiccash/lib/git_versions.dart ] && [ -f crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart ]; then \
+		echo "--- Creating flutter_libepiccash git_versions.dart from example..."; \
+		cp crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart crypto_plugins/flutter_libepiccash/lib/git_versions.dart; \
+	fi
+	@if [ ! -f crypto_plugins/flutter_libmwc/lib/git_versions.dart ] && [ -f crypto_plugins/flutter_libmwc/lib/git_versions_example.dart ]; then \
+		echo "--- Creating flutter_libmwc git_versions.dart from example..."; \
+		cp crypto_plugins/flutter_libmwc/lib/git_versions_example.dart crypto_plugins/flutter_libmwc/lib/git_versions.dart; \
+	fi
 	@if [ ! -f pubspec.yaml ]; then \
 		echo "--- pubspec.yaml missing; generating from template..."; \
 		cp scripts/app_config/templates/pubspec.template.yaml pubspec.yaml; \
