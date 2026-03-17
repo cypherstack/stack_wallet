@@ -246,18 +246,18 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 	@echo "--- Building app..."
 	@$(FLUTTER) pub get
 	@mkdir -p scripts/linux/pc
-	@cat > scripts/linux/pc/libsecret-1.pc <<EOF
-prefix=$(CURDIR)/scripts/linux/build/libsecret
-exec_prefix=$${prefix}
-libdir=$${prefix}/_build/libsecret
-includedir=$${prefix}
-
-Name: libsecret-1
-Description: GObject bindings for Secret Service API
-Version: 0.21.4
-Libs: -L$${libdir} -lsecret-1
-Cflags: -I$${includedir} -I$${includedir}/_build
-EOF
+	@printf '%s\n' \
+		'prefix=$(CURDIR)/scripts/linux/build/libsecret' \
+		'exec_prefix=$${prefix}' \
+		'libdir=$${prefix}/_build/libsecret' \
+		'includedir=$${prefix}' \
+		'' \
+		'Name: libsecret-1' \
+		'Description: GObject bindings for Secret Service API' \
+		'Version: 0.21.4' \
+		'Libs: -L$${libdir} -lsecret-1' \
+		'Cflags: -I$${includedir} -I$${includedir}/_build' \
+		> scripts/linux/pc/libsecret-1.pc
 	@if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then \
 		$(DART) run coinlib:build_linux; \
 	else \
