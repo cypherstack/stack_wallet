@@ -28,7 +28,7 @@ export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 # building
 cbindgen src/lib.rs -l c > libmwc_wallet.h
 env -u MAKEFLAGS -u MFLAGS -u CARGO_MAKEFLAGS -u MAKELEVEL -u MAKE_TERMOUT -u MAKE_TERMERR \
-  cargo lipo --release --targets aarch64-apple-darwin
+  cargo build --release --target aarch64-apple-darwin --lib
 
 xcodebuild -create-xcframework \
   -library target/aarch64-apple-darwin/release/libmwc_wallet.a \
