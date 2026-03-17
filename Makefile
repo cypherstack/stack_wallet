@@ -145,6 +145,12 @@ macos-restore-metadata:
 
 macos-build-native:
 	@echo "--- Building native dependencies..."
+	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
+		RUSTUP_HOME="$$HOME/.rustup" \
+		CARGO_HOME="$$HOME/.cargo" \
+		RUSTUP_TOOLCHAIN=stable \
+		PATH="$$(dirname "$$(/opt/homebrew/bin/rustup which rustc)"):/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
+		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
 	@$(DART) run coinlib:build_macos
 	@echo "--- Patching Podfile..."
