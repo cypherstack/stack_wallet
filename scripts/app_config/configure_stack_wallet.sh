@@ -4,6 +4,13 @@ set -x -e
 
 # Configure files for Stack Wallet.
 
+# Derive project root from script location when APP_PROJECT_ROOT_DIR is unset/stale.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_FROM_SCRIPT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+if [[ -z "${APP_PROJECT_ROOT_DIR:-}" || ! -f "${APP_PROJECT_ROOT_DIR}/pubspec.yaml" ]]; then
+  export APP_PROJECT_ROOT_DIR="${ROOT_FROM_SCRIPT}"
+fi
+
 export NEW_NAME="Stack Wallet"
 export NEW_APP_ID="com.cypherstack.stackwallet"
 export NEW_APP_ID_CAMEL="com.cypherstack.stackWallet"
