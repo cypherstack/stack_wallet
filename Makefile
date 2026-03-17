@@ -245,12 +245,26 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 	@cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
 	@echo "--- Building app..."
 	@$(FLUTTER) pub get
+	@mkdir -p scripts/linux/pc
+	@cat > scripts/linux/pc/libsecret-1.pc <<EOF
+prefix=$(CURDIR)/scripts/linux/build/libsecret
+exec_prefix=$${prefix}
+libdir=$${prefix}/_build/libsecret
+includedir=$${prefix}
+
+Name: libsecret-1
+Description: GObject bindings for Secret Service API
+Version: 0.21.4
+Libs: -L$${libdir} -lsecret-1
+Cflags: -I$${includedir} -I$${includedir}/_build
+EOF
 	@if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then \
 		$(DART) run coinlib:build_linux; \
 	else \
 		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
 	fi
-	@$(FLUTTER) build linux --release
+	@PKG_CONFIG_PATH="$(CURDIR)/scripts/linux/pc:$(CURDIR)/scripts/linux/build/libsecret/_build/meson-uninstalled:$$PKG_CONFIG_PATH" \
+		$(FLUTTER) build linux --release
 
 build-android: check-reqs init ## Build Android APK
 	@echo "--- Configuring project..."
