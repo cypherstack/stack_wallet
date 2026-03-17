@@ -21,12 +21,14 @@ cd build/rust
 
 # some people need this apparently
 export PROTOC=/opt/homebrew/bin/protoc
-unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS
+unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS MAKELEVEL MAKE_TERMOUT MAKE_TERMERR
 export CARGO_BUILD_JOBS=1
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 
 # building
 cbindgen src/lib.rs -l c > libmwc_wallet.h
-cargo lipo --release --targets aarch64-apple-darwin
+env -u MAKEFLAGS -u MFLAGS -u CARGO_MAKEFLAGS -u MAKELEVEL -u MAKE_TERMOUT -u MAKE_TERMERR \
+  cargo lipo --release --targets aarch64-apple-darwin
 
 xcodebuild -create-xcframework \
   -library target/aarch64-apple-darwin/release/libmwc_wallet.a \

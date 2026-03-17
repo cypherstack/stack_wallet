@@ -20,9 +20,11 @@ cp -r ../../rust build/rust
 cd build/rust
 
 mkdir -p target
-unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS
+unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS MAKELEVEL MAKE_TERMOUT MAKE_TERMERR
 export CARGO_BUILD_JOBS=1
-cargo lipo --release --targets aarch64-apple-darwin
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
+env -u MAKEFLAGS -u MFLAGS -u CARGO_MAKEFLAGS -u MAKELEVEL -u MAKE_TERMOUT -u MAKE_TERMERR \
+  cargo lipo --release --targets aarch64-apple-darwin
 
 cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h
 cp target/epic_cash_wallet.h libepic_cash_wallet.h
