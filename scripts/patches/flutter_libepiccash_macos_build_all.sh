@@ -23,8 +23,19 @@ mkdir -p target
 unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS MAKELEVEL MAKE_TERMOUT MAKE_TERMERR
 export CARGO_BUILD_JOBS=1
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
-env -u MAKEFLAGS -u MFLAGS -u CARGO_MAKEFLAGS -u MAKELEVEL -u MAKE_TERMOUT -u MAKE_TERMERR \
-  cargo build --release --target aarch64-apple-darwin --lib
+export CARGO_TARGET_DIR="$(pwd)/target"
+mkdir -p "${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/deps"
+
+run_cargo_build() {
+  env -u MAKEFLAGS -u MFLAGS -u CARGO_MAKEFLAGS -u MAKELEVEL -u MAKE_TERMOUT -u MAKE_TERMERR \
+    cargo build --release --target aarch64-apple-darwin --lib
+}
+
+if ! run_cargo_build; then
+  echo "Warning: cargo build failed once; retrying after recreating target dirs..."
+  mkdir -p "${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/deps"
+  run_cargo_build
+fi
 
 cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h
 cp target/epic_cash_wallet.h libepic_cash_wallet.h
