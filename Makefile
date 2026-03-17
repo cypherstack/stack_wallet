@@ -92,6 +92,8 @@ patch-submodules: ## Apply portability patches to submodules
 	@sed -i.bak 's|cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h|cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h \&\& cp target/epic_cash_wallet.h libepic_cash_wallet.h|g' crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh 2>/dev/null || true
 	@echo "Fixing Frostdart binary path..."
 	@find crypto_plugins/frostdart/scripts -name "build_all.sh" -exec perl -0777 -i.bak -pe 's|^.*dart\s+build_|dart build_|mg' {} + 2>/dev/null || true
+	@echo "Normalizing Linux script shebangs for NixOS..."
+	@find crypto_plugins -path "*/scripts/linux/*.sh" -type f -exec sed -i.bak '1s|^#!/bin/bash$$|#!/usr/bin/env bash|' {} + 2>/dev/null || true
 	@# GNU/BSD sed compatibility: ensure Frostdart macOS script uses -i.bak form.
 	@perl -0777 -i.bak -pe 's/_run\("sed",\s*\["-i"\s*,\s*"\.bak"\s*,\s*"s\/frostdart\/hrf-api\/",\s*"cargo\.toml"\]\);/_run("sed", ["-i.bak", "s\/frostdart\/hrf-api\/", "cargo.toml"]);/g' crypto_plugins/frostdart/scripts/macos/build_macos.dart 2>/dev/null || true
 	@echo "Disabling strict Rust checks..."
