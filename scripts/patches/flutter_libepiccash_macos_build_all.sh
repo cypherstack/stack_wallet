@@ -35,10 +35,22 @@ cp target/epic_cash_wallet.h ../../../../macos/Classes/FlutterLibepiccashPlugin.
 RANDOMX_LIB=$(find target/aarch64-apple-darwin/release/build -name "librandomx.a" | head -n 1 || true)
 if [ -n "${RANDOMX_LIB}" ] && [ -f "${RANDOMX_LIB}" ]; then
   echo "Found RandomX library at: ${RANDOMX_LIB}"
-  /usr/bin/libtool -static -o target/aarch64-apple-darwin/release/libepic_cash_wallet_combined.a \
-    target/aarch64-apple-darwin/release/libepic_cash_wallet.a \
-    "${RANDOMX_LIB}"
-  MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet_combined.a
+  COMBINED_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet_combined.a
+  if /usr/bin/libtool -static -o "${COMBINED_LIB}" \
+      target/aarch64-apple-darwin/release/libepic_cash_wallet.a \
+      "${RANDOMX_LIB}" && \
+     [ -f "${COMBINED_LIB}" ]; then
+    /usr/bin/ranlib "${COMBINED_LIB}" || true
+    if /usr/bin/ar -t "${COMBINED_LIB}" >/dev/null 2>&1; then
+      MAIN_LIB="${COMBINED_LIB}"
+    else
+      echo "Warning: combined archive is invalid, falling back to libepic_cash_wallet.a"
+      MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet.a
+    fi
+  else
+    echo "Warning: failed to create combined archive, falling back to libepic_cash_wallet.a"
+    MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet.a
+  fi
 else
   echo "Warning: librandomx.a not found, using libepic_cash_wallet.a only"
   MAIN_LIB=target/aarch64-apple-darwin/release/libepic_cash_wallet.a
