@@ -33,7 +33,9 @@ rustup toolchain install stable
 rustup default stable
 rustup toolchain install 1.89.0 1.85.1 1.81.0
 rustup default 1.89.0
-rustup target add aarch64-apple-darwin aarch64-apple-ios >/dev/null 2>&1 || true
+rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain stable >/dev/null 2>&1 || true
+rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.85.1 >/dev/null 2>&1 || true
+rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.89.0 >/dev/null 2>&1 || true
 
 echo "Installing Rust CLI build tools..."
 cargo install cargo-lipo cbindgen || true
