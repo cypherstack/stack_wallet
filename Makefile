@@ -177,13 +177,9 @@ macos-build-native:
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
 	@# Force deterministic arm64-only CocoaPods builds on Apple Silicon (avoid x86_64 Swift header failures).
-	@grep -q "EXCLUDED_ARCHS\\[sdk=macosx\\*\\]" macos/Podfile || \
-		sed -i.bak -e "/MACOSX_DEPLOYMENT_TARGET.*11.0/a\\
-      config.build_settings['EXCLUDED_ARCHS[sdk=macosx*]'] = 'x86_64'\\
-      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'" macos/Podfile 2>/dev/null || true
-	@grep -q "config.build_settings\\['ARCHS'\\] = 'arm64'" macos/Podfile || \
-		sed -i.bak -e "/MACOSX_DEPLOYMENT_TARGET.*11.0/a\\
-      config.build_settings['ARCHS'] = 'arm64'" macos/Podfile 2>/dev/null || true
+	@perl -0777 -i.bak -pe "s/(config\\.build_settings\\['MACOSX_DEPLOYMENT_TARGET'\\]\\s*=\\s*'11\\.0'\\s*\\n)(?!\\s*config\\.build_settings\\['EXCLUDED_ARCHS\\[sdk=macosx\\*\\]'\\])/\$$1      config.build_settings['EXCLUDED_ARCHS[sdk=macosx*]'] = 'x86_64'\\n/s" macos/Podfile 2>/dev/null || true
+	@perl -0777 -i.bak -pe "s/(config\\.build_settings\\['MACOSX_DEPLOYMENT_TARGET'\\]\\s*=\\s*'11\\.0'\\s*\\n)(?!\\s*config\\.build_settings\\['ONLY_ACTIVE_ARCH'\\])/\$$1      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'\\n/s" macos/Podfile 2>/dev/null || true
+	@perl -0777 -i.bak -pe "s/(config\\.build_settings\\['MACOSX_DEPLOYMENT_TARGET'\\]\\s*=\\s*'11\\.0'\\s*\\n)(?!\\s*config\\.build_settings\\['ARCHS'\\])/\$$1      config.build_settings['ARCHS'] = 'arm64'\\n/s" macos/Podfile 2>/dev/null || true
 	@rm -f macos/Podfile.bak
 
 macos-build-app:
