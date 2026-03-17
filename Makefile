@@ -8,6 +8,7 @@ VERSION      ?= 2.1.0
 BUILD_NUM    ?= 210
 FLUTTER      ?= flutter
 DART         ?= dart
+PUB_CACHE    ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
 APP_PROJECT_ROOT_DIR := $(CURDIR)
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
 MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
@@ -18,6 +19,7 @@ MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
 MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=11.0
 
 export APP_PROJECT_ROOT_DIR
+export PUB_CACHE
 
 .PHONY: help check-reqs check-reqs-windows check-macos-sdk init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
 	build-linux build-macos build-ios build-android build-windows \
@@ -69,9 +71,9 @@ clean: ## Remove artifacts and fix permissions
 	@rm -rf macos/Pods macos/Podfile.lock ios/Pods ios/Podfile.lock build/
 	@echo "Cleaning submodule target folders..."
 	@find crypto_plugins/ -type d \( -name "target" -o -name "build" \) -exec rm -rf {} + 2>/dev/null || true
-	@echo "Cleaning external residues..."
-	@chmod -R u+w $(HOME)/.pub-cache/git/ 2>/dev/null || true
-	@find $(HOME)/.pub-cache/git/ -type d \( -name "build" -o -name "target" \) -path "*flutter_lib*" -exec rm -rf {} + 2>/dev/null || true
+	@echo "Cleaning local pub cache residues..."
+	@chmod -R u+w $(PUB_CACHE)/git/ 2>/dev/null || true
+	@find $(PUB_CACHE)/git/ -type d \( -name "build" -o -name "target" \) -path "*flutter_lib*" -exec rm -rf {} + 2>/dev/null || true
 	@echo "[OK] Project is now in a pristine state."
 
 patch-submodules: ## Apply portability patches to submodules
@@ -156,6 +158,7 @@ macos-restore-metadata:
 	@perl -0777 -i.bak -pe 's/(338D0CEA231458BD00FA5F75 \/\* Profile \*\/ = \{\s*isa = XCBuildConfiguration;.*?buildSettings = \{.*?)(\n\s*PROVISIONING_PROFILE_SPECIFIER = "";)/$${1}\n\t\t\t\tPRODUCT_MODULE_NAME = stack_wallet;$${2}/s' macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
 	@$(FLUTTER) pub get
+	@bash scripts/macos/patch_coinlib_podspec.sh
 	@# Ensure generated build settings are single-line key/value entries for CocoaPods xcconfig parser.
 	@[ -f macos/Flutter/ephemeral/Flutter-Generated.xcconfig ] && \
 		sed -i.bak -E 's/[[:space:]]+$$//' macos/Flutter/ephemeral/Flutter-Generated.xcconfig && \
@@ -180,10 +183,6 @@ macos-build-native:
 	@$(FLUTTER) pub run coinlib:build_macos
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
-	@# Force deterministic arm64-only CocoaPods builds on Apple Silicon (avoid x86_64 Swift header failures).
-	@perl -0777 -i.bak -pe "s/(config\\.build_settings\\['MACOSX_DEPLOYMENT_TARGET'\\]\\s*=\\s*'11\\.0'\\s*\\n)(?!\\s*config\\.build_settings\\['EXCLUDED_ARCHS\\[sdk=macosx\\*\\]'\\])/\$$1      config.build_settings['EXCLUDED_ARCHS[sdk=macosx*]'] = 'x86_64'\\n/s" macos/Podfile 2>/dev/null || true
-	@perl -0777 -i.bak -pe "s/(config\\.build_settings\\['MACOSX_DEPLOYMENT_TARGET'\\]\\s*=\\s*'11\\.0'\\s*\\n)(?!\\s*config\\.build_settings\\['ONLY_ACTIVE_ARCH'\\])/\$$1      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'\\n/s" macos/Podfile 2>/dev/null || true
-	@perl -0777 -i.bak -pe "s/(config\\.build_settings\\['MACOSX_DEPLOYMENT_TARGET'\\]\\s*=\\s*'11\\.0'\\s*\\n)(?!\\s*config\\.build_settings\\['ARCHS'\\])/\$$1      config.build_settings['ARCHS'] = 'arm64'\\n/s" macos/Podfile 2>/dev/null || true
 	@rm -f macos/Podfile.bak
 
 macos-build-app:
