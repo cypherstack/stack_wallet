@@ -126,6 +126,10 @@ macos-restore-metadata:
 	@$(FLUTTER) create --platforms=macos . > /dev/null
 	@# Nix-provided Flutter templates can be copied as read-only; CocoaPods must rewrite these files.
 	@chmod -R u+w macos/Runner.xcworkspace macos/Runner.xcodeproj macos/Flutter 2>/dev/null || true
+	@# Ensure Pods includes are resolved relative to macos/Flutter/*.xcconfig.
+	@sed -i.bak -e 's|#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner\.debug\.xcconfig"|#include? "../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"|g' macos/Flutter/Flutter-Debug.xcconfig 2>/dev/null || true
+	@sed -i.bak -e 's|#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner\.release\.xcconfig"|#include? "../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"|g' macos/Flutter/Flutter-Release.xcconfig 2>/dev/null || true
+	@rm -f macos/Flutter/Flutter-Debug.xcconfig.bak macos/Flutter/Flutter-Release.xcconfig.bak
 	@# Keep app target deployment aligned with plugin minimums (e.g. camera_macos >= 11.0).
 	@sed -i.bak -e "s/MACOSX_DEPLOYMENT_TARGET = 10\\.15;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g" macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
