@@ -78,7 +78,8 @@ patch-submodules: ## Apply portability patches to submodules
 	@echo "Patching submodules for portability..."
 	@chmod -R u+w crypto_plugins/ 2>/dev/null || true
 	@rm -rf crypto_plugins/*/scripts/macos/build
-	@find crypto_plugins -name "build_all.sh" -exec sed -i.bak 's|/\$${OS}_VERSION/c\\.*|s\|/\\\*\$${OSX}_VERSION\\\*/.*\|/\\\*\$${OSX}_VERSION\\\*/ const \$${OSX}_VERSION = \\"$$COMMIT\\";\|g|g' {} \; 2>/dev/null || true
+	@# NOTE: avoid brittle cross-platform in-place sed rewrites for build_all.sh files here.
+	@# Platform-specific script patching is handled explicitly in build targets via scripts/patches/*.
 	@find crypto_plugins/frostdart -name "build_*.dart" -type f -exec sed -i.bak 's/\["-i", ".bak",/\["-i.bak",/g' {} + 2>/dev/null || true
 	@echo "Fixing Epic Cash header logic..."
 	@sed -i.bak 's|cp target/epic_cash_wallet.h libepic_cash_wallet.h|mkdir -p target \&\& touch target/epic_cash_wallet.h \&\& cp target/epic_cash_wallet.h libepic_cash_wallet.h|g' crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh 2>/dev/null || true
@@ -96,7 +97,8 @@ build-macos: check-reqs check-macos-sdk macos-prepare macos-configure macos-rest
 
 macos-prepare:
 	@echo "--- Sanitizing environment..."
-	@sed -i 's/\xc2\xa0/ /g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
+	@sed -i.bak 's/\xc2\xa0/ /g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
+	@rm -f scripts/app_config/templates/pubspec.template.yaml.bak
 	@chmod -R u+w . 2>/dev/null || true
 	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain stable >/dev/null 2>&1 || true
 	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.85.1 >/dev/null 2>&1 || true
@@ -162,6 +164,9 @@ macos-build-native:
 	@echo "--- Applying local patch for flutter_libepiccash macOS build script..."
 	@cp scripts/patches/flutter_libepiccash_macos_build_all.sh crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh
 	@chmod +x crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh
+	@echo "--- Applying local patch for flutter_libmwc macOS build script..."
+	@cp scripts/patches/flutter_libmwc_macos_build_all.sh crypto_plugins/flutter_libmwc/scripts/macos/build_all.sh
+	@chmod +x crypto_plugins/flutter_libmwc/scripts/macos/build_all.sh
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		RUSTUP_HOME="$$HOME/.rustup" \
 		CARGO_HOME="$$HOME/.cargo" \
