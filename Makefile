@@ -105,7 +105,7 @@ macos-configure:
 	@echo "--- Initializing submodules..."
 	@git submodule update --init --recursive
 	@echo "--- Bootstrapping local config files..."
-	@bash scripts/prebuild.sh
+	@cd scripts && bash prebuild.sh
 	@if [ ! -f crypto_plugins/flutter_libepiccash/lib/git_versions.dart ] && [ -f crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart ]; then \
 		echo "--- Creating flutter_libepiccash git_versions.dart from example..."; \
 		cp crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart crypto_plugins/flutter_libepiccash/lib/git_versions.dart; \
