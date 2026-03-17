@@ -20,6 +20,8 @@ cp -r ../../rust build/rust
 cd build/rust
 
 mkdir -p target
+unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS
+export CARGO_BUILD_JOBS=1
 cargo lipo --release --targets aarch64-apple-darwin
 
 cbindgen --config cbindgen.toml --crate epic-cash-wallet --output target/epic_cash_wallet.h
