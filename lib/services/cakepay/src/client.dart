@@ -209,6 +209,76 @@ class CakePayClient {
     );
   }
 
+  /// Fetches all countries by following pagination til last page.
+  Future<ApiResponse<List<CakePayCountry>>> getAllCountries({
+    int pageSize = 250,
+  }) async {
+    try {
+      final allCountries = <CakePayCountry>[];
+      int page = 1;
+
+      while (true) {
+        final response = await _send(
+          'GET',
+          '/marketplace/countries/',
+          query: {'page': page.toString(), 'page_size': pageSize.toString()},
+        );
+
+        if (response.code < 200 || response.code >= 300) {
+          Logging.instance.w(
+            "$_kTag GET /marketplace/countries/ HTTP:${response.code} "
+            "body: ${response.body}",
+          );
+          return ApiResponse(
+            exception: ApiException.fromResponse(response.code, response.body),
+          );
+        }
+
+        final decoded = jsonDecode(response.body);
+
+        // Handle non-paginated response (plain list).
+        if (decoded is List) {
+          return ApiResponse(
+            value: decoded
+                .whereType<Map<String, dynamic>>()
+                .map(CakePayCountry.fromJson)
+                .toList(),
+          );
+        }
+
+        if (decoded is Map<String, dynamic>) {
+          final results = decoded['results'];
+          if (results is List) {
+            allCountries.addAll(
+              results.whereType<Map<String, dynamic>>().map(
+                CakePayCountry.fromJson,
+              ),
+            );
+          }
+
+          // If there is no next page we're done.
+          if (decoded['next'] == null) break;
+        } else {
+          break;
+        }
+
+        page++;
+      }
+
+      return ApiResponse(value: allCountries);
+    } on ApiException catch (e) {
+      Logging.instance.e("$_kTag getAllCountries threw: ", error: e);
+      return ApiResponse(exception: e);
+    } catch (e, s) {
+      Logging.instance.e(
+        "$_kTag getAllCountries threw: ",
+        error: e,
+        stackTrace: s,
+      );
+      return ApiResponse(exception: ApiException.network(e));
+    }
+  }
+
   /// List cards from the marketplace with optional pagination.
   Future<ApiResponse<List<CakePayCard>>> getCards({
     int? page,
@@ -271,11 +341,7 @@ class CakePayClient {
   ///
   /// Endpoint: GET `/marketplace/stats/`
   Future<ApiResponse<Map<String, dynamic>>> getStats() async {
-    return _request(
-      'GET',
-      '/marketplace/stats/',
-      parse: (json) => json,
-    );
+    return _request('GET', '/marketplace/stats/', parse: (json) => json);
   }
 
   Future<ApiResponse<List<String>>> getBannedCountries() async {
@@ -311,10 +377,7 @@ class CakePayClient {
     bool? confirmsVoidedRefund,
     bool? confirmsTermsAgreed,
   }) async {
-    final body = <String, dynamic>{
-      'card_id': cardId,
-      'price': price,
-    };
+    final body = <String, dynamic>{'card_id': cardId, 'price': price};
     if (quantity != null) body['quantity'] = quantity;
     if (userEmail != null) body['user_email'] = userEmail;
     if (sendEmail != null) body['send_email'] = sendEmail;
@@ -490,10 +553,7 @@ class CakePayClient {
         );
       }
     } on ApiException catch (e) {
-      Logging.instance.e(
-        "$_kTag _requestRaw($method $path) threw: ",
-        error: e,
-      );
+      Logging.instance.e("$_kTag _requestRaw($method $path) threw: ", error: e);
       return ApiResponse(exception: e);
     } catch (e, s) {
       Logging.instance.e(

@@ -55,7 +55,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
   }
 
   Future<void> _loadCountries() async {
-    final resp = await CakePayService.instance.client.getCountries(pageSize: 500);
+    final resp = await CakePayService.instance.client.getAllCountries();
     if (mounted && !resp.hasError && resp.value != null) {
       // Deduplicate by country code: the API can return entries like both
       // "US" and "United States" with the same code, which breaks
