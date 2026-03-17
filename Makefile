@@ -8,7 +8,7 @@ VERSION      ?= 2.1.0
 BUILD_NUM    ?= 210
 FLUTTER      ?= flutter
 DART         ?= dart
-APP_PROJECT_ROOT_DIR ?= $(CURDIR)
+APP_PROJECT_ROOT_DIR := $(CURDIR)
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
 MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
 	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
