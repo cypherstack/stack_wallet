@@ -62,7 +62,7 @@
             # ==========================================
             if ! rustup toolchain list | grep -q "1.89.0"; then
               echo "Initializing Rust toolchains (this happens only once)..."
-              rustup install 1.89.0 1.85.1 1.81.0 stable
+              rustup install 1.89.0 1.85.1 stable
               rustup default 1.89.0
               
               if [[ "${system}" == *"darwin"* ]]; then
