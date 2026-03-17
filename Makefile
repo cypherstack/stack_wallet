@@ -181,6 +181,11 @@ macos-build-native:
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		RUSTUP_HOME="$$HOME/.rustup" \
 		CARGO_HOME="$$HOME/.cargo" \
+		CC="/usr/bin/clang" \
+		CXX="/usr/bin/clang++" \
+		AR="/usr/bin/ar" \
+		RANLIB="/usr/bin/ranlib" \
+		SDKROOT="$$(xcrun --sdk macosx --show-sdk-path)" \
 		PATH="/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
 		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
