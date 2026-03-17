@@ -245,7 +245,11 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 	@cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
 	@echo "--- Building app..."
 	@$(FLUTTER) pub get
-	@$(FLUTTER) pub run coinlib:build_linux
+	@if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then \
+		$(DART) run coinlib:build_linux; \
+	else \
+		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
+	fi
 	@$(FLUTTER) build linux --release
 
 build-android: check-reqs init ## Build Android APK
