@@ -169,6 +169,8 @@ macos-build-native:
 	@echo "--- Applying local patch for flutter_libmwc macOS build script..."
 	@cp scripts/patches/flutter_libmwc_macos_build_all.sh crypto_plugins/flutter_libmwc/scripts/macos/build_all.sh
 	@chmod +x crypto_plugins/flutter_libmwc/scripts/macos/build_all.sh
+	@# Ensure Frostdart macOS build script uses sed -i.bak form (GNU/BSD compatibility).
+	@perl -0777 -i.bak -pe 's/_run\("sed",\s*\["-i"\s*,\s*"\.bak"\s*,\s*"s\/frostdart\/hrf-api\/",\s*"cargo\.toml"\]\);/_run("sed", ["-i.bak", "s\/frostdart\/hrf-api\/", "cargo.toml"]);/g' crypto_plugins/frostdart/scripts/macos/build_macos.dart 2>/dev/null || true
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		RUSTUP_HOME="$$HOME/.rustup" \
 		CARGO_HOME="$$HOME/.cargo" \
