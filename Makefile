@@ -264,6 +264,9 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
 	fi
 	@PKG_CONFIG_PATH="$(CURDIR)/scripts/linux/pc:$(CURDIR)/scripts/linux/build/libsecret/_build/meson-uninstalled:$$PKG_CONFIG_PATH" \
+		pkg-config --modversion libsecret-1 >/dev/null || \
+		{ echo "[ERROR] libsecret-1 not resolvable via pkg-config"; exit 1; }
+	@PKG_CONFIG_PATH="$(CURDIR)/scripts/linux/pc:$(CURDIR)/scripts/linux/build/libsecret/_build/meson-uninstalled:$$PKG_CONFIG_PATH" \
 		$(FLUTTER) build linux --release
 
 build-android: check-reqs init ## Build Android APK
