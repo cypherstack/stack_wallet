@@ -96,7 +96,6 @@ build-macos: macos-prepare macos-configure macos-restore-metadata macos-build-na
 
 macos-prepare:
 	@echo "--- Sanitizing environment..."
-	@sed -i 's/xelis_dart_sdk: 0.30.9/xelis_dart_sdk:/g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
 	@sed -i 's/\xc2\xa0/ /g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
 	@chmod -R u+w . 2>/dev/null || true
 	@rm -rf build/secp256k1 macos/Runner.xcworkspace crypto_plugins/*/scripts/macos/build
