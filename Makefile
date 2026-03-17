@@ -197,7 +197,7 @@ macos-build-app:
 		CARGO_HOME="$$HOME/.cargo" \
 		RUSTUP_TOOLCHAIN=stable \
 		PATH="$$(dirname "$$(/opt/homebrew/bin/rustup which rustc)"):/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
-		$(FLUTTER) build macos --release --target-platform=darwin-arm64
+		ARCHS=arm64 EXCLUDED_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES $(FLUTTER) build macos --release
 
 diagnose-macos-env: ## Print macOS build env and tool resolution
 	@echo "--- Toolchain diagnostics ---"
