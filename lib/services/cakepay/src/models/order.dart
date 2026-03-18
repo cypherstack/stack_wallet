@@ -152,6 +152,23 @@ class CakePayOrder {
     );
   }
 
+  CakePayOrder copyWith({CakePayOrderStatus? status}) {
+    return CakePayOrder(
+      orderId: orderId,
+      status: status ?? this.status,
+      amountUsd: amountUsd,
+      cards: cards,
+      paymentData: paymentData,
+      paymentOptions: paymentOptions,
+      expirationTime: expirationTime,
+      invoiceTime: invoiceTime,
+      commission: commission,
+      markupPercent: markupPercent,
+      createdAt: createdAt,
+      externalOrderId: externalOrderId,
+    );
+  }
+
   @override
   String toString() => 'CakePayOrder($orderId, ${status.value})';
 }

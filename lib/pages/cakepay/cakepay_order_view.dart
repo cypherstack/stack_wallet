@@ -165,6 +165,15 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     final label = _tickerLabel(option.ticker);
     final coin = _resolveCoin(option.ticker);
 
+    if (option.address.trim().isEmpty) {
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "No payment address available for $label",
+        context: context,
+      );
+      return;
+    }
+
     if (coin == null) {
       showFloatingFlushBar(
         type: FlushBarType.warning,
@@ -210,7 +219,13 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       setState(() {
         _loading = false;
         if (!resp.hasError && resp.value != null) {
-          _order = resp.value;
+          var order = resp.value!;
+          final override =
+              CakePayService.devStatusOverrides[order.orderId];
+          if (override != null) {
+            order = order.copyWith(status: override);
+          }
+          _order = order;
           if (_isTerminal(_order!.status)) {
             _pollTimer?.cancel();
             _countdownTimer?.cancel();

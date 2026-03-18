@@ -44,7 +44,13 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
       for (final id in orderIds) {
         final resp = await CakePayService.instance.client.getOrder(id);
         if (!resp.hasError && resp.value != null) {
-          results.add(resp.value!);
+          var order = resp.value!;
+          final override =
+              CakePayService.devStatusOverrides[order.orderId];
+          if (override != null) {
+            order = order.copyWith(status: override);
+          }
+          results.add(order);
         }
       }
 

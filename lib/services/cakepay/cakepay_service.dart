@@ -1,10 +1,15 @@
 import '../../db/hive/db.dart';
 import '../../external_api_keys.dart';
 import 'src/client.dart';
+import 'src/models/order.dart';
 
 class CakePayService {
   static final instance = CakePayService._();
   CakePayService._();
+
+  /// Dev-only: override order statuses for local UI testing.
+  /// Keys are order IDs, values are the status to pretend the API returned.
+  static final Map<String, CakePayOrderStatus> devStatusOverrides = {};
 
   CakePayClient? _client;
 
