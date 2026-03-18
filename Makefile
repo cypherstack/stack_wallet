@@ -21,7 +21,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=11.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-windows check-macos-sdk init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
+.PHONY: help check-reqs check-reqs-windows check-macos-sdk bootstrap-macos init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
 	build-linux build-macos build-ios build-android build-windows \
 	macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app diagnose-macos-env
 
@@ -41,8 +41,22 @@ check-reqs: ## Verify essential build tools
 	@rustup run stable rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup stable toolchain not available."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
-	@command -v meson >/dev/null 2>&1 || { echo >&2 "[ERROR] Meson not installed. On NixOS, run in 'nix develop' or install meson permanently."; exit 1; }
-	@command -v ninja >/dev/null 2>&1 || { echo >&2 "[ERROR] Ninja not installed. On NixOS, run in 'nix develop' or install ninja permanently."; exit 1; }
+	@command -v meson >/dev/null 2>&1 || { \
+		if [ "$(shell uname)" = "Darwin" ]; then \
+			echo >&2 "[ERROR] Meson not installed. On macOS, run 'make bootstrap-macos' or 'brew install meson'."; \
+		else \
+			echo >&2 "[ERROR] Meson not installed. On NixOS, run in 'nix develop' or install meson permanently."; \
+		fi; \
+		exit 1; \
+	}
+	@command -v ninja >/dev/null 2>&1 || { \
+		if [ "$(shell uname)" = "Darwin" ]; then \
+			echo >&2 "[ERROR] Ninja not installed. On macOS, run 'make bootstrap-macos' or 'brew install ninja'."; \
+		else \
+			echo >&2 "[ERROR] Ninja not installed. On NixOS, run in 'nix develop' or install ninja permanently."; \
+		fi; \
+		exit 1; \
+	}
 	@command -v pkg-config >/dev/null 2>&1 || { echo >&2 "[ERROR] pkg-config not installed."; exit 1; }
 ifeq ($(shell uname),Darwin)
 	@command -v autoreconf >/dev/null 2>&1 || { echo >&2 "[ERROR] autoconf/autoreconf not installed."; exit 1; }
@@ -57,6 +71,14 @@ ifeq ($(shell uname),Darwin)
 		echo "[ERROR] Full Xcode installation not detected! Path: /Applications/Xcode.app"; \
 		exit 1)
 	@echo "[OK] Xcode SDK path looks good."
+endif
+
+bootstrap-macos: ## Install required macOS build tools via Homebrew helper script
+ifeq ($(shell uname),Darwin)
+	@bash scripts/install_macos_build_tools.sh
+else
+	@echo "[ERROR] bootstrap-macos is macOS-only."
+	@exit 1
 endif
 
 check-reqs-windows: ## Verify Windows/WSL requirements
