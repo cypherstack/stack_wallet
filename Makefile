@@ -271,12 +271,18 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 	else \
 		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
 	fi
-	@PKG_CONFIG_DISABLE_UNINSTALLED=1 \
-		PKG_CONFIG_PATH="$(CURDIR)/scripts/linux/pc:$$PKG_CONFIG_PATH" \
+	@SYSPROF_PC_DIR=$$(dirname "$$(find /nix/store -path '*/lib/pkgconfig/sysprof-capture-4.pc' 2>/dev/null | head -n1)"); \
+		PC_PATH=$$(pkg-config --variable=pc_path pkg-config 2>/dev/null || echo ""); \
+		PKG_CONFIG_DISABLE_UNINSTALLED=1 \
+		PKG_CONFIG_PATH= \
+		PKG_CONFIG_LIBDIR="$(CURDIR)/scripts/linux/pc:$$SYSPROF_PC_DIR:$$PC_PATH" \
 		pkg-config --modversion libsecret-1 >/dev/null || \
 		{ echo "[ERROR] libsecret-1 not resolvable via pkg-config"; exit 1; }
-	@PKG_CONFIG_DISABLE_UNINSTALLED=1 \
-		PKG_CONFIG_PATH="$(CURDIR)/scripts/linux/pc:$$PKG_CONFIG_PATH" \
+	@SYSPROF_PC_DIR=$$(dirname "$$(find /nix/store -path '*/lib/pkgconfig/sysprof-capture-4.pc' 2>/dev/null | head -n1)"); \
+		PC_PATH=$$(pkg-config --variable=pc_path pkg-config 2>/dev/null || echo ""); \
+		PKG_CONFIG_DISABLE_UNINSTALLED=1 \
+		PKG_CONFIG_PATH= \
+		PKG_CONFIG_LIBDIR="$(CURDIR)/scripts/linux/pc:$$SYSPROF_PC_DIR:$$PC_PATH" \
 		$(FLUTTER) build linux --release
 
 build-android: check-reqs init ## Build Android APK
