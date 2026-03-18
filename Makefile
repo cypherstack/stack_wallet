@@ -248,6 +248,10 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 	@if [ -z "$(PROTOC_PATH)" ]; then echo "[ERROR] protoc not found!"; exit 1; fi
 	@cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
 	@echo "--- Building app..."
+	@if [ ! -f lib/external_api_keys.dart ]; then \
+		echo "[WARN] lib/external_api_keys.dart missing; recreating template."; \
+		printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";\nconst kNanswapApiKey = "";\nconst kNanoSwapRpcApiKey = "";\nconst kWizSwapApiKey = "";\n' > lib/external_api_keys.dart; \
+	fi
 	@$(FLUTTER) pub get
 	@mkdir -p scripts/linux/pc
 	@printf '%s\n' \
