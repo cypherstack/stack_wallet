@@ -33,6 +33,9 @@
           llvmPackages.libclang
           llvmPackages.clang
           protobuf
+          opencv
+          sysprof
+          libsysprof-capture
         ]);
 
         macPackages = lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
