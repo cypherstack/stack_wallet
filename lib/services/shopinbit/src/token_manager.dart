@@ -58,12 +58,13 @@ class TokenManager {
 
     final Response response;
     try {
+      final formBody = Uri(
+        queryParameters: {'username': accessKey, 'password': partnerSecret},
+      ).query;
       response = await _httpClient.post(
         url: uri,
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: Uri(
-          queryParameters: {'username': accessKey, 'password': partnerSecret},
-        ).query,
+        body: formBody,
         proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
             ? null
             : Prefs.instance.useTor

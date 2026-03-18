@@ -88,6 +88,7 @@ class ShopInBitClient {
       'GET',
       '/meta/countries',
       needsCustomerKey: false,
+      needsAuth: false,
       parse: (body) {
         final decoded = jsonDecode(body);
         if (decoded is List) {
@@ -510,14 +511,20 @@ class ShopInBitClient {
     Map<String, dynamic>? body,
     Map<String, String>? query,
     bool needsCustomerKey = true,
+    bool needsAuth = true,
   }) async {
-    final token = await _tokenManager.getValidToken();
     final resolved = _resolvePath(path);
     var uri = Uri.parse('$baseUrl$resolved');
     if (query != null && query.isNotEmpty) {
       uri = uri.replace(queryParameters: query);
     }
-    final headers = _headers(token, needsCustomerKey: needsCustomerKey);
+    final Map<String, String> headers;
+    if (needsAuth) {
+      final token = await _tokenManager.getValidToken();
+      headers = _headers(token, needsCustomerKey: needsCustomerKey);
+    } else {
+      headers = {'Accept': 'application/json'};
+    }
     final proxy = _proxyInfo;
 
     Logging.instance.t("$_kTag $method $uri");
@@ -602,6 +609,7 @@ class ShopInBitClient {
     Map<String, dynamic>? body,
     Map<String, String>? query,
     bool needsCustomerKey = true,
+    bool needsAuth = true,
     required T Function(String) parse,
   }) async {
     try {
@@ -611,6 +619,7 @@ class ShopInBitClient {
         body: body,
         query: query,
         needsCustomerKey: needsCustomerKey,
+        needsAuth: needsAuth,
       );
 
       final resolved = _resolvePath(path);
