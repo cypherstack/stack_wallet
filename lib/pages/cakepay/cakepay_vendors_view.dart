@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
-import '../../services/cakepay/src/models/country.dart';
 import '../../services/cakepay/src/models/vendor.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
@@ -31,8 +30,8 @@ class CakePayVendorsView extends StatefulWidget {
 
 class _CakePayVendorsViewState extends State<CakePayVendorsView> {
   List<CakePayVendor> _vendors = [];
-  List<CakePayCountry> _countries = [];
-  String? _selectedCountryCode;
+  List<String> _countryNames = [];
+  String? _selectedCountry;
   bool _loading = true;
   String? _error;
   final _searchController = TextEditingController();
@@ -42,7 +41,6 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
   @override
   void initState() {
     super.initState();
-    _loadCountries();
     _loadVendors();
   }
 
@@ -54,21 +52,19 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
     super.dispose();
   }
 
-  Future<void> _loadCountries() async {
-    final resp = await CakePayService.instance.client.getAllCountries();
-    if (mounted && !resp.hasError && resp.value != null) {
-      // Deduplicate by country code: the API can return entries like both
-      // "US" and "United States" with the same code, which breaks
-      // DropdownButton2 (values must be unique).
-      final seen = <String>{};
-      final unique = <CakePayCountry>[];
-      for (final c in resp.value!) {
-        if (seen.add(c.countryCode)) {
-          unique.add(c);
-        }
+  /// Derive a country list from the loaded vendors so we don't need the
+  /// broken /marketplace/countries/ endpoint.
+  void _deriveCountries() {
+    final seen = <String>{};
+    final countries = <String>[];
+    for (final v in _vendors) {
+      final c = v.country;
+      if (c != null && c.isNotEmpty && seen.add(c)) {
+        countries.add(c);
       }
-      setState(() => _countries = unique);
     }
+    countries.sort();
+    _countryNames = countries;
   }
 
   Future<void> _loadVendors() async {
@@ -77,7 +73,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
       _error = null;
     });
     final resp = await CakePayService.instance.client.getVendors(
-      countryCode: _selectedCountryCode,
+      country: _selectedCountry,
       search: _searchController.text.trim().isNotEmpty
           ? _searchController.text.trim()
           : null,
@@ -87,6 +83,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
         _loading = false;
         if (!resp.hasError && resp.value != null) {
           _vendors = resp.value!;
+          _deriveCountries();
         } else {
           _error = resp.exception?.message ?? "Failed to load gift cards";
         }
@@ -134,7 +131,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
       ),
     );
 
-    final countryDropdown = _countries.isEmpty
+    final countryDropdown = _countryNames.isEmpty
         ? const SizedBox.shrink()
         : Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -144,7 +141,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton2<String?>(
-                  value: _selectedCountryCode,
+                  value: _selectedCountry,
                   isExpanded: true,
                   hint: Text(
                     "All countries",
@@ -172,11 +169,11 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                             : STextStyles.w500_14(context),
                       ),
                     ),
-                    ..._countries.map(
-                      (c) => DropdownMenuItem<String?>(
-                        value: c.countryCode,
+                    ..._countryNames.map(
+                      (name) => DropdownMenuItem<String?>(
+                        value: name,
                         child: Text(
-                          c.name,
+                          name,
                           style: isDesktop
                               ? STextStyles.desktopTextExtraSmall(
                                   context,
@@ -196,7 +193,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                     }
                   },
                   onChanged: (value) {
-                    setState(() => _selectedCountryCode = value);
+                    setState(() => _selectedCountry = value);
                     _loadVendors();
                   },
                   buttonStyleData: ButtonStyleData(
@@ -260,13 +257,9 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                           searchValue.toLowerCase(),
                         );
                       }
-                      final country = _countries
-                          .where((c) => c.countryCode == item.value)
-                          .firstOrNull;
-                      return country?.name.toLowerCase().contains(
+                      return item.value!.toLowerCase().contains(
                             searchValue.toLowerCase(),
-                          ) ??
-                          false;
+                          );
                     },
                   ),
                   menuItemStyleData: const MenuItemStyleData(
@@ -307,12 +300,12 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                     Navigator.of(context, rootNavigator: true).pop();
                     showDialog<void>(
                       context: context,
-                      builder: (_) => CakePayCardDetailView(cardId: card.id),
+                      builder: (_) => CakePayCardDetailView(card: card),
                     );
                   } else {
                     Navigator.of(context).pushNamed(
                       CakePayCardDetailView.routeName,
-                      arguments: card.id,
+                      arguments: card,
                     );
                   }
                 },

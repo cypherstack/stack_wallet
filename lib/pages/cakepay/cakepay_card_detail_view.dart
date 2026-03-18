@@ -21,19 +21,18 @@ import '../../widgets/stack_text_field.dart';
 import 'cakepay_order_view.dart';
 
 class CakePayCardDetailView extends StatefulWidget {
-  const CakePayCardDetailView({super.key, required this.cardId});
+  const CakePayCardDetailView({super.key, required this.card});
 
   static const String routeName = "/cakePayCardDetail";
 
-  final int cardId;
+  final CakePayCard card;
 
   @override
   State<CakePayCardDetailView> createState() => _CakePayCardDetailViewState();
 }
 
 class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
-  CakePayCard? _card;
-  bool _loading = true;
+  late CakePayCard _card;
   bool _purchasing = false;
   double? _selectedDenomination;
   int _quantity = 1;
@@ -46,10 +45,13 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
   @override
   void initState() {
     super.initState();
+    _card = widget.card;
+    if (_card.isFixedDenomination && _card.denominations.isNotEmpty) {
+      _selectedDenomination = _card.denominations.first;
+    }
     _emailFocusNode.addListener(() {
       setState(() {});
     });
-    _loadCard();
   }
 
   @override
@@ -61,39 +63,23 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
     super.dispose();
   }
 
-  Future<void> _loadCard() async {
-    final resp = await CakePayService.instance.client.getCard(widget.cardId);
-    if (mounted) {
-      setState(() {
-        _loading = false;
-        if (!resp.hasError && resp.value != null) {
-          _card = resp.value;
-          if (_card!.isFixedDenomination && _card!.denominations.isNotEmpty) {
-            _selectedDenomination = _card!.denominations.first;
-          }
-        }
-      });
-    }
-  }
-
   String get _priceString {
-    if (_card == null) return '';
-    if (_card!.isFixedDenomination && _selectedDenomination != null) {
+    if (_card.isFixedDenomination && _selectedDenomination != null) {
       return _selectedDenomination!.toStringAsFixed(2);
     }
     return _customAmountController.text.trim();
   }
 
   bool get _canPurchase {
-    if (_card == null || !_termsAccepted || _purchasing) return false;
+    if (!_termsAccepted || _purchasing) return false;
     if (_emailController.text.trim().isEmpty) return false;
     final price = _priceString;
     if (price.isEmpty) return false;
     final parsed = double.tryParse(price);
     if (parsed == null || parsed <= 0) return false;
-    if (_card!.isRangeDenomination) {
-      if (_card!.minValue != null && parsed < _card!.minValue!) return false;
-      if (_card!.maxValue != null && parsed > _card!.maxValue!) return false;
+    if (_card.isRangeDenomination) {
+      if (_card.minValue != null && parsed < _card.minValue!) return false;
+      if (_card.maxValue != null && parsed > _card.maxValue!) return false;
     }
     return true;
   }
@@ -212,7 +198,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
     setState(() => _purchasing = true);
 
     final resp = await CakePayService.instance.client.createOrder(
-      cardId: _card!.id,
+      cardId: _card.id,
       price: _priceString,
       quantity: _quantity > 1 ? _quantity : null,
       userEmail: _emailController.text.trim(),
@@ -275,35 +261,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-
-    if (_loading) {
-      return _scaffold(
-        isDesktop: isDesktop,
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
-    if (_card == null) {
-      return _scaffold(
-        isDesktop: isDesktop,
-        child: Center(
-          child: Text(
-            "Failed to load card",
-            style: isDesktop
-                ? STextStyles.desktopTextSmall(context)
-                : STextStyles.itemSubtitle(context),
-          ),
-        ),
-      );
-    }
-
-    final card = _card!;
+    final card = _card;
 
     final denominationSelector = card.isFixedDenomination
         ? Wrap(

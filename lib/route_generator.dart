@@ -90,6 +90,7 @@ import 'pages/masternodes/masternode_details_view.dart';
 import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
 import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'services/cakepay/src/models/card.dart';
 import 'pages/cakepay/cakepay_confirm_send_view.dart';
 import 'pages/cakepay/cakepay_order_view.dart';
 import 'pages/cakepay/cakepay_orders_view.dart';
@@ -1097,10 +1098,10 @@ class RouteGenerator {
         );
 
       case CakePayCardDetailView.routeName:
-        if (args is int) {
+        if (args is CakePayCard) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CakePayCardDetailView(cardId: args),
+            builder: (_) => CakePayCardDetailView(card: args),
             settings: RouteSettings(name: settings.name),
           );
         }
