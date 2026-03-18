@@ -41,6 +41,8 @@ check-reqs: ## Verify essential build tools
 	@rustup run stable rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup stable toolchain not available."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
+	@command -v meson >/dev/null 2>&1 || { echo >&2 "[ERROR] Meson not installed. On NixOS, run in 'nix develop' or install meson permanently."; exit 1; }
+	@command -v ninja >/dev/null 2>&1 || { echo >&2 "[ERROR] Ninja not installed. On NixOS, run in 'nix develop' or install ninja permanently."; exit 1; }
 	@command -v pkg-config >/dev/null 2>&1 || { echo >&2 "[ERROR] pkg-config not installed."; exit 1; }
 ifeq ($(shell uname),Darwin)
 	@command -v autoreconf >/dev/null 2>&1 || { echo >&2 "[ERROR] autoconf/autoreconf not installed."; exit 1; }
