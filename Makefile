@@ -242,6 +242,8 @@ build-ios: check-reqs check-macos-sdk init ## Build iOS Release
 	@$(FLUTTER) build ios --release --no-codesign
 
 build-linux: check-reqs init patch-submodules ## Build Linux Release
+	@echo "--- Running prebuild bootstrap..."
+	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
 	@if [ -z "$(PROTOC_PATH)" ]; then echo "[ERROR] protoc not found!"; exit 1; fi
 	@cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) -f
