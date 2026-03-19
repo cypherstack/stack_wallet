@@ -6,8 +6,12 @@
 APP_NAME     ?= stack_wallet
 VERSION      ?= 2.1.0
 BUILD_NUM    ?= 210
-FLUTTER      ?= flutter
-DART         ?= dart
+FLUTTER      ?=
+DART         ?=
+FLUTTER_BIN  := $(if $(and $(FLUTTER),$(wildcard $(FLUTTER))),$(FLUTTER),$(shell command -v flutter 2>/dev/null))
+DART_BIN     := $(if $(and $(DART),$(wildcard $(DART))),$(DART),$(shell command -v dart 2>/dev/null))
+FLUTTER      := $(FLUTTER_BIN)
+DART         := $(DART_BIN)
 PUB_CACHE    ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
 APP_PROJECT_ROOT_DIR := $(CURDIR)
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
