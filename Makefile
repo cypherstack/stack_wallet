@@ -82,22 +82,12 @@ ifeq ($(shell uname),Darwin)
 	@echo "[OK] Xcode SDK path looks good."
 endif
 
-check-reqs-macos: ## Verify macOS build tools are available in PATH
+check-reqs-macos: check-reqs ## Verify macOS-specific tools are available in PATH
 ifeq ($(shell uname),Darwin)
-	@echo "Checking macOS toolchain in PATH..."
-	@command -v $(FLUTTER) >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
-	@command -v $(DART) >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed."; exit 1; }
-	@command -v rustup >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup not installed."; exit 1; }
-	@command -v cargo >/dev/null 2>&1 || { echo >&2 "[ERROR] cargo not installed."; exit 1; }
-	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
-	@command -v meson >/dev/null 2>&1 || { echo >&2 "[ERROR] Meson not installed."; exit 1; }
-	@command -v ninja >/dev/null 2>&1 || { echo >&2 "[ERROR] Ninja not installed."; exit 1; }
-	@command -v pkg-config >/dev/null 2>&1 || { echo >&2 "[ERROR] pkg-config not installed."; exit 1; }
+	@echo "Checking macOS-specific tools in PATH..."
 	@command -v pod >/dev/null 2>&1 || { echo >&2 "[ERROR] CocoaPods (pod) not installed."; exit 1; }
 	@command -v xcodebuild >/dev/null 2>&1 || { echo >&2 "[ERROR] xcodebuild not available."; exit 1; }
-	@command -v autoreconf >/dev/null 2>&1 || { echo >&2 "[ERROR] autoconf/autoreconf not installed."; exit 1; }
-	@command -v aclocal >/dev/null 2>&1 || { echo >&2 "[ERROR] automake/aclocal not installed."; exit 1; }
-	@echo "[OK] macOS toolchain is available."
+	@echo "[OK] macOS-specific toolchain is available."
 else
 	@echo "[ERROR] check-reqs-macos is macOS-only."
 	@exit 1
@@ -181,8 +171,8 @@ macos-configure:
 	@echo "--- Initializing submodules..."
 	@git submodule update --init --recursive
 	@echo "--- Bootstrapping local config files..."
-	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
-		cd scripts && bash prebuild.sh
+	@cd scripts && env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		bash prebuild.sh
 	@if [ ! -f crypto_plugins/flutter_libepiccash/lib/git_versions.dart ] && [ -f crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart ]; then \
 		echo "--- Creating flutter_libepiccash git_versions.dart from example..."; \
 		cp crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart crypto_plugins/flutter_libepiccash/lib/git_versions.dart; \
@@ -208,7 +198,8 @@ macos-restore-metadata:
 	@chmod -R u+rwX macos 2>/dev/null || true
 	@chflags -R nouchg macos 2>/dev/null || true
 	@# Nix-provided Flutter templates can be copied as read-only; CocoaPods must rewrite these files.
-	@chmod -R u+w macos/Runner.xcworkspace macos/Runner.xcodeproj macos/Flutter 2>/dev/null || true
+	@[ -d macos/Runner.xcodeproj ] && chmod -R u+w macos/Runner.xcodeproj 2>/dev/null || true
+	@[ -d macos/Flutter ] && chmod -R u+w macos/Flutter 2>/dev/null || true
 	@# Ensure Pods includes are resolved relative to macos/Flutter/*.xcconfig.
 	@sed -i.bak -e 's|#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner\.debug\.xcconfig"|#include? "../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"|g' macos/Flutter/Flutter-Debug.xcconfig 2>/dev/null || true
 	@sed -i.bak -e 's|#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner\.release\.xcconfig"|#include? "../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"|g' macos/Flutter/Flutter-Release.xcconfig 2>/dev/null || true
