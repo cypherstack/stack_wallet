@@ -20,7 +20,7 @@ PROJECT_CACHE := $(APP_PROJECT_ROOT_DIR)/.cache
 PROJECT_TMP := $(APP_PROJECT_ROOT_DIR)/.tmp
 PROJECT_CARGO_HOME := $(APP_PROJECT_ROOT_DIR)/.cargo-home
 PROJECT_RUSTUP_HOME := $(APP_PROJECT_ROOT_DIR)/.rustup-home
-MACOS_FINAL_RUST_TOOLCHAIN ?= 1.94.0
+MACOS_FINAL_RUST_TOOLCHAIN ?= stable
 MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
 	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
 	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
@@ -261,6 +261,13 @@ macos-restore-metadata:
 
 macos-build-native:
 	@echo "--- Building native dependencies..."
+	@# Ensure local rustup home has a usable default toolchain for native plugin scripts.
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup toolchain install stable 1.85.1 >/dev/null
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup default stable >/dev/null
 	@echo "--- Applying local patch for flutter_libepiccash macOS build script..."
 	@cp scripts/patches/flutter_libepiccash_macos_build_all.sh crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh
 	@chmod +x crypto_plugins/flutter_libepiccash/scripts/macos/build_all.sh
@@ -301,13 +308,13 @@ macos-build-app:
 	@# Reassert macOS platform metadata in the same local HOME used for the final build.
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		$(FLUTTER) create --platforms=macos . --no-pub >/dev/null
-	@# Cargokit calls `rustup run stable cargo ...`; ensure local `stable` is new enough.
+	@# Cargokit calls `rustup run stable cargo ...`; ensure local `stable` exists and is selected.
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
-		rustup toolchain install stable "$(MACOS_FINAL_RUST_TOOLCHAIN)" >/dev/null
+		rustup toolchain install stable >/dev/null
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
-		rustup default "$(MACOS_FINAL_RUST_TOOLCHAIN)" >/dev/null
+		rustup default stable >/dev/null
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		rustup run stable rustc -V

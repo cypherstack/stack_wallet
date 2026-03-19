@@ -31,11 +31,10 @@ fi
 echo "Ensuring Rust toolchains are installed..."
 rustup toolchain install stable
 rustup default stable
-rustup toolchain install 1.94.0 1.85.1
-rustup default 1.94.0
+rustup toolchain install 1.85.1
+rustup default stable
 rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain stable >/dev/null 2>&1 || true
 rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.85.1 >/dev/null 2>&1 || true
-rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.94.0 >/dev/null 2>&1 || true
 
 echo "Installing Rust CLI build tools..."
 cargo install cargo-lipo cbindgen || true

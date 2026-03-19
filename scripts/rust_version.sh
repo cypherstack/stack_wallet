@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 set_rust_to_everything_else() {
-  if rustup toolchain list | grep -q "1.94.0"; then
-    rustup default 1.94.0
+  if rustup toolchain list | grep -q "stable"; then
+    rustup default stable
   else
-    echo "Rust version 1.94.0 is not installed. Please install it using 'rustup install 1.94.0'." >&2
+    echo "Rust stable toolchain is not installed. Please install it using 'rustup toolchain install stable'." >&2
     echo "Bypassed by Nix"
   fi
 }
@@ -26,4 +26,3 @@ set_rust_version_for_libmwc() {
     echo "Bypassed by Nix"
   fi
 }
-
