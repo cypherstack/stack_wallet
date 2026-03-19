@@ -15,7 +15,7 @@ DART         := $(DART_BIN)
 APP_PROJECT_ROOT_DIR := $(CURDIR)
 PUB_CACHE    ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
-PROJECT_HOME := $(APP_PROJECT_ROOT_DIR)/.nix-home
+PROJECT_HOME := $(APP_PROJECT_ROOT_DIR)/.build-home
 PROJECT_CACHE := $(APP_PROJECT_ROOT_DIR)/.cache
 PROJECT_TMP := $(APP_PROJECT_ROOT_DIR)/.tmp
 PROJECT_CARGO_HOME := $(APP_PROJECT_ROOT_DIR)/.cargo-home
@@ -295,6 +295,11 @@ macos-build-native:
 macos-build-app:
 	@echo "--- Final Compilation..."
 	@rm -rf macos/Runner.xcworkspace macos/Pods macos/Podfile.lock
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		$(FLUTTER) config --enable-macos-desktop >/dev/null
+	@# Reassert macOS platform metadata in the same local HOME used for the final build.
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		$(FLUTTER) create --platforms=macos . --no-pub >/dev/null
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		HOME="$(PROJECT_HOME)" \
 		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
