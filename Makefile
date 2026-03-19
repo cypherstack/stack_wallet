@@ -12,9 +12,14 @@ FLUTTER_BIN  := $(if $(and $(FLUTTER),$(wildcard $(FLUTTER))),$(FLUTTER),$(shell
 DART_BIN     := $(if $(and $(DART),$(wildcard $(DART))),$(DART),$(shell command -v dart 2>/dev/null))
 FLUTTER      := $(FLUTTER_BIN)
 DART         := $(DART_BIN)
-PUB_CACHE    ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
 APP_PROJECT_ROOT_DIR := $(CURDIR)
+PUB_CACHE    ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
+PROJECT_HOME := $(APP_PROJECT_ROOT_DIR)/.nix-home
+PROJECT_CACHE := $(APP_PROJECT_ROOT_DIR)/.cache
+PROJECT_TMP := $(APP_PROJECT_ROOT_DIR)/.tmp
+PROJECT_CARGO_HOME := $(APP_PROJECT_ROOT_DIR)/.cargo-home
+PROJECT_RUSTUP_HOME := $(APP_PROJECT_ROOT_DIR)/.rustup-home
 MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
 	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
 	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
@@ -25,7 +30,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=11.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-windows check-macos-sdk bootstrap-macos init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
+.PHONY: help check-reqs check-reqs-macos check-reqs-windows check-macos-sdk bootstrap-macos macos-local-state init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
 	build-linux build-macos build-ios build-android build-windows \
 	macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app diagnose-macos-env
 
@@ -77,12 +82,42 @@ ifeq ($(shell uname),Darwin)
 	@echo "[OK] Xcode SDK path looks good."
 endif
 
+check-reqs-macos: ## Verify macOS build tools are available in PATH
+ifeq ($(shell uname),Darwin)
+	@echo "Checking macOS toolchain in PATH..."
+	@command -v $(FLUTTER) >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@command -v $(DART) >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed."; exit 1; }
+	@command -v rustup >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup not installed."; exit 1; }
+	@command -v cargo >/dev/null 2>&1 || { echo >&2 "[ERROR] cargo not installed."; exit 1; }
+	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
+	@command -v meson >/dev/null 2>&1 || { echo >&2 "[ERROR] Meson not installed."; exit 1; }
+	@command -v ninja >/dev/null 2>&1 || { echo >&2 "[ERROR] Ninja not installed."; exit 1; }
+	@command -v pkg-config >/dev/null 2>&1 || { echo >&2 "[ERROR] pkg-config not installed."; exit 1; }
+	@command -v pod >/dev/null 2>&1 || { echo >&2 "[ERROR] CocoaPods (pod) not installed."; exit 1; }
+	@command -v xcodebuild >/dev/null 2>&1 || { echo >&2 "[ERROR] xcodebuild not available."; exit 1; }
+	@command -v autoreconf >/dev/null 2>&1 || { echo >&2 "[ERROR] autoconf/autoreconf not installed."; exit 1; }
+	@command -v aclocal >/dev/null 2>&1 || { echo >&2 "[ERROR] automake/aclocal not installed."; exit 1; }
+	@echo "[OK] macOS toolchain is available."
+else
+	@echo "[ERROR] check-reqs-macos is macOS-only."
+	@exit 1
+endif
+
 bootstrap-macos: ## Install required macOS build tools via Homebrew helper script
 ifeq ($(shell uname),Darwin)
 	@bash scripts/install_macos_build_tools.sh
+	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain stable >/dev/null 2>&1 || true
+	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.85.1 >/dev/null 2>&1 || true
 else
 	@echo "[ERROR] bootstrap-macos is macOS-only."
 	@exit 1
+endif
+
+macos-local-state: ## Create project-local state dirs for reproducible macOS builds
+ifeq ($(shell uname),Darwin)
+	@mkdir -p "$(PROJECT_HOME)" "$(PROJECT_CACHE)" "$(PROJECT_TMP)" "$(PUB_CACHE)" "$(PROJECT_CARGO_HOME)" "$(PROJECT_RUSTUP_HOME)"
+else
+	@true
 endif
 
 check-reqs-windows: ## Verify Windows/WSL requirements
@@ -131,15 +166,14 @@ patch-submodules: ## Apply portability patches to submodules
 
 # --- PLATFORM BUILDS ---
 
-build-macos: check-reqs check-macos-sdk macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app ## Build MacOS Release (Single source of truth)
+build-macos: check-reqs-macos check-macos-sdk macos-local-state macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app ## Build MacOS Release (Single source of truth)
 
 macos-prepare:
 	@echo "--- Sanitizing environment..."
 	@sed -i.bak 's/\xc2\xa0/ /g' scripts/app_config/templates/pubspec.template.yaml 2>/dev/null || true
 	@rm -f scripts/app_config/templates/pubspec.template.yaml.bak
-	@chmod -R u+w . 2>/dev/null || true
-	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain stable >/dev/null 2>&1 || true
-	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.85.1 >/dev/null 2>&1 || true
+	@chmod -R u+w macos build scripts crypto_plugins 2>/dev/null || true
+	@[ -f pubspec.yaml ] && chmod u+w pubspec.yaml 2>/dev/null || true
 	@rm -rf build/secp256k1 macos/Runner.xcworkspace crypto_plugins/*/scripts/macos/build
 
 macos-configure:
@@ -147,7 +181,8 @@ macos-configure:
 	@echo "--- Initializing submodules..."
 	@git submodule update --init --recursive
 	@echo "--- Bootstrapping local config files..."
-	@cd scripts && bash prebuild.sh
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		cd scripts && bash prebuild.sh
 	@if [ ! -f crypto_plugins/flutter_libepiccash/lib/git_versions.dart ] && [ -f crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart ]; then \
 		echo "--- Creating flutter_libepiccash git_versions.dart from example..."; \
 		cp crypto_plugins/flutter_libepiccash/lib/git_versions_example.dart crypto_plugins/flutter_libepiccash/lib/git_versions.dart; \
@@ -160,12 +195,18 @@ macos-configure:
 		echo "--- pubspec.yaml missing; generating from template..."; \
 		cp scripts/app_config/templates/pubspec.template.yaml pubspec.yaml; \
 	fi
-	@./scripts/app_config/configure_stack_wallet.sh macos
-	@./scripts/app_config/shared/update_version.sh -v $(VERSION) -b $(BUILD_NUM)
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		./scripts/app_config/configure_stack_wallet.sh macos
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		./scripts/app_config/shared/update_version.sh -v $(VERSION) -b $(BUILD_NUM)
 
 macos-restore-metadata:
 	@echo "--- Restoring metadata..."
-	@$(FLUTTER) create --platforms=macos . > /dev/null
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		$(FLUTTER) create --platforms=macos . > /dev/null
+	@rm -rf macos/Runner.xcworkspace macos/Pods macos/Podfile.lock
+	@chmod -R u+rwX macos 2>/dev/null || true
+	@chflags -R nouchg macos 2>/dev/null || true
 	@# Nix-provided Flutter templates can be copied as read-only; CocoaPods must rewrite these files.
 	@chmod -R u+w macos/Runner.xcworkspace macos/Runner.xcodeproj macos/Flutter 2>/dev/null || true
 	@# Ensure Pods includes are resolved relative to macos/Flutter/*.xcconfig.
@@ -196,11 +237,28 @@ macos-restore-metadata:
 		( grep -q 'CodexOverrides.xcconfig' macos/Runner/Configs/Profile.xcconfig || \
 		  printf '\n#include "CodexOverrides.xcconfig"\n' >> macos/Runner/Configs/Profile.xcconfig ) || true
 	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
-	@$(FLUTTER) pub get
-	@bash scripts/macos/patch_coinlib_podspec.sh
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		$(FLUTTER) pub get
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		bash scripts/macos/patch_coinlib_podspec.sh
 	@# Ensure generated build settings are single-line key/value entries for CocoaPods xcconfig parser.
 	@[ -f macos/Flutter/ephemeral/Flutter-Generated.xcconfig ] && \
 		sed -i.bak -E 's/[[:space:]]+$$//' macos/Flutter/ephemeral/Flutter-Generated.xcconfig && \
+		awk 'BEGIN{k="";v=""} \
+		     function flush(){if(k!=""){print k "=" v; k=""; v=""}} \
+		     /^[A-Za-z_][A-Za-z0-9_]*=/{ \
+		       if(k!=""){flush()} \
+		       split($$0,a,"="); \
+		       key=a[1]; val=substr($$0, length(key)+2); gsub(/[ \t]/,"",val); \
+		       if(key=="DART_DEFINES"){k=key; v=val; next} \
+		       print $$0; next \
+		     } \
+		     { \
+		       if(k=="DART_DEFINES"){gsub(/[ \t]/,"",$$0); v=v $$0; next} \
+		       print $$0 \
+		     } \
+		     END{flush()}' macos/Flutter/ephemeral/Flutter-Generated.xcconfig > macos/Flutter/ephemeral/Flutter-Generated.xcconfig.tmp && \
+		mv macos/Flutter/ephemeral/Flutter-Generated.xcconfig.tmp macos/Flutter/ephemeral/Flutter-Generated.xcconfig && \
 		rm -f macos/Flutter/ephemeral/Flutter-Generated.xcconfig.bak || true
 
 macos-build-native:
@@ -214,8 +272,12 @@ macos-build-native:
 	@# Ensure Frostdart macOS build script uses sed -i.bak form (GNU/BSD compatibility).
 	@perl -0777 -i.bak -pe 's/_run\("sed",\s*\["-i"\s*,\s*"\.bak"\s*,\s*"s\/frostdart\/hrf-api\/",\s*"cargo\.toml"\]\);/_run("sed", ["-i.bak", "s\/frostdart\/hrf-api\/", "cargo.toml"]);/g' crypto_plugins/frostdart/scripts/macos/build_macos.dart 2>/dev/null || true
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
-		RUSTUP_HOME="$$HOME/.rustup" \
-		CARGO_HOME="$$HOME/.cargo" \
+		HOME="$(PROJECT_HOME)" \
+		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
+		TMPDIR="$(PROJECT_TMP)" \
+		PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" \
+		CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		MAKEFLAGS= \
 		MFLAGS= \
 		CARGO_MAKEFLAGS= \
@@ -224,22 +286,27 @@ macos-build-native:
 		AR="/usr/bin/ar" \
 		RANLIB="/usr/bin/ranlib" \
 		SDKROOT="$$(xcrun --sdk macosx --show-sdk-path)" \
-		PATH="/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
+		PATH="$(PROJECT_CARGO_HOME)/bin:$$PATH" \
 		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
-	@$(FLUTTER) pub run coinlib:build_macos
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		$(DART) run coinlib:build_macos
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
 	@rm -f macos/Podfile.bak
 
 macos-build-app:
 	@echo "--- Final Compilation..."
-	@rm -rf macos/Pods macos/Podfile.lock
+	@rm -rf macos/Runner.xcworkspace macos/Pods macos/Podfile.lock
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
-		RUSTUP_HOME="$$HOME/.rustup" \
-		CARGO_HOME="$$HOME/.cargo" \
+		HOME="$(PROJECT_HOME)" \
+		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
+		TMPDIR="$(PROJECT_TMP)" \
+		PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" \
+		CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		RUSTUP_TOOLCHAIN=stable \
-		PATH="$$(dirname "$$(/opt/homebrew/bin/rustup which rustc)"):/opt/homebrew/opt/rustup/bin:/opt/homebrew/bin:$$HOME/.cargo/bin:$$PATH" \
+		PATH="$(PROJECT_CARGO_HOME)/bin:$$(dirname "$$(rustup which rustc)"):$${PATH}" \
 		ARCHS=arm64 EXCLUDED_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES $(FLUTTER) build macos --release
 
 diagnose-macos-env: ## Print macOS build env and tool resolution
