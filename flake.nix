@@ -63,10 +63,10 @@
             # ==========================================
             # RUST TOOLCHAIN AUTOMATION
             # ==========================================
-            if ! rustup toolchain list | grep -q "1.89.0"; then
+            if ! rustup toolchain list | grep -q "1.94.0"; then
               echo "Initializing Rust toolchains (this happens only once)..."
-              rustup install 1.89.0 1.85.1 stable
-              rustup default 1.89.0
+              rustup install 1.94.0 1.85.1 stable
+              rustup default 1.94.0
               
               if [[ "${system}" == *"darwin"* ]]; then
                 rustup target add aarch64-apple-darwin aarch64-apple-ios
