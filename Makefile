@@ -197,6 +197,8 @@ macos-configure:
 macos-restore-metadata:
 	@echo "--- Restoring metadata..."
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		$(FLUTTER) config --enable-macos-desktop >/dev/null
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		$(FLUTTER) create --platforms=macos . > /dev/null
 	@rm -rf macos/Runner.xcworkspace macos/Pods macos/Podfile.lock
 	@chmod -R u+rwX macos 2>/dev/null || true
