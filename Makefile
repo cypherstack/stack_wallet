@@ -95,6 +95,10 @@ endif
 
 bootstrap-macos: ## Install required macOS build tools via Homebrew helper script
 ifeq ($(shell uname),Darwin)
+	@if [ -n "$$IN_NIX_SHELL" ] || [ -n "$$NIX_BUILD_TOP" ]; then \
+		echo "[WARN] Nix environment detected; bootstrap-macos skipped (use nix/flake-provided toolchain)."; \
+		exit 0; \
+	fi
 	@bash scripts/install_macos_build_tools.sh
 	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain stable >/dev/null 2>&1 || true
 	@rustup target add aarch64-apple-darwin x86_64-apple-darwin --toolchain 1.85.1 >/dev/null 2>&1 || true
