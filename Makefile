@@ -301,6 +301,16 @@ macos-build-app:
 	@# Reassert macOS platform metadata in the same local HOME used for the final build.
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		$(FLUTTER) create --platforms=macos . --no-pub >/dev/null
+	@# Cargokit calls `rustup run stable cargo ...`; ensure local `stable` is new enough.
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup toolchain install stable "$(MACOS_FINAL_RUST_TOOLCHAIN)" >/dev/null
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup default "$(MACOS_FINAL_RUST_TOOLCHAIN)" >/dev/null
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup run stable rustc -V
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		HOME="$(PROJECT_HOME)" \
 		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
