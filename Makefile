@@ -295,7 +295,7 @@ macos-build-native:
 		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
-		$(DART) run coinlib:build_macos
+		$(FLUTTER) dart run coinlib:build_macos
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
 	@rm -f macos/Podfile.bak
@@ -385,7 +385,7 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 		'Cflags: -I$${includedir} -I$${includedir}/_build' \
 		> scripts/linux/pc/libsecret-1.pc
 	@if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then \
-		$(DART) run coinlib:build_linux; \
+		$(FLUTTER) dart run coinlib:build_linux; \
 	else \
 		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
 	fi
