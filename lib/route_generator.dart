@@ -82,6 +82,8 @@ import 'pages/masternodes/create_masternode_view.dart';
 import 'pages/masternodes/masternode_details_view.dart';
 import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
+import 'pages/more_view/gift_cards_view.dart';
+import 'pages/more_view/services_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/manage_domain_view.dart';
@@ -199,6 +201,8 @@ import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_gift_cards_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_services_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
@@ -1028,6 +1032,20 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ServicesView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ServicesView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case GiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const GiftCardsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case GlobalSettingsView.routeName:
         return getRoute(
@@ -2329,6 +2347,20 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const DesktopSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopServicesView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopServicesView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopGiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopGiftCardsView(),
           settings: RouteSettings(name: settings.name),
         );
 
