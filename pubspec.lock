@@ -167,6 +167,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  build_cli_annotations:
+    dependency: transitive
+    description:
+      name: build_cli_annotations
+      sha256: e563c2e01de8974566a1998410d3f6f03521788160a02503b0b1f1a46c7b3d95
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   build_config:
     dependency: transitive
     description:
@@ -277,10 +285,10 @@ packages:
     dependency: transitive
     description:
       name: characters
-      sha256: faf38497bda5ead2a8c7615f4f7939df04333478bf32e4173fcb06d428b5716b
+      sha256: f71061c654a3380576a52b451dd5532377954cf9dbd272a78fc8479606670803
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.1"
+    version: "1.4.0"
   charcode:
     dependency: transitive
     description:
@@ -420,6 +428,270 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.9.0"
+  cs_monero:
+    dependency: "direct main"
+    description:
+      name: cs_monero
+      sha256: b174f40e1887eb589e1e9aa99de8e9d0bc97b543f2330d5e5e7b01a6d313a9c2
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.0"
+  cs_monero_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: cs_monero_flutter_libs
+      sha256: "459542acbfc01ee6f30446c656cba670c7f1b90e52b7921a4aa0dcbc275b9eca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  cs_monero_flutter_libs_android:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_android
+      sha256: f0785f34bcf9872347823303f09409b1238b2ed7e535b9722633b0022d6188f5
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.2"
+  cs_monero_flutter_libs_android_arm64_v8a:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_android_arm64_v8a
+      sha256: "0b836dff1ead29229535a3228c7c57517127bea8b19c4c2d9bdae2770526f8ca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_monero_flutter_libs_android_armeabi_v7a:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_android_armeabi_v7a
+      sha256: "7955bbf91e1c3ec66e352a33e36edbab509808db6db6debfbea06f1ad2396205"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_monero_flutter_libs_android_x86_64:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_android_x86_64
+      sha256: f51f95aa4a09be497befe020621b0d62d749d900f4dfd585fe60b7c9692010a8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_monero_flutter_libs_ios:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_ios
+      sha256: dbc149c0787a7702a3842b4974b9bc30bad654daaa57886f874823c29c390ba7
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_monero_flutter_libs_linux:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_linux
+      sha256: "5b8bbc68a7d2bb39efdea4834097ada1aa99fd7e0b1641943c4e06c89f96616e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_monero_flutter_libs_macos:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_macos
+      sha256: ee02b78184b4168bc2bdb49c7ef71cc5019ffbed54c0feabcebdbc4cae5819ee
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_monero_flutter_libs_platform_interface:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_platform_interface
+      sha256: "7c832ed033257b82e2c30f1fc764f68fa4e4a780d4836a4f94384aaf9cd44ee7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_monero_flutter_libs_windows:
+    dependency: transitive
+    description:
+      name: cs_monero_flutter_libs_windows
+      sha256: "9db54230f83ec07e2dce39b6b90711616ba4ab1144c7f68e4b1c13b161a18cd3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_salvium:
+    dependency: "direct main"
+    description:
+      name: cs_salvium
+      sha256: e040a407bb485b177130a86dd6cd817b8cea933bbfae149a73c57a681deaa4a5
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_salvium_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: cs_salvium_flutter_libs
+      sha256: "05a9f9e3f8cb539a310419d49270492e84d0f89bccb4c31512c854b1fe1f1c5f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  cs_salvium_flutter_libs_android:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android
+      sha256: ad9537942f7c1416fbb3432cb154d641262bd18c56471c4f62dd1d2e7e23f125
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_salvium_flutter_libs_android_arm64_v8a:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_arm64_v8a
+      sha256: "4c307cd3276c7aa2a461ebcfc726adf9b4d9427dbdbad120dbe50f54d3690b4e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_salvium_flutter_libs_android_armeabi_v7a:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_armeabi_v7a
+      sha256: "9491e0cdd4452c9c907e137acd2d08f76d33efc7a9d4b86fbfab69224bc9f473"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_salvium_flutter_libs_android_x86_64:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_x86_64
+      sha256: "0b87ccd86bd9b0eeb659dade948d076cddf908d535fe803b769030da8ff406dc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_salvium_flutter_libs_ios:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_ios
+      sha256: aa474e7da65ba36e23afc4936ffbe39328808619fbdac44dacad9aa3aafb1b08
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  cs_salvium_flutter_libs_linux:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_linux
+      sha256: "8adc16e9d0fb8dc439475ddb2eaa4fcde8433fa2cb6e14ce814b1a40965eda5c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_salvium_flutter_libs_macos:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_macos
+      sha256: "988077e7affc6443a1b665bac6df3b39269cc1352375cb805bd6d26aac82b46f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  cs_salvium_flutter_libs_platform_interface:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_platform_interface
+      sha256: "36ef1edd1481b92a95500fbdf397a371c1d624b58401a56638dc315f3c607dc0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_windows:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_windows
+      sha256: "934a1eeb95619df9e23eff13a6a6a356322297abfa6ab871283cdf665cc32c7f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_wownero:
+    dependency: "direct main"
+    description:
+      name: cs_wownero
+      sha256: "9ff7a6be0f4524c6b9e5ca1d223df98e9455c7fe3b06f0b519280a175795e925"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  cs_wownero_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: cs_wownero_flutter_libs
+      sha256: ba1156d015a9f75c841f927ff2ce6565cd7cd37f15aaedd9aaf36703453a9884
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
+  cs_wownero_flutter_libs_android:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_android
+      sha256: "14fe0666999d078bcd91ca499a9e9395dd270211eedb2250c533cbd036cb328b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  cs_wownero_flutter_libs_android_arm64_v8a:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_android_arm64_v8a
+      sha256: "19f7e17ce7adf4615685f92b106c7f588dee80bb4768931c2505d2761a9fa06c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  cs_wownero_flutter_libs_android_armeabi_v7a:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_android_armeabi_v7a
+      sha256: "1b7dc845674c938259dcbce6b9d6e6c305c98c2ff9b83803b00ea0f1268dfb28"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  cs_wownero_flutter_libs_android_x86_64:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_android_x86_64
+      sha256: c318ce80ef418d53aeef3698c89c0497394269311f8c5b75f160e0f81610f9d9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  cs_wownero_flutter_libs_ios:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_ios
+      sha256: "9ffd158469a0a45668d89ce56b90e846dd823ffd44ee6997b50b76129e6f613c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
+  cs_wownero_flutter_libs_linux:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_linux
+      sha256: "441c9a7b28e28434942709915e6a54ea2392b3261f90c116e03b27b02fce7492"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  cs_wownero_flutter_libs_macos:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_macos
+      sha256: e703975e6a6f698b01e07b238953547391faa4e930f09733d01f1346ee788fc7
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  cs_wownero_flutter_libs_platform_interface:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_platform_interface
+      sha256: "6a3bda9bcf5a904b36cbd0817e7ae8b7a64693e6f532f1783513e93c64436e6f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  cs_wownero_flutter_libs_windows:
+    dependency: transitive
+    description:
+      name: cs_wownero_flutter_libs_windows
+      sha256: fe7485863a6e83e31581cef36c62d3507a9ea36c73d56842b4fee059f349cb49
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   csslib:
     dependency: transitive
     description:
@@ -730,6 +1002,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.1"
+  flutter_libepiccash:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/flutter_libepiccash"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flutter_libmwc:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/flutter_libmwc"
+      relative: true
+    source: path
+    version: "0.0.1"
   flutter_libsparkmobile:
     dependency: "direct main"
     description:
@@ -771,6 +1057,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.2.0"
+  flutter_mwebd:
+    dependency: "direct main"
+    description:
+      name: flutter_mwebd
+      sha256: "14f2a331b2621b78ddf62081ca8a466f6a2b4352a66950fffd68615c14e63edf"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-pre.11"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -795,6 +1089,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  flutter_rust_bridge:
+    dependency: transitive
+    description:
+      name: flutter_rust_bridge
+      sha256: "37ef40bc6f863652e865f0b2563ea07f0d3c58d8efad803cc01933a4b2ee067e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.11.1"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -885,6 +1187,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  frostdart:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/frostdart"
+      relative: true
+    source: path
+    version: "0.0.1"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
@@ -1144,6 +1453,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.11.2"
+  jsontool:
+    dependency: transitive
+    description:
+      name: jsontool
+      sha256: e49bf419e82d90f009426cd7fdec8d54ba8382975b3454ed16a3af3ee1d1b697
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   keyboard_dismisser:
     dependency: "direct main"
     description:
@@ -1253,18 +1570,18 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: "12956d0ad8390bbcc63ca2e1469c0619946ccb52809807067a7020d57e647aa6"
+      sha256: dc58c723c3c24bf8d3e2d3ad3f2f9d7bd9cf43ec6feaa64181775e60190153f2
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.18"
+    version: "0.12.17"
   material_color_utilities:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: "9c337007e82b1889149c82ed242ed1cb24a66044e30979c44912381e9be4c48b"
+      sha256: f7142bb1154231d7ea5f96bc7bde4bda2a0945d2806bb11670e30b850d56bdec
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.0"
+    version: "0.11.1"
   memoize:
     dependency: transitive
     description:
@@ -1935,26 +2252,26 @@ packages:
     dependency: transitive
     description:
       name: test
-      sha256: "54c516bbb7cee2754d327ad4fca637f78abfc3cbcc5ace83b3eda117e42cd71a"
+      sha256: "75906bf273541b676716d1ca7627a17e4c4070a3a16272b7a3dc7da3b9f3f6b7"
       url: "https://pub.dev"
     source: hosted
-    version: "1.29.0"
+    version: "1.26.3"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "93167629bfc610f71560ab9312acdda4959de4df6fac7492c89ff0d3886f6636"
+      sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.9"
+    version: "0.7.7"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "394f07d21f0f2255ec9e3989f21e54d3c7dc0e6e9dbce160e5a9c1a6be0e2943"
+      sha256: "0cc24b5ff94b38d2ae73e1eb43cc302b77964fbf67abad1e296025b78deb53d0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.15"
+    version: "0.6.12"
   tezart:
     dependency: "direct main"
     description:
@@ -2149,6 +2466,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  very_good_analysis:
+    dependency: transitive
+    description:
+      name: very_good_analysis
+      sha256: "96245839dbcc45dfab1af5fa551603b5c7a282028a64746c19c547d21a7f1e3a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.0.0"
   vm_service:
     dependency: transitive
     description:
@@ -2238,6 +2563,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.5"
+  web_socket_client:
+    dependency: transitive
+    description:
+      name: web_socket_client
+      sha256: "394789177aa3bc1b7b071622a1dbf52a4631d7ce23c555c39bb2523e92316b07"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   webdriver:
     dependency: transitive
     description:
@@ -2287,6 +2620,23 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  xelis_dart_sdk:
+    dependency: "direct main"
+    description:
+      name: xelis_dart_sdk
+      sha256: "2393fcd3dfe9175e34ed60e1a1f8821fb63d6a99d66894b9a24cdfc8cb4a6a4b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.30.9"
+  xelis_flutter:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "v0.2.1"
+      resolved-ref: afcc21e0499e78236ca618c7d9f6bee8280dede1
+      url: "https://github.com/xelis-project/xelis-flutter-ffi.git"
+    source: git
+    version: "0.2.1"
   xml:
     dependency: transitive
     description:
