@@ -38,40 +38,36 @@ class _CreateMasternodeDialogState extends ConsumerState<CreateMasternodeView> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder: (child) => Material(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: BorderRadius.circular(20),
-        child: SizedBox(
-          width: 660,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 32),
-                    child: Text(
-                      "Create masternode",
-                      style: STextStyles.desktopH3(context),
-                    ),
+      builder: (child) => SizedBox(
+        width: 660,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Create masternode",
+                    style: STextStyles.desktopH3(context),
                   ),
-                  const DesktopDialogCloseButton(),
-                ],
-              ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                    bottom: 32,
-                    right: 32,
-                  ),
-                  child: child,
                 ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  bottom: 32,
+                  right: 32,
+                ),
+                child: child,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       child: ConditionalParent(
