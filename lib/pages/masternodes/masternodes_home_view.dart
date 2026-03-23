@@ -161,10 +161,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
                 .getPrimaryEnabledButtonStyle(ctx),
             child: Text(
               "Register",
-              style: STextStyles.button(ctx).copyWith(
-                color:
-                    Theme.of(ctx).extension<StackColors>()!.buttonTextPrimary,
-              ),
+              style: STextStyles.button(ctx),
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
