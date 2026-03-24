@@ -240,11 +240,23 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   final token =
                       await ref.read(paynymAPIProvider).token(pCode.toString());
 
+                  debugPrint("token result: $token");
+
                   if (shouldCancel) return;
+
+                  if (token.value == null) {
+                    debugPrint("token fetch failed: ${token.message}");
+                    if (mounted) {
+                      Navigator.of(context, rootNavigator: isDesktop).pop();
+                    }
+                    return;
+                  }
 
                   // sign token with notification private key
                   final signature =
                       await wallet.signStringWithNotificationKey(token.value!);
+
+                  debugPrint("signature: $signature");
 
                   if (shouldCancel) return;
 
@@ -253,9 +265,13 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                       .read(paynymAPIProvider)
                       .claim(token.value!, signature);
 
+                  debugPrint("claim result: $claim");
+
                   if (shouldCancel) return;
 
-                  if (claim.value?.claimed == pCode.toString()) {
+                  if (claim.value != null &&
+                      (claim.value!.claimed == pCode.toString() ||
+                          claim.value!.claimed == "true")) {
                     final account =
                         await ref.read(paynymAPIProvider).nym(pCode.toString());
                     // if (!account.value!.segwit) {
@@ -286,6 +302,13 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                       );
                     }
                   } else if (mounted && !shouldCancel) {
+                    debugPrint(
+                      "claim failed or mismatch: "
+                      "claimed=${claim.value?.claimed}, "
+                      "expected=${pCode.toString()}, "
+                      "statusCode=${claim.statusCode}, "
+                      "message=${claim.message}",
+                    );
                     Navigator.of(context, rootNavigator: isDesktop).pop();
                   }
                 },
