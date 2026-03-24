@@ -342,10 +342,26 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   }
 
   Future<String> signStringWithNotificationKey(String data) async {
-    final bytes = await signWithNotificationKey(
-      Uint8List.fromList(utf8.encode(data)),
+    final myPrivateKeyNode = await deriveNotificationBip32Node();
+    final key = coinlib.ECPrivateKey(myPrivateKeyNode.privateKey!);
+
+    // Clean prefix: strip leading length byte if present (coinlib recalculates)
+    final prefixBytes =
+        cryptoCurrency.networkParams.messagePrefix.toUint8ListFromUtf8;
+    final ignoreFirstByte =
+        prefixBytes.first == prefixBytes.length - 1;
+    final prefix = (ignoreFirstByte
+            ? prefixBytes.sublist(1)
+            : prefixBytes)
+        .toUtf8String;
+
+    final signed = coinlib.MessageSignature.sign(
+      key: key,
+      message: data,
+      prefix: prefix,
     );
-    return Format.uint8listToString(bytes);
+
+    return base64Encode(signed.signature.compact);
   }
 
   Future<TxData> preparePaymentCodeSend({
