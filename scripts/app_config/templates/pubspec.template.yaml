@@ -325,6 +325,12 @@ dependency_overrides:
       url: https://github.com/cypherstack/bip47.git
       ref: 3ef6b94375d7b4d972b0bc0bd9597532381a88ec
 
+  # bip47 pins a different bitcoindart commit; override to ours
+  bitcoindart:
+    git:
+      url: https://github.com/cypherstack/bitcoindart.git
+      ref: b02aaf6c6b40fd5a6b3d77f875324717103f2019
+
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
