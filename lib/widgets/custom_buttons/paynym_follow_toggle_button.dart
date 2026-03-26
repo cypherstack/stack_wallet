@@ -35,7 +35,7 @@ enum PaynymFollowToggleButtonStyle {
   detailsDesktop,
 }
 
-const kDisableFollowing = true;
+const kDisableFollowing = false;
 
 class PaynymFollowToggleButton extends ConsumerStatefulWidget {
   const PaynymFollowToggleButton({
@@ -115,7 +115,10 @@ class _PaynymFollowToggleButtonState
 
     Logging.instance.d("Follow result: $result on try $i");
 
-    if (result.value!.following == followedAccount.value!.nymID) {
+    final followSuccess = result.statusCode == 200 ||
+        result.value?.following == followedAccount.value?.nymID;
+
+    if (followSuccess && followedAccount.value != null) {
       if (!loadingPopped && mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
@@ -157,7 +160,7 @@ class _PaynymFollowToggleButtonState
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Failed to follow ${followedAccount.value!.nymName}",
+            message: "Failed to follow ${followedAccount.value?.nymName ?? "PayNym"}",
             context: context,
           ),
         );
@@ -222,7 +225,10 @@ class _PaynymFollowToggleButtonState
 
     Logging.instance.d("Unfollow result: $result on try $i");
 
-    if (result.value!.unfollowing == followedAccount.value!.nymID) {
+    final unfollowSuccess = result.statusCode == 200 ||
+        result.value?.unfollowing == followedAccount.value?.nymID;
+
+    if (unfollowSuccess && followedAccount.value != null) {
       if (!loadingPopped && mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
@@ -258,7 +264,7 @@ class _PaynymFollowToggleButtonState
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Failed to unfollow ${followedAccount.value!.nymName}",
+            message: "Failed to unfollow ${followedAccount.value?.nymName ?? "PayNym"}",
             context: context,
           ),
         );
