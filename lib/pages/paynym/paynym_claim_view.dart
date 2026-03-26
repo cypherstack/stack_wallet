@@ -206,21 +206,33 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   if (shouldCancel) return;
 
                   if (created.value!.claimed) {
-                    // payment code already claimed
+                    // payment code already claimed — load account and navigate
                     debugPrint("pcode already claimed!!");
 
-                    // final account =
-                    //     await ref.read(paynymAPIProvider).nym(pCode.toString());
-                    // if (!account.value!.segwit) {
-                    //   for (int i = 0; i < 100; i++) {
-                    //     final result = await _addSegwitCode(account.value!);
-                    //     if (result == true) {
-                    //       break;
-                    //     }
-                    //   }
-                    // }
+                    final account = await ref
+                        .read(paynymAPIProvider)
+                        .nym(pCode.toString());
 
-                    if (mounted) {
+                    if (shouldCancel) return;
+
+                    if (account.value != null && mounted) {
+                      ref.read(myPaynymAccountStateProvider.state).state =
+                          account.value!;
+                      if (isDesktop) {
+                        Navigator.of(context, rootNavigator: true).pop();
+                        Navigator.of(context).pop();
+                      } else {
+                        Navigator.of(context).popUntil(
+                          ModalRoute.withName(
+                            WalletView.routeName,
+                          ),
+                        );
+                      }
+                      await Navigator.of(context).pushNamed(
+                        PaynymHomeView.routeName,
+                        arguments: widget.walletId,
+                      );
+                    } else if (mounted) {
                       if (isDesktop) {
                         Navigator.of(context, rootNavigator: true).pop();
                         Navigator.of(context).pop();
@@ -269,9 +281,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
 
                   if (shouldCancel) return;
 
-                  if (claim.value != null &&
-                      (claim.value!.claimed == pCode.toString() ||
-                          claim.value!.claimed == "true")) {
+                  if (claim.statusCode == 200 ||
+                      claim.value?.claimed == pCode.toString() ||
+                      claim.value?.claimed == "true") {
                     final account =
                         await ref.read(paynymAPIProvider).nym(pCode.toString());
                     // if (!account.value!.segwit) {
