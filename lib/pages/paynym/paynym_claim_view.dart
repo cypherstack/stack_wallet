@@ -192,8 +192,11 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
 
                   if (shouldCancel) return;
 
-                  // get payment code
-                  final pCode = await wallet.getPaymentCode(isSegwit: false);
+                  // get payment code with taproot + segwit feature bits
+                  final pCode = await wallet.getPaymentCode(
+                    isSegwit: true,
+                    isTaproot: true,
+                  );
 
                   if (shouldCancel) return;
 

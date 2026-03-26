@@ -374,7 +374,10 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   }
 
   /// fetch or generate this wallet's bip47 payment code
-  Future<PaymentCode> getPaymentCode({required bool isSegwit}) async {
+  Future<PaymentCode> getPaymentCode({
+    required bool isSegwit,
+    bool isTaproot = false,
+  }) async {
     final node = await _getRootNode();
 
     final paymentCode = PaymentCode.fromBip32Node(
@@ -382,7 +385,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         _basePaynymDerivePath(testnet: info.coin.network.isTestNet),
       ),
       networkType: networkType,
-      shouldSetSegwitBit: isSegwit,
+      shouldSetSegwitBit: isSegwit || isTaproot,
+      shouldSetTaprootBit: isTaproot,
     );
 
     return paymentCode;
