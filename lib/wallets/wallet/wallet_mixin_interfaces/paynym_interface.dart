@@ -91,9 +91,23 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
   Future<Address> currentReceivingPaynymAddress({
     required PaymentCode sender,
-    required bool isSegwit,
+    required DerivePathType derivePathType,
   }) async {
     final keys = await lookupKey(sender.toString());
+
+    final AddressType filterType;
+    switch (derivePathType) {
+      case DerivePathType.bip86:
+        filterType = AddressType.p2tr;
+        break;
+      case DerivePathType.bip84:
+        filterType = AddressType.p2wpkh;
+        break;
+      case DerivePathType.bip44:
+      default:
+        filterType = AddressType.p2pkh;
+        break;
+    }
 
     final address =
         await mainDB
@@ -101,16 +115,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
             .filter()
             .subTypeEqualTo(AddressSubType.paynymReceive)
             .and()
-            .group((q) {
-              if (isSegwit) {
-                return q
-                    .typeEqualTo(AddressType.p2sh)
-                    .or()
-                    .typeEqualTo(AddressType.p2wpkh);
-              } else {
-                return q.typeEqualTo(AddressType.p2pkh);
-              }
-            })
+            .typeEqualTo(filterType)
             .and()
             .anyOf<String, Address>(
               keys,
@@ -123,7 +128,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final generatedAddress = await _generatePaynymReceivingAddress(
         sender: sender,
         index: 0,
-        generateSegwitAddress: isSegwit,
+        derivePathType: derivePathType,
       );
 
       final existing =
@@ -134,23 +139,67 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               .findFirst();
 
       if (existing == null) {
-        // Add that new address
         await mainDB.putAddress(generatedAddress);
       } else {
-        // we need to update the address
         await mainDB.updateAddress(existing, generatedAddress);
       }
 
-      return currentReceivingPaynymAddress(isSegwit: isSegwit, sender: sender);
+      return currentReceivingPaynymAddress(
+        derivePathType: derivePathType,
+        sender: sender,
+      );
     } else {
       return address;
+    }
+  }
+
+  /// Convert a compressed public key to a P2TR (taproot) address string.
+  String _pubKeyToP2TRAddress(Uint8List compressedPubKey) {
+    final ecPubKey = coinlib.ECPublicKey(compressedPubKey);
+    final taproot = coinlib.Taproot(internalKey: ecPubKey);
+    final addr = coinlib.P2TRAddress.fromTaproot(
+      taproot,
+      hrp: cryptoCurrency.networkParams.bech32Hrp,
+    );
+    return addr.toString();
+  }
+
+  ({String address, AddressType type}) _paynymAddressAndType({
+    required PaymentAddress paymentAddress,
+    required DerivePathType derivePathType,
+    required bool isSend,
+  }) {
+    switch (derivePathType) {
+      case DerivePathType.bip86:
+        final pubKey = isSend
+            ? paymentAddress.getDerivedSendPublicKey()
+            : paymentAddress.getDerivedReceivePublicKey();
+        return (
+          address: _pubKeyToP2TRAddress(pubKey),
+          type: isSend ? AddressType.nonWallet : AddressType.p2tr,
+        );
+      case DerivePathType.bip84:
+        return (
+          address: isSend
+              ? paymentAddress.getSendAddressP2WPKH()
+              : paymentAddress.getReceiveAddressP2WPKH(),
+          type: isSend ? AddressType.nonWallet : AddressType.p2wpkh,
+        );
+      case DerivePathType.bip44:
+      default:
+        return (
+          address: isSend
+              ? paymentAddress.getSendAddressP2PKH()
+              : paymentAddress.getReceiveAddressP2PKH(),
+          type: isSend ? AddressType.nonWallet : AddressType.p2pkh,
+        );
     }
   }
 
   Future<Address> _generatePaynymReceivingAddress({
     required PaymentCode sender,
     required int index,
-    required bool generateSegwitAddress,
+    required DerivePathType derivePathType,
   }) async {
     final root = await _getRootNode();
     final node = root.derivePath(
@@ -164,14 +213,15 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       index: 0,
     );
 
-    final addressString =
-        generateSegwitAddress
-            ? paymentAddress.getReceiveAddressP2WPKH()
-            : paymentAddress.getReceiveAddressP2PKH();
+    final result = _paynymAddressAndType(
+      paymentAddress: paymentAddress,
+      derivePathType: derivePathType,
+      isSend: false,
+    );
 
     final address = Address(
       walletId: walletId,
-      value: addressString,
+      value: result.address,
       publicKey: [],
       derivationIndex: index,
       derivationPath:
@@ -180,7 +230,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               index,
               testnet: info.coin.network.isTestNet,
             ),
-      type: generateSegwitAddress ? AddressType.p2wpkh : AddressType.p2pkh,
+      type: result.type,
       subType: AddressSubType.paynymReceive,
       otherData: await storeCode(sender.toString()),
     );
@@ -191,7 +241,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   Future<Address> _generatePaynymSendAddress({
     required PaymentCode other,
     required int index,
-    required bool generateSegwitAddress,
+    required DerivePathType derivePathType,
     bip32.BIP32? mySendBip32Node,
   }) async {
     final node = mySendBip32Node ?? await deriveNotificationBip32Node();
@@ -203,14 +253,15 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       index: index,
     );
 
-    final addressString =
-        generateSegwitAddress
-            ? paymentAddress.getSendAddressP2WPKH()
-            : paymentAddress.getSendAddressP2PKH();
+    final result = _paynymAddressAndType(
+      paymentAddress: paymentAddress,
+      derivePathType: derivePathType,
+      isSend: true,
+    );
 
     final address = Address(
       walletId: walletId,
-      value: addressString,
+      value: result.address,
       publicKey: [],
       derivationIndex: index,
       derivationPath:
@@ -219,7 +270,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               index,
               testnet: info.coin.network.isTestNet,
             ),
-      type: AddressType.nonWallet,
+      type: result.type,
       subType: AddressSubType.paynymSend,
       otherData: await storeCode(other.toString()),
     );
@@ -229,11 +280,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
   Future<void> checkCurrentPaynymReceivingAddressForTransactions({
     required PaymentCode sender,
-    required bool isSegwit,
+    required DerivePathType derivePathType,
   }) async {
     final address = await currentReceivingPaynymAddress(
       sender: sender,
-      isSegwit: isSegwit,
+      derivePathType: derivePathType,
     );
 
     final txCount = await fetchTxCount(
@@ -246,7 +297,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final nextAddress = await _generatePaynymReceivingAddress(
         sender: sender,
         index: address.derivationIndex + 1,
-        generateSegwitAddress: isSegwit,
+        derivePathType: derivePathType,
       );
 
       final existing =
@@ -257,16 +308,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
               .findFirst();
 
       if (existing == null) {
-        // Add that new address
         await mainDB.putAddress(nextAddress);
       } else {
-        // we need to update the address
         await mainDB.updateAddress(existing, nextAddress);
       }
       // keep checking until address with no tx history is set as current
       await checkCurrentPaynymReceivingAddressForTransactions(
         sender: sender,
-        isSegwit: isSegwit,
+        derivePathType: derivePathType,
       );
     }
   }
@@ -278,15 +327,23 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       futures.add(
         checkCurrentPaynymReceivingAddressForTransactions(
           sender: code,
-          isSegwit: true,
+          derivePathType: DerivePathType.bip84,
         ),
       );
       futures.add(
         checkCurrentPaynymReceivingAddressForTransactions(
           sender: code,
-          isSegwit: false,
+          derivePathType: DerivePathType.bip44,
         ),
       );
+      if (code.isTaprootEnabled()) {
+        futures.add(
+          checkCurrentPaynymReceivingAddressForTransactions(
+            sender: code,
+            derivePathType: DerivePathType.bip86,
+          ),
+        );
+      }
     }
     await Future.wait(futures);
   }
@@ -386,10 +443,19 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       );
     } else {
       final myPrivateKeyNode = await deriveNotificationBip32Node();
+      final DerivePathType sendDeriveType;
+      if (txData.paynymAccountLite!.taproot) {
+        sendDeriveType = DerivePathType.bip86;
+      } else if (txData.paynymAccountLite!.segwit) {
+        sendDeriveType = DerivePathType.bip84;
+      } else {
+        sendDeriveType = DerivePathType.bip44;
+      }
+
       final sendToAddress = await nextUnusedSendAddressFrom(
         pCode: paymentCode,
         privateKeyNode: myPrivateKeyNode,
-        isSegwit: txData.paynymAccountLite!.segwit,
+        derivePathType: sendDeriveType,
       );
 
       return prepareSend(
@@ -411,7 +477,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   /// and your own private key
   Future<Address> nextUnusedSendAddressFrom({
     required PaymentCode pCode,
-    required bool isSegwit,
+    required DerivePathType derivePathType,
     required bip32.BIP32 privateKeyNode,
     int startIndex = 0,
   }) async {
@@ -448,7 +514,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         final address = await _generatePaynymSendAddress(
           other: pCode,
           index: i,
-          generateSegwitAddress: isSegwit,
+          derivePathType: derivePathType,
           mySendBip32Node: privateKeyNode,
         );
 
@@ -1390,12 +1456,19 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
     final List<Future<void>> futures = [];
     for (final code in codes) {
+      final types = <DerivePathType>[DerivePathType.bip44];
+      if (code.isSegWitEnabled()) {
+        types.add(DerivePathType.bip84);
+      }
+      if (code.isTaprootEnabled()) {
+        types.add(DerivePathType.bip86);
+      }
       futures.add(
         _restoreHistoryWith(
           other: code,
           maxUnusedAddressGap: maxUnusedAddressGap,
           maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-          checkSegwitAsWell: code.isSegWitEnabled(),
+          derivePathTypes: types,
         ),
       );
     }
@@ -1405,144 +1478,67 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
   Future<void> _restoreHistoryWith({
     required PaymentCode other,
-    required bool checkSegwitAsWell,
+    required List<DerivePathType> derivePathTypes,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
   }) async {
-    // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
     const maxCount = 2147483647;
     assert(maxNumberOfIndexesToCheck < maxCount);
 
     final mySendBip32Node = await deriveNotificationBip32Node();
-
     final List<Address> addresses = [];
-    int receivingGapCounter = 0;
-    int outgoingGapCounter = 0;
 
-    // non segwit receiving
-    for (
-      int i = 0;
-      i < maxNumberOfIndexesToCheck &&
-          receivingGapCounter < maxUnusedAddressGap;
-      i++
-    ) {
-      if (receivingGapCounter < maxUnusedAddressGap) {
+    for (final derivePathType in derivePathTypes) {
+      int receivingGap = 0;
+      for (
+        int i = 0;
+        i < maxNumberOfIndexesToCheck && receivingGap < maxUnusedAddressGap;
+        i++
+      ) {
         final address = await _generatePaynymReceivingAddress(
           sender: other,
           index: i,
-          generateSegwitAddress: false,
+          derivePathType: derivePathType,
         );
-
         addresses.add(address);
-
         final count = await fetchTxCount(
           addressScriptHash: cryptoCurrency.addressToScriptHash(
             address: address.value,
           ),
         );
-
         if (count > 0) {
-          receivingGapCounter = 0;
+          receivingGap = 0;
         } else {
-          receivingGapCounter++;
+          receivingGap++;
         }
       }
-    }
 
-    // non segwit sends
-    for (
-      int i = 0;
-      i < maxNumberOfIndexesToCheck && outgoingGapCounter < maxUnusedAddressGap;
-      i++
-    ) {
-      if (outgoingGapCounter < maxUnusedAddressGap) {
+      int outgoingGap = 0;
+      for (
+        int i = 0;
+        i < maxNumberOfIndexesToCheck && outgoingGap < maxUnusedAddressGap;
+        i++
+      ) {
         final address = await _generatePaynymSendAddress(
           other: other,
           index: i,
-          generateSegwitAddress: false,
+          derivePathType: derivePathType,
           mySendBip32Node: mySendBip32Node,
         );
-
         addresses.add(address);
-
         final count = await fetchTxCount(
           addressScriptHash: cryptoCurrency.addressToScriptHash(
             address: address.value,
           ),
         );
-
         if (count > 0) {
-          outgoingGapCounter = 0;
+          outgoingGap = 0;
         } else {
-          outgoingGapCounter++;
+          outgoingGap++;
         }
       }
     }
 
-    if (checkSegwitAsWell) {
-      int receivingGapCounterSegwit = 0;
-      int outgoingGapCounterSegwit = 0;
-      // segwit receiving
-      for (
-        int i = 0;
-        i < maxNumberOfIndexesToCheck &&
-            receivingGapCounterSegwit < maxUnusedAddressGap;
-        i++
-      ) {
-        if (receivingGapCounterSegwit < maxUnusedAddressGap) {
-          final address = await _generatePaynymReceivingAddress(
-            sender: other,
-            index: i,
-            generateSegwitAddress: true,
-          );
-
-          addresses.add(address);
-
-          final count = await fetchTxCount(
-            addressScriptHash: cryptoCurrency.addressToScriptHash(
-              address: address.value,
-            ),
-          );
-
-          if (count > 0) {
-            receivingGapCounterSegwit = 0;
-          } else {
-            receivingGapCounterSegwit++;
-          }
-        }
-      }
-
-      // segwit sends
-      for (
-        int i = 0;
-        i < maxNumberOfIndexesToCheck &&
-            outgoingGapCounterSegwit < maxUnusedAddressGap;
-        i++
-      ) {
-        if (outgoingGapCounterSegwit < maxUnusedAddressGap) {
-          final address = await _generatePaynymSendAddress(
-            other: other,
-            index: i,
-            generateSegwitAddress: true,
-            mySendBip32Node: mySendBip32Node,
-          );
-
-          addresses.add(address);
-
-          final count = await fetchTxCount(
-            addressScriptHash: cryptoCurrency.addressToScriptHash(
-              address: address.value,
-            ),
-          );
-
-          if (count > 0) {
-            outgoingGapCounterSegwit = 0;
-          } else {
-            outgoingGapCounterSegwit++;
-          }
-        }
-      }
-    }
     await mainDB.updateOrPutAddresses(addresses);
   }
 

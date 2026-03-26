@@ -13,25 +13,29 @@ class PaynymAccountLite {
   final String nymName;
   final String code;
   final bool segwit;
+  final bool taproot;
 
   PaynymAccountLite(
     this.nymId,
     this.nymName,
     this.code,
-    this.segwit,
-  );
+    this.segwit, {
+    this.taproot = false,
+  });
 
   PaynymAccountLite.fromMap(Map<String, dynamic> map)
       : nymId = map["nymId"] as String,
         nymName = map["nymName"] as String,
         code = map["code"] as String,
-        segwit = map["segwit"] as bool;
+        segwit = map["segwit"] as bool,
+        taproot = map["taproot"] as bool? ?? false;
 
   Map<String, dynamic> toMap() => {
         "nymId": nymId,
         "nymName": nymName,
         "code": code,
         "segwit": segwit,
+        "taproot": taproot,
       };
 
   @override
