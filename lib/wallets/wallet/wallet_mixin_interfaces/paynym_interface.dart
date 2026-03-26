@@ -512,8 +512,19 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         );
       }
 
-      // sort spendable by age (oldest first)
-      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+      // Sort spendable by age (oldest first), but push taproot UTXOs to the
+      // end since taproot inputs don't expose the raw public key needed by the
+      // receiver to compute ECDH for BIP47 notification parsing.
+      spendableOutputs.sort((a, b) {
+        final aIsTaproot = a.address?.startsWith('bc1p') == true ||
+            a.address?.startsWith('tb1p') == true;
+        final bIsTaproot = b.address?.startsWith('bc1p') == true ||
+            b.address?.startsWith('tb1p') == true;
+        if (aIsTaproot != bIsTaproot) {
+          return aIsTaproot ? 1 : -1;
+        }
+        return b.blockTime!.compareTo(a.blockTime!);
+      });
 
       BigInt satoshisBeingUsed = BigInt.zero;
       int outputsBeingUsed = 0;
@@ -1122,7 +1133,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final pubKey = _pubKeyFromInput(designatedInput)!;
+      final pubKey = _pubKeyFromInput(designatedInput);
+
+      // Taproot inputs don't expose the raw public key — can't compute ECDH.
+      if (pubKey == null) {
+        return null;
+      }
 
       final myPrivateKey = (await deriveNotificationBip32Node()).privateKey!;
 
@@ -1181,7 +1197,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final pubKey = _pubKeyFromInput(designatedInput)!;
+      final pubKey = _pubKeyFromInput(designatedInput);
+
+      // Taproot inputs don't expose the raw public key — can't compute ECDH.
+      if (pubKey == null) {
+        return null;
+      }
 
       final myPrivateKey = (await deriveNotificationBip32Node()).privateKey!;
 
