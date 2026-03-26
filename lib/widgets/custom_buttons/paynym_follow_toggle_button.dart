@@ -141,6 +141,9 @@ class _PaynymFollowToggleButtonState
           followedAccount.value!.nymName,
           followedAccount.value!.nonSegwitPaymentCode.code,
           followedAccount.value!.segwit,
+          taproot: PaynymAccountLite.inferTaproot(
+            followedAccount.value!.nonSegwitPaymentCode.code,
+          ),
         ),
       );
 
