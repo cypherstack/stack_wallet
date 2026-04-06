@@ -104,8 +104,8 @@ dependencies:
 
   bip47:
     git:
-      url: https://github.com/cypherstack/bip47.git
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      url: https://github.com/sneurlax/bip47.git
+      ref: 8ff94c4695e948891ab1e2c278c91679a1b0c8f0
 
   fusiondart:
     git:
