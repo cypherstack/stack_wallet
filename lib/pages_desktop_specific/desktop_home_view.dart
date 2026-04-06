@@ -31,6 +31,7 @@ import 'address_book_view/desktop_address_book.dart';
 import 'desktop_buy/desktop_buy_view.dart';
 import 'desktop_exchange/desktop_exchange_view.dart';
 import 'desktop_menu.dart';
+import 'more_view/sub_widgets/desktop_services_view.dart';
 import 'my_stack_view/my_stack_view.dart';
 import 'notifications/desktop_notifications_view.dart';
 import 'password/desktop_unlock_app_dialog.dart';
@@ -59,10 +60,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
         barrierDismissible: false,
         context: context,
         useSafeArea: false,
-        builder:
-            (context) => const Background(
-              child: Center(child: DesktopUnlockAppDialog()),
-            ),
+        builder: (context) =>
+            const Background(child: Center(child: DesktopUnlockAppDialog())),
       );
     }
   }
@@ -135,6 +134,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: DesktopBuyView.routeName,
     ),
+    DesktopMenuItemId.services: const Navigator(
+      key: Key("desktopServicesHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopServicesView.routeName,
+    ),
     DesktopMenuItemId.notifications: const Navigator(
       key: Key("desktopNotificationsHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -201,8 +205,9 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     if (ref.read(currentDesktopMenuItemProvider.state).state ==
             DesktopMenuItemId.notifications &&
         newKey != DesktopMenuItemId.notifications) {
-      final Set<int> unreadNotificationIds =
-          ref.read(unreadNotificationsStateProvider.state).state;
+      final Set<int> unreadNotificationIds = ref
+          .read(unreadNotificationsStateProvider.state)
+          .state;
 
       if (unreadNotificationIds.isNotEmpty) {
         final List<Future<void>> futures = [];
@@ -244,12 +249,12 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
               child: IndexedStack(
                 index:
                     ref
-                                .watch(currentDesktopMenuItemProvider.state)
-                                .state
-                                .index >
-                            0
-                        ? 1
-                        : 0,
+                            .watch(currentDesktopMenuItemProvider.state)
+                            .state
+                            .index >
+                        0
+                    ? 1
+                    : 0,
                 children: [
                   myStackViewNav,
                   contentViews[ref
