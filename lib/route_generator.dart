@@ -20,7 +20,6 @@ import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import 'models/buy/response_objects/quote.dart';
 import 'models/exchange/incomplete_exchange.dart';
-import 'models/shopinbit/shopinbit_order_model.dart';
 import 'models/exchange/response_objects/trade.dart';
 import 'models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'models/isar/models/contact_entry.dart';
@@ -30,6 +29,7 @@ import 'models/keys/key_data_interface.dart';
 import 'models/keys/view_only_wallet_data.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
+import 'models/shopinbit/shopinbit_order_model.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_solana_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
@@ -58,6 +58,12 @@ import 'pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'pages/buy_view/buy_in_wallet_view.dart';
 import 'pages/buy_view/buy_quote_preview.dart';
 import 'pages/buy_view/buy_view.dart';
+import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'pages/cakepay/cakepay_confirm_send_view.dart';
+import 'pages/cakepay/cakepay_order_view.dart';
+import 'pages/cakepay/cakepay_orders_view.dart';
+import 'pages/cakepay/cakepay_send_from_view.dart';
+import 'pages/cakepay/cakepay_vendors_view.dart';
 import 'pages/cashfusion/cashfusion_view.dart';
 import 'pages/cashfusion/fusion_progress_view.dart';
 import 'pages/churning/churning_progress_view.dart';
@@ -85,19 +91,6 @@ import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
 import 'pages/more_view/gift_cards_view.dart';
 import 'pages/more_view/services_view.dart';
-import 'pages/shopinbit/shopinbit_step_1.dart';
-import 'pages/shopinbit/shopinbit_step_2.dart';
-import 'pages/shopinbit/shopinbit_step_3.dart';
-import 'pages/shopinbit/shopinbit_car_fee_view.dart';
-import 'pages/shopinbit/shopinbit_offer_view.dart';
-import 'pages/shopinbit/shopinbit_payment_view.dart';
-import 'pages/shopinbit/shopinbit_send_from_view.dart';
-import 'pages/shopinbit/shopinbit_shipping_view.dart';
-import 'pages/shopinbit/shopinbit_step_4.dart';
-import 'pages/shopinbit/shopinbit_ticket_detail.dart';
-import 'pages/shopinbit/shopinbit_tickets_view.dart';
-import 'pages/shopinbit/shopinbit_order_created.dart';
-import 'pages/shopinbit/shopinbit_settings_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/manage_domain_view.dart';
@@ -180,6 +173,19 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import 'pages/shopinbit/shopinbit_car_fee_view.dart';
+import 'pages/shopinbit/shopinbit_offer_view.dart';
+import 'pages/shopinbit/shopinbit_order_created.dart';
+import 'pages/shopinbit/shopinbit_payment_view.dart';
+import 'pages/shopinbit/shopinbit_send_from_view.dart';
+import 'pages/shopinbit/shopinbit_settings_view.dart';
+import 'pages/shopinbit/shopinbit_shipping_view.dart';
+import 'pages/shopinbit/shopinbit_step_1.dart';
+import 'pages/shopinbit/shopinbit_step_2.dart';
+import 'pages/shopinbit/shopinbit_step_3.dart';
+import 'pages/shopinbit/shopinbit_step_4.dart';
+import 'pages/shopinbit/shopinbit_ticket_detail.dart';
+import 'pages/shopinbit/shopinbit_tickets_view.dart';
 import 'pages/signing/signing_view.dart';
 import 'pages/signing/sub_widgets/address_list.dart';
 import 'pages/spark_names/buy_spark_name_view.dart';
@@ -217,6 +223,7 @@ import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
 import 'pages_desktop_specific/more_view/sub_widgets/desktop_gift_cards_view.dart';
 import 'pages_desktop_specific/more_view/sub_widgets/desktop_services_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
@@ -249,6 +256,7 @@ import 'pages_desktop_specific/settings/settings_menu/shopinbit_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
+import 'services/cakepay/src/models/card.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'utilities/amount/amount.dart';
@@ -2499,6 +2507,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const DesktopServicesView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopShopInBitView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopShopInBitView(),
           settings: RouteSettings(name: settings.name),
         );
 
