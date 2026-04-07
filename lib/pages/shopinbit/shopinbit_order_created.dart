@@ -13,6 +13,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../more_view/services_view.dart';
 import 'shopinbit_ticket_detail.dart';
 
 class ShopInBitOrderCreated extends StatelessWidget {
@@ -21,6 +22,18 @@ class ShopInBitOrderCreated extends StatelessWidget {
   static const String routeName = "/shopInBitOrderCreated";
 
   final ShopInBitOrderModel model;
+
+  static void _popToServices(BuildContext context) {
+    Navigator.of(context).popUntil((route) {
+      if (route.settings.name == ServicesView.routeName) {
+        return true;
+      }
+      if (route.isFirst) {
+        return true;
+      }
+      return false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +131,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
             if (Util.isDesktop) {
               Navigator.of(context, rootNavigator: true).pop();
             } else {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              _popToServices(context);
             }
           },
         ),
@@ -159,29 +172,38 @@ class ShopInBitOrderCreated extends StatelessWidget {
     }
 
     return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (!didPop) {
+            _popToServices(context);
+          }
+        },
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () => _popToServices(context),
+            ),
+            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
-        ),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 32,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 32,
+                      ),
+                      child: IntrinsicHeight(child: content),
                     ),
-                    child: IntrinsicHeight(child: content),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

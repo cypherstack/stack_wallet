@@ -32,6 +32,7 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_send_from_view.dart';
+import 'shopinbit_tickets_view.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({super.key, required this.model});
@@ -326,6 +327,18 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     } else {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
+  }
+
+  void _popToTickets() {
+    Navigator.of(context).popUntil((route) {
+      if (route.settings.name == ShopInBitTicketsView.routeName) {
+        return true;
+      }
+      if (route.isFirst) {
+        return true;
+      }
+      return false;
+    });
   }
 
   void _navigateToSendFrom({
@@ -763,34 +776,43 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     }
 
     return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (!didPop) {
+            _popToTickets();
+          }
+        },
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: _popToTickets,
+            ),
+            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
-        ),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 32,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 32,
+                          ),
+                          child: IntrinsicHeight(child: content),
                         ),
-                        child: IntrinsicHeight(child: content),
                       ),
                     ),
-                  ),
-                  if (_loading) loadingOverlay,
-                ],
-              );
-            },
+                    if (_loading) loadingOverlay,
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
