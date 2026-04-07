@@ -1614,8 +1614,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           ? max(0, currentHeight - random.nextInt(100))
           : currentHeight;
       const txVersion = 1;
-      List<StandardInput> vin = [];
-      List<(dynamic, int, String?)> vout = [];
+      final List<StandardInput> vin = [];
+      final List<(dynamic, int, String?)> vout = [];
 
       BigInt nFeeRet = minFeeForGroup;
 
@@ -2158,7 +2158,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         // entire UTXO group from the top of the outer loop.
         final realFeeNeeded = BigInt.from(
           estimateTxFee(
-            vSize: data.vSize!,
+            vSize: data.vSize! + 10,
             feeRatePerKB: feesObject.medium,
           ),
         );
