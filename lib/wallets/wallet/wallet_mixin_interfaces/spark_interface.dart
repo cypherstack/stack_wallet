@@ -1956,6 +1956,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       if (skipCoin) {
+        // Reset fee retry state so the next UTXO group starts fresh.
+        // Without this, a fee floor computed for a larger group could
+        // cause smaller groups to be incorrectly skipped.
+        minFeeForGroup = BigInt.zero;
+        feeRetryCount = 0;
         continue;
       }
 
