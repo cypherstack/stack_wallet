@@ -348,7 +348,7 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                 ),
               ),
               dropdownStyleData: DropdownStyleData(
-                offset: const Offset(0, -10),
+                offset: const Offset(0, 0),
                 elevation: 0,
                 maxHeight: 300,
                 decoration: BoxDecoration(

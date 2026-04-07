@@ -1348,7 +1348,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       WalletNavigationBarItemData(
                         label: "Services",
                         icon: SvgPicture.asset(
-                          Assets.svg.circleSliders,
+                          Assets.svg.solidSliders,
                           height: 20,
                           width: 20,
                           color: Theme.of(

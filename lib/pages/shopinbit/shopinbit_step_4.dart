@@ -416,7 +416,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                 ),
               ),
               dropdownStyleData: DropdownStyleData(
-                offset: const Offset(0, -10),
+                offset: const Offset(0, 0),
                 elevation: 0,
                 maxHeight: 300,
                 decoration: BoxDecoration(
@@ -471,16 +471,21 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           child: Container(
             color: Colors.transparent,
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: isDesktop
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 20,
-                  height: 26,
-                  child: IgnorePointer(
-                    child: Checkbox(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _privacyAccepted,
-                      onChanged: (_) {},
+                Padding(
+                  padding: EdgeInsets.only(top: isDesktop ? 3 : 0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: IgnorePointer(
+                      child: Checkbox(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        value: _privacyAccepted,
+                        onChanged: (_) {},
+                      ),
                     ),
                   ),
                 ),
@@ -499,7 +504,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                           text: "Privacy Policy",
                           style: STextStyles.richLink(
                             context,
-                          ).copyWith(fontSize: isDesktop ? 18 : null),
+                          ).copyWith(fontSize: isDesktop ? 18 : 14),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () async {
                               const url =

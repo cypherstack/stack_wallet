@@ -89,7 +89,9 @@ class _ServicesViewState extends State<ServicesView> {
                   ),
                   TextSpan(
                     text: "Privacy Policy",
-                    style: STextStyles.richLink(dialogContext),
+                    style: STextStyles.richLink(
+                      dialogContext,
+                    ).copyWith(fontSize: 16),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
                         const url =
@@ -229,7 +231,7 @@ class _ServicesViewState extends State<ServicesView> {
                             text: "Terms & Conditions",
                             style: STextStyles.richLink(
                               context,
-                            ).copyWith(fontSize: 12),
+                            ).copyWith(fontSize: 14),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () async {
                                 const url =
@@ -249,7 +251,7 @@ class _ServicesViewState extends State<ServicesView> {
                             text: "Privacy Policy",
                             style: STextStyles.richLink(
                               context,
-                            ).copyWith(fontSize: 12),
+                            ).copyWith(fontSize: 14),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () async {
                                 const url =

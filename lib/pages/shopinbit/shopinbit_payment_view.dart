@@ -691,7 +691,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
               children: [
                 SizedBox(
                   width: 20,
-                  height: 26,
+                  height: 20,
                   child: IgnorePointer(
                     child: Checkbox(
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

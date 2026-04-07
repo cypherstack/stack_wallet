@@ -205,7 +205,9 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         ),
                         TextSpan(
                           text: "Terms & Conditions",
-                          style: STextStyles.richLink(context),
+                          style: STextStyles.richLink(
+                            context,
+                          ).copyWith(fontSize: 14),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () async {
                               const url =
@@ -225,7 +227,9 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         const TextSpan(text: " and "),
                         TextSpan(
                           text: "Privacy Policy",
-                          style: STextStyles.richLink(context),
+                          style: STextStyles.richLink(
+                            context,
+                          ).copyWith(fontSize: 14),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () async {
                               const url =

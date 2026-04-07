@@ -98,7 +98,7 @@ class DesktopServicesIcon extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SvgPicture.asset(
-      Assets.svg.circleSliders,
+      Assets.svg.solidSliders,
       width: 20,
       height: 20,
       color:
