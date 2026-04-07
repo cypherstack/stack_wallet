@@ -1653,7 +1653,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         }
 
         // if (!MoneyRange(mintedValue) || mintedValue == 0) {
-        if (mintedValue == BigInt.zero) {
+        if (mintedValue <= BigInt.zero) {
           valueAndUTXOs.remove(itr);
           skipCoin = true;
           break;
