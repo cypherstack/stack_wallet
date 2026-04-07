@@ -84,6 +84,24 @@ abstract class _FiroCache {
         sparkSetCacheFile.path,
         mode: OpenMode.readWrite,
       );
+
+      // Migrations: safe to run on every startup (IF NOT EXISTS / IF NOT).
+      _setCacheDB[network]!.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_sparksetcoins_set_coin
+        ON SparkSetCoins(setId, coinId);
+      """);
+
+      // Add `complete` column to SparkSet for tracking whether a download
+      // finished. Existing rows default to 1 (complete) since the old
+      // all-or-nothing writer only saved on full completion.
+      try {
+        _setCacheDB[network]!.execute("""
+          ALTER TABLE SparkSet ADD COLUMN complete INTEGER NOT NULL DEFAULT 1;
+        """);
+      } catch (_) {
+        // Column already exists — safe to ignore.
+      }
+
       _usedTagsCacheDB[network] = sqlite3.open(
         sparkUsedTagsCacheFile.path,
         mode: OpenMode.readWrite,
@@ -133,6 +151,7 @@ abstract class _FiroCache {
           setHash TEXT NOT NULL,
           groupId INTEGER NOT NULL,
           size INTEGER NOT NULL,
+          complete INTEGER NOT NULL DEFAULT 0,
           UNIQUE (blockHash, setHash, groupId)
         );
         

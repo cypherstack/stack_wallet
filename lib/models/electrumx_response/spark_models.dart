@@ -30,12 +30,14 @@ class SparkAnonymitySetMeta {
   final String blockHash;
   final String setHash;
   final int size;
+  final bool complete;
 
   SparkAnonymitySetMeta({
     required this.coinGroupId,
     required this.blockHash,
     required this.setHash,
     required this.size,
+    this.complete = false,
   });
 
   @override
@@ -44,7 +46,8 @@ class SparkAnonymitySetMeta {
         "coinGroupId: $coinGroupId, "
         "blockHash: $blockHash, "
         "setHash: $setHash, "
-        "size: $size"
+        "size: $size, "
+        "complete: $complete"
         "}";
   }
 }

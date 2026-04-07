@@ -45,32 +45,23 @@ FCResult _updateSparkUsedTagsWith(Database db, List<List<dynamic>> tags) {
 }
 
 // ===========================================================================
-// ================== write to spark anon set cache ==========================
+// =========== incremental write to spark anon set cache ====================
 
-/// update the sqlite cache
+/// Persist a single sector's worth of coins to the cache, creating or
+/// updating the SparkSet row as needed. Safe to call repeatedly — uses
+/// INSERT OR IGNORE so duplicate coins (from crash-recovery reruns) are
+/// silently skipped.
 ///
-/// returns true if successful, otherwise false
-FCResult _updateSparkAnonSetCoinsWith(
+/// [cumulativeSize] should be prevSize + total coins saved so far (including
+/// this batch). It is written to SparkSet.size so that on resume,
+/// getLatestSetInfoForGroupId returns the correct partial progress.
+FCResult _insertSparkAnonSetCoinsIncremental(
   Database db,
   final List<RawSparkCoin> coinsRaw,
   SparkAnonymitySetMeta meta,
+  int cumulativeSize,
 ) {
   if (coinsRaw.isEmpty) {
-    // no coins to actually insert
-    return FCResult(success: true);
-  }
-
-  final checkResult = db.select(
-    """
-      SELECT *
-      FROM SparkSet
-      WHERE blockHash = ? AND setHash = ? AND groupId = ?;
-    """,
-    [meta.blockHash, meta.setHash, meta.coinGroupId],
-  );
-
-  if (checkResult.isNotEmpty) {
-    // already up to date
     return FCResult(success: true);
   }
 
@@ -78,34 +69,64 @@ FCResult _updateSparkAnonSetCoinsWith(
 
   db.execute("BEGIN;");
   try {
+    // Create SparkSet row if it doesn't exist yet for this block state.
+    // complete = 0 marks this as an in-progress download.
     db.execute(
       """
-        INSERT INTO SparkSet (blockHash, setHash, groupId, size)
-        VALUES (?, ?, ?, ?);
+        INSERT OR IGNORE INTO SparkSet (blockHash, setHash, groupId, size, complete)
+        VALUES (?, ?, ?, 0, 0);
       """,
-      [meta.blockHash, meta.setHash, meta.coinGroupId, meta.size],
+      [meta.blockHash, meta.setHash, meta.coinGroupId],
     );
-    final setId = db.lastInsertRowId;
+
+    // Get the SparkSet row's id (whether just created or already existing).
+    final setIdResult = db.select(
+      """
+        SELECT id FROM SparkSet
+        WHERE blockHash = ? AND setHash = ? AND groupId = ?;
+      """,
+      [meta.blockHash, meta.setHash, meta.coinGroupId],
+    );
+    final setId = setIdResult.first["id"] as int;
 
     for (final coin in coins) {
+      // INSERT OR IGNORE handles duplicates from crash-recovery reruns.
       db.execute(
         """
-            INSERT INTO SparkCoin (serialized, txHash, context, groupId)
-            VALUES (?, ?, ?, ?);
-          """,
+          INSERT OR IGNORE INTO SparkCoin (serialized, txHash, context, groupId)
+          VALUES (?, ?, ?, ?);
+        """,
         [coin.serialized, coin.txHash, coin.context, coin.groupId],
       );
-      final coinId = db.lastInsertRowId;
 
-      // finally add the row id to the newly added set
+      // lastInsertRowId is 0 when INSERT OR IGNORE skips a duplicate,
+      // so we must SELECT explicitly.
+      final coinIdResult = db.select(
+        """
+          SELECT id FROM SparkCoin
+          WHERE serialized = ? AND txHash = ? AND context = ? AND groupId = ?;
+        """,
+        [coin.serialized, coin.txHash, coin.context, coin.groupId],
+      );
+      final coinId = coinIdResult.first["id"] as int;
+
       db.execute(
         """
-          INSERT INTO SparkSetCoins (setId, coinId)
+          INSERT OR IGNORE INTO SparkSetCoins (setId, coinId)
           VALUES (?, ?);
         """,
         [setId, coinId],
       );
     }
+
+    // Update cumulative size to track partial progress.
+    db.execute(
+      """
+        UPDATE SparkSet SET size = ?
+        WHERE id = ?;
+      """,
+      [cumulativeSize, setId],
+    );
 
     db.execute("COMMIT;");
 
@@ -114,4 +135,19 @@ FCResult _updateSparkAnonSetCoinsWith(
     db.execute("ROLLBACK;");
     return FCResult(success: false, error: e);
   }
+}
+
+/// Mark a SparkSet row as complete after all sectors have been downloaded.
+FCResult _markSparkAnonSetComplete(
+  Database db,
+  SparkAnonymitySetMeta meta,
+) {
+  db.execute(
+    """
+      UPDATE SparkSet SET complete = 1
+      WHERE blockHash = ? AND setHash = ? AND groupId = ?;
+    """,
+    [meta.blockHash, meta.setHash, meta.coinGroupId],
+  );
+  return FCResult(success: true);
 }

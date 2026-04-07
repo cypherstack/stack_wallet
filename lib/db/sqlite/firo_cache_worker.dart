@@ -1,7 +1,8 @@
 part of 'firo_cache.dart';
 
 enum FCFuncName {
-  _updateSparkAnonSetCoinsWith,
+  _insertSparkAnonSetCoinsIncremental,
+  _markSparkAnonSetComplete,
   _updateSparkUsedTagsWith,
 }
 
@@ -93,13 +94,22 @@ class _FiroCacheWorker {
         try {
           final FCResult result;
           switch (task.func) {
-            case FCFuncName._updateSparkAnonSetCoinsWith:
+            case FCFuncName._insertSparkAnonSetCoinsIncremental:
               final data =
-                  task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>);
-              result = _updateSparkAnonSetCoinsWith(
+                  task.data
+                      as (SparkAnonymitySetMeta, List<RawSparkCoin>, int);
+              result = _insertSparkAnonSetCoinsIncremental(
                 setCacheDb,
                 data.$2,
                 data.$1,
+                data.$3,
+              );
+              break;
+
+            case FCFuncName._markSparkAnonSetComplete:
+              result = _markSparkAnonSetComplete(
+                setCacheDb,
+                task.data as SparkAnonymitySetMeta,
               );
               break;
 

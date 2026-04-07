@@ -1074,20 +1074,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // missing groupIds to the list if sets to check and update
       final latestGroupId = await electrumXClient.getSparkLatestCoinId();
 
-      final List<int> groupIds = [];
-      if (latestGroupId > 1) {
-        for (int id = 1; id < latestGroupId; id++) {
-          final setExists =
-              await FiroCacheCoordinator.checkSetInfoForGroupIdExists(
-                id,
-                cryptoCurrency.network,
-              );
-          if (!setExists) {
-            groupIds.add(id);
-          }
-        }
-      }
-      groupIds.add(latestGroupId);
+      // Process all groupIds every sync. The coordinator's early-return
+      // check (blockHash + size comparison) makes complete groups a no-op
+      // (just one meta RPC call). This ensures partially-downloaded groups
+      // are always completed.
+      final List<int> groupIds = [
+        for (int id = 1; id <= latestGroupId; id++) id,
+      ];
 
       final steps =
           groupIds.length +

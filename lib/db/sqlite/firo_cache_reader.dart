@@ -25,7 +25,7 @@ abstract class _Reader {
     required Database db,
   }) async {
     final query = """
-      SELECT ss.blockHash, ss.setHash, ss.size
+      SELECT ss.blockHash, ss.setHash, ss.size, ss.complete
       FROM SparkSet ss
       WHERE ss.groupId = $groupId
       ORDER BY ss.size DESC
