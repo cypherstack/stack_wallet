@@ -435,16 +435,54 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
 
     final details = <Widget>[
       Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(
-            "Order ${order.orderId.length > 8 ? "${order.orderId.substring(0, 8)}..." : order.orderId}",
-            style: isDesktop
-                ? STextStyles.desktopH2(context)
-                : STextStyles.pageTitleH1(context),
-          ),
           statusBadge,
         ],
+      ),
+      SizedBox(height: isDesktop ? 8 : 6),
+      RoundedWhiteContainer(
+        child: GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: order.orderId));
+            showFloatingFlushBar(
+              type: FlushBarType.info,
+              message: "Order ID copied",
+              iconAsset: Assets.svg.copy,
+              context: context,
+            );
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Order ID",
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.itemSubtitle12(context),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SelectableText(
+                    order.orderId,
+                    style: isDesktop
+                        ? STextStyles.desktopTextSmall(context)
+                        : STextStyles.titleBold12(context),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.copy,
+                    size: 14,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
       SizedBox(height: isDesktop ? 16 : 12),
     ];
