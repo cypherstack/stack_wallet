@@ -9,6 +9,9 @@ class ShopInBitService {
 
   ShopInBitClient? _client;
   String? _customerKey;
+  bool? _guidelinesAccepted;
+  bool? _setupComplete;
+  String? _displayName;
 
   ShopInBitClient get client {
     return _client ??= ShopInBitClient(
@@ -80,5 +83,74 @@ class ShopInBitService {
       value: null,
     );
     Logging.instance.i("ShopInBitService: customer key cleared");
+  }
+
+  bool loadGuidelinesAccepted() {
+    if (_guidelinesAccepted != null) return _guidelinesAccepted!;
+    _guidelinesAccepted =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "shopInBitGuidelinesAccepted",
+            )
+            as bool? ??
+            false;
+    return _guidelinesAccepted!;
+  }
+
+  Future<void> setGuidelinesAccepted(bool accepted) async {
+    _guidelinesAccepted = accepted;
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "shopInBitGuidelinesAccepted",
+      value: accepted,
+    );
+    Logging.instance.i(
+      "ShopInBitService: guidelines accepted set to $accepted",
+    );
+  }
+
+  bool loadSetupComplete() {
+    if (_setupComplete != null) return _setupComplete!;
+    _setupComplete =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "shopInBitSetupComplete",
+            )
+            as bool? ??
+            false;
+    return _setupComplete!;
+  }
+
+  Future<void> setSetupComplete(bool complete) async {
+    _setupComplete = complete;
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "shopInBitSetupComplete",
+      value: complete,
+    );
+    Logging.instance.i(
+      "ShopInBitService: setup complete set to $complete",
+    );
+  }
+
+  String? loadDisplayName() {
+    if (_displayName != null) return _displayName;
+    _displayName =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "shopInBitDisplayName",
+            )
+            as String?;
+    return _displayName;
+  }
+
+  Future<void> setDisplayName(String name) async {
+    _displayName = name;
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "shopInBitDisplayName",
+      value: name,
+    );
+    Logging.instance.i("ShopInBitService: display name set");
   }
 }

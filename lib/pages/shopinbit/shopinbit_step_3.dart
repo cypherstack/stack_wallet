@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -25,6 +26,8 @@ class ShopInBitStep3 extends StatefulWidget {
 }
 
 class _ShopInBitStep3State extends State<ShopInBitStep3> {
+  bool _agreed = false;
+
   String _guidelinesText() {
     switch (widget.model.category) {
       case ShopInBitCategory.concierge:
@@ -72,6 +75,8 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
 
   void _continue() {
     widget.model.guidelinesAccepted = true;
+    // Persist acceptance.
+    ShopInBitService.instance.setGuidelinesAccepted(true);
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
@@ -125,8 +130,25 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
             ),
           ),
         ),
+        if (!isDesktop)
+          CheckboxListTile(
+            value: _agreed,
+            onChanged: (v) => setState(() => _agreed = v ?? false),
+            title: Text(
+              "I have read and agree to the Service Guidelines",
+              style: STextStyles.itemSubtitle12(context),
+            ),
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+            activeColor:
+                Theme.of(context).extension<StackColors>()!.accentColorBlue,
+          ),
         SizedBox(height: isDesktop ? 24 : 16),
-        PrimaryButton(label: "Next", onPressed: _continue),
+        PrimaryButton(
+          label: "Next",
+          enabled: isDesktop || _agreed,
+          onPressed: (isDesktop || _agreed) ? _continue : null,
+        ),
       ],
     );
 

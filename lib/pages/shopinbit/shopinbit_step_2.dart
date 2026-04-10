@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -13,6 +14,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
 import 'shopinbit_step_3.dart';
+import 'shopinbit_step_4.dart';
 
 class ShopInBitStep2 extends StatefulWidget {
   const ShopInBitStep2({super.key, required this.model});
@@ -46,16 +48,32 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
 
   void _continue() {
     widget.model.category = _selected;
+
+    final skipGuidelines =
+        ShopInBitService.instance.loadGuidelinesAccepted();
+
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
-        builder: (_) => ShopInBitStep3(model: widget.model),
+        builder: (_) => skipGuidelines
+            ? ShopInBitStep4(model: widget.model)
+            : ShopInBitStep3(model: widget.model),
       );
     } else {
-      Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
+      if (skipGuidelines) {
+        // Returning user — skip guidelines.
+        widget.model.guidelinesAccepted = true;
+        Navigator.of(context).pushNamed(
+          ShopInBitStep4.routeName,
+          arguments: widget.model,
+        );
+      } else {
+        Navigator.of(context).pushNamed(
+          ShopInBitStep3.routeName,
+          arguments: widget.model,
+        );
+      }
     }
   }
 

@@ -14,8 +14,11 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../shopinbit/shopinbit_settings_view.dart';
+import '../shopinbit/shopinbit_setup_view.dart';
 import '../shopinbit/shopinbit_step_1.dart';
+import '../shopinbit/shopinbit_step_2.dart';
 import '../shopinbit/shopinbit_tickets_view.dart';
 
 class ServicesView extends StatefulWidget {
@@ -138,10 +141,27 @@ class _ServicesViewState extends State<ServicesView> {
                         .getPrimaryEnabledButtonStyle(dialogContext),
                     onPressed: () async {
                       Navigator.of(dialogContext).pop();
-                      await Navigator.of(context).pushNamed(
-                        ShopInBitStep1.routeName,
-                        arguments: ShopInBitOrderModel(),
-                      );
+                      final model = ShopInBitOrderModel();
+                      final service = ShopInBitService.instance;
+
+                      if (service.loadSetupComplete()) {
+                        // Returning user: pre-load display name,
+                        // skip Step 1, go to Step 2
+                        final savedName = service.loadDisplayName();
+                        if (savedName != null && savedName.isNotEmpty) {
+                          model.displayName = savedName;
+                        }
+                        await Navigator.of(context).pushNamed(
+                          ShopInBitStep2.routeName,
+                          arguments: model,
+                        );
+                      } else {
+                        // First-time user: show setup flow
+                        await Navigator.of(context).pushNamed(
+                          ShopInBitSetupView.routeName,
+                          arguments: model,
+                        );
+                      }
                       if (mounted) setState(() {});
                     },
                     child: Text(

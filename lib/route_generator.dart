@@ -180,6 +180,7 @@ import 'pages/shopinbit/shopinbit_order_created.dart';
 import 'pages/shopinbit/shopinbit_payment_view.dart';
 import 'pages/shopinbit/shopinbit_send_from_view.dart';
 import 'pages/shopinbit/shopinbit_settings_view.dart';
+import 'pages/shopinbit/shopinbit_setup_view.dart';
 import 'pages/shopinbit/shopinbit_shipping_view.dart';
 import 'pages/shopinbit/shopinbit_step_1.dart';
 import 'pages/shopinbit/shopinbit_step_2.dart';
@@ -1071,6 +1072,16 @@ class RouteGenerator {
       //     builder: (_) => const GiftCardsView(),
       //     settings: RouteSettings(name: settings.name),
       //   );
+
+      case ShopInBitSetupView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitSetupView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ShopInBitStep1.routeName:
         if (args is ShopInBitOrderModel) {
