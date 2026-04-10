@@ -31,7 +31,9 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
   @override
   void initState() {
     super.initState();
-    _selected = widget.model.category;
+    // Reset category selection.
+    widget.model.category = null;
+    _selected = null;
   }
 
   void _continue() {
@@ -73,10 +75,25 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
         padding: EdgeInsets.all(isDesktop ? 20 : 16),
         child: Row(
           children: [
-            SvgPicture.asset(
-              iconAsset,
-              width: isDesktop ? 32 : 24,
-              height: isDesktop ? 32 : 24,
+            Container(
+              width: isDesktop ? 48 : 40,
+              height: isDesktop ? 48 : 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorBlue
+                    .withOpacity(0.1),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                iconAsset,
+                width: isDesktop ? 24 : 20,
+                height: isDesktop ? 24 : 20,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorBlue,
+              ),
             ),
             SizedBox(width: isDesktop ? 16 : 12),
             Expanded(

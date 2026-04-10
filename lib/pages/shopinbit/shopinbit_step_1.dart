@@ -12,7 +12,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/stack_text_field.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
-import 'shopinbit_step_3.dart';
+import 'shopinbit_step_2.dart';
 
 class ShopInBitStep1 extends StatefulWidget {
   const ShopInBitStep1({super.key, required this.model});
@@ -51,18 +51,16 @@ class _ShopInBitStep1State extends State<ShopInBitStep1> {
 
   void _continue() {
     widget.model.displayName = _nameController.text.trim();
-    // Skip step 2 (category selection): only concierge is available initially
-    widget.model.category = ShopInBitCategory.concierge;
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
-        builder: (_) => ShopInBitStep3(model: widget.model),
+        builder: (_) => ShopInBitStep2(model: widget.model),
       );
     } else {
       Navigator.of(
         context,
-      ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
+      ).pushNamed(ShopInBitStep2.routeName, arguments: widget.model);
     }
   }
 

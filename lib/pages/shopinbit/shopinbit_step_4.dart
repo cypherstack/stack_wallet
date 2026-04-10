@@ -214,11 +214,16 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       final service = ShopInBitService.instance;
       final customerKey = await service.ensureCustomerKey();
 
+      assert(
+        widget.model.category != null,
+        'Step 4 reached with null category — Step 2 must set category before reaching Step 4',
+      );
+
       final categoryStr = switch (widget.model.category) {
         ShopInBitCategory.concierge => "concierge",
         ShopInBitCategory.travel => "travel",
         ShopInBitCategory.car => "car",
-        null => "concierge",
+        null => throw StateError('category must be non-null at Step 4 submit'),
       };
 
       final resp = await service.client.createRequest(
@@ -283,6 +288,11 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
+    final String descriptionPlaceholder =
+        widget.model.category == ShopInBitCategory.car
+            ? "Describe the car (make, model, year, requirements)"
+            : "What would you like to purchase?";
+
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -329,7 +339,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                 : STextStyles.field(context),
             decoration:
                 standardInputDecoration(
-                  "What would you like to purchase?",
+                  descriptionPlaceholder,
                   _descriptionFocusNode,
                   context,
                   desktopMed: isDesktop,
