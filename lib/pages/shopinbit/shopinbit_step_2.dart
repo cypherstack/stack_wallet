@@ -250,7 +250,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
             leading: AppBarBackButton(
               onPressed: _popBack,
             ),
-            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
             child: LayoutBuilder(

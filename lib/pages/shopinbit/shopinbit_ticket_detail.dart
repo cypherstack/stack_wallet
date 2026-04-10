@@ -313,7 +313,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            model.ticketId ?? "Ticket",
+            model.ticketId ?? "Request",
             style: isDesktop
                 ? STextStyles.desktopTextSmall(context)
                 : STextStyles.titleBold12(context),
@@ -475,7 +475,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
-                  child: Text("Ticket", style: STextStyles.desktopH3(context)),
+                  child: Text("Request", style: STextStyles.desktopH3(context)),
                 ),
                 const DesktopDialogCloseButton(),
               ],
@@ -502,7 +502,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
-            model.ticketId ?? "Ticket",
+            model.ticketId ?? "Request",
             style: STextStyles.navBarTitle(context),
           ),
         ),

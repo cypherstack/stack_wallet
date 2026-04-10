@@ -86,7 +86,7 @@ class _ShopInBitStep1State extends State<ShopInBitStep1> {
         ),
         SizedBox(height: isDesktop ? 16 : 8),
         Text(
-          "Enter a display name to use with ShopInBit.",
+          "Enter a display name to use with ShopinBit.",
           style: isDesktop
               ? STextStyles.desktopTextSmall(context)
               : STextStyles.itemSubtitle(context),
@@ -174,7 +174,7 @@ class _ShopInBitStep1State extends State<ShopInBitStep1> {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+          title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: LayoutBuilder(

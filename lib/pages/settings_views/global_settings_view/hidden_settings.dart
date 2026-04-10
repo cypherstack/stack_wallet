@@ -325,7 +325,7 @@ class HiddenSettings extends StatelessWidget {
                                   showFloatingFlushBar(
                                     type: FlushBarType.success,
                                     message:
-                                        "Deleted ${tickets.length} ShopInBit ticket(s)",
+                                        "Deleted ${tickets.length} ShopinBit request(s)",
                                     context: context,
                                   ),
                                 );
@@ -333,7 +333,7 @@ class HiddenSettings extends StatelessWidget {
                             },
                             child: RoundedWhiteContainer(
                               child: Text(
-                                "Delete all ShopInBit tickets",
+                                "Delete all ShopinBit requests",
                                 style: STextStyles.button(context).copyWith(
                                   color: Theme.of(
                                     context,

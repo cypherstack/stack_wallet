@@ -264,7 +264,7 @@ class GlobalSettingsView extends StatelessWidget {
                                           SettingsListButton(
                                             iconAssetName: Assets.svg.key,
                                             iconSize: 16,
-                                            title: "ShopInBit",
+                                            title: "ShopinBit",
                                             onPressed: () {
                                               Navigator.of(context).pushNamed(
                                                 ShopInBitSettingsView.routeName,

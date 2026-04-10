@@ -515,7 +515,7 @@ class _ShopInBitConfirmSendViewState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "ShopInBit address",
+                    "ShopinBit address",
                     style: STextStyles.smallMed12(context),
                   ),
                   const SizedBox(height: 4),
@@ -670,7 +670,7 @@ class _ShopInBitConfirmSendViewState
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Ticket ID", style: STextStyles.smallMed12(context)),
+                  Text("Request ID", style: STextStyles.smallMed12(context)),
                   Text(
                     model.ticketId ?? "",
                     style: STextStyles.itemSubtitle12(context),

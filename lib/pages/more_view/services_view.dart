@@ -74,7 +74,7 @@ class _ServicesViewState extends State<ServicesView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("ShopInBit", style: STextStyles.pageTitleH2(dialogContext)),
+            Text("ShopinBit", style: STextStyles.pageTitleH2(dialogContext)),
             const SizedBox(height: 8),
             RichText(
               text: TextSpan(
@@ -85,7 +85,7 @@ class _ServicesViewState extends State<ServicesView> {
                         "Please note the following before proceeding:"
                         "\n\n\u2022 Minimum order amount: 1,000 EUR"
                         "\n\u2022 Service fee: 10% of the order total"
-                        "\n\nBy continuing, you agree to the ShopInBit ",
+                        "\n\nBy continuing, you agree to the ShopinBit ",
                   ),
                   TextSpan(
                     text: "Privacy Policy",
@@ -189,7 +189,7 @@ class _ServicesViewState extends State<ServicesView> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            "ShopInBit",
+                            "ShopinBit",
                             style: STextStyles.titleBold12(context),
                           ),
                         ),
@@ -211,6 +211,18 @@ class _ServicesViewState extends State<ServicesView> {
                       ],
                     ),
                     const SizedBox(height: 12),
+                    Text(
+                      "Turn your crypto into Electronics, Flights, Hotel, "
+                      "Cars or any other legal product or service... "
+                      "ShopinBit is a concierge shopping service that helps "
+                      "you 'live the good life with crypto'...",
+                      style: STextStyles.itemSubtitle12(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle1,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     RichText(
                       text: TextSpan(
                         style: STextStyles.itemSubtitle12(context).copyWith(
@@ -221,11 +233,9 @@ class _ServicesViewState extends State<ServicesView> {
                         children: [
                           const TextSpan(
                             text:
-                                "Concierge shopping service. Purchase "
-                                "products and services using cryptocurrency.\n\n"
                                 "Minimum order value of 1,000 EUR. "
                                 "A 10% service fee applies to all orders.\n\n"
-                                "By using ShopInBit, you agree to their ",
+                                "By using ShopinBit, you agree to their ",
                           ),
                           TextSpan(
                             text: "Terms & Conditions",
@@ -272,7 +282,7 @@ class _ServicesViewState extends State<ServicesView> {
                     ),
                     const SizedBox(height: 16),
                     PrimaryButton(
-                      label: "Shop with ShopInBit",
+                      label: "Shop with ShopinBit",
                       enabled: true,
                       onPressed: () => _showShopDialog(context),
                     ),

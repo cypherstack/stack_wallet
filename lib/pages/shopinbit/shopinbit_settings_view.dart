@@ -168,7 +168,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
             const SizedBox(height: 8),
             SelectableText(
               "Changing your key will disconnect you from "
-              "existing ShopInBit conversations. Make sure "
+              "existing ShopinBit conversations. Make sure "
               "you have saved your current key before "
               "proceeding.",
               style: STextStyles.smallMed14(context),
@@ -312,7 +312,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+          title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: LayoutBuilder(
@@ -341,7 +341,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                                   const SizedBox(height: 8),
                                   Text(
                                     "Your customer key identifies you "
-                                    "to ShopInBit. Save it to restore "
+                                    "to ShopinBit. Save it to restore "
                                     "access to your conversations on "
                                     "another device. If you change it, "
                                     "you will lose access to existing "
@@ -422,7 +422,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                                   Text(
                                     "Enter a previously saved customer "
                                     "key to restore access to your "
-                                    "ShopInBit conversations.",
+                                    "ShopinBit conversations.",
                                     style: STextStyles.itemSubtitle12(context),
                                   ),
                                   const SizedBox(height: 12),

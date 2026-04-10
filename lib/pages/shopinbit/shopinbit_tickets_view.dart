@@ -162,7 +162,7 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
     final list = _tickets.isEmpty
         ? Center(
             child: Text(
-              _syncing ? "Loading tickets..." : "No tickets yet",
+              _syncing ? "Loading requests..." : "No requests yet",
               style: isDesktop
                   ? STextStyles.desktopTextSmall(context)
                   : STextStyles.itemSubtitle(context),
@@ -298,7 +298,7 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "My tickets",
+                    "My requests",
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -326,7 +326,7 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("My tickets", style: STextStyles.navBarTitle(context)),
+          title: Text("My requests", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(padding: const EdgeInsets.all(16), child: content),

@@ -72,7 +72,7 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
         ),
         SizedBox(height: isDesktop ? 16 : 8),
         Text(
-          "ShopInBit has found a match for your request.",
+          "ShopinBit has found a match for your request.",
           style: isDesktop
               ? STextStyles.desktopTextSmall(context)
               : STextStyles.itemSubtitle(context),
@@ -114,27 +114,6 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
                 _loading && model.offerPrice == null
                     ? "Loading..."
                     : "${model.offerPrice ?? '0'} EUR",
-                style: isDesktop
-                    ? STextStyles.desktopTextSmall(context)
-                    : STextStyles.titleBold12(context),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: isDesktop ? 12 : 8),
-        RoundedWhiteContainer(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Ticket",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                model.ticketId ?? "N/A",
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),
@@ -223,7 +202,7 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+          title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: LayoutBuilder(

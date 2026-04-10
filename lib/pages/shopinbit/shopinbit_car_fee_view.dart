@@ -576,7 +576,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
             leading: AppBarBackButton(
               onPressed: _popToStep2,
             ),
-            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
             child: LayoutBuilder(

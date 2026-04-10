@@ -120,11 +120,7 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
                 _guidelinesText(),
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
-                      ),
+                    : STextStyles.itemSubtitle12(context),
               ),
             ),
           ),
@@ -174,7 +170,7 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+          title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: LayoutBuilder(

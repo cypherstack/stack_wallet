@@ -51,7 +51,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
         ),
         SizedBox(height: isDesktop ? 24 : 16),
         Text(
-          "Order created!",
+          "Request created!",
           style: isDesktop
               ? STextStyles.desktopH2(context)
               : STextStyles.pageTitleH1(context),
@@ -72,7 +72,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Ticket ID",
+                    "Request ID",
                     style: isDesktop
                         ? STextStyles.desktopTextExtraExtraSmall(context)
                         : STextStyles.itemSubtitle12(context),
@@ -108,7 +108,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
         ),
         const Spacer(),
         PrimaryButton(
-          label: "View ticket",
+          label: "View request",
           onPressed: () {
             if (Util.isDesktop) {
               Navigator.of(context, rootNavigator: true).pop();
@@ -186,7 +186,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
             leading: AppBarBackButton(
               onPressed: () => _popToServices(context),
             ),
-            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
             child: LayoutBuilder(

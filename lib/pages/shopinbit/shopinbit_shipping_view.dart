@@ -442,7 +442,7 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+          title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: LayoutBuilder(

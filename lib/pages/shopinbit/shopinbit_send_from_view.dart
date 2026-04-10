@@ -360,7 +360,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
           Navigator.of(context, rootNavigator: true).pop();
         }
 
-        txData = txData.copyWith(note: "ShopInBit payment");
+        txData = txData.copyWith(note: "ShopinBit payment");
 
         if (mounted) {
           await Navigator.of(context).push(

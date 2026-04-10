@@ -790,7 +790,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
             leading: AppBarBackButton(
               onPressed: _popToTickets,
             ),
-            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
             child: LayoutBuilder(

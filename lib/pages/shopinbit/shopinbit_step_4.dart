@@ -516,7 +516,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                           : STextStyles.w500_14(context),
                       children: [
                         const TextSpan(
-                          text: "I have read and agree to the ShopInBit ",
+                          text: "I have read and agree to the ShopinBit ",
                         ),
                         TextSpan(
                           text: "Privacy Policy",
@@ -605,7 +605,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
             leading: AppBarBackButton(
               onPressed: _popBack,
             ),
-            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
+            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
             child: LayoutBuilder(
