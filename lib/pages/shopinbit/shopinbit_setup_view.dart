@@ -36,7 +36,10 @@ class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
   void initState() {
     super.initState();
     _keyFuture = ShopInBitService.instance.ensureCustomerKey();
-    _nameController = TextEditingController();
+    final existingName = ShopInBitService.instance.loadDisplayName();
+    _nameController = TextEditingController(
+      text: existingName ?? '',
+    );
     _nameFocusNode = FocusNode();
 
     _nameFocusNode.addListener(() {

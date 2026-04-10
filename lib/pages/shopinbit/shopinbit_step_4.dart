@@ -259,8 +259,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           hasValidDates &&
           _adults >= 1 &&
           travelBudgetVal != null &&
-          travelBudgetVal >= 1000 &&
-          _selectedCountryIso != null;
+          travelBudgetVal >= 1000;
     }
     // generic fallback
     return !_submitting &&
@@ -523,13 +522,18 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       parts.add("Travelers: ${travelers.join(', ')}");
 
       parts.add("Budget: ${_travelBudgetController.text.trim()} EUR");
-      parts.add("Delivery country: $countryIso");
 
       widget.model.requestDescription = parts.join("\n");
     } else {
       widget.model.requestDescription = _descriptionController.text.trim();
     }
-    widget.model.deliveryCountry = _selectedCountryIso!;
+    // Travel doesn't collect delivery country — use departure country or "DE"
+    // as a default since the API requires the field.
+    if (widget.model.category == ShopInBitCategory.travel) {
+      widget.model.deliveryCountry = "DE";
+    } else {
+      widget.model.deliveryCountry = _selectedCountryIso!;
+    }
 
     if (widget.model.category == ShopInBitCategory.car) {
       if (Util.isDesktop) {
@@ -2174,9 +2178,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               ),
         ),
 
-        // === Shared fields ===
-        SizedBox(height: isDesktop ? 24 : 16),
-        _buildCountryPicker(isDesktop),
+        // Travel doesn't need delivery country — destinations are in the form.
         SizedBox(height: isDesktop ? 16 : 12),
         _buildPrivacyCheckbox(isDesktop),
         SizedBox(height: isDesktop ? 16 : 12),

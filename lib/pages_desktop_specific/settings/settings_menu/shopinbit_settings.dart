@@ -34,14 +34,20 @@ class _ShopInBitDesktopSettingsState
   final _manualKeyFocusNode = FocusNode();
   final _verifyKeyController = TextEditingController();
   final _verifyKeyFocusNode = FocusNode();
+  late final TextEditingController _displayNameController;
+  late final FocusNode _displayNameFocusNode;
 
   String? _currentKey;
   bool _loading = false;
+  bool _savingName = false;
 
   @override
   void initState() {
     super.initState();
     _currentKey = ShopInBitService.instance.loadCustomerKey();
+    final savedName = ShopInBitService.instance.loadDisplayName();
+    _displayNameController = TextEditingController(text: savedName ?? '');
+    _displayNameFocusNode = FocusNode();
   }
 
   @override
@@ -50,7 +56,29 @@ class _ShopInBitDesktopSettingsState
     _manualKeyFocusNode.dispose();
     _verifyKeyController.dispose();
     _verifyKeyFocusNode.dispose();
+    _displayNameController.dispose();
+    _displayNameFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveDisplayName() async {
+    final name = _displayNameController.text.trim();
+    if (name.isEmpty) return;
+    setState(() => _savingName = true);
+    try {
+      await ShopInBitService.instance.setDisplayName(name);
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Display name updated",
+            context: context,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingName = false);
+    }
   }
 
   Future<void> _generate() async {
@@ -460,6 +488,50 @@ class _ShopInBitDesktopSettingsState
                             _manualKeyController.text.trim().isNotEmpty,
                         label: "Set key",
                         onPressed: _setManualKey,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Divider(thickness: 0.5),
+                      ),
+                      Text(
+                        "Display Name",
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "The name ShopinBit staff will see "
+                        "when communicating with you.",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: 512,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            controller: _displayNameController,
+                            focusNode: _displayNameFocusNode,
+                            style: STextStyles.field(context),
+                            decoration: standardInputDecoration(
+                              "Display name",
+                              _displayNameFocusNode,
+                              context,
+                            ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      PrimaryButton(
+                        width: 210,
+                        buttonHeight: ButtonHeight.m,
+                        enabled:
+                            !_savingName &&
+                            _displayNameController.text.trim().isNotEmpty,
+                        label: "Save",
+                        onPressed: _saveDisplayName,
                       ),
                     ],
                   ),
