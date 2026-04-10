@@ -174,6 +174,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'pages/shopinbit/shopinbit_car_fee_view.dart';
+import 'pages/shopinbit/shopinbit_car_research_payment_view.dart';
 import 'pages/shopinbit/shopinbit_offer_view.dart';
 import 'pages/shopinbit/shopinbit_order_created.dart';
 import 'pages/shopinbit/shopinbit_payment_view.dart';
@@ -259,6 +260,7 @@ import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
 // import 'services/cakepay/src/models/card.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'services/shopinbit/src/models/car_research.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
@@ -1169,6 +1171,19 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ShopInBitCarFeeView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitCarResearchPaymentView.routeName:
+        if (args is (ShopInBitOrderModel, CarResearchInvoice)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              model: args.$1,
+              invoice: args.$2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

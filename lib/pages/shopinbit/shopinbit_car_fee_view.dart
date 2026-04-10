@@ -1,8 +1,16 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-import '../../db/isar/main_db.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
+import '../../services/shopinbit/src/models/address.dart';
+import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -13,7 +21,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
-import 'shopinbit_order_created.dart';
+import 'shopinbit_car_research_payment_view.dart';
 
 class ShopInBitCarFeeView extends StatefulWidget {
   const ShopInBitCarFeeView({super.key, required this.model});
@@ -31,19 +39,26 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   late final TextEditingController _streetController;
   late final TextEditingController _cityController;
   late final TextEditingController _postalCodeController;
-  late final TextEditingController _countryController;
   late final FocusNode _nameFocusNode;
   late final FocusNode _streetFocusNode;
   late final FocusNode _cityFocusNode;
   late final FocusNode _postalCodeFocusNode;
-  late final FocusNode _countryFocusNode;
+
+  List<Map<String, dynamic>> _countries = [];
+  String? _selectedBillingCountryIso;
+  bool _loadingBillingCountries = false;
+  final TextEditingController _billingCountrySearchController =
+      TextEditingController();
+
+  String _displayedFee = "50.00 EUR";
+  bool _submitting = false;
 
   bool get _canContinue =>
       _nameController.text.trim().isNotEmpty &&
       _streetController.text.trim().isNotEmpty &&
       _cityController.text.trim().isNotEmpty &&
       _postalCodeController.text.trim().isNotEmpty &&
-      _countryController.text.trim().isNotEmpty;
+      _selectedBillingCountryIso != null;
 
   @override
   void initState() {
@@ -52,22 +67,21 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     _streetController = TextEditingController();
     _cityController = TextEditingController();
     _postalCodeController = TextEditingController();
-    _countryController = TextEditingController();
     _nameFocusNode = FocusNode();
     _streetFocusNode = FocusNode();
     _cityFocusNode = FocusNode();
     _postalCodeFocusNode = FocusNode();
-    _countryFocusNode = FocusNode();
 
     for (final node in [
       _nameFocusNode,
       _streetFocusNode,
       _cityFocusNode,
       _postalCodeFocusNode,
-      _countryFocusNode,
     ]) {
       node.addListener(() => setState(() {}));
     }
+
+    _fetchCountries();
   }
 
   @override
@@ -76,30 +90,139 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     _streetController.dispose();
     _cityController.dispose();
     _postalCodeController.dispose();
-    _countryController.dispose();
     _nameFocusNode.dispose();
     _streetFocusNode.dispose();
     _cityFocusNode.dispose();
     _postalCodeFocusNode.dispose();
-    _countryFocusNode.dispose();
+    _billingCountrySearchController.dispose();
     super.dispose();
   }
 
-  void _payFee() {
-    widget.model.ticketId =
-        "SIB-${DateTime.now().millisecondsSinceEpoch % 10000}";
-    widget.model.status = ShopInBitOrderStatus.pending;
-    MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
-        context: context,
-        builder: (_) => ShopInBitOrderCreated(model: widget.model),
+  Future<void> _fetchCountries() async {
+    setState(() => _loadingBillingCountries = true);
+    try {
+      final resp =
+          await ShopInBitService.instance.client.getCountries();
+      if (resp.hasError || resp.value == null) return;
+      _countries = resp.value!;
+      if (_selectedBillingCountryIso != null &&
+          !_countries.any(
+            (c) => c['iso'] == _selectedBillingCountryIso,
+          )) {
+        _selectedBillingCountryIso = null;
+      }
+    } catch (_) {
+      // leave list empty; user will see no items
+    } finally {
+      if (mounted) setState(() => _loadingBillingCountries = false);
+    }
+  }
+
+  ({String first, String last}) _splitFullName(String raw) {
+    final trimmed = raw.trim();
+    final idx = trimmed.lastIndexOf(' ');
+    if (idx >= 0) {
+      return (
+        first: trimmed.substring(0, idx).trim(),
+        last: trimmed.substring(idx + 1).trim(),
       );
-    } else {
-      Navigator.of(
-        context,
-      ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model);
+    }
+    return (first: trimmed, last: "");
+  }
+
+  Future<void> _createInvoice() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await ShopInBitService.instance.ensureCustomerKey();
+
+      final name = _splitFullName(_nameController.text);
+      final billing = Address(
+        firstName: name.first,
+        lastName: name.last,
+        street: _streetController.text.trim(),
+        zip: _postalCodeController.text.trim(),
+        city: _cityController.text.trim(),
+        country: _selectedBillingCountryIso!,
+      );
+
+      final resp = await ShopInBitService.instance.client
+          .createCarResearchInvoice(billing: billing);
+
+      if (resp.hasError || resp.value == null) {
+        if (mounted) {
+          setState(() => _submitting = false);
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message:
+                  resp.exception?.message ?? "Failed to create invoice",
+              context: context,
+            ),
+          );
+        }
+        return;
+      }
+
+      final invoice = resp.value!;
+
+      // Best-effort fee fetch; do not block navigation on fee parse failure.
+      await _loadFee(invoice);
+
+      if (!mounted) return;
+
+      if (Util.isDesktop) {
+        Navigator.of(context, rootNavigator: true).pop();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              model: widget.model,
+              invoice: invoice,
+            ),
+          ),
+        );
+      } else {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            ShopInBitCarResearchPaymentView.routeName,
+            arguments: (widget.model, invoice),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _submitting = false);
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e.toString(),
+            context: context,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadFee(CarResearchInvoice invoice) async {
+    try {
+      final resp = await ShopInBitService.instance.client
+          .getCarResearchInvoiceStatus(invoice.btcpayInvoice);
+      if (resp.hasError || resp.value == null) {
+        if (mounted) setState(() => _displayedFee = "—");
+        return;
+      }
+      final data = resp.value!;
+      final parsed = (data["fee"] ??
+              data["amount"] ??
+              data["total"] ??
+              data["customer_price"])
+          ?.toString();
+      if (mounted) {
+        setState(() => _displayedFee = parsed ?? "—");
+      }
+    } catch (_) {
+      if (mounted) setState(() => _displayedFee = "—");
     }
   }
 
@@ -168,7 +291,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                     : STextStyles.itemSubtitle(context),
               ),
               Text(
-                "50.00 EUR",
+                _displayedFee,
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.itemSubtitle(context),
@@ -220,17 +343,133 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
           ],
         ),
         spacing,
-        _buildField(
-          controller: _countryController,
-          focusNode: _countryFocusNode,
-          label: "Country",
-          isDesktop: isDesktop,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton2<String>(
+              value: _selectedBillingCountryIso,
+              items: _countries
+                  .map(
+                    (c) => DropdownMenuItem<String>(
+                      value: c['iso'] as String,
+                      child: Text(
+                        c['label'] as String,
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveText,
+                              )
+                            : STextStyles.w500_14(context),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onMenuStateChange: (isOpen) {
+                if (!isOpen) {
+                  _billingCountrySearchController.clear();
+                }
+              },
+              onChanged: _loadingBillingCountries
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _selectedBillingCountryIso = value;
+                      });
+                    },
+              hint: Text(
+                _loadingBillingCountries
+                    ? "Loading countries..."
+                    : "Billing country",
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultSearchIconLeft,
+                      )
+                    : STextStyles.fieldLabel(context),
+              ),
+              isExpanded: true,
+              buttonStyleData: ButtonStyleData(
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+              ),
+              iconStyleData: IconStyleData(
+                icon: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: SvgPicture.asset(
+                    Assets.svg.chevronDown,
+                    width: 12,
+                    height: 6,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconRight,
+                  ),
+                ),
+              ),
+              dropdownStyleData: DropdownStyleData(
+                offset: const Offset(0, 0),
+                elevation: 0,
+                maxHeight: 300,
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+              ),
+              dropdownSearchData: DropdownSearchData<String>(
+                searchController: _billingCountrySearchController,
+                searchInnerWidgetHeight: 48,
+                searchInnerWidget: TextFormField(
+                  controller: _billingCountrySearchController,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    hintText: "Search...",
+                    hintStyle: STextStyles.fieldLabel(context),
+                    border: InputBorder.none,
+                  ),
+                ),
+                searchMatchFn: (item, searchValue) {
+                  final label = _countries
+                      .where((c) => c['iso'] == item.value)
+                      .map((c) => c['label'] as String)
+                      .firstOrNull;
+                  return label?.toLowerCase().contains(
+                        searchValue.toLowerCase(),
+                      ) ??
+                      false;
+                },
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+            ),
+          ),
         ),
         const Spacer(),
         PrimaryButton(
           label: "Pay research fee",
-          enabled: _canContinue,
-          onPressed: _canContinue ? _payFee : null,
+          enabled: _canContinue && !_submitting,
+          onPressed: (_canContinue && !_submitting)
+              ? () => unawaited(_createInvoice())
+              : null,
         ),
       ],
     );
