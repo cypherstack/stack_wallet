@@ -12,8 +12,10 @@ import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../more_view/services_view.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -22,6 +24,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import 'shopinbit_car_research_payment_view.dart';
+import 'shopinbit_step_2.dart';
 
 class ShopInBitCarFeeView extends StatefulWidget {
   const ShopInBitCarFeeView({super.key, required this.model});
@@ -96,6 +99,22 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     _postalCodeFocusNode.dispose();
     _billingCountrySearchController.dispose();
     super.dispose();
+  }
+
+  void _popToStep2() {
+    Navigator.of(context).popUntil((route) {
+      final name = route.settings.name;
+      if (name == ShopInBitStep2.routeName) {
+        return true;
+      }
+      if (name == ServicesView.routeName) {
+        return true;
+      }
+      if (route.isFirst) {
+        return true;
+      }
+      return false;
+    });
   }
 
   Future<void> _fetchCountries() async {
@@ -204,26 +223,61 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     }
   }
 
+  String? _parseBip21Amount(String uri) {
+    try {
+      // Parse amount from payment URI query params.
+      final qIdx = uri.indexOf('?');
+      if (qIdx < 0) return null;
+      final query = uri.substring(qIdx + 1);
+      final params = Uri.splitQueryString(query);
+      return params['amount'] ?? params['tx_amount'];
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _loadFee(CarResearchInvoice invoice) async {
+    // Keep status call for visibility into any future API changes surfacing
+    // a fee field. Today the endpoint returns only {status, additional}, so
+    // we source the displayed amount from the BIP21 payment URIs instead.
     try {
       final resp = await ShopInBitService.instance.client
           .getCarResearchInvoiceStatus(invoice.btcpayInvoice);
       if (resp.hasError || resp.value == null) {
-        if (mounted) setState(() => _displayedFee = "—");
-        return;
+        Logging.instance.i(
+          "CarResearch status response (car_fee_view): error "
+          "${resp.exception?.message}",
+        );
+      } else {
+        Logging.instance.i(
+          "CarResearch status response (car_fee_view): ${resp.value}",
+        );
       }
-      final data = resp.value!;
-      final parsed = (data["fee"] ??
-              data["amount"] ??
-              data["total"] ??
-              data["customer_price"])
-          ?.toString();
-      if (mounted) {
-        setState(() => _displayedFee = parsed ?? "—");
+    } catch (e) {
+      Logging.instance.i(
+        "CarResearch status response (car_fee_view): threw $e",
+      );
+    }
+
+    // Primary fee source: parse BIP21 `amount` query param from paymentLinks.
+    Logging.instance.i(
+      "CarResearch paymentLinks (car_fee_view): ${invoice.paymentLinks}",
+    );
+    try {
+      for (final entry in invoice.paymentLinks.entries) {
+        final parsed = _parseBip21Amount(entry.value);
+        if (parsed != null && parsed.isNotEmpty) {
+          if (mounted) {
+            setState(() => _displayedFee = "$parsed ${entry.key.toUpperCase()}");
+          }
+          return;
+        }
       }
     } catch (_) {
-      if (mounted) setState(() => _displayedFee = "—");
+      // Leave placeholder in place.
     }
+    // No parse succeeded — leave the existing "50.00 EUR" business-rule
+    // placeholder in place rather than showing "—".
   }
 
   Widget _buildField({
@@ -508,29 +562,38 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     }
 
     return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (!didPop) {
+            _popToStep2();
+          }
+        },
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: _popToStep2,
+            ),
+            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
-        ),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 32,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 32,
+                      ),
+                      child: IntrinsicHeight(child: content),
                     ),
-                    child: IntrinsicHeight(child: content),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

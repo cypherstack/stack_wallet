@@ -36,6 +36,14 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
     _selected = null;
   }
 
+  void _popBack() {
+    if (Util.isDesktop) {
+      Navigator.of(context, rootNavigator: true).pop();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   void _continue() {
     widget.model.category = _selected;
     if (Util.isDesktop) {
@@ -228,29 +236,38 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
     }
 
     return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (!didPop) {
+            _popBack();
+          }
+        },
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: _popBack,
+            ),
+            title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
           ),
-          title: Text("ShopInBit", style: STextStyles.navBarTitle(context)),
-        ),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 32,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 32,
+                      ),
+                      child: IntrinsicHeight(child: content),
                     ),
-                    child: IntrinsicHeight(child: content),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
