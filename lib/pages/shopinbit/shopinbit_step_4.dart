@@ -74,6 +74,43 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   bool _carDescriptionTouched = false;
   bool _carBudgetTouched = false;
 
+  // Travel-specific controllers
+  late final TextEditingController _departureCountryController;
+  late final FocusNode _departureCountryFocusNode;
+  late final TextEditingController _departureCityController;
+  late final FocusNode _departureCityFocusNode;
+  late final TextEditingController _destinationsController;
+  late final FocusNode _destinationsFocusNode;
+  late final TextEditingController _departureDateController;
+  late final FocusNode _departureDateFocusNode;
+  late final TextEditingController _returnDateController;
+  late final FocusNode _returnDateFocusNode;
+  late final TextEditingController _tripLengthController;
+  late final FocusNode _tripLengthFocusNode;
+  late final TextEditingController _travelBudgetController;
+  late final FocusNode _travelBudgetFocusNode;
+
+  // Travel dropdown state
+  String? _selectedArrangement;
+  String? _selectedDateMode;
+  String? _selectedFlexibility;
+  String? _selectedYear;
+  String? _selectedMonthSeason;
+  bool _needsRecommendations = false;
+  int _adults = 1;
+  int _children = 0;
+  int _infants = 0;
+  int _pets = 0;
+
+  // Travel touched booleans
+  bool _departureCountryTouched = false;
+  bool _departureCityTouched = false;
+  bool _destinationsTouched = false;
+  bool _departureDateTouched = false;
+  bool _returnDateTouched = false;
+  bool _tripLengthTouched = false;
+  bool _travelBudgetTouched = false;
+
   List<Map<String, dynamic>> _countries = [];
   String? _selectedCountryIso;
   bool _loadingCountries = false;
@@ -201,7 +238,31 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           carBudgetVal >= 20000 &&
           _selectedCountryIso != null;
     }
-    // travel: existing logic
+    if (cat == ShopInBitCategory.travel) {
+      final travelBudgetVal =
+          int.tryParse(_travelBudgetController.text.trim());
+      final hasValidDates = _selectedDateMode == "Flexible dates"
+          ? (_selectedYear != null &&
+              _selectedMonthSeason != null &&
+              _tripLengthController.text.trim().isNotEmpty)
+          : (_selectedDateMode == "Exact dates" &&
+              _departureDateController.text.trim().isNotEmpty &&
+              _returnDateController.text.trim().isNotEmpty);
+      return !_submitting &&
+          _privacyAccepted &&
+          _selectedArrangement != null &&
+          _departureCountryController.text.trim().isNotEmpty &&
+          _departureCityController.text.trim().isNotEmpty &&
+          (_needsRecommendations ||
+              _destinationsController.text.trim().isNotEmpty) &&
+          _selectedDateMode != null &&
+          hasValidDates &&
+          _adults >= 1 &&
+          travelBudgetVal != null &&
+          travelBudgetVal >= 1000 &&
+          _selectedCountryIso != null;
+    }
+    // generic fallback
     return !_submitting &&
         _privacyAccepted &&
         _descriptionController.text.trim().isNotEmpty &&
@@ -269,6 +330,64 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       setState(() {});
     });
 
+    // Travel-specific init
+    _departureCountryController = TextEditingController();
+    _departureCountryFocusNode = FocusNode();
+    _departureCountryFocusNode.addListener(() {
+      if (!_departureCountryFocusNode.hasFocus) {
+        _departureCountryTouched = true;
+      }
+      setState(() {});
+    });
+    _departureCityController = TextEditingController();
+    _departureCityFocusNode = FocusNode();
+    _departureCityFocusNode.addListener(() {
+      if (!_departureCityFocusNode.hasFocus) {
+        _departureCityTouched = true;
+      }
+      setState(() {});
+    });
+    _destinationsController = TextEditingController();
+    _destinationsFocusNode = FocusNode();
+    _destinationsFocusNode.addListener(() {
+      if (!_destinationsFocusNode.hasFocus) {
+        _destinationsTouched = true;
+      }
+      setState(() {});
+    });
+    _departureDateController = TextEditingController();
+    _departureDateFocusNode = FocusNode();
+    _departureDateFocusNode.addListener(() {
+      if (!_departureDateFocusNode.hasFocus) {
+        _departureDateTouched = true;
+      }
+      setState(() {});
+    });
+    _returnDateController = TextEditingController();
+    _returnDateFocusNode = FocusNode();
+    _returnDateFocusNode.addListener(() {
+      if (!_returnDateFocusNode.hasFocus) {
+        _returnDateTouched = true;
+      }
+      setState(() {});
+    });
+    _tripLengthController = TextEditingController();
+    _tripLengthFocusNode = FocusNode();
+    _tripLengthFocusNode.addListener(() {
+      if (!_tripLengthFocusNode.hasFocus) {
+        _tripLengthTouched = true;
+      }
+      setState(() {});
+    });
+    _travelBudgetController = TextEditingController(text: "5000");
+    _travelBudgetFocusNode = FocusNode();
+    _travelBudgetFocusNode.addListener(() {
+      if (!_travelBudgetFocusNode.hasFocus) {
+        _travelBudgetTouched = true;
+      }
+      setState(() {});
+    });
+
     if (widget.model.deliveryCountry.isNotEmpty) {
       _selectedCountryIso = widget.model.deliveryCountry;
     }
@@ -292,6 +411,20 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     _carDescriptionFocusNode.dispose();
     _carBudgetController.dispose();
     _carBudgetFocusNode.dispose();
+    _departureCountryController.dispose();
+    _departureCountryFocusNode.dispose();
+    _departureCityController.dispose();
+    _departureCityFocusNode.dispose();
+    _destinationsController.dispose();
+    _destinationsFocusNode.dispose();
+    _departureDateController.dispose();
+    _departureDateFocusNode.dispose();
+    _returnDateController.dispose();
+    _returnDateFocusNode.dispose();
+    _tripLengthController.dispose();
+    _tripLengthFocusNode.dispose();
+    _travelBudgetController.dispose();
+    _travelBudgetFocusNode.dispose();
     super.dispose();
   }
 
@@ -353,6 +486,57 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           "Description: ${_carDescriptionController.text.trim()}\n"
           "Budget: ${_carBudgetController.text.trim()} EUR\n"
           "Delivery country: $countryLabel";
+    } else if (widget.model.category == ShopInBitCategory.travel) {
+      final countryLabel = _countries
+              .where((c) => c['iso'] == _selectedCountryIso)
+              .map((c) => c['label'] as String)
+              .firstOrNull ??
+          _selectedCountryIso!;
+
+      final parts = <String>[
+        "Arrangement: $_selectedArrangement",
+        "Departure: ${_departureCityController.text.trim()}, "
+            "${_departureCountryController.text.trim()}",
+      ];
+
+      if (_needsRecommendations) {
+        parts.add("Destinations: Recommendations requested");
+      } else {
+        parts.add(
+            "Destinations: ${_destinationsController.text.trim()}");
+      }
+
+      if (_selectedDateMode == "Exact dates") {
+        final flex =
+            _selectedFlexibility != null && _selectedFlexibility != "Exact"
+                ? " ($_selectedFlexibility)"
+                : "";
+        parts.add(
+            "Dates: ${_departureDateController.text.trim()} - "
+            "${_returnDateController.text.trim()}$flex");
+      } else if (_selectedDateMode == "Flexible dates") {
+        parts.add(
+            "Dates: $_selectedMonthSeason $_selectedYear, "
+            "${_tripLengthController.text.trim()} nights");
+      }
+
+      final travelers = <String>[];
+      travelers.add("$_adults adult${_adults > 1 ? 's' : ''}");
+      if (_children > 0) {
+        travelers.add("$_children child${_children > 1 ? 'ren' : ''}");
+      }
+      if (_infants > 0) {
+        travelers.add("$_infants infant${_infants > 1 ? 's' : ''}");
+      }
+      if (_pets > 0) {
+        travelers.add("$_pets pet${_pets > 1 ? 's' : ''}");
+      }
+      parts.add("Travelers: ${travelers.join(', ')}");
+
+      parts.add("Budget: ${_travelBudgetController.text.trim()} EUR");
+      parts.add("Delivery country: $countryLabel");
+
+      widget.model.requestDescription = parts.join("\n");
     } else {
       widget.model.requestDescription = _descriptionController.text.trim();
     }
@@ -387,9 +571,12 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
         'Step 4 reached with null category — Step 2 must set category before reaching Step 4',
       );
 
+      // API service_type: travel requests use "concierge" because the
+      // ShopinBit API routes both through the same concierge pipeline.
+      // Travel-specific details are captured in the structured comment field.
       final categoryStr = switch (widget.model.category) {
         ShopInBitCategory.concierge => "concierge",
-        ShopInBitCategory.travel => "travel",
+        ShopInBitCategory.travel => "concierge",
         ShopInBitCategory.car => "car",
         null => throw StateError('category must be non-null at Step 4 submit'),
       };
@@ -1265,7 +1452,6 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   }
 
   Widget _buildGenericContent(bool isDesktop) {
-    // Travel uses the generic form; Concierge and Car have dedicated builders.
     const descriptionTitle = "Describe your travel request";
     const descriptionSubtitle = "Provide details about your trip.";
     const descriptionPlaceholder =
@@ -1346,6 +1532,670 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     );
   }
 
+  // Travel form helpers.
+  Widget _buildTravelDropdown({
+    required String? value,
+    required List<String> items,
+    required String hint,
+    required ValueChanged<String?> onChanged,
+    required bool isDesktop,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(
+        Constants.size.circularBorderRadius,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<String>(
+          value: value,
+          items: items
+              .map(
+                (c) => DropdownMenuItem<String>(
+                  value: c,
+                  child: Text(
+                    c,
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraSmall(
+                            context,
+                          ).copyWith(
+                            color: Theme.of(
+                              context,
+                            )
+                                .extension<StackColors>()!
+                                .textFieldActiveText,
+                          )
+                        : STextStyles.w500_14(context),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
+          hint: Text(
+            hint,
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultSearchIconLeft,
+                  )
+                : STextStyles.fieldLabel(context),
+          ),
+          isExpanded: true,
+          buttonStyleData: ButtonStyleData(
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          iconStyleData: IconStyleData(
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 12,
+                height: 6,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              ),
+            ),
+          ),
+          dropdownStyleData: DropdownStyleData(
+            offset: const Offset(0, 0),
+            elevation: 0,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          menuItemStyleData: const MenuItemStyleData(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTravelerCounter({
+    required String label,
+    required int value,
+    required int min,
+    required int max,
+    required ValueChanged<int> onChanged,
+    required bool isDesktop,
+  }) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        const Spacer(),
+        InkWell(
+          onTap: value > min
+              ? () => onChanged(value - 1)
+              : null,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                "-",
+                style: isDesktop
+                    ? STextStyles.desktopTextSmall(context)
+                    : STextStyles.w500_14(context),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        SizedBox(
+          width: 24,
+          child: Center(
+            child: Text(
+              "$value",
+              style: isDesktop
+                  ? STextStyles.desktopTextSmall(context)
+                  : STextStyles.w500_14(context),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        InkWell(
+          onTap: value < max
+              ? () => onChanged(value + 1)
+              : null,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                "+",
+                style: isDesktop
+                    ? STextStyles.desktopTextSmall(context)
+                    : STextStyles.w500_14(context),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTravelContent(bool isDesktop) {
+    final departureCountryError = _departureCountryTouched &&
+            _departureCountryController.text.trim().isEmpty
+        ? "Required"
+        : null;
+
+    final departureCityError = _departureCityTouched &&
+            _departureCityController.text.trim().isEmpty
+        ? "Required"
+        : null;
+
+    final destinationsError = _destinationsTouched &&
+            _destinationsController.text.trim().isEmpty &&
+            !_needsRecommendations
+        ? "Required (or check 'I need recommendations')"
+        : null;
+
+    final departureDateError = _departureDateTouched &&
+            _departureDateController.text.trim().isEmpty
+        ? "Required"
+        : null;
+
+    final returnDateError = _returnDateTouched &&
+            _returnDateController.text.trim().isEmpty
+        ? "Required"
+        : null;
+
+    final tripLengthError = _tripLengthTouched &&
+            _tripLengthController.text.trim().isEmpty
+        ? "Required"
+        : null;
+
+    final travelBudgetText = _travelBudgetController.text.trim();
+    final travelBudgetVal = int.tryParse(travelBudgetText);
+    final travelBudgetError = _travelBudgetTouched &&
+            (travelBudgetText.isEmpty ||
+                travelBudgetVal == null ||
+                travelBudgetVal < 1000)
+        ? "Minimum budget is 1,000 EUR"
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!isDesktop)
+          StepRow(
+            count: 4,
+            current: 3,
+            width: MediaQuery.of(context).size.width - 32,
+          ),
+        if (!isDesktop) const SizedBox(height: 14),
+        Text(
+          "Travel request",
+          style: isDesktop
+              ? STextStyles.desktopH2(context)
+              : STextStyles.pageTitleH1(context),
+        ),
+        SizedBox(height: isDesktop ? 16 : 8),
+        Text(
+          "Tell us about your trip and we'll arrange everything.",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.itemSubtitle(context),
+        ),
+        SizedBox(height: isDesktop ? 32 : 24),
+
+        // === Trip Type ===
+        Text(
+          "Trip type",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildTravelDropdown(
+          value: _selectedArrangement,
+          items: const [
+            "Flights Only",
+            "Hotels Only",
+            "Flights + Hotels",
+            "Full Service",
+          ],
+          hint: "Arrangement type",
+          onChanged: (val) => setState(() => _selectedArrangement = val),
+          isDesktop: isDesktop,
+        ),
+
+        // === Where ===
+        SizedBox(height: isDesktop ? 24 : 16),
+        Text(
+          "Where",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        TextField(
+          controller: _departureCountryController,
+          focusNode: _departureCountryFocusNode,
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
+          style: isDesktop
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveText,
+                  height: 1.8,
+                )
+              : STextStyles.field(context),
+          decoration:
+              standardInputDecoration(
+                "Departure country",
+                _departureCountryFocusNode,
+                context,
+                desktopMed: isDesktop,
+              ).copyWith(
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                errorText: departureCountryError,
+              ),
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        TextField(
+          controller: _departureCityController,
+          focusNode: _departureCityFocusNode,
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
+          style: isDesktop
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveText,
+                  height: 1.8,
+                )
+              : STextStyles.field(context),
+          decoration:
+              standardInputDecoration(
+                "Departure city",
+                _departureCityFocusNode,
+                context,
+                desktopMed: isDesktop,
+              ).copyWith(
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                errorText: departureCityError,
+              ),
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        TextField(
+          controller: _destinationsController,
+          focusNode: _destinationsFocusNode,
+          autocorrect: false,
+          enableSuggestions: false,
+          enabled: !_needsRecommendations,
+          onChanged: (_) => setState(() {}),
+          style: isDesktop
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveText,
+                  height: 1.8,
+                )
+              : STextStyles.field(context),
+          decoration:
+              standardInputDecoration(
+                "e.g. Paris, France; Rome, Italy",
+                _destinationsFocusNode,
+                context,
+                desktopMed: isDesktop,
+              ).copyWith(
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                errorText: destinationsError,
+              ),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _needsRecommendations = !_needsRecommendations;
+            });
+          },
+          child: Container(
+            color: Colors.transparent,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: IgnorePointer(
+                    child: Checkbox(
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      value: _needsRecommendations,
+                      onChanged: (_) {},
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "I need recommendations",
+                  style: isDesktop
+                      ? STextStyles.desktopTextSmall(context)
+                      : STextStyles.w500_14(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // === When ===
+        SizedBox(height: isDesktop ? 24 : 16),
+        Text(
+          "When",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildTravelDropdown(
+          value: _selectedDateMode,
+          items: const ["Exact dates", "Flexible dates"],
+          hint: "Date mode",
+          onChanged: (val) => setState(() => _selectedDateMode = val),
+          isDesktop: isDesktop,
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+
+        if (_selectedDateMode == "Exact dates") ...[
+          TextField(
+            controller: _departureDateController,
+            focusNode: _departureDateFocusNode,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: TextInputType.datetime,
+            onChanged: (_) => setState(() {}),
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                    height: 1.8,
+                  )
+                : STextStyles.field(context),
+            decoration:
+                standardInputDecoration(
+                  "DD/MM/YYYY",
+                  _departureDateFocusNode,
+                  context,
+                  desktopMed: isDesktop,
+                ).copyWith(
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  labelText: "Departure date",
+                  errorText: departureDateError,
+                ),
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          TextField(
+            controller: _returnDateController,
+            focusNode: _returnDateFocusNode,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: TextInputType.datetime,
+            onChanged: (_) => setState(() {}),
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                    height: 1.8,
+                  )
+                : STextStyles.field(context),
+            decoration:
+                standardInputDecoration(
+                  "DD/MM/YYYY",
+                  _returnDateFocusNode,
+                  context,
+                  desktopMed: isDesktop,
+                ).copyWith(
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  labelText: "Return date",
+                  errorText: returnDateError,
+                ),
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          _buildTravelDropdown(
+            value: _selectedFlexibility,
+            items: const [
+              "Exact",
+              "\u00B1 1 day",
+              "\u00B1 2-3 days",
+              "+ 1 week",
+            ],
+            hint: "Flexibility",
+            onChanged: (val) =>
+                setState(() => _selectedFlexibility = val),
+            isDesktop: isDesktop,
+          ),
+        ],
+
+        if (_selectedDateMode == "Flexible dates") ...[
+          _buildTravelDropdown(
+            value: _selectedYear,
+            items: [
+              "${DateTime.now().year}",
+              "${DateTime.now().year + 1}",
+            ],
+            hint: "Year",
+            onChanged: (val) =>
+                setState(() => _selectedYear = val),
+            isDesktop: isDesktop,
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          _buildTravelDropdown(
+            value: _selectedMonthSeason,
+            items: const [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+              "Spring (Mar-May)",
+              "Summer (Jun-Aug)",
+              "Fall (Sep-Nov)",
+              "Winter (Dec-Feb)",
+            ],
+            hint: "Month or season",
+            onChanged: (val) =>
+                setState(() => _selectedMonthSeason = val),
+            isDesktop: isDesktop,
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          TextField(
+            controller: _tripLengthController,
+            focusNode: _tripLengthFocusNode,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onChanged: (_) => setState(() {}),
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                    height: 1.8,
+                  )
+                : STextStyles.field(context),
+            decoration:
+                standardInputDecoration(
+                  "Number of nights",
+                  _tripLengthFocusNode,
+                  context,
+                  desktopMed: isDesktop,
+                ).copyWith(
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  errorText: tripLengthError,
+                ),
+          ),
+        ],
+
+        // === Who ===
+        SizedBox(height: isDesktop ? 24 : 16),
+        Text(
+          "Who",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildTravelerCounter(
+          label: "Adults",
+          value: _adults,
+          min: 1,
+          max: 20,
+          onChanged: (v) => setState(() => _adults = v),
+          isDesktop: isDesktop,
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildTravelerCounter(
+          label: "Children",
+          value: _children,
+          min: 0,
+          max: 20,
+          onChanged: (v) => setState(() => _children = v),
+          isDesktop: isDesktop,
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildTravelerCounter(
+          label: "Infants",
+          value: _infants,
+          min: 0,
+          max: 20,
+          onChanged: (v) => setState(() => _infants = v),
+          isDesktop: isDesktop,
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildTravelerCounter(
+          label: "Pets",
+          value: _pets,
+          min: 0,
+          max: 20,
+          onChanged: (v) => setState(() => _pets = v),
+          isDesktop: isDesktop,
+        ),
+
+        // === Budget ===
+        SizedBox(height: isDesktop ? 24 : 16),
+        Text(
+          "Budget",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        TextField(
+          controller: _travelBudgetController,
+          focusNode: _travelBudgetFocusNode,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: (_) => setState(() {}),
+          style: isDesktop
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveText,
+                  height: 1.8,
+                )
+              : STextStyles.field(context),
+          decoration:
+              standardInputDecoration(
+                "Minimum 1000 EUR",
+                _travelBudgetFocusNode,
+                context,
+                desktopMed: isDesktop,
+              ).copyWith(
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                suffixText: "EUR",
+                errorText: travelBudgetError,
+              ),
+        ),
+
+        // === Shared fields ===
+        SizedBox(height: isDesktop ? 24 : 16),
+        _buildCountryPicker(isDesktop),
+        SizedBox(height: isDesktop ? 16 : 12),
+        _buildPrivacyCheckbox(isDesktop),
+        SizedBox(height: isDesktop ? 16 : 12),
+        _buildSubmitButton(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -1359,6 +2209,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
         content = _buildCarContent(isDesktop);
         break;
       case ShopInBitCategory.travel:
+        content = _buildTravelContent(isDesktop);
+        break;
       case null:
         content = _buildGenericContent(isDesktop);
         break;

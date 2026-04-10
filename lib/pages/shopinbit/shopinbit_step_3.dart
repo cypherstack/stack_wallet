@@ -140,6 +140,11 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
                 _guidelinesText(),
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      )
                     : STextStyles.itemSubtitle12(context),
               ),
             ),

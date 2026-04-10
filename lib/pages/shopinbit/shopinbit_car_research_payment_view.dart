@@ -253,7 +253,7 @@ class _ShopInBitCarResearchPaymentViewState
   String get _displayedFee {
     // API status endpoint does not expose a fee field (confirmed: returns
     // only {status, additional}). Parse the amount from the BIP21 payment
-    // URI for the currently-selected method, fall back to the 50.00 EUR
+    // URI for the currently-selected method, fall back to the 223.00 EUR
     // business-rule value if no parse succeeds.
     final links = widget.invoice.paymentLinks;
     if (_selectedMethod < _methods.length) {
@@ -275,7 +275,7 @@ class _ShopInBitCarResearchPaymentViewState
         }
       }
     }
-    return "50.00 EUR";
+    return "223.00 EUR";
   }
 
   String get _statusLabel {
@@ -670,7 +670,7 @@ class _ShopInBitCarResearchPaymentViewState
     if (isDesktop) {
       return DesktopDialog(
         maxWidth: 580,
-        maxHeight: 650,
+        maxHeight: 750,
         child: Column(
           children: [
             Row(
@@ -692,7 +692,7 @@ class _ShopInBitCarResearchPaymentViewState
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: content,
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],
