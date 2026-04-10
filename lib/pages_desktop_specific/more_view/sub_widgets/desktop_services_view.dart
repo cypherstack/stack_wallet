@@ -9,6 +9,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../settings/settings_menu_item.dart';
+import 'desktop_gift_cards_view.dart';
 import 'desktop_shopinbit_view.dart';
 
 final selectedServicesMenuItemStateProvider = StateProvider<int>((_) => 0);
@@ -24,7 +25,7 @@ class DesktopServicesView extends ConsumerStatefulWidget {
 }
 
 class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
-  final List<String> _labels = const ["Services" /*, "Gift Cards"*/];
+  final List<String> _labels = const ["Services", "Gift Cards"];
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +35,11 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: DesktopShopInBitView.routeName,
       ),
-      // const Navigator(
-      //   key: Key("servicesGiftCardsDesktopKey"),
-      //   onGenerateRoute: RouteGenerator.generateRoute,
-      //   initialRoute: DesktopGiftCardsView.routeName,
-      // ),
+      const Navigator(
+        key: Key("servicesGiftCardsDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: DesktopGiftCardsView.routeName,
+      ),
     ];
 
     return DesktopScaffold(
@@ -79,16 +80,18 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
                                     height: 11,
                                     color:
                                         ref
-                                                .watch(
-                                                  selectedServicesMenuItemStateProvider
-                                                      .state,
-                                                )
-                                                .state ==
-                                            i
-                                        ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorBlue
-                                        : Colors.transparent,
+                                                    .watch(
+                                                      selectedServicesMenuItemStateProvider
+                                                          .state,
+                                                    )
+                                                    .state ==
+                                                i
+                                            ? Theme.of(
+                                                context,
+                                              )
+                                                .extension<StackColors>()!
+                                                .accentColorBlue
+                                            : Colors.transparent,
                                   ),
                                   label: _labels[i],
                                   value: i,

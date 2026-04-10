@@ -58,12 +58,12 @@ import 'pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'pages/buy_view/buy_in_wallet_view.dart';
 import 'pages/buy_view/buy_quote_preview.dart';
 import 'pages/buy_view/buy_view.dart';
-// import 'pages/cakepay/cakepay_card_detail_view.dart';
-// import 'pages/cakepay/cakepay_confirm_send_view.dart';
-// import 'pages/cakepay/cakepay_order_view.dart';
-// import 'pages/cakepay/cakepay_orders_view.dart';
-// import 'pages/cakepay/cakepay_send_from_view.dart';
-// import 'pages/cakepay/cakepay_vendors_view.dart';
+import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'pages/cakepay/cakepay_confirm_send_view.dart';
+import 'pages/cakepay/cakepay_order_view.dart';
+import 'pages/cakepay/cakepay_orders_view.dart';
+import 'pages/cakepay/cakepay_send_from_view.dart';
+import 'pages/cakepay/cakepay_vendors_view.dart';
 import 'pages/cashfusion/cashfusion_view.dart';
 import 'pages/cashfusion/fusion_progress_view.dart';
 import 'pages/churning/churning_progress_view.dart';
@@ -223,7 +223,7 @@ import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
-// import 'pages_desktop_specific/more_view/sub_widgets/desktop_gift_cards_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_gift_cards_view.dart';
 import 'pages_desktop_specific/more_view/sub_widgets/desktop_services_view.dart';
 import 'pages_desktop_specific/more_view/sub_widgets/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
@@ -258,7 +258,7 @@ import 'pages_desktop_specific/settings/settings_menu/shopinbit_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
-// import 'services/cakepay/src/models/card.dart';
+import 'services/cakepay/src/models/card.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'services/shopinbit/src/models/car_research.dart';
@@ -1066,12 +1066,12 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      // case GiftCardsView.routeName:
-      //   return getRoute(
-      //     shouldUseMaterialRoute: useMaterialPageRoute,
-      //     builder: (_) => const GiftCardsView(),
-      //     settings: RouteSettings(name: settings.name),
-      //   );
+      case GiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const GiftCardsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ShopInBitSetupView.routeName:
         if (args is ShopInBitOrderModel) {
@@ -2543,12 +2543,12 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      // case DesktopGiftCardsView.routeName:
-      //   return getRoute(
-      //     shouldUseMaterialRoute: useMaterialPageRoute,
-      //     builder: (_) => const DesktopGiftCardsView(),
-      //     settings: RouteSettings(name: settings.name),
-      //   );
+      case DesktopGiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopGiftCardsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case MyStackView.routeName:
         return getRoute(
