@@ -459,39 +459,28 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   }
 
   Future<void> _submit() async {
-    // Format structured comment for Concierge
+    // Format structured comment per category.
+    // Use ISO code for delivery country in comment: country labels can
+    // contain non-ASCII (e.g. "Åland Islands") which HttpClientRequest.write()
+    // encodes as Latin-1, corrupting the JSON body on mobile.
+    final countryIso = _selectedCountryIso!;
     if (widget.model.category == ShopInBitCategory.concierge) {
       final budgetText =
           _noLimit ? "No limit" : "${_budgetController.text.trim()} EUR";
-      final countryLabel = _countries
-              .where((c) => c['iso'] == _selectedCountryIso)
-              .map((c) => c['label'] as String)
-              .firstOrNull ??
-          _selectedCountryIso!;
       widget.model.requestDescription =
           "What to purchase: ${_whatToPurchaseController.text.trim()}\n"
           "Condition: $_selectedCondition\n"
           "Budget: $budgetText\n"
-          "Delivery country: $countryLabel";
+          "Delivery country: $countryIso";
     } else if (widget.model.category == ShopInBitCategory.car) {
-      final countryLabel = _countries
-              .where((c) => c['iso'] == _selectedCountryIso)
-              .map((c) => c['label'] as String)
-              .firstOrNull ??
-          _selectedCountryIso!;
       widget.model.requestDescription =
           "Brand: ${_brandController.text.trim()}\n"
           "Model: ${_modelController.text.trim()}\n"
           "Condition: $_selectedCarCondition\n"
           "Description: ${_carDescriptionController.text.trim()}\n"
           "Budget: ${_carBudgetController.text.trim()} EUR\n"
-          "Delivery country: $countryLabel";
+          "Delivery country: $countryIso";
     } else if (widget.model.category == ShopInBitCategory.travel) {
-      final countryLabel = _countries
-              .where((c) => c['iso'] == _selectedCountryIso)
-              .map((c) => c['label'] as String)
-              .firstOrNull ??
-          _selectedCountryIso!;
 
       final parts = <String>[
         "Arrangement: $_selectedArrangement",
@@ -534,7 +523,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       parts.add("Travelers: ${travelers.join(', ')}");
 
       parts.add("Budget: ${_travelBudgetController.text.trim()} EUR");
-      parts.add("Delivery country: $countryLabel");
+      parts.add("Delivery country: $countryIso");
 
       widget.model.requestDescription = parts.join("\n");
     } else {
