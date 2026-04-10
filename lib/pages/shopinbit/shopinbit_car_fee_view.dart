@@ -689,7 +689,8 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
             isDesktop: isDesktop,
           ),
         ],
-        const Spacer(),
+        if (!isDesktop) const Spacer(),
+        if (isDesktop) const SizedBox(height: 24),
         PrimaryButton(
           label: "Pay research fee",
           enabled: _canContinue && !_submitting,
@@ -703,7 +704,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     if (isDesktop) {
       return DesktopDialog(
         maxWidth: 580,
-        maxHeight: 650,
+        maxHeight: 750,
         child: Column(
           children: [
             Row(
@@ -712,7 +713,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "ShopInBit",
+                    "ShopinBit",
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -725,7 +726,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: content,
+                child: SingleChildScrollView(
+                  child: content,
+                ),
               ),
             ),
           ],

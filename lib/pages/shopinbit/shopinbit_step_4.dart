@@ -26,6 +26,7 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
+import 'shopinbit_step_3.dart';
 import 'shopinbit_car_fee_view.dart';
 import 'shopinbit_order_created.dart';
 
@@ -297,6 +298,11 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   void _popBack() {
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ShopInBitStep3(model: widget.model),
+      );
     } else {
       Navigator.of(context).pop();
     }
@@ -1361,18 +1367,24 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     if (isDesktop) {
       return DesktopDialog(
         maxWidth: 580,
-        maxHeight: 560,
+        maxHeight: 750,
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopInBit",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                Row(
+                  children: [
+                    AppBarBackButton(
+                      isCompact: true,
+                      iconSize: 23,
+                      onPressed: _popBack,
+                    ),
+                    Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ],
                 ),
                 const DesktopDialogCloseButton(),
               ],
@@ -1383,7 +1395,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: content,
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],

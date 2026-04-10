@@ -55,6 +55,7 @@ class _ShopInBitStep1State extends State<ShopInBitStep1> {
       Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
+        barrierDismissible: false,
         builder: (_) => ShopInBitStep2(model: widget.model),
       );
     } else {
@@ -146,7 +147,7 @@ class _ShopInBitStep1State extends State<ShopInBitStep1> {
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "ShopInBit",
+                    "ShopinBit",
                     style: STextStyles.desktopH3(context),
                   ),
                 ),

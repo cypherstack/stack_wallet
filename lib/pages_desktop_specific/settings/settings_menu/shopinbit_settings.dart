@@ -178,7 +178,7 @@ class _ShopInBitDesktopSettingsState
                   const SizedBox(height: 16),
                   Text(
                     "Changing your key will disconnect you from "
-                    "existing ShopInBit conversations. Make sure "
+                    "existing ShopinBit requests. Make sure "
                     "you have saved your current key before "
                     "proceeding.",
                     style: STextStyles.desktopTextExtraExtraSmall(ctx),
@@ -345,7 +345,7 @@ class _ShopInBitDesktopSettingsState
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Your customer key identifies you to ShopInBit. "
+                        "Your customer key identifies you to ShopinBit. "
                         "Save it to restore access to your conversations "
                         "on another device. If you change it, you will "
                         "lose access to existing conversations.",
@@ -427,7 +427,7 @@ class _ShopInBitDesktopSettingsState
                       const SizedBox(height: 8),
                       Text(
                         "Enter a previously saved customer key to "
-                        "restore access to your ShopInBit "
+                        "restore access to your ShopinBit "
                         "conversations.",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),

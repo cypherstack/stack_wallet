@@ -46,7 +46,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
       "Syncing preferences",
       if (AppConfig.hasFeature(AppFeature.themeSelection)) "Appearance",
       "Advanced",
-      if (familiarity >= 6) "ShopInBit",
+      if (familiarity >= 6) "ShopinBit",
     ];
 
     return Column(

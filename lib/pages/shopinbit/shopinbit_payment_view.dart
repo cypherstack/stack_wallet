@@ -786,7 +786,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "ShopInBit",
+                    "ShopinBit",
                     style: STextStyles.desktopH3(context),
                   ),
                 ),

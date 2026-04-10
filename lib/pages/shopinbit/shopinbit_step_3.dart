@@ -12,6 +12,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
+import 'shopinbit_step_2.dart';
 import 'shopinbit_step_4.dart';
 
 class ShopInBitStep3 extends StatefulWidget {
@@ -73,6 +74,19 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
     }
   }
 
+  void _popBack() {
+    if (Util.isDesktop) {
+      Navigator.of(context, rootNavigator: true).pop();
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ShopInBitStep2(model: widget.model),
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   void _continue() {
     widget.model.guidelinesAccepted = true;
     // Persist acceptance.
@@ -81,6 +95,7 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
       Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
+        barrierDismissible: false,
         builder: (_) => ShopInBitStep4(model: widget.model),
       );
     } else {
@@ -130,13 +145,14 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
             ),
           ),
         ),
-        if (!isDesktop)
-          CheckboxListTile(
+        CheckboxListTile(
             value: _agreed,
             onChanged: (v) => setState(() => _agreed = v ?? false),
             title: Text(
               "I have read and agree to the Service Guidelines",
-              style: STextStyles.itemSubtitle12(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.itemSubtitle12(context),
             ),
             controlAffinity: ListTileControlAffinity.leading,
             contentPadding: EdgeInsets.zero,
@@ -146,8 +162,8 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
         SizedBox(height: isDesktop ? 24 : 16),
         PrimaryButton(
           label: "Next",
-          enabled: isDesktop || _agreed,
-          onPressed: (isDesktop || _agreed) ? _continue : null,
+          enabled: _agreed,
+          onPressed: _agreed ? _continue : null,
         ),
       ],
     );
@@ -161,12 +177,18 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopInBit",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                Row(
+                  children: [
+                    AppBarBackButton(
+                      isCompact: true,
+                      iconSize: 23,
+                      onPressed: _popBack,
+                    ),
+                    Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ],
                 ),
                 const DesktopDialogCloseButton(),
               ],

@@ -314,8 +314,8 @@ class _ServicesViewState extends State<ServicesView> {
                             .length;
                         return SecondaryButton(
                           label: count > 0
-                              ? "My tickets ($count)"
-                              : "My tickets",
+                              ? "My requests ($count)"
+                              : "My requests",
                           onPressed: () async {
                             await Navigator.of(
                               context,

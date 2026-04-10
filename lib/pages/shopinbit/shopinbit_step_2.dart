@@ -13,6 +13,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
+import 'shopinbit_step_1.dart';
 import 'shopinbit_step_3.dart';
 import 'shopinbit_step_4.dart';
 
@@ -41,6 +42,11 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
   void _popBack() {
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ShopInBitStep1(model: widget.model),
+      );
     } else {
       Navigator.of(context).pop();
     }
@@ -56,9 +62,8 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
       Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
-        builder: (_) => skipGuidelines
-            ? ShopInBitStep4(model: widget.model)
-            : ShopInBitStep3(model: widget.model),
+        barrierDismissible: false,
+        builder: (_) => ShopInBitStep3(model: widget.model),
       );
     } else {
       if (skipGuidelines) {
@@ -92,7 +97,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
           borderRadius: BorderRadius.circular(isDesktop ? 16 : 12),
           border: Border.all(
             color: isSelected
-                ? Theme.of(context).extension<StackColors>()!.accentColorBlue
+                ? Theme.of(context).extension<StackColors>()!.textDark
                 : Theme.of(context).extension<StackColors>()!.background,
             width: 2,
           ),
@@ -108,7 +113,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
                 shape: BoxShape.circle,
                 color: Theme.of(context)
                     .extension<StackColors>()!
-                    .accentColorBlue
+                    .textDark
                     .withOpacity(0.1),
               ),
               alignment: Alignment.center,
@@ -118,7 +123,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
                 height: isDesktop ? 24 : 20,
                 color: Theme.of(context)
                     .extension<StackColors>()!
-                    .accentColorBlue,
+                    .textDark,
               ),
             ),
             SizedBox(width: isDesktop ? 16 : 12),
@@ -151,7 +156,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
                 Icons.check_circle,
                 color: Theme.of(
                   context,
-                ).extension<StackColors>()!.accentColorBlue,
+                ).extension<StackColors>()!.textDark,
                 size: isDesktop ? 24 : 20,
               ),
           ],
@@ -223,18 +228,24 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
     if (isDesktop) {
       return DesktopDialog(
         maxWidth: 580,
-        maxHeight: 580,
+        maxHeight: 700,
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopInBit",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                Row(
+                  children: [
+                    AppBarBackButton(
+                      isCompact: true,
+                      iconSize: 23,
+                      onPressed: _popBack,
+                    ),
+                    Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ],
                 ),
                 const DesktopDialogCloseButton(),
               ],
