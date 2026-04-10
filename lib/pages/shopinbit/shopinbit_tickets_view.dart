@@ -62,6 +62,9 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
           continue;
         }
 
+        // Car research tickets return 403 on /tickets/:id/* endpoints.
+        if (_tickets[localIdx].category == ShopInBitCategory.car) continue;
+
         final statusResp = await service.client.getTicketStatus(ref.id);
         if (statusResp.hasError || statusResp.value == null) continue;
 

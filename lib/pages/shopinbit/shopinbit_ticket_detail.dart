@@ -94,33 +94,40 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
     super.dispose();
   }
 
+  bool get _isCarResearch => widget.model.category == ShopInBitCategory.car;
+
   Future<void> _loadFromApi() async {
     setState(() => _loading = true);
     try {
       final client = ShopInBitService.instance.client;
       final id = widget.model.apiTicketId;
 
-      final messagesResp = await client.getMessages(id);
-      final statusResp = await client.getTicketStatus(id);
+      // Car research tickets created via /car-research/log-payment are not
+      // accessible via /tickets/:id/* endpoints (API returns 403). Skip
+      // those calls for car tickets to avoid log spam. Local data is used.
+      if (!_isCarResearch) {
+        final messagesResp = await client.getMessages(id);
+        final statusResp = await client.getTicketStatus(id);
 
-      if (!messagesResp.hasError && messagesResp.value != null) {
-        final apiMessages = messagesResp.value!;
-        widget.model.clearMessages();
-        for (final m in apiMessages) {
-          widget.model.addMessage(
-            ShopInBitMessage(
-              text: m.content,
-              timestamp: m.timestamp,
-              isFromUser: !m.fromAgent,
-            ),
+        if (!messagesResp.hasError && messagesResp.value != null) {
+          final apiMessages = messagesResp.value!;
+          widget.model.clearMessages();
+          for (final m in apiMessages) {
+            widget.model.addMessage(
+              ShopInBitMessage(
+                text: m.content,
+                timestamp: m.timestamp,
+                isFromUser: !m.fromAgent,
+              ),
+            );
+          }
+        }
+
+        if (!statusResp.hasError && statusResp.value != null) {
+          widget.model.status = ShopInBitOrderModel.statusFromTicketState(
+            statusResp.value!.state,
           );
         }
-      }
-
-      if (!statusResp.hasError && statusResp.value != null) {
-        widget.model.status = ShopInBitOrderModel.statusFromTicketState(
-          statusResp.value!.state,
-        );
       }
 
       unawaited(
@@ -454,10 +461,37 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
       ),
     );
 
+    final requestDetailsSection = _isCarResearch && model.requestDescription.isNotEmpty
+        ? Padding(
+            padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
+            child: RoundedWhiteContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Request details",
+                    style: isDesktop
+                        ? STextStyles.desktopTextSmall(context)
+                        : STextStyles.titleBold12(context),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    model.requestDescription,
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                        : STextStyles.itemSubtitle12(context),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : const SizedBox.shrink();
+
     final body = Column(
       children: [
         statusBar,
         offerBanner,
+        requestDetailsSection,
         chatArea,
         SizedBox(height: isDesktop ? 12 : 8),
         inputBar,

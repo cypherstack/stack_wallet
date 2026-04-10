@@ -14,11 +14,16 @@ class ShopInBitService {
   String? _displayName;
 
   ShopInBitClient get client {
-    return _client ??= ShopInBitClient(
-      accessKey: kShopInBitAccessKey,
-      partnerSecret: kShopInBitPartnerSecret,
-      sandbox: true,
-    );
+    if (_client == null) {
+      _client = ShopInBitClient(
+        accessKey: kShopInBitAccessKey,
+        partnerSecret: kShopInBitPartnerSecret,
+        sandbox: true,
+      );
+      // Pre-load customer key for ticket detail API calls.
+      loadCustomerKey();
+    }
+    return _client!;
   }
 
   String? get customerKey => _customerKey;

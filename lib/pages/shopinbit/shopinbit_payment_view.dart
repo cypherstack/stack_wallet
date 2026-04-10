@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/gestures.dart';
@@ -16,6 +17,7 @@ import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/payment.dart';
+import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
@@ -29,7 +31,6 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_send_from_view.dart';
 import 'shopinbit_tickets_view.dart';
@@ -330,15 +331,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   }
 
   void _popToTickets() {
-    Navigator.of(context).popUntil((route) {
-      if (route.settings.name == ShopInBitTicketsView.routeName) {
-        return true;
-      }
-      if (route.isFirst) {
-        return true;
-      }
-      return false;
-    });
+    Navigator.of(context).pop();
   }
 
   void _navigateToSendFrom({
@@ -379,6 +372,109 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     }
   }
 
+  bool _hasWalletForTicker(String ticker) {
+    if (ticker == "USDT") {
+      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+      return ref
+          .read(pWallets)
+          .wallets
+          .any(
+            (w) =>
+                w.info.coin is Ethereum &&
+                w.info.tokenContractAddresses.contains(usdtAddress),
+          );
+    } else {
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      if (coin != null) {
+        return ref
+            .read(pWallets)
+            .wallets
+            .any((e) => e.info.coin == coin);
+      }
+    }
+    return false;
+  }
+
+  String? _parseBip21Amount(String bip21Uri) {
+    final parsed = AddressUtils.parsePaymentUri(bip21Uri);
+    String? amountStr = parsed?.amount;
+    if (amountStr == null || amountStr.isEmpty) {
+      final uri = Uri.tryParse(bip21Uri);
+      if (uri != null) {
+        amountStr = uri.queryParameters['amount'];
+      }
+    }
+    return (amountStr != null && amountStr.isNotEmpty) ? amountStr : null;
+  }
+
+  void _onOwnedCoinTap(int methodIndex) {
+    if (!_payNowEnabled) return;
+    _selectedMethod = methodIndex;
+    _confirmPayment();
+  }
+
+  void _onUnownedCoinTap(int methodIndex) {
+    if (_isExpiredOrInvalid || _isTerminal) return;
+    final ticker = _methods[methodIndex].toUpperCase();
+    final address = _addresses[methodIndex];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "$ticker Payment",
+              style: STextStyles.pageTitleH2(context),
+            ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: address));
+                showFloatingFlushBar(
+                  type: FlushBarType.info,
+                  message: "Copied to clipboard",
+                  iconAsset: Assets.svg.copy,
+                  context: context,
+                );
+              },
+              child: RoundedWhiteContainer(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        address,
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.copy,
+                      size: 14,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorBlue,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            PrimaryButton(
+              label: "CHECK FOR PAYMENT",
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _checkForPayment();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _copyAddress(BuildContext context) {
     Clipboard.setData(ClipboardData(text: _currentAddress));
     showFloatingFlushBar(
@@ -392,30 +488,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final ticker = _selectedMethod < _methods.length
-        ? _methods[_selectedMethod].toUpperCase()
-        : "";
-
-    bool hasWallets = false;
-    if (ticker == "USDT") {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      hasWallets = ref
-          .watch(pWallets)
-          .wallets
-          .any(
-            (w) =>
-                w.info.coin is Ethereum &&
-                w.info.tokenContractAddresses.contains(usdtAddress),
-          );
-    } else {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      if (coin != null) {
-        hasWallets = ref
-            .watch(pWallets)
-            .wallets
-            .any((e) => e.info.coin == coin);
-      }
-    }
 
     const loadingOverlay = Center(
       child: SizedBox(
@@ -425,47 +497,84 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       ),
     );
 
-    final methodSelector = Row(
-      children: List.generate(_methods.length, (index) {
-        final isSelected = _selectedMethod == index;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedMethod = index),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: isSelected
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue
-                        : Colors.transparent,
-                    width: 2,
-                  ),
-                ),
-              ),
-              child: Text(
-                _methods[index],
-                textAlign: TextAlign.center,
-                style:
-                    (isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                            : STextStyles.itemSubtitle12(context))
-                        .copyWith(
-                          color: isSelected
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorBlue
-                              : null,
-                          fontWeight: isSelected ? FontWeight.w600 : null,
+    // Build coin rows from _methods/_addresses
+    final coinRows = <Widget>[];
+    for (int i = 0; i < _methods.length; i++) {
+      final ticker = _methods[i].toUpperCase();
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      final hasWallet = _hasWalletForTicker(ticker);
+      final amountStr = _addresses[i].isNotEmpty
+          ? _parseBip21Amount(_addresses[i])
+          : null;
+
+      if (i > 0) {
+        coinRows.add(const SizedBox(height: 8));
+      }
+
+      coinRows.add(
+        RoundedWhiteContainer(
+          child: Opacity(
+            opacity: hasWallet ? 1.0 : 0.5,
+            child: InkWell(
+              onTap: hasWallet
+                  ? () => _onOwnedCoinTap(i)
+                  : () => _onUnownedCoinTap(i),
+              child: Row(
+                children: [
+                  if (coin != null)
+                    SvgPicture.file(
+                      File(ref.watch(coinIconProvider(coin))),
+                      width: 24,
+                      height: 24,
+                    )
+                  else
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Center(
+                        child: Text(
+                          ticker.substring(0, ticker.length > 2 ? 2 : ticker.length),
+                          style: STextStyles.itemSubtitle12(context),
                         ),
+                      ),
+                    ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ticker,
+                          style: STextStyles.titleBold12(context),
+                        ),
+                        if (amountStr != null)
+                          Text(
+                            "$amountStr $ticker",
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (hasWallet)
+                    Text(
+                      "PAY NOW",
+                      style: STextStyles.link2(context),
+                    )
+                  else
+                    Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle2,
+                    ),
+                ],
               ),
             ),
           ),
-        );
-      }),
-    );
+        ),
+      );
+    }
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -611,72 +720,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           ),
         ],
         SizedBox(height: isDesktop ? 24 : 16),
-        if (!_isExpiredOrInvalid) ...[
-          methodSelector,
-          SizedBox(height: isDesktop ? 24 : 16),
-          if (_currentAddress.isNotEmpty)
-            Center(
-              child: QR(data: _currentAddress, size: isDesktop ? 200 : 180),
-            ),
-          if (_currentAddress.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text(
-                  "No payment address available",
-                  style: isDesktop
-                      ? STextStyles.desktopTextSmall(context)
-                      : STextStyles.itemSubtitle(context),
-                ),
-              ),
-            ),
-          SizedBox(height: isDesktop ? 16 : 12),
-          if (_currentAddress.isNotEmpty)
-            GestureDetector(
-              onTap: () => _copyAddress(context),
-              child: RoundedWhiteContainer(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          "${_methods[_selectedMethod]} address",
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                              : STextStyles.itemSubtitle12(context),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          Icons.copy,
-                          size: 14,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue,
-                        ),
-                        const SizedBox(width: 4),
-                        Text("Copy", style: STextStyles.link2(context)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _currentAddress,
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  )
-                                : STextStyles.itemSubtitle12(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
+        // Coin list (replaces tab selector + QR + address + global button)
+        if (!_isExpiredOrInvalid) ...coinRows,
         SizedBox(height: isDesktop ? 16 : 12),
         GestureDetector(
           onTap: () {
@@ -725,14 +770,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
               ],
             ),
           ),
-        ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        PrimaryButton(
-          label: hasWallets ? "PAY NOW" : "CHECK FOR PAYMENT",
-          enabled: _payNowEnabled,
-          onPressed: _payNowEnabled
-              ? (hasWallets ? _confirmPayment : _checkForPayment)
-              : null,
         ),
       ],
     );

@@ -343,7 +343,11 @@ class ShopInBitClient {
     return _request(
       'POST',
       '/car-research/invoice',
-      body: {'billing': billing.toJson()},
+      body: {
+        'billing': billing.toJson(),
+        if (_externalCustomerKey != null)
+          'external_customer_key': _externalCustomerKey,
+      },
       parse: CarResearchInvoice.fromJson,
     );
   }
@@ -364,7 +368,11 @@ class ShopInBitClient {
     return _request(
       'POST',
       '/car-research/log-payment',
-      body: {'invoice_id': invoiceId},
+      body: {
+        'invoice_id': invoiceId,
+        if (_externalCustomerKey != null)
+          'external_customer_key': _externalCustomerKey,
+      },
       parse: CarResearchPaymentResult.fromJson,
     );
   }
