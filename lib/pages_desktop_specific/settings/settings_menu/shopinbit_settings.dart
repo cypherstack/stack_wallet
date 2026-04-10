@@ -345,7 +345,8 @@ class _ShopInBitDesktopSettingsState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return SingleChildScrollView(
+      child: Column(
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 30),
@@ -444,10 +445,7 @@ class _ShopInBitDesktopSettingsState
                             : "Generate new key",
                         onPressed: _generate,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Divider(thickness: 0.5),
-                      ),
+                      const SizedBox(height: 20),
                       Text(
                         "Restore key",
                         style: STextStyles.desktopTextSmall(context),
@@ -489,10 +487,7 @@ class _ShopInBitDesktopSettingsState
                         label: "Set key",
                         onPressed: _setManualKey,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Divider(thickness: 0.5),
-                      ),
+                      const SizedBox(height: 20),
                       Text(
                         "Display Name",
                         style: STextStyles.desktopTextSmall(context),
@@ -541,6 +536,7 @@ class _ShopInBitDesktopSettingsState
           ),
         ),
       ],
+      ),
     );
   }
 }
