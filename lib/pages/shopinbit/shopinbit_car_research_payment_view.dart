@@ -560,6 +560,8 @@ class _ShopInBitCarResearchPaymentViewState
       widget.model.apiTicketId = requestRef.id;
       widget.model.ticketId = requestRef.number;
       widget.model.status = ShopInBitOrderStatus.pending;
+      // Flow complete: clear the resume flag before saving.
+      widget.model.isPendingPayment = false;
       await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
 
       // Update fee receipt ticket
