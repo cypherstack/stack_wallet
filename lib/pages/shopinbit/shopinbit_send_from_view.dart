@@ -50,6 +50,7 @@ class ShopInBitSendFromView extends ConsumerStatefulWidget {
     required this.address,
     this.shouldPopRoot = false,
     this.tokenContract,
+    this.routeOnSuccessName,
   });
 
   static const String routeName = "/shopInBitSendFrom";
@@ -60,6 +61,8 @@ class ShopInBitSendFromView extends ConsumerStatefulWidget {
   final ShopInBitOrderModel model;
   final bool shouldPopRoot;
   final EthContract? tokenContract;
+  // If set, overrides the default success route (HomeView/DesktopHomeView).
+  final String? routeOnSuccessName;
 
   @override
   ConsumerState<ShopInBitSendFromView> createState() =>
@@ -195,6 +198,7 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
                       address: address,
                       model: model,
                       tokenContract: tokenContract,
+                      routeOnSuccessName: widget.routeOnSuccessName,
                     ),
                   );
                 },
@@ -215,6 +219,7 @@ class ShopInBitSendFromCard extends ConsumerStatefulWidget {
     required this.address,
     required this.model,
     this.tokenContract,
+    this.routeOnSuccessName,
   });
 
   final String walletId;
@@ -222,6 +227,7 @@ class ShopInBitSendFromCard extends ConsumerStatefulWidget {
   final String address;
   final ShopInBitOrderModel model;
   final EthContract? tokenContract;
+  final String? routeOnSuccessName;
 
   @override
   ConsumerState<ShopInBitSendFromCard> createState() =>
@@ -369,9 +375,11 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
               builder: (_) => ShopInBitConfirmSendView(
                 txData: txData,
                 walletId: walletId,
-                routeOnSuccessName: Util.isDesktop
-                    ? DesktopHomeView.routeName
-                    : HomeView.routeName,
+                routeOnSuccessName:
+                    widget.routeOnSuccessName ??
+                    (Util.isDesktop
+                        ? DesktopHomeView.routeName
+                        : HomeView.routeName),
                 model: model,
                 tokenContract: tokenContract,
               ),
