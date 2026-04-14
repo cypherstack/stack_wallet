@@ -341,7 +341,8 @@ dependency_overrides:
   # required to override solana's lower version
   decimal: ^3.2.4
 
-  analyzer: ^8.2.0
+  # pin analyzer below 8.4.0 to avoid source_gen 3.1.0 incompatibility (getInvocation() removed in 8.4.0+)
+  analyzer: ">=8.2.0 <8.4.0"
 
   # xelis override
   json_rpc_2: ^4.0.0
