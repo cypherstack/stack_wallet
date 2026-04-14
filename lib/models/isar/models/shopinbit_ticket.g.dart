@@ -106,6 +106,21 @@ const ShopInBitTicketSchema = CollectionSchema(
       name: r'ticketId',
       type: IsarType.string,
     ),
+    r'carResearchInvoiceId': PropertySchema(
+      id: 17,
+      name: r'carResearchInvoiceId',
+      type: IsarType.string,
+    ),
+    r'feeTicketNumber': PropertySchema(
+      id: 18,
+      name: r'feeTicketNumber',
+      type: IsarType.string,
+    ),
+    r'needsCreateRequest': PropertySchema(
+      id: 19,
+      name: r'needsCreateRequest',
+      type: IsarType.bool,
+    ),
   },
 
   estimateSize: _shopInBitTicketEstimateSize,
@@ -182,6 +197,18 @@ int _shopInBitTicketEstimateSize(
   bytesCount += 3 + object.shippingPostalCode.length * 3;
   bytesCount += 3 + object.shippingStreet.length * 3;
   bytesCount += 3 + object.ticketId.length * 3;
+  {
+    final value = object.carResearchInvoiceId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.feeTicketNumber;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -213,6 +240,9 @@ void _shopInBitTicketSerialize(
   writer.writeString(offsets[14], object.shippingStreet);
   writer.writeByte(offsets[15], object.status.index);
   writer.writeString(offsets[16], object.ticketId);
+  writer.writeString(offsets[17], object.carResearchInvoiceId);
+  writer.writeString(offsets[18], object.feeTicketNumber);
+  writer.writeBool(offsets[19], object.needsCreateRequest);
 }
 
 ShopInBitTicket _shopInBitTicketDeserialize(
@@ -251,6 +281,9 @@ ShopInBitTicket _shopInBitTicketDeserialize(
       _ShopInBitTicketstatusValueEnumMap[reader.readByteOrNull(offsets[15])] ??
       ShopInBitOrderStatus.pending;
   object.ticketId = reader.readString(offsets[16]);
+  object.carResearchInvoiceId = reader.readStringOrNull(offsets[17]);
+  object.feeTicketNumber = reader.readStringOrNull(offsets[18]);
+  object.needsCreateRequest = reader.readBool(offsets[19]);
   return object;
 }
 
@@ -310,6 +343,12 @@ P _shopInBitTicketDeserializeProp<P>(
           as P;
     case 16:
       return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readStringOrNull(offset)) as P;
+    case 18:
+      return (reader.readStringOrNull(offset)) as P;
+    case 19:
+      return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2633,6 +2672,83 @@ extension ShopInBitTicketQueryFilter
       );
     });
   }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'carResearchInvoiceId'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'carResearchInvoiceId'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'feeTicketNumber'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'feeTicketNumber'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  needsCreateRequestEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'needsCreateRequest', value: value),
+      );
+    });
+  }
 }
 
 extension ShopInBitTicketQueryObject
@@ -2870,6 +2986,20 @@ extension ShopInBitTicketQuerySortBy
   sortByTicketIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticketId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByNeedsCreateRequest() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByNeedsCreateRequestDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.desc);
     });
   }
 }
@@ -3110,6 +3240,20 @@ extension ShopInBitTicketQuerySortThenBy
       return query.addSortBy(r'ticketId', Sort.desc);
     });
   }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByNeedsCreateRequest() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByNeedsCreateRequestDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.desc);
+    });
+  }
 }
 
 extension ShopInBitTicketQueryWhereDistinct
@@ -3246,6 +3390,33 @@ extension ShopInBitTicketQueryWhereDistinct
       return query.addDistinctBy(r'ticketId', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByCarResearchInvoiceId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'carResearchInvoiceId',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByFeeTicketNumber({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'feeTicketNumber',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByNeedsCreateRequest() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'needsCreateRequest');
+    });
+  }
 }
 
 extension ShopInBitTicketQueryProperty
@@ -3370,6 +3541,27 @@ extension ShopInBitTicketQueryProperty
   QueryBuilder<ShopInBitTicket, String, QQueryOperations> ticketIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'ticketId');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, String?, QQueryOperations>
+  carResearchInvoiceIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'carResearchInvoiceId');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, String?, QQueryOperations>
+  feeTicketNumberProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'feeTicketNumber');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, bool, QQueryOperations>
+  needsCreateRequestProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'needsCreateRequest');
     });
   }
 }
