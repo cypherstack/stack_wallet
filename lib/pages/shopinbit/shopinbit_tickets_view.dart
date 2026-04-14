@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../models/isar/models/shopinbit_ticket.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
+import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -11,6 +16,8 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/rounded_white_container.dart';
+import 'shopinbit_car_fee_view.dart';
+import 'shopinbit_car_research_payment_view.dart';
 import 'shopinbit_ticket_detail.dart';
 
 class ShopInBitTicketsView extends StatefulWidget {
@@ -25,19 +32,80 @@ class ShopInBitTicketsView extends StatefulWidget {
 class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
   List<ShopInBitOrderModel> _tickets = [];
   bool _syncing = false;
+  ShopInBitTicket? _pendingTicket;
+  StreamSubscription<void>? _isarSub;
 
   @override
   void initState() {
     super.initState();
     _loadLocal();
     _syncFromApi();
+    // Refresh on ticket writes.
+    _isarSub = MainDB.instance.isar.shopInBitTickets.watchLazy().listen((_) {
+      if (mounted) setState(_loadLocal);
+    });
+  }
+
+  @override
+  void dispose() {
+    _isarSub?.cancel();
+    super.dispose();
   }
 
   void _loadLocal() {
-    _tickets = MainDB.instance
-        .getShopInBitTickets()
+    final allTickets = MainDB.instance.getShopInBitTickets();
+    _pendingTicket = allTickets.where((t) => t.isPendingPayment).firstOrNull;
+    _tickets = allTickets
+        .where((t) => !t.isPendingPayment)
         .map(ShopInBitOrderModel.fromIsarTicket)
         .toList();
+  }
+
+  void _resumeFlow(ShopInBitTicket pending) {
+    final model = ShopInBitOrderModel.fromIsarTicket(pending);
+    final expiresAt = pending.carResearchExpiresAt;
+    final linksJson = pending.carResearchPaymentLinks;
+    final isDesktop = Util.isDesktop;
+
+    if (expiresAt != null &&
+        expiresAt.isAfter(DateTime.now()) &&
+        linksJson != null) {
+      // Invoice still live: navigate directly to payment view.
+      final links = (jsonDecode(linksJson) as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, v as String),
+      );
+      final invoice = CarResearchInvoice(
+        btcpayInvoice: pending.carResearchInvoiceId!,
+        expiresAt: expiresAt,
+        paymentLinks: links,
+      );
+      if (isDesktop) {
+        Navigator.of(context, rootNavigator: true).pop();
+        showDialog<void>(
+          context: context,
+          builder: (_) =>
+              ShopInBitCarResearchPaymentView(model: model, invoice: invoice),
+        );
+      } else {
+        Navigator.of(context).pushNamed(
+          ShopInBitCarResearchPaymentView.routeName,
+          arguments: (model, invoice),
+        );
+      }
+    } else {
+      // Invoice expired: navigate to fee view.
+      if (isDesktop) {
+        Navigator.of(context, rootNavigator: true).pop();
+        showDialog<void>(
+          context: context,
+          builder: (_) => ShopInBitCarFeeView(model: model),
+        );
+      } else {
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: model);
+      }
+    }
   }
 
   Future<void> _syncFromApi() async {
@@ -162,15 +230,87 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    final list = _tickets.isEmpty
-        ? Center(
-            child: Text(
-              _syncing ? "Loading requests..." : "No requests yet",
-              style: isDesktop
-                  ? STextStyles.desktopTextSmall(context)
-                  : STextStyles.itemSubtitle(context),
+    final resumeCard = _pendingTicket != null
+        ? GestureDetector(
+            onTap: () => _resumeFlow(_pendingTicket!),
+            child: RoundedWhiteContainer(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Car Research (In Progress)",
+                              style: isDesktop
+                                  ? STextStyles.desktopTextSmall(context)
+                                  : STextStyles.titleBold12(context),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow
+                                    .withOpacity(0.2),
+                              ),
+                              child: Text(
+                                "Resume",
+                                style:
+                                    (isDesktop
+                                            ? STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              )
+                                            : STextStyles.itemSubtitle12(
+                                                context,
+                                              ))
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorYellow,
+                                        ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Tap to continue your car research payment",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                              : STextStyles.itemSubtitle12(context).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: isDesktop ? 16 : 8),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle1,
+                  ),
+                ],
+              ),
             ),
           )
+        : const SizedBox.shrink();
+
+    final ticketList = _tickets.isEmpty
+        ? null
         : ListView.separated(
             shrinkWrap: true,
             itemCount: _tickets.length,
@@ -274,6 +414,31 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
               );
             },
           );
+
+    final Widget list;
+    if (_pendingTicket == null && _tickets.isEmpty) {
+      list = Center(
+        child: Text(
+          _syncing ? "Loading requests..." : "No requests yet",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.itemSubtitle(context),
+        ),
+      );
+    } else if (ticketList == null) {
+      list = resumeCard;
+    } else {
+      list = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_pendingTicket != null) ...[
+            resumeCard,
+            SizedBox(height: isDesktop ? 16 : 12),
+          ],
+          ticketList,
+        ],
+      );
+    }
 
     final content = Stack(
       children: [
