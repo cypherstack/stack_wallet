@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
@@ -93,10 +95,14 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _streetController = TextEditingController();
-    _cityController = TextEditingController();
-    _postalCodeController = TextEditingController();
+    _nameController = TextEditingController(text: widget.model.shippingName);
+    _streetController = TextEditingController(
+      text: widget.model.shippingStreet,
+    );
+    _cityController = TextEditingController(text: widget.model.shippingCity);
+    _postalCodeController = TextEditingController(
+      text: widget.model.shippingPostalCode,
+    );
     _nameFocusNode = FocusNode();
     _streetFocusNode = FocusNode();
     _cityFocusNode = FocusNode();
@@ -124,6 +130,11 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     }
 
     _fetchCountries();
+
+    // Pre-select country on resume if model already has a shipping country.
+    if (widget.model.shippingCountry.isNotEmpty) {
+      _selectedCountryIso = widget.model.shippingCountry;
+    }
   }
 
   @override
@@ -168,14 +179,11 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   Future<void> _fetchCountries() async {
     setState(() => _loadingCountries = true);
     try {
-      final resp =
-          await ShopInBitService.instance.client.getCountries();
+      final resp = await ShopInBitService.instance.client.getCountries();
       if (resp.hasError || resp.value == null) return;
       _countries = resp.value!;
       if (_selectedCountryIso != null &&
-          !_countries.any(
-            (c) => c['iso'] == _selectedCountryIso,
-          )) {
+          !_countries.any((c) => c['iso'] == _selectedCountryIso)) {
         _selectedCountryIso = null;
       }
     } catch (_) {
@@ -245,8 +253,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.warning,
-              message:
-                  resp.exception?.message ?? "Failed to create invoice",
+              message: resp.exception?.message ?? "Failed to create invoice",
               context: context,
             ),
           );
@@ -255,6 +262,15 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
       }
 
       final invoice = resp.value!;
+
+      // Persist pending state so the user can resume if they close the dialog.
+      // Sentinel ticketId; unique-replace index ensures at most one pending record.
+      widget.model.ticketId = "pending-car-research";
+      widget.model.carResearchInvoiceId = invoice.btcpayInvoice;
+      widget.model.isPendingPayment = true;
+      widget.model.carResearchExpiresAt = invoice.expiresAt;
+      widget.model.carResearchPaymentLinks = jsonEncode(invoice.paymentLinks);
+      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
 
       // Best-effort fee fetch; do not block navigation on fee parse failure.
       await _loadFee(invoice);
@@ -339,7 +355,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         final parsed = _parseBip21Amount(entry.value);
         if (parsed != null && parsed.isNotEmpty) {
           if (mounted) {
-            setState(() => _displayedFee = "$parsed ${entry.key.toUpperCase()}");
+            setState(
+              () => _displayedFee = "$parsed ${entry.key.toUpperCase()}",
+            );
           }
           return;
         }
@@ -347,8 +365,8 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     } catch (_) {
       // Leave placeholder in place.
     }
-    // No parse succeeded — leave the existing "223.00 EUR" business-rule
-    // placeholder in place rather than showing "—".
+    // No parse succeeded: leave the existing "223.00 EUR" business-rule
+    // placeholder in place rather than showing "--".
   }
 
   Widget _buildField({
@@ -398,9 +416,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     required bool isDesktop,
   }) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
           value: value,
@@ -411,12 +427,10 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   child: Text(
                     c['label'] as String,
                     style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(
-                            context,
-                          ).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveText,
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveText,
                           )
                         : STextStyles.w500_14(context),
                   ),
@@ -433,9 +447,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
             _loadingCountries ? "Loading countries..." : hint,
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultSearchIconLeft,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
                   )
                 : STextStyles.fieldLabel(context),
           ),
@@ -457,9 +471,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                 Assets.svg.chevronDown,
                 width: 12,
                 height: 6,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
             ),
           ),
@@ -497,9 +511,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   .where((c) => c['iso'] == item.value)
                   .map((c) => c['label'] as String)
                   .firstOrNull;
-              return label?.toLowerCase().contains(
-                    searchValue.toLowerCase(),
-                  ) ??
+              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
                   false;
             },
           ),
@@ -726,9 +738,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: SingleChildScrollView(
-                  child: content,
-                ),
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],
@@ -745,12 +755,11 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
           }
         },
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: _popToStep2,
-            ),
+            leading: AppBarBackButton(onPressed: _popToStep2),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

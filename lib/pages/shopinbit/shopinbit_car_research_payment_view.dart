@@ -172,7 +172,7 @@ class _ShopInBitCarResearchPaymentViewState
       }
     }
 
-    // No compatible wallet coin found — surface an info flushbar and keep
+    // No compatible wallet coin found: surface an info flushbar and keep
     // the user on this screen so they can pay externally and then use the
     // "CHECK FOR PAYMENT" button.
     unawaited(
@@ -477,11 +477,13 @@ class _ShopInBitCarResearchPaymentViewState
         return;
       }
 
-      // Step 4: Persist request ticket
+      // Step 4: Persist request ticket and clear pending payment state
       final requestRef = reqResp.value!;
       widget.model.apiTicketId = requestRef.id;
       widget.model.ticketId = requestRef.number;
       widget.model.status = ShopInBitOrderStatus.pending;
+      // Flow complete: clear the resume flag before saving.
+      widget.model.isPendingPayment = false;
       await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
 
       // Step 5: Update fee receipt — mark createRequest as done
@@ -650,7 +652,7 @@ class _ShopInBitCarResearchPaymentViewState
         ? Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Text(
-              _methods.isEmpty ? "—" : _methods.first,
+              _methods.isEmpty ? "" : _methods.first,
               textAlign: TextAlign.center,
               style: isDesktop
                   ? STextStyles.desktopTextExtraExtraSmall(context)
