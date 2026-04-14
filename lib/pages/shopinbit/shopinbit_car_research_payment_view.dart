@@ -34,6 +34,15 @@ import 'shopinbit_order_created.dart';
 import 'shopinbit_send_from_view.dart';
 import 'shopinbit_tickets_view.dart';
 
+enum _PaymentFlowState {
+  idle,
+  polling,
+  loggingPayment,
+  creatingRequest,
+  complete,
+  error,
+}
+
 class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
   const ShopInBitCarResearchPaymentView({
     super.key,
@@ -69,8 +78,7 @@ class _ShopInBitCarResearchPaymentViewState
 
   Timer? _pollTimer;
   Map<String, dynamic>? _status;
-  bool _logging = false;
-  bool _checking = false;
+  _PaymentFlowState _flowState = _PaymentFlowState.idle;
   String _statusString = "ready_to_pay";
   List<String> _methods = [];
   List<String> _addresses = [];
@@ -84,7 +92,7 @@ class _ShopInBitCarResearchPaymentViewState
     return _terminalStates.contains(s);
   }
 
-  bool get _payNowEnabled => !_isTerminal && !_logging && !_checking;
+  bool get _payNowEnabled => !_isTerminal && _flowState == _PaymentFlowState.idle;
 
   void _confirmPayment() {
     _pollTimer?.cancel();
@@ -217,12 +225,12 @@ class _ShopInBitCarResearchPaymentViewState
   }
 
   Future<void> _checkForPayment() async {
-    if (_checking || _logging) return;
-    setState(() => _checking = true);
+    if (_flowState != _PaymentFlowState.idle) return;
+    setState(() => _flowState = _PaymentFlowState.polling);
     try {
       await _pollStatus();
       if (!mounted) return;
-      if (!_isTerminal && !_logging) {
+      if (!_isTerminal && _flowState != _PaymentFlowState.loggingPayment) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -233,7 +241,9 @@ class _ShopInBitCarResearchPaymentViewState
         );
       }
     } finally {
-      if (mounted) setState(() => _checking = false);
+      if (mounted && _flowState == _PaymentFlowState.polling) {
+        setState(() => _flowState = _PaymentFlowState.idle);
+      }
     }
   }
 
@@ -359,7 +369,7 @@ class _ShopInBitCarResearchPaymentViewState
       });
       if (_isTerminal) {
         _pollTimer?.cancel();
-        await _logPayment();
+        await _processPaymentAndRequest();
       }
     } catch (e) {
       if (mounted) {
@@ -374,19 +384,25 @@ class _ShopInBitCarResearchPaymentViewState
     }
   }
 
-  Future<void> _logPayment() async {
-    if (_logging) return;
-    setState(() => _logging = true);
+  Future<void> _processPaymentAndRequest() async {
+    // Guard: only one entry allowed
+    if (_flowState == _PaymentFlowState.loggingPayment ||
+        _flowState == _PaymentFlowState.creatingRequest ||
+        _flowState == _PaymentFlowState.complete) return;
+
+    setState(() => _flowState = _PaymentFlowState.loggingPayment);
+    _pollTimer?.cancel();
+
     try {
-      final resp = await ShopInBitService.instance.client
+      final logResp = await ShopInBitService.instance.client
           .logCarResearchPayment(widget.invoice.btcpayInvoice);
-      if (resp.hasError || resp.value == null) {
+      if (logResp.hasError || logResp.value == null) {
         if (mounted) {
-          setState(() => _logging = false);
+          setState(() => _flowState = _PaymentFlowState.error);
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.warning,
-              message: resp.exception?.message ?? "Failed to log payment",
+              message: logResp.exception?.message ?? "Failed to log payment",
               context: context,
             ),
           );
@@ -394,13 +410,87 @@ class _ShopInBitCarResearchPaymentViewState
         return;
       }
 
-      final result = resp.value!;
-      widget.model.apiTicketId = result.ticketId;
-      widget.model.ticketId = result.ticketNumber;
+      final feeResult = logResp.value!;
+
+      // Step 2: Persist fee receipt ticket
+      final feeModel = ShopInBitOrderModel()
+        ..ticketId = feeResult.ticketNumber
+        ..apiTicketId = feeResult.ticketId
+        ..category = ShopInBitCategory.car
+        ..status = ShopInBitOrderStatus.pending
+        ..displayName = widget.model.displayName
+        ..requestDescription = "Car research fee receipt"
+        ..deliveryCountry = widget.model.deliveryCountry
+        ..needsCreateRequest = true
+        ..carResearchInvoiceId = widget.invoice.btcpayInvoice
+        ..feeTicketNumber = feeResult.ticketNumber;
+      await MainDB.instance.putShopInBitTicket(feeModel.toIsarTicket());
+
+      if (!mounted) return;
+      setState(() => _flowState = _PaymentFlowState.creatingRequest);
+
+      final customerKey = await ShopInBitService.instance.ensureCustomerKey();
+      final comment = "${widget.model.requestDescription}\n\n"
+          "The Client paid the car research fee (#${feeResult.ticketNumber})";
+
+      final reqResp = await ShopInBitService.instance.client.createRequest(
+        customerPseudonym: widget.model.displayName,
+        externalCustomerKey: customerKey,
+        serviceType: "car_research",
+        comment: comment,
+        deliveryCountry: widget.model.deliveryCountry,
+      );
+
+      if (reqResp.hasError || reqResp.value == null) {
+        // createRequest failed: fee receipt already persisted, show retry
+        if (mounted) {
+          setState(() => _flowState = _PaymentFlowState.error);
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              title: const Text("Request Failed"),
+              content: Text(
+                "Payment was confirmed but we couldn't submit your car "
+                "research request. You can retry from My Requests.\n\n"
+                "Error: ${reqResp.exception?.message ?? 'Unknown error'}",
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _retryCreateRequest(feeResult.ticketNumber, customerKey);
+                  },
+                  child: const Text("Retry Now"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _popToTickets();
+                  },
+                  child: const Text("Go to My Requests"),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      // Step 4: Persist request ticket
+      final requestRef = reqResp.value!;
+      widget.model.apiTicketId = requestRef.id;
+      widget.model.ticketId = requestRef.number;
       widget.model.status = ShopInBitOrderStatus.pending;
       await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
 
+      // Step 5: Update fee receipt — mark createRequest as done
+      feeModel.needsCreateRequest = false;
+      await MainDB.instance.putShopInBitTicket(feeModel.toIsarTicket());
+
       if (!mounted) return;
+      setState(() => _flowState = _PaymentFlowState.complete);
+
       if (Util.isDesktop) {
         Navigator.of(context, rootNavigator: true).pop();
         unawaited(
@@ -419,7 +509,89 @@ class _ShopInBitCarResearchPaymentViewState
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _logging = false);
+        setState(() => _flowState = _PaymentFlowState.error);
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e.toString(),
+            context: context,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _retryCreateRequest(
+    String feeTicketNumber,
+    String customerKey,
+  ) async {
+    if (_flowState == _PaymentFlowState.creatingRequest) return;
+    setState(() => _flowState = _PaymentFlowState.creatingRequest);
+
+    try {
+      final comment = "${widget.model.requestDescription}\n\n"
+          "The Client paid the car research fee (#$feeTicketNumber)";
+
+      final reqResp = await ShopInBitService.instance.client.createRequest(
+        customerPseudonym: widget.model.displayName,
+        externalCustomerKey: customerKey,
+        serviceType: "car_research",
+        comment: comment,
+        deliveryCountry: widget.model.deliveryCountry,
+      );
+
+      if (reqResp.hasError || reqResp.value == null) {
+        if (mounted) {
+          setState(() => _flowState = _PaymentFlowState.error);
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message: reqResp.exception?.message ?? "Retry failed",
+              context: context,
+            ),
+          );
+        }
+        return;
+      }
+
+      final requestRef = reqResp.value!;
+      widget.model.apiTicketId = requestRef.id;
+      widget.model.ticketId = requestRef.number;
+      widget.model.status = ShopInBitOrderStatus.pending;
+      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+
+      // Update fee receipt ticket
+      final feeTickets = MainDB.instance
+          .getShopInBitTickets()
+          .where((t) => t.ticketId == feeTicketNumber);
+      if (feeTickets.isNotEmpty) {
+        final feeTicket = feeTickets.first;
+        feeTicket.needsCreateRequest = false;
+        await MainDB.instance.putShopInBitTicket(feeTicket);
+      }
+
+      if (!mounted) return;
+      setState(() => _flowState = _PaymentFlowState.complete);
+
+      if (Util.isDesktop) {
+        Navigator.of(context, rootNavigator: true).pop();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (_) => ShopInBitOrderCreated(model: widget.model),
+          ),
+        );
+      } else {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            ShopInBitOrderCreated.routeName,
+            arguments: widget.model,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _flowState = _PaymentFlowState.error);
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -652,11 +824,15 @@ class _ShopInBitCarResearchPaymentViewState
               ),
             ),
           ),
-        const Spacer(),
+        if (!isDesktop) const Spacer(),
+        if (isDesktop) const SizedBox(height: 24),
         PrimaryButton(
-          label: _checking
+          label: _flowState == _PaymentFlowState.polling
               ? "Checking..."
-              : (hasWallets ? "PAY NOW" : "CHECK FOR PAYMENT"),
+              : (_flowState == _PaymentFlowState.loggingPayment ||
+                      _flowState == _PaymentFlowState.creatingRequest)
+                  ? "Processing..."
+                  : (hasWallets ? "PAY NOW" : "CHECK FOR PAYMENT"),
           enabled: _payNowEnabled,
           onPressed: _payNowEnabled
               ? (hasWallets
