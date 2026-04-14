@@ -192,6 +192,33 @@ class ShopInBitOrderModel extends ChangeNotifier {
     }
   }
 
+  bool _isPendingPayment = false;
+  bool get isPendingPayment => _isPendingPayment;
+  set isPendingPayment(bool value) {
+    if (_isPendingPayment != value) {
+      _isPendingPayment = value;
+      notifyListeners();
+    }
+  }
+
+  DateTime? _carResearchExpiresAt;
+  DateTime? get carResearchExpiresAt => _carResearchExpiresAt;
+  set carResearchExpiresAt(DateTime? value) {
+    if (_carResearchExpiresAt != value) {
+      _carResearchExpiresAt = value;
+      notifyListeners();
+    }
+  }
+
+  String? _carResearchPaymentLinks;
+  String? get carResearchPaymentLinks => _carResearchPaymentLinks;
+  set carResearchPaymentLinks(String? value) {
+    if (_carResearchPaymentLinks != value) {
+      _carResearchPaymentLinks = value;
+      notifyListeners();
+    }
+  }
+
   List<ShopInBitMessage> _messages = [];
   List<ShopInBitMessage> get messages => List.unmodifiable(_messages);
   void addMessage(ShopInBitMessage message) {
@@ -223,6 +250,9 @@ class ShopInBitOrderModel extends ChangeNotifier {
       ..carResearchInvoiceId = _carResearchInvoiceId
       ..feeTicketNumber = _feeTicketNumber
       ..needsCreateRequest = _needsCreateRequest
+      ..isPendingPayment = _isPendingPayment
+      ..carResearchExpiresAt = _carResearchExpiresAt
+      ..carResearchPaymentLinks = _carResearchPaymentLinks
       ..messages = _messages
           .map(
             (m) => ShopInBitTicketMessage()
@@ -254,6 +284,9 @@ class ShopInBitOrderModel extends ChangeNotifier {
       .._carResearchInvoiceId = ticket.carResearchInvoiceId
       .._feeTicketNumber = ticket.feeTicketNumber
       .._needsCreateRequest = ticket.needsCreateRequest
+      .._isPendingPayment = ticket.isPendingPayment
+      .._carResearchExpiresAt = ticket.carResearchExpiresAt
+      .._carResearchPaymentLinks = ticket.carResearchPaymentLinks
       .._messages = ticket.messages
           .map(
             (m) => ShopInBitMessage(

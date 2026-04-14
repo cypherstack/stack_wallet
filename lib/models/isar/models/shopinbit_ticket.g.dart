@@ -121,6 +121,21 @@ const ShopInBitTicketSchema = CollectionSchema(
       name: r'needsCreateRequest',
       type: IsarType.bool,
     ),
+    r'isPendingPayment': PropertySchema(
+      id: 20,
+      name: r'isPendingPayment',
+      type: IsarType.bool,
+    ),
+    r'carResearchExpiresAt': PropertySchema(
+      id: 21,
+      name: r'carResearchExpiresAt',
+      type: IsarType.dateTime,
+    ),
+    r'carResearchPaymentLinks': PropertySchema(
+      id: 22,
+      name: r'carResearchPaymentLinks',
+      type: IsarType.string,
+    ),
   },
 
   estimateSize: _shopInBitTicketEstimateSize,
@@ -209,6 +224,12 @@ int _shopInBitTicketEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.carResearchPaymentLinks;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -243,6 +264,9 @@ void _shopInBitTicketSerialize(
   writer.writeString(offsets[17], object.carResearchInvoiceId);
   writer.writeString(offsets[18], object.feeTicketNumber);
   writer.writeBool(offsets[19], object.needsCreateRequest);
+  writer.writeBool(offsets[20], object.isPendingPayment);
+  writer.writeDateTime(offsets[21], object.carResearchExpiresAt);
+  writer.writeString(offsets[22], object.carResearchPaymentLinks);
 }
 
 ShopInBitTicket _shopInBitTicketDeserialize(
@@ -284,6 +308,9 @@ ShopInBitTicket _shopInBitTicketDeserialize(
   object.carResearchInvoiceId = reader.readStringOrNull(offsets[17]);
   object.feeTicketNumber = reader.readStringOrNull(offsets[18]);
   object.needsCreateRequest = reader.readBool(offsets[19]);
+  object.isPendingPayment = reader.readBool(offsets[20]);
+  object.carResearchExpiresAt = reader.readDateTimeOrNull(offsets[21]);
+  object.carResearchPaymentLinks = reader.readStringOrNull(offsets[22]);
   return object;
 }
 
@@ -349,6 +376,12 @@ P _shopInBitTicketDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 19:
       return (reader.readBool(offset)) as P;
+    case 20:
+      return (reader.readBool(offset)) as P;
+    case 21:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 22:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }

@@ -34,6 +34,11 @@ class ShopInBitTicket {
   String? carResearchInvoiceId;
   String? feeTicketNumber;
   late bool needsCreateRequest;
+
+  // Car research resumable payment state
+  late bool isPendingPayment;
+  DateTime? carResearchExpiresAt;
+  String? carResearchPaymentLinks;
 }
 
 @embedded
