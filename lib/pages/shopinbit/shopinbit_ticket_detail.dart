@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../notifications/show_flush_bar.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -78,6 +79,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
 
   bool _sending = false;
   bool _loading = false;
+  bool _retrying = false;
 
   @override
   void initState() {
@@ -169,6 +171,78 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
       // Keep optimistic local message
     } finally {
       if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _retryCreateRequest() async {
+    if (_retrying) return;
+    setState(() => _retrying = true);
+
+    try {
+      final model = widget.model;
+      final customerKey = await ShopInBitService.instance.ensureCustomerKey();
+      final comment =
+          "${model.requestDescription}\n\n"
+          "The Client paid the car research fee (#${model.feeTicketNumber})";
+
+      final reqResp = await ShopInBitService.instance.client.createRequest(
+        customerPseudonym: model.displayName,
+        externalCustomerKey: customerKey,
+        serviceType: "car_research",
+        comment: comment,
+        deliveryCountry: model.deliveryCountry,
+      );
+
+      if (reqResp.hasError || reqResp.value == null) {
+        if (mounted) {
+          setState(() => _retrying = false);
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message: reqResp.exception?.message ?? "Failed to create request",
+              context: context,
+            ),
+          );
+        }
+        return;
+      }
+
+      final requestRef = reqResp.value!;
+      final requestModel = ShopInBitOrderModel()
+        ..ticketId = requestRef.number
+        ..apiTicketId = requestRef.id
+        ..category = ShopInBitCategory.car
+        ..status = ShopInBitOrderStatus.pending
+        ..displayName = model.displayName
+        ..requestDescription = model.requestDescription
+        ..deliveryCountry = model.deliveryCountry;
+      await MainDB.instance.putShopInBitTicket(requestModel.toIsarTicket());
+
+      model.needsCreateRequest = false;
+      await MainDB.instance.putShopInBitTicket(model.toIsarTicket());
+
+      if (!mounted) return;
+      setState(() => _retrying = false);
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "Car research request submitted successfully!",
+          context: context,
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _retrying = false);
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e.toString(),
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -461,7 +535,8 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
       ),
     );
 
-    final requestDetailsSection = _isCarResearch && model.requestDescription.isNotEmpty
+    final requestDetailsSection =
+        _isCarResearch && model.requestDescription.isNotEmpty
         ? Padding(
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
@@ -487,9 +562,25 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
           )
         : const SizedBox.shrink();
 
+    final retryButton =
+        widget.model.needsCreateRequest &&
+            widget.model.category == ShopInBitCategory.car
+        ? Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: PrimaryButton(
+              label: _retrying ? "Submitting..." : "Complete Request",
+              enabled: !_retrying,
+              onPressed: _retrying
+                  ? null
+                  : () => unawaited(_retryCreateRequest()),
+            ),
+          )
+        : const SizedBox.shrink();
+
     final body = Column(
       children: [
         statusBar,
+        retryButton,
         offerBanner,
         requestDetailsSection,
         chatArea,
