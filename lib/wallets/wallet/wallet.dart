@@ -729,10 +729,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       final fetchFuture = updateTransactions();
       _fireRefreshPercentChange(0.6);
       final utxosRefreshFuture = updateUTXOs();
-      _fireRefreshPercentChange(0.65);
       await utxosRefreshFuture;
-      _fireRefreshPercentChange(0.70);
+      _fireRefreshPercentChange(0.65);
       await fetchFuture;
+      _fireRefreshPercentChange(0.70);
     }
 
     // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
