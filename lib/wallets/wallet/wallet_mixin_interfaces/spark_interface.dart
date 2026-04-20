@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
@@ -1550,6 +1551,44 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final random = Random.secure();
     final List<TxData> results = [];
 
+    // Pre-compute signing keys for all UTXOs to avoid repeated calls to
+    // getRootHDNode() (which re-derives from mnemonic seed each time) and
+    // individual DB lookups inside the hot loop.
+    final root = await getRootHDNode();
+    final Map<String, ({DerivePathType derivePathType, coinlib.HDPrivateKey key})>
+        signingKeyCache = {};
+    Future<void> cacheSigningKey(String address) async {
+      if (signingKeyCache.containsKey(address)) return;
+      final derivePathType = cryptoCurrency.addressType(address: address);
+      final dbAddress = await mainDB.getAddress(walletId, address);
+      if (dbAddress?.derivationPath != null) {
+        final key = root.derivePath(dbAddress!.derivationPath!.value);
+        signingKeyCache[address] = (derivePathType: derivePathType, key: key);
+      }
+    }
+
+    for (final utxo in availableUtxos) {
+      await cacheSigningKey(utxo.address!);
+    }
+
+    // Cache addresses used repeatedly inside the loop.
+    final sparkAddress = (await getCurrentReceivingSparkAddress())!.value;
+    final changeAddress = await getCurrentChangeAddress();
+
+    // Pre-cache the change address signing key so change UTXOs that get
+    // recycled back into valueAndUTXOs can be signed without re-deriving.
+    if (changeAddress != null) {
+      await cacheSigningKey(changeAddress.value);
+    }
+
+    // Pre-fetch wallet-owned addresses for output ownership checks.
+    final walletAddresses = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .valueProperty()
+        .findAll();
+    final walletAddressSet = walletAddresses.toSet();
+
     valueAndUTXOs.shuffle(random);
 
     while (valueAndUTXOs.isNotEmpty) {
@@ -1590,7 +1629,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         }
 
         // if (!MoneyRange(mintedValue) || mintedValue == 0) {
-        if (mintedValue == BigInt.zero) {
+        if (mintedValue <= BigInt.zero) {
           valueAndUTXOs.remove(itr);
           skipCoin = true;
           break;
@@ -1610,7 +1649,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         if (autoMintAll) {
           singleTxOutputs.add(
             MutableSparkRecipient(
-              (await getCurrentReceivingSparkAddress())!.value,
+              sparkAddress,
               mintedValue,
               "",
             ),
@@ -1694,11 +1733,19 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         BigInt nValueIn = BigInt.zero;
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
-            setCoins.add(
-              (await addSigningKeys([
-                StandardInput(utxo),
-              ])).whereType<StandardInput>().first,
+            final cached = signingKeyCache[utxo.address!];
+            if (cached == null) {
+              throw Exception(
+                "Signing key not found for address ${utxo.address}. "
+                "Local db may be corrupt. Rescan wallet.",
+              );
+            }
+            final input = StandardInput(
+              utxo,
+              derivePathType: cached.derivePathType,
             );
+            input.key = cached.key;
+            setCoins.add(input);
             nValueIn += BigInt.from(utxo.value);
           }
         }
@@ -1720,7 +1767,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               throw Exception("Change index out of range");
             }
 
-            final changeAddress = await getCurrentChangeAddress();
             vout.insert(nChangePosInOut, (
               changeAddress!.value,
               nChange.toInt(),
@@ -1817,13 +1863,19 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           throw Exception("Transaction too large");
         }
 
-        const nBytesBuffer = 10;
+        // ECDSA DER signature lengths vary by up to ~4 bytes per input
+        // (r randomly flips the 0x80 bit → 32 vs 33 bytes; s varies similarly
+        // within low-S bounds). The dummy tx above is signed with real keys
+        // over different data than the final real tx, so their vSizes differ
+        // by up to ~4 bytes per input. Scale the safety buffer with input
+        // count so the estimated fee always covers the final signed tx.
+        final nBytesBuffer = 10 + 4 * setCoins.length;
         final nFeeNeeded = BigInt.from(
           estimateTxFee(
             vSize: nBytes + nBytesBuffer,
             feeRatePerKB: feesObject.medium,
           ),
-        ); // One day we'll do this properly
+        );
 
         if (nFeeRet >= nFeeNeeded) {
           for (final usedCoin in setCoins) {
@@ -1984,19 +2036,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             addresses: [
               if (addressOrScript is String) addressOrScript.toString(),
             ],
-            walletOwns:
-                (await mainDB.isar.addresses
-                    .where()
-                    .walletIdEqualTo(walletId)
-                    .filter()
-                    .valueEqualTo(
-                      addressOrScript is Uint8List
-                          ? output.$3!
-                          : addressOrScript as String,
-                    )
-                    .valueProperty()
-                    .findFirst()) !=
-                null,
+            walletOwns: walletAddressSet.contains(
+              addressOrScript is Uint8List
+                  ? output.$3!
+                  : addressOrScript as String,
+            ),
           ),
         );
       }
@@ -2076,11 +2120,15 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 
       Logging.instance.i("nFeeRet=$nFeeRet, vSize=${data.vSize}");
+      // fee_sats < vSize_bytes ⟺ feeRate < 1 sat/byte (the standard minimum
+      // relay fee). Firing here means feesObject.medium came back below that
+      // threshold, not that the buffer underestimated the real tx size.
       if (nFeeRet.toInt() < data.vSize!) {
         Logging.instance.w(
-          "Spark mint transaction failed: $nFeeRet is less than ${data.vSize}",
+          "Fee rate below 1 sat/byte minimum relay fee: "
+          "fee=$nFeeRet sats, vSize=${data.vSize} bytes",
         );
-        throw Exception("fee is less than vSize");
+        throw Exception("Fee rate below 1 sat/byte minimum relay fee");
       }
 
       results.add(data);
