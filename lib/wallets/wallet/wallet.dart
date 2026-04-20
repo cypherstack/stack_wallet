@@ -108,6 +108,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   Timer? _periodicRefreshTimer;
   Timer? _networkAliveTimer;
 
+  /// Timestamp of the last _fireRefreshPercentChange during an active
+  /// refresh. Consumed by the idle watchdog in _refresh() to detect hangs.
+  DateTime? _lastRefreshProgress;
+
   bool _shouldAutoSync = false;
 
   bool _isConnected = false;
@@ -603,6 +607,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _fireRefreshPercentChange(double percent) {
+    _lastRefreshProgress = DateTime.now();
     if (this is ElectrumXInterface) {
       (this as ElectrumXInterface?)?.refreshingPercent = percent;
     }
@@ -641,7 +646,60 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
       }
 
-      await _doRefreshWork(viewOnly);
+      // Idle watchdog: trips when no refresh activity has been observed
+      // for idleThreshold, signalling that the refresh is wedged.
+      // Slow-but-active syncs keep the watchdog fed and aren't killed:
+      //   - _fireRefreshPercentChange ticks (e.g. Spark per-sector progress)
+      //   - successful electrum RPCs (via ElectrumXClient.onRequestComplete)
+      // Per-call hang detection is still the responsibility of the
+      // underlying adapters (e.g. electrum's connectionTimeout). This only
+      // catches what slips through those layers and would otherwise hold
+      // refreshMutex locked until the app is force-closed.
+      const idleThreshold = Duration(minutes: 5);
+      _lastRefreshProgress = DateTime.now();
+
+      // Feed the watchdog from successful electrum RPCs, so long sequential
+      // fetches (e.g. updateTransactions on a wallet with a large history)
+      // are classified as active rather than idle.
+      if (this is ElectrumXInterface) {
+        (this as ElectrumXInterface).electrumXClient.onRequestComplete = () {
+          _lastRefreshProgress = DateTime.now();
+        };
+      }
+
+      final watchdogCompleter = Completer<void>();
+      final watchdog = Timer.periodic(const Duration(seconds: 30), (timer) {
+        if (watchdogCompleter.isCompleted) {
+          timer.cancel();
+          return;
+        }
+        final last = _lastRefreshProgress;
+        if (last == null) return;
+        if (DateTime.now().difference(last) >= idleThreshold) {
+          timer.cancel();
+          watchdogCompleter.completeError(
+            TimeoutException(
+              'Wallet refresh for $walletId idle for '
+              '${idleThreshold.inMinutes} min',
+              idleThreshold,
+            ),
+          );
+        }
+      });
+
+      try {
+        await Future.any([
+          _doRefreshWork(viewOnly),
+          watchdogCompleter.future,
+        ]);
+      } finally {
+        watchdog.cancel();
+        if (this is ElectrumXInterface) {
+          (this as ElectrumXInterface).electrumXClient.onRequestComplete =
+              null;
+        }
+        _lastRefreshProgress = null;
+      }
 
       completer.complete();
     } catch (error, strace) {
