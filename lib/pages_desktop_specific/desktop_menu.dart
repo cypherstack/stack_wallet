@@ -175,7 +175,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ? _width -
                           32 // 16 padding on either side
                     : _width - 16, // 8 padding on either side
-                child: Column(
+                child: SingleChildScrollView(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DesktopMenuItem(
@@ -271,8 +272,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       controller: controllers[7],
                       isExpandedInitially: !_isMinimized,
                     ),
-                    const Spacer(),
-                    if (!Platform.isIOS)
+                    if (!Platform.isIOS) ...[
+                      const SizedBox(height: 16),
                       DesktopMenuItem(
                         key: const ValueKey('exit'),
                         duration: duration,
@@ -294,7 +295,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         controller: controllers[8],
                         isExpandedInitially: !_isMinimized,
                       ),
+                    ],
                   ],
+                ),
                 ),
               ),
             ),

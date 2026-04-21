@@ -331,10 +331,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       pWallets.select((value) => value.getWallet(widget.walletId)),
     );
 
+    final maxDialogHeight = MediaQuery.sizeOf(context).height - 64;
+
     return DesktopDialog(
-      maxHeight: double.infinity,
+      maxHeight: maxDialogHeight,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -350,7 +353,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             ],
           ),
 
-          ...widget.options.map((option) {
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ...widget.options.map((option) {
             switch (option.$1) {
               case WalletFeature.buy:
                 // Buy has a special icon
@@ -527,7 +536,11 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             }
           }),
 
-          const SizedBox(height: 28),
+                  const SizedBox(height: 28),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
