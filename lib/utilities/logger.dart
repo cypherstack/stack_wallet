@@ -11,6 +11,7 @@
 import 'dart:convert';
 import 'dart:core' as core;
 import 'dart:core';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -137,8 +138,16 @@ class Logging {
         ),
         toFile,
       ));
-    } catch (e, s) {
-      t("Isolates suck", error: e, stackTrace: s);
+    } catch (dispatchError, dispatchStackTrace) {
+      final originalMessage = _stringifyMessage(message);
+      final fallbackLines = <String>[
+        "[logging-fallback:$level] $originalMessage",
+        "dispatchError: $dispatchError",
+        if (error != null) "error: $error",
+        if (stackTrace != null) "stackTrace: $stackTrace",
+        "dispatchStackTrace: $dispatchStackTrace",
+      ];
+      stderr.writeln(fallbackLines.join("\n"));
     }
   }
 
