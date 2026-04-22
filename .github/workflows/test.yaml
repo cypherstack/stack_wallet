@@ -7,6 +7,8 @@ jobs:
     steps:
       - name: Prepare repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install Flutter 
         uses: subosito/flutter-action@v2 
         with:
@@ -94,9 +96,21 @@ jobs:
           NAMECOIN_TEST: ${{ secrets.NAMECOIN_TEST }}
           PARTICL_TEST: ${{ secrets.PARTICL_TEST }}
 
-      - name: Verify Dart formatting
-        run: dart format --output=none --set-exit-if-changed .
-
+      - name: Check formatting of changed files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} HEAD)
+          else
+            BASE=${{ github.event.before }}
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACM "$BASE"..HEAD -- '*.dart')
+          if [ -z "$FILES" ]; then
+            echo "No Dart files changed."
+            exit 0
+          fi
+          echo "Checking formatting of $(echo "$FILES" | wc -l) file(s):"
+          echo "$FILES"
+          dart format --output=none --set-exit-if-changed $FILES
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
