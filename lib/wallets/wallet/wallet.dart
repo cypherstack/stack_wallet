@@ -656,8 +656,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       // Idle watchdog: trips when no refresh activity has been observed
       // for _refreshIdleThreshold, signalling that the refresh is wedged.
       // Slow-but-active syncs keep the watchdog fed and aren't killed:
-      //   - _fireRefreshPercentChange ticks (e.g. Spark per-sector progress)
+      //   - _fireRefreshPercentChange ticks (coarse phase checkpoints)
       //   - successful electrum RPCs (via ElectrumXClient.onRequestComplete)
+      //     — this covers Spark anon-set downloads and long updateTransactions
+      //     loops, which use electrumXClient directly and do not call
+      //     _fireRefreshPercentChange between phases.
       // Per-call hang detection is still the responsibility of the
       // underlying adapters (e.g. electrum's connectionTimeout). This only
       // catches what slips through those layers and would otherwise hold
