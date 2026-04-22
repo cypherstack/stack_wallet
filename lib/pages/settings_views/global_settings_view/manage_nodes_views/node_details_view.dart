@@ -327,7 +327,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           context: context,
                           nodeFormData: nodeFormData,
                           cryptoCurrency: coin,
-                          ref: ref,
+                          read: ref.read,
                         );
 
                         if (testPassed) {

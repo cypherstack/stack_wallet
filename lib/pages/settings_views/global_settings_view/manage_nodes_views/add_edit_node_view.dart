@@ -102,7 +102,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       onSuccess: _onTestSuccess,
       cryptoCurrency: coin,
       nodeFormData: ref.read(nodeFormDataProvider),
-      ref: ref,
+      read: ref.read,
     );
 
     bool? shouldSave;
@@ -693,7 +693,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                               onSuccess: _onTestSuccess,
                               cryptoCurrency: coin,
                               nodeFormData: ref.read(nodeFormDataProvider),
-                              ref: ref,
+                              read: ref.read,
                             );
                             if (context.mounted) {
                               if (testPassed) {
