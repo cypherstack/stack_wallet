@@ -41,6 +41,19 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Create git_versions.dart stubs
+        run: |
+          mkdir -p crypto_plugins/flutter_libepiccash/lib
+          mkdir -p crypto_plugins/flutter_libmwc/lib
+
+          cat > crypto_plugins/flutter_libepiccash/lib/git_versions.dart << 'EOF'
+          String getPluginVersion() => "stub-for-tests";
+          EOF
+
+          cat > crypto_plugins/flutter_libmwc/lib/git_versions.dart << 'EOF'
+          String getPluginVersion() => "stub-for-tests";
+          EOF
+
       - name: Create temp files
         id: secret-file1
         run: |
