@@ -687,11 +687,9 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       });
 
+      final work = _doRefreshWork(viewOnly);
       try {
-        await Future.any([
-          _doRefreshWork(viewOnly),
-          watchdogCompleter.future,
-        ]);
+        await Future.any([work, watchdogCompleter.future]);
       } finally {
         watchdog.cancel();
         if (this is ElectrumXInterface) {
@@ -699,6 +697,12 @@ abstract class Wallet<T extends CryptoCurrency> {
               null;
         }
         _lastRefreshProgress = null;
+        // If the watchdog won the race, `work` is detached and still
+        // running; an eventual throw would surface as an uncaught async
+        // error. Attach a no-op error handler to suppress it. If `work`
+        // completed first, this future is already resolved and the
+        // handler is a no-op.
+        unawaited(work.catchError((_) {}));
       }
 
       completer.complete();
