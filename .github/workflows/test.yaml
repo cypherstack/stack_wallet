@@ -127,7 +127,9 @@ jobs:
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
-        run: flutter test --coverage
+        run: |
+          flutter test --coverage -v
+          echo "flutter test exited with code $?"
       - name: Upload to code coverage
         uses: codecov/codecov-action@v1.2.2
         if: success() || failure()
