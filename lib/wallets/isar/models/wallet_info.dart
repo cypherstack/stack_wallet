@@ -581,4 +581,6 @@ abstract class WalletInfoKeys {
   static const String solanaTokenMintAddresses = "solanaTokenMintAddressesKey";
   static const String solanaCustomTokenMintAddresses =
       "solanaCustomTokenMintAddressesKey";
+  static const String firoMasternodeCollateralDismissed =
+      "firoMasternodeCollateralDismissedKey";
 }

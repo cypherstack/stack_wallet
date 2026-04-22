@@ -177,16 +177,36 @@ class _RegisterMasternodeFormState
           children: [
             Expanded(
               child: RoundedContainer(
-                color: stack.snackBarBackSuccess,
+                color: stack.textFieldDefaultBG,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Collateral: ${widget.collateralTxid.length >= 8 ? '${widget.collateralTxid.substring(0, 8)}...' : widget.collateralTxid}"
-                    ":${widget.collateralVout} "
-                    "(${widget.collateralAddress.length >= 10 ? '${widget.collateralAddress.substring(0, 10)}...' : widget.collateralAddress})",
-                    style: STextStyles.w600_14(
-                      context,
-                    ).copyWith(color: stack.snackBarTextSuccess),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Masternode collateral",
+                        style: STextStyles.w500_12(context).copyWith(
+                          color: stack.textSubtitle1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        widget.collateralAddress,
+                        style: STextStyles.w500_14(
+                          context,
+                        ).copyWith(color: stack.textDark),
+                      ),
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        "${widget.collateralTxid}:${widget.collateralVout}",
+                        style: STextStyles.w500_12(context).copyWith(
+                          color: stack.textSubtitle1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

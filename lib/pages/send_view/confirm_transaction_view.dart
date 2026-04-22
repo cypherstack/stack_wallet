@@ -17,10 +17,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
+
 import '../../models/isar/models/isar_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import '../../providers/global/global_nav_key_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -45,14 +47,13 @@ import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import '../masternodes/create_masternode_view.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -60,6 +61,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
+import '../masternodes/create_masternode_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
@@ -343,6 +345,26 @@ class _ConfirmTransactionViewState
     return null;
   }
 
+  void _showMasternodeSubmittedDialog(BuildContext? rootContext, String txid) {
+    if (rootContext == null) {
+      return;
+    }
+    unawaited(
+      showDialog<void>(
+        context: rootContext,
+        builder: (_) => StackOkDialog(
+          title: "Masternode Registration Submitted",
+          message:
+              "Masternode registration submitted, your masternode will "
+              "appear in the list after the tx is confirmed.\n\nTransaction "
+              "ID: $txid",
+          desktopPopRootNavigator: Util.isDesktop,
+          maxWidth: Util.isDesktop ? 400 : null,
+        ),
+      ),
+    );
+  }
+
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
@@ -546,13 +568,14 @@ class _ConfirmTransactionViewState
                 );
               } else {
                 navigatedToMN = true;
+                final rootContext = ref.read(pNavKey).currentContext;
                 if (isDesktop) {
                   Navigator.of(context).popUntil(
                     ModalRoute.withName(routeOnSuccessName),
                   );
                   if (context.mounted) {
                     unawaited(
-                      showDialog<void>(
+                      showDialog<Object>(
                         context: context,
                         barrierDismissible: true,
                         builder: (_) => SDialog(
@@ -563,7 +586,11 @@ class _ConfirmTransactionViewState
                             collateralAddress: mnRecipient.address,
                           ),
                         ),
-                      ),
+                      ).then((result) {
+                        if (result is String) {
+                          _showMasternodeSubmittedDialog(rootContext, result);
+                        }
+                      }),
                     );
                   }
                 } else {
@@ -580,7 +607,11 @@ class _ConfirmTransactionViewState
                         'collateralVout': collateralVout,
                         'collateralAddress': mnRecipient.address,
                       },
-                    ),
+                    ).then((result) {
+                      if (result is String) {
+                        _showMasternodeSubmittedDialog(rootContext, result);
+                      }
+                    }),
                   );
                 }
               }

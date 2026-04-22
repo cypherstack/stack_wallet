@@ -11,6 +11,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -36,10 +37,33 @@ class MasternodesHomeView extends ConsumerStatefulWidget {
 }
 
 class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
-    with WidgetsBindingObserver {
+{
   late Future<List<MasternodeInfo>> _masternodesFuture;
   bool _hasPromptedForCollateral = false;
   bool _isCheckingForCollateral = false;
+
+  Set<String> _dismissedCollateral(FiroWallet wallet) {
+    final raw = wallet.info.otherData[WalletInfoKeys.firoMasternodeCollateralDismissed];
+    if (raw is! List) {
+      return {};
+    }
+    return raw.whereType<String>().toSet();
+  }
+
+  Future<void> _persistDismissedCollateral(
+    FiroWallet wallet,
+    String txid,
+    int vout,
+  ) async {
+    final set = _dismissedCollateral(wallet);
+    set.add("$txid:$vout");
+    await wallet.info.updateOtherData(
+      newEntries: {
+        WalletInfoKeys.firoMasternodeCollateralDismissed: set.toList(),
+      },
+      isar: wallet.mainDB.isar,
+    );
+  }
 
   Future<({String txid, int vout, String address})?> _findCollateralUtxo()
       async {
@@ -131,6 +155,14 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
       if (collateral == null || !mounted) {
         return;
       }
+
+      final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
+      final dismissed = _dismissedCollateral(wallet);
+      final collateralKey = "${collateral.txid}:${collateral.vout}";
+      if (dismissed.contains(collateralKey)) {
+        return;
+      }
+
       _hasPromptedForCollateral = true;
 
       final wantsMN = await showDialog<bool>(
@@ -167,6 +199,14 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
           ),
         ),
       );
+
+      if (wantsMN == false) {
+        await _persistDismissedCollateral(
+          wallet,
+          collateral.txid,
+          collateral.vout,
+        );
+      }
 
       if (wantsMN != true || !mounted) {
         return;
@@ -232,9 +272,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
 
-    // TODO polling and update on successful registration
     _masternodesFuture =
         (ref.read(pWallets).getWallet(widget.walletId) as FiroWallet)
             .getMyMasternodes();
@@ -245,17 +283,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      unawaited(_maybePromptForExistingCollateral());
-    }
-  }
+  void dispose() => super.dispose();
 
   @override
   Widget build(BuildContext context) {

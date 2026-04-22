@@ -45,7 +45,7 @@ class _CreateMasternodeDialogState extends ConsumerState<CreateMasternodeView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: .spaceBetween,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
@@ -59,11 +59,7 @@ class _CreateMasternodeDialogState extends ConsumerState<CreateMasternodeView> {
             ),
             Flexible(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  bottom: 32,
-                  right: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, bottom: 32, right: 32),
                 child: child,
               ),
             ),
