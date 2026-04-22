@@ -105,6 +105,13 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // ===== private properties ===========================================
 
+  /// Maximum time with no refresh activity before the idle watchdog
+  /// trips and unblocks _refresh() so refreshMutex can be released.
+  static const _refreshIdleThreshold = Duration(minutes: 5);
+
+  /// How often the idle watchdog checks _lastRefreshProgress.
+  static const _refreshWatchdogTick = Duration(seconds: 30);
+
   Timer? _periodicRefreshTimer;
   Timer? _networkAliveTimer;
 
@@ -647,7 +654,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
 
       // Idle watchdog: trips when no refresh activity has been observed
-      // for idleThreshold, signalling that the refresh is wedged.
+      // for _refreshIdleThreshold, signalling that the refresh is wedged.
       // Slow-but-active syncs keep the watchdog fed and aren't killed:
       //   - _fireRefreshPercentChange ticks (e.g. Spark per-sector progress)
       //   - successful electrum RPCs (via ElectrumXClient.onRequestComplete)
@@ -655,7 +662,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       // underlying adapters (e.g. electrum's connectionTimeout). This only
       // catches what slips through those layers and would otherwise hold
       // refreshMutex locked until the app is force-closed.
-      const idleThreshold = Duration(minutes: 5);
       _lastRefreshProgress = DateTime.now();
 
       // Feed the watchdog from successful electrum RPCs, so long sequential
@@ -668,20 +674,20 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
 
       final watchdogCompleter = Completer<void>();
-      final watchdog = Timer.periodic(const Duration(seconds: 30), (timer) {
+      final watchdog = Timer.periodic(_refreshWatchdogTick, (timer) {
         if (watchdogCompleter.isCompleted) {
           timer.cancel();
           return;
         }
         final last = _lastRefreshProgress;
         if (last == null) return;
-        if (DateTime.now().difference(last) >= idleThreshold) {
+        if (DateTime.now().difference(last) >= _refreshIdleThreshold) {
           timer.cancel();
           watchdogCompleter.completeError(
             TimeoutException(
               'Wallet refresh for $walletId idle for '
-              '${idleThreshold.inMinutes} min',
-              idleThreshold,
+              '${_refreshIdleThreshold.inMinutes} min',
+              _refreshIdleThreshold,
             ),
           );
         }
