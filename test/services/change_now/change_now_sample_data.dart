@@ -31312,6 +31312,10 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
 ];
 
 const Map<String, dynamic> createStandardTransactionResponse = {
+  "fromAmount": "0.3",
+  "toAmount": "0.0021936",
+  "flow": "standard",
+  "type": "direct",
   "payinAddress":
       "85uTiLU3DPHDw8JuinfrLAJPsPw64BnCB8UU95mHhqXsVQrG1XKz3umMwnh468nRn54WWxNzZ79d5RGcESjKPSBGPDtrTRd",
   "payoutAddress": "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
@@ -31321,6 +31325,8 @@ const Map<String, dynamic> createStandardTransactionResponse = {
   "refundAddress":
       "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
   "refundExtraId": "",
-  "id": "6d2f9280dacab3",
-  "amount": 0.0021936
+  "fromNetwork": "xmr",
+  "toNetwork": "",
+  "validUntil": "2019-09-09T14:01:04.921Z",
+  "id": "6d2f9280dacab3"
 };
