@@ -63,6 +63,7 @@ jobs:
 
       - name: Create test stubs
         run: bash scripts/prebuild.sh
+        working-directory: scripts
 
       - name: Regenerate mocks
         run: dart run build_runner build --delete-conflicting-outputs
