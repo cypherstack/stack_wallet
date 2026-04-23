@@ -55,6 +55,12 @@ jobs:
           String getPluginVersion() => "stub-for-tests";
           EOF
 
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: |
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
       - name: Create test stubs
         run: bash scripts/prebuild.sh
 
