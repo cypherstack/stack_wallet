@@ -62,7 +62,7 @@ jobs:
           echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Create test stubs
-        run: bash scripts/prebuild.sh
+        run: bash prebuild.sh
         working-directory: scripts
 
       - name: Regenerate mocks
