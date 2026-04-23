@@ -16,6 +16,8 @@ import 'change_now_test.mocks.dart';
 
 @GenerateMocks([HTTP])
 void main() {
+  const testApiKey = 'testAPIKEY';
+
   Uri buildV2Uri(String path, [Map<String, String>? params]) {
     return Uri.https('api.changenow.io', '/v2$path', params);
   }
@@ -70,7 +72,7 @@ void main() {
       when(
         client.get(
           url: buildV2Uri('/exchange/currencies', {'flow': 'standard'}),
-          headers: changeNowHeaders(),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer(
@@ -78,7 +80,7 @@ void main() {
             Response(utf8.encode(jsonEncode(availableCurrenciesJSON)), 200),
       );
 
-      final result = await instance.getAvailableCurrencies();
+      final result = await instance.getAvailableCurrencies(apiKey: testApiKey);
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -95,7 +97,7 @@ void main() {
             'flow': 'standard',
             'active': 'true',
           }),
-          headers: changeNowHeaders(),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer(
@@ -105,7 +107,10 @@ void main() {
         ),
       );
 
-      final result = await instance.getAvailableCurrencies(active: true);
+      final result = await instance.getAvailableCurrencies(
+        active: true,
+        apiKey: testApiKey,
+      );
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -119,7 +124,7 @@ void main() {
       when(
         client.get(
           url: buildV2Uri('/exchange/currencies', {'flow': 'fixed-rate'}),
-          headers: changeNowHeaders(),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer(
@@ -131,6 +136,7 @@ void main() {
 
       final result = await instance.getAvailableCurrencies(
         flow: CNFlow.fixedRate,
+        apiKey: testApiKey,
       );
 
       expect(result.exception, null);
@@ -150,7 +156,7 @@ void main() {
               'flow': 'fixed-rate',
               'active': 'true',
             }),
-            headers: changeNowHeaders(),
+            headers: changeNowHeaders(testApiKey),
             proxyInfo: null,
           ),
         ).thenAnswer(
@@ -163,6 +169,7 @@ void main() {
         final result = await instance.getAvailableCurrencies(
           active: true,
           flow: CNFlow.fixedRate,
+          apiKey: testApiKey,
         );
 
         expect(result.exception, null);
@@ -180,7 +187,7 @@ void main() {
         when(
           client.get(
             url: buildV2Uri('/exchange/currencies', {'flow': 'standard'}),
-            headers: changeNowHeaders(),
+            headers: changeNowHeaders(testApiKey),
             proxyInfo: null,
           ),
         ).thenAnswer(
@@ -190,7 +197,9 @@ void main() {
           ),
         );
 
-        final result = await instance.getAvailableCurrencies();
+        final result = await instance.getAvailableCurrencies(
+          apiKey: testApiKey,
+        );
 
         expect(
           result.exception!.type,
@@ -207,12 +216,12 @@ void main() {
       when(
         client.get(
           url: buildV2Uri('/exchange/currencies', {'flow': 'standard'}),
-          headers: changeNowHeaders(),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
-      final result = await instance.getAvailableCurrencies();
+      final result = await instance.getAvailableCurrencies(apiKey: testApiKey);
 
       expect(result.exception!.type, ExchangeExceptionType.generic);
       expect(result.value == null, true);
