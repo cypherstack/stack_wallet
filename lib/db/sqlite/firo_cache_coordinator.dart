@@ -109,7 +109,23 @@ abstract class FiroCacheCoordinator {
         return;
       }
 
-      final numberOfCoinsToFetch = meta.size - prevSize;
+      final int effectivePrevSize;
+      if (prevSize > meta.size) {
+        Logging.instance.w(
+          "Spark cache size mismatch for groupId=$groupId: "
+          "prevSize=$prevSize > meta.size=${meta.size}. "
+          "Falling back to full refetch for this set.",
+        );
+        effectivePrevSize = 0;
+      } else {
+        effectivePrevSize = prevSize;
+      }
+
+      final numberOfCoinsToFetch = meta.size - effectivePrevSize;
+      if (numberOfCoinsToFetch <= 0) {
+        // Already up to date for this block hash/set hash.
+        return;
+      }
 
       final fullSectorCount = numberOfCoinsToFetch ~/ sectorSize;
       final remainder = numberOfCoinsToFetch % sectorSize;
@@ -117,14 +133,14 @@ abstract class FiroCacheCoordinator {
       final List<dynamic> coins = [];
 
       for (int i = 0; i < fullSectorCount; i++) {
-        final start = (i * sectorSize);
+        final start = effectivePrevSize + (i * sectorSize);
         final data = await client.getSparkAnonymitySetBySector(
           coinGroupId: groupId,
           latestBlock: meta.blockHash,
           startIndex: start,
           endIndex: start + sectorSize,
         );
-        progressUpdated?.call(start + sectorSize, numberOfCoinsToFetch);
+        progressUpdated?.call(((i + 1) * sectorSize), numberOfCoinsToFetch);
 
         coins.addAll(data);
       }
@@ -133,8 +149,8 @@ abstract class FiroCacheCoordinator {
         final data = await client.getSparkAnonymitySetBySector(
           coinGroupId: groupId,
           latestBlock: meta.blockHash,
-          startIndex: numberOfCoinsToFetch - remainder,
-          endIndex: numberOfCoinsToFetch,
+          startIndex: effectivePrevSize + numberOfCoinsToFetch - remainder,
+          endIndex: effectivePrevSize + numberOfCoinsToFetch,
         );
         progressUpdated?.call(numberOfCoinsToFetch, numberOfCoinsToFetch);
 

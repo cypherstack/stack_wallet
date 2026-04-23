@@ -378,6 +378,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
               case WalletFeature.clearSparkCache:
                 return _MoreFeaturesClearSparkCacheItem(
+                  walletId: widget.walletId,
                   cryptoCurrency: wallet.cryptoCurrency,
                 );
 
@@ -654,21 +655,23 @@ class _MoreFeaturesItemBase extends StatelessWidget {
   }
 }
 
-class _MoreFeaturesClearSparkCacheItem extends StatefulWidget {
+class _MoreFeaturesClearSparkCacheItem extends ConsumerStatefulWidget {
   const _MoreFeaturesClearSparkCacheItem({
     super.key,
+    required this.walletId,
     required this.cryptoCurrency,
   });
 
+  final String walletId;
   final CryptoCurrency cryptoCurrency;
 
   @override
-  State<_MoreFeaturesClearSparkCacheItem> createState() =>
+  ConsumerState<_MoreFeaturesClearSparkCacheItem> createState() =>
       _MoreFeaturesClearSparkCacheItemState();
 }
 
 class _MoreFeaturesClearSparkCacheItemState
-    extends State<_MoreFeaturesClearSparkCacheItem> {
+    extends ConsumerState<_MoreFeaturesClearSparkCacheItem> {
   bool _onPressedLock = false;
 
   static const label = "Reset Spark electrumx cache";
@@ -684,6 +687,12 @@ class _MoreFeaturesClearSparkCacheItemState
         try {
           await FiroCacheCoordinator.clearSharedCache(
             widget.cryptoCurrency.network,
+          );
+          await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+            newEntries: {
+              WalletInfoKeys.firoSparkCacheSetBlockHashCache: <String, String>{},
+            },
+            isar: ref.read(mainDBProvider).isar,
           );
           setState(() {
             // trigger rebuild for cache size display
