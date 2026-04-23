@@ -1311,23 +1311,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   Future<List<String>> getMyMasternodeProTxHashes() async {
     final List<String> r = [];
+    final Set<String> collateralTxids = {};
 
-    // Look for ProRegTx transactions (nVersion=3, nType=1 → version field
-    // = 3 + (1 << 16) = 65539) that this wallet has broadcast.
-    final allTxs =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .findAll();
-    for (final tx in allTxs) {
-      if (tx.version == 3 + (1 << 16) && !r.contains(tx.txid)) {
-        r.add(tx.txid);
-      }
-    }
-
-    // Fallback: also check 1000 FIRO UTXOs (works for legacy internal
-    // collateral where the protx txid == collateral txid). Will harmlessly
-    // produce non-protx txids that getMyMasternodes filters out.
     final utxos = await mainDB.getUTXOs(walletId).sortByBlockHeight().findAll();
     final rawMasterNodeAmount = Amount.fromDecimal(
       kMasterNodeValue,
@@ -1335,8 +1320,57 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     ).raw.toInt();
 
     for (final utxo in utxos) {
-      if (utxo.value == rawMasterNodeAmount && !r.contains(utxo.txid)) {
-        r.add(utxo.txid);
+      if (utxo.value == rawMasterNodeAmount) {
+        collateralTxids.add(utxo.txid);
+      }
+    }
+
+    if (collateralTxids.isNotEmpty) {
+      try {
+        final walletTxids =
+            await mainDB.isar.transactionV2s
+                .where()
+                .walletIdEqualTo(walletId)
+                .txidProperty()
+                .findAll();
+
+        if (walletTxids.isNotEmpty) {
+          final txs = await electrumXCachedClient.getBatchTransactions(
+            txHashes: walletTxids.toSet().toList(growable: false),
+            cryptoCurrency: cryptoCurrency,
+          );
+
+          for (final tx in txs) {
+            final txid = tx["txid"]?.toString();
+            final version = tx["version"];
+            final type = tx["type"];
+            final proReg = tx["proReg"];
+            if (txid == null ||
+                version != 3 ||
+                type != 1 ||
+                proReg is! Map) {
+              continue;
+            }
+
+            final proRegMap = Map<String, dynamic>.from(proReg);
+            final collateralHash = proRegMap["collateralHash"]?.toString();
+            if (collateralHash != null &&
+                collateralTxids.contains(collateralHash) &&
+                !r.contains(txid)) {
+              r.add(txid);
+            }
+          }
+        }
+      } catch (e) {
+        Logging.instance.i(
+          "Failed to resolve proTx hashes from wallet tx history: $e",
+        );
+      }
+    }
+
+    for (final txid in collateralTxids) {
+      if (!r.contains(txid)) {
+        r.add(txid);
       }
     }
 
