@@ -43,12 +43,14 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     required Uri? url,
     Map<String, String>? headers,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
+    Duration? connectionTimeout,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#get, [], {
               #url: url,
               #headers: headers,
               #proxyInfo: proxyInfo,
+              #connectionTimeout: connectionTimeout,
             }),
             returnValue: _i3.Future<_i2.Response>.value(
               _FakeResponse_0(
@@ -57,6 +59,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
                   #url: url,
                   #headers: headers,
                   #proxyInfo: proxyInfo,
+                  #connectionTimeout: connectionTimeout,
                 }),
               ),
             ),
