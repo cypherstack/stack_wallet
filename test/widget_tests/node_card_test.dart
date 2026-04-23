@@ -23,10 +23,7 @@ import 'support/platform_test_overrides.dart';
 void main() {
   final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
 
-  NodeModel buildNode({
-    required String id,
-    required String name,
-  }) {
+  NodeModel buildNode({required String id, required String name}) {
     return NodeModel(
       host: '127.0.0.1',
       port: 2000,
@@ -47,9 +44,7 @@ void main() {
     return ThemeData(
       extensions: [
         StackColors.fromStackColorTheme(
-          StackTheme.fromJson(
-            json: lightThemeJsonMap,
-          ),
+          StackTheme.fromJson(json: lightThemeJsonMap),
         ),
       ],
     );
@@ -68,11 +63,7 @@ void main() {
         ],
         child: MaterialApp(
           theme: buildTheme(),
-          home: NodeCard(
-            nodeId: 'node id',
-            coin: bitcoin,
-            popBackToRoute: '',
-          ),
+          home: NodeCard(nodeId: 'node id', coin: bitcoin, popBackToRoute: ''),
         ),
       ),
     );
@@ -83,12 +74,12 @@ void main() {
   testWidgets('NodeCard builds inactive node correctly', (tester) async {
     final nodeService = MockNodeService();
 
-    when(nodeService.getPrimaryNodeFor(currency: bitcoin)).thenAnswer(
-      (_) => buildNode(id: 'other node id', name: 'Stack Default'),
-    );
-    when(nodeService.getNodeById(id: 'node id')).thenAnswer(
-      (_) => buildNode(id: 'node id', name: 'some other name'),
-    );
+    when(
+      nodeService.getPrimaryNodeFor(currency: bitcoin),
+    ).thenAnswer((_) => buildNode(id: 'other node id', name: 'Stack Default'));
+    when(
+      nodeService.getNodeById(id: 'node id'),
+    ).thenAnswer((_) => buildNode(id: 'node id', name: 'some other name'));
 
     await pumpSubject(
       tester,
@@ -110,8 +101,9 @@ void main() {
     final nodeService = MockNodeService();
     final activeNode = buildNode(id: 'node id', name: 'Some other node name');
 
-    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
-        .thenAnswer((_) => activeNode);
+    when(
+      nodeService.getPrimaryNodeFor(currency: bitcoin),
+    ).thenAnswer((_) => activeNode);
     when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => activeNode);
 
     await pumpSubject(
@@ -135,8 +127,9 @@ void main() {
     final nodeService = MockNodeService();
     final activeNode = buildNode(id: 'node id', name: 'Stack Default');
 
-    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
-        .thenAnswer((_) => activeNode);
+    when(
+      nodeService.getPrimaryNodeFor(currency: bitcoin),
+    ).thenAnswer((_) => activeNode);
     when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => activeNode);
 
     await pumpSubject(
@@ -185,8 +178,9 @@ void main() {
       when(nodeService.getPrimaryNodeFor(currency: bitcoin)).thenAnswer(
         (_) => buildNode(id: 'other node id', name: 'Some other node name'),
       );
-      when(nodeService.getNodeById(id: 'node id'))
-          .thenAnswer((_) => disconnectedNode);
+      when(
+        nodeService.getNodeById(id: 'node id'),
+      ).thenAnswer((_) => disconnectedNode);
 
       await pumpSubject(
         tester,
@@ -205,10 +199,7 @@ void main() {
         (widget) => widget is CustomTextButton && widget.text == 'Connect',
       );
       expect(connectFinder, findsOneWidget);
-      expect(
-        tester.widget<CustomTextButton>(connectFinder).enabled,
-        isTrue,
-      );
+      expect(tester.widget<CustomTextButton>(connectFinder).enabled, isTrue);
 
       tester.widget<CustomTextButton>(connectFinder).onTap?.call();
       await tester.pump();

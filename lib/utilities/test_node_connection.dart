@@ -29,12 +29,13 @@ import 'test_mwcmqs_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
-typedef TestNodeConnectionCallback = Future<bool> Function({
-  required BuildContext context,
-  required NodeFormData nodeFormData,
-  required CryptoCurrency cryptoCurrency,
-  void Function(NodeFormData)? onSuccess,
-});
+typedef TestNodeConnectionCallback =
+    Future<bool> Function({
+      required BuildContext context,
+      required NodeFormData nodeFormData,
+      required CryptoCurrency cryptoCurrency,
+      void Function(NodeFormData)? onSuccess,
+    });
 
 final testNodeConnectionProvider = Provider<TestNodeConnectionCallback>((ref) {
   return ({

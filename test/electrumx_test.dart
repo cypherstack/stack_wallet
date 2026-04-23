@@ -221,14 +221,16 @@ void main() {
       final expected = {
         'genesis_hash': 'genesis',
         'hosts': {
-          '0.0.0.0': {'tcp_port': 51001, 'ssl_port': 51002}
+          '0.0.0.0': {'tcp_port': 51001, 'ssl_port': 51002},
         },
         'protocol_max': '1.4',
         'protocol_min': '1.0',
         'server_version': 'ElectrumX 1.0.17',
         'hash_function': 'sha256',
       };
-      final server = registerServer(handlers: {'server.features': (_) => expected});
+      final server = registerServer(
+        handlers: {'server.features': (_) => expected},
+      );
       final client = buildClient(clearServer: server, coin: bitcoin());
 
       final result = await client.getServerFeatures(requestID: 'features-1');
@@ -238,14 +240,16 @@ void main() {
     });
 
     test('getTransaction supports verbose and raw responses', () async {
-      final server = registerServer(handlers: {
-        'blockchain.transaction.get': (params) {
-          if (params.last == false) {
-            return 'raw-transaction-hex';
-          }
-          return SampleGetTransactionData.txData0;
+      final server = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (params) {
+            if (params.last == false) {
+              return 'raw-transaction-hex';
+            }
+            return SampleGetTransactionData.txData0;
+          },
         },
-      });
+      );
       final client = buildClient(clearServer: server, coin: firo());
 
       final verbose = await client.getTransaction(
@@ -264,14 +268,16 @@ void main() {
     });
 
     test('request surfaces server errors for malformed inputs', () async {
-      final server = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => {
-              'error': {
-                'code': 1,
-                'message': 'None should be a transaction hash',
-              },
+      final server = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (_) => {
+            'error': {
+              'code': 1,
+              'message': 'None should be a transaction hash',
             },
-      });
+          },
+        },
+      );
       final client = buildClient(clearServer: server, coin: bitcoin());
 
       await expectLater(
@@ -285,9 +291,12 @@ void main() {
     });
 
     test('getHistory uses the current list payload', () async {
-      final server = registerServer(handlers: {
-        'blockchain.scripthash.get_history': (_) => SampleGetHistoryData.data1,
-      });
+      final server = registerServer(
+        handlers: {
+          'blockchain.scripthash.get_history': (_) =>
+              SampleGetHistoryData.data1,
+        },
+      );
       final client = buildClient(clearServer: server, coin: firo());
 
       final history = await client.getHistory(
@@ -300,9 +309,11 @@ void main() {
     });
 
     test('getHistory throws after retrying malformed payloads', () async {
-      final server = registerServer(handlers: {
-        'blockchain.scripthash.get_history': (_) => {'unexpected': true},
-      });
+      final server = registerServer(
+        handlers: {
+          'blockchain.scripthash.get_history': (_) => {'unexpected': true},
+        },
+      );
       final client = buildClient(clearServer: server, coin: firo());
 
       await expectLater(
@@ -316,18 +327,23 @@ void main() {
     });
 
     test('fee wrappers use the current adapter command names', () async {
-      final server = registerServer(handlers: {
-        'blockchain.getfeerate': (_) => {'rate': 1000},
-        'blockchain.estimatefee': (params) {
-          expect(params, [5]);
-          return '0.00001000';
+      final server = registerServer(
+        handlers: {
+          'blockchain.getfeerate': (_) => {'rate': 1000},
+          'blockchain.estimatefee': (params) {
+            expect(params, [5]);
+            return '0.00001000';
+          },
+          'blockchain.relayfee': (_) => '0.00002000',
         },
-        'blockchain.relayfee': (_) => '0.00002000',
-      });
+      );
       final client = buildClient(clearServer: server, coin: firo());
 
       final feeRate = await client.getFeeRate(requestID: 'fee-rate');
-      final estimate = await client.estimateFee(requestID: 'estimate-1', blocks: 5);
+      final estimate = await client.estimateFee(
+        requestID: 'estimate-1',
+        blocks: 5,
+      );
       final relay = await client.relayFee(requestID: 'relay-1');
 
       expect(feeRate, {'rate': 1000});
@@ -339,9 +355,11 @@ void main() {
     });
 
     test('bad server exceptions bubble from current public wrappers', () async {
-      final server = registerServer(handlers: {
-        'server.features': (_) => throw Exception('mock bad server'),
-      });
+      final server = registerServer(
+        handlers: {
+          'server.features': (_) => throw Exception('mock bad server'),
+        },
+      );
       final client = buildClient(clearServer: server, coin: bitcoin());
 
       await expectLater(
@@ -358,61 +376,68 @@ void main() {
   });
 
   group('Firo-specific wrappers', () {
-    test('Lelantus wrappers use the current payloads and request shapes', () async {
-      const requestedMints = ['mint-a', 'mint-b'];
-      final mintMetadata = {
-        'mint-a': {'groupId': 1, 'height': 455866},
-        'mint-b': {'groupId': 2, 'height': 455876},
-      };
-      final server = registerServer(handlers: {
-        'lelantus.getanonymityset': (params) {
-          expect(params, ['1', '']);
-          return GetAnonymitySetSampleData.data;
-        },
-        'lelantus.getmintmetadata': (params) {
-          expect(params, [requestedMints]);
-          return mintMetadata;
-        },
-        'lelantus.getusedcoinserials': (params) {
-          expect(params, ['0']);
-          return GetUsedSerialsSampleData.serials;
-        },
-        'lelantus.getlatestcoinid': (_) => 42,
-      });
-      final client = buildClient(clearServer: server, coin: firo());
+    test(
+      'Lelantus wrappers use the current payloads and request shapes',
+      () async {
+        const requestedMints = ['mint-a', 'mint-b'];
+        final mintMetadata = {
+          'mint-a': {'groupId': 1, 'height': 455866},
+          'mint-b': {'groupId': 2, 'height': 455876},
+        };
+        final server = registerServer(
+          handlers: {
+            'lelantus.getanonymityset': (params) {
+              expect(params, ['1', '']);
+              return GetAnonymitySetSampleData.data;
+            },
+            'lelantus.getmintmetadata': (params) {
+              expect(params, [requestedMints]);
+              return mintMetadata;
+            },
+            'lelantus.getusedcoinserials': (params) {
+              expect(params, ['0']);
+              return GetUsedSerialsSampleData.serials;
+            },
+            'lelantus.getlatestcoinid': (_) => 42,
+          },
+        );
+        final client = buildClient(clearServer: server, coin: firo());
 
-      final anonymitySet = await client.getLelantusAnonymitySet(
-        groupId: '1',
-        blockhash: '',
-        requestID: 'set-1',
-      );
-      final mintData = await client.getLelantusMintData(
-        mints: requestedMints,
-        requestID: 'mint-1',
-      );
-      final serials = await client.getLelantusUsedCoinSerials(
-        requestID: 'serials-1',
-        startNumber: 0,
-      );
-      final latest = await client.getLelantusLatestCoinId(requestID: 'id-1');
+        final anonymitySet = await client.getLelantusAnonymitySet(
+          groupId: '1',
+          blockhash: '',
+          requestID: 'set-1',
+        );
+        final mintData = await client.getLelantusMintData(
+          mints: requestedMints,
+          requestID: 'mint-1',
+        );
+        final serials = await client.getLelantusUsedCoinSerials(
+          requestID: 'serials-1',
+          startNumber: 0,
+        );
+        final latest = await client.getLelantusLatestCoinId(requestID: 'id-1');
 
-      expect(anonymitySet, GetAnonymitySetSampleData.data);
-      expect(mintData, mintMetadata);
-      expect(serials, GetUsedSerialsSampleData.serials);
-      expect(latest, 42);
-      expect(server.requestCount('lelantus.getanonymityset'), 1);
-      expect(server.requestCount('lelantus.getmintmetadata'), 1);
-      expect(server.requestCount('lelantus.getusedcoinserials'), 3);
-      expect(server.requestCount('lelantus.getlatestcoinid'), 1);
-    });
+        expect(anonymitySet, GetAnonymitySetSampleData.data);
+        expect(mintData, mintMetadata);
+        expect(serials, GetUsedSerialsSampleData.serials);
+        expect(latest, 42);
+        expect(server.requestCount('lelantus.getanonymityset'), 1);
+        expect(server.requestCount('lelantus.getmintmetadata'), 1);
+        expect(server.requestCount('lelantus.getusedcoinserials'), 3);
+        expect(server.requestCount('lelantus.getlatestcoinid'), 1);
+      },
+    );
 
     test('Lelantus wrappers surface current failure modes', () async {
-      final server = registerServer(handlers: {
-        'lelantus.getmintmetadata': (_) =>
-            throw Exception('mint metadata unavailable'),
-        'lelantus.getusedcoinserials': (_) => ['not-a-map'],
-        'lelantus.getlatestcoinid': (_) => 'forty-two',
-      });
+      final server = registerServer(
+        handlers: {
+          'lelantus.getmintmetadata': (_) =>
+              throw Exception('mint metadata unavailable'),
+          'lelantus.getusedcoinserials': (_) => ['not-a-map'],
+          'lelantus.getlatestcoinid': (_) => 'forty-two',
+        },
+      );
       final client = buildClient(clearServer: server, coin: firo());
 
       await expectLater(
@@ -448,12 +473,16 @@ void main() {
       when(prefs.useTor).thenReturn(false);
       when(prefs.torKillSwitch).thenReturn(false);
 
-      final clearServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
-      });
-      final torServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => {'unexpected': true},
-      });
+      final clearServer = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
+        },
+      );
+      final torServer = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (_) => {'unexpected': true},
+        },
+      );
 
       final client = buildClient(
         clearServer: clearServer,
@@ -475,48 +504,60 @@ void main() {
       expect(torService.proxyInfoReads, 0);
     });
 
-    test('Tor in use but unavailable and killswitch off uses clearnet', () async {
-      when(prefs.useTor).thenReturn(true);
-      when(prefs.torKillSwitch).thenReturn(false);
-      torService.currentStatus = TorConnectionStatus.disconnected;
+    test(
+      'Tor in use but unavailable and killswitch off uses clearnet',
+      () async {
+        when(prefs.useTor).thenReturn(true);
+        when(prefs.torKillSwitch).thenReturn(false);
+        torService.currentStatus = TorConnectionStatus.disconnected;
 
-      final clearServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
-      });
-      final torServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => {'unexpected': true},
-      });
+        final clearServer = registerServer(
+          handlers: {
+            'blockchain.transaction.get': (_) =>
+                SampleGetTransactionData.txData0,
+          },
+        );
+        final torServer = registerServer(
+          handlers: {
+            'blockchain.transaction.get': (_) => {'unexpected': true},
+          },
+        );
 
-      final client = buildClient(
-        clearServer: clearServer,
-        torServer: torServer,
-        coin: firo(),
-      );
+        final client = buildClient(
+          clearServer: clearServer,
+          torServer: torServer,
+          coin: firo(),
+        );
 
-      final result = await client.getTransaction(
-        txHash: SampleGetTransactionData.txHash0,
-        verbose: true,
-        requestID: 'tor-fallback',
-      );
+        final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: 'tor-fallback',
+        );
 
-      expect(result, SampleGetTransactionData.txData0);
-      expect(clearServer.requestCount('blockchain.transaction.get'), 1);
-      expect(torServer.requestCount('blockchain.transaction.get'), 0);
-      expect(torService.statusReads, greaterThanOrEqualTo(1));
-      expect(torService.proxyInfoReads, 0);
-    });
+        expect(result, SampleGetTransactionData.txData0);
+        expect(clearServer.requestCount('blockchain.transaction.get'), 1);
+        expect(torServer.requestCount('blockchain.transaction.get'), 0);
+        expect(torService.statusReads, greaterThanOrEqualTo(1));
+        expect(torService.proxyInfoReads, 0);
+      },
+    );
 
     test('Tor in use and available uses the tor-backed adapter', () async {
       when(prefs.useTor).thenReturn(true);
       torService.currentStatus = TorConnectionStatus.connected;
       torService.setProxyInfo((host: InternetAddress.loopbackIPv4, port: 9050));
 
-      final clearServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => {'unexpected': true},
-      });
-      final torServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
-      });
+      final clearServer = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (_) => {'unexpected': true},
+        },
+      );
+      final torServer = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
+        },
+      );
 
       final client = buildClient(
         clearServer: clearServer,
@@ -542,9 +583,11 @@ void main() {
       when(prefs.torKillSwitch).thenReturn(true);
       torService.currentStatus = TorConnectionStatus.disconnected;
 
-      final clearServer = registerServer(handlers: {
-        'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
-      });
+      final clearServer = registerServer(
+        handlers: {
+          'blockchain.transaction.get': (_) => SampleGetTransactionData.txData0,
+        },
+      );
 
       final client = buildClient(clearServer: clearServer, coin: firo());
 
@@ -558,7 +601,9 @@ void main() {
           isA<Exception>().having(
             (error) => error.toString(),
             'message',
-            contains('Tor preference and killswitch set but Tor is not enabled'),
+            contains(
+              'Tor preference and killswitch set but Tor is not enabled',
+            ),
           ),
         ),
       );

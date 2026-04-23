@@ -125,10 +125,7 @@ void main() {
     final prefs = MockPrefs();
     final biometrics = SpyBiometrics();
     final platformOverrides = await createPlatformTestOverrides(
-      secureStorageEntries: {
-        kPinKey: '1234',
-        kDuressPinKey: '9876',
-      },
+      secureStorageEntries: {kPinKey: '1234', kDuressPinKey: '9876'},
     );
     var onSuccessCalls = 0;
 
@@ -165,10 +162,7 @@ void main() {
     final prefs = MockPrefs();
     final biometrics = SpyBiometrics();
     final platformOverrides = await createPlatformTestOverrides(
-      secureStorageEntries: {
-        kPinKey: '1234',
-        kDuressPinKey: '9876',
-      },
+      secureStorageEntries: {kPinKey: '1234', kDuressPinKey: '9876'},
     );
     var onSuccessCalls = 0;
 
@@ -202,10 +196,7 @@ void main() {
     final prefs = MockPrefs();
     final biometrics = SpyBiometrics();
     final platformOverrides = await createPlatformTestOverrides(
-      secureStorageEntries: {
-        kPinKey: '1234',
-        kDuressPinKey: '9876',
-      },
+      secureStorageEntries: {kPinKey: '1234', kDuressPinKey: '9876'},
     );
     var onSuccessCalls = 0;
 

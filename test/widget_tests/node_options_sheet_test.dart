@@ -25,10 +25,7 @@ import 'support/platform_test_overrides.dart';
 void main() {
   final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
 
-  NodeModel buildNode({
-    required String id,
-    required String name,
-  }) {
+  NodeModel buildNode({required String id, required String name}) {
     return NodeModel(
       host: '127.0.0.1',
       port: 2000,
@@ -49,9 +46,7 @@ void main() {
     return ThemeData(
       extensions: [
         StackColors.fromStackColorTheme(
-          StackTheme.fromJson(
-            json: lightThemeJsonMap,
-          ),
+          StackTheme.fromJson(json: lightThemeJsonMap),
         ),
       ],
     );
@@ -67,8 +62,9 @@ void main() {
     when(wallets.wallets).thenReturn([]);
     when(prefs.syncType).thenReturn(SyncingType.currentWalletOnly);
     when(nodeService.getNodeById(id: node.id)).thenAnswer((_) => node);
-    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
-        .thenAnswer((_) => primaryNode);
+    when(
+      nodeService.getPrimaryNodeFor(currency: bitcoin),
+    ).thenAnswer((_) => primaryNode);
   }
 
   Future<void> pumpSubject(

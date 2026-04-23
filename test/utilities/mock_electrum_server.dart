@@ -24,11 +24,12 @@ class MockElectrumServer {
     this.host = 'mock.electrum',
     this.port = 50002,
     this.useSSL = true,
-  })  : _handlers = Map<String, MockElectrumHandler>.from(handlers),
-        _latestHeader = initialHeader ?? BlockHeader('00', 1) {
+  }) : _handlers = Map<String, MockElectrumHandler>.from(handlers),
+       _latestHeader = initialHeader ?? BlockHeader('00', 1) {
     _handlers.putIfAbsent(
       'blockchain.headers.subscribe',
-      () => (_) => {'hex': _latestHeader.hex, 'height': _latestHeader.height},
+      () =>
+          (_) => {'hex': _latestHeader.hex, 'height': _latestHeader.height},
     );
   }
 
@@ -121,13 +122,13 @@ class ManagedElectrumXClient extends ElectrumXClient {
     required this.clearServer,
     this.torServer,
     EventBus? globalEventBusForTesting,
-  })  : _prefsForTest = prefs,
-        _torServiceForTest = torService,
-        super(
-          prefs: prefs,
-          torService: torService,
-          globalEventBusForTesting: globalEventBusForTesting,
-        );
+  }) : _prefsForTest = prefs,
+       _torServiceForTest = torService,
+       super(
+         prefs: prefs,
+         torService: torService,
+         globalEventBusForTesting: globalEventBusForTesting,
+       );
 
   final Prefs _prefsForTest;
   final TorService _torServiceForTest;
