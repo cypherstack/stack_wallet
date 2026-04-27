@@ -1547,38 +1547,54 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
         .toList(); // deep copy
     final feesObject = await fees;
+    final minRelayFeeRatePerKB = BigInt.from(1000);
+    final mintFeeRatePerKB = feesObject.medium < minRelayFeeRatePerKB
+        ? minRelayFeeRatePerKB
+        : feesObject.medium;
     final currentHeight = await chainHeight;
     final random = Random.secure();
     final List<TxData> results = [];
 
-    // Pre-compute signing keys for all UTXOs to avoid repeated calls to
-    // getRootHDNode() (which re-derives from mnemonic seed each time) and
-    // individual DB lookups inside the hot loop.
+    final String? autoMintSparkAddress = autoMintAll
+        ? (await getCurrentReceivingSparkAddress())?.value
+        : null;
+    if (autoMintAll && autoMintSparkAddress == null) {
+      throw Exception("No current Spark receiving address found.");
+    }
+
+    // Cache signing keys lazily for selected inputs. This mirrors the subset
+    // of addSigningKeys used by Firo Spark mints; Firo currently supports only
+    // BIP44 transparent inputs, so caching from the wallet root is valid here.
     final root = await getRootHDNode();
-    final Map<String, ({DerivePathType derivePathType, coinlib.HDPrivateKey key})>
-        signingKeyCache = {};
-    Future<void> cacheSigningKey(String address) async {
-      if (signingKeyCache.containsKey(address)) return;
+    final Map<String, _SparkMintSigningKey> signingKeyCache = {};
+    Future<_SparkMintSigningKey> getCachedSigningKey(String address) async {
+      final existing = signingKeyCache[address];
+      if (existing != null) {
+        return existing;
+      }
+
       final derivePathType = cryptoCurrency.addressType(address: address);
       final dbAddress = await mainDB.getAddress(walletId, address);
-      if (dbAddress?.derivationPath != null) {
-        final key = root.derivePath(dbAddress!.derivationPath!.value);
-        signingKeyCache[address] = (derivePathType: derivePathType, key: key);
+      if (dbAddress?.derivationPath == null) {
+        throw Exception(
+          "Signing key not found for address $address. "
+          "Local db may be corrupt. Rescan wallet.",
+        );
       }
+
+      final key = root.derivePath(dbAddress!.derivationPath!.value);
+      final cached = (derivePathType: derivePathType, key: key);
+      signingKeyCache[address] = cached;
+      return cached;
     }
 
-    for (final utxo in availableUtxos) {
-      await cacheSigningKey(utxo.address!);
-    }
-
-    // Cache addresses used repeatedly inside the loop.
-    final sparkAddress = (await getCurrentReceivingSparkAddress())!.value;
-    final changeAddress = await getCurrentChangeAddress();
-
-    // Pre-cache the change address signing key so change UTXOs that get
-    // recycled back into valueAndUTXOs can be signed without re-deriving.
-    if (changeAddress != null) {
-      await cacheSigningKey(changeAddress.value);
+    Address? cachedChangeAddress;
+    Future<Address> getMintChangeAddress() async {
+      cachedChangeAddress ??= await getCurrentChangeAddress();
+      if (cachedChangeAddress == null) {
+        throw Exception("No current change address found.");
+      }
+      return cachedChangeAddress!;
     }
 
     // Pre-fetch wallet-owned addresses for output ownership checks.
@@ -1649,7 +1665,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         if (autoMintAll) {
           singleTxOutputs.add(
             MutableSparkRecipient(
-              sparkAddress,
+              autoMintSparkAddress!,
               mintedValue,
               "",
             ),
@@ -1687,9 +1703,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
           for (int i = 0; i < singleTxOutputs.length; ++i) {
             if (singleTxOutputs[i].value <= singleFee) {
-              singleTxOutputs.removeAt(i);
-              remainder += singleTxOutputs[i].value - singleFee;
+              final removed = singleTxOutputs.removeAt(i);
+              remainder += removed.value - singleFee;
               --i;
+              continue;
             }
             singleTxOutputs[i].value -= singleFee;
             if (remainder > BigInt.zero &&
@@ -1733,13 +1750,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         BigInt nValueIn = BigInt.zero;
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
-            final cached = signingKeyCache[utxo.address!];
-            if (cached == null) {
-              throw Exception(
-                "Signing key not found for address ${utxo.address}. "
-                "Local db may be corrupt. Rescan wallet.",
-              );
-            }
+            final cached = await getCachedSigningKey(utxo.address!);
             final input = StandardInput(
               utxo,
               derivePathType: cached.derivePathType,
@@ -1767,8 +1778,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               throw Exception("Change index out of range");
             }
 
+            final changeAddress = await getMintChangeAddress();
             vout.insert(nChangePosInOut, (
-              changeAddress!.value,
+              changeAddress.value,
               nChange.toInt(),
               null,
             ));
@@ -1863,17 +1875,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           throw Exception("Transaction too large");
         }
 
-        // ECDSA DER signature lengths vary by up to ~4 bytes per input
-        // (r randomly flips the 0x80 bit → 32 vs 33 bytes; s varies similarly
-        // within low-S bounds). The dummy tx above is signed with real keys
-        // over different data than the final real tx, so their vSizes differ
-        // by up to ~4 bytes per input. Scale the safety buffer with input
-        // count so the estimated fee always covers the final signed tx.
+        // ECDSA DER signatures are not fixed-size. Even with low-S
+        // normalization, the encoded signature length can vary across
+        // signatures, so the dummy signed transaction used for fee estimation
+        // can be smaller than the final signed transaction. Use a per-input
+        // safety margin so fee estimation remains an upper bound for many-input
+        // Spark mints.
         final nBytesBuffer = 10 + 4 * setCoins.length;
         final nFeeNeeded = BigInt.from(
           estimateTxFee(
             vSize: nBytes + nBytesBuffer,
-            feeRatePerKB: feesObject.medium,
+            feeRatePerKB: mintFeeRatePerKB,
           ),
         );
 
@@ -2120,9 +2132,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 
       Logging.instance.i("nFeeRet=$nFeeRet, vSize=${data.vSize}");
-      // fee_sats < vSize_bytes ⟺ feeRate < 1 sat/byte (the standard minimum
-      // relay fee). Firing here means feesObject.medium came back below that
-      // threshold, not that the buffer underestimated the real tx size.
+      // Sanity check: with the fee rate clamped to at least 1 sat/vbyte, this
+      // should only fire if fee accounting or size estimation regresses.
       if (nFeeRet.toInt() < data.vSize!) {
         Logging.instance.w(
           "Fee rate below 1 sat/byte minimum relay fee: "
@@ -2554,6 +2565,11 @@ BigInt _min(BigInt a, BigInt b) {
 BigInt _sum(List<UTXO> utxos) => utxos
     .map((e) => BigInt.from(e.value))
     .fold(BigInt.zero, (previousValue, element) => previousValue + element);
+
+typedef _SparkMintSigningKey = ({
+  DerivePathType derivePathType,
+  coinlib.HDPrivateKey key,
+});
 
 class MutableSparkRecipient {
   String address;
