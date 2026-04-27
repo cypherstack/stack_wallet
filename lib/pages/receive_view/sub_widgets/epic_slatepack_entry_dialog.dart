@@ -31,7 +31,8 @@ class EpicSlatepackEntryDialog extends ConsumerStatefulWidget {
       _EpicSlatepackEntryDialogState();
 }
 
-class _EpicSlatepackEntryDialogState extends ConsumerState<EpicSlatepackEntryDialog> {
+class _EpicSlatepackEntryDialogState
+    extends ConsumerState<EpicSlatepackEntryDialog> {
   final _receiveSlateController = TextEditingController();
   final _slateFocusNode = FocusNode();
 

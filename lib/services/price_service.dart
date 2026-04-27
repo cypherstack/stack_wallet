@@ -76,13 +76,15 @@ class PriceService extends ChangeNotifier {
       }
     }
 
-    final _solTokenContractAddressesToCheck = await solTokenContractAddressesToCheck;
+    final _solTokenContractAddressesToCheck =
+        await solTokenContractAddressesToCheck;
 
     if (_solTokenContractAddressesToCheck.isNotEmpty) {
-      final solTokenPriceMap = await _priceAPI.getPricesAnd24hChangeForSolTokens(
-        contractAddresses: _solTokenContractAddressesToCheck,
-        baseCurrency: baseTicker,
-      );
+      final solTokenPriceMap = await _priceAPI
+          .getPricesAnd24hChangeForSolTokens(
+            contractAddresses: _solTokenContractAddressesToCheck,
+            baseCurrency: baseTicker,
+          );
 
       for (final map in solTokenPriceMap.entries) {
         if (_cachedTokenPrices[map.key] != map.value) {

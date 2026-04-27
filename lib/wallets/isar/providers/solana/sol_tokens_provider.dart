@@ -21,10 +21,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// ```
 /// Note: For full token details (name, symbol, decimals), these would need to be
 /// fetched from the Solana token metadata or a token list API.
-final pSolanaWalletTokens = Provider.family<List<String>, String>(
-  (ref, walletId) {
-    // TODO: Implement token details fetching from Solana metadata or API.
-    // For now, just return an empty list as token details are not persisted.
-    return [];
-  },
-);
+final pSolanaWalletTokens = Provider.family<List<String>, String>((
+  ref,
+  walletId,
+) {
+  // TODO: Implement token details fetching from Solana metadata or API.
+  // For now, just return an empty list as token details are not persisted.
+  return [];
+});

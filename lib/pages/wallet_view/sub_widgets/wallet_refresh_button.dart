@@ -58,33 +58,33 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
   void initState() {
     _spinController = RotatingArrowsController();
 
-    eventBus =
-        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+    eventBus = widget.eventBus != null
+        ? widget.eventBus!
+        : GlobalEventBus.instance;
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          switch (event.newStatus) {
-            case WalletSyncStatus.unableToSync:
-              if (_spinController.hasLoadedAnimation) {
-                _spinController.stop?.call();
-              }
-              break;
-            case WalletSyncStatus.synced:
-              if (_spinController.hasLoadedAnimation) {
-                _spinController.stop?.call();
-              }
-              break;
-            case WalletSyncStatus.syncing:
-              if (_spinController.hasLoadedAnimation) {
-                _spinController.repeat?.call();
-              }
-              break;
+    _syncStatusSubscription = eventBus
+        .on<WalletSyncStatusChangedEvent>()
+        .listen((event) async {
+          if (event.walletId == widget.walletId) {
+            switch (event.newStatus) {
+              case WalletSyncStatus.unableToSync:
+                if (_spinController.hasLoadedAnimation) {
+                  _spinController.stop?.call();
+                }
+                break;
+              case WalletSyncStatus.synced:
+                if (_spinController.hasLoadedAnimation) {
+                  _spinController.stop?.call();
+                }
+                break;
+              case WalletSyncStatus.syncing:
+                if (_spinController.hasLoadedAnimation) {
+                  _spinController.repeat?.call();
+                }
+                break;
+            }
           }
-        }
-      },
-    );
+        });
 
     super.initState();
   }
@@ -118,7 +118,9 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
               if (solanaTokenWallet != null) {
                 if (!solanaTokenWallet.refreshMutex.isLocked) {
                   _spinController.repeat?.call();
-                  solanaTokenWallet.refresh().then((_) => _spinController.stop?.call());
+                  solanaTokenWallet.refresh().then(
+                    (_) => _spinController.stop?.call(),
+                  );
                 }
               } else {
                 // Fall back to refreshing the parent Solana wallet.
@@ -154,12 +156,10 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
             color: widget.overrideIconColor != null
                 ? widget.overrideIconColor!
                 : isDesktop
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultSearchIconRight
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFavoriteCard,
+                ? Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultSearchIconRight
+                : Theme.of(context).extension<StackColors>()!.textFavoriteCard,
           ),
         ),
       ),

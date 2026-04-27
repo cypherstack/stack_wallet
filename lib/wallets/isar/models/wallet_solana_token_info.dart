@@ -66,11 +66,10 @@ class WalletSolanaTokenInfo implements IsarId {
     required Isar isar,
   }) async {
     // Ensure we are updating using the latest entry of this in the db.
-    final thisEntry =
-        await isar.walletSolanaTokenInfo
-            .where()
-            .walletIdTokenAddressEqualTo(walletId, tokenAddress)
-            .findFirst();
+    final thisEntry = await isar.walletSolanaTokenInfo
+        .where()
+        .walletIdTokenAddressEqualTo(walletId, tokenAddress)
+        .findFirst();
     if (thisEntry == null) {
       throw Exception(
         "Attempted to update cached token balance before object was saved in db",

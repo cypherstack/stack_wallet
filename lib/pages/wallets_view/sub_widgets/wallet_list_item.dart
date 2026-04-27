@@ -46,8 +46,9 @@ class WalletListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // debugPrint("BUILD: $runtimeType");
-    final walletCountString =
-        walletCount == 1 ? "$walletCount wallet" : "$walletCount wallets";
+    final walletCountString = walletCount == 1
+        ? "$walletCount wallet"
+        : "$walletCount wallets";
     final currency = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.currency),
     );
@@ -92,7 +93,9 @@ class WalletListItem extends ConsumerWidget {
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
 
-            final tokenAddresses = ref.read(pWalletTokenAddresses(wallet.walletId));
+            final tokenAddresses = ref.read(
+              pWalletTokenAddresses(wallet.walletId),
+            );
             if (tokenAddresses.isNotEmpty) {
               shouldShowWalletsOverview = true;
             }
@@ -157,8 +160,9 @@ class WalletListItem extends ConsumerWidget {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  Color percentChangedColor =
-                      Theme.of(context).extension<StackColors>()!.textDark;
+                  Color percentChangedColor = Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textDark;
                   String? priceString;
                   double? percentChange;
                   if (ref.watch(
@@ -183,15 +187,13 @@ class WalletListItem extends ConsumerWidget {
                       percentChange = price.change24h;
 
                       if (percentChange > 0) {
-                        percentChangedColor =
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorGreen;
+                        percentChangedColor = Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorGreen;
                       } else if (percentChange < 0) {
-                        percentChangedColor =
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorRed;
+                        percentChangedColor = Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorRed;
                       }
                     }
                   }

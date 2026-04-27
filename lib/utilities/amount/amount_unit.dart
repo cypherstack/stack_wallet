@@ -200,7 +200,7 @@ extension AmountUnitExt on AmountUnit {
     String value, {
     required String locale,
     required CryptoCurrency coin,
-     Contract? tokenContract,
+    Contract? tokenContract,
     bool overrideWithDecimalPlacesFromString = false,
   }) {
     final precisionLost = value.startsWith("~");

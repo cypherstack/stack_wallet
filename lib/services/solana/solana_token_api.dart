@@ -274,7 +274,7 @@ class SolanaTokenAPI {
       _checkClient();
 
       // Return placeholder data.
-      // 
+      //
       // TODO: Implement actual RPC call using proper client methods.
       return SolanaTokenApiResponse<TokenAccountInfo>(
         value: TokenAccountInfo(
@@ -332,9 +332,7 @@ class SolanaTokenAPI {
   }
 
   Future<SolanaTokenApiResponse<Map<String, dynamic>?>>
-      fetchTokenMetadataByMint(
-    String mintAddress,
-  ) async {
+  fetchTokenMetadataByMint(String mintAddress) async {
     try {
       _checkClient();
 
@@ -351,14 +349,10 @@ class SolanaTokenAPI {
       // Until then, return null to allow users to enter custom token details.
 
       // Metadata PDA derivation not yet implemented
-      return SolanaTokenApiResponse<Map<String, dynamic>?>(
-        value: null,
-      );
+      return SolanaTokenApiResponse<Map<String, dynamic>?>(value: null);
     } on Exception {
       // On error, return null to allow user to manually enter token details
-      return SolanaTokenApiResponse<Map<String, dynamic>?>(
-        value: null,
-      );
+      return SolanaTokenApiResponse<Map<String, dynamic>?>(value: null);
     }
   }
 

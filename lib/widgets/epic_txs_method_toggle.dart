@@ -29,30 +29,23 @@ class EpicTxsMethodToggle extends ConsumerWidget {
 
     return Toggle(
       onValueChanged: (value) {
-        ref.read(pSelectedEpicTransactionMethod.notifier).state =
-            value
-                ? EpicTransactionMethod.epicbox
-                : EpicTransactionMethod.slatepack;
+        ref.read(pSelectedEpicTransactionMethod.notifier).state = value
+            ? EpicTransactionMethod.epicbox
+            : EpicTransactionMethod.slatepack;
       },
       isOn:
           ref.watch(pSelectedEpicTransactionMethod) ==
           EpicTransactionMethod.epicbox,
-      onColor:
-          isDesktop
-              ? Theme.of(
-                context,
-              ).extension<StackColors>()!.rateTypeToggleDesktopColorOn
-              : Theme.of(
-                context,
-              ).extension<StackColors>()!.rateTypeToggleColorOn,
-      offColor:
-          isDesktop
-              ? Theme.of(
-                context,
-              ).extension<StackColors>()!.rateTypeToggleDesktopColorOff
-              : Theme.of(
-                context,
-              ).extension<StackColors>()!.rateTypeToggleColorOff,
+      onColor: isDesktop
+          ? Theme.of(
+              context,
+            ).extension<StackColors>()!.rateTypeToggleDesktopColorOn
+          : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOn,
+      offColor: isDesktop
+          ? Theme.of(
+              context,
+            ).extension<StackColors>()!.rateTypeToggleDesktopColorOff
+          : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOff,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,

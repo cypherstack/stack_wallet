@@ -1038,7 +1038,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       )..setUint32(0, collateralVout, Endian.little)).buffer.asUint8List(),
     );
 
-    // addr — IPv4-mapped IPv6 (16 bytes) + port (2 bytes big-endian)
     final ipParts = ip.split('.').map((e) => int.parse(e)).toList();
     if (ipParts.length != 4) {
       throw Exception("Invalid IP address: $ip");

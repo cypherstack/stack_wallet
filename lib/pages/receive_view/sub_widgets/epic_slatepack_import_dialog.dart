@@ -87,14 +87,12 @@ class _EpicSlatepackImportDialogState
         await showDialog<void>(
           context: context,
           useRootNavigator: true,
-          builder:
-              (context) => StackOkDialog(
-                desktopPopRootNavigator: true,
-                maxWidth: Util.isDesktop ? 400 : null,
-                title: "Slate receive error",
-                message:
-                    ex?.toString() ?? "Unexpected result without exception",
-              ),
+          builder: (context) => StackOkDialog(
+            desktopPopRootNavigator: true,
+            maxWidth: Util.isDesktop ? 400 : null,
+            title: "Slate receive error",
+            message: ex?.toString() ?? "Unexpected result without exception",
+          ),
         );
       }
       return;
@@ -112,14 +110,14 @@ class _EpicSlatepackImportDialogState
     final map = jsonDecode(widget.decoded.slateJson!) as Map;
 
     final rawAmount = BigInt.tryParse(map["amount"].toString());
-    _amount =
-        rawAmount == null
-            ? null
-            : Amount(
-              rawValue: rawAmount,
-              fractionDigits:
-                  ref.read(pWalletCoin(widget.walletId)).fractionDigits,
-            );
+    _amount = rawAmount == null
+        ? null
+        : Amount(
+            rawValue: rawAmount,
+            fractionDigits: ref
+                .read(pWalletCoin(widget.walletId))
+                .fractionDigits,
+          );
 
     super.initState();
   }
@@ -154,17 +152,15 @@ class _EpicSlatepackImportDialogState
             children: [
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => RoundedWhiteContainer(
-                      borderColor:
-                          isDesktop
-                              ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.backgroundAppBar
-                              : null,
-                      padding: const EdgeInsets.all(0),
-                      child: child,
-                    ),
+                builder: (child) => RoundedWhiteContainer(
+                  borderColor: isDesktop
+                      ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar
+                      : null,
+                  padding: const EdgeInsets.all(0),
+                  child: child,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -195,11 +191,10 @@ class _EpicSlatepackImportDialogState
               const SizedBox(height: 24),
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [child],
-                    ),
+                builder: (child) => Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [child],
+                ),
                 child: PrimaryButton(
                   width: isDesktop ? 220 : null,
 
@@ -255,10 +250,9 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
               ),
             ),
           Padding(
-            padding:
-                Util.isDesktop
-                    ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
-                    : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+            padding: Util.isDesktop
+                ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
+                : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -281,11 +275,10 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
                 const SizedBox(height: 8),
                 ConditionalParent(
                   condition: !Util.isDesktop,
-                  builder:
-                      (child) => SizedBox(
-                        height: 220,
-                        child: SingleChildScrollView(child: child),
-                      ),
+                  builder: (child) => SizedBox(
+                    height: 220,
+                    child: SingleChildScrollView(child: child),
+                  ),
                   child: SelectableText(
                     responseSlatepack,
                     style: STextStyles.w500_14(context),
@@ -294,11 +287,10 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
                 const SizedBox(height: 24),
                 ConditionalParent(
                   condition: Util.isDesktop,
-                  builder:
-                      (child) => Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [child],
-                      ),
+                  builder: (child) => Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [child],
+                  ),
                   child: PrimaryButton(
                     label: "Done",
                     width: Util.isDesktop ? 220 : null,

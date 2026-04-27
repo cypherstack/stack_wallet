@@ -108,10 +108,7 @@ class _SolTokenReceiveViewState extends ConsumerState<SolTokenReceiveView> {
                           child: SizedBox(
                             width: 200,
                             height: 200,
-                            child: QR(
-                              data: receivingAddress,
-                              size: 200,
-                            ),
+                            child: QR(data: receivingAddress, size: 200),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -129,9 +126,7 @@ class _SolTokenReceiveViewState extends ConsumerState<SolTokenReceiveView> {
                             child: Row(
                               children: [
                                 if (tokenWallet != null)
-                                  SolTokenIcon(
-                                    mintAddress: tokenMint,
-                                  )
+                                  SolTokenIcon(mintAddress: tokenMint)
                                 else
                                   SizedBox.square(dimension: 32),
                                 const SizedBox(width: 6),
@@ -208,14 +203,12 @@ class _SolTokenReceiveViewState extends ConsumerState<SolTokenReceiveView> {
                                       const SizedBox(width: 8),
                                       Text(
                                         "Copy",
-                                        style:
-                                            STextStyles.smallMed12(context)
-                                                .copyWith(
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).extension<StackColors>()!
-                                                      .textDark,
-                                                ),
+                                        style: STextStyles.smallMed12(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -228,10 +221,7 @@ class _SolTokenReceiveViewState extends ConsumerState<SolTokenReceiveView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    "Address",
-                    style: STextStyles.itemSubtitle(context),
-                  ),
+                  Text("Address", style: STextStyles.itemSubtitle(context)),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(

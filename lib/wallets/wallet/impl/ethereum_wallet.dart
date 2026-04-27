@@ -218,7 +218,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
       final address = eth_wallet.EthereumAddress.fromHex(addressHex);
-      final eth_wallet.EtherAmount ethBalance = await client.getBalance(address);
+      final eth_wallet.EtherAmount ethBalance = await client.getBalance(
+        address,
+      );
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,

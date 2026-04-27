@@ -28,7 +28,8 @@ class EpicSlatepackDialog extends ConsumerStatefulWidget {
   final ClipboardInterface clipboard;
 
   @override
-  ConsumerState<EpicSlatepackDialog> createState() => _EpicSlatepackDialogState();
+  ConsumerState<EpicSlatepackDialog> createState() =>
+      _EpicSlatepackDialogState();
 }
 
 class _EpicSlatepackDialogState extends ConsumerState<EpicSlatepackDialog> {
@@ -57,35 +58,35 @@ class _EpicSlatepackDialogState extends ConsumerState<EpicSlatepackDialog> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder:
-          (child) => Column(
-            mainAxisSize: MainAxisSize.min,
+      builder: (child) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header with title and close button.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Header with title and close button.
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 32),
-                    child: Text(
-                      "Send Slate",
-                      style: STextStyles.pageTitleH2(context),
-                    ),
-                  ),
-                  const DesktopDialogCloseButton(),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(
+                  "Send Slate",
+                  style: STextStyles.pageTitleH2(context),
+                ),
               ),
-              Padding(padding: const EdgeInsets.all(32), child: child),
+              const DesktopDialogCloseButton(),
             ],
           ),
+          Padding(padding: const EdgeInsets.all(32), child: child),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Instructions.
           RoundedContainer(
-            color:
-                Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldDefaultBG,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -109,12 +110,7 @@ class _EpicSlatepackDialogState extends ConsumerState<EpicSlatepackDialog> {
           const SizedBox(height: 12),
 
           // QR Code view.
-          Center(
-            child: QR(
-              data: widget.slatepackResult.slatepack!,
-              size: 220,
-            ),
-          ),
+          Center(child: QR(data: widget.slatepackResult.slatepack!, size: 220)),
 
           const SizedBox(height: 12),
 
@@ -135,10 +131,9 @@ class _EpicSlatepackDialogState extends ConsumerState<EpicSlatepackDialog> {
                             Assets.svg.copy,
                             width: 10,
                             height: 10,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemIcons,
                           ),
                           const SizedBox(width: 4),
                           Text("Copy", style: STextStyles.link2(context)),

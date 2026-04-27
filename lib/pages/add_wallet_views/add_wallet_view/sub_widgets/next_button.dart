@@ -20,18 +20,16 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
-  const AddWalletNextButton({
-    super.key,
-    required this.isDesktop,
-  });
+  const AddWalletNextButton({super.key, required this.isDesktop});
 
   final bool isDesktop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: NextButton");
-    final selectedCoin =
-        ref.watch(addWalletSelectedEntityStateProvider.state).state;
+    final selectedCoin = ref
+        .watch(addWalletSelectedEntityStateProvider.state)
+        .state;
 
     final enabled = selectedCoin != null;
 
@@ -57,18 +55,18 @@ class AddWalletNextButton extends ConsumerWidget {
               }
             },
       style: enabled
-          ? Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryEnabledButtonStyle(context)
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryDisabledButtonStyle(context),
+          ? Theme.of(
+              context,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context)
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.getPrimaryDisabledButtonStyle(context),
       child: Text(
         "Next",
         style: isDesktop
             ? enabled
-                ? STextStyles.desktopButtonEnabled(context)
-                : STextStyles.desktopButtonDisabled(context)
+                  ? STextStyles.desktopButtonEnabled(context)
+                  : STextStyles.desktopButtonDisabled(context)
             : STextStyles.button(context),
       ),
     );

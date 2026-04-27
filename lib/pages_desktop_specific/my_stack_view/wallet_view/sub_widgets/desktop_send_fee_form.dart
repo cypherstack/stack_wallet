@@ -220,12 +220,16 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                       final fee = await tokenWallet
                                           .estimateFeeFor(amount, feeRate);
                                       ref
-                                              .read(tokenFeeSessionCacheProvider)
+                                              .read(
+                                                tokenFeeSessionCacheProvider,
+                                              )
                                               .average[amount] =
                                           fee;
                                     } catch (_) {
                                       // Token wallet not available.
-                                      debugPrint("Token fee estimation not available");
+                                      debugPrint(
+                                        "Token fee estimation not available",
+                                      );
                                     }
                                   }
                                 }

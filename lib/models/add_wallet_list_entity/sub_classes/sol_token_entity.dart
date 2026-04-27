@@ -26,6 +26,10 @@ class SolTokenEntity extends AddWalletListEntity {
   String get ticker => token.symbol;
 
   @override
-  List<Object?> get props =>
-      [cryptoCurrency.identifier, name, ticker, token.address];
+  List<Object?> get props => [
+    cryptoCurrency.identifier,
+    name,
+    ticker,
+    token.address,
+  ];
 }

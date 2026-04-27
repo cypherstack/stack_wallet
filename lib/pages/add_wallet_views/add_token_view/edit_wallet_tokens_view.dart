@@ -100,11 +100,10 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens =
-        tokenEntities
-            .where((e) => e.selected)
-            .map((e) => e.token.address)
-            .toList();
+    final selectedTokens = tokenEntities
+        .where((e) => e.selected)
+        .map((e) => e.token.address)
+        .toList();
 
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
@@ -177,7 +176,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               tokenEntities.add(
                 AddTokenListElementData(contract!)..selected = true,
               );
-              tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+              tokenEntities.sort(
+                (a, b) => a.token.name.compareTo(b.token.name),
+              );
             }
           });
         }
@@ -199,9 +200,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         ),
       );
     } else {
-      final result = await Navigator.of(
-        context,
-      ).pushNamed(
+      final result = await Navigator.of(context).pushNamed(
         AddCustomSolanaTokenView.routeName,
         arguments: widget.walletId,
       );
@@ -228,9 +227,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           if (tokenEntities
               .where((e) => e.token.address == token!.address)
               .isEmpty) {
-            tokenEntities.add(
-              AddTokenListElementData(token!)..selected = true,
-            );
+            tokenEntities.add(AddTokenListElementData(token!)..selected = true);
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });

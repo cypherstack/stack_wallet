@@ -47,42 +47,43 @@ final pIsSlatepack = Provider.family<bool, String>((ref, walletId) {
   return false;
 });
 
-final pPreviewTxButtonEnabled = Provider.autoDispose
-    .family<bool, CryptoCurrency>((ref, coin) {
-      final amount = ref.watch(pSendAmount) ?? Amount.zero;
+final pPreviewTxButtonEnabled = Provider.autoDispose.family<bool, CryptoCurrency>(
+  (ref, coin) {
+    final amount = ref.watch(pSendAmount) ?? Amount.zero;
 
-      // For MWC slatepack transactions, address validation is not required.
-      if (coin is Mimblewimblecoin) {
-        final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
-        if (selectedMethod == MwcTransactionMethod.slatepack) {
-          return amount > Amount.zero;
-        }
+    // For MWC slatepack transactions, address validation is not required.
+    if (coin is Mimblewimblecoin) {
+      final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
+      if (selectedMethod == MwcTransactionMethod.slatepack) {
+        return amount > Amount.zero;
       }
+    }
 
-      // For Epic Cash slatepack transactions, address validation is not required.
-      if (coin is Epiccash) {
-        final selectedMethod = ref.watch(pSelectedEpicTransactionMethod);
-        if (selectedMethod == EpicTransactionMethod.slatepack) {
-          return amount > Amount.zero;
-        }
+    // For Epic Cash slatepack transactions, address validation is not required.
+    if (coin is Epiccash) {
+      final selectedMethod = ref.watch(pSelectedEpicTransactionMethod);
+      if (selectedMethod == EpicTransactionMethod.slatepack) {
+        return amount > Amount.zero;
       }
+    }
 
-      if (coin is Firo) {
-        final firoType = ref.watch(publicPrivateBalanceStateProvider);
-        switch (firoType) {
-          case BalanceType.private:
-            return (ref.watch(pValidSendToAddress) ||
-                    ref.watch(pValidSparkSendToAddress)) &&
-                !ref.watch(pIsExchangeAddress) &&
-                amount > Amount.zero;
+    if (coin is Firo) {
+      final firoType = ref.watch(publicPrivateBalanceStateProvider);
+      switch (firoType) {
+        case BalanceType.private:
+          return (ref.watch(pValidSendToAddress) ||
+                  ref.watch(pValidSparkSendToAddress)) &&
+              !ref.watch(pIsExchangeAddress) &&
+              amount > Amount.zero;
 
-          case BalanceType.public:
-            return ref.watch(pValidSendToAddress) && amount > Amount.zero;
-        }
-      } else {
-        return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+        case BalanceType.public:
+          return ref.watch(pValidSendToAddress) && amount > Amount.zero;
       }
-    });
+    } else {
+      return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+    }
+  },
+);
 
 final previewTokenTxButtonStateProvider = StateProvider.autoDispose<bool>((_) {
   return false;

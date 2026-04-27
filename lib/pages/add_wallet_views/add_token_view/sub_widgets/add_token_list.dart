@@ -38,9 +38,7 @@ class AddTokenList extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               child,
-              AddCustomTokenSelector(
-                addFunction: addFunction!,
-              ),
+              AddCustomTokenSelector(addFunction: addFunction!),
             ],
           ),
           child: Padding(
