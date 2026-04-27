@@ -2181,6 +2181,23 @@ class RouteGenerator {
             ),
             settings: RouteSettings(name: settings.name),
           );
+        } else if (args
+            is Tuple4<
+              String,
+              CryptoCurrency,
+              EthContract,
+              SendViewAutoFillData
+            >) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => TokenSendView(
+              walletId: args.item1,
+              coin: args.item2,
+              tokenContract: args.item3,
+              autoFillData: args.item4,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

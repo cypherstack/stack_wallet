@@ -37,6 +37,7 @@ class OpenCryptoPayMethodSupport {
     required CryptoCurrency coin,
     required OpenCryptoPayTransferMethod method,
     required OpenCryptoPayAsset asset,
+    Iterable<String> enabledErc20Symbols = const [],
   }) {
     final ticker = coin.ticker.toUpperCase();
     final assetTicker = asset.asset.toUpperCase();
@@ -45,7 +46,11 @@ class OpenCryptoPayMethodSupport {
       return method.method == 'Bitcoin' && assetTicker == ticker;
     }
     if (coin is Ethereum) {
-      return method.method == 'Ethereum' && assetTicker == ticker;
+      if (method.method != 'Ethereum') return false;
+      if (assetTicker == ticker) return true;
+      return enabledErc20Symbols
+          .map((e) => e.toUpperCase())
+          .contains(assetTicker);
     }
     if (coin is Solana) {
       return method.method == 'Solana' && assetTicker == ticker;

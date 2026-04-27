@@ -57,6 +57,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../token_view/token_view.dart';
+import '../wallet_view/wallet_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
@@ -522,7 +523,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                 walletId: walletId,
                 isTokenTx: true,
                 onSuccess: clearSendForm,
-                routeOnSuccessName: TokenView.routeName,
+                routeOnSuccessName: _data?.openCryptoPayCommit == null
+                    ? TokenView.routeName
+                    : WalletView.routeName,
+                openCryptoPayCommit: _data?.openCryptoPayCommit,
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -613,7 +617,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address.trim();
+      noteController.text = _data.note;
       _addressToggleFlag = true;
+      _updatePreviewButtonState(_address, _amountToSend);
     }
 
     super.initState();

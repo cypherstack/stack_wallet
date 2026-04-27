@@ -54,6 +54,7 @@ import '../../wallets/wallet/impl/ethereum_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet.dart';
@@ -472,8 +473,11 @@ class _ConfirmTransactionViewState
     try {
       if (openCryptoPayCommit?.submissionFlow ==
           OpenCryptoPaySubmissionFlow.rawHexToProvider) {
+        final submitWallet = widget.isTokenTx
+            ? ref.read(pCurrentTokenWallet)!
+            : wallet;
         txDataFuture = _submitOpenCryptoPayRawHex(
-          wallet,
+          submitWallet,
           widget.txData,
           openCryptoPayCommit!,
         );
@@ -904,6 +908,9 @@ class _ConfirmTransactionViewState
     );
     if (transactionError != null) return transactionError;
 
+    final tokenError = _validateOpenCryptoPayToken(commit);
+    if (tokenError != null) return tokenError;
+
     switch (commit.submissionFlow) {
       case OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast:
         return null;
@@ -945,6 +952,32 @@ class _ConfirmTransactionViewState
 
     if (actual.amount.decimal != commit.amount) {
       return "Open CryptoPay amount changed. Please scan again.";
+    }
+
+    return null;
+  }
+
+  String? _validateOpenCryptoPayToken(OpenCryptoPayCommit commit) {
+    final tokenContractAddress = commit.tokenContractAddress;
+    if (tokenContractAddress == null) return null;
+
+    if (!widget.isTokenTx || commit.method != 'Ethereum') {
+      return "Open CryptoPay token payment is not supported here";
+    }
+
+    final tokenWallet = ref.read(pCurrentTokenWallet);
+    if (tokenWallet == null) {
+      return "Could not verify Open CryptoPay token wallet";
+    }
+
+    if (tokenWallet.tokenContract.address.toLowerCase() !=
+        tokenContractAddress.toLowerCase()) {
+      return "Open CryptoPay token contract changed. Please scan again.";
+    }
+
+    if (tokenWallet.tokenContract.symbol.toUpperCase() !=
+        commit.asset.toUpperCase()) {
+      return "Open CryptoPay token asset changed. Please scan again.";
     }
 
     return null;
@@ -1113,6 +1146,9 @@ class _ConfirmTransactionViewState
     Wallet wallet,
     TxData txData,
   ) async {
+    if (wallet is EthTokenWallet) {
+      return await wallet.signSendWithoutBroadcast(txData: txData);
+    }
     if (wallet is EthereumWallet) {
       return await wallet.signSendWithoutBroadcast(txData: txData);
     }

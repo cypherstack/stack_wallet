@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/db/main_db_provider.dart';
 import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
 import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
@@ -11,6 +13,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -75,11 +78,26 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
   bool _isSupportedOption(
     OpenCryptoPayTransferMethod method,
     OpenCryptoPayAsset asset,
-  ) => OpenCryptoPayMethodSupport.isSupportedWalletOption(
-    coin: widget.coin,
-    method: method,
-    asset: asset,
-  );
+    Iterable<EthContract> enabledErc20Tokens,
+  ) {
+    return OpenCryptoPayMethodSupport.isSupportedWalletOption(
+      coin: widget.coin,
+      method: method,
+      asset: asset,
+      enabledErc20Symbols: enabledErc20Tokens.map((e) => e.symbol),
+    );
+  }
+
+  List<EthContract> _enabledErc20Tokens() {
+    if (widget.coin is! Ethereum) return const [];
+    final mainDB = ref.watch(mainDBProvider);
+    return ref
+        .watch(pWalletTokenAddresses(widget.walletId))
+        .map(mainDB.getEthContractSync)
+        .whereType<EthContract>()
+        .where((e) => e.type == EthContractType.erc20)
+        .toList();
+  }
 
   Future<void> _onSelected(
     OpenCryptoPayTransferMethod method,
@@ -164,11 +182,14 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       return const Center(child: Text("No payment data"));
     }
 
+    final enabledErc20Tokens = _enabledErc20Tokens();
+
     // Flatten into (method, asset) pairs that this wallet can safely settle.
     final options = [
       for (final m in details.availableMethods)
         for (final a in m.assets)
-          if (_isSupportedOption(m, a)) (method: m, asset: a),
+          if (_isSupportedOption(m, a, enabledErc20Tokens))
+            (method: m, asset: a),
     ];
 
     return SingleChildScrollView(

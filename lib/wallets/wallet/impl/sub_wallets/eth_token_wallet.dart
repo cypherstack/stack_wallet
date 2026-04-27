@@ -281,6 +281,13 @@ class EthTokenWallet extends Wallet {
     }
   }
 
+  Future<TxData> signSendWithoutBroadcast({required TxData txData}) async {
+    return await ethWallet.signSendWithoutBroadcast(
+      txData: txData,
+      prepareTempTx: _prepareTempTx,
+    );
+  }
+
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     return ethWallet.estimateEthFee(
