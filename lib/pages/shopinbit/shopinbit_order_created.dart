@@ -180,12 +180,11 @@ class ShopInBitOrderCreated extends StatelessWidget {
           }
         },
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () => _popToServices(context),
-            ),
+            leading: AppBarBackButton(onPressed: () => _popToServices(context)),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

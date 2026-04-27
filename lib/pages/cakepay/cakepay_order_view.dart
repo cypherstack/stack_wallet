@@ -139,12 +139,8 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   CryptoCurrency? _resolveCoin(String apiTicker) {
     final ticker = apiTicker.toUpperCase();
     var coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-    if (coin == null &&
-        ticker.contains('_') &&
-        !ticker.endsWith('_LN')) {
-      coin = AppConfig.getCryptoCurrencyForTicker(
-        ticker.split('_').first,
-      );
+    if (coin == null && ticker.contains('_') && !ticker.endsWith('_LN')) {
+      coin = AppConfig.getCryptoCurrencyForTicker(ticker.split('_').first);
     }
     return coin;
   }
@@ -220,8 +216,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         _loading = false;
         if (!resp.hasError && resp.value != null) {
           var order = resp.value!;
-          final override =
-              CakePayService.devStatusOverrides[order.orderId];
+          final override = CakePayService.devStatusOverrides[order.orderId];
           if (override != null) {
             order = order.copyWith(status: override);
           }
@@ -305,9 +300,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
               Icon(
                 Icons.copy,
                 size: 14,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .accentColorBlue,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.accentColorBlue,
               ),
             ],
           ),
@@ -434,12 +429,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     );
 
     final details = <Widget>[
-      Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          statusBadge,
-        ],
-      ),
+      Row(mainAxisAlignment: MainAxisAlignment.end, children: [statusBadge]),
       SizedBox(height: isDesktop ? 8 : 6),
       RoundedWhiteContainer(
         child: GestureDetector(
@@ -474,9 +464,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                   Icon(
                     Icons.copy,
                     size: 14,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorBlue,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorBlue,
                   ),
                 ],
               ),
@@ -666,9 +656,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                   Icon(
                     Icons.check_circle,
                     size: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorGreen,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorGreen,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -676,19 +666,17 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                       status == CakePayOrderStatus.complete
                           ? "Order complete."
                           : "Payment received.",
-                      style: (isDesktop
-                              ? STextStyles
-                                  .desktopTextExtraExtraSmall(
-                                    context,
-                                  )
-                              : STextStyles.itemSubtitle12(
+                      style:
+                          (isDesktop
+                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    )
+                                  : STextStyles.itemSubtitle12(context))
+                              .copyWith(
+                                color: Theme.of(
                                   context,
-                                ))
-                          .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen,
-                      ),
+                                ).extension<StackColors>()!.accentColorGreen,
+                              ),
                     ),
                   ),
                 ],
@@ -699,9 +687,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                 "the email address provided when creating "
                 "the order.",
                 style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      )
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.itemSubtitle12(context),
               ),
             ],
@@ -734,27 +720,23 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
               Icon(
                 Icons.cancel,
                 size: 20,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textSubtitle1,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle1,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _statusLabel(status),
-                  style: (isDesktop
-                          ? STextStyles
-                              .desktopTextExtraExtraSmall(
-                                context,
-                              )
-                          : STextStyles.itemSubtitle12(
+                  style:
+                      (isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                              : STextStyles.itemSubtitle12(context))
+                          .copyWith(
+                            color: Theme.of(
                               context,
-                            ))
-                      .copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
-                  ),
+                            ).extension<StackColors>()!.textSubtitle1,
+                          ),
                 ),
               ),
             ],
@@ -788,9 +770,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       final coin = _resolveCoin(selected.ticker);
       final bool hasWallet =
           coin != null &&
-          ref.watch(pWallets).wallets.any(
-            (w) => w.info.coin == coin,
-          );
+          ref.watch(pWallets).wallets.any((w) => w.info.coin == coin);
 
       details.add(SizedBox(height: isDesktop ? 8 : 4));
       details.add(
@@ -807,24 +787,19 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       details.add(
         Row(
           children: List.generate(options.length, (index) {
-            final isSelected =
-                _selectedPaymentMethod == index;
+            final isSelected = _selectedPaymentMethod == index;
             return Expanded(
               child: GestureDetector(
-                onTap: () => setState(
-                  () => _selectedPaymentMethod = index,
-                ),
+                onTap: () => setState(() => _selectedPaymentMethod = index),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
                         color: isSelected
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorBlue
+                            ? Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorBlue
                             : Colors.transparent,
                         width: 2,
                       ),
@@ -833,24 +808,20 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                   child: Text(
                     _tickerLabel(options[index].ticker),
                     textAlign: TextAlign.center,
-                    style: (isDesktop
-                            ? STextStyles
-                                .desktopTextExtraExtraSmall(
-                                  context,
-                                )
-                            : STextStyles.itemSubtitle12(
-                                context,
-                              ))
-                        .copyWith(
-                      color: isSelected
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : null,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : null,
-                    ),
+                    style:
+                        (isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  )
+                                : STextStyles.itemSubtitle12(context))
+                            .copyWith(
+                              color: isSelected
+                                  ? Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorBlue
+                                  : null,
+                              fontWeight: isSelected ? FontWeight.w600 : null,
+                            ),
                   ),
                 ),
               ),
@@ -865,10 +836,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       if (selected.address.isNotEmpty) {
         details.add(
           Center(
-            child: QR(
-              data: selected.address,
-              size: isDesktop ? 200 : 180,
-            ),
+            child: QR(data: selected.address, size: isDesktop ? 200 : 180),
           ),
         );
         details.add(SizedBox(height: isDesktop ? 16 : 12));
@@ -881,26 +849,18 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "Amount",
                     style: isDesktop
-                        ? STextStyles
-                            .desktopTextExtraExtraSmall(
-                              context,
-                            )
-                        : STextStyles.itemSubtitle12(
-                            context,
-                          ),
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                        : STextStyles.itemSubtitle12(context),
                   ),
                   Text(
                     "${selected.amountFrom} $label",
                     style: isDesktop
-                        ? STextStyles.desktopTextSmall(
-                            context,
-                          )
+                        ? STextStyles.desktopTextSmall(context)
                         : STextStyles.titleBold12(context),
                   ),
                 ],
@@ -908,9 +868,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () {
-                  Clipboard.setData(
-                    ClipboardData(text: selected.address),
-                  );
+                  Clipboard.setData(ClipboardData(text: selected.address));
                   showFloatingFlushBar(
                     type: FlushBarType.info,
                     message: "Copied to clipboard",
@@ -919,65 +877,44 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                   );
                 },
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         Text(
                           "$label address",
                           style: isDesktop
-                              ? STextStyles
-                                  .desktopTextExtraExtraSmall(
-                                    context,
-                                  )
-                              : STextStyles
-                                  .itemSubtitle12(
-                                    context,
-                                  ),
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                              : STextStyles.itemSubtitle12(context),
                         ),
                         const Spacer(),
                         Icon(
                           Icons.copy,
                           size: 14,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorBlue,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          "Copy",
-                          style:
-                              STextStyles.link2(context),
-                        ),
+                        Text("Copy", style: STextStyles.link2(context)),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       selected.address,
                       style: isDesktop
-                          ? STextStyles
-                              .desktopTextExtraExtraSmall(
-                                context,
-                              )
-                          : STextStyles.itemSubtitle12(
-                              context,
-                            ),
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.itemSubtitle12(context),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
               PrimaryButton(
-                label: hasWallet
-                    ? "Pay with $label"
-                    : "$label (no wallet)",
+                label: hasWallet ? "Pay with $label" : "$label (no wallet)",
                 enabled: hasWallet,
                 onPressed: hasWallet
-                    ? () => _payWithOption(
-                          selected,
-                          order.orderId,
-                        )
+                    ? () => _payWithOption(selected, order.orderId)
                     : null,
               ),
             ],

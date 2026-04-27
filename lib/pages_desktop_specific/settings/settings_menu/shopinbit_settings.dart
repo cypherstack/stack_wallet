@@ -347,195 +347,203 @@ class _ShopInBitDesktopSettingsState
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 30),
-          child: RoundedWhiteContainer(
-            radiusMultiplier: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SvgPicture.asset(
-                    Assets.svg.key,
-                    width: 48,
-                    height: 48,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 30),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SvgPicture.asset(
+                      Assets.svg.key,
+                      width: 48,
+                      height: 48,
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Customer Key",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Your customer key identifies you to ShopinBit. "
-                        "Save it to restore access to your conversations "
-                        "on another device. If you change it, you will "
-                        "lose access to existing conversations.",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                      const SizedBox(height: 20),
-                      if (_currentKey != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          "Current key",
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
-                              ),
+                          "Customer Key",
+                          style: STextStyles.desktopTextSmall(context),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            SelectableText(
-                              _currentKey!,
-                              style: STextStyles.desktopTextSmall(context),
-                            ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: () async {
-                                await Clipboard.setData(
-                                  ClipboardData(text: _currentKey!),
-                                );
-                                if (mounted) {
-                                  unawaited(
-                                    showFloatingFlushBar(
-                                      type: FlushBarType.info,
-                                      message: "Key copied to clipboard",
-                                      context: context,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: SvgPicture.asset(
-                                Assets.svg.copy,
-                                width: 20,
-                                height: 20,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 16),
+                        Text(
+                          "Your customer key identifies you to ShopinBit. "
+                          "Save it to restore access to your conversations "
+                          "on another device. If you change it, you will "
+                          "lose access to existing conversations.",
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                         const SizedBox(height: 20),
-                      ] else
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Text(
-                            "No key set",
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
+                        if (_currentKey != null) ...[
+                          Text(
+                            "Current key",
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              SelectableText(
+                                _currentKey!,
+                                style: STextStyles.desktopTextSmall(context),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () async {
+                                  await Clipboard.setData(
+                                    ClipboardData(text: _currentKey!),
+                                  );
+                                  if (mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.info,
+                                        message: "Key copied to clipboard",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: SvgPicture.asset(
+                                  Assets.svg.copy,
+                                  width: 20,
+                                  height: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                        ] else
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: Text(
+                              "No key set",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ),
+                            ),
+                          ),
+                        PrimaryButton(
+                          width: 210,
+                          buttonHeight: ButtonHeight.m,
+                          enabled: !_loading,
+                          label: _currentKey == null
+                              ? "Generate key"
+                              : "Generate new key",
+                          onPressed: _generate,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "Restore key",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Enter a previously saved customer key to "
+                          "restore access to your ShopinBit "
+                          "conversations.",
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: 512,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                            child: TextField(
+                              controller: _manualKeyController,
+                              focusNode: _manualKeyFocusNode,
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                "Enter customer key",
+                                _manualKeyFocusNode,
+                                context,
+                              ),
+                              onChanged: (_) => setState(() {}),
                             ),
                           ),
                         ),
-                      PrimaryButton(
-                        width: 210,
-                        buttonHeight: ButtonHeight.m,
-                        enabled: !_loading,
-                        label: _currentKey == null
-                            ? "Generate key"
-                            : "Generate new key",
-                        onPressed: _generate,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        "Restore key",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Enter a previously saved customer key to "
-                        "restore access to your ShopinBit "
-                        "conversations.",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: 512,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          child: TextField(
-                            controller: _manualKeyController,
-                            focusNode: _manualKeyFocusNode,
-                            style: STextStyles.field(context),
-                            decoration: standardInputDecoration(
-                              "Enter customer key",
-                              _manualKeyFocusNode,
-                              context,
-                            ),
-                            onChanged: (_) => setState(() {}),
+                        const SizedBox(height: 16),
+                        PrimaryButton(
+                          width: 210,
+                          buttonHeight: ButtonHeight.m,
+                          enabled:
+                              !_loading &&
+                              _manualKeyController.text.trim().isNotEmpty,
+                          label: "Set key",
+                          onPressed: _setManualKey,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "Display Name",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "The name ShopinBit staff will see "
+                          "when communicating with you.",
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      PrimaryButton(
-                        width: 210,
-                        buttonHeight: ButtonHeight.m,
-                        enabled:
-                            !_loading &&
-                            _manualKeyController.text.trim().isNotEmpty,
-                        label: "Set key",
-                        onPressed: _setManualKey,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        "Display Name",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "The name ShopinBit staff will see "
-                        "when communicating with you.",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: 512,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          child: TextField(
-                            controller: _displayNameController,
-                            focusNode: _displayNameFocusNode,
-                            style: STextStyles.field(context),
-                            decoration: standardInputDecoration(
-                              "Display name",
-                              _displayNameFocusNode,
-                              context,
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: 512,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
                             ),
-                            onChanged: (_) => setState(() {}),
+                            child: TextField(
+                              controller: _displayNameController,
+                              focusNode: _displayNameFocusNode,
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                "Display name",
+                                _displayNameFocusNode,
+                                context,
+                              ),
+                              onChanged: (_) => setState(() {}),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      PrimaryButton(
-                        width: 210,
-                        buttonHeight: ButtonHeight.m,
-                        enabled:
-                            !_savingName &&
-                            _displayNameController.text.trim().isNotEmpty,
-                        label: "Save",
-                        onPressed: _saveDisplayName,
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        PrimaryButton(
+                          width: 210,
+                          buttonHeight: ButtonHeight.m,
+                          enabled:
+                              !_savingName &&
+                              _displayNameController.text.trim().isNotEmpty,
+                          label: "Save",
+                          onPressed: _saveDisplayName,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }

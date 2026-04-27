@@ -386,10 +386,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     } else {
       final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
       if (coin != null) {
-        return ref
-            .read(pWallets)
-            .wallets
-            .any((e) => e.info.coin == coin);
+        return ref.read(pWallets).wallets.any((e) => e.info.coin == coin);
       }
     }
     return false;
@@ -425,10 +422,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              "$ticker Payment",
-              style: STextStyles.pageTitleH2(context),
-            ),
+            Text("$ticker Payment", style: STextStyles.pageTitleH2(context)),
             const SizedBox(height: 16),
             GestureDetector(
               onTap: () {
@@ -533,7 +527,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                       height: 24,
                       child: Center(
                         child: Text(
-                          ticker.substring(0, ticker.length > 2 ? 2 : ticker.length),
+                          ticker.substring(
+                            0,
+                            ticker.length > 2 ? 2 : ticker.length,
+                          ),
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ),
@@ -543,10 +540,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          ticker,
-                          style: STextStyles.titleBold12(context),
-                        ),
+                        Text(ticker, style: STextStyles.titleBold12(context)),
                         if (amountStr != null)
                           Text(
                             "$amountStr $ticker",
@@ -556,10 +550,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                     ),
                   ),
                   if (hasWallet)
-                    Text(
-                      "PAY NOW",
-                      style: STextStyles.link2(context),
-                    )
+                    Text("PAY NOW", style: STextStyles.link2(context))
                   else
                     Icon(
                       Icons.info_outline,
@@ -821,12 +812,11 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           }
         },
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: _popToTickets,
-            ),
+            leading: AppBarBackButton(onPressed: _popToTickets),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

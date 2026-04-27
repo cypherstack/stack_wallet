@@ -168,14 +168,11 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   Future<void> _fetchCountries() async {
     setState(() => _loadingCountries = true);
     try {
-      final resp =
-          await ShopInBitService.instance.client.getCountries();
+      final resp = await ShopInBitService.instance.client.getCountries();
       if (resp.hasError || resp.value == null) return;
       _countries = resp.value!;
       if (_selectedCountryIso != null &&
-          !_countries.any(
-            (c) => c['iso'] == _selectedCountryIso,
-          )) {
+          !_countries.any((c) => c['iso'] == _selectedCountryIso)) {
         _selectedCountryIso = null;
       }
     } catch (_) {
@@ -245,8 +242,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.warning,
-              message:
-                  resp.exception?.message ?? "Failed to create invoice",
+              message: resp.exception?.message ?? "Failed to create invoice",
               context: context,
             ),
           );
@@ -339,7 +335,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         final parsed = _parseBip21Amount(entry.value);
         if (parsed != null && parsed.isNotEmpty) {
           if (mounted) {
-            setState(() => _displayedFee = "$parsed ${entry.key.toUpperCase()}");
+            setState(
+              () => _displayedFee = "$parsed ${entry.key.toUpperCase()}",
+            );
           }
           return;
         }
@@ -398,9 +396,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     required bool isDesktop,
   }) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
           value: value,
@@ -411,12 +407,10 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   child: Text(
                     c['label'] as String,
                     style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(
-                            context,
-                          ).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveText,
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveText,
                           )
                         : STextStyles.w500_14(context),
                   ),
@@ -433,9 +427,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
             _loadingCountries ? "Loading countries..." : hint,
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultSearchIconLeft,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
                   )
                 : STextStyles.fieldLabel(context),
           ),
@@ -457,9 +451,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                 Assets.svg.chevronDown,
                 width: 12,
                 height: 6,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
             ),
           ),
@@ -497,9 +491,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   .where((c) => c['iso'] == item.value)
                   .map((c) => c['label'] as String)
                   .firstOrNull;
-              return label?.toLowerCase().contains(
-                    searchValue.toLowerCase(),
-                  ) ??
+              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
                   false;
             },
           ),
@@ -726,9 +718,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: SingleChildScrollView(
-                  child: content,
-                ),
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],
@@ -745,12 +735,11 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
           }
         },
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: _popToStep2,
-            ),
+            leading: AppBarBackButton(onPressed: _popToStep2),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

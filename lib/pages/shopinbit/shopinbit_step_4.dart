@@ -239,15 +239,14 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           _selectedCountryIso != null;
     }
     if (cat == ShopInBitCategory.travel) {
-      final travelBudgetVal =
-          int.tryParse(_travelBudgetController.text.trim());
+      final travelBudgetVal = int.tryParse(_travelBudgetController.text.trim());
       final hasValidDates = _selectedDateMode == "Flexible dates"
           ? (_selectedYear != null &&
-              _selectedMonthSeason != null &&
-              _tripLengthController.text.trim().isNotEmpty)
+                _selectedMonthSeason != null &&
+                _tripLengthController.text.trim().isNotEmpty)
           : (_selectedDateMode == "Exact dates" &&
-              _departureDateController.text.trim().isNotEmpty &&
-              _returnDateController.text.trim().isNotEmpty);
+                _departureDateController.text.trim().isNotEmpty &&
+                _returnDateController.text.trim().isNotEmpty);
       return !_submitting &&
           _privacyAccepted &&
           _selectedArrangement != null &&
@@ -464,8 +463,9 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     // encodes as Latin-1, corrupting the JSON body on mobile.
     final countryIso = _selectedCountryIso!;
     if (widget.model.category == ShopInBitCategory.concierge) {
-      final budgetText =
-          _noLimit ? "No limit" : "${_budgetController.text.trim()} EUR";
+      final budgetText = _noLimit
+          ? "No limit"
+          : "${_budgetController.text.trim()} EUR";
       widget.model.requestDescription =
           "What to purchase: ${_whatToPurchaseController.text.trim()}\n"
           "Condition: $_selectedCondition\n"
@@ -480,7 +480,6 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           "Budget: ${_carBudgetController.text.trim()} EUR\n"
           "Delivery country: $countryIso";
     } else if (widget.model.category == ShopInBitCategory.travel) {
-
       final parts = <String>[
         "Arrangement: $_selectedArrangement",
         "Departure: ${_departureCityController.text.trim()}, "
@@ -490,22 +489,23 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       if (_needsRecommendations) {
         parts.add("Destinations: Recommendations requested");
       } else {
-        parts.add(
-            "Destinations: ${_destinationsController.text.trim()}");
+        parts.add("Destinations: ${_destinationsController.text.trim()}");
       }
 
       if (_selectedDateMode == "Exact dates") {
         final flex =
             _selectedFlexibility != null && _selectedFlexibility != "Exact"
-                ? " ($_selectedFlexibility)"
-                : "";
+            ? " ($_selectedFlexibility)"
+            : "";
         parts.add(
-            "Dates: ${_departureDateController.text.trim()} - "
-            "${_returnDateController.text.trim()}$flex");
+          "Dates: ${_departureDateController.text.trim()} - "
+          "${_returnDateController.text.trim()}$flex",
+        );
       } else if (_selectedDateMode == "Flexible dates") {
         parts.add(
-            "Dates: $_selectedMonthSeason $_selectedYear, "
-            "${_tripLengthController.text.trim()} nights");
+          "Dates: $_selectedMonthSeason $_selectedYear, "
+          "${_tripLengthController.text.trim()} nights",
+        );
       }
 
       final travelers = <String>[];
@@ -635,9 +635,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   // Shared widgets.
   Widget _buildCountryPicker(bool isDesktop) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
           value: _selectedCountryIso,
@@ -648,9 +646,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                   child: Text(
                     c['label'] as String,
                     style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(
-                            context,
-                          ).copyWith(
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
                             color: Theme.of(
                               context,
                             ).extension<StackColors>()!.textFieldActiveText,
@@ -676,9 +672,9 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
             _loadingCountries ? "Loading countries..." : "Delivery country",
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultSearchIconLeft,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
                   )
                 : STextStyles.fieldLabel(context),
           ),
@@ -740,9 +736,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                   .where((c) => c['iso'] == item.value)
                   .map((c) => c['label'] as String)
                   .firstOrNull;
-              return label?.toLowerCase().contains(
-                        searchValue.toLowerCase(),
-                      ) ??
+              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
                   false;
             },
           ),
@@ -836,7 +830,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   // Per-category form builders.
 
   Widget _buildConciergeContent(bool isDesktop) {
-    final whatToPurchaseError = _whatToPurchaseTouched &&
+    final whatToPurchaseError =
+        _whatToPurchaseTouched &&
             _whatToPurchaseController.text.trim().length < 10
         ? "Minimum 10 characters"
         : null;
@@ -924,9 +919,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                               ).copyWith(
                                 color: Theme.of(
                                   context,
-                                )
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
+                                ).extension<StackColors>()!.textFieldActiveText,
                               )
                             : STextStyles.w500_14(context),
                       ),
@@ -1079,24 +1072,24 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   }
 
   Widget _buildCarContent(bool isDesktop) {
-    final brandError =
-        _brandTouched && _brandController.text.trim().length < 3
-            ? "Minimum 3 characters"
-            : null;
+    final brandError = _brandTouched && _brandController.text.trim().length < 3
+        ? "Minimum 3 characters"
+        : null;
 
-    final modelError =
-        _modelTouched && _modelController.text.trim().length < 3
-            ? "Minimum 3 characters"
-            : null;
+    final modelError = _modelTouched && _modelController.text.trim().length < 3
+        ? "Minimum 3 characters"
+        : null;
 
-    final carDescriptionError = _carDescriptionTouched &&
+    final carDescriptionError =
+        _carDescriptionTouched &&
             _carDescriptionController.text.trim().length < 3
         ? "Minimum 3 characters"
         : null;
 
     final carBudgetText = _carBudgetController.text.trim();
     final carBudgetVal = int.tryParse(carBudgetText);
-    final carBudgetError = _carBudgetTouched &&
+    final carBudgetError =
+        _carBudgetTouched &&
             (carBudgetText.isEmpty ||
                 carBudgetVal == null ||
                 carBudgetVal < 20000)
@@ -1216,9 +1209,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                               ).copyWith(
                                 color: Theme.of(
                                   context,
-                                )
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
+                                ).extension<StackColors>()!.textFieldActiveText,
                               )
                             : STextStyles.w500_14(context),
                       ),
@@ -1376,12 +1367,12 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                       TextSpan(
                         text: "Research fee: ",
                         style: isDesktop
-                            ? STextStyles.desktopTextSmall(context).copyWith(
-                                fontWeight: FontWeight.bold,
-                              )
-                            : STextStyles.w500_14(context).copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            ? STextStyles.desktopTextSmall(
+                                context,
+                              ).copyWith(fontWeight: FontWeight.bold)
+                            : STextStyles.w500_14(
+                                context,
+                              ).copyWith(fontWeight: FontWeight.bold),
                       ),
                       const TextSpan(
                         text:
@@ -1534,9 +1525,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     required bool isDesktop,
   }) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
           value: value,
@@ -1547,14 +1536,10 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                   child: Text(
                     c,
                     style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(
-                            context,
-                          ).copyWith(
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
                             color: Theme.of(
                               context,
-                            )
-                                .extension<StackColors>()!
-                                .textFieldActiveText,
+                            ).extension<StackColors>()!.textFieldActiveText,
                           )
                         : STextStyles.w500_14(context),
                   ),
@@ -1566,9 +1551,9 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
             hint,
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultSearchIconLeft,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
                   )
                 : STextStyles.fieldLabel(context),
           ),
@@ -1634,9 +1619,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
         ),
         const Spacer(),
         InkWell(
-          onTap: value > min
-              ? () => onChanged(value - 1)
-              : null,
+          onTap: value > min ? () => onChanged(value - 1) : null,
           child: Container(
             width: 32,
             height: 32,
@@ -1672,9 +1655,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
         ),
         const SizedBox(width: 16),
         InkWell(
-          onTap: value < max
-              ? () => onChanged(value + 1)
-              : null,
+          onTap: value < max ? () => onChanged(value + 1) : null,
           child: Container(
             width: 32,
             height: 32,
@@ -1701,40 +1682,43 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   }
 
   Widget _buildTravelContent(bool isDesktop) {
-    final departureCountryError = _departureCountryTouched &&
+    final departureCountryError =
+        _departureCountryTouched &&
             _departureCountryController.text.trim().isEmpty
         ? "Required"
         : null;
 
-    final departureCityError = _departureCityTouched &&
-            _departureCityController.text.trim().isEmpty
+    final departureCityError =
+        _departureCityTouched && _departureCityController.text.trim().isEmpty
         ? "Required"
         : null;
 
-    final destinationsError = _destinationsTouched &&
+    final destinationsError =
+        _destinationsTouched &&
             _destinationsController.text.trim().isEmpty &&
             !_needsRecommendations
         ? "Required (or check 'I need recommendations')"
         : null;
 
-    final departureDateError = _departureDateTouched &&
-            _departureDateController.text.trim().isEmpty
+    final departureDateError =
+        _departureDateTouched && _departureDateController.text.trim().isEmpty
         ? "Required"
         : null;
 
-    final returnDateError = _returnDateTouched &&
-            _returnDateController.text.trim().isEmpty
+    final returnDateError =
+        _returnDateTouched && _returnDateController.text.trim().isEmpty
         ? "Required"
         : null;
 
-    final tripLengthError = _tripLengthTouched &&
-            _tripLengthController.text.trim().isEmpty
+    final tripLengthError =
+        _tripLengthTouched && _tripLengthController.text.trim().isEmpty
         ? "Required"
         : null;
 
     final travelBudgetText = _travelBudgetController.text.trim();
     final travelBudgetVal = int.tryParse(travelBudgetText);
-    final travelBudgetError = _travelBudgetTouched &&
+    final travelBudgetError =
+        _travelBudgetTouched &&
             (travelBudgetText.isEmpty ||
                 travelBudgetVal == null ||
                 travelBudgetVal < 1000)
@@ -2013,8 +1997,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               "+ 1 week",
             ],
             hint: "Flexibility",
-            onChanged: (val) =>
-                setState(() => _selectedFlexibility = val),
+            onChanged: (val) => setState(() => _selectedFlexibility = val),
             isDesktop: isDesktop,
           ),
         ],
@@ -2022,13 +2005,9 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
         if (_selectedDateMode == "Flexible dates") ...[
           _buildTravelDropdown(
             value: _selectedYear,
-            items: [
-              "${DateTime.now().year}",
-              "${DateTime.now().year + 1}",
-            ],
+            items: ["${DateTime.now().year}", "${DateTime.now().year + 1}"],
             hint: "Year",
-            onChanged: (val) =>
-                setState(() => _selectedYear = val),
+            onChanged: (val) => setState(() => _selectedYear = val),
             isDesktop: isDesktop,
           ),
           SizedBox(height: isDesktop ? 16 : 12),
@@ -2053,8 +2032,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               "Winter (Dec-Feb)",
             ],
             hint: "Month or season",
-            onChanged: (val) =>
-                setState(() => _selectedMonthSeason = val),
+            onChanged: (val) => setState(() => _selectedMonthSeason = val),
             isDesktop: isDesktop,
           ),
           SizedBox(height: isDesktop ? 16 : 12),
@@ -2223,10 +2201,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                       iconSize: 23,
                       onPressed: _popBack,
                     ),
-                    Text(
-                      "ShopinBit",
-                      style: STextStyles.desktopH3(context),
-                    ),
+                    Text("ShopinBit", style: STextStyles.desktopH3(context)),
                   ],
                 ),
                 const DesktopDialogCloseButton(),
@@ -2255,12 +2230,11 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           }
         },
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: _popBack,
-            ),
+            leading: AppBarBackButton(onPressed: _popBack),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

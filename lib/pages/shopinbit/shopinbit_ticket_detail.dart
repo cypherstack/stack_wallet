@@ -461,7 +461,8 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
       ),
     );
 
-    final requestDetailsSection = _isCarResearch && model.requestDescription.isNotEmpty
+    final requestDetailsSection =
+        _isCarResearch && model.requestDescription.isNotEmpty
         ? Padding(
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(

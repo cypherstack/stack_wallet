@@ -374,17 +374,16 @@ class HiddenSettings extends StatelessWidget {
                             onTap: () {
                               showDialog<void>(
                                 context: context,
-                                builder: (_) =>
-                                    const _CakePayDevStatusDialog(),
+                                builder: (_) => const _CakePayDevStatusDialog(),
                               );
                             },
                             child: RoundedWhiteContainer(
                               child: Text(
                                 "CakePay status overrides",
                                 style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                               ),
                             ),
@@ -466,10 +465,7 @@ class _CakePayDevStatusDialogState extends State<_CakePayDevStatusDialog> {
                   CakePayService.devStatusOverrides.clear();
                 });
               },
-              child: Text(
-                "Clear all",
-                style: STextStyles.link2(context),
-              ),
+              child: Text("Clear all", style: STextStyles.link2(context)),
             ),
         ],
       ),
@@ -494,9 +490,7 @@ class _CakePayDevStatusDialogState extends State<_CakePayDevStatusDialog> {
                     children: [
                       Expanded(
                         child: Text(
-                          id.length > 12
-                              ? "${id.substring(0, 12)}..."
-                              : id,
+                          id.length > 12 ? "${id.substring(0, 12)}..." : id,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ),
@@ -505,8 +499,9 @@ class _CakePayDevStatusDialogState extends State<_CakePayDevStatusDialog> {
                         value: current,
                         hint: Text(
                           "API default",
-                          style: STextStyles.itemSubtitle12(context)
-                              .copyWith(color: colors.textSubtitle2),
+                          style: STextStyles.itemSubtitle12(
+                            context,
+                          ).copyWith(color: colors.textSubtitle2),
                         ),
                         underline: const SizedBox(),
                         isDense: true,
@@ -515,8 +510,9 @@ class _CakePayDevStatusDialogState extends State<_CakePayDevStatusDialog> {
                             value: null,
                             child: Text(
                               "API default",
-                              style: STextStyles.itemSubtitle12(context)
-                                  .copyWith(color: colors.textSubtitle2),
+                              style: STextStyles.itemSubtitle12(
+                                context,
+                              ).copyWith(color: colors.textSubtitle2),
                             ),
                           ),
                           ...CakePayOrderStatus.values.map(

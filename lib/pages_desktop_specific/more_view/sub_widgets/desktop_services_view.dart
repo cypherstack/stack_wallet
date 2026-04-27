@@ -80,18 +80,16 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
                                     height: 11,
                                     color:
                                         ref
-                                                    .watch(
-                                                      selectedServicesMenuItemStateProvider
-                                                          .state,
-                                                    )
-                                                    .state ==
-                                                i
-                                            ? Theme.of(
-                                                context,
-                                              )
-                                                .extension<StackColors>()!
-                                                .accentColorBlue
-                                            : Colors.transparent,
+                                                .watch(
+                                                  selectedServicesMenuItemStateProvider
+                                                      .state,
+                                                )
+                                                .state ==
+                                            i
+                                        ? Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorBlue
+                                        : Colors.transparent,
                                   ),
                                   label: _labels[i],
                                   value: i,

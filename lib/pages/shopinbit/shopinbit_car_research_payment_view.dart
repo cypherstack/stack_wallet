@@ -378,8 +378,9 @@ class _ShopInBitCarResearchPaymentViewState
     if (_logging) return;
     setState(() => _logging = true);
     try {
-      final resp = await ShopInBitService.instance.client
-          .logCarResearchPayment(widget.invoice.btcpayInvoice);
+      final resp = await ShopInBitService.instance.client.logCarResearchPayment(
+        widget.invoice.btcpayInvoice,
+      );
       if (resp.hasError || resp.value == null) {
         if (mounted) {
           setState(() => _logging = false);
@@ -411,10 +412,9 @@ class _ShopInBitCarResearchPaymentViewState
         );
       } else {
         unawaited(
-          Navigator.of(context).pushNamed(
-            ShopInBitOrderCreated.routeName,
-            arguments: widget.model,
-          ),
+          Navigator.of(
+            context,
+          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
         );
       }
     } catch (e) {
@@ -497,9 +497,9 @@ class _ShopInBitCarResearchPaymentViewState
                       border: Border(
                         bottom: BorderSide(
                           color: isSelected
-                              ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorBlue
+                              ? Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorBlue
                               : Colors.transparent,
                           width: 2,
                         ),
@@ -520,9 +520,7 @@ class _ShopInBitCarResearchPaymentViewState
                                           .extension<StackColors>()!
                                           .accentColorBlue
                                     : null,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : null,
+                                fontWeight: isSelected ? FontWeight.w600 : null,
                               ),
                     ),
                   ),
@@ -579,9 +577,9 @@ class _ShopInBitCarResearchPaymentViewState
                             : STextStyles.itemSubtitle12(context))
                         .copyWith(
                           color: _isTerminal
-                              ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen
+                              ? Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorGreen
                               : null,
                           fontWeight: _isTerminal ? FontWeight.w600 : null,
                         ),
@@ -664,7 +662,7 @@ class _ShopInBitCarResearchPaymentViewState
                     : () => unawaited(_checkForPayment()))
               : null,
         ),
-],
+      ],
     );
 
     if (isDesktop) {
@@ -713,9 +711,7 @@ class _ShopInBitCarResearchPaymentViewState
             context,
           ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: _popToTickets,
-            ),
+            leading: AppBarBackButton(onPressed: _popToTickets),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

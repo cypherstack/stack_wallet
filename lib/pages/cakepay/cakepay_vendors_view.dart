@@ -258,8 +258,8 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                         );
                       }
                       return item.value!.toLowerCase().contains(
-                            searchValue.toLowerCase(),
-                          );
+                        searchValue.toLowerCase(),
+                      );
                     },
                   ),
                   menuItemStyleData: const MenuItemStyleData(

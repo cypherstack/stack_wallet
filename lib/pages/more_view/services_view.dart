@@ -151,10 +151,9 @@ class _ServicesViewState extends State<ServicesView> {
                         if (savedName != null && savedName.isNotEmpty) {
                           model.displayName = savedName;
                         }
-                        await Navigator.of(context).pushNamed(
-                          ShopInBitStep2.routeName,
-                          arguments: model,
-                        );
+                        await Navigator.of(
+                          context,
+                        ).pushNamed(ShopInBitStep2.routeName, arguments: model);
                       } else {
                         // First-time user: show setup flow
                         await Navigator.of(context).pushNamed(

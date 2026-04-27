@@ -1357,9 +1357,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           ).extension<StackColors>()!.bottomNavIconIcon,
                         ),
                         onTap: () {
-                          Navigator.of(context).pushNamed(
-                            ServicesView.routeName,
-                          );
+                          Navigator.of(
+                            context,
+                          ).pushNamed(ServicesView.routeName);
                         },
                       ),
                     WalletNavigationBarItemData(
@@ -1373,9 +1373,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         ).extension<StackColors>()!.bottomNavIconIcon,
                       ),
                       onTap: () {
-                        Navigator.of(context).pushNamed(
-                          GiftCardsView.routeName,
-                        );
+                        Navigator.of(
+                          context,
+                        ).pushNamed(GiftCardsView.routeName);
                       },
                     ),
                   ],

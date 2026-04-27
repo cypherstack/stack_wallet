@@ -100,23 +100,17 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      "Attention",
-                      style: STextStyles.desktopH2(context),
-                    ),
+                    Text("Attention", style: STextStyles.desktopH2(context)),
                     const SizedBox(height: 16),
                     Text(
                       "You are about to open "
                       "${uri.scheme}://${uri.host} "
                       "in your browser.",
-                      style: STextStyles.desktopTextSmall(
-                        context,
-                      ),
+                      style: STextStyles.desktopTextSmall(context),
                     ),
                     const SizedBox(height: 35),
                     Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SecondaryButton(
                           width: 200,
@@ -160,9 +154,9 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                 child: Text(
                   "Cancel",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
               ),
@@ -173,10 +167,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },
-                child: Text(
-                  "Continue",
-                  style: STextStyles.button(context),
-                ),
+                child: Text("Continue", style: STextStyles.button(context)),
               ),
             ),
     );
@@ -186,10 +177,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
   Future<void> _openTerms() async {
     const url = "https://cakepay.com/terms/";
     if (await _showOpenBrowserWarning(url)) {
-      await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      );
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
   }
 
@@ -316,30 +304,30 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                   ),
                   onChanged: (_) => setState(() {}),
                   style: isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context)
-                          .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveText,
                           height: 1.8,
                         )
                       : STextStyles.field(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveText,
                         ),
-                  decoration: standardInputDecoration(
-                    "Amount",
-                    _customAmountFocusNode,
-                    context,
-                    desktopMed: isDesktop,
-                  ).copyWith(
-                    filled: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration:
+                      standardInputDecoration(
+                        "Amount",
+                        _customAmountFocusNode,
+                        context,
+                        desktopMed: isDesktop,
+                      ).copyWith(
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
                 ),
               ),
             ],
@@ -395,23 +383,20 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
               child: RichText(
                 text: TextSpan(
                   style: isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        )
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.w500_14(context),
                   children: [
                     const TextSpan(text: "I agree to the "),
                     TextSpan(
                       text: "terms and conditions",
-                      style: STextStyles.richLink(context)
-                          .copyWith(
-                        fontSize: isDesktop ? null : 14,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = _openTerms,
+                      style: STextStyles.richLink(
+                        context,
+                      ).copyWith(fontSize: isDesktop ? null : 14),
+                      recognizer: TapGestureRecognizer()..onTap = _openTerms,
                     ),
                     const TextSpan(
-                      text: ", confirm I am not using a VPN, "
+                      text:
+                          ", confirm I am not using a VPN, "
                           "and understand refunds are voided. "
                           "I understand that the gift card "
                           "will be delivered to the listed "
