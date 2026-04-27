@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
@@ -93,10 +95,14 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _streetController = TextEditingController();
-    _cityController = TextEditingController();
-    _postalCodeController = TextEditingController();
+    _nameController = TextEditingController(text: widget.model.shippingName);
+    _streetController = TextEditingController(
+      text: widget.model.shippingStreet,
+    );
+    _cityController = TextEditingController(text: widget.model.shippingCity);
+    _postalCodeController = TextEditingController(
+      text: widget.model.shippingPostalCode,
+    );
     _nameFocusNode = FocusNode();
     _streetFocusNode = FocusNode();
     _cityFocusNode = FocusNode();
@@ -124,6 +130,11 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     }
 
     _fetchCountries();
+
+    // Pre-select country on resume if model already has a shipping country.
+    if (widget.model.shippingCountry.isNotEmpty) {
+      _selectedCountryIso = widget.model.shippingCountry;
+    }
   }
 
   @override
@@ -252,6 +263,15 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
 
       final invoice = resp.value!;
 
+      // Persist pending state so the user can resume if they close the dialog.
+      // Sentinel ticketId; unique-replace index ensures at most one pending record.
+      widget.model.ticketId = "pending-car-research";
+      widget.model.carResearchInvoiceId = invoice.btcpayInvoice;
+      widget.model.isPendingPayment = true;
+      widget.model.carResearchExpiresAt = invoice.expiresAt;
+      widget.model.carResearchPaymentLinks = jsonEncode(invoice.paymentLinks);
+      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+
       // Best-effort fee fetch; do not block navigation on fee parse failure.
       await _loadFee(invoice);
 
@@ -345,8 +365,8 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     } catch (_) {
       // Leave placeholder in place.
     }
-    // No parse succeeded — leave the existing "223.00 EUR" business-rule
-    // placeholder in place rather than showing "—".
+    // No parse succeeded: leave the existing "223.00 EUR" business-rule
+    // placeholder in place rather than showing "--".
   }
 
   Widget _buildField({

@@ -81,6 +81,14 @@ class MainDB {
       name: "wallet_data",
       maxSizeMiB: Platform.isWindows ? 1024 : 512,
     );
+
+    // Clear on schema mismatch; tickets are recoverable from the API.
+    try {
+      isar.shopInBitTickets.where().findAllSync();
+    } catch (_) {
+      await isar.writeTxn(() async => isar.shopInBitTickets.clear());
+    }
+
     return true;
   }
 
@@ -650,7 +658,11 @@ class MainDB {
   // ========== ShopInBit tickets ===============================================
 
   List<ShopInBitTicket> getShopInBitTickets() {
-    return isar.shopInBitTickets.where().sortByCreatedAtDesc().findAllSync();
+    try {
+      return isar.shopInBitTickets.where().sortByCreatedAtDesc().findAllSync();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<int> putShopInBitTicket(ShopInBitTicket ticket) async {

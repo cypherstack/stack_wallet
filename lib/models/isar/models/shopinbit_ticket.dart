@@ -29,6 +29,16 @@ class ShopInBitTicket {
   late List<ShopInBitTicketMessage> messages;
   late DateTime createdAt;
   late int apiTicketId;
+
+  // Car research retry support
+  String? carResearchInvoiceId;
+  String? feeTicketNumber;
+  late bool needsCreateRequest;
+
+  // Car research resumable payment state
+  late bool isPendingPayment;
+  DateTime? carResearchExpiresAt;
+  String? carResearchPaymentLinks;
 }
 
 @embedded

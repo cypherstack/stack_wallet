@@ -22,87 +22,117 @@ const ShopInBitTicketSchema = CollectionSchema(
       name: r'apiTicketId',
       type: IsarType.long,
     ),
-    r'category': PropertySchema(
+    r'carResearchExpiresAt': PropertySchema(
       id: 1,
+      name: r'carResearchExpiresAt',
+      type: IsarType.dateTime,
+    ),
+    r'carResearchInvoiceId': PropertySchema(
+      id: 2,
+      name: r'carResearchInvoiceId',
+      type: IsarType.string,
+    ),
+    r'carResearchPaymentLinks': PropertySchema(
+      id: 3,
+      name: r'carResearchPaymentLinks',
+      type: IsarType.string,
+    ),
+    r'category': PropertySchema(
+      id: 4,
       name: r'category',
       type: IsarType.byte,
       enumMap: _ShopInBitTicketcategoryEnumValueMap,
     ),
     r'createdAt': PropertySchema(
-      id: 2,
+      id: 5,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'deliveryCountry': PropertySchema(
-      id: 3,
+      id: 6,
       name: r'deliveryCountry',
       type: IsarType.string,
     ),
     r'displayName': PropertySchema(
-      id: 4,
+      id: 7,
       name: r'displayName',
       type: IsarType.string,
     ),
+    r'feeTicketNumber': PropertySchema(
+      id: 8,
+      name: r'feeTicketNumber',
+      type: IsarType.string,
+    ),
+    r'isPendingPayment': PropertySchema(
+      id: 9,
+      name: r'isPendingPayment',
+      type: IsarType.bool,
+    ),
     r'messages': PropertySchema(
-      id: 5,
+      id: 10,
       name: r'messages',
       type: IsarType.objectList,
 
       target: r'ShopInBitTicketMessage',
     ),
+    r'needsCreateRequest': PropertySchema(
+      id: 11,
+      name: r'needsCreateRequest',
+      type: IsarType.bool,
+    ),
     r'offerPrice': PropertySchema(
-      id: 6,
+      id: 12,
       name: r'offerPrice',
       type: IsarType.string,
     ),
     r'offerProductName': PropertySchema(
-      id: 7,
+      id: 13,
       name: r'offerProductName',
       type: IsarType.string,
     ),
     r'paymentMethod': PropertySchema(
-      id: 8,
+      id: 14,
       name: r'paymentMethod',
       type: IsarType.string,
     ),
     r'requestDescription': PropertySchema(
-      id: 9,
+      id: 15,
       name: r'requestDescription',
       type: IsarType.string,
     ),
     r'shippingCity': PropertySchema(
-      id: 10,
+      id: 16,
       name: r'shippingCity',
       type: IsarType.string,
     ),
     r'shippingCountry': PropertySchema(
-      id: 11,
+      id: 17,
       name: r'shippingCountry',
       type: IsarType.string,
     ),
     r'shippingName': PropertySchema(
-      id: 12,
+      id: 18,
       name: r'shippingName',
       type: IsarType.string,
     ),
     r'shippingPostalCode': PropertySchema(
-      id: 13,
+      id: 19,
       name: r'shippingPostalCode',
       type: IsarType.string,
     ),
     r'shippingStreet': PropertySchema(
-      id: 14,
+      id: 20,
       name: r'shippingStreet',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 15,
+      id: 21,
       name: r'status',
       type: IsarType.byte,
       enumMap: _ShopInBitTicketstatusEnumValueMap,
     ),
     r'ticketId': PropertySchema(
-      id: 16,
+      id: 22,
       name: r'ticketId',
       type: IsarType.string,
     ),
@@ -143,8 +173,26 @@ int _shopInBitTicketEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.carResearchInvoiceId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.carResearchPaymentLinks;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.deliveryCountry.length * 3;
   bytesCount += 3 + object.displayName.length * 3;
+  {
+    final value = object.feeTicketNumber;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.messages.length * 3;
   {
     final offsets = allOffsets[ShopInBitTicketMessage]!;
@@ -192,27 +240,33 @@ void _shopInBitTicketSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.apiTicketId);
-  writer.writeByte(offsets[1], object.category.index);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeString(offsets[3], object.deliveryCountry);
-  writer.writeString(offsets[4], object.displayName);
+  writer.writeDateTime(offsets[1], object.carResearchExpiresAt);
+  writer.writeString(offsets[2], object.carResearchInvoiceId);
+  writer.writeString(offsets[3], object.carResearchPaymentLinks);
+  writer.writeByte(offsets[4], object.category.index);
+  writer.writeDateTime(offsets[5], object.createdAt);
+  writer.writeString(offsets[6], object.deliveryCountry);
+  writer.writeString(offsets[7], object.displayName);
+  writer.writeString(offsets[8], object.feeTicketNumber);
+  writer.writeBool(offsets[9], object.isPendingPayment);
   writer.writeObjectList<ShopInBitTicketMessage>(
-    offsets[5],
+    offsets[10],
     allOffsets,
     ShopInBitTicketMessageSchema.serialize,
     object.messages,
   );
-  writer.writeString(offsets[6], object.offerPrice);
-  writer.writeString(offsets[7], object.offerProductName);
-  writer.writeString(offsets[8], object.paymentMethod);
-  writer.writeString(offsets[9], object.requestDescription);
-  writer.writeString(offsets[10], object.shippingCity);
-  writer.writeString(offsets[11], object.shippingCountry);
-  writer.writeString(offsets[12], object.shippingName);
-  writer.writeString(offsets[13], object.shippingPostalCode);
-  writer.writeString(offsets[14], object.shippingStreet);
-  writer.writeByte(offsets[15], object.status.index);
-  writer.writeString(offsets[16], object.ticketId);
+  writer.writeBool(offsets[11], object.needsCreateRequest);
+  writer.writeString(offsets[12], object.offerPrice);
+  writer.writeString(offsets[13], object.offerProductName);
+  writer.writeString(offsets[14], object.paymentMethod);
+  writer.writeString(offsets[15], object.requestDescription);
+  writer.writeString(offsets[16], object.shippingCity);
+  writer.writeString(offsets[17], object.shippingCountry);
+  writer.writeString(offsets[18], object.shippingName);
+  writer.writeString(offsets[19], object.shippingPostalCode);
+  writer.writeString(offsets[20], object.shippingStreet);
+  writer.writeByte(offsets[21], object.status.index);
+  writer.writeString(offsets[22], object.ticketId);
 }
 
 ShopInBitTicket _shopInBitTicketDeserialize(
@@ -223,34 +277,40 @@ ShopInBitTicket _shopInBitTicketDeserialize(
 ) {
   final object = ShopInBitTicket();
   object.apiTicketId = reader.readLong(offsets[0]);
+  object.carResearchExpiresAt = reader.readDateTimeOrNull(offsets[1]);
+  object.carResearchInvoiceId = reader.readStringOrNull(offsets[2]);
+  object.carResearchPaymentLinks = reader.readStringOrNull(offsets[3]);
   object.category =
-      _ShopInBitTicketcategoryValueEnumMap[reader.readByteOrNull(offsets[1])] ??
+      _ShopInBitTicketcategoryValueEnumMap[reader.readByteOrNull(offsets[4])] ??
       ShopInBitCategory.concierge;
-  object.createdAt = reader.readDateTime(offsets[2]);
-  object.deliveryCountry = reader.readString(offsets[3]);
-  object.displayName = reader.readString(offsets[4]);
+  object.createdAt = reader.readDateTime(offsets[5]);
+  object.deliveryCountry = reader.readString(offsets[6]);
+  object.displayName = reader.readString(offsets[7]);
+  object.feeTicketNumber = reader.readStringOrNull(offsets[8]);
   object.id = id;
+  object.isPendingPayment = reader.readBool(offsets[9]);
   object.messages =
       reader.readObjectList<ShopInBitTicketMessage>(
-        offsets[5],
+        offsets[10],
         ShopInBitTicketMessageSchema.deserialize,
         allOffsets,
         ShopInBitTicketMessage(),
       ) ??
       [];
-  object.offerPrice = reader.readStringOrNull(offsets[6]);
-  object.offerProductName = reader.readStringOrNull(offsets[7]);
-  object.paymentMethod = reader.readStringOrNull(offsets[8]);
-  object.requestDescription = reader.readString(offsets[9]);
-  object.shippingCity = reader.readString(offsets[10]);
-  object.shippingCountry = reader.readString(offsets[11]);
-  object.shippingName = reader.readString(offsets[12]);
-  object.shippingPostalCode = reader.readString(offsets[13]);
-  object.shippingStreet = reader.readString(offsets[14]);
+  object.needsCreateRequest = reader.readBool(offsets[11]);
+  object.offerPrice = reader.readStringOrNull(offsets[12]);
+  object.offerProductName = reader.readStringOrNull(offsets[13]);
+  object.paymentMethod = reader.readStringOrNull(offsets[14]);
+  object.requestDescription = reader.readString(offsets[15]);
+  object.shippingCity = reader.readString(offsets[16]);
+  object.shippingCountry = reader.readString(offsets[17]);
+  object.shippingName = reader.readString(offsets[18]);
+  object.shippingPostalCode = reader.readString(offsets[19]);
+  object.shippingStreet = reader.readString(offsets[20]);
   object.status =
-      _ShopInBitTicketstatusValueEnumMap[reader.readByteOrNull(offsets[15])] ??
+      _ShopInBitTicketstatusValueEnumMap[reader.readByteOrNull(offsets[21])] ??
       ShopInBitOrderStatus.pending;
-  object.ticketId = reader.readString(offsets[16]);
+  object.ticketId = reader.readString(offsets[22]);
   return object;
 }
 
@@ -264,18 +324,28 @@ P _shopInBitTicketDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
       return (_ShopInBitTicketcategoryValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
               ShopInBitCategory.concierge)
           as P;
-    case 2:
-      return (reader.readDateTime(offset)) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readDateTime(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readBool(offset)) as P;
+    case 10:
       return (reader.readObjectList<ShopInBitTicketMessage>(
                 offset,
                 ShopInBitTicketMessageSchema.deserialize,
@@ -284,31 +354,33 @@ P _shopInBitTicketDeserializeProp<P>(
               ) ??
               [])
           as P;
-    case 6:
-      return (reader.readStringOrNull(offset)) as P;
-    case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
-      return (reader.readString(offset)) as P;
-    case 10:
-      return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 12:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
+    case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
       return (_ShopInBitTicketstatusValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
               ShopInBitOrderStatus.pending)
           as P;
-    case 16:
+    case 22:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -610,6 +682,409 @@ extension ShopInBitTicketQueryFilter
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchExpiresAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'carResearchExpiresAt'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchExpiresAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'carResearchExpiresAt'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchExpiresAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'carResearchExpiresAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchExpiresAtGreaterThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'carResearchExpiresAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchExpiresAtLessThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'carResearchExpiresAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchExpiresAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'carResearchExpiresAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'carResearchInvoiceId'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'carResearchInvoiceId'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'carResearchInvoiceId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'carResearchInvoiceId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'carResearchInvoiceId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'carResearchInvoiceId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchInvoiceIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'carResearchInvoiceId',
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'carResearchPaymentLinks'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'carResearchPaymentLinks'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'carResearchPaymentLinks',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'carResearchPaymentLinks',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'carResearchPaymentLinks',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'carResearchPaymentLinks',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'carResearchPaymentLinks',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'carResearchPaymentLinks',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'carResearchPaymentLinks',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'carResearchPaymentLinks',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'carResearchPaymentLinks',
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  carResearchPaymentLinksIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'carResearchPaymentLinks',
+          value: '',
         ),
       );
     });
@@ -1008,6 +1483,165 @@ extension ShopInBitTicketQueryFilter
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'feeTicketNumber'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'feeTicketNumber'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'feeTicketNumber',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'feeTicketNumber',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'feeTicketNumber',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'feeTicketNumber', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  feeTicketNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'feeTicketNumber', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
   idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1063,6 +1697,15 @@ extension ShopInBitTicketQueryFilter
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  isPendingPaymentEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isPendingPayment', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
   messagesLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(r'messages', length, true, length, true);
@@ -1111,6 +1754,15 @@ extension ShopInBitTicketQueryFilter
         includeLower,
         upper,
         includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  needsCreateRequestEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'needsCreateRequest', value: value),
       );
     });
   }
@@ -2665,6 +3317,48 @@ extension ShopInBitTicketQuerySortBy
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByCarResearchExpiresAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchExpiresAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByCarResearchExpiresAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchExpiresAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByCarResearchInvoiceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchInvoiceId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByCarResearchInvoiceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchInvoiceId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByCarResearchPaymentLinks() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchPaymentLinks', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByCarResearchPaymentLinksDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchPaymentLinks', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
   sortByCategory() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'category', Sort.asc);
@@ -2717,6 +3411,48 @@ extension ShopInBitTicketQuerySortBy
   sortByDisplayNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'displayName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByFeeTicketNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'feeTicketNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByFeeTicketNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'feeTicketNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByIsPendingPayment() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPendingPayment', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByIsPendingPaymentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPendingPayment', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByNeedsCreateRequest() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByNeedsCreateRequestDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.desc);
     });
   }
 
@@ -2891,6 +3627,48 @@ extension ShopInBitTicketQuerySortThenBy
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByCarResearchExpiresAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchExpiresAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByCarResearchExpiresAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchExpiresAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByCarResearchInvoiceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchInvoiceId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByCarResearchInvoiceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchInvoiceId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByCarResearchPaymentLinks() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchPaymentLinks', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByCarResearchPaymentLinksDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'carResearchPaymentLinks', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
   thenByCategory() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'category', Sort.asc);
@@ -2946,6 +3724,20 @@ extension ShopInBitTicketQuerySortThenBy
     });
   }
 
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByFeeTicketNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'feeTicketNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByFeeTicketNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'feeTicketNumber', Sort.desc);
+    });
+  }
+
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -2955,6 +3747,34 @@ extension ShopInBitTicketQuerySortThenBy
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByIsPendingPayment() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPendingPayment', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByIsPendingPaymentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPendingPayment', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByNeedsCreateRequest() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByNeedsCreateRequestDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsCreateRequest', Sort.desc);
     });
   }
 
@@ -3122,6 +3942,33 @@ extension ShopInBitTicketQueryWhereDistinct
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByCarResearchExpiresAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'carResearchExpiresAt');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByCarResearchInvoiceId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'carResearchInvoiceId',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByCarResearchPaymentLinks({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'carResearchPaymentLinks',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
   distinctByCategory() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'category');
@@ -3149,6 +3996,30 @@ extension ShopInBitTicketQueryWhereDistinct
   distinctByDisplayName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'displayName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByFeeTicketNumber({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'feeTicketNumber',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByIsPendingPayment() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isPendingPayment');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByNeedsCreateRequest() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'needsCreateRequest');
     });
   }
 
@@ -3262,6 +4133,27 @@ extension ShopInBitTicketQueryProperty
     });
   }
 
+  QueryBuilder<ShopInBitTicket, DateTime?, QQueryOperations>
+  carResearchExpiresAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'carResearchExpiresAt');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, String?, QQueryOperations>
+  carResearchInvoiceIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'carResearchInvoiceId');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, String?, QQueryOperations>
+  carResearchPaymentLinksProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'carResearchPaymentLinks');
+    });
+  }
+
   QueryBuilder<ShopInBitTicket, ShopInBitCategory, QQueryOperations>
   categoryProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -3290,10 +4182,31 @@ extension ShopInBitTicketQueryProperty
     });
   }
 
+  QueryBuilder<ShopInBitTicket, String?, QQueryOperations>
+  feeTicketNumberProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'feeTicketNumber');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, bool, QQueryOperations>
+  isPendingPaymentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isPendingPayment');
+    });
+  }
+
   QueryBuilder<ShopInBitTicket, List<ShopInBitTicketMessage>, QQueryOperations>
   messagesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'messages');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, bool, QQueryOperations>
+  needsCreateRequestProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'needsCreateRequest');
     });
   }
 

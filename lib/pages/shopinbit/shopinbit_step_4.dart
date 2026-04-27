@@ -29,6 +29,7 @@ import '../exchange_view/sub_widgets/step_row.dart';
 import 'shopinbit_step_3.dart';
 import 'shopinbit_car_fee_view.dart';
 import 'shopinbit_order_created.dart';
+import 'shopinbit_tickets_view.dart';
 
 class ShopInBitStep4 extends StatefulWidget {
   const ShopInBitStep4({super.key, required this.model});
@@ -527,7 +528,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     } else {
       widget.model.requestDescription = _descriptionController.text.trim();
     }
-    // Travel doesn't collect delivery country — use departure country or "DE"
+    // Travel doesn't collect delivery country: use departure country or "DE"
     // as a default since the API requires the field.
     if (widget.model.category == ShopInBitCategory.travel) {
       widget.model.deliveryCountry = "DE";
@@ -536,6 +537,49 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     }
 
     if (widget.model.category == ShopInBitCategory.car) {
+      // Block if another car research flow is already in progress.
+      final existingPending = MainDB.instance
+          .getShopInBitTickets()
+          .where((t) => t.isPendingPayment)
+          .toList();
+
+      if (existingPending.isNotEmpty && mounted) {
+        final resumePrevious = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text("In-Progress Car Research"),
+            content: const Text(
+              "You have an unfinished car research payment. "
+              "Would you like to resume it or start a new search?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text("Resume Previous"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text("Start New"),
+              ),
+            ],
+          ),
+        );
+
+        if (resumePrevious == true && mounted) {
+          setState(() => _submitting = false);
+          unawaited(
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              ShopInBitTicketsView.routeName,
+              (route) => route.isFirst,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (!mounted) return;
+
       if (Util.isDesktop) {
         Navigator.of(context, rootNavigator: true).pop();
         unawaited(
@@ -561,7 +605,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
 
       assert(
         widget.model.category != null,
-        'Step 4 reached with null category — Step 2 must set category before reaching Step 4',
+        'Step 4 reached with null category: Step 2 must set category before reaching Step 4',
       );
 
       // API service_type: travel requests use "concierge" because the
@@ -1347,7 +1391,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
         // Research fee info box
         RoundedWhiteContainer(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
                 Icons.info_outline,
@@ -2156,7 +2200,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               ),
         ),
 
-        // Travel doesn't need delivery country — destinations are in the form.
+        // Travel doesn't need delivery country: destinations are in the form.
         SizedBox(height: isDesktop ? 16 : 12),
         _buildPrivacyCheckbox(isDesktop),
         SizedBox(height: isDesktop ? 16 : 12),
