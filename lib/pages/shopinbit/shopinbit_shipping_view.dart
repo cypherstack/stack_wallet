@@ -494,9 +494,9 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                       }
                     });
                   },
-                  activeColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorBlue,
+                  activeColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.accentColorBlue,
                 ),
               ),
               const SizedBox(width: 12),
@@ -572,12 +572,13 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                         child: Text(
                           c['label'] as String,
                           style: isDesktop
-                              ? STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldActiveText,
-                                  )
+                              ? STextStyles.desktopTextExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveText,
+                                )
                               : STextStyles.w500_14(context),
                         ),
                       ),
@@ -608,9 +609,9 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                 isExpanded: true,
                 buttonStyleData: ButtonStyleData(
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -634,9 +635,9 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                   elevation: 0,
                   maxHeight: 300,
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),

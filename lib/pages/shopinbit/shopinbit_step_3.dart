@@ -139,11 +139,10 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
               child: Text(
                 _guidelinesText(),
                 style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                        .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                    ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark,
                       )
                     : STextStyles.itemSubtitle12(context),
               ),
@@ -151,19 +150,20 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
           ),
         ),
         CheckboxListTile(
-            value: _agreed,
-            onChanged: (v) => setState(() => _agreed = v ?? false),
-            title: Text(
-              "I have read and agree to the Service Guidelines",
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraExtraSmall(context)
-                  : STextStyles.itemSubtitle12(context),
-            ),
-            controlAffinity: ListTileControlAffinity.leading,
-            contentPadding: EdgeInsets.zero,
-            activeColor:
-                Theme.of(context).extension<StackColors>()!.accentColorBlue,
+          value: _agreed,
+          onChanged: (v) => setState(() => _agreed = v ?? false),
+          title: Text(
+            "I have read and agree to the Service Guidelines",
+            style: isDesktop
+                ? STextStyles.desktopTextExtraExtraSmall(context)
+                : STextStyles.itemSubtitle12(context),
           ),
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          activeColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.accentColorBlue,
+        ),
         SizedBox(height: isDesktop ? 24 : 16),
         PrimaryButton(
           label: "Next",
@@ -189,10 +189,7 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
                       iconSize: 23,
                       onPressed: _popBack,
                     ),
-                    Text(
-                      "ShopinBit",
-                      style: STextStyles.desktopH3(context),
-                    ),
+                    Text("ShopinBit", style: STextStyles.desktopH3(context)),
                   ],
                 ),
                 const DesktopDialogCloseButton(),

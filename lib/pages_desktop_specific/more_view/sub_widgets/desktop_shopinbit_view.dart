@@ -156,8 +156,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                       await showDialog<void>(
                         context: context,
                         barrierDismissible: false,
-                        builder: (_) =>
-                            ShopInBitStep1(model: model),
+                        builder: (_) => ShopInBitStep1(model: model),
                       );
                       if (mounted) setState(() {});
                     },
@@ -349,9 +348,7 @@ class _ShopInBitDesktopSetupDialogState
     super.initState();
     _keyFuture = ShopInBitService.instance.ensureCustomerKey();
     final existingName = ShopInBitService.instance.loadDisplayName();
-    _nameController = TextEditingController(
-      text: existingName ?? '',
-    );
+    _nameController = TextEditingController(text: existingName ?? '');
     _nameFocusNode = FocusNode();
 
     _nameFocusNode.addListener(() {
@@ -404,34 +401,31 @@ class _ShopInBitDesktopSetupDialogState
                 children: [
                   Text(
                     "Your Customer Key",
-                    style: STextStyles.desktopTextSmall(context).copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: STextStyles.desktopTextSmall(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "This is your ShopinBit customer key: save it "
                     "somewhere safe, you'll need it to recover "
                     "your ShopinBit account on a new device.",
-                    style:
-                        STextStyles.desktopTextExtraExtraSmall(context),
+                    style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                   const SizedBox(height: 12),
                   FutureBuilder<String>(
                     future: _keyFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
                         return Text(
                           "Failed to generate key. Please try again.",
                           style: STextStyles.desktopTextSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textError,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textError,
                           ),
                         );
                       }
@@ -442,18 +436,15 @@ class _ShopInBitDesktopSetupDialogState
                             Expanded(
                               child: SelectableText(
                                 key,
-                                style:
-                                    STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    ),
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.copy, size: 20),
                               onPressed: () {
-                                Clipboard.setData(
-                                  ClipboardData(text: key),
-                                );
+                                Clipboard.setData(ClipboardData(text: key));
                                 showFloatingFlushBar(
                                   type: FlushBarType.info,
                                   message: "Copied to clipboard!",
@@ -469,9 +460,9 @@ class _ShopInBitDesktopSetupDialogState
                   const SizedBox(height: 24),
                   Text(
                     "Display Name",
-                    style: STextStyles.desktopTextSmall(context).copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: STextStyles.desktopTextSmall(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -479,9 +470,7 @@ class _ShopInBitDesktopSetupDialogState
                     focusNode: _nameFocusNode,
                     onChanged: (_) => setState(() {}),
                     style: STextStyles.desktopTextSmall(context),
-                    decoration: const InputDecoration(
-                      hintText: "Display name",
-                    ),
+                    decoration: const InputDecoration(hintText: "Display name"),
                   ),
                   const Spacer(),
                   PrimaryButton(

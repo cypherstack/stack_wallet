@@ -37,9 +37,7 @@ class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
     super.initState();
     _keyFuture = ShopInBitService.instance.ensureCustomerKey();
     final existingName = ShopInBitService.instance.loadDisplayName();
-    _nameController = TextEditingController(
-      text: existingName ?? '',
-    );
+    _nameController = TextEditingController(text: existingName ?? '');
     _nameFocusNode = FocusNode();
 
     _nameFocusNode.addListener(() {
@@ -61,10 +59,9 @@ class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
     await ShopInBitService.instance.setSetupComplete(true);
 
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed(
-        ShopInBitStep2.routeName,
-        arguments: widget.model,
-      );
+      Navigator.of(
+        context,
+      ).pushReplacementNamed(ShopInBitStep2.routeName, arguments: widget.model);
     }
   }
 
@@ -117,14 +114,12 @@ class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
                               if (snapshot.hasError) {
                                 return Text(
                                   "Failed to generate key. Please try again.",
-                                  style: STextStyles.itemSubtitle(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textError,
-                                  ),
+                                  style: STextStyles.itemSubtitle(context)
+                                      .copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.textError,
+                                      ),
                                 );
                               }
                               final key = snapshot.data!;
@@ -174,17 +169,18 @@ class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
                               enableSuggestions: false,
                               onChanged: (_) => setState(() {}),
                               style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Display name",
-                                _nameFocusNode,
-                                context,
-                              ).copyWith(
-                                filled: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
+                              decoration:
+                                  standardInputDecoration(
+                                    "Display name",
+                                    _nameFocusNode,
+                                    context,
+                                  ).copyWith(
+                                    filled: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                  ),
                             ),
                           ),
                           const Spacer(),

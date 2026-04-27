@@ -55,8 +55,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
   void _continue() {
     widget.model.category = _selected;
 
-    final skipGuidelines =
-        ShopInBitService.instance.loadGuidelinesAccepted();
+    final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
 
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
@@ -69,15 +68,13 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
       if (skipGuidelines) {
         // Returning user — skip guidelines.
         widget.model.guidelinesAccepted = true;
-        Navigator.of(context).pushNamed(
-          ShopInBitStep4.routeName,
-          arguments: widget.model,
-        );
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
       } else {
-        Navigator.of(context).pushNamed(
-          ShopInBitStep3.routeName,
-          arguments: widget.model,
-        );
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
       }
     }
   }
@@ -111,19 +108,16 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
               height: isDesktop ? 48 : 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textDark
-                    .withOpacity(0.1),
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textDark.withOpacity(0.1),
               ),
               alignment: Alignment.center,
               child: SvgPicture.asset(
                 iconAsset,
                 width: isDesktop ? 24 : 20,
                 height: isDesktop ? 24 : 20,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textDark,
+                color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
             ),
             SizedBox(width: isDesktop ? 16 : 12),
@@ -154,9 +148,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textDark,
+                color: Theme.of(context).extension<StackColors>()!.textDark,
                 size: isDesktop ? 24 : 20,
               ),
           ],
@@ -241,10 +233,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
                       iconSize: 23,
                       onPressed: _popBack,
                     ),
-                    Text(
-                      "ShopinBit",
-                      style: STextStyles.desktopH3(context),
-                    ),
+                    Text("ShopinBit", style: STextStyles.desktopH3(context)),
                   ],
                 ),
                 const DesktopDialogCloseButton(),
@@ -273,12 +262,11 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
           }
         },
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: _popBack,
-            ),
+            leading: AppBarBackButton(onPressed: _popBack),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

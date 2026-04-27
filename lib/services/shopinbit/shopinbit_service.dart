@@ -98,7 +98,7 @@ class ShopInBitService {
               key: "shopInBitGuidelinesAccepted",
             )
             as bool? ??
-            false;
+        false;
     return _guidelinesAccepted!;
   }
 
@@ -122,7 +122,7 @@ class ShopInBitService {
               key: "shopInBitSetupComplete",
             )
             as bool? ??
-            false;
+        false;
     return _setupComplete!;
   }
 
@@ -133,9 +133,7 @@ class ShopInBitService {
       key: "shopInBitSetupComplete",
       value: complete,
     );
-    Logging.instance.i(
-      "ShopInBitService: setup complete set to $complete",
-    );
+    Logging.instance.i("ShopInBitService: setup complete set to $complete");
   }
 
   String? loadDisplayName() {
