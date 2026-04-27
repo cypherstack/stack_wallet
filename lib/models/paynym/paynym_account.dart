@@ -80,7 +80,7 @@ class PaynymAccount {
         "segwit": segwit,
         "codes": codes.map((e) => e.toMap()),
         "followers": followers.map((e) => e.toMap()),
-        "following": followers.map((e) => e.toMap()),
+        "following": following.map((e) => e.toMap()),
       };
 
   @override
