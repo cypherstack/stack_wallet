@@ -97,6 +97,7 @@ import 'pages/namecoin_names/manage_domain_view.dart';
 import 'pages/namecoin_names/namecoin_names_home_view.dart';
 import 'pages/namecoin_names/sub_widgets/name_details.dart';
 import 'pages/notification_views/notifications_view.dart';
+import 'pages/open_crypto_pay/open_crypto_pay_view.dart';
 import 'pages/ordinals/ordinal_details_view.dart';
 import 'pages/ordinals/ordinals_filter_view.dart';
 import 'pages/ordinals/ordinals_view.dart';
@@ -2112,6 +2113,20 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) =>
                 AddressDetailsView(walletId: args.item2, addressId: args.item1),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case OpenCryptoPayView.routeName:
+        if (args is ({String qrUrl, String walletId, CryptoCurrency coin})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => OpenCryptoPayView(
+              qrUrl: args.qrUrl,
+              walletId: args.walletId,
+              coin: args.coin,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

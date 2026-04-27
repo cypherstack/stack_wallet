@@ -10,17 +10,25 @@
 
 import 'package:decimal/decimal.dart';
 
+import '../services/open_crypto_pay/models.dart';
+
 class SendViewAutoFillData {
   final String address;
   final String contactLabel;
   final Decimal? amount;
   final String note;
 
+  /// When set, ConfirmTransactionView will notify the OpenCryptoPay provider
+  /// with the broadcast tx ID (and raw hex, where available) after a
+  /// successful send.
+  final OpenCryptoPayCommit? openCryptoPayCommit;
+
   SendViewAutoFillData({
     required this.address,
     required this.contactLabel,
     this.amount,
     this.note = "",
+    this.openCryptoPayCommit,
   });
 
   Map<String, dynamic> toJson() {

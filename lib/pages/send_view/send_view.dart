@@ -29,6 +29,7 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/open_crypto_pay/lnurl_utils.dart';
 import '../../services/spark_names_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -81,6 +82,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
+import '../open_crypto_pay/open_crypto_pay_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -295,6 +297,21 @@ class _SendViewState extends ConsumerState<SendView> {
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
+
+      // Check for OpenCryptoPay QR code.
+      if (LnurlUtils.isOpenCryptoPayUrl(qrResult.rawContent!)) {
+        if (mounted) {
+          await Navigator.of(context).pushNamed(
+            OpenCryptoPayView.routeName,
+            arguments: (
+              qrUrl: qrResult.rawContent!,
+              walletId: walletId,
+              coin: coin,
+            ),
+          );
+        }
+        return;
+      }
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
@@ -1074,6 +1091,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 walletId: walletId,
                 isPaynymTransaction: isPaynymSend,
                 onSuccess: clearSendForm,
+                openCryptoPayCommit: _data?.openCryptoPayCommit,
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,

@@ -29,6 +29,8 @@ import '../../providers/global/global_nav_key_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/open_crypto_pay/models.dart';
+import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
@@ -84,6 +86,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.isPaynymNotificationTransaction = false,
     this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
+    this.openCryptoPayCommit,
   });
 
   static const String routeName = "/confirmTransactionView";
@@ -97,6 +100,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
+  final OpenCryptoPayCommit? openCryptoPayCommit;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -529,6 +533,25 @@ class _ConfirmTransactionViewState
         txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
       } else {
         txids.add(confirmedTx.txid!);
+      }
+
+      // Notify the OpenCryptoPay provider of the broadcast tx so the merchant
+      // can settle. Best-effort — a failure here doesn't unwind the send.
+      if (widget.openCryptoPayCommit != null) {
+        final result = results.first as TxData;
+        try {
+          await OpenCryptoPayApi.instance.commit(
+            commit: widget.openCryptoPayCommit!,
+            txId: result.txid!,
+            hex: result.raw,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "OpenCryptoPay commit failed (tx already broadcast)",
+            error: e,
+            stackTrace: s,
+          );
+        }
       }
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);

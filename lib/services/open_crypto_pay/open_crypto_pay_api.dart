@@ -1,0 +1,175 @@
+import 'dart:convert';
+import 'dart:io';
+
+import '../../app_config.dart';
+import '../../networking/http.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/prefs.dart';
+import '../tor_service.dart';
+import 'lnurl_utils.dart';
+import 'models.dart';
+
+/// Client for the Open CryptoPay standard.
+///
+/// See https://github.com/openCryptoPay/landingPage
+class OpenCryptoPayApi {
+  OpenCryptoPayApi._();
+
+  static final OpenCryptoPayApi instance = OpenCryptoPayApi._();
+
+  final HTTP _client = const HTTP();
+
+  static const Duration _httpTimeout = Duration(seconds: 15);
+
+  ({InternetAddress host, int port})? get _proxyInfo =>
+      AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null;
+
+  /// Throws if [uri] is not an absolute https URL. LUD-01 mandates HTTPS;
+  /// rejecting plain http also closes off MITM and SSRF-into-loopback risks
+  /// from a malicious QR.
+  void _requireHttps(Uri uri, String label) {
+    if (uri.scheme != 'https' || !uri.hasAuthority) {
+      throw Exception('OpenCryptoPay: $label must be an https URL');
+    }
+  }
+
+  /// Fetches the payment details (available methods, quote, recipient, etc)
+  /// for the payment encoded in [qrUrl].
+  Future<OpenCryptoPayPaymentDetails> getPaymentDetails(
+    String qrUrl, {
+    int timeout = 10,
+  }) async {
+    final lnurl = LnurlUtils.extractLnurl(qrUrl);
+    if (lnurl == null) {
+      throw Exception('No lightning parameter found in URL');
+    }
+
+    final apiUrl = Uri.parse(LnurlUtils.decodeLnurl(lnurl));
+    _requireHttps(apiUrl, 'decoded LNURL');
+    final uri = apiUrl.replace(
+      queryParameters: {
+        ...apiUrl.queryParameters,
+        'timeout': timeout.toString(),
+      },
+    );
+
+    Logging.instance.d('OpenCryptoPay: GET $uri');
+    final response = await _client.get(
+      url: uri,
+      proxyInfo: _proxyInfo,
+      connectionTimeout: _httpTimeout,
+    );
+
+    if (response.code == 404) {
+      String message = 'No pending payment found';
+      try {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        message = json['message'] as String? ?? message;
+      } catch (_) {}
+      throw OpenCryptoPayNoPendingPaymentException(message);
+    }
+    if (response.code != 200) {
+      throw Exception('OpenCryptoPay ${response.code}: ${response.body}');
+    }
+
+    final details = OpenCryptoPayPaymentDetails.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+
+    // Pin all subsequent calls (callback fetch + commit) to the same host as
+    // the LNURL we already trusted. Otherwise a malicious provider response
+    // could redirect the txid + raw hex to an attacker-controlled host.
+    final callback = Uri.tryParse(details.callback);
+    if (callback == null) {
+      throw Exception('OpenCryptoPay: invalid callback URL');
+    }
+    _requireHttps(callback, 'callback');
+    if (callback.host != apiUrl.host) {
+      throw Exception(
+        'OpenCryptoPay: callback host ${callback.host} does not match '
+        'LNURL host ${apiUrl.host}',
+      );
+    }
+
+    return details;
+  }
+
+  /// Fetches the transaction details (payment address URI) for the chosen
+  /// [method] and [asset].
+  Future<OpenCryptoPayTransactionDetails> getTransactionDetails({
+    required String callbackUrl,
+    required String quoteId,
+    required String method,
+    required String asset,
+  }) async {
+    final base = Uri.parse(callbackUrl);
+    _requireHttps(base, 'callback');
+    final uri = base.replace(
+      queryParameters: {
+        ...base.queryParameters,
+        'quote': quoteId,
+        'method': method,
+        'asset': asset,
+      },
+    );
+
+    Logging.instance.d('OpenCryptoPay: GET $uri');
+    final response = await _client.get(
+      url: uri,
+      proxyInfo: _proxyInfo,
+      connectionTimeout: _httpTimeout,
+    );
+
+    if (response.code != 200) {
+      throw Exception('OpenCryptoPay ${response.code}: ${response.body}');
+    }
+
+    return OpenCryptoPayTransactionDetails.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  /// Notifies the provider of a signed (and broadcast) transaction so the
+  /// merchant-side can settle the payment. The `/tx/` endpoint is derived
+  /// from the payment details callback URL.
+  Future<void> commit({
+    required OpenCryptoPayCommit commit,
+    required String txId,
+    String? hex,
+  }) async {
+    final base = Uri.parse(commit.callbackUrl.replaceAll('/cb/', '/tx/'));
+    _requireHttps(base, 'commit endpoint');
+    final uri = base.replace(
+      queryParameters: {
+        ...base.queryParameters,
+        'quote': commit.quoteId,
+        'method': commit.method,
+        'asset': commit.asset,
+        'tx': txId,
+        if (hex != null && hex.isNotEmpty) 'hex': hex,
+      },
+    );
+
+    Logging.instance.d('OpenCryptoPay: GET $uri');
+    final response = await _client.get(
+      url: uri,
+      proxyInfo: _proxyInfo,
+      connectionTimeout: _httpTimeout,
+    );
+    if (response.code != 200) {
+      throw Exception(
+        'OpenCryptoPay commit ${response.code}: ${response.body}',
+      );
+    }
+  }
+}
+
+class OpenCryptoPayNoPendingPaymentException implements Exception {
+  final String message;
+  OpenCryptoPayNoPendingPaymentException(this.message);
+
+  @override
+  String toString() => message;
+}

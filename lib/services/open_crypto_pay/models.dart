@@ -1,0 +1,194 @@
+/// Data models for the Open CryptoPay standard.
+///
+/// See https://github.com/openCryptoPay/landingPage
+
+class OpenCryptoPayRecipient {
+  final String? name;
+  final String? street;
+  final String? houseNumber;
+  final String? zip;
+  final String? city;
+  final String? country;
+
+  OpenCryptoPayRecipient({
+    this.name,
+    this.street,
+    this.houseNumber,
+    this.zip,
+    this.city,
+    this.country,
+  });
+
+  factory OpenCryptoPayRecipient.fromJson(Map<String, dynamic> json) {
+    final address = json['address'] as Map<String, dynamic>?;
+    return OpenCryptoPayRecipient(
+      name: json['name'] as String?,
+      street: address?['street'] as String?,
+      houseNumber: address?['houseNumber'] as String?,
+      zip: address?['zip'] as String?,
+      city: address?['city'] as String?,
+      country: address?['country'] as String?,
+    );
+  }
+
+  String get formattedAddress {
+    final parts = <String>[];
+    if (street != null) {
+      parts.add(houseNumber != null ? '$street $houseNumber' : street!);
+    }
+    if (zip != null || city != null) {
+      parts.add([zip, city].whereType<String>().join(' '));
+    }
+    if (country != null) parts.add(country!);
+    return parts.join(', ');
+  }
+}
+
+class OpenCryptoPayAsset {
+  final String asset;
+  final String amount;
+
+  OpenCryptoPayAsset({required this.asset, required this.amount});
+
+  factory OpenCryptoPayAsset.fromJson(Map<String, dynamic> json) {
+    return OpenCryptoPayAsset(
+      asset: json['asset'] as String,
+      amount: json['amount'].toString(),
+    );
+  }
+}
+
+class OpenCryptoPayTransferMethod {
+  final String method;
+  final List<OpenCryptoPayAsset> assets;
+  final bool available;
+
+  OpenCryptoPayTransferMethod({
+    required this.method,
+    required this.assets,
+    required this.available,
+  });
+
+  factory OpenCryptoPayTransferMethod.fromJson(Map<String, dynamic> json) {
+    return OpenCryptoPayTransferMethod(
+      method: json['method'] as String,
+      assets: (json['assets'] as List<dynamic>)
+          .map((e) => OpenCryptoPayAsset.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      available: json['available'] as bool,
+    );
+  }
+}
+
+class OpenCryptoPayQuote {
+  final String id;
+  final DateTime expiration;
+
+  OpenCryptoPayQuote({required this.id, required this.expiration});
+
+  factory OpenCryptoPayQuote.fromJson(Map<String, dynamic> json) {
+    return OpenCryptoPayQuote(
+      id: json['id'] as String,
+      expiration: DateTime.parse(json['expiration'] as String),
+    );
+  }
+
+  bool get isExpired => expiration.isBefore(DateTime.now());
+}
+
+class OpenCryptoPayRequestedAmount {
+  final String asset;
+  final num amount;
+
+  OpenCryptoPayRequestedAmount({required this.asset, required this.amount});
+
+  factory OpenCryptoPayRequestedAmount.fromJson(Map<String, dynamic> json) {
+    return OpenCryptoPayRequestedAmount(
+      asset: json['asset'] as String,
+      amount: json['amount'] as num,
+    );
+  }
+}
+
+class OpenCryptoPayPaymentDetails {
+  final String id;
+  final String? displayName;
+  final String callback;
+  final OpenCryptoPayRecipient? recipient;
+  final OpenCryptoPayQuote? quote;
+  final OpenCryptoPayRequestedAmount? requestedAmount;
+  final List<OpenCryptoPayTransferMethod> transferAmounts;
+
+  OpenCryptoPayPaymentDetails({
+    required this.id,
+    this.displayName,
+    required this.callback,
+    this.recipient,
+    this.quote,
+    this.requestedAmount,
+    required this.transferAmounts,
+  });
+
+  factory OpenCryptoPayPaymentDetails.fromJson(Map<String, dynamic> json) {
+    return OpenCryptoPayPaymentDetails(
+      id: json['id'] as String,
+      displayName: json['displayName'] as String?,
+      callback: json['callback'] as String? ?? '',
+      recipient: json['recipient'] == null
+          ? null
+          : OpenCryptoPayRecipient.fromJson(
+              json['recipient'] as Map<String, dynamic>,
+            ),
+      quote: json['quote'] == null
+          ? null
+          : OpenCryptoPayQuote.fromJson(json['quote'] as Map<String, dynamic>),
+      requestedAmount: json['requestedAmount'] == null
+          ? null
+          : OpenCryptoPayRequestedAmount.fromJson(
+              json['requestedAmount'] as Map<String, dynamic>,
+            ),
+      transferAmounts: (json['transferAmounts'] as List<dynamic>?)
+              ?.map(
+                (e) => OpenCryptoPayTransferMethod.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          [],
+    );
+  }
+
+  /// Methods that are available and have at least one asset.
+  List<OpenCryptoPayTransferMethod> get availableMethods =>
+      transferAmounts.where((m) => m.available && m.assets.isNotEmpty).toList();
+}
+
+class OpenCryptoPayTransactionDetails {
+  final String? uri;
+  final String? hint;
+
+  OpenCryptoPayTransactionDetails({this.uri, this.hint});
+
+  factory OpenCryptoPayTransactionDetails.fromJson(Map<String, dynamic> json) {
+    return OpenCryptoPayTransactionDetails(
+      uri: json['uri'] as String?,
+      hint: json['hint'] as String?,
+    );
+  }
+}
+
+/// Context required to notify the provider of a broadcast transaction via
+/// the `/tx/` endpoint (derived from the payment details callback URL).
+class OpenCryptoPayCommit {
+  final String callbackUrl;
+  final String quoteId;
+  final String method;
+  final String asset;
+
+  const OpenCryptoPayCommit({
+    required this.callbackUrl,
+    required this.quoteId,
+    required this.method,
+    required this.asset,
+  });
+}
