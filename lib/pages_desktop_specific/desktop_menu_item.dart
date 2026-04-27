@@ -41,13 +41,13 @@ class DesktopMyStackIcon extends ConsumerWidget {
       Assets.svg.walletDesktop,
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.myStack ==
+      color:
+          DesktopMenuItemId.myStack ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -61,13 +61,13 @@ class DesktopExchangeIcon extends ConsumerWidget {
       Assets.svg.exchangeDesktop,
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.exchange ==
+      color:
+          DesktopMenuItemId.exchange ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -81,13 +81,33 @@ class DesktopBuyIcon extends ConsumerWidget {
       File(ref.watch(themeAssetsProvider).buy),
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.buy ==
+      color:
+          DesktopMenuItemId.buy ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopServicesIcon extends ConsumerWidget {
+  const DesktopServicesIcon({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.solidSliders,
+      width: 20,
+      height: 20,
+      color:
+          DesktopMenuItemId.services ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -98,15 +118,11 @@ class DesktopNotificationsIcon extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(
-      notificationsProvider.select((value) => value.hasUnreadNotifications),
-    )
+          notificationsProvider.select((value) => value.hasUnreadNotifications),
+        )
         ? SvgPicture.file(
             File(
-              ref.watch(
-                themeProvider.select(
-                  (value) => value.assets.bellNew,
-                ),
-              ),
+              ref.watch(themeProvider.select((value) => value.assets.bellNew)),
             ),
             width: 20,
             height: 20,
@@ -115,20 +131,19 @@ class DesktopNotificationsIcon extends ConsumerWidget {
             Assets.svg.bell,
             width: 20,
             height: 20,
-            color: ref.watch(
-              notificationsProvider
-                  .select((value) => value.hasUnreadNotifications),
-            )
+            color:
+                ref.watch(
+                  notificationsProvider.select(
+                    (value) => value.hasUnreadNotifications,
+                  ),
+                )
                 ? null
                 : DesktopMenuItemId.notifications ==
-                        ref.watch(currentDesktopMenuItemProvider.state).state
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark
-                        .withOpacity(0.8),
+                      ref.watch(currentDesktopMenuItemProvider.state).state
+                ? Theme.of(context).extension<StackColors>()!.accentColorDark
+                : Theme.of(
+                    context,
+                  ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
           );
   }
 }
@@ -142,13 +157,13 @@ class DesktopAddressBookIcon extends ConsumerWidget {
       Assets.svg.addressBookDesktop,
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.addressBook ==
+      color:
+          DesktopMenuItemId.addressBook ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -162,13 +177,13 @@ class DesktopSettingsIcon extends ConsumerWidget {
       Assets.svg.gear,
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.settings ==
+      color:
+          DesktopMenuItemId.settings ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -182,13 +197,13 @@ class DesktopSupportIcon extends ConsumerWidget {
       Assets.svg.messageQuestion,
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.support ==
+      color:
+          DesktopMenuItemId.support ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -202,13 +217,13 @@ class DesktopAboutIcon extends ConsumerWidget {
       Assets.svg.aboutDesktop,
       width: 20,
       height: 20,
-      color: DesktopMenuItemId.about ==
+      color:
+          DesktopMenuItemId.about ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -222,10 +237,9 @@ class DesktopExitIcon extends ConsumerWidget {
       Assets.svg.exitDesktop,
       width: 20,
       height: 20,
-      color: Theme.of(context)
-          .extension<StackColors>()!
-          .accentColorDark
-          .withOpacity(0.8),
+      color: Theme.of(
+        context,
+      ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
     );
   }
 }
@@ -294,10 +308,7 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
 
     _iconOnly = !widget.isExpandedInitially;
     controller?.toggle = toggle;
-    animationController = AnimationController(
-      vsync: this,
-      duration: duration,
-    );
+    animationController = AnimationController(vsync: this, duration: duration);
     if (_iconOnly) {
       animationController.value = 0;
     } else {
@@ -321,25 +332,20 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
     return TextButton(
       style: value == group
           ? Theme.of(context)
-              .extension<StackColors>()!
-              .getDesktopMenuButtonStyleSelected(context)
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .getDesktopMenuButtonStyle(context),
+                .extension<StackColors>()!
+                .getDesktopMenuButtonStyleSelected(context)
+          : Theme.of(
+              context,
+            ).extension<StackColors>()!.getDesktopMenuButtonStyle(context),
       onPressed: () {
         onChanged(value);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: duration,
-              width: _iconOnly ? 0 : 16,
-            ),
+            AnimatedContainer(duration: duration, width: _iconOnly ? 0 : 16),
             icon,
             AnimatedOpacity(
               duration: duration,
@@ -352,9 +358,7 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
                   width: labelLength,
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                       Text(
                         label,
                         style: value == group
