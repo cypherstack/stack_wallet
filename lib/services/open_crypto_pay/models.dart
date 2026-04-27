@@ -99,13 +99,24 @@ class OpenCryptoPayTransferMethod {
 
 class OpenCryptoPayQuote {
   final String id;
+  final String paymentId;
   final DateTime expiration;
 
-  OpenCryptoPayQuote({required this.id, required this.expiration});
+  OpenCryptoPayQuote({
+    required this.id,
+    required this.paymentId,
+    required this.expiration,
+  });
 
   factory OpenCryptoPayQuote.fromJson(Map<String, dynamic> json) {
+    final paymentId = json['payment'] as String?;
+    if (paymentId == null || paymentId.isEmpty) {
+      throw Exception('OpenCryptoPay: quote payment id is missing');
+    }
+
     return OpenCryptoPayQuote(
       id: json['id'] as String,
+      paymentId: paymentId,
       expiration: DateTime.parse(json['expiration'] as String),
     );
   }
@@ -220,11 +231,11 @@ class OpenCryptoPayTransactionDetails {
   }
 }
 
-/// Context required to notify the provider of a broadcast transaction via
-/// the `/tx/` endpoint (derived from the payment details callback URL).
+/// Context required to notify the provider via the `/tx/{paymentId}` endpoint.
 class OpenCryptoPayCommit {
   final String callbackUrl;
   final String quoteId;
+  final String paymentId;
   final String method;
   final String asset;
   final DateTime expiresAt;
@@ -237,6 +248,7 @@ class OpenCryptoPayCommit {
   const OpenCryptoPayCommit({
     required this.callbackUrl,
     required this.quoteId,
+    required this.paymentId,
     required this.method,
     required this.asset,
     required this.expiresAt,

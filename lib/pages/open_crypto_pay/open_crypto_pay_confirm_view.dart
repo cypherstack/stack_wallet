@@ -290,6 +290,7 @@ class _OpenCryptoPayConfirmViewState
           openCryptoPayCommit: OpenCryptoPayCommit(
             callbackUrl: widget.paymentDetails.callback,
             quoteId: widget.paymentDetails.quote!.id,
+            paymentId: widget.paymentDetails.quote!.paymentId,
             method: widget.selectedMethod.method,
             asset: widget.selectedAsset.asset,
             expiresAt: expiresAt,
@@ -348,6 +349,7 @@ class _OpenCryptoPayConfirmViewState
           openCryptoPayCommit: OpenCryptoPayCommit(
             callbackUrl: widget.paymentDetails.callback,
             quoteId: widget.paymentDetails.quote!.id,
+            paymentId: widget.paymentDetails.quote!.paymentId,
             method: widget.selectedMethod.method,
             asset: widget.selectedAsset.asset,
             expiresAt: expiresAt,

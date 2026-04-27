@@ -126,8 +126,7 @@ class OpenCryptoPayApi {
   }
 
   /// Notifies the provider of a locally broadcast transaction so the merchant
-  /// side can settle the payment. The `/tx/` endpoint is derived from the
-  /// payment details callback URL.
+  /// side can settle the payment.
   Future<void> commitTxId({
     required OpenCryptoPayCommit commit,
     required String txId,
@@ -161,7 +160,7 @@ class OpenCryptoPayApi {
     required OpenCryptoPayCommit commit,
     required Map<String, String> queryParameters,
   }) async {
-    final base = _commitEndpoint(commit.callbackUrl);
+    final base = _commitEndpoint(commit.callbackUrl, commit.paymentId);
     _requireHttps(base, 'commit endpoint');
     final uri = base.replace(
       queryParameters: {
@@ -181,15 +180,19 @@ class OpenCryptoPayApi {
     }
   }
 
-  Uri _commitEndpoint(String callbackUrl) {
+  Uri _commitEndpoint(String callbackUrl, String paymentId) {
     final callback = Uri.parse(callbackUrl);
+    if (paymentId.isEmpty) {
+      throw Exception('OpenCryptoPay: quote payment id is missing');
+    }
     final segments = callback.pathSegments.toList();
-    final cbIndex = segments.indexOf('cb');
+    final cbIndex = segments.lastIndexOf('cb');
     if (cbIndex == -1) {
       throw Exception('OpenCryptoPay: callback URL does not contain /cb/');
     }
-    segments[cbIndex] = 'tx';
-    return callback.replace(pathSegments: segments);
+    return callback.replace(
+      pathSegments: [...segments.take(cbIndex), 'tx', paymentId],
+    );
   }
 
   Uri _redactedUri(Uri uri) {
