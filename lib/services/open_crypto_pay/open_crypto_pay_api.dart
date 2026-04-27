@@ -23,8 +23,8 @@ class OpenCryptoPayApi {
 
   ({InternetAddress host, int port})? get _proxyInfo =>
       AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null;
+      ? TorService.sharedInstance.getProxyInfo()
+      : null;
 
   /// Throws if [uri] is not an absolute https URL. LUD-01 mandates HTTPS;
   /// rejecting plain http also closes off MITM and SSRF-into-loopback risks
@@ -56,11 +56,7 @@ class OpenCryptoPayApi {
     );
 
     Logging.instance.d('OpenCryptoPay: GET $uri');
-    final response = await _client.get(
-      url: uri,
-      proxyInfo: _proxyInfo,
-      connectionTimeout: _httpTimeout,
-    );
+    final response = await _get(uri);
 
     if (response.code == 404) {
       String message = 'No pending payment found';
@@ -74,9 +70,11 @@ class OpenCryptoPayApi {
       throw Exception('OpenCryptoPay ${response.code}: ${response.body}');
     }
 
-    final details = OpenCryptoPayPaymentDetails.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final details = OpenCryptoPayPaymentDetails.fromJson(json);
+    if (!details.supportsOpenCryptoPay) {
+      throw Exception('OpenCryptoPay: endpoint did not return OpenCryptoPay');
+    }
 
     // Pin all subsequent calls (callback fetch + commit) to the same host as
     // the LNURL we already trusted. Otherwise a malicious provider response
@@ -116,11 +114,7 @@ class OpenCryptoPayApi {
     );
 
     Logging.instance.d('OpenCryptoPay: GET $uri');
-    final response = await _client.get(
-      url: uri,
-      proxyInfo: _proxyInfo,
-      connectionTimeout: _httpTimeout,
-    );
+    final response = await _get(uri);
 
     if (response.code != 200) {
       throw Exception('OpenCryptoPay ${response.code}: ${response.body}');
@@ -131,38 +125,84 @@ class OpenCryptoPayApi {
     );
   }
 
-  /// Notifies the provider of a signed (and broadcast) transaction so the
-  /// merchant-side can settle the payment. The `/tx/` endpoint is derived
-  /// from the payment details callback URL.
-  Future<void> commit({
+  /// Notifies the provider of a locally broadcast transaction so the merchant
+  /// side can settle the payment. The `/tx/` endpoint is derived from the
+  /// payment details callback URL.
+  Future<void> commitTxId({
     required OpenCryptoPayCommit commit,
     required String txId,
-    String? hex,
   }) async {
-    final base = Uri.parse(commit.callbackUrl.replaceAll('/cb/', '/tx/'));
+    if (commit.submissionFlow !=
+        OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
+      throw UnsupportedError(
+        'OpenCryptoPay method ${commit.method} cannot be committed with txid',
+      );
+    }
+
+    await _commit(commit: commit, queryParameters: {'tx': txId});
+  }
+
+  /// Sends raw signed transaction hex to the provider for methods where the
+  /// provider is responsible for broadcasting.
+  Future<void> commitRawHex({
+    required OpenCryptoPayCommit commit,
+    required String hex,
+  }) async {
+    if (commit.submissionFlow != OpenCryptoPaySubmissionFlow.rawHexToProvider) {
+      throw UnsupportedError(
+        'OpenCryptoPay method ${commit.method} cannot be committed with hex',
+      );
+    }
+
+    await _commit(commit: commit, queryParameters: {'hex': hex});
+  }
+
+  Future<void> _commit({
+    required OpenCryptoPayCommit commit,
+    required Map<String, String> queryParameters,
+  }) async {
+    final base = _commitEndpoint(commit.callbackUrl);
     _requireHttps(base, 'commit endpoint');
     final uri = base.replace(
       queryParameters: {
         ...base.queryParameters,
         'quote': commit.quoteId,
         'method': commit.method,
-        'asset': commit.asset,
-        'tx': txId,
-        if (hex != null && hex.isNotEmpty) 'hex': hex,
+        ...queryParameters,
       },
     );
 
-    Logging.instance.d('OpenCryptoPay: GET $uri');
-    final response = await _client.get(
-      url: uri,
-      proxyInfo: _proxyInfo,
-      connectionTimeout: _httpTimeout,
-    );
+    Logging.instance.d('OpenCryptoPay: GET ${_redactedUri(uri)}');
+    final response = await _get(uri);
     if (response.code != 200) {
       throw Exception(
         'OpenCryptoPay commit ${response.code}: ${response.body}',
       );
     }
+  }
+
+  Uri _commitEndpoint(String callbackUrl) {
+    final callback = Uri.parse(callbackUrl);
+    final segments = callback.pathSegments.toList();
+    final cbIndex = segments.indexOf('cb');
+    if (cbIndex == -1) {
+      throw Exception('OpenCryptoPay: callback URL does not contain /cb/');
+    }
+    segments[cbIndex] = 'tx';
+    return callback.replace(pathSegments: segments);
+  }
+
+  Uri _redactedUri(Uri uri) {
+    if (!uri.queryParameters.containsKey('hex')) return uri;
+    return uri.replace(
+      queryParameters: {...uri.queryParameters, 'hex': '<redacted>'},
+    );
+  }
+
+  Future<Response> _get(Uri uri) {
+    return _client
+        .get(url: uri, proxyInfo: _proxyInfo, connectionTimeout: _httpTimeout)
+        .timeout(_httpTimeout);
   }
 }
 

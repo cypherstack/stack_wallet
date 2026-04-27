@@ -584,6 +584,30 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     }
   }
 
+  Future<TxData> signSendWithoutBroadcast({required TxData txData}) async {
+    final client = getEthClient();
+    if (_credentials == null) {
+      await _initCredentials();
+    }
+
+    final signedTx = await client.signTransaction(
+      _credentials!,
+      txData.web3dartTransaction!,
+      chainId: txData.chainId!.toInt(),
+    );
+    final txid = web3.bytesToHex(web3.keccak256(signedTx), include0x: true);
+    final raw = web3.bytesToHex(signedTx, include0x: true);
+
+    return _prepareTempTx(
+      txData.copyWith(
+        raw: raw,
+        txid: txid,
+        txHash: txid,
+      ),
+      (await getCurrentReceivingAddress())!.value,
+    );
+  }
+
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshMutex.protect(() async {

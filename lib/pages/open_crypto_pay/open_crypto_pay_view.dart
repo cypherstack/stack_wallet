@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../notifications/show_flush_bar.dart';
+import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
 import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
 import '../../themes/stack_colors.dart';
@@ -31,7 +32,7 @@ class OpenCryptoPayView extends ConsumerStatefulWidget {
 
   final String qrUrl;
 
-  /// Only assets matching this coin's ticker are offered.
+  /// Only methods/assets this wallet can safely settle are offered.
   final String walletId;
   final CryptoCurrency coin;
 
@@ -71,13 +72,19 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
     }
   }
 
-  bool _matchesWalletCoin(String asset) =>
-      widget.coin.ticker.toUpperCase() == asset.toUpperCase();
-
-  void _onSelected(
+  bool _isSupportedOption(
     OpenCryptoPayTransferMethod method,
     OpenCryptoPayAsset asset,
-  ) {
+  ) => OpenCryptoPayMethodSupport.isSupportedWalletOption(
+    coin: widget.coin,
+    method: method,
+    asset: asset,
+  );
+
+  Future<void> _onSelected(
+    OpenCryptoPayTransferMethod method,
+    OpenCryptoPayAsset asset,
+  ) async {
     final quote = _details?.quote;
     if (quote == null) return;
 
@@ -85,16 +92,16 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
-          message: "Quote expired, refreshing…",
+          message: "Quote expired, refreshing...",
           context: context,
         ),
       );
-      _fetch();
+      await _fetch();
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
+    final result = await Navigator.of(context).push<OpenCryptoPayConfirmResult>(
+      MaterialPageRoute<OpenCryptoPayConfirmResult>(
         builder: (_) => OpenCryptoPayConfirmView(
           paymentDetails: _details!,
           selectedMethod: method,
@@ -104,17 +111,21 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
         ),
       ),
     );
+
+    if (result == OpenCryptoPayConfirmResult.quoteExpired && mounted) {
+      await _fetch();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
-        backgroundColor:
-            Theme.of(context).extension<StackColors>()!.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.backgroundAppBar,
           leading: const AppBarBackButton(),
           title: Text(
             "Open CryptoPay",
@@ -153,11 +164,11 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       return const Center(child: Text("No payment data"));
     }
 
-    // Flatten into (method, asset) pairs that this wallet actually supports.
+    // Flatten into (method, asset) pairs that this wallet can safely settle.
     final options = [
       for (final m in details.availableMethods)
         for (final a in m.assets)
-          if (_matchesWalletCoin(a.asset)) (method: m, asset: a),
+          if (_isSupportedOption(m, a)) (method: m, asset: a),
     ];
 
     return SingleChildScrollView(
@@ -180,7 +191,8 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
           if (options.isEmpty)
             RoundedWhiteContainer(
               child: Text(
-                "No payment option available for ${widget.coin.prettyName}.",
+                "No supported Open CryptoPay option available for "
+                "${widget.coin.prettyName}.",
                 style: STextStyles.itemSubtitle(context),
               ),
             )
@@ -275,9 +287,9 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
             ),
             Icon(
               Icons.chevron_right,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultSearchIconLeft,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
             ),
           ],
         ),

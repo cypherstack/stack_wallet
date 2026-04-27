@@ -298,7 +298,19 @@ class _SendViewState extends ConsumerState<SendView> {
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
 
-      // Check for OpenCryptoPay QR code.
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent!,
+        logging: Logging.instance,
+      );
+
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
+        _applyUri(paymentData);
+        return;
+      }
+
+      // Check for OpenCryptoPay QR code after standard payment URIs so a
+      // normal coin URI with a Lightning fallback still follows the usual flow.
       if (LnurlUtils.isOpenCryptoPayUrl(qrResult.rawContent!)) {
         if (mounted) {
           await Navigator.of(context).pushNamed(
@@ -313,23 +325,13 @@ class _SendViewState extends ConsumerState<SendView> {
         return;
       }
 
-      final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent!,
-        logging: Logging.instance,
-      );
+      _address = qrResult.rawContent!.split("\n").first.trim();
+      sendToController.text = _address ?? "";
 
-      if (paymentData != null &&
-          paymentData.coin?.uriScheme == coin.uriScheme) {
-        _applyUri(paymentData);
-      } else {
-        _address = qrResult.rawContent!.split("\n").first.trim();
-        sendToController.text = _address ?? "";
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
-      }
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
     } on PlatformException catch (e, s) {
       // ref
       //     .read(

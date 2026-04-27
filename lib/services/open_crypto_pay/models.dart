@@ -1,6 +1,19 @@
+import 'package:decimal/decimal.dart';
+
 /// Data models for the Open CryptoPay standard.
 ///
 /// See https://github.com/openCryptoPay/landingPage
+
+enum OpenCryptoPaySubmissionFlow {
+  /// The wallet broadcasts locally, then sends the resulting txid to `/tx/`.
+  txIdAfterLocalBroadcast,
+
+  /// The provider broadcasts after receiving raw signed transaction hex.
+  rawHexToProvider,
+
+  /// Payment is completed outside Stack Wallet, such as Lightning/BinancePay.
+  external,
+}
 
 class OpenCryptoPayRecipient {
   final String? name;
@@ -62,16 +75,20 @@ class OpenCryptoPayTransferMethod {
   final String method;
   final List<OpenCryptoPayAsset> assets;
   final bool available;
+  final Decimal minFee;
 
   OpenCryptoPayTransferMethod({
     required this.method,
     required this.assets,
     required this.available,
+    required this.minFee,
   });
 
   factory OpenCryptoPayTransferMethod.fromJson(Map<String, dynamic> json) {
     return OpenCryptoPayTransferMethod(
       method: json['method'] as String,
+      minFee:
+          Decimal.tryParse(json['minFee']?.toString() ?? '0') ?? Decimal.zero,
       assets: (json['assets'] as List<dynamic>)
           .map((e) => OpenCryptoPayAsset.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -112,6 +129,8 @@ class OpenCryptoPayRequestedAmount {
 
 class OpenCryptoPayPaymentDetails {
   final String id;
+  final String? standard;
+  final List<String> possibleStandards;
   final String? displayName;
   final String callback;
   final OpenCryptoPayRecipient? recipient;
@@ -121,6 +140,8 @@ class OpenCryptoPayPaymentDetails {
 
   OpenCryptoPayPaymentDetails({
     required this.id,
+    this.standard,
+    required this.possibleStandards,
     this.displayName,
     required this.callback,
     this.recipient,
@@ -132,6 +153,12 @@ class OpenCryptoPayPaymentDetails {
   factory OpenCryptoPayPaymentDetails.fromJson(Map<String, dynamic> json) {
     return OpenCryptoPayPaymentDetails(
       id: json['id'] as String,
+      standard: json['standard'] as String?,
+      possibleStandards:
+          (json['possibleStandards'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       displayName: json['displayName'] as String?,
       callback: json['callback'] as String? ?? '',
       recipient: json['recipient'] == null
@@ -147,7 +174,8 @@ class OpenCryptoPayPaymentDetails {
           : OpenCryptoPayRequestedAmount.fromJson(
               json['requestedAmount'] as Map<String, dynamic>,
             ),
-      transferAmounts: (json['transferAmounts'] as List<dynamic>?)
+      transferAmounts:
+          (json['transferAmounts'] as List<dynamic>?)
               ?.map(
                 (e) => OpenCryptoPayTransferMethod.fromJson(
                   e as Map<String, dynamic>,
@@ -161,18 +189,33 @@ class OpenCryptoPayPaymentDetails {
   /// Methods that are available and have at least one asset.
   List<OpenCryptoPayTransferMethod> get availableMethods =>
       transferAmounts.where((m) => m.available && m.assets.isNotEmpty).toList();
+
+  bool get supportsOpenCryptoPay =>
+      standard == 'OpenCryptoPay' ||
+      possibleStandards.contains('OpenCryptoPay');
 }
 
 class OpenCryptoPayTransactionDetails {
+  final String? blockchain;
   final String? uri;
   final String? hint;
+  final DateTime? expiryDate;
 
-  OpenCryptoPayTransactionDetails({this.uri, this.hint});
+  OpenCryptoPayTransactionDetails({
+    this.blockchain,
+    this.uri,
+    this.hint,
+    this.expiryDate,
+  });
 
   factory OpenCryptoPayTransactionDetails.fromJson(Map<String, dynamic> json) {
     return OpenCryptoPayTransactionDetails(
+      blockchain: json['blockchain'] as String?,
       uri: json['uri'] as String?,
       hint: json['hint'] as String?,
+      expiryDate: json['expiryDate'] == null
+          ? null
+          : DateTime.parse(json['expiryDate'] as String),
     );
   }
 }
@@ -184,11 +227,23 @@ class OpenCryptoPayCommit {
   final String quoteId;
   final String method;
   final String asset;
+  final DateTime expiresAt;
+  final OpenCryptoPaySubmissionFlow submissionFlow;
+  final Decimal minFee;
+  final String recipientAddress;
+  final Decimal amount;
 
   const OpenCryptoPayCommit({
     required this.callbackUrl,
     required this.quoteId,
     required this.method,
     required this.asset,
+    required this.expiresAt,
+    required this.submissionFlow,
+    required this.minFee,
+    required this.recipientAddress,
+    required this.amount,
   });
+
+  bool get isExpired => expiresAt.isBefore(DateTime.now());
 }

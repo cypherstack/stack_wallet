@@ -7,6 +7,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../models/send_view_auto_fill_data.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
 import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
 import '../../themes/stack_colors.dart';
@@ -20,6 +21,8 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../send_view/send_view.dart';
+
+enum OpenCryptoPayConfirmResult { quoteExpired }
 
 /// Fetches the transaction details for the selected method/asset, shows a
 /// summary, then forwards to the standard [SendView] prefilled with the
@@ -51,6 +54,14 @@ class _OpenCryptoPayConfirmViewState
   bool _isLoading = true;
   String? _errorMessage;
 
+  DateTime? get _expiresAt =>
+      _txDetails?.expiryDate ?? widget.paymentDetails.quote?.expiration;
+
+  bool get _isExpired {
+    final expiresAt = _expiresAt;
+    return expiresAt != null && expiresAt.isBefore(DateTime.now());
+  }
+
   @override
   void initState() {
     super.initState();
@@ -64,37 +75,65 @@ class _OpenCryptoPayConfirmViewState
     });
 
     try {
+      final quote = widget.paymentDetails.quote;
+      if (quote == null) {
+        throw Exception("No quote provided by the payment provider");
+      }
       _txDetails = await OpenCryptoPayApi.instance.getTransactionDetails(
         callbackUrl: widget.paymentDetails.callback,
-        quoteId: widget.paymentDetails.quote!.id,
+        quoteId: quote.id,
         method: widget.selectedMethod.method,
         asset: widget.selectedAsset.asset,
       );
     } catch (e, s) {
-      Logging.instance.e("OpenCryptoPay tx fetch failed", error: e, stackTrace: s);
+      Logging.instance.e(
+        "OpenCryptoPay tx fetch failed",
+        error: e,
+        stackTrace: s,
+      );
       _errorMessage = 'Failed to fetch transaction details: $e';
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  /// Parses address and amount from the transaction URI. Strips the EVM
-  /// `@chainId` suffix that [AddressUtils] leaves attached.
-  ({String? address, Decimal? amount}) _parseTransactionUri(String uri) {
+  /// Parses address and amount from the transaction URI. For EVM URIs this
+  /// also extracts the EIP-681 `@chainId` suffix that [AddressUtils] leaves
+  /// attached to the address.
+  ({String? address, Decimal? amount, int? chainId, String? scheme})
+  _parseTransactionUri(String uri) {
+    final parsedUri = Uri.tryParse(uri);
     final data = AddressUtils.parsePaymentUri(uri, logging: Logging.instance);
-    var address = data?.address ?? Uri.tryParse(uri)?.path;
+    var address = data?.address ?? parsedUri?.path;
+    int? chainId;
     if (address != null) {
       final at = address.indexOf('@');
-      if (at != -1) address = address.substring(0, at);
+      if (at != -1) {
+        chainId = int.tryParse(address.substring(at + 1));
+        address = address.substring(0, at);
+      }
       if (address.isEmpty) address = null;
     }
     final amount = data?.amount != null
         ? Decimal.tryParse(data!.amount!)
         : Decimal.tryParse(widget.selectedAsset.amount);
-    return (address: address, amount: amount);
+    return (
+      address: address,
+      amount: amount,
+      chainId: chainId,
+      scheme: data?.scheme ?? parsedUri?.scheme,
+    );
   }
 
   Future<void> _proceedToSend() async {
+    if (_isExpired) {
+      _warn("Quote expired, refreshing...");
+      if (mounted) {
+        Navigator.of(context).pop(OpenCryptoPayConfirmResult.quoteExpired);
+      }
+      return;
+    }
+
     final uri = _txDetails?.uri;
     if (uri == null) {
       _warn("No transaction URI provided by the payment provider");
@@ -106,8 +145,45 @@ class _OpenCryptoPayConfirmViewState
       _warn("Could not parse payment address");
       return;
     }
+    if (parsed.amount == null) {
+      _warn("Could not parse payment amount");
+      return;
+    }
+    if (parsed.scheme != null &&
+        parsed.scheme!.isNotEmpty &&
+        parsed.scheme != widget.coin.uriScheme) {
+      _warn("Payment URI does not match this wallet");
+      return;
+    }
+    if (_txDetails?.blockchain != null &&
+        _txDetails!.blockchain != widget.selectedMethod.method) {
+      _warn("Payment details do not match the selected method");
+      return;
+    }
+    if (widget.selectedMethod.method == 'Ethereum' &&
+        parsed.chainId != null &&
+        parsed.chainId != 1) {
+      _warn("Payment URI is for a different Ethereum network");
+      return;
+    }
 
-    final recipient = widget.paymentDetails.recipient?.name ??
+    final submissionFlow = OpenCryptoPayMethodSupport.submissionFlowFor(
+      widget.selectedMethod.method,
+    );
+    if (submissionFlow == null ||
+        submissionFlow == OpenCryptoPaySubmissionFlow.external) {
+      _warn("This Open CryptoPay method is not supported yet");
+      return;
+    }
+
+    final expiresAt = _expiresAt;
+    if (expiresAt == null) {
+      _warn("No quote expiration provided by the payment provider");
+      return;
+    }
+
+    final recipient =
+        widget.paymentDetails.recipient?.name ??
         widget.paymentDetails.displayName ??
         "OpenCryptoPay";
 
@@ -127,6 +203,11 @@ class _OpenCryptoPayConfirmViewState
             quoteId: widget.paymentDetails.quote!.id,
             method: widget.selectedMethod.method,
             asset: widget.selectedAsset.asset,
+            expiresAt: expiresAt,
+            submissionFlow: submissionFlow,
+            minFee: widget.selectedMethod.minFee,
+            recipientAddress: parsed.address!,
+            amount: parsed.amount!,
           ),
         ),
       ),
@@ -147,11 +228,11 @@ class _OpenCryptoPayConfirmViewState
   Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
-        backgroundColor:
-            Theme.of(context).extension<StackColors>()!.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.backgroundAppBar,
           leading: const AppBarBackButton(),
           title: Text(
             "Confirm Payment",

@@ -18,9 +18,8 @@ class SendViewAutoFillData {
   final Decimal? amount;
   final String note;
 
-  /// When set, ConfirmTransactionView will notify the OpenCryptoPay provider
-  /// with the broadcast tx ID (and raw hex, where available) after a
-  /// successful send.
+  /// When set, ConfirmTransactionView completes the OpenCryptoPay submission
+  /// flow for the prepared transaction.
   final OpenCryptoPayCommit? openCryptoPayCommit;
 
   SendViewAutoFillData({
