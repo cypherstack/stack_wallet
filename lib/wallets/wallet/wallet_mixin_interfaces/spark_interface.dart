@@ -1664,11 +1664,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
         if (autoMintAll) {
           singleTxOutputs.add(
-            MutableSparkRecipient(
-              autoMintSparkAddress!,
-              mintedValue,
-              "",
-            ),
+            MutableSparkRecipient(autoMintSparkAddress!, mintedValue, ""),
           );
         } else {
           BigInt remainingMintValue = BigInt.parse(mintedValue.toString());
@@ -1696,26 +1692,34 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           }
         }
 
-        if (subtractFeeFromAmount) {
-          final BigInt singleFee =
-              nFeeRet ~/ BigInt.from(singleTxOutputs.length);
-          BigInt remainder = nFeeRet % BigInt.from(singleTxOutputs.length);
+        if (subtractFeeFromAmount && nFeeRet > BigInt.zero) {
+          var remainingFee = nFeeRet;
+          var outputIndex = 0;
+          while (outputIndex < singleTxOutputs.length &&
+              remainingFee > BigInt.zero) {
+            final outputsLeft = BigInt.from(
+              singleTxOutputs.length - outputIndex,
+            );
+            var feeShare = remainingFee ~/ outputsLeft;
+            if (remainingFee % outputsLeft != BigInt.zero) {
+              feeShare += BigInt.one;
+            }
 
-          for (int i = 0; i < singleTxOutputs.length; ++i) {
-            if (singleTxOutputs[i].value <= singleFee) {
-              final removed = singleTxOutputs.removeAt(i);
-              remainder += removed.value - singleFee;
-              --i;
+            if (singleTxOutputs[outputIndex].value <= feeShare) {
+              remainingFee -= singleTxOutputs[outputIndex].value;
+              singleTxOutputs.removeAt(outputIndex);
               continue;
             }
-            singleTxOutputs[i].value -= singleFee;
-            if (remainder > BigInt.zero &&
-                singleTxOutputs[i].value >
-                    nFeeRet % BigInt.from(singleTxOutputs.length)) {
-              // first receiver pays the remainder not divisible by output count
-              singleTxOutputs[i].value -= remainder;
-              remainder = BigInt.zero;
-            }
+
+            singleTxOutputs[outputIndex].value -= feeShare;
+            remainingFee -= feeShare;
+            ++outputIndex;
+          }
+
+          if (singleTxOutputs.isEmpty) {
+            valueAndUTXOs.remove(itr);
+            skipCoin = true;
+            break;
           }
         }
 
