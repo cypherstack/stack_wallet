@@ -586,32 +586,24 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> setMaps = [];
     final List<({int groupId, String blockHash})> idAndBlockHashes = [];
     for (final i in myCoinGroupIds) {
-      final resultSet = await FiroCacheCoordinator.getSetCoinsForGroupId(
-        i,
-        network: cryptoCurrency.network,
-      );
-      if (resultSet.isEmpty) {
-        continue;
-      }
-
-      final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
+      final setInfo =
+          await FiroCacheCoordinator.getSetCoinsAndLatestSetInfoForGroupId(
         i,
         cryptoCurrency.network,
       );
-      if (info == null) {
-        throw Exception("The `info` should never be null here");
+      if (setInfo == null || setInfo.coins.isEmpty) {
+        continue;
       }
 
       final Map<String, dynamic> setData = {
-        "blockHash": info.blockHash,
-        "setHash": info.setHash,
+        "blockHash": setInfo.meta.blockHash,
+        "setHash": setInfo.meta.setHash,
         "coinGroupID": i,
-        "coins": resultSet
+        "coins": setInfo.coins
             .map((e) => [e.serialized, e.txHash, e.context])
             .toList(),
       };
 
-      setData["coinGroupID"] = i;
       setMaps.add(setData);
       idAndBlockHashes.add((
         groupId: i,
