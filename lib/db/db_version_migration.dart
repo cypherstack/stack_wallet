@@ -170,12 +170,11 @@ class DbVersionMigrator with WalletDB {
         final count = await MainDB.instance.isar.addresses.count();
         // add change/receiving tags to address labels
         for (var i = 0; i < count; i += 50) {
-          final addresses =
-              await MainDB.instance.isar.addresses
-                  .where()
-                  .offset(i)
-                  .limit(50)
-                  .findAll();
+          final addresses = await MainDB.instance.isar.addresses
+              .where()
+              .offset(i)
+              .limit(50)
+              .findAll();
 
           final List<isar_models.AddressLabel> labels = [];
           for (final address in addresses) {
@@ -203,14 +202,13 @@ class DbVersionMigrator with WalletDB {
 
             // update/create label if tags is not empty
             if (tags != null) {
-              isar_models.AddressLabel? label =
-                  await MainDB.instance.isar.addressLabels
-                      .where()
-                      .addressStringWalletIdEqualTo(
-                        address.value,
-                        address.walletId,
-                      )
-                      .findFirst();
+              isar_models.AddressLabel? label = await MainDB
+                  .instance
+                  .isar
+                  .addressLabels
+                  .where()
+                  .addressStringWalletIdEqualTo(address.value, address.walletId)
+                  .findFirst();
               if (label == null) {
                 label = isar_models.AddressLabel(
                   walletId: address.walletId,
@@ -268,13 +266,12 @@ class DbVersionMigrator with WalletDB {
                   Bitcoincash(CryptoCurrencyNetwork.main).identifier ||
               info.coinIdentifier ==
                   Bitcoincash(CryptoCurrencyNetwork.test).identifier) {
-            final ids =
-                await MainDB.instance
-                    .getAddresses(walletId)
-                    .filter()
-                    .typeEqualTo(isar_models.AddressType.p2sh)
-                    .idProperty()
-                    .findAll();
+            final ids = await MainDB.instance
+                .getAddresses(walletId)
+                .filter()
+                .typeEqualTo(isar_models.AddressType.p2sh)
+                .idProperty()
+                .findAll();
 
             await MainDB.instance.isar.writeTxn(() async {
               await MainDB.instance.isar.addresses.deleteAll(ids);
@@ -435,17 +432,15 @@ class DbVersionMigrator with WalletDB {
               walletId: walletId,
               txid: tx.txid,
               timestamp: tx.timestamp,
-              type:
-                  isIncoming
-                      ? isar_models.TransactionType.incoming
-                      : isar_models.TransactionType.outgoing,
+              type: isIncoming
+                  ? isar_models.TransactionType.incoming
+                  : isar_models.TransactionType.outgoing,
               subType: isar_models.TransactionSubType.none,
               amount: tx.amount,
-              amountString:
-                  Amount(
-                    rawValue: BigInt.from(tx.amount),
-                    fractionDigits: epic.fractionDigits,
-                  ).toJsonString(),
+              amountString: Amount(
+                rawValue: BigInt.from(tx.amount),
+                fractionDigits: epic.fractionDigits,
+              ).toJsonString(),
               fee: tx.fees,
               height: tx.height,
               isCancelled: tx.isCancelled,
@@ -467,14 +462,12 @@ class DbVersionMigrator with WalletDB {
                 publicKey: [],
                 derivationIndex: isIncoming ? rcvIndex : -1,
                 derivationPath: null,
-                type:
-                    isIncoming
-                        ? isar_models.AddressType.mimbleWimble
-                        : isar_models.AddressType.unknown,
-                subType:
-                    isIncoming
-                        ? isar_models.AddressSubType.receiving
-                        : isar_models.AddressSubType.unknown,
+                type: isIncoming
+                    ? isar_models.AddressType.mimbleWimble
+                    : isar_models.AddressType.unknown,
+                subType: isIncoming
+                    ? isar_models.AddressSubType.receiving
+                    : isar_models.AddressSubType.unknown,
               );
               transactionsData.add(Tuple2(iTx, address));
             }
@@ -532,28 +525,25 @@ class DbVersionMigrator with WalletDB {
       final crypto = AppConfig.getCryptoCurrencyFor(info.coinIdentifier)!;
 
       for (var i = 0; i < count; i += 50) {
-        final txns =
-            await MainDB.instance
-                .getTransactions(walletId)
-                .offset(i)
-                .limit(50)
-                .findAll();
+        final txns = await MainDB.instance
+            .getTransactions(walletId)
+            .offset(i)
+            .limit(50)
+            .findAll();
 
         // migrate amount to serialized amount string
-        final txnsData =
-            txns
-                .map(
-                  (tx) => Tuple2(
-                    tx
-                      ..amountString =
-                          Amount(
-                            rawValue: BigInt.from(tx.amount),
-                            fractionDigits: crypto.fractionDigits,
-                          ).toJsonString(),
-                    tx.address.value,
-                  ),
-                )
-                .toList();
+        final txnsData = txns
+            .map(
+              (tx) => Tuple2(
+                tx
+                  ..amountString = Amount(
+                    rawValue: BigInt.from(tx.amount),
+                    fractionDigits: crypto.fractionDigits,
+                  ).toJsonString(),
+                tx.address.value,
+              ),
+            )
+            .toList();
 
         // update db records
         await MainDB.instance.addNewTransactionData(txnsData, walletId);

@@ -606,7 +606,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return stringConfig;
   }
 
-
   Future<String> _currentWalletDirPath() async {
     final Directory appDir = await StackFileSystem.applicationRootDirectory();
 
