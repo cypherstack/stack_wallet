@@ -1514,7 +1514,10 @@ class _ConfirmTransactionViewState
                                 right: 32,
                                 bottom: 32,
                               ),
-                              child: DesktopAuthSend(coin: coin),
+                              child: DesktopAuthSend(
+                                coin: coin,
+                                tokenTicker: widget.isTokenTx ? unit : null,
+                              ),
                             ),
                           ],
                         ),
