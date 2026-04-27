@@ -728,7 +728,7 @@ class Prefs extends ChangeNotifier {
   Future<DateTime?> _getLastAutoBackup() async {
     return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
-          key: "autoBackupFileUri",
+          key: "lastAutoBackup",
         )
         as DateTime?;
   }
