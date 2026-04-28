@@ -32,7 +32,7 @@ jobs:
       - name: Configure app
         run: |
           cd scripts
-          yes yes | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" || true
+          echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet"
 
       - name: Get dependencies
         run: flutter pub get
