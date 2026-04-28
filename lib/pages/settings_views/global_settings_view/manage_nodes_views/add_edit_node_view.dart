@@ -687,14 +687,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
-                            final testPassed = await ref.read(
-                              testNodeConnectionProvider,
-                            )(
-                              context: context,
-                              onSuccess: _onTestSuccess,
-                              cryptoCurrency: coin,
-                              nodeFormData: ref.read(nodeFormDataProvider),
-                            );
+                            final testPassed =
+                                await ref.read(testNodeConnectionProvider)(
+                                  context: context,
+                                  onSuccess: _onTestSuccess,
+                                  cryptoCurrency: coin,
+                                  nodeFormData: ref.read(nodeFormDataProvider),
+                                );
                             if (context.mounted) {
                               if (testPassed) {
                                 unawaited(
