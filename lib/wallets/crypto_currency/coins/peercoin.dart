@@ -1,5 +1,4 @@
-import 'package:coinlib/src/network.dart';
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -149,41 +148,26 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
+    final pkHash = coin.hash160(publicKey.bytes);
     switch (derivePathType) {
       // case DerivePathType.bip16:
 
       case DerivePathType.bip44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript =
-            coinlib.P2WPKHAddress.fromPublicKey(
-              publicKey,
-              hrp: networkParams.bech32Hrp,
-            ).program.script;
-
-        final addr = coinlib.P2SHAddress.fromRedeemScript(
-          p2wpkhScript,
-          version: networkParams.p2shPrefix,
-        );
-
+        final witnessScript = coin.P2wpkhAddr(pkHash).scriptPubKey;
+        final scriptHash = coin.hash160(witnessScript);
+        final addr = coin.P2shAddr(scriptHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2sh);
 
       case DerivePathType.bip84:
-        final addr = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        );
-
+        final addr = coin.P2wpkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2wpkh);
 
       default:
@@ -192,12 +176,38 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Network.mainnet;
+        return coin.Chain(
+          wifPrefix: 0xb7,
+          p2pkhPrefix: 0x37,
+          p2shPrefix: 0x75,
+          bech32Hrp: "pc",
+          name: "Peercoin",
+          bip44CoinType: 6,
+          privHDPrefix: 0x0488ade4,
+          pubHDPrefix: 0x0488b21e,
+          messagePrefix: 'Peercoin Signed Message:\n',
+          minFee: BigInt.from(1000),
+          minOutput: BigInt.from(10000),
+          feePerKb: BigInt.from(10000),
+        );
       case CryptoCurrencyNetwork.test:
-        return Network.testnet;
+        return coin.Chain(
+          wifPrefix: 0xef,
+          p2pkhPrefix: 0x6f,
+          p2shPrefix: 0xc4,
+          bech32Hrp: "tpc",
+          name: "Peercoin Testnet",
+          bip44CoinType: 1,
+          privHDPrefix: 0x043587CF,
+          pubHDPrefix: 0x04358394,
+          messagePrefix: 'Peercoin Signed Message:\n',
+          minFee: BigInt.from(1000),
+          minOutput: BigInt.from(10000),
+          feePerKb: BigInt.from(10000),
+        );
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -212,7 +222,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;

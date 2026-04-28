@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
@@ -12,7 +12,7 @@ abstract class Bip39HDCurrency extends Bip39Currency
     implements ViewOnlyOptionCurrencyInterface {
   Bip39HDCurrency(super.network);
 
-  coinlib.Network get networkParams;
+  coin.Chain get networkParams;
 
   Amount get dustLimit;
 
@@ -27,15 +27,15 @@ abstract class Bip39HDCurrency extends Bip39Currency
     required int index,
   });
 
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   });
 
   String addressToScriptHash({required String address}) {
     try {
-      final addr = coinlib.Address.fromString(address, networkParams);
-      return convertBytesToScriptHash(addr.program.script.compiled);
+      final addr = coin.Addr.fromString(address, networkParams);
+      return convertBytesToScriptHash(addr.scriptPubKey);
     } catch (e) {
       rethrow;
     }
@@ -76,15 +76,15 @@ abstract class Bip39HDCurrency extends Bip39Currency
   }
 
   DerivePathType addressType({required String address}) {
-    final address2 = coinlib.Address.fromString(address, networkParams);
+    final addr = coin.Addr.fromString(address, networkParams);
 
-    if (address2 is coinlib.P2PKHAddress) {
+    if (addr is coin.P2pkhAddr) {
       return DerivePathType.bip44;
-    } else if (address2 is coinlib.P2SHAddress) {
+    } else if (addr is coin.P2shAddr) {
       return DerivePathType.bip49;
-    } else if (address2 is coinlib.P2WPKHAddress) {
+    } else if (addr is coin.SegwitAddr) {
       return DerivePathType.bip84;
-    } else if (address2 is coinlib.P2TRAddress) {
+    } else if (addr is coin.TaprootAddr) {
       return DerivePathType.bip86;
     } else {
       // TODO: [prio=med] better error handling

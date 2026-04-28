@@ -88,7 +88,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
 
     final formattedName = _getNameFormattedForInternal();
 
-    final data = await compute(_computeScriptNameNew, (formattedName, pk.data));
+    final data = await compute(_computeScriptNameNew, (formattedName, pk.bytes));
 
     TxData txData = TxData(
       opNameState: NameOpState(

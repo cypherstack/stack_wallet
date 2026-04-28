@@ -316,8 +316,10 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
+      # TODO: provide secp256k1.dll for Windows. coinlib was removed and the
+      # coin package (crypto_plugins/coin) ships no build_windows command. The
+      # coin FFI loader expects build/secp256k1.dll or secp256k1.dll on PATH;
+      # restore a step that produces it before relying on the native backend.
 
       - name: Build
         run: flutter build windows --release
@@ -914,8 +916,10 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
+      # TODO: provide secp256k1.dll for Windows. coinlib was removed and the
+      # coin package (crypto_plugins/coin) ships no build_windows command. The
+      # coin FFI loader expects build/secp256k1.dll or secp256k1.dll on PATH;
+      # restore a step that produces it before relying on the native backend.
 
       - name: Build
         run: flutter build windows --release
@@ -1372,8 +1376,10 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
+      # TODO: provide secp256k1.dll for Windows. coinlib was removed and the
+      # coin package (crypto_plugins/coin) ships no build_windows command. The
+      # coin FFI loader expects build/secp256k1.dll or secp256k1.dll on PATH;
+      # restore a step that produces it before relying on the native backend.
 
       - name: Build
         run: flutter build windows --release

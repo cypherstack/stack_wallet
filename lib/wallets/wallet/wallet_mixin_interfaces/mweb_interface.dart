@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
-import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
+import 'package:coin/coin.dart' as coin;
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:isar_community/isar.dart';
@@ -21,6 +22,7 @@ import '../../../services/event_bus/events/global/wallet_sync_status_changed_eve
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/mwebd_service.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
@@ -36,11 +38,17 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   StreamSubscription<Utxo>? _mwebUtxoSubscription;
 
   Future<Uint8List> get _scanSecret async =>
-      (await getRootHDNode()).derivePath("m/1000'/0'").privateKey.data;
+      ((await getRootHDNode()).derivePath("m/1000'/0'") as coin.DerivedSecretKey)
+          .secretKey
+          .bytes;
   Future<Uint8List> get _spendSecret async =>
-      (await getRootHDNode()).derivePath("m/1000'/1'").privateKey.data;
+      ((await getRootHDNode()).derivePath("m/1000'/1'") as coin.DerivedSecretKey)
+          .secretKey
+          .bytes;
   Future<Uint8List> get _spendPub async =>
-      (await getRootHDNode()).derivePath("m/1000'/1'").publicKey.data;
+      ((await getRootHDNode()).derivePath("m/1000'/1'") as coin.DerivedSecretKey)
+          .publicKey
+          .bytes;
 
   Future<Address?> getCurrentReceivingMwebAddress() async {
     return await mainDB.isar.addresses
@@ -453,64 +461,180 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     );
 
     if (txData.type == TxType.mwebPegIn) {
-      cl.Transaction clTx = cl.Transaction.fromBytes(
+      final parsedTx = coin.Tx.fromBytes(
         Uint8List.fromList(response.rawTx),
       );
 
-      assert(response.rawTx.toString() == clTx.toBytes().toList().toString());
-      final List<cl.Output> prevOuts = [];
+      final List<coin.TxOutput> prevOuts = [];
 
       for (int i = 0; i < txData.usedUTXOs!.length; i++) {
         final data = txData.usedUTXOs![i];
         if (data is StandardInput) {
-          final prevOutput = cl.Output.fromAddress(
-            BigInt.from(data.utxo.value),
-            cl.Address.fromString(
-              data.utxo.address!,
-              cryptoCurrency.networkParams,
-            ),
+          final utxoAddr = coin.Addr.fromString(
+            data.utxo.address!,
+            cryptoCurrency.networkParams,
+          );
+          final prevOutput = coin.TxOutput(
+            value: BigInt.from(data.utxo.value),
+            scriptPubKey: utxoAddr.scriptPubKey,
           );
 
           prevOuts.add(prevOutput);
         }
       }
 
+      // Build unsigned tx with parsed outputs for sighash computation
+      final unsignedTx = coin.Tx(
+        version: parsedTx.version,
+        inputs: parsedTx.inputs,
+        outputs: parsedTx.outputs,
+        locktime: parsedTx.locktime,
+      );
+
+      final List<coin.TxInput> signedInputs = [];
+      int prevOutIdx = 0;
+
       for (int i = 0; i < txData.usedUTXOs!.length; i++) {
         final data = txData.usedUTXOs![i];
 
         if (data is MwebInput) {
-          // do nothing
+          // Pass through unsigned MWEB input
+          signedInputs.add(parsedTx.inputs[i]);
         } else if (data is StandardInput) {
-          final value = BigInt.from(data.utxo.value);
-          final key = data.key!.privateKey!;
-          if (clTx.inputs[i] is cl.TaprootKeyInput) {
-            final taproot = cl.Taproot(internalKey: data.key!.publicKey);
+          final derivedKey = data.key! as coin.DerivedSecretKey;
+          final outpoint = parsedTx.inputs[i].prevOut;
 
-            clTx = clTx.signTaproot(
-              inputN: i,
-              key: taproot.tweakPrivateKey(key),
-              prevOuts: prevOuts,
-            );
-          } else if (clTx.inputs[i] is cl.LegacyWitnessInput) {
-            clTx = clTx.signLegacyWitness(inputN: i, key: key, value: value);
-          } else if (clTx.inputs[i] is cl.LegacyInput) {
-            clTx = clTx.signLegacy(inputN: i, key: key);
-          } else if (clTx.inputs[i] is cl.TaprootSingleScriptSigInput) {
-            clTx = clTx.signTaprootSingleScriptSig(
-              inputN: i,
-              key: key,
-              prevOuts: prevOuts,
-            );
-          } else {
-            throw Exception(
-              "Unable to sign input of type ${clTx.inputs[i].runtimeType}",
-            );
+          switch (data.derivePathType) {
+            case DerivePathType.bip44:
+            case DerivePathType.bch44:
+              final prevScript = prevOuts[prevOutIdx].scriptPubKey;
+              final hasher = coin.LegacySigHasher();
+              final digest = hasher.hash(
+                unsignedTx,
+                i,
+                coin.SigHashType.all,
+                prevScript: prevScript,
+              );
+              final sig = coin.EcdsaSig.sign(
+                digest,
+                derivedKey.secretKey.bytes,
+              );
+              final inputSig = coin.InputSig(
+                derSig: sig.toDer(),
+                hashType: coin.SigHashType.all,
+              );
+              signedInputs.add(
+                coin.P2pkhInput(
+                  prevOut: outpoint,
+                  inputSig: inputSig,
+                  publicKey: derivedKey.publicKey.bytes,
+                ),
+              );
+
+            case DerivePathType.bip49:
+              final pubKeyHash = coin.hash160(derivedKey.publicKey.bytes);
+              final scriptCode = coin.PayToPubKeyHash(pubKeyHash).compiled;
+              final hasher = coin.WitnessSigHasher();
+              final digest = hasher.hash(
+                unsignedTx,
+                i,
+                coin.SigHashType.all,
+                prevScript: scriptCode,
+                amount: BigInt.from(data.utxo.value),
+              );
+              final sig = coin.EcdsaSig.sign(
+                digest,
+                derivedKey.secretKey.bytes,
+              );
+              final inputSig = coin.InputSig(
+                derSig: sig.toDer(),
+                hashType: coin.SigHashType.all,
+              );
+              final witnessProgram = Uint8List.fromList(
+                [0x00, 0x14, ...pubKeyHash],
+              );
+              final scriptSig = Uint8List.fromList(
+                [witnessProgram.length, ...witnessProgram],
+              );
+              signedInputs.add(
+                _P2shP2wpkhInput(
+                  prevOut: outpoint,
+                  scriptSig: scriptSig,
+                  inputSig: inputSig,
+                  publicKey: derivedKey.publicKey.bytes,
+                ),
+              );
+
+            case DerivePathType.bip84:
+              final pubKeyHash = coin.hash160(derivedKey.publicKey.bytes);
+              final scriptCode = coin.PayToPubKeyHash(pubKeyHash).compiled;
+              final hasher = coin.WitnessSigHasher();
+              final digest = hasher.hash(
+                unsignedTx,
+                i,
+                coin.SigHashType.all,
+                prevScript: scriptCode,
+                amount: BigInt.from(data.utxo.value),
+              );
+              final sig = coin.EcdsaSig.sign(
+                digest,
+                derivedKey.secretKey.bytes,
+              );
+              final inputSig = coin.InputSig(
+                derSig: sig.toDer(),
+                hashType: coin.SigHashType.all,
+              );
+              signedInputs.add(
+                coin.P2wpkhInput(
+                  prevOut: outpoint,
+                  inputSig: inputSig,
+                  publicKey: derivedKey.publicKey.bytes,
+                ),
+              );
+
+            case DerivePathType.bip86:
+              final hasher = coin.TaprootSigHasher(prevOuts: prevOuts);
+              final digest = hasher.hash(
+                unsignedTx,
+                i,
+                coin.SigHashType.all,
+              );
+              final taproot = coin.Taproot(
+                internalKey: derivedKey.publicKey,
+              );
+              final tweakedKey = taproot.tweakSecretKey(derivedKey.secretKey);
+              final sig = coin.SchnorrSig.sign(digest, tweakedKey.bytes);
+              final inputSig = coin.SchnorrInputSig(
+                sig: sig.bytes,
+                hashType: coin.SigHashType.all,
+              );
+              signedInputs.add(
+                coin.TaprootKeyInput(
+                  prevOut: outpoint,
+                  inputSig: inputSig,
+                ),
+              );
+
+            default:
+              throw UnsupportedError(
+                "Unknown derivation path type: ${data.derivePathType}",
+              );
           }
+
+          prevOutIdx++;
         } else {
           throw Exception("Unknown input type: ${data.runtimeType}");
         }
       }
-      return txData.copyWith(raw: clTx.toHex());
+
+      final signedTx = coin.Tx(
+        version: parsedTx.version,
+        inputs: signedInputs,
+        outputs: parsedTx.outputs,
+        locktime: parsedTx.locktime,
+      );
+
+      return txData.copyWith(raw: signedTx.toHex());
     } else {
       return txData.copyWith(raw: Uint8List.fromList(response.rawTx).toHex);
     }
@@ -952,7 +1076,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   bool isMwebAddress(String address) {
     try {
-      cl.MwebAddress.fromString(address, network: cryptoCurrency.networkParams);
+      coin.MwebAddr.fromString(address, cryptoCurrency.networkParams);
       return true;
     } catch (_) {
       return false;
@@ -983,7 +1107,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       ),
     );
 
-    final processedTx = cl.Transaction.fromBytes(
+    final processedTx = coin.Tx.fromBytes(
       Uint8List.fromList(resp.rawTx),
     );
 
@@ -992,7 +1116,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         .where(
           (utxo) => processedTx.inputs.any(
             (input) =>
-                input.prevOut.hash.toHex ==
+                input.prevOut.txid.toHex ==
                 Uint8List.fromList(
                   utxo.id.toUint8ListFromHex.reversed.toList(),
                 ).toHex,
@@ -1018,4 +1142,32 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
+}
+
+/// P2SH-P2WPKH input: scriptSig pushes the witness program, witness
+/// contains [sig, pubkey]. This is the standard BIP49 wrapped-segwit input.
+class _P2shP2wpkhInput extends coin.TxInput {
+  @override
+  final coin.Outpoint prevOut;
+  @override
+  final Uint8List scriptSig;
+  @override
+  final int sequence;
+  final coin.InputSig inputSig;
+  final Uint8List publicKey;
+
+  _P2shP2wpkhInput({
+    required this.prevOut,
+    required this.scriptSig,
+    required this.inputSig,
+    required this.publicKey,
+    this.sequence = coin.TxInput.sequenceFinal,
+  });
+
+  @override
+  List<Uint8List> get witness => [inputSig.toBytes(), publicKey];
+  @override
+  bool get complete => true;
+  @override
+  int get signedSize => 91; // typical P2SH-P2WPKH input size
 }

@@ -80,9 +80,7 @@ class _PaynymFollowingListState extends ConsumerState<PaynymFollowingList> {
                 as PaynymInterface;
 
             // get payment code
-            final pCode = await wallet.getPaymentCode(
-              isSegwit: false,
-            );
+            final pCode = await wallet.getPaymentCode();
 
             // get account from api
             final account =

@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:coinlib_flutter/coinlib_flutter.dart'
-    show MessageSignature, base58Decode, P2PKH;
+import 'package:coin/coin.dart' as coin;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
@@ -1062,7 +1061,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     if (!cryptoCurrency.validateAddress(ownerAddress.value)) {
       throw Exception("Invalid owner address: ${ownerAddress.value}");
     }
-    final ownerAddressBytes = base58Decode(ownerAddress.value);
+    final ownerAddressBytes = coin.base58Decode(ownerAddress.value);
     assert(ownerAddressBytes.length == 21);
     registrationTx.add(ownerAddressBytes.sublist(1));
 
@@ -1089,7 +1088,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           "not a Spark or other address type.",
         );
       }
-      final votingAddressBytes = base58Decode(votingAddress);
+      final votingAddressBytes = coin.base58Decode(votingAddress);
       assert(votingAddressBytes.length == 21);
       registrationTx.add(votingAddressBytes.sublist(1));
       effectiveVotingAddress = votingAddress;
@@ -1112,10 +1111,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     final payoutType = cryptoCurrency.getAddressType(payoutAddress);
     final Uint8List payoutScriptBytes;
     if (payoutType == AddressType.p2pkh) {
-      final payoutHash = base58Decode(payoutAddress).sublist(1);
-      payoutScriptBytes = P2PKH.fromHash(payoutHash).script.compiled;
+      final payoutHash = coin.base58Decode(payoutAddress).sublist(1);
+      payoutScriptBytes = coin.PayToPubKeyHash(payoutHash).compiled;
     } else if (payoutType == AddressType.p2sh) {
-      final payoutHash = base58Decode(payoutAddress).sublist(1);
+      final payoutHash = coin.base58Decode(payoutAddress).sublist(1);
       payoutScriptBytes = Uint8List.fromList([
         0xa9, // OP_HASH160
         0x14, // push 20 bytes
@@ -1213,19 +1212,19 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
     // Sign with the collateral private key
     final root = await getRootHDNode();
-    final collateralKeyPair = root.derivePath(
-      collateralAddr.derivationPath!.value,
-    );
-    final signed = MessageSignature.sign(
-      key: collateralKeyPair.privateKey,
-      message: signString,
-      prefix: firoMessagePrefixForCoinlibSign(
-        cryptoCurrency.networkParams.messagePrefix,
+    final collateralKeyPair =
+        root.derivePath(collateralAddr.derivationPath!.value)
+            as coin.DerivedSecretKey;
+    final signed = coin.MessageSig.sign(
+      signString,
+      collateralKeyPair.secretKey.bytes,
+      messagePrefix: firoMessagePrefixForCoinlibSign(
+        cryptoCurrency.networkParams.messagePrefix!,
       ),
     );
 
     // vchSig — compact-size length + 65-byte compact signature
-    final vchSig = signed.signature.compact;
+    final vchSig = signed.toBytes();
     assert(vchSig.length == 65);
     registrationTx.addByte(vchSig.length);
     registrationTx.add(vchSig);

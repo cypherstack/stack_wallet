@@ -650,9 +650,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       final Set<String> codesToCheck = {};
       if (this is PaynymInterface && !viewOnly) {
         // isSegwit does not matter here at all
-        final myCode = await (this as PaynymInterface).getPaymentCode(
-          isSegwit: false,
-        );
+        final myCode = await (this as PaynymInterface).getPaymentCode();
 
         final nym = await PaynymIsApi().nym(myCode.toString());
         if (nym.value != null) {

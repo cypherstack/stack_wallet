@@ -286,7 +286,6 @@
 				"${BUILT_PRODUCTS_DIR}/SwiftProtobuf/SwiftProtobuf.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyGif/SwiftyGif.framework",
 				"${BUILT_PRODUCTS_DIR}/barcode_scan2/barcode_scan2.framework",
-				"${BUILT_PRODUCTS_DIR}/coinlib_flutter/secp256k1.framework",
 				"${BUILT_PRODUCTS_DIR}/connectivity_plus/connectivity_plus.framework",
 				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/MoneroWallet.framework",
 				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/WowneroWallet.framework",

@@ -9,7 +9,6 @@
  */
 
 import 'package:bip47/bip47.dart';
-import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 
 class PaynymAccountLite {
   final String nymId;
@@ -37,7 +36,7 @@ class PaynymAccountLite {
     try {
       final pCode = PaymentCode.fromPaymentCode(
         paymentCodeString,
-        networkType: bitcoindart.bitcoin,
+        networkType: bitcoin,
       );
       return pCode.isTaprootEnabled();
     } catch (_) {

@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
+import 'package:coin/coin.dart' as coin;
 import 'package:flutter/foundation.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -14,18 +14,18 @@ mixin ElectrumXCurrencyInterface on Bip39HDCurrency {
   @override
   AddressType? getAddressType(String address) {
     try {
-      final clAddress = cl.Address.fromString(address, networkParams);
+      final addr = coin.Addr.fromString(address, networkParams);
 
       Logging.instance.t(
-        "getAddressType($address) type is ${clAddress.runtimeType}",
+        "getAddressType($address) type is ${addr.runtimeType}",
       );
 
-      return switch (clAddress) {
-        cl.P2PKHAddress() => AddressType.p2pkh,
-        cl.P2SHAddress() => AddressType.p2sh,
-        cl.P2WPKHAddress() => AddressType.p2wpkh,
-        cl.P2TRAddress() => AddressType.p2tr,
-        cl.MwebAddress() => AddressType.mweb,
+      return switch (addr) {
+        coin.P2pkhAddr() => AddressType.p2pkh,
+        coin.P2shAddr() => AddressType.p2sh,
+        coin.SegwitAddr() => AddressType.p2wpkh,
+        coin.TaprootAddr() => AddressType.p2tr,
+        coin.MwebAddr() => AddressType.mweb,
         _ => null,
       };
     } catch (e, s) {

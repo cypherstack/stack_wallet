@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-
-import '../../../models/coinlib/exp2pkh_address.dart';
+import 'package:coin/coin.dart' as coin;
+import '../../../models/firo/exp2pkh_address.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
@@ -97,10 +96,10 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xd2,
           p2pkhPrefix: 0x52,
           p2shPrefix: 0x07,
@@ -108,12 +107,14 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x16Zcoin Signed Message:\n',
+          name: "Firo",
+          bip44CoinType: 136,
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xb9,
           p2pkhPrefix: 0x41,
           p2shPrefix: 0xb2,
@@ -121,6 +122,8 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x16Zcoin Signed Message:\n",
+          name: "Firo Testnet",
+          bip44CoinType: 1,
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
@@ -164,17 +167,14 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
     switch (derivePathType) {
       case DerivePathType.bip44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final pkHash = coin.hash160(publicKey.bytes);
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
       default:
@@ -185,7 +185,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       if (validateSparkAddress(address)) {

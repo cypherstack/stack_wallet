@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:bitcoindart/src/utils/constants/op.dart' as op;
-import 'package:bitcoindart/src/utils/script.dart' as bscript;
+import 'package:coin/coin.dart';
 import '../../../utilities/extensions/impl/string.dart';
 
 abstract final class BchUtils {
@@ -9,16 +8,16 @@ abstract final class BchUtils {
 
   static bool isSLP(Uint8List scriptPubKey) {
     const id = [83, 76, 80, 0]; // 'SLP\x00'
-    final decompiled = bscript.decompile(scriptPubKey);
+    final script = Script.decompile(scriptPubKey);
 
-    if (decompiled != null &&
-        decompiled.length > 1 &&
-        decompiled.first == op.OPS["OP_RETURN"]) {
-      final _id = decompiled[1];
+    if (script.ops.length > 1 &&
+        script.ops.first is OpCode &&
+        (script.ops.first as OpCode).code == Op.returnOp) {
+      final idOp = script.ops[1];
 
-      if (_id is List<int> && _id.length == id.length) {
+      if (idOp is PushData && idOp.data.length == id.length) {
         for (int i = 0; i < id.length; i++) {
-          if (_id[i] != id[i]) {
+          if (idOp.data[i] != id[i]) {
             return false;
           }
         }
@@ -32,22 +31,22 @@ abstract final class BchUtils {
 
   static bool isFUZE(Uint8List scriptPubKey) {
     final id = FUSE_ID.toUint8ListFromUtf8;
-    final decompiled = bscript.decompile(scriptPubKey);
+    final script = Script.decompile(scriptPubKey);
 
-    if (decompiled != null &&
-        decompiled.length > 2 &&
-        decompiled.first == op.OPS["OP_RETURN"]) {
+    if (script.ops.length > 2 &&
+        script.ops.first is OpCode &&
+        (script.ops.first as OpCode).code == Op.returnOp) {
       // check session hash length. Should be 32 bytes
-      final sessionHash = decompiled[2];
-      if (!(sessionHash is List<int> && sessionHash.length == 32)) {
+      final sessionOp = script.ops[2];
+      if (!(sessionOp is PushData && sessionOp.data.length == 32)) {
         return false;
       }
 
-      final _id = decompiled[1];
+      final idOp = script.ops[1];
 
-      if (_id is List<int> && _id.length == id.length) {
+      if (idOp is PushData && idOp.data.length == id.length) {
         for (int i = 0; i < id.length; i++) {
-          if (_id[i] != id[i]) {
+          if (idOp.data[i] != id[i]) {
             return false;
           }
         }

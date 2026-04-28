@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
+import 'package:coin/coin.dart' as coin;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -177,7 +177,7 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
                   shares: shares,
                 );
 
-                final tx = cl.Transaction.fromHex(rawTx);
+                final tx = coin.Tx.fromHex(rawTx);
                 final txData = ref.read(pFrostTxData)!;
 
                 final fractionDigits =

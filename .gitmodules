@@ -7,3 +7,6 @@
 [submodule "crypto_plugins/flutter_libmwc"]
 	path = crypto_plugins/flutter_libmwc
 	url = https://github.com/cypherstack/flutter_libmwc
+[submodule "crypto_plugins/coin"]
+	path = crypto_plugins/coin
+	url = git@github.com:ManyMath/coin

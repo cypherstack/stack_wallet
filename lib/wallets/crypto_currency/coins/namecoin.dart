@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -132,40 +132,26 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
+    final pkHash = coin.hash160(publicKey.bytes);
     switch (derivePathType) {
       // case DerivePathType.bip16:
 
       case DerivePathType.bip44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        ).program.script;
-
-        final addr = coinlib.P2SHAddress.fromRedeemScript(
-          p2wpkhScript,
-          version: networkParams.p2shPrefix,
-        );
-
+        final witnessScript = coin.P2wpkhAddr(pkHash).scriptPubKey;
+        final scriptHash = coin.hash160(witnessScript);
+        final addr = coin.P2shAddr(scriptHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2sh);
 
       case DerivePathType.bip84:
-        final addr = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        );
-
+        final addr = coin.P2wpkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2wpkh);
 
       default:
@@ -175,16 +161,18 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L3474
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xb4, // From 180.
           p2pkhPrefix: 0x34, // From 52.
           p2shPrefix: 0x0d, // From 13.
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "nc",
+          name: "Namecoin",
+          bip44CoinType: 7,
           messagePrefix: '\x19Namecoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -208,7 +196,7 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;

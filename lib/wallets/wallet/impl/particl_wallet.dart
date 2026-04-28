@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
+import 'package:coin/coin.dart';
+import 'package:coin/coin_chains.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../models/input.dart';
@@ -11,7 +12,6 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../utilities/extensions/impl/uint8_list.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -355,109 +355,62 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
     Logging.instance.d("Starting Particl buildTransaction ----------");
 
-    // TODO: use coinlib (For this we need coinlib to support particl)
-
-    final convertedNetwork = bitcoindart.NetworkType(
-      messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-      bech32: cryptoCurrency.networkParams.bech32Hrp,
-      bip32: bitcoindart.Bip32Type(
-        public: cryptoCurrency.networkParams.pubHDPrefix,
-        private: cryptoCurrency.networkParams.privHDPrefix,
-      ),
-      pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-      scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-      wif: cryptoCurrency.networkParams.wifPrefix,
+    final chain = Chain(
+      wifPrefix: cryptoCurrency.networkParams.wifPrefix,
+      p2pkhPrefix: cryptoCurrency.networkParams.p2pkhPrefix,
+      p2shPrefix: cryptoCurrency.networkParams.p2shPrefix,
+      bech32Hrp: cryptoCurrency.networkParams.bech32Hrp,
+      privHDPrefix: cryptoCurrency.networkParams.privHDPrefix,
+      pubHDPrefix: cryptoCurrency.networkParams.pubHDPrefix,
+      name: 'Particl',
+      bip44CoinType: 44,
+      supportsSegwit: true,
+      supportsTaproot: false,
     );
 
-    final List<({Uint8List? output, Uint8List? redeem})> extraData = [];
-    for (int i = 0; i < insAndKeys.length; i++) {
-      final sd = insAndKeys[i];
+    const version = 160;
 
-      final pubKey = sd.key!.publicKey.data;
-      final bitcoindart.PaymentData? data;
-      Uint8List? redeem, output;
-
-      switch (sd.derivePathType) {
-        case DerivePathType.bip44:
-          data = bitcoindart
-              .P2PKH(
-                data: bitcoindart.PaymentData(pubkey: pubKey),
-                network: convertedNetwork,
-              )
-              .data;
-          break;
-
-        case DerivePathType.bip49:
-          final p2wpkh = bitcoindart
-              .P2WPKH(
-                data: bitcoindart.PaymentData(pubkey: pubKey),
-                network: convertedNetwork,
-              )
-              .data;
-          redeem = p2wpkh.output;
-          data = bitcoindart
-              .P2SH(
-                data: bitcoindart.PaymentData(redeem: p2wpkh),
-                network: convertedNetwork,
-              )
-              .data;
-          break;
-
-        case DerivePathType.bip84:
-          // input = coinlib.P2WPKHInput(
-          //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
-          //   publicKey: keys.publicKey,
-          // );
-          data = bitcoindart
-              .P2WPKH(
-                data: bitcoindart.PaymentData(pubkey: pubKey),
-                network: convertedNetwork,
-              )
-              .data;
-          break;
-
-        case DerivePathType.bip86:
-          data = null;
-          break;
-
-        default:
-          throw Exception("DerivePathType unsupported");
-      }
-
-      // sd.output = input.script!.compiled;
-
-      if (sd.derivePathType != DerivePathType.bip86) {
-        output = data!.output!;
-      }
-
-      extraData.add((output: output, redeem: redeem));
+    // Build unsigned tx with RawInput placeholders
+    final unsignedInputs = <RawInput>[];
+    for (var i = 0; i < insAndKeys.length; i++) {
+      final txidBytes = Uint8List.fromList(
+        hexDecode(insAndKeys[i].utxo.txid).reversed.toList(),
+      );
+      unsignedInputs.add(RawInput(
+        prevOut: Outpoint(txid: txidBytes, vout: insAndKeys[i].utxo.vout),
+        sequence: 0xffffffff,
+      ));
     }
 
-    final txb = bitcoindart.TransactionBuilder(network: convertedNetwork);
-    const version = 160; // buildTransaction overridden for Particl to set this.
-    // TODO: [prio=low] refactor overridden buildTransaction to use eg. cryptocurrency.networkParams.txVersion.
-    txb.setVersion(version);
+    final txOutputs = <TxOutput>[];
+    for (var i = 0; i < txData.recipients!.length; i++) {
+      final outputScript = Addr.fromString(
+        txData.recipients![i].address,
+        chain,
+      ).scriptPubKey;
+      txOutputs.add(TxOutput(
+        value: txData.recipients![i].amount.raw,
+        scriptPubKey: outputScript,
+      ));
+    }
+
+    final unsignedTx = Tx(
+      version: version,
+      inputs: unsignedInputs,
+      outputs: txOutputs,
+      locktime: 0,
+    );
 
     // Temp tx data for GUI while waiting for real tx from server.
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];
 
-    // Add inputs.
     for (var i = 0; i < insAndKeys.length; i++) {
-      final txid = insAndKeys[i].utxo.txid;
-      txb.addInput(
-        txid,
-        insAndKeys[i].utxo.vout,
-        null,
-        extraData[i].output!,
-        cryptoCurrency.networkParams.bech32Hrp,
-      );
-
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: txb.inputs[i].script?.toHex,
+          scriptSigHex: null,
           scriptSigAsm: null,
-          sequence: 0xffffffff - 1,
+          sequence: 0xffffffff,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
             txid: insAndKeys[i].utxo.txid,
             vout: insAndKeys[i].utxo.vout,
@@ -474,14 +427,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    // Add outputs.
     for (var i = 0; i < txData.recipients!.length; i++) {
-      txb.addOutput(
-        txData.recipients![i].address,
-        txData.recipients![i].amount.raw.toInt(),
-        cryptoCurrency.networkParams.bech32Hrp,
-      );
-
       tempOutputs.add(
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "000000",
@@ -500,21 +446,43 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    // Sign.
+    // Sign each input.
+    // Particl requires ALL inputs to use witness format (BIP143 sighash,
+    // sig+pubkey in witness) regardless of derive path type.
+    final signedInputs = <TxInput>[];
     try {
       for (var i = 0; i < insAndKeys.length; i++) {
-        txb.sign(
-          vin: i,
-          keyPair: bitcoindart.ECPair.fromPrivateKey(
-            insAndKeys[i].key!.privateKey!.data,
-            network: convertedNetwork,
-            compressed: insAndKeys[i].key!.privateKey!.compressed,
-          ),
-          witnessValue: insAndKeys[i].utxo.value,
-          redeemScript: extraData[i].redeem,
-          isParticl: true,
-          overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
+        final sd = insAndKeys[i];
+        final pubKey = sd.key!.publicKey.bytes;
+        final pubKeyHash = hash160(pubKey);
+        final sk = (sd.key! as DerivedSecretKey).secretKey;
+
+        // BIP143 witness sighash for all Particl inputs.
+        final prevScript = PayToPubKeyHash(pubKeyHash).compiled;
+        final digest = WitnessSigHasher().hash(
+          unsignedTx,
+          i,
+          SigHashType.all,
+          prevScript: prevScript,
+          amount: BigInt.from(sd.utxo.value),
         );
+
+        final sig = EcdsaSig.sign(digest, sk.bytes);
+        final inputSig = InputSig(
+          derSig: sig.toDer(),
+          hashType: SigHashType.all,
+        );
+        final txidBytes = Uint8List.fromList(
+          hexDecode(sd.utxo.txid).reversed.toList(),
+        );
+        final outpoint = Outpoint(txid: txidBytes, vout: sd.utxo.vout);
+
+        // All Particl inputs use P2wpkhInput (witness format)
+        signedInputs.add(P2wpkhInput(
+          prevOut: outpoint,
+          inputSig: inputSig,
+          publicKey: pubKey,
+        ));
       }
     } catch (e, s) {
       Logging.instance.e(
@@ -525,30 +493,26 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
       rethrow;
     }
 
-    final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
-    final vSize = builtTx.virtualSize();
+    // Build Particl-format transaction
+    final signedTx = Tx(
+      version: version,
+      inputs: signedInputs,
+      outputs: txOutputs,
+      locktime: 0,
+    );
+    final particlTx = ParticlTx(signedTx);
+    final vSize = particlTx.virtualSize();
+
+    // Defensively strip any trailing zero bytes from the serialization.
+    String hexString = particlTx.toHex();
+    while (hexString.endsWith('00') && hexString.length > 2) {
+      hexString = hexString.substring(0, hexString.length - 2);
+    }
 
     return txData.copyWith(
-      raw: builtTx.toHex(isParticl: true),
+      raw: hexString,
       vSize: vSize,
       tempTx: null,
-      //  builtTx.getId() requires an isParticl flag as well but the lib does not support that yet
-      // tempTx: TransactionV2(
-      //   walletId: walletId,
-      //   blockHash: null,
-      //   hash: builtTx.getId(),
-      //   txid: builtTx.getId(),
-      //   height: null,
-      //   timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
-      //   inputs: List.unmodifiable(tempInputs),
-      //   outputs: List.unmodifiable(tempOutputs),
-      //   version: version,
-      //   type: tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
-      //       ? TransactionType.sentToSelf
-      //       : TransactionType.outgoing,
-      //   subType: TransactionSubType.none,
-      //   otherData: null,
-      // ),
     );
   }
 

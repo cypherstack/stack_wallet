@@ -92,10 +92,8 @@ dependencies:
       path: compat
       ref: 44b8c0f8e1cc7ddbfa33c0b3f11279e64646138
 
-  bitcoindart:
-    git:
-      url: https://github.com/cypherstack/bitcoindart.git
-      ref: ea33b1f5d6a701791359a2e180f73866dc667732
+  coin:
+    path: ./crypto_plugins/coin
 
   stack_wallet_backup:
     git:
@@ -103,14 +101,10 @@ dependencies:
       ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
 
   bip47:
-    git:
-      url: https://github.com/cypherstack/bip47.git
-      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
+    path: ./crypto_plugins/bip47
 
   fusiondart:
-    git:
-      url: https://github.com/cypherstack/fusiondart.git
-      ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
+    path: ./crypto_plugins/fusiondart
 
   # Utility plugins
   http: ^1.5.0
@@ -216,11 +210,6 @@ dependencies:
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
-  coinlib_flutter:
-    git:
-      url: https://www.github.com/julian-CStack/coinlib
-      path: coinlib_flutter
-      ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -312,24 +301,6 @@ dependency_overrides:
 
   # needed for dart 3.5+ (at least for now)
   win32: ^5.5.4
-
-  # coinlib_flutter requires this
-  coinlib:
-    git:
-      url: https://www.github.com/julian-CStack/coinlib
-      path: coinlib
-      ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
-
-  bip47:
-    git:
-      url: https://github.com/cypherstack/bip47.git
-      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
-
-  # bip47 pins a different bitcoindart commit; override to ours
-  bitcoindart:
-    git:
-      url: https://github.com/cypherstack/bitcoindart.git
-      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:

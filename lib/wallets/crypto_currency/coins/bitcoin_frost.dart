@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -137,8 +136,8 @@ class BitcoinFrost extends FrostCurrency {
   @override
   Uint8List addressToPubkey({required String address}) {
     try {
-      final addr = coinlib.Address.fromString(address, networkParams);
-      return addr.program.script.compiled;
+      final addr = coin.Addr.fromString(address, networkParams);
+      return addr.scriptPubKey;
     } catch (e) {
       rethrow;
     }
@@ -155,16 +154,18 @@ class BitcoinFrost extends FrostCurrency {
     }
   }
 
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
+          name: "Bitcoin",
+          bip44CoinType: 0,
           messagePrefix: '\x18Bitcoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -172,13 +173,15 @@ class BitcoinFrost extends FrostCurrency {
         );
       case CryptoCurrencyNetwork.test:
       case CryptoCurrencyNetwork.test4:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
+          name: "Bitcoin Testnet",
+          bip44CoinType: 1,
           messagePrefix: "\x18Bitcoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -192,7 +195,7 @@ class BitcoinFrost extends FrostCurrency {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;
@@ -252,13 +255,13 @@ class BitcoinFrost extends FrostCurrency {
   @override
   AddressType? getAddressType(String address) {
     try {
-      final clAddress = cl.Address.fromString(address, networkParams);
+      final addr = coin.Addr.fromString(address, networkParams);
 
-      return switch (clAddress) {
-        cl.P2TRAddress() => AddressType.p2tr,
-        cl.P2PKHAddress() => AddressType.p2pkh,
-        cl.P2WSHAddress() => AddressType.p2sh,
-        cl.P2WPKHAddress() => AddressType.p2wpkh,
+      return switch (addr) {
+        coin.TaprootAddr() => AddressType.p2tr,
+        coin.P2pkhAddr() => AddressType.p2pkh,
+        coin.P2shAddr() => AddressType.p2sh,
+        coin.SegwitAddr() => AddressType.p2wpkh,
         _ => null,
       };
     } catch (_) {

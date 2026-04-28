@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 import 'package:isar_community/isar.dart';
 
 import '../../../models/balance.dart';
@@ -26,18 +26,20 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
           .map((e) => e.getAddressType())
           .toSet();
 
-  Future<coinlib.HDPrivateKey> getRootHDNode() async {
+  /// Returns the root HD node using coin types.
+  Future<coin.DerivedSecretKey> getRootHDNode() async {
     final seed = bip39.mnemonicToSeed(
       await getMnemonic(),
       passphrase: await getMnemonicPassphrase(),
     );
-    return coinlib.HDPrivateKey.fromSeed(seed);
+    return coin.DerivedKey.fromSeed(seed) as coin.DerivedSecretKey;
   }
 
-  Future<coinlib.ECPrivateKey> getPrivateKey(Address address) async {
-    return (await getRootHDNode())
-        .derivePath(address.derivationPath!.value)
-        .privateKey;
+  Future<coin.SecretKey> getPrivateKey(Address address) async {
+    return ((await getRootHDNode())
+            .derivePath(address.derivationPath!.value)
+        as coin.DerivedSecretKey)
+        .secretKey;
   }
 
   Future<String> getPrivateKeyWIF(Address address) async {
@@ -45,11 +47,11 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
     final List<int> data = [
       cryptoCurrency.networkParams.wifPrefix,
-      ...privateKey.data,
-      if (privateKey.compressed) 1,
+      ...privateKey.bytes,
+      1, // compressed
     ];
-    final checksum = coinlib
-        .sha256DoubleHash(Uint8List.fromList(data))
+    final checksum = coin
+        .sha256d(Uint8List.fromList(data))
         .sublist(0, 4);
     data.addAll(checksum);
 
@@ -255,7 +257,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       index: index,
     );
 
-    final coinlib.HDKey keys;
+    final coin.DerivedKey keys;
     if (isViewOnly) {
       final idx = derivationPath.lastIndexOf("'/");
       final path = derivationPath.substring(idx + 2);
@@ -266,7 +268,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
         (e) => derivationPath.startsWith(e.path),
       );
 
-      final node = coinlib.HDPublicKey.decode(xPub.encoded);
+      final node = coin.DerivedPublicKey.decode(xPub.encoded);
       keys = node.derivePath(path);
     } else {
       final root = await getRootHDNode();
@@ -291,8 +293,8 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
     return Address(
       walletId: walletId,
-      value: convertAddressString(data.address.toString()),
-      publicKey: keys.publicKey.data,
+      value: convertAddressString(data.address),
+      publicKey: keys.publicKey.bytes,
       derivationIndex: index,
       derivationPath:
           isViewOnly ? null : (DerivationPath()..value = derivationPath),

@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -105,17 +105,14 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
     switch (derivePathType) {
       case DerivePathType.bip44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final pkHash = coin.hash160(publicKey.bytes);
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
       default:
@@ -127,23 +124,25 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get minConfirms => 6;
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           p2pkhPrefix: 76,
           p2shPrefix: 16,
           wifPrefix: 204,
           pubHDPrefix: 0x0488B21E,
           privHDPrefix: 0x0488ADE4,
-          bech32Hrp: "dash", // TODO ?????
+          bech32Hrp: "dash",
+          name: "Dash",
+          bip44CoinType: 5, // TODO ?????
           messagePrefix: '\x18Dash Signed Message:\n', // TODO ?????
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       // case CryptoCurrencyNetwork.test:
-      //   return coinlib.Network(
+      //   return coin.Chain(
       //     p2pkhPrefix: 140,
       //     p2shPrefix: 19,
       //     wifPrefix: 239,
@@ -163,7 +162,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;

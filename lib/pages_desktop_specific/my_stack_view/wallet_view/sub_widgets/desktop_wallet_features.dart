@@ -329,7 +329,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
-    final code = await wallet.getPaymentCode(isSegwit: false);
+    final code = await wallet.getPaymentCode();
 
     final account = await ref.read(paynymAPIProvider).nym(code.toString());
 

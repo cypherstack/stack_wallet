@@ -1259,9 +1259,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
                           final paynymInterface = wallet as PaynymInterface;
 
-                          final code = await paynymInterface.getPaymentCode(
-                            isSegwit: false,
-                          );
+                          final code = await paynymInterface.getPaymentCode();
 
                           final account = await ref
                               .read(paynymAPIProvider)

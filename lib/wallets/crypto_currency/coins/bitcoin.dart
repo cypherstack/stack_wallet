@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -87,34 +87,38 @@ class Bitcoin extends Bip39HDCurrency
       Amount(rawValue: BigInt.from(294), fractionDigits: fractionDigits);
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
+          name: "Bitcoin",
+          bip44CoinType: 0,
           messagePrefix: '\x18Bitcoin Signed Message:\n',
-          minFee: BigInt.from(1), // Not used in stack wallet currently
-          minOutput: dustLimit.raw, // Not used in stack wallet currently
-          feePerKb: BigInt.from(1), // Not used in stack wallet currently
+          minFee: BigInt.from(1),
+          minOutput: dustLimit.raw,
+          feePerKb: BigInt.from(1),
         );
       case CryptoCurrencyNetwork.test:
       case CryptoCurrencyNetwork.test4:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
+          name: "Bitcoin Testnet",
+          bip44CoinType: 1,
           messagePrefix: "\x18Bitcoin Signed Message:\n",
-          minFee: BigInt.from(1), // Not used in stack wallet currently
-          minOutput: dustLimit.raw, // Not used in stack wallet currently
-          feePerKb: BigInt.from(1), // Not used in stack wallet currently
+          minFee: BigInt.from(1),
+          minOutput: dustLimit.raw,
+          feePerKb: BigInt.from(1),
         );
       default:
         throw Exception("Unsupported network: $network");
@@ -163,50 +167,30 @@ class Bitcoin extends Bip39HDCurrency
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
+    final pkHash = coin.hash160(publicKey.bytes);
     switch (derivePathType) {
       case DerivePathType.bip44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
-      // TODO: [prio=high] verify this works similarly to bitcoindart's p2sh or something(!!)
       case DerivePathType.bip49:
-        final p2wpkhScript =
-            coinlib.P2WPKHAddress.fromPublicKey(
-              publicKey,
-              hrp: networkParams.bech32Hrp,
-            ).program.script;
-
-        final addr = coinlib.P2SHAddress.fromRedeemScript(
-          p2wpkhScript,
-          version: networkParams.p2shPrefix,
-        );
-
+        final witnessScript = coin.P2wpkhAddr(pkHash).scriptPubKey;
+        final scriptHash = coin.hash160(witnessScript);
+        final addr = coin.P2shAddr(scriptHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2sh);
 
       case DerivePathType.bip84:
-        final addr = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        );
-
+        final addr = coin.P2wpkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2wpkh);
 
       case DerivePathType.bip86:
-        final taproot = coinlib.Taproot(internalKey: publicKey);
-
-        final addr = coinlib.P2TRAddress.fromTaproot(
-          taproot,
-          hrp: networkParams.bech32Hrp,
-        );
-
+        final taproot = coin.Taproot(internalKey: publicKey);
+        final addr = coin.TaprootAddr(taproot.tweakedKey)
+            .encode(networkParams);
         return (address: addr, addressType: AddressType.p2tr);
 
       default:
@@ -217,7 +201,7 @@ class Bitcoin extends Bip39HDCurrency
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;

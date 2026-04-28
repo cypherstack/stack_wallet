@@ -71,7 +71,7 @@ class _PaynymFollowToggleButtonState
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode = await wallet.getPaymentCode(isSegwit: false);
+    final myPCode = await wallet.getPaymentCode();
 
     PaynymResponse<String> token = await ref
         .read(paynymAPIProvider)
@@ -189,7 +189,7 @@ class _PaynymFollowToggleButtonState
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode = await wallet.getPaymentCode(isSegwit: false);
+    final myPCode = await wallet.getPaymentCode();
 
     PaynymResponse<String> token = await ref
         .read(paynymAPIProvider)

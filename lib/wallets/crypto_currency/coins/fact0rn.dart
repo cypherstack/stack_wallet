@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -105,17 +105,14 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
     switch (derivePathType) {
       case DerivePathType.bip84:
-        final addr = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        );
-
+        final pkHash = coin.hash160(publicKey.bytes);
+        final addr = coin.P2wpkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2wpkh);
 
       default:
@@ -127,29 +124,33 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get minConfirms => 1;
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "fact",
+          name: "Fact0rn",
+          bip44CoinType: 0,
           messagePrefix: '\x18Bitcoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tfact",
+          name: "Fact0rn Testnet",
+          bip44CoinType: 1,
           messagePrefix: "\x18Bitcoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -163,7 +164,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;

@@ -13,7 +13,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:coinlib_flutter/coinlib_flutter.dart';
+import 'package:coin/coin.dart' as coin;
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -100,7 +100,7 @@ void main(List<String> args) async {
     StackFileSystem.setDesktopOverrideDir(args.last);
   }
 
-  final loadCoinlibFuture = loadCoinlib();
+  await coin.initCoin();
 
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
@@ -320,8 +320,6 @@ void main(List<String> args) async {
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
   unawaited(NotificationApi.init());
-
-  await loadCoinlibFuture;
 
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);

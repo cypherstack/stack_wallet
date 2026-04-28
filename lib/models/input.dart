@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:coinlib_flutter/coinlib_flutter.dart';
+import 'package:coin/coin.dart' as coin;
 
 import '../db/drift/database.dart';
 import '../utilities/enums/derive_path_type_enum.dart';
@@ -18,7 +18,7 @@ abstract class BaseInput {
   BaseInput(this._utxo, {this.key});
 
   final Object _utxo;
-  HDKey? key;
+  coin.DerivedKey? key;
 
   String get id;
 

@@ -1,7 +1,7 @@
 import 'package:bech32/bech32.dart';
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bs58check/bs58check.dart' as bs58check;
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 import 'package:flutter/foundation.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -85,29 +85,33 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
+          name: "Bitcoin Cash",
+          bip44CoinType: 145,
           messagePrefix: '\x18Bitcoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
+          name: "Bitcoin Cash Testnet",
+          bip44CoinType: 1,
           messagePrefix: "\x18Bitcoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -127,9 +131,9 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         address = bitbox.Address.toLegacyAddress(address);
       }
 
-      final addr = coinlib.Address.fromString(address, networkParams);
+      final addr = coin.Addr.fromString(address, networkParams);
       return Bip39HDCurrency.convertBytesToScriptHash(
-        addr.program.script.compiled,
+        addr.scriptPubKey,
       );
     } catch (e) {
       rethrow;
@@ -181,18 +185,15 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
     switch (derivePathType) {
       case DerivePathType.bip44:
       case DerivePathType.bch44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final pkHash = coin.hash160(publicKey.bytes);
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
       default:

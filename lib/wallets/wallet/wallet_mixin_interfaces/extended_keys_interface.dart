@@ -1,3 +1,5 @@
+import 'package:coin/coin.dart' as coin;
+
 import '../../../models/keys/xpriv_data.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'electrumx_interface.dart';
@@ -35,14 +37,13 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
     final fingerprint = master.fingerprint.toRadixString(16);
 
     final futures = paths.map((path) async {
-      final node = master.derivePath(path);
+      final node = master.derivePath(path) as coin.DerivedSecretKey;
 
       return XPub(
         path: path,
-        encoded: node.hdPublicKey.encode(
-          cryptoCurrency.networkParams.pubHDPrefix,
-          // 0x04b24746,
-        ),
+        encoded: node.toPublic().encode(
+              version: cryptoCurrency.networkParams.pubHDPrefix,
+            ),
       );
     });
 
@@ -59,12 +60,12 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
     final fingerprint = master.fingerprint.toRadixString(16);
 
     final futures = paths.map((path) async {
-      final node = master.derivePath(path);
+      final node = master.derivePath(path) as coin.DerivedSecretKey;
 
       return XPriv(
         path: path,
         encoded: node.encode(
-          cryptoCurrency.networkParams.privHDPrefix,
+          version: cryptoCurrency.networkParams.privHDPrefix,
         ),
       );
     });
@@ -76,7 +77,7 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
         XPriv(
           path: "Master",
           encoded: master.encode(
-            cryptoCurrency.networkParams.privHDPrefix,
+            version: cryptoCurrency.networkParams.privHDPrefix,
           ),
         ),
         ...(await Future.wait(futures)),

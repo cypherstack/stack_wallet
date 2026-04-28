@@ -1,0 +1,26 @@
+name: bip47
+description: Basic bip47 implementation with Samourai segwit
+version: 3.0.0
+# homepage: https://www.example.com
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0
+
+dependencies:
+  coin:
+    path: ../coin
+  bip39:
+    git:
+      url: https://github.com/cypherstack/stack-bip39.git
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
+  pointycastle: ^4.0.0
+  convert: ^3.0.2
+  bip32: ^2.0.0
+  hex: ^0.2.0
+
+dependency_overrides:
+  pointycastle: ^4.0.0

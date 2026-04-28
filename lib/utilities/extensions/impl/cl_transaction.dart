@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:coinlib_flutter/coinlib_flutter.dart';
+import 'package:coin/coin.dart' as coin;
 
-extension CLTransactionExt on Transaction {
+extension CoinTxExt on coin.Tx {
   int weight() {
     final base = _byteLength(false);
     final total = _byteLength(true);
@@ -11,22 +11,33 @@ extension CLTransactionExt on Transaction {
 
   int vSize() => (weight() / 4).ceil();
 
+  String get hashHex {
+    final hash = coin.sha256d(toBytes());
+    return coin.hexEncode(Uint8List.fromList(hash.reversed.toList()));
+  }
+
   int _byteLength(final bool allowWitness) {
     final hasWitness = allowWitness && isWitness;
     return (hasWitness ? 10 : 8) +
         _encodingLength(inputs.length) +
         _encodingLength(outputs.length) +
-        inputs.fold<int>(0, (sum, input) => sum + input.size) +
-        outputs.fold<int>(0, (sum, output) => sum + output.size) +
+        inputs.fold<int>(0, (sum, input) => sum + _inputSize(input)) +
+        outputs.fold<int>(0, (sum, output) => sum + output.wireSize) +
         (hasWitness
             ? inputs.fold(0, (sum, input) {
-                if (input is! WitnessInput) {
+                if (input is! coin.WitnessInput) {
                   return sum;
                 } else {
                   return sum + _vectorSize(input.witness);
                 }
               })
             : 0);
+  }
+
+  int _inputSize(coin.TxInput input) {
+    final measure = coin.WireMeasure();
+    input.writeTo(measure);
+    return measure.size;
   }
 
   int _varSliceSize(Uint8List someScript) {

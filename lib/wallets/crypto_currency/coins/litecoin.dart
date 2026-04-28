@@ -1,4 +1,4 @@
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart' as coin;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -81,16 +81,18 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
-  coinlib.Network get networkParams {
+  coin.Chain get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xb0,
           p2pkhPrefix: 0x30,
           p2shPrefix: 0x32,
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "ltc",
+          name: "Litecoin",
+          bip44CoinType: 2,
           mwebBech32Hrp: "ltcmweb",
           messagePrefix: '\x19Litecoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
@@ -98,13 +100,15 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
-        return coinlib.Network(
+        return coin.Chain(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0x3a,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tltc",
+          name: "Litecoin Testnet",
+          bip44CoinType: 1,
           mwebBech32Hrp: "tmweb",
           messagePrefix: "\x19Litecoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
@@ -155,39 +159,24 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
-    required coinlib.ECPublicKey publicKey,
+  ({String address, AddressType addressType}) getAddressForPublicKey({
+    required coin.PublicKey publicKey,
     required DerivePathType derivePathType,
   }) {
+    final pkHash = coin.hash160(publicKey.bytes);
     switch (derivePathType) {
       case DerivePathType.bip44:
-        final addr = coinlib.P2PKHAddress.fromPublicKey(
-          publicKey,
-          version: networkParams.p2pkhPrefix,
-        );
-
+        final addr = coin.P2pkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript =
-            coinlib.P2WPKHAddress.fromPublicKey(
-              publicKey,
-              hrp: networkParams.bech32Hrp,
-            ).program.script;
-
-        final addr = coinlib.P2SHAddress.fromRedeemScript(
-          p2wpkhScript,
-          version: networkParams.p2shPrefix,
-        );
-
+        final witnessScript = coin.P2wpkhAddr(pkHash).scriptPubKey;
+        final scriptHash = coin.hash160(witnessScript);
+        final addr = coin.P2shAddr(scriptHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2sh);
 
       case DerivePathType.bip84:
-        final addr = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        );
-
+        final addr = coin.P2wpkhAddr(pkHash).encode(networkParams);
         return (address: addr, addressType: AddressType.p2wpkh);
 
       default:
@@ -198,7 +187,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   bool validateAddress(String address) {
     try {
-      coinlib.Address.fromString(address, networkParams);
+      coin.Addr.fromString(address, networkParams);
       return true;
     } catch (_) {
       return false;

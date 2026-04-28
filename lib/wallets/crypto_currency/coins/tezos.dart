@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:coinlib_flutter/coinlib_flutter.dart';
+import 'package:coin/coin.dart' show hmacSha512;
 import 'package:tezart/src/crypto/crypto.dart';
 import 'package:tezart/tezart.dart';
 

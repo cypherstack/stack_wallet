@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bitbox/bitbox.dart' as bitbox;
+import 'package:coin/coin.dart' as coin;
 import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar_community/isar.dart';
@@ -381,7 +382,9 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
 
       final root = await getRootHDNode();
 
-      return root.derivePath(derivationPath).privateKey.data;
+      return (root.derivePath(derivationPath) as coin.DerivedSecretKey)
+          .secretKey
+          .bytes;
     } catch (e, s) {
       Logging.instance.f("", error: e, stackTrace: s);
       throw Exception("Derivation path for pubkey=$pubKey could not be found");

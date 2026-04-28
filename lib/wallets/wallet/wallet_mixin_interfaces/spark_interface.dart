@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:bitcoindart/bitcoindart.dart' as btc;
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:coin/coin.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
@@ -326,7 +325,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         }
       } else {
         final root = await getRootHDNode();
-        final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
+        final privateKey =
+            (root.derivePath(sparkDerivationPath) as DerivedSecretKey)
+                .secretKey
+                .bytes;
         _viewKeyHex = libSpark.getFullViewKeyHexFromPrivateKeyData(
           privateKeyHex: privateKey.toHex,
           index: sparkIndex,
@@ -467,7 +469,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           .toList();
 
       final root = await getRootHDNode();
-      final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
+      final privateKey =
+          (root.derivePath(sparkDerivationPath) as DerivedSecretKey)
+              .secretKey
+              .bytes;
       int estimate = await _asyncSparkFeesWrapper(
         privateKeyHex: privateKey.toHex,
         index: sparkIndex,
@@ -636,11 +641,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .toList();
 
     final root = await getRootHDNode();
-    final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
+    final privateKey =
+        (root.derivePath(sparkDerivationPath) as DerivedSecretKey)
+            .secretKey
+            .bytes;
 
-    final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
-    txb.setLockTime(await chainHeight);
-    txb.setVersion(3 | (9 << 16));
+    final sparkTxVersion = 3 | (9 << 16);
+    final sparkLockTime = await chainHeight;
 
     List<TxRecipient>? recipientsWithFeeSubtracted;
     List<({String address, Amount amount, String memo, bool isChange})>?
@@ -693,6 +700,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];
 
+    final extractedTx = _FiroRawTx(
+      version: sparkTxVersion,
+      locktime: sparkLockTime,
+    );
+
     for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
@@ -708,11 +720,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         ),
       );
 
-      final scriptPubKey = btc.Address.addressToOutputScript(
+      final scriptPubKey = Addr.fromString(
         txData.recipients![i].address,
-        _bitcoinDartNetwork,
-      );
-      txb.addOutput(
+        _coinChain,
+      ).scriptPubKey;
+      extractedTx.addOutput(
         scriptPubKey,
         recipientsWithFeeSubtracted[i].amount.raw.toInt(),
       );
@@ -756,7 +768,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    final extractedTx = txb.buildIncomplete();
     extractedTx.addInput(
       '0000000000000000000000000000000000000000000000000000000000000000'
           .toUint8ListFromHex,
@@ -1743,9 +1754,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           generate: false,
         );
 
-        final dummyTxb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
-        dummyTxb.setVersion(txVersion);
-        dummyTxb.setLockTime(lockTime);
         for (int i = 0; i < dummyRecipients.length; i++) {
           final recipient = dummyRecipients[i];
           if (recipient.amount < cryptoCurrency.dustLimit.raw.toInt()) {
@@ -1799,91 +1807,120 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           }
         }
 
-        // add outputs for dummy tx to check fees
+        // Build all outputs for dummy tx
+        final dummyOutputs = <TxOutput>[];
         for (final out in vout) {
-          dummyTxb.addOutput(out.$1, out.$2);
+          final addressOrScript = out.$1;
+          final value = out.$2;
+          if (addressOrScript is Uint8List) {
+            dummyOutputs.add(TxOutput(
+              value: BigInt.from(value),
+              scriptPubKey: addressOrScript,
+            ));
+          } else {
+            dummyOutputs.add(TxOutput(
+              value: BigInt.from(value),
+              scriptPubKey: Addr.fromString(
+                addressOrScript as String,
+                _coinChain,
+              ).scriptPubKey,
+            ));
+          }
         }
 
         // fill vin
         for (final sd in setCoins) {
           vin.add(sd);
+        }
 
-          final pubKey = sd.key!.publicKey.data;
-          final btc.PaymentData? data;
+        // Build unsigned dummy tx with RawInput placeholders
+        final dummyUnsignedInputs = setCoins.map((sd) {
+          final txidBytes = Uint8List.fromList(
+            hexDecode(sd.utxo.txid).reversed.toList(),
+          );
+          return RawInput(
+            prevOut: Outpoint(txid: txidBytes, vout: sd.utxo.vout),
+            sequence: 0xffffffff - 1,
+          );
+        }).toList();
 
-          switch (sd.derivePathType) {
-            case DerivePathType.bip44:
-              data = btc
-                  .P2PKH(
-                    data: btc.PaymentData(pubkey: pubKey),
-                    network: _bitcoinDartNetwork,
-                  )
-                  .data;
-              break;
+        final dummyUnsignedTx = Tx(
+          version: txVersion,
+          inputs: dummyUnsignedInputs,
+          outputs: dummyOutputs,
+          locktime: lockTime,
+        );
 
-            case DerivePathType.bip49:
-              final p2wpkh = btc
-                  .P2WPKH(
-                    data: btc.PaymentData(pubkey: pubKey),
-                    network: _bitcoinDartNetwork,
-                  )
-                  .data;
-              data = btc
-                  .P2SH(
-                    data: btc.PaymentData(redeem: p2wpkh),
-                    network: _bitcoinDartNetwork,
-                  )
-                  .data;
-              break;
+        // Sign each input for dummy tx
+        final dummySignedInputs = <TxInput>[];
+        for (var i = 0; i < setCoins.length; i++) {
+          final sd = setCoins[i];
+          final pubKey = sd.key!.publicKey.bytes;
+          final pubKeyHash = hash160(pubKey);
+          final sk = (sd.key! as DerivedSecretKey).secretKey;
 
-            case DerivePathType.bip84:
-              data = btc
-                  .P2WPKH(
-                    data: btc.PaymentData(pubkey: pubKey),
-                    network: _bitcoinDartNetwork,
-                  )
-                  .data;
-              break;
-
-            case DerivePathType.bip86:
-              data = null;
-              break;
-
-            default:
-              throw Exception("DerivePathType unsupported");
+          final Uint8List digest;
+          if (sd.derivePathType == DerivePathType.bip84 ||
+              sd.derivePathType == DerivePathType.bip49) {
+            final prevScript = PayToPubKeyHash(pubKeyHash).compiled;
+            digest = WitnessSigHasher().hash(
+              dummyUnsignedTx,
+              i,
+              SigHashType.all,
+              prevScript: prevScript,
+              amount: BigInt.from(sd.utxo.value),
+            );
+          } else {
+            final prevScript = _outputScriptForKey(
+              pubKey,
+              sd.derivePathType!,
+            );
+            digest = LegacySigHasher().hash(
+              dummyUnsignedTx,
+              i,
+              SigHashType.all,
+              prevScript: prevScript,
+            );
           }
 
-          // add to dummy tx
-          dummyTxb.addInput(
-            sd.utxo.txid,
-            sd.utxo.vout,
-            0xffffffff -
-                1, // - 1 is important. 0xffffffff on its own will burn funds
-            data!.output!,
+          final sig = EcdsaSig.sign(digest, sk.bytes);
+          final inputSig = InputSig(
+            derSig: sig.toDer(),
+            hashType: SigHashType.all,
           );
+          final txidBytes = Uint8List.fromList(
+            hexDecode(sd.utxo.txid).reversed.toList(),
+          );
+          final outpoint = Outpoint(txid: txidBytes, vout: sd.utxo.vout);
+
+          if (sd.derivePathType == DerivePathType.bip84 ||
+              sd.derivePathType == DerivePathType.bip49) {
+            dummySignedInputs.add(P2wpkhInput(
+              prevOut: outpoint,
+              inputSig: inputSig,
+              publicKey: pubKey,
+              sequence: 0xffffffff - 1,
+            ));
+          } else {
+            dummySignedInputs.add(P2pkhInput(
+              prevOut: outpoint,
+              inputSig: inputSig,
+              publicKey: pubKey,
+              sequence: 0xffffffff - 1,
+            ));
+          }
         }
 
-        // sign dummy tx
-        for (var i = 0; i < setCoins.length; i++) {
-          dummyTxb.sign(
-            vin: i,
-            keyPair: btc.ECPair.fromPrivateKey(
-              setCoins[i].key!.privateKey!.data,
-              network: _bitcoinDartNetwork,
-              compressed: setCoins[i].key!.privateKey!.compressed,
-            ),
-            witnessValue: setCoins[i].utxo.value,
+        final dummyTx = Tx(
+          version: txVersion,
+          inputs: dummySignedInputs,
+          outputs: dummyOutputs,
+          locktime: lockTime,
+        );
+        final dummyWeight = _txWeight(dummyTx);
+        final nBytes = (dummyWeight / 4).ceil();
 
-            // maybe not needed here as this was originally copied from btc?
-            // We'll find out...
-            // redeemScript: setCoins[i].redeemScript,
-          );
-        }
-
-        final dummyTx = dummyTxb.build();
-        final nBytes = dummyTx.virtualSize();
-
-        if (dummyTx.weight() > MAX_NEW_TX_WEIGHT) {
+        if (dummyWeight > MAX_NEW_TX_WEIGHT) {
           throw Exception("Transaction too large");
         }
 
@@ -1969,67 +2006,18 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       final List<InputV2> tempInputs = [];
       final List<OutputV2> tempOutputs = [];
 
-      // sign
-      final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
-      txb.setVersion(txVersion);
-      txb.setLockTime(lockTime);
+      // Build outputs for signed tx
+      final mintOutputs = <TxOutput>[];
       for (final input in vin) {
-        final pubKey = input.key!.publicKey.data;
-        final btc.PaymentData? data;
-
-        switch (input.derivePathType) {
-          case DerivePathType.bip44:
-            data = btc
-                .P2PKH(
-                  data: btc.PaymentData(pubkey: pubKey),
-                  network: _bitcoinDartNetwork,
-                )
-                .data;
-            break;
-
-          case DerivePathType.bip49:
-            final p2wpkh = btc
-                .P2WPKH(
-                  data: btc.PaymentData(pubkey: pubKey),
-                  network: _bitcoinDartNetwork,
-                )
-                .data;
-            data = btc
-                .P2SH(
-                  data: btc.PaymentData(redeem: p2wpkh),
-                  network: _bitcoinDartNetwork,
-                )
-                .data;
-            break;
-
-          case DerivePathType.bip84:
-            data = btc
-                .P2WPKH(
-                  data: btc.PaymentData(pubkey: pubKey),
-                  network: _bitcoinDartNetwork,
-                )
-                .data;
-            break;
-
-          case DerivePathType.bip86:
-            data = null;
-            break;
-
-          default:
-            throw Exception("DerivePathType unsupported");
-        }
-
-        txb.addInput(
-          input.utxo.txid,
-          input.utxo.vout,
-          0xffffffff -
-              1, // minus 1 is important. 0xffffffff on its own will burn funds
-          data!.output!,
+        final pubKey = input.key!.publicKey.bytes;
+        final outputScript = _outputScriptForKey(
+          pubKey,
+          input.derivePathType!,
         );
 
         tempInputs.add(
           InputV2.isarCantDoRequiredInDefaultConstructor(
-            scriptSigHex: txb.inputs.first.script?.toHex,
+            scriptSigHex: outputScript.toHex,
             scriptSigAsm: null,
             sequence: 0xffffffff - 1,
             outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -2049,7 +2037,20 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       for (final output in vout) {
         final addressOrScript = output.$1;
         final value = output.$2;
-        txb.addOutput(addressOrScript, value);
+        if (addressOrScript is Uint8List) {
+          mintOutputs.add(TxOutput(
+            value: BigInt.from(value),
+            scriptPubKey: addressOrScript,
+          ));
+        } else {
+          mintOutputs.add(TxOutput(
+            value: BigInt.from(value),
+            scriptPubKey: Addr.fromString(
+              addressOrScript as String,
+              _coinChain,
+            ).scriptPubKey,
+          ));
+        }
 
         tempOutputs.add(
           OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -2069,22 +2070,92 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         );
       }
 
-      try {
-        for (var i = 0; i < vin.length; i++) {
-          txb.sign(
-            vin: i,
-            keyPair: btc.ECPair.fromPrivateKey(
-              vin[i].key!.privateKey!.data,
-              network: _bitcoinDartNetwork,
-              compressed: vin[i].key!.privateKey!.compressed,
-            ),
-            witnessValue: vin[i].utxo.value,
+      // Build unsigned tx with RawInput placeholders
+      final unsignedMintInputs = vin.map((input) {
+        final txidBytes = Uint8List.fromList(
+          hexDecode(input.utxo.txid).reversed.toList(),
+        );
+        return RawInput(
+          prevOut: Outpoint(txid: txidBytes, vout: input.utxo.vout),
+          sequence: 0xffffffff - 1,
+        );
+      }).toList();
 
-            // maybe not needed here as this was originally copied from btc?
-            // We'll find out...
-            // redeemScript: setCoins[i].redeemScript,
+      final unsignedMintTx = Tx(
+        version: txVersion,
+        inputs: unsignedMintInputs,
+        outputs: mintOutputs,
+        locktime: lockTime,
+      );
+
+      // Sign each input
+      final Tx builtTx;
+      try {
+        final signedMintInputs = <TxInput>[];
+        for (var i = 0; i < vin.length; i++) {
+          final sd = vin[i];
+          final pubKey = sd.key!.publicKey.bytes;
+          final pubKeyHash = hash160(pubKey);
+          final sk = (sd.key! as DerivedSecretKey).secretKey;
+
+          final Uint8List digest;
+          if (sd.derivePathType == DerivePathType.bip84 ||
+              sd.derivePathType == DerivePathType.bip49) {
+            final prevScript = PayToPubKeyHash(pubKeyHash).compiled;
+            digest = WitnessSigHasher().hash(
+              unsignedMintTx,
+              i,
+              SigHashType.all,
+              prevScript: prevScript,
+              amount: BigInt.from(sd.utxo.value),
+            );
+          } else {
+            final prevScript = _outputScriptForKey(
+              pubKey,
+              sd.derivePathType!,
+            );
+            digest = LegacySigHasher().hash(
+              unsignedMintTx,
+              i,
+              SigHashType.all,
+              prevScript: prevScript,
+            );
+          }
+
+          final sig = EcdsaSig.sign(digest, sk.bytes);
+          final inputSig = InputSig(
+            derSig: sig.toDer(),
+            hashType: SigHashType.all,
           );
+          final txidBytes = Uint8List.fromList(
+            hexDecode(sd.utxo.txid).reversed.toList(),
+          );
+          final outpoint = Outpoint(txid: txidBytes, vout: sd.utxo.vout);
+
+          if (sd.derivePathType == DerivePathType.bip84 ||
+              sd.derivePathType == DerivePathType.bip49) {
+            signedMintInputs.add(P2wpkhInput(
+              prevOut: outpoint,
+              inputSig: inputSig,
+              publicKey: pubKey,
+              sequence: 0xffffffff - 1,
+            ));
+          } else {
+            signedMintInputs.add(P2pkhInput(
+              prevOut: outpoint,
+              inputSig: inputSig,
+              publicKey: pubKey,
+              sequence: 0xffffffff - 1,
+            ));
+          }
         }
+
+        builtTx = Tx(
+          version: txVersion,
+          inputs: signedMintInputs,
+          outputs: mintOutputs,
+          locktime: lockTime,
+        );
       } catch (e, s) {
         Logging.instance.e(
           "Caught exception while signing spark mint transaction: ",
@@ -2093,7 +2164,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         );
         rethrow;
       }
-      final builtTx = txb.build();
       final actualFee =
           vin
               .map((e) => BigInt.from(e.utxo.value))
@@ -2128,8 +2198,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               ),
             )
             .toList(),
-        vSize: builtTx.virtualSize(),
-        txid: builtTx.getId(),
+        vSize: (_txWeight(builtTx) / 4).ceil(),
+        txid: builtTx.txid,
         raw: builtTx.toHex(),
         fee: Amount(
           rawValue: nFeeRet,
@@ -2139,8 +2209,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         tempTx: TransactionV2(
           walletId: walletId,
           blockHash: null,
-          hash: builtTx.getId(),
-          txid: builtTx.getId(),
+          hash: builtTx.txid,
+          txid: builtTx.txid,
           timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
           inputs: List.unmodifiable(tempInputs),
           outputs: List.unmodifiable(tempOutputs),
@@ -2500,17 +2570,68 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   // ====================== Private ============================================
 
-  btc.NetworkType get _bitcoinDartNetwork => btc.NetworkType(
-    messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-    bech32: cryptoCurrency.networkParams.bech32Hrp,
-    bip32: btc.Bip32Type(
-      public: cryptoCurrency.networkParams.pubHDPrefix,
-      private: cryptoCurrency.networkParams.privHDPrefix,
-    ),
-    pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-    scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-    wif: cryptoCurrency.networkParams.wifPrefix,
+  Chain get _coinChain => Chain(
+    wifPrefix: cryptoCurrency.networkParams.wifPrefix,
+    p2pkhPrefix: cryptoCurrency.networkParams.p2pkhPrefix,
+    p2shPrefix: cryptoCurrency.networkParams.p2shPrefix,
+    bech32Hrp: cryptoCurrency.networkParams.bech32Hrp,
+    privHDPrefix: cryptoCurrency.networkParams.privHDPrefix,
+    pubHDPrefix: cryptoCurrency.networkParams.pubHDPrefix,
+    name: '',
+    bip44CoinType: 0,
+    supportsSegwit: true,
+    supportsTaproot: false,
   );
+
+  /// Compute the segwit weight of a coin Tx.
+  /// weight = base_size * 3 + total_size
+  /// where base_size excludes witness data and total_size includes it.
+  static int _txWeight(Tx tx) {
+    final totalSize = tx.wireSize;
+    // Compute non-witness size by re-serializing without witness
+    // Non-witness = version(4) + varint(inputs) + inputs + varint(outputs) +
+    //   outputs + locktime(4)
+    var baseSize = 8; // version + locktime
+    baseSize += _varIntSize(tx.inputs.length);
+    for (final inp in tx.inputs) {
+      // prevOut(32+4) + scriptSig + sequence(4)
+      baseSize += 32 + 4 + _varSliceSize(inp.scriptSig) + 4;
+    }
+    baseSize += _varIntSize(tx.outputs.length);
+    for (final out in tx.outputs) {
+      // value(8) + scriptPubKey
+      baseSize += 8 + _varSliceSize(out.scriptPubKey);
+    }
+    return baseSize * 3 + totalSize;
+  }
+
+  static int _varIntSize(int i) {
+    if (i < 0xfd) return 1;
+    if (i <= 0xffff) return 3;
+    if (i <= 0xffffffff) return 5;
+    return 9;
+  }
+
+  static int _varSliceSize(Uint8List slice) =>
+      _varIntSize(slice.length) + slice.length;
+
+  Uint8List _outputScriptForKey(
+    Uint8List pubKey,
+    DerivePathType derivePathType,
+  ) {
+    final pubKeyHash = hash160(pubKey);
+    switch (derivePathType) {
+      case DerivePathType.bip44:
+        return PayToPubKeyHash(pubKeyHash).compiled;
+      case DerivePathType.bip84:
+        return PayToWitnessPubKey(pubKeyHash).compiled;
+      case DerivePathType.bip49:
+        final p2wpkhScript = PayToWitnessPubKey(pubKeyHash).compiled;
+        return PayToScriptHash(hash160(p2wpkhScript)).compiled;
+      default:
+        throw Exception("DerivePathType unsupported");
+    }
+  }
 }
 
 /// Top level function which should be called wrapped in [compute]
@@ -2596,7 +2717,7 @@ BigInt _sum(List<UTXO> utxos) => utxos
 
 typedef _SparkMintSigningKey = ({
   DerivePathType derivePathType,
-  coinlib.HDPrivateKey key,
+  DerivedKey key,
 });
 
 class MutableSparkRecipient {
@@ -2680,3 +2801,227 @@ Future<String> _getAddressFromFullViewKey(
   diversifier: args.diversifier,
   isTestNet: args.isTestNet,
 );
+
+/// Minimal mutable raw transaction class for Firo/Spark protocol operations.
+///
+/// Replaces the bitcoindart Transaction object that was returned by
+/// TransactionBuilder.buildIncomplete(). Supports the Firo-specific
+/// payload field and mutable addInput/addOutput operations needed by
+/// the Spark spend protocol.
+class _FiroRawTx {
+  int version;
+  int locktime;
+  final List<_FiroRawInput> ins = [];
+  final List<_FiroRawOutput> outs = [];
+  Uint8List? payload;
+
+  _FiroRawTx({required this.version, required this.locktime});
+
+  void addInput(
+    Uint8List hash,
+    int index, [
+    int sequence = 0xffffffff,
+    Uint8List? scriptSig,
+  ]) {
+    ins.add(_FiroRawInput(
+      hash: hash,
+      index: index,
+      sequence: sequence,
+      script: scriptSig ?? Uint8List(0),
+    ));
+  }
+
+  void addOutput(Uint8List scriptPubKey, int value) {
+    outs.add(_FiroRawOutput(script: scriptPubKey, value: value));
+  }
+
+  void setPayload(Uint8List data) {
+    payload = data;
+  }
+
+  Uint8List _toBuffer({bool allowWitness = true}) {
+    final hasWitness = allowWitness && _hasWitnesses();
+    final size = _byteLength(allowWitness);
+    final buffer = Uint8List(size);
+    final bd = buffer.buffer.asByteData();
+    var offset = 0;
+
+    void writeSlice(Uint8List slice) {
+      buffer.setRange(offset, offset + slice.length, slice);
+      offset += slice.length;
+    }
+
+    void writeUInt8(int i) {
+      bd.setUint8(offset, i);
+      offset++;
+    }
+
+    void writeUInt32(int i) {
+      bd.setUint32(offset, i, Endian.little);
+      offset += 4;
+    }
+
+    void writeInt32(int i) {
+      bd.setInt32(offset, i, Endian.little);
+      offset += 4;
+    }
+
+    void writeUInt64(int i) {
+      bd.setUint64(offset, i, Endian.little);
+      offset += 8;
+    }
+
+    void writeVarInt(int i) {
+      if (i < 0xfd) {
+        writeUInt8(i);
+      } else if (i <= 0xffff) {
+        writeUInt8(0xfd);
+        bd.setUint16(offset, i, Endian.little);
+        offset += 2;
+      } else if (i <= 0xffffffff) {
+        writeUInt8(0xfe);
+        writeUInt32(i);
+      } else {
+        writeUInt8(0xff);
+        writeUInt64(i);
+      }
+    }
+
+    void writeVarSlice(Uint8List slice) {
+      writeVarInt(slice.length);
+      writeSlice(slice);
+    }
+
+    void writeVector(List<Uint8List> vector) {
+      writeVarInt(vector.length);
+      for (final buf in vector) {
+        writeVarSlice(buf);
+      }
+    }
+
+    writeInt32(version);
+
+    if (hasWitness) {
+      writeUInt8(0x00); // marker
+      writeUInt8(0x01); // flag
+    }
+
+    writeVarInt(ins.length);
+    for (final txIn in ins) {
+      writeSlice(txIn.hash);
+      writeUInt32(txIn.index);
+      writeVarSlice(txIn.script);
+      writeUInt32(txIn.sequence);
+    }
+
+    writeVarInt(outs.length);
+    for (final txOut in outs) {
+      writeUInt64(txOut.value);
+      writeVarSlice(txOut.script);
+    }
+
+    if (hasWitness) {
+      for (final txIn in ins) {
+        writeVector(txIn.witness);
+      }
+    }
+
+    writeUInt32(locktime);
+
+    if (payload != null) {
+      writeVarSlice(payload!);
+    }
+
+    return buffer;
+  }
+
+  bool _hasWitnesses() => ins.any((i) => i.witness.isNotEmpty);
+
+  int _byteLength(bool allowWitness) {
+    final hasWitness = allowWitness && _hasWitnesses();
+    var size = 8 + // version(4) + locktime(4)
+        (hasWitness ? 2 : 0) + // marker + flag
+        _varIntSize(ins.length) +
+        _varIntSize(outs.length);
+
+    for (final txIn in ins) {
+      size += 40 + _varSliceSize(txIn.script);
+    }
+    for (final txOut in outs) {
+      size += 8 + _varSliceSize(txOut.script);
+    }
+    if (payload != null) {
+      size += _varSliceSize(payload!);
+    }
+    if (hasWitness) {
+      for (final txIn in ins) {
+        size += _vectorSize(txIn.witness);
+      }
+    }
+    return size;
+  }
+
+  static int _varIntSize(int i) {
+    if (i < 0xfd) return 1;
+    if (i <= 0xffff) return 3;
+    if (i <= 0xffffffff) return 5;
+    return 9;
+  }
+
+  static int _varSliceSize(Uint8List slice) =>
+      _varIntSize(slice.length) + slice.length;
+
+  static int _vectorSize(List<Uint8List> vector) {
+    var size = _varIntSize(vector.length);
+    for (final buf in vector) {
+      size += _varSliceSize(buf);
+    }
+    return size;
+  }
+
+  Uint8List getHash() {
+    final data = _toBuffer(allowWitness: false);
+    return sha256d(data);
+  }
+
+  String getId() {
+    return hexEncode(Uint8List.fromList(getHash().reversed.toList()));
+  }
+
+  String toHex() {
+    return hexEncode(_toBuffer());
+  }
+
+  int weight() {
+    final base = _byteLength(false);
+    final total = _byteLength(true);
+    return base * 3 + total;
+  }
+
+  int virtualSize() {
+    return (weight() / 4).ceil();
+  }
+}
+
+class _FiroRawInput {
+  final Uint8List hash;
+  final int index;
+  final int sequence;
+  final Uint8List script;
+  final List<Uint8List> witness;
+
+  _FiroRawInput({
+    required this.hash,
+    required this.index,
+    required this.sequence,
+    required this.script,
+    List<Uint8List>? witness,
+  }) : witness = witness ?? [];
+}
+
+class _FiroRawOutput {
+  final Uint8List script;
+  final int value;
+
+  _FiroRawOutput({required this.script, required this.value});
+}

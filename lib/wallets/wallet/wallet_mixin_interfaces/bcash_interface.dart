@@ -1,5 +1,6 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitbox/src/utils/network.dart' as bitbox_utils;
+import 'package:coin/coin.dart' as coin;
 import 'package:isar_community/isar.dart';
 
 import '../../../models/input.dart';
@@ -23,8 +24,6 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
     final insAndKeys = inputsWithKeys.cast<StandardInput>();
 
     Logging.instance.d("Starting buildTransaction ----------");
-
-    // TODO: use coinlib
 
     final builder = bitbox.Bitbox.transactionBuilder(
       testnet: cryptoCurrency.network.isTestNet,
@@ -93,7 +92,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
       // Sign the transaction accordingly
       for (int i = 0; i < insAndKeys.length; i++) {
         final bitboxEC = bitbox.ECPair.fromPrivateKey(
-          insAndKeys[i].key!.privateKey!.data,
+          (insAndKeys[i].key! as coin.DerivedSecretKey).secretKey.bytes,
           network: bitbox_utils.Network(
             cryptoCurrency.networkParams.privHDPrefix,
             cryptoCurrency.networkParams.pubHDPrefix,
@@ -102,7 +101,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
             cryptoCurrency.networkParams.wifPrefix,
             cryptoCurrency.networkParams.p2pkhPrefix,
           ),
-          compressed: insAndKeys[i].key!.privateKey!.compressed,
+          compressed: true,
         );
 
         builder.sign(i, bitboxEC, insAndKeys[i].utxo.value);

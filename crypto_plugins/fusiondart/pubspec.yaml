@@ -1,0 +1,30 @@
+name: fusiondart
+description: A starting point for Dart libraries or applications.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: ^3.0.6
+
+dependencies:
+  convert: ^3.1.1
+  crypto: ^3.0.3
+  cryptography: ^2.5.0
+  fixnum: ^1.1.0
+  pointycastle: ^4.0.0
+  protobuf: ^4.1.0
+  coin:
+    path: ../coin
+  hex: ^0.2.0
+  bitbox:
+    git:
+      url: https://github.com/cypherstack/bitbox-flutter.git
+      ref: 4c3c1aadae089dd1ace705aedf012e1c89fe53ad
+  socks_socket: ^1.1.1
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.21.0
+
+dependency_overrides:
+  pointycastle: ^4.0.0
