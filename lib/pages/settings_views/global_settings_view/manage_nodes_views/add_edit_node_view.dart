@@ -97,12 +97,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   }
 
   Future<void> attemptSave() async {
-    final canConnect = await testNodeConnection(
+    final canConnect = await ref.read(testNodeConnectionProvider)(
       context: context,
       onSuccess: _onTestSuccess,
       cryptoCurrency: coin,
       nodeFormData: ref.read(nodeFormDataProvider),
-      ref: ref,
     );
 
     bool? shouldSave;
@@ -688,12 +687,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
-                            final testPassed = await testNodeConnection(
+                            final testPassed = await ref.read(
+                              testNodeConnectionProvider,
+                            )(
                               context: context,
                               onSuccess: _onTestSuccess,
                               cryptoCurrency: coin,
                               nodeFormData: ref.read(nodeFormDataProvider),
-                              ref: ref,
                             );
                             if (context.mounted) {
                               if (testPassed) {

@@ -323,11 +323,12 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                       );
 
                       if (context.mounted) {
-                        final testPassed = await testNodeConnection(
+                        final testPassed = await ref.read(
+                          testNodeConnectionProvider,
+                        )(
                           context: context,
                           nodeFormData: nodeFormData,
                           cryptoCurrency: coin,
-                          ref: ref,
                         );
 
                         if (testPassed) {

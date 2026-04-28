@@ -267,7 +267,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                                   } else {
                                     netOption = TorPlainNetworkOption.both;
                                   }
-                                  final canConnect = await testNodeConnection(
+                                  final canConnect = await ref.read(
+                                    testNodeConnectionProvider,
+                                  )(
                                     context: context,
                                     nodeFormData: NodeFormData()
                                       ..name = node.name
@@ -280,7 +282,6 @@ class NodeOptionsSheet extends ConsumerWidget {
                                       ..netOption = netOption
                                       ..trusted = node.trusted,
                                     cryptoCurrency: coin,
-                                    ref: ref,
                                   );
                                   if (!canConnect) {
                                     return;

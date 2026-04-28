@@ -190,11 +190,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         );
 
                         if (context.mounted) {
-                          final canConnect = await testNodeConnection(
+                          final canConnect = await ref.read(
+                            testNodeConnectionProvider,
+                          )(
                             context: context,
                             nodeFormData: nodeFormData,
                             cryptoCurrency: widget.coin,
-                            ref: ref,
                           );
 
                           if (!canConnect) {
