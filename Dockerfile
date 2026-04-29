@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential automake cmake meson ninja-build pkg-config libtool \
       libglib2.0-dev libgtk-3-dev liblzma-dev \
       libgcrypt20-dev libgirepository1.0-dev \
-      openjdk-8-jre-headless libgit2-dev clang \
+      libgit2-dev clang rsync \
       libncurses5-dev libncursesw5-dev zlib1g-dev llvm debhelper \
       libclang-dev opencl-headers libssl-dev ocl-icd-opencl-dev \
-      libc6-dev-i386 valac libtss2-dev \
+      valac libtss2-dev libsecret-1-dev libjsoncpp-dev \
  && rm -rf /var/lib/apt/lists/*
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -42,5 +42,7 @@ RUN git clone --depth 1 --branch 3.38.1 https://github.com/flutter/flutter.git "
  && flutter config --no-analytics \
  && flutter precache --linux \
  && chmod -R a+rwX "$FLUTTER_HOME"
+
+RUN git config --system --add safe.directory '*'
 
 RUN flutter --version && rustc --version && cargo --version && node --version
