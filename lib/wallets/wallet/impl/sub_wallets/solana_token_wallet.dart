@@ -510,7 +510,8 @@ class SolanaTokenWallet extends Wallet {
                 (e) =>
                     e.containsKey("parsed") &&
                     e["program"] == "spl-token" &&
-                    e["parsed"]["type"] == "transferChecked",
+                    (e["parsed"]["type"] == "transferChecked" ||
+                        e["parsed"]["type"] == "transfer"),
               );
 
           if (splTransfers.length != 1) {
@@ -522,9 +523,17 @@ class SolanaTokenWallet extends Wallet {
             continue;
           }
           final transfer = splTransfers.first;
-          final lamports = BigInt.parse(
-            transfer["parsed"]["info"]["tokenAmount"]["amount"].toString(),
-          );
+          final transferType = transfer["parsed"]["type"] as String;
+          final BigInt lamports;
+          if (transferType == "transferChecked") {
+            lamports = BigInt.parse(
+              transfer["parsed"]["info"]["tokenAmount"]["amount"].toString(),
+            );
+          } else {
+            lamports = BigInt.parse(
+              transfer["parsed"]["info"]["amount"].toString(),
+            );
+          }
           final senderAddress = transfer["parsed"]["info"]["source"] as String;
           final receiverAddress =
               transfer["parsed"]["info"]["destination"] as String;
