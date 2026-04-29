@@ -4,7 +4,10 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     container:
-      image: ${{ secrets.DOCKERHUB_USERNAME }}/stackwallet-ci:latest
+      image: stackwallet/stackwallet-ci:latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - name: Prepare repository
         uses: actions/checkout@v6
