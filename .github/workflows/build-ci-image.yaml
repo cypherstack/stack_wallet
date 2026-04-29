@@ -2,14 +2,14 @@ name: Build CI image
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - 'Dockerfile'
       - '.github/workflows/build-ci-image.yaml'
   workflow_dispatch:
 
 env:
-  IMAGE: YOUR_DOCKERHUB_USERNAME/stack-wallet-ci
+  IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/stackwallet-ci
 
 jobs:
   build:
