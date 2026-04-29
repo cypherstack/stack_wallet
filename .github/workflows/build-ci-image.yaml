@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE: YOUR_DOCKERHUB_USERNAME/stack-wallet-ci
+  IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/stackwallet-ci
 
 jobs:
   build:
