@@ -9,7 +9,7 @@ mkdir -p build
 
 (cd ../../crypto_plugins/flutter_libmwc/scripts/linux && ./download.sh)
 
-(cd ../../crypto_plugins/frostdart/scripts/linux && ./build_all.sh)
+(cd ../../crypto_plugins/frostdart/scripts/linux && ./download.sh)
 
 ./build_secp256k1.sh
 
