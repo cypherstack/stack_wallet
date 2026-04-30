@@ -63,6 +63,8 @@ abstract class CryptoCurrency {
   // Override in subclass if the currency has Tor support:
   bool get torSupport => false;
 
+  bool get supportsHardwareWallet => true;
+
   int get minConfirms;
   int get minCoinbaseConfirms => minConfirms;
 

@@ -46,6 +46,9 @@ class Monero extends CryptonoteCurrency {
   bool get torSupport => true;
 
   @override
+  bool get supportsHardwareWallet => false;
+
+  @override
   bool validateAddress(String address) {
     if (address.contains("111")) {
       return false;
