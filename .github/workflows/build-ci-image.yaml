@@ -2,7 +2,7 @@ name: Build CI image
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - 'Dockerfile'
       - '.github/workflows/build-ci-image.yaml'

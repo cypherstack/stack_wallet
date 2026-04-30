@@ -18,7 +18,7 @@ jobs:
       - name: Configure app
         run: |
           cd scripts
-          echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet"
+          echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" -s
 
       - name: Get dependencies
         run: flutter pub get
