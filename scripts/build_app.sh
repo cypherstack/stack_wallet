@@ -9,7 +9,7 @@ APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-i] [-f] [-s]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s]"
     exit 1
 }
 
@@ -33,17 +33,19 @@ unset -v APP_NAMED_ID
 
 # optional args (with defaults)
 BUILD_CRYPTO_PLUGINS=0
+DOWNLOAD_CRYPTO_PLUGINS=0
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:i:fs" opt; do
+while getopts "v:b:p:a:idfs" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
         i) BUILD_CRYPTO_PLUGINS=1 ;;
+        d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
         *) usage ;;
@@ -114,15 +116,28 @@ else
 fi
 
 if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
-    if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
-        ./build_all.sh
-    elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
-        ./build_all_duo.sh
-    elif [[ "$APP_NAMED_ID" = "campfire" ]]; then
-        ./build_all_campfire.sh
+    if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
+        if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
+            ./download_all.sh
+        elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
+            ./build_all_duo.sh
+        elif [[ "$APP_NAMED_ID" = "campfire" ]]; then
+            ./build_all_campfire.sh
+        else
+            echo "Invalid app id: ${APP_NAMED_ID}"
+            exit 1
+        fi
     else
-        echo "Invalid app id: ${APP_NAMED_ID}"
-        exit 1
+        if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
+            ./build_all.sh
+        elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
+            ./build_all_duo.sh
+        elif [[ "$APP_NAMED_ID" = "campfire" ]]; then
+            ./build_all_campfire.sh
+        else
+            echo "Invalid app id: ${APP_NAMED_ID}"
+            exit 1
+        fi
     fi
 fi
 
