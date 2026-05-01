@@ -52,7 +52,13 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools" \
  && mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest" \
  && rm /tmp/cmdline-tools.zip \
- && yes | sdkmanager --licenses \
+ && mkdir -p "$ANDROID_SDK_ROOT/licenses" \
+ && printf '\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55d7b9237478ea8ec3307c27e4' \
+      > "$ANDROID_SDK_ROOT/licenses/android-sdk-license" \
+ && printf '\n84831b9409646a918e30573bab4c9c91346d8abd' \
+      > "$ANDROID_SDK_ROOT/licenses/android-sdk-preview-license" \
+ && printf '\n859f317696f67ef3d7f30a50a5560e7834b43903' \
+      > "$ANDROID_SDK_ROOT/licenses/android-sdk-arm-dbt-license" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
