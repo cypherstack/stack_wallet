@@ -105,6 +105,10 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
     _billingCityFocusNode = FocusNode();
     _billingPostalCodeFocusNode = FocusNode();
 
+    _selectedCountryIso = widget.model.deliveryCountry.isNotEmpty
+        ? widget.model.deliveryCountry
+        : null;
+
     for (final node in [
       _nameFocusNode,
       _streetFocusNode,
@@ -372,15 +376,9 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                   _countrySearchController.clear();
                 }
               },
-              onChanged: _loadingCountries
-                  ? null
-                  : (value) {
-                      setState(() {
-                        _selectedCountryIso = value;
-                      });
-                    },
+              onChanged: null,
               hint: Text(
-                _loadingCountries ? "Loading countries..." : "Country",
+                "Country",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
@@ -677,7 +675,7 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
             ),
           ),
         ],
-        const Spacer(),
+        const SizedBox(height: 24),
         PrimaryButton(
           label: _submitting ? "Submitting..." : "Continue to payment",
           enabled: _canContinue,
@@ -689,7 +687,7 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
     if (isDesktop) {
       return DesktopDialog(
         maxWidth: 580,
-        maxHeight: 600,
+        maxHeight: 700,
         child: Column(
           children: [
             Row(
@@ -711,7 +709,7 @@ class _ShopInBitShippingViewState extends State<ShopInBitShippingView> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: content,
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],
