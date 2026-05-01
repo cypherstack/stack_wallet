@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../notifications/show_flush_bar.dart';
 import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../themes/stack_colors.dart';

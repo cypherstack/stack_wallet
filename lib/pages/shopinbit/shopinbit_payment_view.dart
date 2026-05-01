@@ -31,7 +31,6 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_send_from_view.dart';
-import 'shopinbit_tickets_view.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({super.key, required this.model});
@@ -465,16 +464,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           ],
         ),
       ),
-    );
-  }
-
-  void _copyAddress(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: _currentAddress));
-    showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
     );
   }
 
