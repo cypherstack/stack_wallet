@@ -54,19 +54,24 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
 
   void _continue() {
     widget.model.category = _selected;
+    final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
 
     final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
 
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => ShopInBitStep3(model: widget.model),
-      );
+      if (skipGuidelines) {
+        widget.model.guidelinesAccepted = true;
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
+      } else {
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
+      }
     } else {
       if (skipGuidelines) {
-        // Returning user — skip guidelines.
         widget.model.guidelinesAccepted = true;
         Navigator.of(
           context,
