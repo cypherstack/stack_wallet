@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       clang libclang-dev llvm \
       libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev \
       libjsoncpp-dev liblzma-dev libncurses5-dev libncursesw5-dev \
+      libopencv-dev \
       libsecret-1-dev libssl-dev libtss2-dev \
       ocl-icd-opencl-dev opencl-headers valac zlib1g-dev \
       g++-aarch64-linux-gnu gcc-aarch64-linux-gnu \
