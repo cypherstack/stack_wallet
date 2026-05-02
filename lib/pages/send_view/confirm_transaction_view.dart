@@ -532,6 +532,7 @@ class _ConfirmTransactionViewState
           final txFeeRaw = confirmedTx.fee?.raw ?? BigInt.zero;
 
           final mnRecipient = confirmedTx.recipients!
+              // Exact 1000 FIRO: multiple such outputs uses the first match only.
               .where((r) => !r.isChange && r.amount == masternodeAmount)
               .firstOrNull;
 
@@ -569,14 +570,31 @@ class _ConfirmTransactionViewState
               } else {
                 navigatedToMN = true;
                 final rootContext = ref.read(pNavKey).currentContext;
+
+                void completeMnParentNavigation() {
+                  if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+                    if (isDesktop) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(routeOnSuccessName),
+                      );
+                    } else {
+                      final navigator = Navigator.of(context);
+                      navigator.popUntil(
+                        ModalRoute.withName(routeOnSuccessName),
+                      );
+                    }
+                  } else {
+                    widget.onSuccessInsteadOfRouteOnSuccess!.call();
+                  }
+                }
+
+                completeMnParentNavigation();
+
                 if (isDesktop) {
-                  Navigator.of(context).popUntil(
-                    ModalRoute.withName(routeOnSuccessName),
-                  );
-                  if (context.mounted) {
+                  if (rootContext != null && rootContext.mounted) {
                     unawaited(
                       showDialog<Object>(
-                        context: context,
+                        context: rootContext,
                         barrierDismissible: true,
                         builder: (_) => SDialog(
                           child: CreateMasternodeView(
@@ -594,12 +612,15 @@ class _ConfirmTransactionViewState
                     );
                   }
                 } else {
-                  final navigator = Navigator.of(context);
-                  navigator.popUntil(
-                    ModalRoute.withName(routeOnSuccessName),
-                  );
+                  final navContext =
+                      (rootContext != null && rootContext.mounted)
+                          ? rootContext
+                          : context;
+                  if (!navContext.mounted) {
+                    return;
+                  }
                   unawaited(
-                    navigator.pushNamed(
+                    Navigator.of(navContext).pushNamed(
                       CreateMasternodeView.routeName,
                       arguments: {
                         'walletId': walletId,

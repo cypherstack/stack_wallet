@@ -23,6 +23,7 @@ import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
+import '../../../../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
@@ -688,12 +689,23 @@ class _MoreFeaturesClearSparkCacheItemState
           await FiroCacheCoordinator.clearSharedCache(
             widget.cryptoCurrency.network,
           );
-          await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-            newEntries: {
-              WalletInfoKeys.firoSparkCacheSetBlockHashCache: <String, String>{},
-            },
-            isar: ref.read(mainDBProvider).isar,
-          );
+          final isar = ref.read(mainDBProvider).isar;
+          final sparkWalletInfos = ref
+              .read(pAllWalletsInfo)
+              .where(
+                (info) =>
+                    info.coin.identifier == widget.cryptoCurrency.identifier,
+              )
+              .toList();
+          for (final info in sparkWalletInfos) {
+            await info.updateOtherData(
+              newEntries: {
+                WalletInfoKeys.firoSparkCacheSetBlockHashCache:
+                    <String, String>{},
+              },
+              isar: isar,
+            );
+          }
           setState(() {
             // trigger rebuild for cache size display
           });

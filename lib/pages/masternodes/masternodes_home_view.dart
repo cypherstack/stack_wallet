@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -11,6 +10,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -36,8 +36,7 @@ class MasternodesHomeView extends ConsumerStatefulWidget {
       _MasternodesHomeViewState();
 }
 
-class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
-{
+class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
   late Future<List<MasternodeInfo>> _masternodesFuture;
   bool _hasPromptedForCollateral = false;
   bool _isCheckingForCollateral = false;
@@ -69,7 +68,9 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
       async {
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
-    final utxos = await wallet.mainDB.getUTXOs(widget.walletId).findAll();
+    final List<UTXO> utxos =
+        await (wallet.mainDB.getUTXOs(widget.walletId) as dynamic).findAll()
+            as List<UTXO>;
     final currentChainHeight = await wallet.chainHeight;
     final masternodeRaw = Amount.fromDecimal(
       kMasterNodeValue,
@@ -200,7 +201,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
         ),
       );
 
-      if (wantsMN == false) {
+      if (wantsMN == false || wantsMN == null) {
         await _persistDismissedCollateral(
           wallet,
           collateral.txid,
@@ -281,9 +282,6 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView>
       unawaited(_maybePromptForExistingCollateral());
     });
   }
-
-  @override
-  void dispose() => super.dispose();
 
   @override
   Widget build(BuildContext context) {

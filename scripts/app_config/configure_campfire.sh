@@ -76,7 +76,7 @@ const ({String light, String dark})? _appIconAsset = (
 );
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
-  Firo(CryptoCurrencyNetwork.test),
+  Firo(CryptoCurrencyNetwork.main),
 ]);
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})

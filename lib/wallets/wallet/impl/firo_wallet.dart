@@ -17,6 +17,7 @@ import '../../../models/isar/models/isar_models.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/firo_pro_reg_signed_message_prefix.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/util.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -991,18 +992,19 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     }
 
     Address? ownerAddress = await getCurrentReceivingAddress();
-    if (ownerAddress == null || ownerAddress.value == collateralAddress) {
+    const maxOwnerAttempts = 32;
+    for (var i = 0;
+        i < maxOwnerAttempts &&
+            (ownerAddress == null || ownerAddress.value == collateralAddress);
+        i++) {
       await generateNewReceivingAddress();
       ownerAddress = await getCurrentReceivingAddress();
     }
     if (ownerAddress == null || ownerAddress.value == collateralAddress) {
-      await generateNewReceivingAddress();
-      ownerAddress = await getCurrentReceivingAddress();
+      throw Exception(
+        "Could not derive owner address distinct from collateral address.",
+      );
     }
-    if (ownerAddress == null) {
-      throw Exception("Could not derive owner address for masternode.");
-    }
-    await generateNewReceivingAddress();
 
     final registrationTx = BytesBuilder();
 
@@ -1057,9 +1059,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     );
 
     // keyIDOwner (20 bytes)
-    if (ownerAddress.value == collateralAddress) {
-      throw Exception("Owner address must differ from collateral address.");
-    }
     if (!cryptoCurrency.validateAddress(ownerAddress.value)) {
       throw Exception("Invalid owner address: ${ownerAddress.value}");
     }
@@ -1216,16 +1215,12 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     final collateralKeyPair = root.derivePath(
       collateralAddr.derivationPath!.value,
     );
-    final messagePrefixBytes =
-        cryptoCurrency.networkParams.messagePrefix.codeUnits;
-    final cleanPrefix =
-        messagePrefixBytes.first == messagePrefixBytes.length - 1
-            ? String.fromCharCodes(messagePrefixBytes.sublist(1))
-            : cryptoCurrency.networkParams.messagePrefix;
     final signed = MessageSignature.sign(
       key: collateralKeyPair.privateKey,
       message: signString,
-      prefix: cleanPrefix,
+      prefix: firoMessagePrefixForCoinlibSign(
+        cryptoCurrency.networkParams.messagePrefix,
+      ),
     );
 
     // vchSig — compact-size length + 65-byte compact signature
@@ -1244,6 +1239,12 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     );
 
     final finalTransactionHex = finalTx.raw!;
+    assert(
+      finalTransactionHex.toLowerCase().contains(
+        registrationTx.toBytes().toHex.toLowerCase(),
+      ),
+      'ProReg payload missing from signed transaction hex',
+    );
 
     final broadcastedTxHash = await electrumXClient.broadcastTransaction(
       rawTx: finalTransactionHex,
@@ -1312,6 +1313,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   Future<List<String>> getMyMasternodeProTxHashes() async {
     final List<String> r = [];
     final Set<String> collateralTxids = {};
+    final Set<String> resolvedCollateralTxids = {};
 
     final utxos = await mainDB.getUTXOs(walletId).sortByBlockHeight().findAll();
     final rawMasterNodeAmount = Amount.fromDecimal(
@@ -1358,6 +1360,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
                 collateralTxids.contains(collateralHash) &&
                 !r.contains(txid)) {
               r.add(txid);
+              resolvedCollateralTxids.add(collateralHash);
             }
           }
         }
@@ -1369,7 +1372,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     }
 
     for (final txid in collateralTxids) {
-      if (!r.contains(txid)) {
+      if (!resolvedCollateralTxids.contains(txid)) {
         r.add(txid);
       }
     }
