@@ -3,11 +3,14 @@ on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - name: Prepare repository
         uses: actions/checkout@v6
