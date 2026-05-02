@@ -28,13 +28,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push full image
         uses: docker/build-push-action@v7
         with:
           context: .
+          target: full
           push: true
           tags: |
             ${{ env.GHCR_IMAGE }}:latest
             ${{ env.GHCR_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push test image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: test
+          push: true
+          tags: ${{ env.GHCR_IMAGE }}:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
