@@ -23,8 +23,13 @@ for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
   rm -f "${ASSETS_DIR}/${dirname}"
 
   if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
-    LINK_SOURCE_DIR_WIN_PATH_VERSION=$(wslpath -w "${LINK_SOURCE_DIR}")
-    LINK_NAME_WIN_PATH_VERSION=$(wslpath -w "${ASSETS_DIR}")
+    if command -v cygpath >/dev/null 2>&1; then
+      LINK_SOURCE_DIR_WIN_PATH_VERSION=$(cygpath -w "${LINK_SOURCE_DIR}")
+      LINK_NAME_WIN_PATH_VERSION=$(cygpath -w "${ASSETS_DIR}")
+    else
+      LINK_SOURCE_DIR_WIN_PATH_VERSION=$(wslpath -w "${LINK_SOURCE_DIR}")
+      LINK_NAME_WIN_PATH_VERSION=$(wslpath -w "${ASSETS_DIR}")
+    fi
     cmd.exe /c mklink /D "${LINK_NAME_WIN_PATH_VERSION}\\${dirname}" "${LINK_SOURCE_DIR_WIN_PATH_VERSION}"
   else
     ln -s "${LINK_SOURCE_DIR}" "${ASSETS_DIR}/${dirname}"
