@@ -90,46 +90,21 @@ FCResult _updateSparkAnonSetCoinsWith(
     for (final coin in coins) {
       db.execute(
         """
-            INSERT OR IGNORE INTO SparkCoin (serialized, txHash, context, groupId)
+            INSERT INTO SparkCoin (serialized, txHash, context, groupId)
             VALUES (?, ?, ?, ?);
           """,
         [coin.serialized, coin.txHash, coin.context, coin.groupId],
       );
-      final coinIdResult = db.select(
-        """
-          SELECT id
-          FROM SparkCoin
-          WHERE serialized = ? AND txHash = ? AND context = ? AND groupId = ?
-          LIMIT 1;
-        """,
-        [coin.serialized, coin.txHash, coin.context, coin.groupId],
-      );
-      if (coinIdResult.isEmpty) {
-        throw Exception(
-          "Failed to resolve SparkCoin id after insert/ignore operation",
-        );
-      }
-      final coinId = coinIdResult.first["id"] as int;
+      final coinId = db.lastInsertRowId;
 
       // finally add the row id to the newly added set
-      final hasSetCoin = db.select(
+      db.execute(
         """
-          SELECT 1
-          FROM SparkSetCoins
-          WHERE setId = ? AND coinId = ?
-          LIMIT 1;
+          INSERT INTO SparkSetCoins (setId, coinId)
+          VALUES (?, ?);
         """,
         [setId, coinId],
       );
-      if (hasSetCoin.isEmpty) {
-        db.execute(
-          """
-            INSERT INTO SparkSetCoins (setId, coinId)
-            VALUES (?, ?);
-          """,
-          [setId, coinId],
-        );
-      }
     }
 
     db.execute("COMMIT;");
