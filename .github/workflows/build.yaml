@@ -183,17 +183,242 @@ jobs:
              android-artifacts/stack_wallet-android-armeabi-v7a-${VERSION}.apk
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
              android-artifacts/stack_wallet-android-x86_64-${VERSION}.apk
-          cp build/app/outputs/bundle/release/app-release.aab \
-             android-artifacts/stack_wallet-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v4
         with:
           name: stack_wallet-android-${{ steps.ver.outputs.version }}
           path: android-artifacts/
 
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          else
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p windows -a stack_wallet -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Create git_versions.dart stubs
+        run: |
+          mkdir -p crypto_plugins/flutter_libepiccash/lib
+          mkdir -p crypto_plugins/flutter_libmwc/lib
+
+          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+
+          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
+            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
+          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
+            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Generate app config
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build\windows\x64\runner\Release\* `
+            -DestinationPath "stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}
+          path: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          else
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p macos -a stack_wallet -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Create git_versions.dart stubs
+        run: |
+          mkdir -p crypto_plugins/flutter_libepiccash/lib
+          mkdir -p crypto_plugins/flutter_libmwc/lib
+
+          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+
+          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
+            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
+          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
+            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Generate app config
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build
+        run: flutter build macos --release
+
+      - name: Package
+        run: |
+          cd "build/macos/Build/Products/Release"
+          zip -r "$GITHUB_WORKSPACE/stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
+            "Stack Wallet.app"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}
+          path: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          else
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.71.0'
+          targets: aarch64-apple-ios
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p ios -a stack_wallet -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Create git_versions.dart stubs
+        run: |
+          mkdir -p crypto_plugins/flutter_libepiccash/lib
+          mkdir -p crypto_plugins/flutter_libmwc/lib
+
+          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+
+          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
+            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
+          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
+            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Generate app config
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa" Payload/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}
+          path: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
+
   release:
     if: github.ref_type == 'tag'
-    needs: [build-linux, build-android]
+    needs: [build-linux, build-android, build-windows, build-macos, build-ios]
     runs-on: ubuntu-latest
     permissions:
       contents: write
