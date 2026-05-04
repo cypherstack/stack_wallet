@@ -333,6 +333,22 @@ class MockElectrumXClient extends _i1.Mock implements _i6.ElectrumXClient {
           as _i9.Future<Map<String, dynamic>>);
 
   @override
+  _i9.Future<List<Map<String, dynamic>>> getBatchTransactions({
+    required List<String>? txHashes,
+    String? requestID,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBatchTransactions, [], {
+              #txHashes: txHashes,
+              #requestID: requestID,
+            }),
+            returnValue: _i9.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i9.Future<List<Map<String, dynamic>>>);
+
+  @override
   _i9.Future<Map<String, dynamic>> getLelantusAnonymitySet({
     String? groupId = '1',
     String? blockhash = '',

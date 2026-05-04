@@ -59,8 +59,10 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   bool _advancedIsExpanded = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final wallets =
-        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
+    final wallets = ref
+        .read(pWallets)
+        .wallets
+        .where((e) => e.info.coin == widget.coin);
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {
@@ -100,12 +102,14 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   @override
   Widget build(BuildContext context) {
     final node = ref.watch(
-      nodeServiceChangeNotifierProvider
-          .select((value) => value.getPrimaryNodeFor(currency: widget.coin)),
+      nodeServiceChangeNotifierProvider.select(
+        (value) => value.getPrimaryNodeFor(currency: widget.coin),
+      ),
     );
     final _node = ref.watch(
-      nodeServiceChangeNotifierProvider
-          .select((value) => value.getNodeById(id: nodeId)),
+      nodeServiceChangeNotifierProvider.select(
+        (value) => value.getNodeById(id: nodeId),
+      ),
     )!;
 
     if (node?.name == _node.name) {
@@ -155,14 +159,10 @@ class _NodeCardState extends ConsumerState<NodeCard> {
               },
               header: child,
               body: Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 24,
-                ),
+                padding: const EdgeInsets.only(bottom: 24),
                 child: Row(
                   children: [
-                    const SizedBox(
-                      width: 66,
-                    ),
+                    const SizedBox(width: 66),
                     CustomTextButton(
                       text: "Connect",
                       enabled: _status == "Disconnected",
@@ -190,12 +190,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         );
 
                         if (context.mounted) {
-                          final canConnect = await testNodeConnection(
-                            context: context,
-                            nodeFormData: nodeFormData,
-                            cryptoCurrency: widget.coin,
-                            ref: ref,
-                          );
+                          final canConnect =
+                              await ref.read(testNodeConnectionProvider)(
+                                context: context,
+                                nodeFormData: nodeFormData,
+                                cryptoCurrency: widget.coin,
+                              );
 
                           if (!canConnect) {
                             if (context.mounted) {
@@ -223,9 +223,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         }
                       },
                     ),
-                    const SizedBox(
-                      width: 48,
-                    ),
+                    const SizedBox(width: 48),
                     CustomTextButton(
                       text: "Details",
                       onTap: () {
@@ -253,13 +251,13 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   height: isDesktop ? 40 : 24,
                   decoration: BoxDecoration(
                     color: _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary
+                        ? Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonBackSecondary
                         : Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons
-                            .withOpacity(0.2),
+                              .extension<StackColors>()!
+                              .infoItemIcons
+                              .withOpacity(0.2),
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Center(
@@ -269,32 +267,22 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       width: isDesktop ? 20 : 14,
                       color:
                           _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .infoItemIcons,
+                          ? Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorDark
+                          : Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemIcons,
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _node.name,
-                      style: STextStyles.titleBold12(context),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    Text(
-                      _status,
-                      style: STextStyles.label(context),
-                    ),
+                    Text(_node.name, style: STextStyles.titleBold12(context)),
+                    const SizedBox(height: 2),
+                    Text(_status, style: STextStyles.label(context)),
                   ],
                 ),
                 const Spacer(),
@@ -302,12 +290,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   SvgPicture.asset(
                     Assets.svg.network,
                     color: _status == "Connected"
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary,
+                        ? Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorGreen
+                        : Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonBackSecondary,
                     width: 20,
                     height: 20,
                   ),
@@ -318,9 +306,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle1,
                   ),
               ],
             ),

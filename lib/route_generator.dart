@@ -29,6 +29,7 @@ import 'models/keys/key_data_interface.dart';
 import 'models/keys/view_only_wallet_data.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
+import 'models/shopinbit/shopinbit_order_model.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_solana_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
@@ -57,6 +58,12 @@ import 'pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'pages/buy_view/buy_in_wallet_view.dart';
 import 'pages/buy_view/buy_quote_preview.dart';
 import 'pages/buy_view/buy_view.dart';
+import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'pages/cakepay/cakepay_confirm_send_view.dart';
+import 'pages/cakepay/cakepay_order_view.dart';
+import 'pages/cakepay/cakepay_orders_view.dart';
+import 'pages/cakepay/cakepay_send_from_view.dart';
+import 'pages/cakepay/cakepay_vendors_view.dart';
 import 'pages/cashfusion/cashfusion_view.dart';
 import 'pages/cashfusion/fusion_progress_view.dart';
 import 'pages/churning/churning_progress_view.dart';
@@ -82,6 +89,15 @@ import 'pages/masternodes/create_masternode_view.dart';
 import 'pages/masternodes/masternode_details_view.dart';
 import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
+import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'services/cakepay/src/models/card.dart';
+import 'pages/cakepay/cakepay_confirm_send_view.dart';
+import 'pages/cakepay/cakepay_order_view.dart';
+import 'pages/cakepay/cakepay_orders_view.dart';
+import 'pages/cakepay/cakepay_send_from_view.dart';
+import 'pages/cakepay/cakepay_vendors_view.dart';
+import 'pages/more_view/gift_cards_view.dart';
+import 'pages/more_view/services_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/manage_domain_view.dart';
@@ -164,6 +180,21 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import 'pages/shopinbit/shopinbit_car_fee_view.dart';
+import 'pages/shopinbit/shopinbit_car_research_payment_view.dart';
+import 'pages/shopinbit/shopinbit_offer_view.dart';
+import 'pages/shopinbit/shopinbit_order_created.dart';
+import 'pages/shopinbit/shopinbit_payment_view.dart';
+import 'pages/shopinbit/shopinbit_send_from_view.dart';
+import 'pages/shopinbit/shopinbit_settings_view.dart';
+import 'pages/shopinbit/shopinbit_setup_view.dart';
+import 'pages/shopinbit/shopinbit_shipping_view.dart';
+import 'pages/shopinbit/shopinbit_step_1.dart';
+import 'pages/shopinbit/shopinbit_step_2.dart';
+import 'pages/shopinbit/shopinbit_step_3.dart';
+import 'pages/shopinbit/shopinbit_step_4.dart';
+import 'pages/shopinbit/shopinbit_ticket_detail.dart';
+import 'pages/shopinbit/shopinbit_tickets_view.dart';
 import 'pages/signing/signing_view.dart';
 import 'pages/signing/sub_widgets/address_list.dart';
 import 'pages/spark_names/buy_spark_name_view.dart';
@@ -199,6 +230,9 @@ import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_gift_cards_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_services_view.dart';
+import 'pages_desktop_specific/more_view/sub_widgets/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
@@ -227,11 +261,14 @@ import 'pages_desktop_specific/settings/settings_menu/desktop_support_view.dart'
 import 'pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
+import 'pages_desktop_specific/settings/settings_menu/shopinbit_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
+import 'services/cakepay/src/models/card.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'services/shopinbit/src/models/car_research.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
@@ -1024,6 +1061,225 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopChurningView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ServicesView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ServicesView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case GiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const GiftCardsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitSetupView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitSetupView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayVendorsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CakePayVendorsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePayCardDetailView.routeName:
+        if (args is CakePayCard) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePayCardDetailView(card: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayOrderView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePayOrderView(orderId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayOrdersView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CakePayOrdersView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePaySendFromView.routeName:
+        if (args is Map<String, dynamic>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePaySendFromView(
+              address: args['address'] as String,
+              orderId: args['orderId'] as String,
+              coin: args['coin'] as CryptoCurrency?,
+              amount: args['amount'] as Amount?,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayConfirmSendView.routeName:
+        return _routeError("${settings.name} should be pushed directly");
+
+      case ShopInBitStep1.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitStep1(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitStep2.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitStep2(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitStep3.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitStep3(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitStep4.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitStep4(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitOrderCreated.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitOrderCreated(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitTicketsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitTicketsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitTicketDetail.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitTicketDetail(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitOfferView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitOfferView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitShippingView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitShippingView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitCarFeeView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitCarFeeView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitCarResearchPaymentView.routeName:
+        if (args is (ShopInBitOrderModel, CarResearchInvoice)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              model: args.$1,
+              invoice: args.$2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitPaymentView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitPaymentView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitSendFromView.routeName:
+        if (args
+            is Tuple4<CryptoCurrency, Amount, String, ShopInBitOrderModel>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitSendFromView(
+              coin: args.item1,
+              amount: args.item2,
+              address: args.item3,
+              model: args.item4,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2332,6 +2588,27 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
+      case DesktopServicesView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopServicesView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopShopInBitView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopShopInBitView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopGiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopGiftCardsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
       case MyStackView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
@@ -2459,6 +2736,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AdvancedSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitDesktopSettings.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitDesktopSettings(),
           settings: RouteSettings(name: settings.name),
         );
 

@@ -137,8 +137,8 @@ class Logging {
         ),
         toFile,
       ));
-    } catch (e, s) {
-      t("Isolates suck", error: e, stackTrace: s);
+    } catch (_) {
+      // swallow: logger not initialized (e.g. tests); avoid recursive logging
     }
   }
 
