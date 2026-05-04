@@ -95,7 +95,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: b02aaf6c6b40fd5a6b3d77f875324717103f2019
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   stack_wallet_backup:
     git:
@@ -329,7 +329,7 @@ dependency_overrides:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: b02aaf6c6b40fd5a6b3d77f875324717103f2019
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
