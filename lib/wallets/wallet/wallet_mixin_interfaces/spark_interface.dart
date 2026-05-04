@@ -1695,8 +1695,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         if (subtractFeeFromAmount && nFeeRet > BigInt.zero) {
           var remainingFee = nFeeRet;
           var outputIndex = 0;
-          while (outputIndex < singleTxOutputs.length &&
-              remainingFee > BigInt.zero) {
+          while (singleTxOutputs.isNotEmpty && remainingFee > BigInt.zero) {
+            if (outputIndex >= singleTxOutputs.length) {
+              outputIndex = 0;
+            }
+
             final outputsLeft = BigInt.from(
               singleTxOutputs.length - outputIndex,
             );
@@ -1717,6 +1720,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           }
 
           if (singleTxOutputs.isEmpty) {
+            if (autoMintAll) {
+              throw Exception("UTXO value is too small to cover Spark mint fee");
+            }
             valueAndUTXOs.remove(itr);
             skipCoin = true;
             break;
@@ -2086,6 +2092,20 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         rethrow;
       }
       final builtTx = txb.build();
+      final actualFee =
+          vin
+              .map((e) => BigInt.from(e.utxo.value))
+              .fold(BigInt.zero, (p, e) => p + e) -
+          vout
+              .map((e) => BigInt.from(e.$2))
+              .fold(BigInt.zero, (p, e) => p + e);
+      if (actualFee != nFeeRet) {
+        Logging.instance.e(
+          "Spark mint fee accounting mismatch: "
+          "expected=$nFeeRet, actual=$actualFee",
+        );
+        throw Exception("Spark mint fee accounting mismatch");
+      }
 
       // TODO: see todo at top of this function
       assert(outputs.length == 1);
