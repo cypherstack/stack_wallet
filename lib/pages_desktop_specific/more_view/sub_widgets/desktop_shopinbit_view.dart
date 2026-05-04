@@ -10,6 +10,7 @@ import '../../../db/isar/main_db.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
+import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../services/shopinbit/shopinbit_service.dart';
@@ -89,6 +90,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
   void _showShopDialog(BuildContext context) async {
     final service = ShopInBitService.instance;
     final model = ShopInBitOrderModel();
+    bool isFirstRun = false;
 
     if (!service.loadSetupComplete()) {
       // First-time user: show setup.
@@ -98,6 +100,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
         builder: (_) => _ShopInBitDesktopSetupDialog(model: model),
       );
       if (completed != true) return; // user cancelled
+      isFirstRun = true;
     } else {
       // Returning user: restore display name.
       final savedName = service.loadDisplayName();
@@ -106,30 +109,63 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       }
     }
 
-    // Show warning dialog.
     if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => DesktopDialog(
-        maxWidth: 550,
-        maxHeight: 300,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("ShopinBit", style: STextStyles.desktopH2(dialogContext)),
-              const SizedBox(height: 16),
-              RichText(
-                text: TextSpan(
-                  style: STextStyles.desktopTextSmall(dialogContext),
+
+    if (isFirstRun) {
+      // First run: show service overview then go directly to Step2
+      // (name was just entered in setup dialog, no need to show Step1 again).
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => DesktopDialog(
+          maxWidth: 550,
+          maxHeight: 300,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("ShopinBit", style: STextStyles.desktopH2(dialogContext)),
+                const SizedBox(height: 16),
+                RichText(
+                  text: TextSpan(
+                    style: STextStyles.desktopTextSmall(dialogContext),
+                    children: const [
+                      TextSpan(
+                        text:
+                            "Please note the following before proceeding:"
+                            "\n\n\u2022 Minimum order amount: 1,000 EUR"
+                            "\n\u2022 Service fee: 10% of the order total",
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const TextSpan(
-                      text:
-                          "Please note the following before proceeding:"
-                          "\n\n\u2022 Minimum order amount: 1,000 EUR"
-                          "\n\u2022 Service fee: 10% of the order total",
+                    SecondaryButton(
+                      width: 200,
+                      buttonHeight: ButtonHeight.l,
+                      label: "Cancel",
+                      onPressed: () {
+                        Navigator.of(dialogContext, rootNavigator: true).pop();
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    PrimaryButton(
+                      width: 200,
+                      buttonHeight: ButtonHeight.l,
+                      label: "Continue",
+                      onPressed: () async {
+                        Navigator.of(dialogContext, rootNavigator: true).pop();
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => ShopInBitStep2(model: model),
+                        );
+                        if (mounted) setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -166,8 +202,16 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
             ],
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      // Returning user: go directly to Step1 (skip service overview dialog).
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ShopInBitStep1(model: model),
+      );
+      if (mounted) setState(() {});
+    }
   }
 
   @override
