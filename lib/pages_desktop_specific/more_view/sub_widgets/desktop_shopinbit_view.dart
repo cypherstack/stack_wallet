@@ -169,37 +169,37 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                     ),
                   ],
                 ),
-              ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SecondaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
-                    onPressed: () {
-                      Navigator.of(dialogContext, rootNavigator: true).pop();
-                    },
-                  ),
-                  const SizedBox(width: 20),
-                  PrimaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Continue",
-                    onPressed: () async {
-                      Navigator.of(dialogContext, rootNavigator: true).pop();
-                      await showDialog<void>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => ShopInBitStep1(model: model),
-                      );
-                      if (mounted) setState(() {});
-                    },
-                  ),
-                ],
-              ),
-            ],
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SecondaryButton(
+                      width: 200,
+                      buttonHeight: ButtonHeight.l,
+                      label: "Cancel",
+                      onPressed: () {
+                        Navigator.of(dialogContext, rootNavigator: true).pop();
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    PrimaryButton(
+                      width: 200,
+                      buttonHeight: ButtonHeight.l,
+                      label: "Continue",
+                      onPressed: () async {
+                        Navigator.of(dialogContext, rootNavigator: true).pop();
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => ShopInBitStep1(model: model),
+                        );
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );

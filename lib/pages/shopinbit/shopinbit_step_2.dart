@@ -56,8 +56,6 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
     widget.model.category = _selected;
     final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
 
-    final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
-
     if (Util.isDesktop) {
       Navigator.of(context, rootNavigator: true).pop();
       if (skipGuidelines) {
