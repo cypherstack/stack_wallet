@@ -16,6 +16,11 @@ class ShopInBitTicket {
   late ShopInBitCategory category;
   @enumerated
   late ShopInBitOrderStatus status;
+  // Raw API state string (e.g. "OFFER AVAILABLE") preserved alongside the
+  // mapped enum. If ShopinBit renames a state or adds a new one, the enum
+  // will read as `pending` but `statusRaw` retains the canonical string so a
+  // future client update can re-derive the correct status via migration.
+  String? statusRaw;
   late String requestDescription;
   late String deliveryCountry;
   late String? offerProductName;

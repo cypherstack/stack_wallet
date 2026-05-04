@@ -113,6 +113,19 @@ class ShopInBitOrderModel extends ChangeNotifier {
     }
   }
 
+  // The most recent raw API state string, persisted alongside _status so that
+  // we can recover from contract drift (renames / new states) without losing
+  // history. _status is the parsed/mapped value; _statusRaw is the source of
+  // truth straight from the API.
+  String? _statusRaw;
+  String? get statusRaw => _statusRaw;
+  set statusRaw(String? value) {
+    if (_statusRaw != value) {
+      _statusRaw = value;
+      notifyListeners();
+    }
+  }
+
   String? _offerProductName;
   String? get offerProductName => _offerProductName;
 
@@ -236,6 +249,7 @@ class ShopInBitOrderModel extends ChangeNotifier {
       ..displayName = _displayName
       ..category = _category ?? ShopInBitCategory.concierge
       ..status = _status
+      ..statusRaw = _statusRaw
       ..requestDescription = _requestDescription
       ..deliveryCountry = _deliveryCountry
       ..offerProductName = _offerProductName
@@ -271,6 +285,7 @@ class ShopInBitOrderModel extends ChangeNotifier {
       .._apiTicketId = ticket.apiTicketId
       .._ticketId = ticket.ticketId
       .._status = ticket.status
+      .._statusRaw = ticket.statusRaw
       .._requestDescription = ticket.requestDescription
       .._deliveryCountry = ticket.deliveryCountry
       .._offerProductName = ticket.offerProductName
@@ -298,7 +313,11 @@ class ShopInBitOrderModel extends ChangeNotifier {
           .toList();
   }
 
-  static ShopInBitOrderStatus statusFromTicketState(TicketState state) {
+  // Returns null when the API state cannot be mapped (TicketState.unknown).
+  // Callers MUST treat null as "do not overwrite the locally stored status":
+  // silently coercing an unknown API state to a default (e.g. pending)
+  // would mask contract drift and look like data regression to the user.
+  static ShopInBitOrderStatus? statusFromTicketState(TicketState state) {
     switch (state) {
       case TicketState.newTicket:
         return ShopInBitOrderStatus.pending;
@@ -323,6 +342,8 @@ class ShopInBitOrderModel extends ChangeNotifier {
         return ShopInBitOrderStatus.cancelled;
       case TicketState.refunded:
         return ShopInBitOrderStatus.refunded;
+      case TicketState.unknown:
+        return null;
     }
   }
 }

@@ -131,8 +131,13 @@ const ShopInBitTicketSchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _ShopInBitTicketstatusEnumValueMap,
     ),
-    r'ticketId': PropertySchema(
+    r'statusRaw': PropertySchema(
       id: 22,
+      name: r'statusRaw',
+      type: IsarType.string,
+    ),
+    r'ticketId': PropertySchema(
+      id: 23,
       name: r'ticketId',
       type: IsarType.string,
     ),
@@ -229,6 +234,12 @@ int _shopInBitTicketEstimateSize(
   bytesCount += 3 + object.shippingName.length * 3;
   bytesCount += 3 + object.shippingPostalCode.length * 3;
   bytesCount += 3 + object.shippingStreet.length * 3;
+  {
+    final value = object.statusRaw;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.ticketId.length * 3;
   return bytesCount;
 }
@@ -266,7 +277,8 @@ void _shopInBitTicketSerialize(
   writer.writeString(offsets[19], object.shippingPostalCode);
   writer.writeString(offsets[20], object.shippingStreet);
   writer.writeByte(offsets[21], object.status.index);
-  writer.writeString(offsets[22], object.ticketId);
+  writer.writeString(offsets[22], object.statusRaw);
+  writer.writeString(offsets[23], object.ticketId);
 }
 
 ShopInBitTicket _shopInBitTicketDeserialize(
@@ -310,7 +322,8 @@ ShopInBitTicket _shopInBitTicketDeserialize(
   object.status =
       _ShopInBitTicketstatusValueEnumMap[reader.readByteOrNull(offsets[21])] ??
       ShopInBitOrderStatus.pending;
-  object.ticketId = reader.readString(offsets[22]);
+  object.statusRaw = reader.readStringOrNull(offsets[22]);
+  object.ticketId = reader.readString(offsets[23]);
   return object;
 }
 
@@ -381,6 +394,8 @@ P _shopInBitTicketDeserializeProp<P>(
               ShopInBitOrderStatus.pending)
           as P;
     case 22:
+      return (reader.readStringOrNull(offset)) as P;
+    case 23:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -3146,6 +3161,165 @@ extension ShopInBitTicketQueryFilter
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'statusRaw'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'statusRaw'),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'statusRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'statusRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'statusRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'statusRaw',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'statusRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'statusRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'statusRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'statusRaw',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'statusRaw', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
+  statusRawIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'statusRaw', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterFilterCondition>
   ticketIdEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3596,6 +3770,20 @@ extension ShopInBitTicketQuerySortBy
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByStatusRaw() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'statusRaw', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  sortByStatusRawDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'statusRaw', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
   sortByTicketId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticketId', Sort.asc);
@@ -3918,6 +4106,20 @@ extension ShopInBitTicketQuerySortThenBy
   }
 
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByStatusRaw() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'statusRaw', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
+  thenByStatusRawDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'statusRaw', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QAfterSortBy>
   thenByTicketId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticketId', Sort.asc);
@@ -4110,6 +4312,13 @@ extension ShopInBitTicketQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct>
+  distinctByStatusRaw({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'statusRaw', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ShopInBitTicket, ShopInBitTicket, QDistinct> distinctByTicketId({
     bool caseSensitive = true,
   }) {
@@ -4277,6 +4486,12 @@ extension ShopInBitTicketQueryProperty
   statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'status');
+    });
+  }
+
+  QueryBuilder<ShopInBitTicket, String?, QQueryOperations> statusRawProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'statusRaw');
     });
   }
 

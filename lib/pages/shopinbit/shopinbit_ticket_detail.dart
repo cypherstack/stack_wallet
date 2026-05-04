@@ -134,9 +134,13 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
         }
 
         if (!statusResp.hasError && statusResp.value != null) {
-          widget.model.status = ShopInBitOrderModel.statusFromTicketState(
+          final mapped = ShopInBitOrderModel.statusFromTicketState(
             statusResp.value!.state,
           );
+          // Always preserve the raw API string, even when mapping fails, so
+          // it can be recovered later.
+          widget.model.statusRaw = statusResp.value!.stateRaw;
+          if (mapped != null) widget.model.status = mapped;
         }
 
         if (widget.model.status == ShopInBitOrderStatus.offerAvailable &&

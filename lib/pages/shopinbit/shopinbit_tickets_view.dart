@@ -127,9 +127,11 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
         final statusResp = await service.client.getTicketStatus(ref.id);
         if (statusResp.hasError || statusResp.value == null) continue;
 
-        _tickets[localIdx].status = ShopInBitOrderModel.statusFromTicketState(
+        final mapped = ShopInBitOrderModel.statusFromTicketState(
           statusResp.value!.state,
         );
+        _tickets[localIdx].statusRaw = statusResp.value!.stateRaw;
+        if (mapped != null) _tickets[localIdx].status = mapped;
 
         if (_tickets[localIdx].status == ShopInBitOrderStatus.offerAvailable &&
             (_tickets[localIdx].offerProductName == null ||
