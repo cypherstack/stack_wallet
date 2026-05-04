@@ -133,6 +133,7 @@ class Logging {
         ", ERROR: $error"
         ", STRACE: $stackTrace",
       );
+      return;
     }
 
     if (Util.isTestEnv || Util.isArmLinux) {
