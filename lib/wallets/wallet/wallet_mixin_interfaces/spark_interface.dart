@@ -2213,6 +2213,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       throw Exception("Failed to mint expected amounts");
     }
 
+    if (autoMintAll && results.isEmpty) {
+      throw Exception("No Spark mint transactions were created");
+    }
+
     return results;
   }
 
