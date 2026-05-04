@@ -114,8 +114,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b02aaf6c6b40fd5a6b3d77f875324717103f2019
-      resolved-ref: b02aaf6c6b40fd5a6b3d77f875324717103f2019
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
+      resolved-ref: ea33b1f5d6a701791359a2e180f73866dc667732
       url: "https://github.com/cypherstack/bitcoindart.git"
     source: git
     version: "3.0.2"
@@ -742,7 +742,7 @@ packages:
     source: hosted
     version: "0.0.6"
   dart_style:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: dart_style
       sha256: a9c30492da18ff84efe2422ba2d319a89942d93e58eb0b73d32abe822ef54b7b
