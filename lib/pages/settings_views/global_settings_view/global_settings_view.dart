@@ -247,7 +247,6 @@ class GlobalSettingsView extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                  const SizedBox(height: 8),
                                   Consumer(
                                     builder: (_, ref, __) {
                                       final familiarity = ref.watch(
