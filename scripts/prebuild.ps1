@@ -2,7 +2,7 @@
 $KEYS = "..\lib\external_api_keys.dart"
 if (-not (Test-Path $KEYS)) {
     Write-Host "prebuild.ps1: creating template lib/external_api_keys.dart file"
-    "const kChangeNowApiKey = '';" + "`nconst kSimpleSwapApiKey = '';" + "`nconst kNanswapApiKey = '';" + "`nconst kNanoSwapRpcApiKey = '';" + "`nconst kWizSwapApiKey = '';" | Out-File $KEYS -Encoding UTF8
+    "const kChangeNowApiKey = '';" + "`nconst kSimpleSwapApiKey = '';" + "`nconst kNanswapApiKey = '';" + "`nconst kNanoSwapRpcApiKey = '';" + "`nconst kWizSwapApiKey = '';" + "`nconst kShopInBitAccessKey = '';" + "`nconst kShopInBitPartnerSecret = '';" + "`nconst kCakePayApiToken = '';" | Out-File $KEYS -Encoding UTF8
 }
 
 # Create template wallet test parameter files if they don't already exist

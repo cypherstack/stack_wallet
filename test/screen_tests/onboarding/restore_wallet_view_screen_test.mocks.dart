@@ -8,6 +8,7 @@ import 'dart:ui' as _i7;
 
 import 'package:flutter/material.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/models/epicbox_server_model.dart' as _i11;
 import 'package:stackwallet/models/node_model.dart' as _i9;
 import 'package:stackwallet/services/node_service.dart' as _i8;
 import 'package:stackwallet/services/wallets_service.dart' as _i6;
@@ -244,6 +245,64 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
               enabled,
               shouldNotifyListeners,
             ]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> updateDefaultEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaultEpicBoxes, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> setPrimaryEpicBox({
+    required _i11.EpicBoxServerModel? epicBox,
+    bool? shouldNotifyListeners = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryEpicBox, [], {
+              #epicBox: epicBox,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  List<_i11.EpicBoxServerModel> getEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#getEpicBoxes, []),
+            returnValue: <_i11.EpicBoxServerModel>[],
+          )
+          as List<_i11.EpicBoxServerModel>);
+
+  @override
+  _i11.EpicBoxServerModel? getEpicBoxById({required String? id}) =>
+      (super.noSuchMethod(Invocation.method(#getEpicBoxById, [], {#id: id}))
+          as _i11.EpicBoxServerModel?);
+
+  @override
+  _i4.Future<void> addEpicBox(
+    _i11.EpicBoxServerModel? epicBox,
+    bool? shouldNotifyListeners,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> deleteEpicBox(String? id, bool? shouldNotifyListeners) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

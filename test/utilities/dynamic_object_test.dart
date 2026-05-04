@@ -9,7 +9,10 @@ void main() {
 
   test("DynamicObject get failure", () {
     final object = DynamicObject(1);
-    expect(object.get<String>(), throwsA(isA<DynamicObjectTypeException>()));
+    expect(
+      () => object.get<String>(),
+      throwsA(isA<DynamicObjectTypeException>()),
+    );
   });
   test("DynamicObject get if match success", () {
     final object = DynamicObject(1);
