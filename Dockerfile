@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS full
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       clang libclang-dev llvm \
       libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev \
       libjsoncpp-dev liblzma-dev libncurses5-dev libncursesw5-dev \
+      libopencv-dev \
       libsecret-1-dev libssl-dev libtss2-dev \
       ocl-icd-opencl-dev opencl-headers valac zlib1g-dev \
       g++-aarch64-linux-gnu gcc-aarch64-linux-gnu \
@@ -78,3 +79,35 @@ RUN git clone --depth 1 --branch 3.38.1 https://github.com/flutter/flutter.git "
 RUN git config --system --add safe.directory '*'
 
 RUN flutter --version && rustc --version && cargo --version && node --version
+
+
+# Minimal image for flutter test (no Rust, no Android SDK, no cross-compilers)
+FROM ubuntu:24.04 AS test
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Etc/UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl file git unzip xz-utils \
+      build-essential cmake ninja-build pkg-config \
+      clang libclang-dev \
+      libgirepository1.0-dev libglib2.0-dev libgtk-3-dev \
+      libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV FLUTTER_HOME=/opt/flutter \
+    PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
+
+RUN git clone --depth 1 --branch 3.38.1 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+ && git config --global --add safe.directory '*' \
+ && flutter config --no-analytics \
+ && flutter precache --linux \
+ && chmod -R a+rwX "$FLUTTER_HOME"
+
+RUN git config --system --add safe.directory '*'
+
+RUN flutter --version
