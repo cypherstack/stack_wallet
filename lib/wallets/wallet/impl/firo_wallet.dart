@@ -1158,7 +1158,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           address: ownerAddress.value,
           addressType: AddressType.p2pkh,
           amount: cryptoCurrency.dustLimit,
-          isChange: true,
+          isChange: false,
         ),
       ],
     );
