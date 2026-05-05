@@ -360,9 +360,7 @@ class _ConfirmTransactionViewState
         final recipientAddresses = <String>{};
         final addresses = scriptPubKey['addresses'];
         if (addresses is List) {
-          recipientAddresses.addAll(
-            addresses.whereType<String>(),
-          );
+          recipientAddresses.addAll(addresses.whereType<String>());
         }
 
         final address = scriptPubKey['address'];
@@ -577,13 +575,12 @@ class _ConfirmTransactionViewState
               .firstOrNull;
 
           if (mnRecipient != null && confirmedTx.txid != null) {
-            final ownAddress =
-                await ref
-                    .read(mainDBProvider)
-                    .getAddresses(walletId)
-                    .filter()
-                    .valueEqualTo(mnRecipient.address)
-                    .findFirst();
+            final ownAddress = await ref
+                .read(mainDBProvider)
+                .getAddresses(walletId)
+                .filter()
+                .valueEqualTo(mnRecipient.address)
+                .findFirst();
 
             if (ownAddress != null && context.mounted) {
               final collateralVout = await _resolveFiroCollateralVout(
@@ -614,9 +611,9 @@ class _ConfirmTransactionViewState
                 void completeMnParentNavigation() {
                   if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
                     if (isDesktop) {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(routeOnSuccessName),
-                      );
+                      Navigator.of(
+                        context,
+                      ).popUntil(ModalRoute.withName(routeOnSuccessName));
                     } else {
                       final navigator = Navigator.of(context);
                       navigator.popUntil(
@@ -654,25 +651,27 @@ class _ConfirmTransactionViewState
                 } else {
                   final navContext =
                       (rootContext != null && rootContext.mounted)
-                          ? rootContext
-                          : context;
+                      ? rootContext
+                      : context;
                   if (!navContext.mounted) {
                     return;
                   }
                   unawaited(
-                    Navigator.of(navContext).pushNamed(
-                      CreateMasternodeView.routeName,
-                      arguments: {
-                        'walletId': walletId,
-                        'collateralTxid': confirmedTx.txid!,
-                        'collateralVout': collateralVout,
-                        'collateralAddress': mnRecipient.address,
-                      },
-                    ).then((result) {
-                      if (result is String) {
-                        _showMasternodeSubmittedDialog(rootContext, result);
-                      }
-                    }),
+                    Navigator.of(navContext)
+                        .pushNamed(
+                          CreateMasternodeView.routeName,
+                          arguments: {
+                            'walletId': walletId,
+                            'collateralTxid': confirmedTx.txid!,
+                            'collateralVout': collateralVout,
+                            'collateralAddress': mnRecipient.address,
+                          },
+                        )
+                        .then((result) {
+                          if (result is String) {
+                            _showMasternodeSubmittedDialog(rootContext, result);
+                          }
+                        }),
                   );
                 }
               }
@@ -693,20 +692,24 @@ class _ConfirmTransactionViewState
           } else {
             // If fee was subtracted from the recipient, users can enter 1000 but
             // end up with ~999.99... output which is not valid MN collateral.
-            final nearMnRecipient = confirmedTx.recipients!
-                .where((r) => !r.isChange && r.amount.raw < masternodeAmount.raw)
-                .where((r) => (masternodeAmount.raw - r.amount.raw) <= txFeeRaw)
-                .toList()
-              ..sort((a, b) => b.amount.raw.compareTo(a.amount.raw));
+            final nearMnRecipient =
+                confirmedTx.recipients!
+                    .where(
+                      (r) => !r.isChange && r.amount.raw < masternodeAmount.raw,
+                    )
+                    .where(
+                      (r) => (masternodeAmount.raw - r.amount.raw) <= txFeeRaw,
+                    )
+                    .toList()
+                  ..sort((a, b) => b.amount.raw.compareTo(a.amount.raw));
 
             if (nearMnRecipient.isNotEmpty) {
-              final maybeOwnAddress =
-                  await ref
-                      .read(mainDBProvider)
-                      .getAddresses(walletId)
-                      .filter()
-                      .valueEqualTo(nearMnRecipient.first.address)
-                      .findFirst();
+              final maybeOwnAddress = await ref
+                  .read(mainDBProvider)
+                  .getAddresses(walletId)
+                  .filter()
+                  .valueEqualTo(nearMnRecipient.first.address)
+                  .findFirst();
 
               if (maybeOwnAddress != null && context.mounted) {
                 unawaited(

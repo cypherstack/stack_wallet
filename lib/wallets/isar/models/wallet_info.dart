@@ -442,7 +442,8 @@ class WalletInfo implements IsarId {
   }) async {
     await updateOtherData(
       newEntries: {
-        WalletInfoKeys.solanaCustomTokenMintAddresses: newMintAddresses.toList(),
+        WalletInfoKeys.solanaCustomTokenMintAddresses: newMintAddresses
+            .toList(),
       },
       isar: isar,
     );

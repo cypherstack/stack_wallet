@@ -188,9 +188,9 @@ class _RegisterMasternodeFormState
                     children: [
                       Text(
                         "Masternode collateral",
-                        style: STextStyles.w500_12(context).copyWith(
-                          color: stack.textSubtitle1,
-                        ),
+                        style: STextStyles.w500_12(
+                          context,
+                        ).copyWith(color: stack.textSubtitle1),
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
@@ -202,9 +202,9 @@ class _RegisterMasternodeFormState
                       const SizedBox(height: 4),
                       SelectableText(
                         "${widget.collateralTxid}:${widget.collateralVout}",
-                        style: STextStyles.w500_12(context).copyWith(
-                          color: stack.textSubtitle1,
-                        ),
+                        style: STextStyles.w500_12(
+                          context,
+                        ).copyWith(color: stack.textSubtitle1),
                       ),
                     ],
                   ),

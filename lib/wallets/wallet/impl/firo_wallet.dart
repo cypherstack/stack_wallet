@@ -946,26 +946,24 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     required int collateralVout,
     required String collateralAddress,
   }) async {
-    final collateralAddr =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .valueEqualTo(collateralAddress)
-            .findFirst();
+    final collateralAddr = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .valueEqualTo(collateralAddress)
+        .findFirst();
     if (collateralAddr == null || collateralAddr.derivationPath == null) {
       throw Exception(
         'Collateral address $collateralAddress not found in wallet '
         'or has no derivation path.',
       );
     }
-    final collateralUtxo =
-        await mainDB
-            .getUTXOs(walletId)
-            .filter()
-            .txidEqualTo(collateralTxid)
-            .and()
-            .voutEqualTo(collateralVout)
-            .findFirst();
+    final collateralUtxo = await mainDB
+        .getUTXOs(walletId)
+        .filter()
+        .txidEqualTo(collateralTxid)
+        .and()
+        .voutEqualTo(collateralVout)
+        .findFirst();
     final currentChainHeight = await chainHeight;
     if (collateralUtxo == null ||
         collateralUtxo.address != collateralAddress ||
@@ -993,10 +991,12 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
     Address? ownerAddress = await getCurrentReceivingAddress();
     const maxOwnerAttempts = 32;
-    for (var i = 0;
-        i < maxOwnerAttempts &&
-            (ownerAddress == null || ownerAddress.value == collateralAddress);
-        i++) {
+    for (
+      var i = 0;
+      i < maxOwnerAttempts &&
+          (ownerAddress == null || ownerAddress.value == collateralAddress);
+      i++
+    ) {
       await generateNewReceivingAddress();
       ownerAddress = await getCurrentReceivingAddress();
     }
@@ -1024,8 +1024,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     );
 
     // collateralOutpoint.hash (256 bit) — real txid, byte-reversed
-    final collateralTxidBytes =
-        collateralTxid.toUint8ListFromHex.reversed.toList();
+    final collateralTxidBytes = collateralTxid.toUint8ListFromHex.reversed
+        .toList();
     if (collateralTxidBytes.length != 32) {
       throw Exception("Invalid collateral txid: $collateralTxid");
     }
@@ -1033,9 +1033,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
     // collateralOutpoint.index (uint32)
     registrationTx.add(
-      (ByteData(4)..setUint32(0, collateralVout, Endian.little))
-          .buffer
-          .asUint8List(),
+      (ByteData(
+        4,
+      )..setUint32(0, collateralVout, Endian.little)).buffer.asUint8List(),
     );
 
     // addr — IPv4-mapped IPv6 (16 bytes) + port (2 bytes big-endian)
@@ -1103,9 +1103,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       throw Exception("Invalid operator reward: $operatorReward");
     }
     registrationTx.add(
-      (ByteData(2)..setInt16(0, operatorReward, Endian.little))
-          .buffer
-          .asUint8List(),
+      (ByteData(
+        2,
+      )..setInt16(0, operatorReward, Endian.little)).buffer.asUint8List(),
     );
 
     // scriptPayout (variable) — must be P2PKH or P2SH per Firo consensus
@@ -1134,21 +1134,20 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
     // --- coin selection for fee inputs only (exclude collateral UTXO) ---
     final allUtxos = await mainDB.getUTXOs(walletId).findAll();
-    final feeUtxos =
-        allUtxos
-            .where(
-              (u) =>
-                  !(u.txid == collateralTxid && u.vout == collateralVout) &&
-                  !u.isBlocked &&
-                  u.used != true &&
-                  u.isConfirmed(
-                    currentChainHeight,
-                    cryptoCurrency.minConfirms,
-                    cryptoCurrency.minCoinbaseConfirms,
-                  ),
-            )
-            .map((e) => StandardInput(e) as BaseInput)
-            .toList();
+    final feeUtxos = allUtxos
+        .where(
+          (u) =>
+              !(u.txid == collateralTxid && u.vout == collateralVout) &&
+              !u.isBlocked &&
+              u.used != true &&
+              u.isConfirmed(
+                currentChainHeight,
+                cryptoCurrency.minConfirms,
+                cryptoCurrency.minCoinbaseConfirms,
+              ),
+        )
+        .map((e) => StandardInput(e) as BaseInput)
+        .toList();
 
     final partialTxData = TxData(
       overrideVersion: 3 + (1 << 16),
@@ -1178,8 +1177,12 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     final inputsHashInput = BytesBuilder();
     for (final input in partialTx.usedUTXOs!) {
       final standardInput = input as StandardInput;
-      final reversedTxidBytes =
-          standardInput.utxo.txid.toUint8ListFromHex.reversed.toList();
+      final reversedTxidBytes = standardInput
+          .utxo
+          .txid
+          .toUint8ListFromHex
+          .reversed
+          .toList();
       inputsHashInput.add(reversedTxidBytes);
       inputsHashInput.add(
         (ByteData(4)..setInt32(0, standardInput.utxo.vout, Endian.little))
@@ -1195,15 +1198,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     // SerializeHash(proRegTx) with SER_GETHASH excludes vchSig.
     // The bytes built so far ARE the payload without vchSig.
     final payloadForHash = registrationTx.toBytes();
-    final payloadHash =
-        crypto.sha256.convert(
-          crypto.sha256.convert(payloadForHash).bytes,
-        ).bytes;
+    final payloadHash = crypto.sha256
+        .convert(crypto.sha256.convert(payloadForHash).bytes)
+        .bytes;
     // uint256::ToString() outputs bytes in reversed order
-    final payloadHashHex =
-        payloadHash.reversed
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join();
+    final payloadHashHex = payloadHash.reversed
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
 
     // MakeSignString format from Firo's providertx.cpp
     final signString =
@@ -1329,12 +1330,11 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
     if (collateralTxids.isNotEmpty) {
       try {
-        final walletTxids =
-            await mainDB.isar.transactionV2s
-                .where()
-                .walletIdEqualTo(walletId)
-                .txidProperty()
-                .findAll();
+        final walletTxids = await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .txidProperty()
+            .findAll();
 
         if (walletTxids.isNotEmpty) {
           final txs = await electrumXCachedClient.getBatchTransactions(
@@ -1347,10 +1347,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             final version = tx["version"];
             final type = tx["type"];
             final proReg = tx["proReg"];
-            if (txid == null ||
-                version != 3 ||
-                type != 1 ||
-                proReg is! Map) {
+            if (txid == null || version != 3 || type != 1 || proReg is! Map) {
               continue;
             }
 

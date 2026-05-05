@@ -42,7 +42,8 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
   bool _isCheckingForCollateral = false;
 
   Set<String> _dismissedCollateral(FiroWallet wallet) {
-    final raw = wallet.info.otherData[WalletInfoKeys.firoMasternodeCollateralDismissed];
+    final raw =
+        wallet.info.otherData[WalletInfoKeys.firoMasternodeCollateralDismissed];
     if (raw is! List) {
       return {};
     }
@@ -64,10 +65,9 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
     );
   }
 
-  Future<({String txid, int vout, String address})?> _findCollateralUtxo()
-      async {
-    final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
+  Future<({String txid, int vout, String address})?>
+  _findCollateralUtxo() async {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
     final List<UTXO> utxos =
         await (wallet.mainDB.getUTXOs(widget.walletId) as dynamic).findAll()
             as List<UTXO>;
@@ -157,7 +157,8 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
         return;
       }
 
-      final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
+      final wallet =
+          ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
       final dismissed = _dismissedCollateral(wallet);
       final collateralKey = "${collateral.txid}:${collateral.vout}";
       if (dismissed.contains(collateralKey)) {
@@ -175,27 +176,22 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
               "A 1000 FIRO collateral UTXO was found in your wallet. "
               "Would you like to register a masternode now?",
           leftButton: TextButton(
-            style: Theme.of(ctx)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(ctx),
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
             child: Text(
               "Later",
-              style: STextStyles.button(
-                ctx,
-              ).copyWith(
+              style: STextStyles.button(ctx).copyWith(
                 color: Theme.of(ctx).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () => Navigator.of(ctx).pop(false),
           ),
           rightButton: TextButton(
-            style: Theme.of(ctx)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(ctx),
-            child: Text(
-              "Register",
-              style: STextStyles.button(ctx),
-            ),
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+            child: Text("Register", style: STextStyles.button(ctx)),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ),

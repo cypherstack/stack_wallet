@@ -360,181 +360,186 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ...widget.options.map((option) {
-            switch (option.$1) {
-              case WalletFeature.buy:
-                // Buy has a special icon
-                return _MoreFeaturesItem(
-                  label: option.$1.label,
-                  detail: option.$1.description,
-                  isSvgFile: true,
-                  iconAsset: ref.watch(
-                    themeProvider.select((value) => value.assets.buy),
-                  ),
-                  onPressed: () async {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    option.$3();
-                  },
-                );
-
-              case WalletFeature.clearSparkCache:
-                return _MoreFeaturesClearSparkCacheItem(
-                  cryptoCurrency: wallet.cryptoCurrency,
-                );
-
-              case WalletFeature.rbf:
-                return _MoreFeaturesItemBase(
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 3),
-                      SizedBox(
-                        height: 20,
-                        width: 40,
-                        child: DraggableSwitchButton(
-                          isOn:
-                              ref.watch(
-                                    pWalletInfo(
-                                      widget.walletId,
-                                    ).select((value) => value.otherData),
-                                  )[WalletInfoKeys.enableOptInRbf]
-                                  as bool? ??
-                              false,
-                          onValueChanged: _switchRbfToggled,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Flag outgoing transactions with opt-in RBF",
-                            style: STextStyles.w600_20(context),
+                    switch (option.$1) {
+                      case WalletFeature.buy:
+                        // Buy has a special icon
+                        return _MoreFeaturesItem(
+                          label: option.$1.label,
+                          detail: option.$1.description,
+                          isSvgFile: true,
+                          iconAsset: ref.watch(
+                            themeProvider.select((value) => value.assets.buy),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
+                          onPressed: () async {
+                            Navigator.of(context, rootNavigator: true).pop();
+                            option.$3();
+                          },
+                        );
 
-              case WalletFeature.enableLegacyAddresses:
-                return _MoreFeaturesItemBase(
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 3),
-                      SizedBox(
-                        height: 20,
-                        width: 40,
-                        child: DraggableSwitchButton(
-                          isOn:
-                              ref.watch(
-                                    pWalletInfo(
-                                      widget.walletId,
-                                    ).select((value) => value.otherData),
-                                  )[WalletInfoKeys.enableLegacyAddresses]
-                                  as bool? ??
-                              false,
-                          onValueChanged: _switchLegacyToggled,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Enable legacy (P2PKH) address generation",
-                            style: STextStyles.w600_20(context),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
+                      case WalletFeature.clearSparkCache:
+                        return _MoreFeaturesClearSparkCacheItem(
+                          cryptoCurrency: wallet.cryptoCurrency,
+                        );
 
-              case WalletFeature.reuseAddress:
-                return _MoreFeaturesItemBase(
-                  onPressed: _switchReuseAddressToggled,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 3),
-                      SizedBox(
-                        height: 20,
-                        width: 40,
-                        child: IgnorePointer(
-                          child: DraggableSwitchButton(
-                            isOn:
-                                ref.watch(
-                                      pWalletInfo(
-                                        widget.walletId,
-                                      ).select((value) => value.otherData),
-                                    )[WalletInfoKeys.reuseAddress]
-                                    as bool? ??
-                                false,
-                            controller: _switchControllerAddressReuse,
+                      case WalletFeature.rbf:
+                        return _MoreFeaturesItemBase(
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 3),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn:
+                                      ref.watch(
+                                            pWalletInfo(widget.walletId).select(
+                                              (value) => value.otherData,
+                                            ),
+                                          )[WalletInfoKeys.enableOptInRbf]
+                                          as bool? ??
+                                      false,
+                                  onValueChanged: _switchRbfToggled,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Flag outgoing transactions with opt-in RBF",
+                                    style: STextStyles.w600_20(context),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Reuse receiving address",
-                            style: STextStyles.w600_20(context),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
+                        );
 
-              case WalletFeature.enableMweb:
-                return _MoreFeaturesItemBase(
-                  onPressed: _switchMwebToggleToggled,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 3),
-                      SizedBox(
-                        height: 20,
-                        width: 40,
-                        child: IgnorePointer(
-                          child: DraggableSwitchButton(
-                            isOn:
-                                ref.watch(
-                                      pWalletInfo(
-                                        widget.walletId,
-                                      ).select((value) => value.otherData),
-                                    )[WalletInfoKeys.mwebEnabled]
-                                    as bool? ??
-                                false,
-                            controller: _switchControllerMwebToggle,
+                      case WalletFeature.enableLegacyAddresses:
+                        return _MoreFeaturesItemBase(
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 3),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn:
+                                      ref.watch(
+                                            pWalletInfo(widget.walletId).select(
+                                              (value) => value.otherData,
+                                            ),
+                                          )[WalletInfoKeys
+                                              .enableLegacyAddresses]
+                                          as bool? ??
+                                      false,
+                                  onValueChanged: _switchLegacyToggled,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Enable legacy (P2PKH) address generation",
+                                    style: STextStyles.w600_20(context),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Enable MWEB",
-                            style: STextStyles.w600_20(context),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
+                        );
 
-              default:
-                return _MoreFeaturesItem(
-                  label: option.$1.label,
-                  detail: option.$1.description,
-                  iconAsset: option.$2,
-                  onPressed: () async {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    option.$3();
-                  },
-                );
-            }
-          }),
+                      case WalletFeature.reuseAddress:
+                        return _MoreFeaturesItemBase(
+                          onPressed: _switchReuseAddressToggled,
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 3),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: IgnorePointer(
+                                  child: DraggableSwitchButton(
+                                    isOn:
+                                        ref.watch(
+                                              pWalletInfo(
+                                                widget.walletId,
+                                              ).select(
+                                                (value) => value.otherData,
+                                              ),
+                                            )[WalletInfoKeys.reuseAddress]
+                                            as bool? ??
+                                        false,
+                                    controller: _switchControllerAddressReuse,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Reuse receiving address",
+                                    style: STextStyles.w600_20(context),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+
+                      case WalletFeature.enableMweb:
+                        return _MoreFeaturesItemBase(
+                          onPressed: _switchMwebToggleToggled,
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 3),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: IgnorePointer(
+                                  child: DraggableSwitchButton(
+                                    isOn:
+                                        ref.watch(
+                                              pWalletInfo(
+                                                widget.walletId,
+                                              ).select(
+                                                (value) => value.otherData,
+                                              ),
+                                            )[WalletInfoKeys.mwebEnabled]
+                                            as bool? ??
+                                        false,
+                                    controller: _switchControllerMwebToggle,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Enable MWEB",
+                                    style: STextStyles.w600_20(context),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+
+                      default:
+                        return _MoreFeaturesItem(
+                          label: option.$1.label,
+                          detail: option.$1.description,
+                          iconAsset: option.$2,
+                          onPressed: () async {
+                            Navigator.of(context, rootNavigator: true).pop();
+                            option.$3();
+                          },
+                        );
+                    }
+                  }),
 
                   const SizedBox(height: 28),
                 ],
