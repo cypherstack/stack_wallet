@@ -52,9 +52,6 @@ jobs:
         run: bash prebuild.sh
         working-directory: scripts
 
-      - name: Regenerate mocks
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Check formatting of changed files
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
