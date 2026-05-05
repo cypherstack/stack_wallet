@@ -1,15 +1,7 @@
 import 'dart:io';
 
 Future<void> main() async {
-  final projectToolDir = File(() {
-    String path = Platform.script.path;
-    if (Platform.isWindows) {
-      while (!path.startsWith("C:")) {
-        path = path.substring(1);
-      }
-    }
-    return path;
-  }()).parent;
+  final projectToolDir = File(Platform.script.toFilePath()).parent;
 
   // setup temp build dir
   final tempBuildDir = Directory(
