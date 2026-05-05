@@ -336,7 +336,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     return DesktopDialog(
       maxHeight: maxDialogHeight,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -353,7 +353,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             ],
           ),
 
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
