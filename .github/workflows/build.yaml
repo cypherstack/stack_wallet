@@ -74,6 +74,8 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
+        env:
+          USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release
 
       - name: Package
