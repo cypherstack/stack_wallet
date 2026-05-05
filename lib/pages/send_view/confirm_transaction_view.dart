@@ -14,16 +14,18 @@ import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:isar_community/isar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar_community/isar.dart';
 
+import '../../models/isar/models/isar_models.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import '../../providers/global/global_nav_key_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -47,6 +49,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -54,6 +57,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -61,6 +65,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
+import '../masternodes/create_masternode_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
@@ -109,6 +114,42 @@ class _ConfirmTransactionViewState
 
   late final FocusNode _onChainNoteFocusNode;
   late final TextEditingController onChainNoteController;
+
+  bool _spendsOrdinal = false;
+
+  Future<void> _checkForOrdinalSpend(
+    bool updateStateInPostFrameCallback,
+  ) async {
+    final db = ref.read(mainDBProvider);
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! OrdinalsInterface) return;
+
+    final usedUtxos = widget.txData.usedUTXOs;
+    if (usedUtxos == null || usedUtxos.isEmpty) return;
+
+    for (final input in usedUtxos) {
+      if (input is! StandardInput) continue;
+      final ordinal = await db.isar.ordinals
+          .where()
+          .filter()
+          .walletIdEqualTo(walletId)
+          .and()
+          .utxoTXIDEqualTo(input.utxo.txid)
+          .and()
+          .utxoVOUTEqualTo(input.utxo.vout)
+          .findFirst();
+      if (ordinal != null) {
+        if (updateStateInPostFrameCallback) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _spendsOrdinal = true);
+          });
+        } else {
+          if (mounted) setState(() => _spendsOrdinal = true);
+        }
+        return;
+      }
+    }
+  }
 
   /// Handle MWC slatepack creation for manual exchange.
   Future<void> _handleMwcSlatepackCreation(
@@ -271,6 +312,97 @@ class _ConfirmTransactionViewState
     }
   }
 
+  Future<int?> _resolveFiroCollateralVout({
+    required FiroWallet wallet,
+    required String txid,
+    required String recipientAddress,
+    required Amount amount,
+  }) async {
+    try {
+      final tx = await wallet.electrumXClient.getTransaction(txHash: txid);
+      final outputs = tx['vout'];
+      if (outputs is! List) {
+        return null;
+      }
+
+      for (final output in outputs) {
+        if (output is! Map) {
+          continue;
+        }
+        final outputMap = Map<String, dynamic>.from(output);
+        final n = outputMap['n'];
+        final outputIndex = switch (n) {
+          int value => value,
+          String value => int.tryParse(value),
+          _ => null,
+        };
+        if (outputIndex == null) {
+          continue;
+        }
+
+        final valueDecimal = Decimal.tryParse(outputMap['value'].toString());
+        if (valueDecimal == null) {
+          continue;
+        }
+        final outputAmount = Amount.fromDecimal(
+          valueDecimal,
+          fractionDigits: wallet.cryptoCurrency.fractionDigits,
+        );
+        if (outputAmount != amount) {
+          continue;
+        }
+
+        final scriptPubKey = outputMap['scriptPubKey'];
+        if (scriptPubKey is! Map) {
+          continue;
+        }
+
+        final recipientAddresses = <String>{};
+        final addresses = scriptPubKey['addresses'];
+        if (addresses is List) {
+          recipientAddresses.addAll(addresses.whereType<String>());
+        }
+
+        final address = scriptPubKey['address'];
+        if (address is String) {
+          recipientAddresses.add(address);
+        }
+
+        if (recipientAddresses.contains(recipientAddress)) {
+          return outputIndex;
+        }
+      }
+    } catch (e, s) {
+      Logging.instance.w(
+        "Failed to resolve collateral vout for txid=$txid: $e",
+        error: e,
+        stackTrace: s,
+      );
+    }
+
+    return null;
+  }
+
+  void _showMasternodeSubmittedDialog(BuildContext? rootContext, String txid) {
+    if (rootContext == null) {
+      return;
+    }
+    unawaited(
+      showDialog<void>(
+        context: rootContext,
+        builder: (_) => StackOkDialog(
+          title: "Masternode Registration Submitted",
+          message:
+              "Masternode registration submitted, your masternode will "
+              "appear in the list after the tx is confirmed.\n\nTransaction "
+              "ID: $txid",
+          desktopPopRootNavigator: Util.isDesktop,
+          maxWidth: Util.isDesktop ? 400 : null,
+        ),
+      ),
+    );
+  }
+
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
@@ -388,15 +520,15 @@ class _ConfirmTransactionViewState
       }
 
       final results = await Future.wait([txDataFuture, time]);
+      final confirmedTx = results.first as TxData;
 
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
-      if (wallet is FiroWallet &&
-          (results.first as TxData).sparkMints != null) {
-        txids.addAll((results.first as TxData).sparkMints!.map((e) => e.txid!));
+      if (wallet is FiroWallet && confirmedTx.sparkMints != null) {
+        txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
       } else {
-        txids.add((results.first as TxData).txid!);
+        txids.add(confirmedTx.txid!);
       }
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);
@@ -423,8 +555,187 @@ class _ConfirmTransactionViewState
 
       widget.onSuccess.call();
 
-      // pop back to wallet
-      if (context.mounted) {
+      // Check for 1000 FIRO transparent self-send → prompt MN registration
+      bool navigatedToMN = false;
+      if (wallet is FiroWallet &&
+          confirmedTx.recipients != null &&
+          confirmedTx.sparkMints == null &&
+          txids.isNotEmpty &&
+          context.mounted) {
+        try {
+          final masternodeAmount = Amount.fromDecimal(
+            kMasterNodeValue,
+            fractionDigits: wallet.cryptoCurrency.fractionDigits,
+          );
+          final txFeeRaw = confirmedTx.fee?.raw ?? BigInt.zero;
+
+          final mnRecipient = confirmedTx.recipients!
+              // Exact 1000 FIRO: multiple such outputs uses the first match only.
+              .where((r) => !r.isChange && r.amount == masternodeAmount)
+              .firstOrNull;
+
+          if (mnRecipient != null && confirmedTx.txid != null) {
+            final ownAddress = await ref
+                .read(mainDBProvider)
+                .getAddresses(walletId)
+                .filter()
+                .valueEqualTo(mnRecipient.address)
+                .findFirst();
+
+            if (ownAddress != null && context.mounted) {
+              final collateralVout = await _resolveFiroCollateralVout(
+                wallet: wallet,
+                txid: confirmedTx.txid!,
+                recipientAddress: mnRecipient.address,
+                amount: masternodeAmount,
+              );
+              if (!context.mounted) {
+                return;
+              }
+
+              if (collateralVout == null) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.warning,
+                    message:
+                        "Unable to determine collateral output index "
+                        "automatically. Open Masternodes and select your "
+                        "1000 FIRO UTXO manually.",
+                    context: context,
+                  ),
+                );
+              } else {
+                navigatedToMN = true;
+                final rootContext = ref.read(pNavKey).currentContext;
+
+                void completeMnParentNavigation() {
+                  if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+                    if (isDesktop) {
+                      Navigator.of(
+                        context,
+                      ).popUntil(ModalRoute.withName(routeOnSuccessName));
+                    } else {
+                      final navigator = Navigator.of(context);
+                      navigator.popUntil(
+                        ModalRoute.withName(routeOnSuccessName),
+                      );
+                    }
+                  } else {
+                    widget.onSuccessInsteadOfRouteOnSuccess!.call();
+                  }
+                }
+
+                completeMnParentNavigation();
+
+                if (isDesktop) {
+                  if (rootContext != null && rootContext.mounted) {
+                    unawaited(
+                      showDialog<Object>(
+                        context: rootContext,
+                        barrierDismissible: true,
+                        builder: (_) => SDialog(
+                          child: CreateMasternodeView(
+                            firoWalletId: walletId,
+                            collateralTxid: confirmedTx.txid!,
+                            collateralVout: collateralVout,
+                            collateralAddress: mnRecipient.address,
+                          ),
+                        ),
+                      ).then((result) {
+                        if (result is String) {
+                          _showMasternodeSubmittedDialog(rootContext, result);
+                        }
+                      }),
+                    );
+                  }
+                } else {
+                  final navContext =
+                      (rootContext != null && rootContext.mounted)
+                      ? rootContext
+                      : context;
+                  if (!navContext.mounted) {
+                    return;
+                  }
+                  unawaited(
+                    Navigator.of(navContext)
+                        .pushNamed(
+                          CreateMasternodeView.routeName,
+                          arguments: {
+                            'walletId': walletId,
+                            'collateralTxid': confirmedTx.txid!,
+                            'collateralVout': collateralVout,
+                            'collateralAddress': mnRecipient.address,
+                          },
+                        )
+                        .then((result) {
+                          if (result is String) {
+                            _showMasternodeSubmittedDialog(rootContext, result);
+                          }
+                        }),
+                  );
+                }
+              }
+            }
+          } else if (mnRecipient != null &&
+              confirmedTx.txid == null &&
+              context.mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.warning,
+                message:
+                    "Could not determine transaction id for collateral "
+                    "auto-detection. Register from the Masternodes screen "
+                    "once the transaction appears.",
+                context: context,
+              ),
+            );
+          } else {
+            // If fee was subtracted from the recipient, users can enter 1000 but
+            // end up with ~999.99... output which is not valid MN collateral.
+            final nearMnRecipient =
+                confirmedTx.recipients!
+                    .where(
+                      (r) => !r.isChange && r.amount.raw < masternodeAmount.raw,
+                    )
+                    .where(
+                      (r) => (masternodeAmount.raw - r.amount.raw) <= txFeeRaw,
+                    )
+                    .toList()
+                  ..sort((a, b) => b.amount.raw.compareTo(a.amount.raw));
+
+            if (nearMnRecipient.isNotEmpty) {
+              final maybeOwnAddress = await ref
+                  .read(mainDBProvider)
+                  .getAddresses(walletId)
+                  .filter()
+                  .valueEqualTo(nearMnRecipient.first.address)
+                  .findFirst();
+
+              if (maybeOwnAddress != null && context.mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.warning,
+                    message:
+                        "Masternode collateral requires one exact 1000 FIRO "
+                        "transparent output. Fee appears to have been "
+                        "subtracted from the recipient amount. Send 1000 "
+                        "to yourself again with fee paid on top.",
+                    context: context,
+                  ),
+                );
+              }
+            }
+          }
+        } catch (e, s) {
+          Logging.instance.w(
+            "Skipping masternode collateral auto-detection: $e",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      }
+
+      if (!navigatedToMN && context.mounted) {
         if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
           Navigator.of(
             context,
@@ -525,6 +836,8 @@ class _ConfirmTransactionViewState
 
   @override
   void initState() {
+    super.initState();
+
     isDesktop = Util.isDesktop;
     walletId = widget.walletId;
     routeOnSuccessName = widget.routeOnSuccessName;
@@ -536,7 +849,7 @@ class _ConfirmTransactionViewState
     onChainNoteController = TextEditingController();
     onChainNoteController.text = widget.txData.noteOnChain ?? "";
 
-    super.initState();
+    _checkForOrdinalSpend(true);
   }
 
   @override
@@ -1421,71 +1734,40 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
-            // Ordinal UTXO spend warning
-            Builder(
-              builder: (context) {
-                final usedUtxos = widget.txData.usedUTXOs;
-                if (usedUtxos == null || usedUtxos.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-
-                final db = ref.read(mainDBProvider);
-                bool hasOrdinal = false;
-                for (final input in usedUtxos) {
-                  if (input is StandardInput) {
-                    final ordinal = db.isar.ordinals
-                        .where()
-                        .filter()
-                        .walletIdEqualTo(walletId)
-                        .and()
-                        .utxoTXIDEqualTo(input.utxo.txid)
-                        .and()
-                        .utxoVOUTEqualTo(input.utxo.vout)
-                        .findFirstSync();
-                    if (ordinal != null) {
-                      hasOrdinal = true;
-                      break;
-                    }
-                  }
-                }
-
-                if (!hasOrdinal) return const SizedBox.shrink();
-
-                return Padding(
-                  padding: isDesktop
-                      ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
-                      : const EdgeInsets.symmetric(vertical: 8),
-                  child: RoundedContainer(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.warningBackground,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.warningForeground,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "This transaction spends a UTXO containing "
-                            "an ordinal inscription.",
-                            style: STextStyles.smallMed12(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.warningForeground,
-                            ),
+            if (_spendsOrdinal)
+              Padding(
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                    : const EdgeInsets.symmetric(vertical: 8),
+                child: RoundedContainer(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.warningBackground,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "This transaction spends a UTXO containing "
+                          "an ordinal inscription.",
+                          style: STextStyles.smallMed12(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.warningForeground,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop

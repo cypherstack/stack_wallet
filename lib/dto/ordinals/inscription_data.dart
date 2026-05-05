@@ -73,7 +73,7 @@ class InscriptionData {
 
     return InscriptionData(
       inscriptionId: inscriptionId,
-      inscriptionNumber: json['inscription_number'] as int? ?? 0,
+      inscriptionNumber: json['inscription_number'] as int,
       address: json['address'] as String? ?? '',
       preview: contentUrl,
       content: contentUrl,

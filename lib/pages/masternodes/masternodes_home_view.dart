@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
+import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -34,15 +38,206 @@ class MasternodesHomeView extends ConsumerStatefulWidget {
 
 class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
   late Future<List<MasternodeInfo>> _masternodesFuture;
+  bool _hasPromptedForCollateral = false;
+  bool _isCheckingForCollateral = false;
 
-  Future<void> _showDesktopCreateMasternodeDialog() async {
-    final txid = await showDialog<Object>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) =>
-          SDialog(child: CreateMasternodeView(firoWalletId: widget.walletId)),
+  Set<String> _dismissedCollateral(FiroWallet wallet) {
+    final raw =
+        wallet.info.otherData[WalletInfoKeys.firoMasternodeCollateralDismissed];
+    if (raw is! List) {
+      return {};
+    }
+    return raw.whereType<String>().toSet();
+  }
+
+  Future<void> _persistDismissedCollateral(
+    FiroWallet wallet,
+    String txid,
+    int vout,
+  ) async {
+    final set = _dismissedCollateral(wallet);
+    set.add("$txid:$vout");
+    await wallet.info.updateOtherData(
+      newEntries: {
+        WalletInfoKeys.firoMasternodeCollateralDismissed: set.toList(),
+      },
+      isar: wallet.mainDB.isar,
     );
-    _handleSuccessTxid(txid);
+  }
+
+  Future<({String txid, int vout, String address})?>
+  _findCollateralUtxo() async {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
+    final List<UTXO> utxos =
+        await (wallet.mainDB.getUTXOs(widget.walletId) as dynamic).findAll()
+            as List<UTXO>;
+    final currentChainHeight = await wallet.chainHeight;
+    final masternodeRaw = Amount.fromDecimal(
+      kMasterNodeValue,
+      fractionDigits: wallet.cryptoCurrency.fractionDigits,
+    ).raw.toInt();
+
+    for (final utxo in utxos) {
+      if (utxo.value == masternodeRaw &&
+          !utxo.isBlocked &&
+          utxo.used != true &&
+          utxo.isConfirmed(
+            currentChainHeight,
+            wallet.cryptoCurrency.minConfirms,
+            wallet.cryptoCurrency.minCoinbaseConfirms,
+          ) &&
+          utxo.address != null) {
+        return (txid: utxo.txid, vout: utxo.vout, address: utxo.address!);
+      }
+    }
+    return null;
+  }
+
+  Future<void> _createMasternode() async {
+    final collateral = await _findCollateralUtxo();
+    if (!mounted) {
+      return;
+    }
+
+    if (collateral == null) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => StackOkDialog(
+          title: "No collateral found",
+          message:
+              "A masternode needs one confirmed, unblocked transparent "
+              "UTXO of exactly 1000 FIRO.\n\n"
+              "Total balance above 1000 FIRO is not enough if no single "
+              "1000 output exists. Also ensure fee is not subtracted from "
+              "the recipient amount when sending to yourself.",
+          desktopPopRootNavigator: Util.isDesktop,
+          maxWidth: Util.isDesktop ? 400 : null,
+        ),
+      );
+      return;
+    }
+
+    if (Util.isDesktop) {
+      final txid = await showDialog<Object>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => SDialog(
+          child: CreateMasternodeView(
+            firoWalletId: widget.walletId,
+            collateralTxid: collateral.txid,
+            collateralVout: collateral.vout,
+            collateralAddress: collateral.address,
+          ),
+        ),
+      );
+      _handleSuccessTxid(txid);
+    } else {
+      final txid = await Navigator.of(context).pushNamed(
+        CreateMasternodeView.routeName,
+        arguments: {
+          'walletId': widget.walletId,
+          'collateralTxid': collateral.txid,
+          'collateralVout': collateral.vout,
+          'collateralAddress': collateral.address,
+        },
+      );
+      _handleSuccessTxid(txid);
+    }
+  }
+
+  Future<void> _maybePromptForExistingCollateral() async {
+    if (_hasPromptedForCollateral || _isCheckingForCollateral || !mounted) {
+      return;
+    }
+    _isCheckingForCollateral = true;
+
+    try {
+      final collateral = await _findCollateralUtxo();
+      if (collateral == null || !mounted) {
+        return;
+      }
+
+      final wallet =
+          ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
+      final dismissed = _dismissedCollateral(wallet);
+      final collateralKey = "${collateral.txid}:${collateral.vout}";
+      if (dismissed.contains(collateralKey)) {
+        return;
+      }
+
+      _hasPromptedForCollateral = true;
+
+      final wantsMN = await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => StackDialog(
+          title: "Register Masternode?",
+          message:
+              "A 1000 FIRO collateral UTXO was found in your wallet. "
+              "Would you like to register a masternode now?",
+          leftButton: TextButton(
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+            child: Text(
+              "Later",
+              style: STextStyles.button(ctx).copyWith(
+                color: Theme.of(ctx).extension<StackColors>()!.accentColorDark,
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(false),
+          ),
+          rightButton: TextButton(
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+            child: Text("Register", style: STextStyles.button(ctx)),
+            onPressed: () => Navigator.of(ctx).pop(true),
+          ),
+        ),
+      );
+
+      if (wantsMN == false || wantsMN == null) {
+        await _persistDismissedCollateral(
+          wallet,
+          collateral.txid,
+          collateral.vout,
+        );
+      }
+
+      if (wantsMN != true || !mounted) {
+        return;
+      }
+
+      if (Util.isDesktop) {
+        final txid = await showDialog<Object>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => SDialog(
+            child: CreateMasternodeView(
+              firoWalletId: widget.walletId,
+              collateralTxid: collateral.txid,
+              collateralVout: collateral.vout,
+              collateralAddress: collateral.address,
+            ),
+          ),
+        );
+        _handleSuccessTxid(txid);
+      } else {
+        final txid = await Navigator.of(context).pushNamed(
+          CreateMasternodeView.routeName,
+          arguments: {
+            'walletId': widget.walletId,
+            'collateralTxid': collateral.txid,
+            'collateralVout': collateral.vout,
+            'collateralAddress': collateral.address,
+          },
+        );
+        _handleSuccessTxid(txid);
+      }
+    } finally {
+      _isCheckingForCollateral = false;
+    }
   }
 
   void _handleSuccessTxid(Object? txid) {
@@ -75,10 +270,13 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
   void initState() {
     super.initState();
 
-    // TODO polling and update on successful registration
     _masternodesFuture =
         (ref.read(pWallets).getWallet(widget.walletId) as FiroWallet)
             .getMyMasternodes();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_maybePromptForExistingCollateral());
+    });
   }
 
   @override
@@ -143,7 +341,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
                       .srcIn,
                     ),
                   ),
-                  onPressed: _showDesktopCreateMasternodeDialog,
+                  onPressed: _createMasternode,
                 ),
               ),
             )
@@ -184,13 +382,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
                         width: 20,
                         height: 20,
                       ),
-                      onPressed: () async {
-                        final txid = await Navigator.of(context).pushNamed(
-                          CreateMasternodeView.routeName,
-                          arguments: widget.walletId,
-                        );
-                        _handleSuccessTxid(txid);
-                      },
+                      onPressed: _createMasternode,
                     ),
                   ),
                 ),
@@ -229,17 +421,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
                         label: "Create Your First Masternode",
                         horizontalContentPadding: 16,
                         buttonHeight: Util.isDesktop ? .l : null,
-                        onPressed: () async {
-                          if (Util.isDesktop) {
-                            await _showDesktopCreateMasternodeDialog();
-                          } else {
-                            final txid = await Navigator.of(context).pushNamed(
-                              CreateMasternodeView.routeName,
-                              arguments: widget.walletId,
-                            );
-                            _handleSuccessTxid(txid);
-                          }
-                        },
+                        onPressed: _createMasternode,
                       ),
                     ],
                   ),
