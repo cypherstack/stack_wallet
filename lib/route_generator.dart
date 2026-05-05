@@ -949,10 +949,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CreateMasternodeView.routeName:
-        if (args is String) {
+        if (args is Map<String, dynamic>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CreateMasternodeView(firoWalletId: args),
+            builder: (_) => CreateMasternodeView(
+              firoWalletId: args['walletId'] as String,
+              collateralTxid: args['collateralTxid'] as String,
+              collateralVout: args['collateralVout'] as int,
+              collateralAddress: args['collateralAddress'] as String,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
