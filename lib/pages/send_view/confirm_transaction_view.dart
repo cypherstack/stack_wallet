@@ -14,9 +14,9 @@ import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:isar_community/isar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar_community/isar.dart';
 
 import '../../models/input.dart';
 import '../../models/isar/models/transaction_note.dart';
@@ -113,14 +113,16 @@ class _ConfirmTransactionViewState
 
   bool _spendsOrdinal = false;
 
-  Future<void> _checkForOrdinalSpend() async {
+  Future<void> _checkForOrdinalSpend(
+    bool updateStateInPostFrameCallback,
+  ) async {
+    final db = ref.read(mainDBProvider);
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet is! OrdinalsInterface) return;
 
     final usedUtxos = widget.txData.usedUTXOs;
     if (usedUtxos == null || usedUtxos.isEmpty) return;
 
-    final db = ref.read(mainDBProvider);
     for (final input in usedUtxos) {
       if (input is! StandardInput) continue;
       final ordinal = await db.isar.ordinals
@@ -133,8 +135,12 @@ class _ConfirmTransactionViewState
           .utxoVOUTEqualTo(input.utxo.vout)
           .findFirst();
       if (ordinal != null) {
-        if (mounted) {
-          setState(() => _spendsOrdinal = true);
+        if (updateStateInPostFrameCallback) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _spendsOrdinal = true);
+          });
+        } else {
+          if (mounted) setState(() => _spendsOrdinal = true);
         }
         return;
       }
@@ -556,6 +562,8 @@ class _ConfirmTransactionViewState
 
   @override
   void initState() {
+    super.initState();
+
     isDesktop = Util.isDesktop;
     walletId = widget.walletId;
     routeOnSuccessName = widget.routeOnSuccessName;
@@ -567,9 +575,7 @@ class _ConfirmTransactionViewState
     onChainNoteController = TextEditingController();
     onChainNoteController.text = widget.txData.noteOnChain ?? "";
 
-    super.initState();
-
-    _checkForOrdinalSpend();
+    _checkForOrdinalSpend(true);
   }
 
   @override
