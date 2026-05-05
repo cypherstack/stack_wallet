@@ -19,11 +19,14 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -90,11 +93,14 @@ jobs:
 
   build-android:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
         with:
