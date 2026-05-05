@@ -167,7 +167,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
+    if (walletInfo.isHardwareWallet) {
+      // Hardware wallets don't store mnemonics or private keys locally
+    } else if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
       await secureStorageInterface.write(
         key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
         value: viewOnlyData!.toJsonEncodedString(),
@@ -216,7 +218,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     // TODO [prio=low] handle eth differently?
     // This would need to be changed if we actually end up allowing eth wallets
     // to be created with a private key instead of mnemonic only
-    if (wallet is PrivateKeyInterface && wallet is! EthereumWallet) {
+    if (wallet is PrivateKeyInterface &&
+        wallet is! EthereumWallet &&
+        !walletInfo.isHardwareWallet) {
       await secureStorageInterface.write(
         key: privateKeyKey(walletId: walletInfo.walletId),
         value: privateKey!,
@@ -648,7 +652,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
-      if (this is PaynymInterface && !viewOnly) {
+      if (this is PaynymInterface && !viewOnly && !info.isHardwareWallet) {
         // isSegwit does not matter here at all
         final myCode = await (this as PaynymInterface).getPaymentCode(
           isSegwit: false,
@@ -714,7 +718,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
+      if (!viewOnly && !info.isHardwareWallet && this is PaynymInterface && codesToCheck.isNotEmpty) {
         await (this as PaynymInterface).checkForNotificationTransactionsTo(
           codesToCheck,
         );
