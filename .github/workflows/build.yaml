@@ -221,6 +221,10 @@ jobs:
           flutter-version: '3.38.1'
           channel: 'stable'
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
+
       - name: Flutter doctor
         run: flutter doctor -v
 
@@ -252,6 +256,9 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build secp256k1.dll for Windows
+        run: dart run coinlib:build_windows
 
       - name: Build
         run: flutter build windows --release
@@ -293,6 +300,10 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
 
       - name: Configure app
         run: |
@@ -368,6 +379,10 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
 
       - name: Configure app
         run: |
