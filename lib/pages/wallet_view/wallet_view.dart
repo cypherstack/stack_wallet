@@ -109,6 +109,8 @@ import '../settings_views/wallet_settings_view/wallet_network_settings_view/wall
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../signing/signing_view.dart';
 import '../spark_names/spark_names_home_view.dart';
+import '../more_view/gift_cards_view.dart';
+import '../more_view/services_view.dart';
 import '../token_view/my_tokens_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
@@ -1343,6 +1345,39 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
+                    if (!viewOnly)
+                      WalletNavigationBarItemData(
+                        label: "Services",
+                        icon: SvgPicture.asset(
+                          Assets.svg.solidSliders,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.bottomNavIconIcon,
+                        ),
+                        onTap: () {
+                          Navigator.of(
+                            context,
+                          ).pushNamed(ServicesView.routeName);
+                        },
+                      ),
+                    WalletNavigationBarItemData(
+                      label: "Gift cards",
+                      icon: SvgPicture.asset(
+                        Assets.svg.creditCard,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.bottomNavIconIcon,
+                      ),
+                      onTap: () {
+                        Navigator.of(
+                          context,
+                        ).pushNamed(GiftCardsView.routeName);
+                      },
+                    ),
                   ],
                 ),
               ),

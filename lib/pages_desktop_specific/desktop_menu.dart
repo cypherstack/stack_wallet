@@ -29,6 +29,7 @@ enum DesktopMenuItemId {
   myStack,
   exchange,
   buy,
+  services,
   notifications,
   addressBook,
   settings,
@@ -86,6 +87,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   void initState() {
     controllers = [
+      DMIController(),
       DMIController(),
       DMIController(),
       DMIController(),
@@ -300,7 +302,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                           //     SystemNavigator.pop();
                           //   }
                         },
-                        controller: controllers[8],
+                        controller: controllers[9],
                         isExpandedInitially: !_isMinimized,
                       ),
                     ],

@@ -19,6 +19,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../models/isar/models/isar_models.dart';
+import '../../models/input.dart';
+import '../../models/isar/models/transaction_note.dart';
+import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
@@ -46,6 +49,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -110,6 +114,42 @@ class _ConfirmTransactionViewState
 
   late final FocusNode _onChainNoteFocusNode;
   late final TextEditingController onChainNoteController;
+
+  bool _spendsOrdinal = false;
+
+  Future<void> _checkForOrdinalSpend(
+    bool updateStateInPostFrameCallback,
+  ) async {
+    final db = ref.read(mainDBProvider);
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! OrdinalsInterface) return;
+
+    final usedUtxos = widget.txData.usedUTXOs;
+    if (usedUtxos == null || usedUtxos.isEmpty) return;
+
+    for (final input in usedUtxos) {
+      if (input is! StandardInput) continue;
+      final ordinal = await db.isar.ordinals
+          .where()
+          .filter()
+          .walletIdEqualTo(walletId)
+          .and()
+          .utxoTXIDEqualTo(input.utxo.txid)
+          .and()
+          .utxoVOUTEqualTo(input.utxo.vout)
+          .findFirst();
+      if (ordinal != null) {
+        if (updateStateInPostFrameCallback) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _spendsOrdinal = true);
+          });
+        } else {
+          if (mounted) setState(() => _spendsOrdinal = true);
+        }
+        return;
+      }
+    }
+  }
 
   /// Handle MWC slatepack creation for manual exchange.
   Future<void> _handleMwcSlatepackCreation(
@@ -793,6 +833,8 @@ class _ConfirmTransactionViewState
 
   @override
   void initState() {
+    super.initState();
+
     isDesktop = Util.isDesktop;
     walletId = widget.walletId;
     routeOnSuccessName = widget.routeOnSuccessName;
@@ -804,7 +846,7 @@ class _ConfirmTransactionViewState
     onChainNoteController = TextEditingController();
     onChainNoteController.text = widget.txData.noteOnChain ?? "";
 
-    super.initState();
+    _checkForOrdinalSpend(true);
   }
 
   @override
@@ -1689,6 +1731,40 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
+            if (_spendsOrdinal)
+              Padding(
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                    : const EdgeInsets.symmetric(vertical: 8),
+                child: RoundedContainer(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.warningBackground,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "This transaction spends a UTXO containing "
+                          "an ordinal inscription.",
+                          style: STextStyles.smallMed12(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.warningForeground,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop
@@ -1717,7 +1793,10 @@ class _ConfirmTransactionViewState
                                 right: 32,
                                 bottom: 32,
                               ),
-                              child: DesktopAuthSend(coin: coin),
+                              child: DesktopAuthSend(
+                                coin: coin,
+                                tokenTicker: widget.isTokenTx ? unit : null,
+                              ),
                             ),
                           ],
                         ),

@@ -87,6 +87,65 @@ class HTTP {
     }
   }
 
+  Future<Response> patch({
+    required Uri url,
+    Map<String, String>? headers,
+    Object? body,
+    required ({InternetAddress host, int port})? proxyInfo,
+  }) async {
+    final httpClient = HttpClient();
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(proxyInfo.host, proxyInfo.port),
+        ]);
+      }
+      final HttpClientRequest request = await httpClient.patchUrl(url);
+
+      if (headers != null) {
+        headers.forEach((key, value) => request.headers.add(key, value));
+      }
+
+      request.write(body);
+
+      final response = await request.close();
+      return Response(await _bodyBytes(response), response.statusCode);
+    } catch (e, s) {
+      Logging.instance.w("HTTP.patch() rethrew: ", error: e, stackTrace: s);
+      rethrow;
+    } finally {
+      httpClient.close(force: true);
+    }
+  }
+
+  Future<Response> delete({
+    required Uri url,
+    Map<String, String>? headers,
+    required ({InternetAddress host, int port})? proxyInfo,
+  }) async {
+    final httpClient = HttpClient();
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(proxyInfo.host, proxyInfo.port),
+        ]);
+      }
+      final HttpClientRequest request = await httpClient.deleteUrl(url);
+
+      if (headers != null) {
+        headers.forEach((key, value) => request.headers.add(key, value));
+      }
+
+      final response = await request.close();
+      return Response(await _bodyBytes(response), response.statusCode);
+    } catch (e, s) {
+      Logging.instance.w("HTTP.delete() rethrew: ", error: e, stackTrace: s);
+      rethrow;
+    } finally {
+      httpClient.close(force: true);
+    }
+  }
+
   Future<Uint8List> _bodyBytes(HttpClientResponse response) {
     final completer = Completer<Uint8List>();
     final List<int> bytes = [];
