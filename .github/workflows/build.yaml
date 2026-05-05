@@ -186,7 +186,7 @@ jobs:
           path: android-artifacts/
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     defaults:
       run:
         shell: bash
@@ -214,6 +214,9 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
 
       - name: Configure app
         run: |
