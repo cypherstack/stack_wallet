@@ -47,6 +47,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -109,6 +110,36 @@ class _ConfirmTransactionViewState
 
   late final FocusNode _onChainNoteFocusNode;
   late final TextEditingController onChainNoteController;
+
+  bool _spendsOrdinal = false;
+
+  Future<void> _checkForOrdinalSpend() async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! OrdinalsInterface) return;
+
+    final usedUtxos = widget.txData.usedUTXOs;
+    if (usedUtxos == null || usedUtxos.isEmpty) return;
+
+    final db = ref.read(mainDBProvider);
+    for (final input in usedUtxos) {
+      if (input is! StandardInput) continue;
+      final ordinal = await db.isar.ordinals
+          .where()
+          .filter()
+          .walletIdEqualTo(walletId)
+          .and()
+          .utxoTXIDEqualTo(input.utxo.txid)
+          .and()
+          .utxoVOUTEqualTo(input.utxo.vout)
+          .findFirst();
+      if (ordinal != null) {
+        if (mounted) {
+          setState(() => _spendsOrdinal = true);
+        }
+        return;
+      }
+    }
+  }
 
   /// Handle MWC slatepack creation for manual exchange.
   Future<void> _handleMwcSlatepackCreation(
@@ -537,6 +568,8 @@ class _ConfirmTransactionViewState
     onChainNoteController.text = widget.txData.noteOnChain ?? "";
 
     super.initState();
+
+    _checkForOrdinalSpend();
   }
 
   @override
@@ -1421,71 +1454,40 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
-            // Ordinal UTXO spend warning
-            Builder(
-              builder: (context) {
-                final usedUtxos = widget.txData.usedUTXOs;
-                if (usedUtxos == null || usedUtxos.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-
-                final db = ref.read(mainDBProvider);
-                bool hasOrdinal = false;
-                for (final input in usedUtxos) {
-                  if (input is StandardInput) {
-                    final ordinal = db.isar.ordinals
-                        .where()
-                        .filter()
-                        .walletIdEqualTo(walletId)
-                        .and()
-                        .utxoTXIDEqualTo(input.utxo.txid)
-                        .and()
-                        .utxoVOUTEqualTo(input.utxo.vout)
-                        .findFirstSync();
-                    if (ordinal != null) {
-                      hasOrdinal = true;
-                      break;
-                    }
-                  }
-                }
-
-                if (!hasOrdinal) return const SizedBox.shrink();
-
-                return Padding(
-                  padding: isDesktop
-                      ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
-                      : const EdgeInsets.symmetric(vertical: 8),
-                  child: RoundedContainer(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.warningBackground,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.warningForeground,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "This transaction spends a UTXO containing "
-                            "an ordinal inscription.",
-                            style: STextStyles.smallMed12(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.warningForeground,
-                            ),
+            if (_spendsOrdinal)
+              Padding(
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                    : const EdgeInsets.symmetric(vertical: 8),
+                child: RoundedContainer(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.warningBackground,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "This transaction spends a UTXO containing "
+                          "an ordinal inscription.",
+                          style: STextStyles.smallMed12(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.warningForeground,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop
