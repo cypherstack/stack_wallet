@@ -73,9 +73,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Build
         run: flutter build linux --release
 
@@ -144,9 +141,6 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Set up Android local.properties
         run: |
@@ -248,9 +242,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Build
         run: flutter build windows --release
 
@@ -320,9 +311,6 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build
         run: flutter build macos --release
@@ -398,9 +386,6 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build
         run: flutter build ios --release --no-codesign
