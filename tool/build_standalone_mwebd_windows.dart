@@ -28,26 +28,37 @@ Future<void> main() async {
     "${tempBuildDir.path}"
     "${Platform.pathSeparator}mwebd",
   );
-  final wslBuild = Platform.isWindows
-      ? await Process.start("wsl", [
-          "bash",
-          "-l",
-          "-c",
-          "GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc "
-              "go build -o ../mwebd.exe github.com/ltcmweb/mwebd/cmd/mwebd",
-        ], runInShell: true)
-      : await Process.start(
-          "go",
-          ["build", "-o", "../mwebd.exe", "github.com/ltcmweb/mwebd/cmd/mwebd"],
-          environment: {
-            "GOOS": "windows",
-            "GOARCH": "amd64",
-            "CGO_ENABLED": "1",
-            "CC": "x86_64-w64-mingw32-gcc",
-          },
-          runInShell: true,
-        );
-  await _waitForProcess(wslBuild);
+  final isCI = Platform.environment['CI'] == 'true';
+  final Process build;
+  if (Platform.isWindows && isCI) {
+    build = await Process.start(
+      "go",
+      ["build", "-o", "../mwebd.exe", "github.com/ltcmweb/mwebd/cmd/mwebd"],
+      environment: {"CGO_ENABLED": "1"},
+      runInShell: true,
+    );
+  } else if (Platform.isWindows) {
+    build = await Process.start("wsl", [
+      "bash",
+      "-l",
+      "-c",
+      "GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc "
+          "go build -o ../mwebd.exe github.com/ltcmweb/mwebd/cmd/mwebd",
+    ], runInShell: true);
+  } else {
+    build = await Process.start(
+      "go",
+      ["build", "-o", "../mwebd.exe", "github.com/ltcmweb/mwebd/cmd/mwebd"],
+      environment: {
+        "GOOS": "windows",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "1",
+        "CC": "x86_64-w64-mingw32-gcc",
+      },
+      runInShell: true,
+    );
+  }
+  await _waitForProcess(build);
 
   // create assets/windows dir if needed
   final winAssetsDir = Directory(
