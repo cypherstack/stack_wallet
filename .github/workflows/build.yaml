@@ -76,7 +76,7 @@ jobs:
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: flutter build linux --release
+        run: flutter build linux --release --verbose
 
       - name: Package
         run: |
