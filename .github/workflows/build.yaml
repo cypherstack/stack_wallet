@@ -375,6 +375,11 @@ jobs:
           toolchain: '1.71.0'
           targets: aarch64-apple-ios
 
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
