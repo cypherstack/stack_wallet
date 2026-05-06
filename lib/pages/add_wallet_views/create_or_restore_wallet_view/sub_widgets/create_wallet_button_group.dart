@@ -92,6 +92,41 @@ class CreateWalletButtonGroup extends StatelessWidget {
             ),
           ),
         ),
+        if (coin.supportsHardwareWallet) ...[
+          SizedBox(
+            height: isDesktop ? 16 : 12,
+          ),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: isDesktop ? 70 : 0,
+              minWidth: isDesktop ? 480 : 0,
+            ),
+            child: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonStyle(context),
+              onPressed: () {
+                Navigator.of(context).pushNamed(
+                  NameYourWalletView.routeName,
+                  arguments: Tuple2(
+                    AddWalletType.Hardware,
+                    coin,
+                  ),
+                );
+              },
+              child: Text(
+                "Hardware wallet",
+                style: isDesktop
+                    ? STextStyles.desktopButtonSecondaryEnabled(context)
+                    : STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
