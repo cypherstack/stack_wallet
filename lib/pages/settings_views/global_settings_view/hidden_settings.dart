@@ -106,6 +106,38 @@ class HiddenSettings extends StatelessWidget {
                             builder: (_, ref, __) {
                               return GestureDetector(
                                 onTap: () async {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .enableMockHardwareAutoSigner = !ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .enableMockHardwareAutoSigner;
+                                },
+                                child: RoundedWhiteContainer(
+                                  child: Text(
+                                    ref.watch(
+                                          prefsChangeNotifierProvider.select(
+                                            (s) =>
+                                                s.enableMockHardwareAutoSigner,
+                                          ),
+                                        )
+                                        ? "Disable mock hardware auto-signer"
+                                        : "Enable mock hardware auto-signer",
+                                    style: STextStyles.button(context).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return GestureDetector(
+                                onTap: () async {
                                   final notifs = ref
                                       .read(notificationsProvider)
                                       .notifications;
