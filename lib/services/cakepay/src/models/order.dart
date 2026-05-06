@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/logger.dart';
 import 'order_item.dart';
 
 enum CakePayOrderStatus {
@@ -16,7 +17,11 @@ enum CakePayOrderStatus {
   pendingEmail('pending_email'),
   complete('complete'),
   pendingRefund('pending_refund'),
-  refunded('refunded');
+  refunded('refunded'),
+
+  /// Sentinel for unrecognized API status strings. Payment UI is hidden so the
+  /// user is not misled into paying; polling continues.
+  unknown('__unknown__');
 
   final String value;
   const CakePayOrderStatus(this.value);
@@ -24,7 +29,12 @@ enum CakePayOrderStatus {
   static CakePayOrderStatus fromString(String s) {
     return CakePayOrderStatus.values.firstWhere(
       (e) => e.value == s,
-      orElse: () => CakePayOrderStatus.new_,
+      orElse: () {
+        Logging.instance.w(
+          'CakePayOrderStatus.fromString: unrecognized status "$s"',
+        );
+        return CakePayOrderStatus.unknown;
+      },
     );
   }
 
@@ -42,6 +52,7 @@ enum CakePayOrderStatus {
     CakePayOrderStatus.complete => "Complete",
     CakePayOrderStatus.pendingRefund => "Pending refund",
     CakePayOrderStatus.refunded => "Refunded",
+    CakePayOrderStatus.unknown => "Unknown",
   };
 
   Color color(StackColors themeColors) {
@@ -59,7 +70,8 @@ enum CakePayOrderStatus {
       CakePayOrderStatus.expired ||
       CakePayOrderStatus.failed ||
       CakePayOrderStatus.pendingRefund ||
-      CakePayOrderStatus.refunded => themeColors.textSubtitle1,
+      CakePayOrderStatus.refunded ||
+      CakePayOrderStatus.unknown => themeColors.textSubtitle1,
     };
   }
 }

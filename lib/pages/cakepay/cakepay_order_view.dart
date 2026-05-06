@@ -234,12 +234,16 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   }
 
   /// Whether payment UI (tabs, QR, address, pay button) should be shown.
+  ///
+  /// Hidden for [CakePayOrderStatus.unknown] so an unrecognized status does
+  /// not mislead the user into paying.
   bool _showPaymentUI(CakePayOrderStatus status) {
     return !_isPaidOrBeyond(status) &&
         status != CakePayOrderStatus.expired &&
         status != CakePayOrderStatus.failed &&
         status != CakePayOrderStatus.pendingRefund &&
-        status != CakePayOrderStatus.refunded;
+        status != CakePayOrderStatus.refunded &&
+        status != CakePayOrderStatus.unknown;
   }
 
   /// Copyable order ID and created-at timestamp for terminal state banners.
