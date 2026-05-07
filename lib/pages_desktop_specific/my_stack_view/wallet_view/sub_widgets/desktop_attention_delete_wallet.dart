@@ -162,10 +162,22 @@ class _DesktopAttentionDeleteWallet
                                 ),
                               );
                             }
-                          } else
-                          // TODO: [prio=med] handle other types wallet deletion
-                          // All wallets currently are mnemonic based
-                          if (wallet is MnemonicInterface) {
+                          } else if (wallet.info.isHardwareWallet) {
+                            if (context.mounted) {
+                              await Navigator.of(context).push(
+                                RouteGenerator.getRoute(
+                                  builder: (context) {
+                                    return ConfirmDelete(
+                                      walletId: widget.walletId,
+                                    );
+                                  },
+                                  settings: const RouteSettings(
+                                    name: "/desktopConfirmDelete",
+                                  ),
+                                ),
+                              );
+                            }
+                          } else if (wallet is MnemonicInterface) {
                             final words = await wallet.getMnemonicAsWords();
 
                             if (context.mounted) {
