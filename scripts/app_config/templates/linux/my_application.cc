@@ -23,7 +23,19 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
-  gtk_window_set_title(window, "PlaceHolderName");
+  // Use a traditional title bar by default for best compatibility across
+  // desktop environments (KDE, XFCE, tiling WMs, etc.).
+  // Set GTK_CSD=1 to use a GNOME-style header bar instead.
+  const char* gtk_csd_env_var = getenv("GTK_CSD");
+  if (gtk_csd_env_var && strcmp(gtk_csd_env_var, "1") == 0) {
+    GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
+    gtk_widget_show(GTK_WIDGET(header_bar));
+    gtk_header_bar_set_title(header_bar, "PlaceHolderName");
+    gtk_header_bar_set_show_close_button(header_bar, TRUE);
+    gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
+  } else {
+    gtk_window_set_title(window, "PlaceHolderName");
+  }
 
   gtk_window_set_default_size(window, 1220, 500);
   gtk_widget_show(GTK_WIDGET(window));
