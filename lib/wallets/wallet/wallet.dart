@@ -5,6 +5,8 @@ import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../models/balance.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/isar/models/solana/sol_contract.dart';
@@ -701,7 +703,12 @@ abstract class Wallet<T extends CryptoCurrency> {
         await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
 
-      if (this is NamecoinWallet) {
+      final skipNetworkFetch =
+          info.isHardwareWallet && prefs.enableMockHardwareAutoSigner;
+
+      if (skipNetworkFetch) {
+        _fireRefreshPercentChange(0.70);
+      } else if (this is NamecoinWallet) {
         await updateUTXOs();
         _fireRefreshPercentChange(0.6);
         await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
@@ -731,7 +738,11 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       _fireRefreshPercentChange(0.90);
 
-      await updateBalance();
+      if (info.isHardwareWallet && prefs.enableMockHardwareAutoSigner) {
+        // Preserve injected mock balance during refresh
+      } else {
+        await updateBalance();
+      }
 
       _fireRefreshPercentChange(1.0);
 
@@ -808,6 +819,43 @@ abstract class Wallet<T extends CryptoCurrency> {
         newAddress: address.value,
         isar: mainDB.isar,
       );
+    }
+
+    // Inject mock balance and UTXO for hardware wallets when mock signer is on
+    if (info.isHardwareWallet && prefs.enableMockHardwareAutoSigner) {
+      final fd = cryptoCurrency.fractionDigits;
+      final mockSats = BigInt.from(10) * BigInt.from(10).pow(fd);
+      final mockBalance = Balance(
+        total: Amount(rawValue: mockSats, fractionDigits: fd),
+        spendable: Amount(rawValue: mockSats, fractionDigits: fd),
+        blockedTotal: Amount.zeroWith(fractionDigits: fd),
+        pendingSpendable: Amount.zeroWith(fractionDigits: fd),
+      );
+      await info.updateBalance(
+        newBalance: mockBalance,
+        isar: mainDB.isar,
+      );
+
+      if (address != null) {
+        final mockUtxo = UTXO(
+          walletId: walletId,
+          txid: 'aa' * 32,
+          vout: 0,
+          value: mockSats.toInt(),
+          name: '',
+          isBlocked: false,
+          blockedReason: null,
+          isCoinbase: false,
+          blockHash:
+              '0000000000000000000000000000000000000000000000000000000000000000',
+          blockHeight: 800000,
+          blockTime: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          address: address.value,
+        );
+        await mainDB.isar.writeTxn(() async {
+          await mainDB.isar.utxos.put(mockUtxo);
+        });
+      }
     }
   }
 
