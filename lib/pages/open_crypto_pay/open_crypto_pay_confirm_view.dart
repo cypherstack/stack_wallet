@@ -168,6 +168,11 @@ class _OpenCryptoPayConfirmViewState
     return null;
   }
 
+  bool _matchesQuotedAmount(Decimal amount) {
+    final quotedAmount = Decimal.tryParse(widget.selectedAsset.amount);
+    return quotedAmount != null && amount.compareTo(quotedAmount) == 0;
+  }
+
   Future<EthTokenWallet> _loadTokenWallet(EthContract contract) async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     if (wallet is! EthereumWallet) {
@@ -275,6 +280,10 @@ class _OpenCryptoPayConfirmViewState
       _warn("Could not parse payment amount");
       return;
     }
+    if (!_matchesQuotedAmount(parsed.amount!)) {
+      _warn("Payment amount does not match the quoted amount");
+      return;
+    }
     if (parsed.scheme != null &&
         parsed.scheme!.isNotEmpty &&
         parsed.scheme != widget.coin.uriScheme) {
@@ -354,6 +363,11 @@ class _OpenCryptoPayConfirmViewState
     }
 
     final amount = evmUri.amount(fractionDigits: contract.decimals);
+    if (!_matchesQuotedAmount(amount)) {
+      _warn("Payment amount does not match the quoted amount");
+      return;
+    }
+
     final autoFillData = SendViewAutoFillData(
       address: evmUri.recipientAddress!,
       contactLabel: recipient,
