@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../route_generator.dart';
-import '../../../themes/stack_colors.dart';
-import '../../../utilities/assets.dart';
-import '../../../utilities/text_styles.dart';
-import '../../../widgets/desktop/desktop_app_bar.dart';
-import '../../../widgets/desktop/desktop_scaffold.dart';
-import '../../settings/settings_menu_item.dart';
-import 'desktop_gift_cards_view.dart';
-import 'desktop_shopinbit_view.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../settings/settings_menu_item.dart';
+import 'sub_widgets/desktop_gift_cards_view.dart';
+import 'sub_widgets/desktop_shopinbit_view.dart';
 
 final selectedServicesMenuItemStateProvider = StateProvider<int>((_) => 0);
 

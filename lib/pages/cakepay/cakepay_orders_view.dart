@@ -67,60 +67,6 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
     }
   }
 
-  String _statusLabel(CakePayOrderStatus status) {
-    switch (status) {
-      case CakePayOrderStatus.new_:
-        return "New";
-      case CakePayOrderStatus.expiredButStillPending:
-        return "Expired (pending)";
-      case CakePayOrderStatus.expired:
-        return "Expired";
-      case CakePayOrderStatus.failed:
-        return "Failed";
-      case CakePayOrderStatus.paid:
-        return "Paid";
-      case CakePayOrderStatus.paidPartial:
-        return "Partially paid";
-      case CakePayOrderStatus.pendingPurchase:
-        return "Pending purchase";
-      case CakePayOrderStatus.purchaseProcessing:
-        return "Processing";
-      case CakePayOrderStatus.purchased:
-        return "Purchased";
-      case CakePayOrderStatus.pendingEmail:
-        return "Pending email";
-      case CakePayOrderStatus.complete:
-        return "Complete";
-      case CakePayOrderStatus.pendingRefund:
-        return "Pending refund";
-      case CakePayOrderStatus.refunded:
-        return "Refunded";
-    }
-  }
-
-  Color _statusColor(BuildContext context, CakePayOrderStatus status) {
-    final colors = Theme.of(context).extension<StackColors>()!;
-    switch (status) {
-      case CakePayOrderStatus.complete:
-      case CakePayOrderStatus.purchased:
-        return colors.accentColorGreen;
-      case CakePayOrderStatus.new_:
-      case CakePayOrderStatus.paid:
-      case CakePayOrderStatus.paidPartial:
-        return colors.accentColorBlue;
-      case CakePayOrderStatus.pendingPurchase:
-      case CakePayOrderStatus.purchaseProcessing:
-      case CakePayOrderStatus.pendingEmail:
-      case CakePayOrderStatus.expiredButStillPending:
-        return colors.accentColorYellow;
-      case CakePayOrderStatus.expired:
-      case CakePayOrderStatus.failed:
-      case CakePayOrderStatus.pendingRefund:
-      case CakePayOrderStatus.refunded:
-        return colors.textSubtitle1;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -181,13 +127,16 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
                                   ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    color: _statusColor(
-                                      context,
-                                      order.status,
-                                    ).withValues(alpha: 0.2),
+                                    color: order.status
+                                        .color(
+                                          Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!,
+                                        )
+                                        .withValues(alpha: 0.2),
                                   ),
                                   child: Text(
-                                    _statusLabel(order.status),
+                                    order.status.label,
                                     style:
                                         (isDesktop
                                                 ? STextStyles.desktopTextExtraExtraSmall(
@@ -197,9 +146,10 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
                                                     context,
                                                   ))
                                             .copyWith(
-                                              color: _statusColor(
-                                                context,
-                                                order.status,
+                                              color: order.status.color(
+                                                Theme.of(
+                                                  context,
+                                                ).extension<StackColors>()!,
                                               ),
                                             ),
                                   ),

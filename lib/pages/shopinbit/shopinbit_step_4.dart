@@ -78,6 +78,12 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
   // Travel-specific controllers
   late final TextEditingController _departureCountryController;
   late final FocusNode _departureCountryFocusNode;
+  String? _selectedDepartureCountryIso;
+  final TextEditingController _departureCountrySearchController =
+      TextEditingController();
+  late final TextEditingController _arrangementDetailsController;
+  late final FocusNode _arrangementDetailsFocusNode;
+  bool _arrangementDetailsTouched = false;
   late final TextEditingController _departureCityController;
   late final FocusNode _departureCityFocusNode;
   late final TextEditingController _destinationsController;
@@ -251,7 +257,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       return !_submitting &&
           _privacyAccepted &&
           _selectedArrangement != null &&
-          _departureCountryController.text.trim().isNotEmpty &&
+          _arrangementDetailsController.text.trim().length >= 10 &&
+          _selectedDepartureCountryIso != null &&
           _departureCityController.text.trim().isNotEmpty &&
           (_needsRecommendations ||
               _destinationsController.text.trim().isNotEmpty) &&
@@ -338,6 +345,14 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
       }
       setState(() {});
     });
+    _arrangementDetailsController = TextEditingController();
+    _arrangementDetailsFocusNode = FocusNode();
+    _arrangementDetailsFocusNode.addListener(() {
+      if (!_arrangementDetailsFocusNode.hasFocus) {
+        _arrangementDetailsTouched = true;
+      }
+      setState(() {});
+    });
     _departureCityController = TextEditingController();
     _departureCityFocusNode = FocusNode();
     _departureCityFocusNode.addListener(() {
@@ -412,6 +427,9 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     _carBudgetFocusNode.dispose();
     _departureCountryController.dispose();
     _departureCountryFocusNode.dispose();
+    _departureCountrySearchController.dispose();
+    _arrangementDetailsController.dispose();
+    _arrangementDetailsFocusNode.dispose();
     _departureCityController.dispose();
     _departureCityFocusNode.dispose();
     _destinationsController.dispose();
@@ -483,8 +501,9 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     } else if (widget.model.category == ShopInBitCategory.travel) {
       final parts = <String>[
         "Arrangement: $_selectedArrangement",
+        "Details: ${_arrangementDetailsController.text.trim()}",
         "Departure: ${_departureCityController.text.trim()}, "
-            "${_departureCountryController.text.trim()}",
+            "${_selectedDepartureCountryIso ?? ''}",
       ];
 
       if (_needsRecommendations) {
@@ -792,6 +811,122 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     );
   }
 
+  Widget _buildDepartureCountryPicker(bool isDesktop) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<String>(
+          value: _selectedDepartureCountryIso,
+          items: _countries
+              .map(
+                (c) => DropdownMenuItem<String>(
+                  value: c['iso'] as String,
+                  child: Text(
+                    c['label'] as String,
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveText,
+                          )
+                        : STextStyles.w500_14(context),
+                  ),
+                ),
+              )
+              .toList(),
+          onMenuStateChange: (isOpen) {
+            if (!isOpen) {
+              _departureCountrySearchController.clear();
+            }
+          },
+          onChanged: _loadingCountries
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedDepartureCountryIso = value;
+                    _departureCountryTouched = true;
+                  });
+                },
+          hint: Text(
+            _loadingCountries ? "Loading countries..." : "Departure country",
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
+                  )
+                : STextStyles.fieldLabel(context),
+          ),
+          isExpanded: true,
+          buttonStyleData: ButtonStyleData(
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          iconStyleData: IconStyleData(
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 12,
+                height: 6,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              ),
+            ),
+          ),
+          dropdownStyleData: DropdownStyleData(
+            offset: const Offset(0, 0),
+            elevation: 0,
+            maxHeight: 300,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          dropdownSearchData: DropdownSearchData<String>(
+            searchController: _departureCountrySearchController,
+            searchInnerWidgetHeight: 48,
+            searchInnerWidget: TextFormField(
+              controller: _departureCountrySearchController,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                hintText: "Search...",
+                hintStyle: STextStyles.fieldLabel(context),
+                border: InputBorder.none,
+              ),
+            ),
+            searchMatchFn: (item, searchValue) {
+              final label = _countries
+                  .where((c) => c['iso'] == item.value)
+                  .map((c) => c['label'] as String)
+                  .firstOrNull;
+              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
+                  false;
+            },
+          ),
+          menuItemStyleData: const MenuItemStyleData(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPrivacyCheckbox(bool isDesktop) {
     return GestureDetector(
       onTap: () {
@@ -907,7 +1042,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               ? STextStyles.desktopTextSmall(context)
               : STextStyles.itemSubtitle(context),
         ),
-        SizedBox(height: isDesktop ? 32 : 24),
+        SizedBox(height: isDesktop ? 16 : 12),
 
         // What to purchase free-text field
         TextField(
@@ -1099,11 +1234,11 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
             ),
           ),
         ),
-        SizedBox(height: isDesktop ? 24 : 16),
+        SizedBox(height: isDesktop ? 12 : 12),
 
         // Country picker (shared)
         _buildCountryPicker(isDesktop),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 12 : 12),
 
         // Privacy checkbox (shared)
         _buildPrivacyCheckbox(isDesktop),
@@ -1814,19 +1949,12 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           onChanged: (val) => setState(() => _selectedArrangement = val),
           isDesktop: isDesktop,
         ),
-
-        // === Where ===
-        SizedBox(height: isDesktop ? 24 : 16),
-        Text(
-          "Where",
-          style: isDesktop
-              ? STextStyles.desktopTextSmall(context)
-              : STextStyles.w500_14(context),
-        ),
-        SizedBox(height: isDesktop ? 12 : 8),
+        SizedBox(height: isDesktop ? 16 : 12),
         TextField(
-          controller: _departureCountryController,
-          focusNode: _departureCountryFocusNode,
+          controller: _arrangementDetailsController,
+          focusNode: _arrangementDetailsFocusNode,
+          minLines: 3,
+          maxLines: 6,
           autocorrect: false,
           enableSuggestions: false,
           onChanged: (_) => setState(() {}),
@@ -1840,8 +1968,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               : STextStyles.field(context),
           decoration:
               standardInputDecoration(
-                "Departure country",
-                _departureCountryFocusNode,
+                "Describe your specific requirements (luggage, cabin class, hotel stars, etc.)",
+                _arrangementDetailsFocusNode,
                 context,
                 desktopMed: isDesktop,
               ).copyWith(
@@ -1850,9 +1978,24 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                   horizontal: 16,
                   vertical: 12,
                 ),
-                errorText: departureCountryError,
+                errorText:
+                    _arrangementDetailsTouched &&
+                        _arrangementDetailsController.text.trim().length < 10
+                    ? "Minimum 10 characters"
+                    : null,
               ),
         ),
+
+        // === Where ===
+        SizedBox(height: isDesktop ? 24 : 16),
+        Text(
+          "Where",
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.w500_14(context),
+        ),
+        SizedBox(height: isDesktop ? 12 : 8),
+        _buildDepartureCountryPicker(isDesktop),
         SizedBox(height: isDesktop ? 16 : 12),
         TextField(
           controller: _departureCityController,
@@ -1971,10 +2114,23 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           TextField(
             controller: _departureDateController,
             focusNode: _departureDateFocusNode,
-            autocorrect: false,
-            enableSuggestions: false,
-            keyboardType: TextInputType.datetime,
-            onChanged: (_) => setState(() {}),
+            readOnly: true,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 3650)),
+              );
+              if (picked != null) {
+                final formatted =
+                    "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
+                setState(() {
+                  _departureDateController.text = formatted;
+                  _departureDateTouched = true;
+                });
+              }
+            },
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(
@@ -1996,6 +2152,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                     vertical: 12,
                   ),
                   labelText: "Departure date",
+                  suffixIcon: const Icon(Icons.calendar_today, size: 18),
                   errorText: departureDateError,
                 ),
           ),
@@ -2003,10 +2160,23 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
           TextField(
             controller: _returnDateController,
             focusNode: _returnDateFocusNode,
-            autocorrect: false,
-            enableSuggestions: false,
-            keyboardType: TextInputType.datetime,
-            onChanged: (_) => setState(() {}),
+            readOnly: true,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 3650)),
+              );
+              if (picked != null) {
+                final formatted =
+                    "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
+                setState(() {
+                  _returnDateController.text = formatted;
+                  _returnDateTouched = true;
+                });
+              }
+            },
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(
@@ -2028,6 +2198,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                     vertical: 12,
                   ),
                   labelText: "Return date",
+                  suffixIcon: const Icon(Icons.calendar_today, size: 18),
                   errorText: returnDateError,
                 ),
           ),
@@ -2070,10 +2241,6 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               "October",
               "November",
               "December",
-              "Spring (Mar-May)",
-              "Summer (Jun-Aug)",
-              "Fall (Sep-Nov)",
-              "Winter (Dec-Feb)",
             ],
             hint: "Month or season",
             onChanged: (val) => setState(() => _selectedMonthSeason = val),

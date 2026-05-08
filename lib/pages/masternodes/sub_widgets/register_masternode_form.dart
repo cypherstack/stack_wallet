@@ -3,13 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../utilities/amount/amount.dart';
 import '../../../utilities/if_not_already.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/desktop/primary_button.dart';
@@ -22,10 +20,16 @@ class RegisterMasternodeForm extends ConsumerStatefulWidget {
   const RegisterMasternodeForm({
     super.key,
     required this.firoWalletId,
+    required this.collateralTxid,
+    required this.collateralVout,
+    required this.collateralAddress,
     required this.onRegistrationSuccess,
   });
 
   final String firoWalletId;
+  final String collateralTxid;
+  final int collateralVout;
+  final String collateralAddress;
 
   final void Function(String) onRegistrationSuccess;
 
@@ -36,8 +40,6 @@ class RegisterMasternodeForm extends ConsumerStatefulWidget {
 
 class _RegisterMasternodeFormState
     extends ConsumerState<RegisterMasternodeForm> {
-  late final Amount _masternodeThreshold;
-
   final _ipAndPortController = TextEditingController();
   final _operatorPubKeyController = TextEditingController();
   final _votingAddressController = TextEditingController();
@@ -104,6 +106,9 @@ class _RegisterMasternodeFormState
       votingAddress,
       operatorReward,
       payoutAddress,
+      collateralTxid: widget.collateralTxid,
+      collateralVout: widget.collateralVout,
+      collateralAddress: widget.collateralAddress,
     );
 
     Logging.instance.i('Masternode registration submitted: $txId');
@@ -114,11 +119,6 @@ class _RegisterMasternodeFormState
   @override
   void initState() {
     super.initState();
-    final coin = ref.read(pWalletCoin(widget.firoWalletId));
-    _masternodeThreshold = Amount.fromDecimal(
-      kMasterNodeValue,
-      fractionDigits: coin.fractionDigits,
-    );
 
     _register = IfNotAlreadyAsync<void>(() async {
       Exception? ex;
@@ -168,24 +168,6 @@ class _RegisterMasternodeFormState
   @override
   Widget build(BuildContext context) {
     final stack = Theme.of(context).extension<StackColors>()!;
-    final spendableFiro = ref.watch(
-      pWalletBalance(widget.firoWalletId).select((s) => s.spendable),
-    );
-    final canRegister = spendableFiro >= _masternodeThreshold;
-    final availableCount = (spendableFiro.raw ~/ _masternodeThreshold.raw)
-        .toInt();
-
-    final infoColor = canRegister
-        ? stack.snackBarTextSuccess
-        : stack.snackBarTextError;
-    final infoColorBG = canRegister
-        ? stack.snackBarBackSuccess
-        : stack.snackBarBackError;
-
-    final infoMessage = canRegister
-        ? "You can register $availableCount masternode(s)."
-        : "Insufficient funds to register a masternode. "
-              "You need at least 1000 public FIRO.";
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -195,14 +177,36 @@ class _RegisterMasternodeFormState
           children: [
             Expanded(
               child: RoundedContainer(
-                color: infoColorBG,
+                color: stack.textFieldDefaultBG,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    infoMessage,
-                    style: STextStyles.w600_14(
-                      context,
-                    ).copyWith(color: infoColor),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Masternode collateral",
+                        style: STextStyles.w500_12(
+                          context,
+                        ).copyWith(color: stack.textSubtitle1),
+                      ),
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        widget.collateralAddress,
+                        style: STextStyles.w500_14(
+                          context,
+                        ).copyWith(color: stack.textDark),
+                      ),
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        "${widget.collateralTxid}:${widget.collateralVout}",
+                        style: STextStyles.w500_12(
+                          context,
+                        ).copyWith(color: stack.textSubtitle1),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -121,15 +121,6 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
         final localIdx = _tickets.indexWhere((t) => t.apiTicketId == ref.id);
         if (localIdx < 0) continue;
 
-        // Skip API calls for terminal tickets; they can still be
-        // refreshed on-demand when the user opens the detail view.
-        final localStatus = _tickets[localIdx].status;
-        if (localStatus == ShopInBitOrderStatus.closed ||
-            localStatus == ShopInBitOrderStatus.cancelled ||
-            localStatus == ShopInBitOrderStatus.refunded) {
-          continue;
-        }
-
         // Car research tickets return 403 on /tickets/:id/* endpoints.
         if (_tickets[localIdx].category == ShopInBitCategory.car) continue;
 
@@ -139,6 +130,18 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
         _tickets[localIdx].status = ShopInBitOrderModel.statusFromTicketState(
           statusResp.value!.state,
         );
+
+        if (_tickets[localIdx].status == ShopInBitOrderStatus.offerAvailable &&
+            (_tickets[localIdx].offerProductName == null ||
+                _tickets[localIdx].offerPrice == null)) {
+          final offerResp = await service.client.getTicketFull(ref.id);
+          if (!offerResp.hasError && offerResp.value != null) {
+            _tickets[localIdx].setOffer(
+              productName: offerResp.value!.productName,
+              price: offerResp.value!.customerPrice,
+            );
+          }
+        }
 
         final msgsResp = await service.client.getMessages(ref.id);
         if (!msgsResp.hasError && msgsResp.value != null) {
