@@ -241,10 +241,7 @@ FCResult _markSparkAnonSetComplete(
       );
     }
 
-    db.execute(
-      "UPDATE SparkSet SET complete = 1 WHERE id = ?;",
-      [setId],
-    );
+    db.execute("UPDATE SparkSet SET complete = 1 WHERE id = ?;", [setId]);
 
     db.execute("COMMIT;");
     return FCResult(success: true);
@@ -284,10 +281,9 @@ FCResult _deleteIncompleteSparkSetsForGroup(Database db, int groupId) {
       """,
       [groupId],
     );
-    db.execute(
-      "DELETE FROM SparkSet WHERE groupId = ? AND complete = 0;",
-      [groupId],
-    );
+    db.execute("DELETE FROM SparkSet WHERE groupId = ? AND complete = 0;", [
+      groupId,
+    ]);
     db.execute("COMMIT;");
     return FCResult(success: true);
   } catch (e) {

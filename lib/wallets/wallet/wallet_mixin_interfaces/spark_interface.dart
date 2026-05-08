@@ -589,9 +589,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     for (final i in myCoinGroupIds) {
       final setInfo =
           await FiroCacheCoordinator.getSetCoinsAndLatestSetInfoForGroupId(
-        i,
-        cryptoCurrency.network,
-      );
+            i,
+            cryptoCurrency.network,
+          );
       if (setInfo == null || setInfo.coins.isEmpty) {
         continue;
       }

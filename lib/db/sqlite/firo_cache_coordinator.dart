@@ -42,12 +42,12 @@ abstract class FiroCacheCoordinator {
       "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}",
     );
 
-    final setSize =
-        (await setCacheFile.exists()) ? await setCacheFile.length() : 0;
-    final tagsSize =
-        (await usedTagsCacheFile.exists())
-            ? await usedTagsCacheFile.length()
-            : 0;
+    final setSize = (await setCacheFile.exists())
+        ? await setCacheFile.length()
+        : 0;
+    final tagsSize = (await usedTagsCacheFile.exists())
+        ? await usedTagsCacheFile.length()
+        : 0;
 
     Logging.instance.d("Spark cache used tags size: $tagsSize");
     Logging.instance.d("Spark cache anon set size: $setSize");
@@ -218,8 +218,7 @@ abstract class FiroCacheCoordinator {
         // the server's indexing has shifted; setHash disagreement at the
         // same blockHash would indicate the in-progress row targets a
         // different set snapshot and resuming would mix coin contexts.
-        if (incBlockHash != meta.blockHash ||
-            incSetHash != meta.setHash) {
+        if (incBlockHash != meta.blockHash || incSetHash != meta.setHash) {
           Logging.instance.i(
             "Spark anon set groupId=$groupId in-progress "
             "(blockHash=$incBlockHash, setHash=$incSetHash) does not "
@@ -380,17 +379,16 @@ abstract class FiroCacheCoordinator {
     String? afterBlockHash,
     required CryptoCurrencyNetwork network,
   }) async {
-    final resultSet =
-        afterBlockHash == null
-            ? await _Reader._getSetCoinsForGroupId(
-              groupId,
-              db: _FiroCache.setCacheDB(network),
-            )
-            : await _Reader._getSetCoinsForGroupIdAndBlockHash(
-              groupId,
-              afterBlockHash,
-              db: _FiroCache.setCacheDB(network),
-            );
+    final resultSet = afterBlockHash == null
+        ? await _Reader._getSetCoinsForGroupId(
+            groupId,
+            db: _FiroCache.setCacheDB(network),
+          )
+        : await _Reader._getSetCoinsForGroupIdAndBlockHash(
+            groupId,
+            afterBlockHash,
+            db: _FiroCache.setCacheDB(network),
+          );
 
     return resultSet
         .map(
@@ -407,7 +405,7 @@ abstract class FiroCacheCoordinator {
   }
 
   static Future<({SparkAnonymitySetMeta meta, List<RawSparkCoin> coins})?>
-      getSetCoinsAndLatestSetInfoForGroupId(
+  getSetCoinsAndLatestSetInfoForGroupId(
     int groupId,
     CryptoCurrencyNetwork network,
   ) async {
