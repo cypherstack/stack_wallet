@@ -1721,7 +1721,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
           if (singleTxOutputs.isEmpty) {
             if (autoMintAll) {
-              throw Exception("UTXO value is too small to cover Spark mint fee");
+              throw Exception(
+                "UTXO value is too small to cover Spark mint fee",
+              );
             }
             valueAndUTXOs.remove(itr);
             skipCoin = true;
@@ -2096,9 +2098,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           vin
               .map((e) => BigInt.from(e.utxo.value))
               .fold(BigInt.zero, (p, e) => p + e) -
-          vout
-              .map((e) => BigInt.from(e.$2))
-              .fold(BigInt.zero, (p, e) => p + e);
+          vout.map((e) => BigInt.from(e.$2)).fold(BigInt.zero, (p, e) => p + e);
       if (actualFee != nFeeRet) {
         Logging.instance.e(
           "Spark mint fee accounting mismatch: "
