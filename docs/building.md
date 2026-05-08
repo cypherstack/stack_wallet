@@ -43,18 +43,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson
-```
-
-For Ubuntu 20.04,
-```
-sudo apt-get install valac python3-pip
-pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
-```
-
-For Ubuntu 24.04,
-```
-sudo apt install pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
 pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
@@ -276,7 +265,7 @@ Install the following libraries:
 sudo apt-get install libgtk2.0-dev
 ```
 
-The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 20.04 host:
+The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
 
 - `stack_wallet/scripts/windows/build_all.sh`
 
