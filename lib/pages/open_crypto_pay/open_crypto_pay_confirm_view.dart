@@ -10,6 +10,8 @@ import '../../models/send_view_auto_fill_data.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
 import '../../services/open_crypto_pay/evm_uri.dart';
 import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
@@ -26,6 +28,8 @@ import '../../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -45,6 +49,7 @@ class OpenCryptoPayConfirmView extends ConsumerStatefulWidget {
     required this.selectedAsset,
     required this.walletId,
     required this.coin,
+    this.isDesktop = false,
   });
 
   final OpenCryptoPayPaymentDetails paymentDetails;
@@ -52,6 +57,7 @@ class OpenCryptoPayConfirmView extends ConsumerStatefulWidget {
   final OpenCryptoPayAsset selectedAsset;
   final String walletId;
   final CryptoCurrency coin;
+  final bool isDesktop;
 
   @override
   ConsumerState<OpenCryptoPayConfirmView> createState() =>
@@ -276,31 +282,45 @@ class _OpenCryptoPayConfirmViewState
       return;
     }
 
+    final autoFillData = SendViewAutoFillData(
+      address: parsed.address!,
+      contactLabel: recipient,
+      amount: parsed.amount,
+      note: "OpenCryptoPay: $recipient",
+      openCryptoPayCommit: OpenCryptoPayCommit(
+        callbackUrl: widget.paymentDetails.callback,
+        quoteId: widget.paymentDetails.quote!.id,
+        paymentId: widget.paymentDetails.quote!.paymentId,
+        method: widget.selectedMethod.method,
+        asset: widget.selectedAsset.asset,
+        expiresAt: expiresAt,
+        submissionFlow: submissionFlow,
+        minFee: widget.selectedMethod.minFee,
+        recipientAddress: parsed.address!,
+        amount: parsed.amount!,
+      ),
+    );
+
     if (!mounted) return;
-    await Navigator.of(context).pushNamed(
-      SendView.routeName,
-      arguments: Tuple3(
-        widget.walletId,
-        widget.coin,
-        SendViewAutoFillData(
-          address: parsed.address!,
-          contactLabel: recipient,
-          amount: parsed.amount,
-          note: "OpenCryptoPay: $recipient",
-          openCryptoPayCommit: OpenCryptoPayCommit(
-            callbackUrl: widget.paymentDetails.callback,
-            quoteId: widget.paymentDetails.quote!.id,
-            paymentId: widget.paymentDetails.quote!.paymentId,
-            method: widget.selectedMethod.method,
-            asset: widget.selectedAsset.asset,
-            expiresAt: expiresAt,
-            submissionFlow: submissionFlow,
-            minFee: widget.selectedMethod.minFee,
-            recipientAddress: parsed.address!,
-            amount: parsed.amount!,
+    if (widget.isDesktop) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => DesktopDialog(
+          maxHeight: MediaQuery.sizeOf(context).height - 64,
+          maxWidth: 580,
+          child: DesktopSend(
+            walletId: widget.walletId,
+            autoFillData: autoFillData,
           ),
         ),
-      ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).pushNamed(
+      SendView.routeName,
+      arguments: Tuple3(widget.walletId, widget.coin, autoFillData),
     );
   }
 
@@ -334,33 +354,46 @@ class _OpenCryptoPayConfirmViewState
     }
 
     final amount = evmUri.amount(fractionDigits: contract.decimals);
+    final autoFillData = SendViewAutoFillData(
+      address: evmUri.recipientAddress!,
+      contactLabel: recipient,
+      amount: amount,
+      note: "OpenCryptoPay: $recipient",
+      openCryptoPayCommit: OpenCryptoPayCommit(
+        callbackUrl: widget.paymentDetails.callback,
+        quoteId: widget.paymentDetails.quote!.id,
+        paymentId: widget.paymentDetails.quote!.paymentId,
+        method: widget.selectedMethod.method,
+        asset: widget.selectedAsset.asset,
+        expiresAt: expiresAt,
+        submissionFlow: submissionFlow,
+        minFee: widget.selectedMethod.minFee,
+        recipientAddress: evmUri.recipientAddress!,
+        amount: amount,
+        tokenContractAddress: contract.address,
+      ),
+    );
+
     if (!mounted) return;
-    await Navigator.of(context).pushNamed(
-      TokenSendView.routeName,
-      arguments: Tuple4(
-        widget.walletId,
-        widget.coin,
-        contract,
-        SendViewAutoFillData(
-          address: evmUri.recipientAddress!,
-          contactLabel: recipient,
-          amount: amount,
-          note: "OpenCryptoPay: $recipient",
-          openCryptoPayCommit: OpenCryptoPayCommit(
-            callbackUrl: widget.paymentDetails.callback,
-            quoteId: widget.paymentDetails.quote!.id,
-            paymentId: widget.paymentDetails.quote!.paymentId,
-            method: widget.selectedMethod.method,
-            asset: widget.selectedAsset.asset,
-            expiresAt: expiresAt,
-            submissionFlow: submissionFlow,
-            minFee: widget.selectedMethod.minFee,
-            recipientAddress: evmUri.recipientAddress!,
-            amount: amount,
-            tokenContractAddress: contract.address,
+    if (widget.isDesktop) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => DesktopDialog(
+          maxHeight: MediaQuery.sizeOf(context).height - 64,
+          maxWidth: 580,
+          child: DesktopTokenSend(
+            walletId: widget.walletId,
+            autoFillData: autoFillData,
           ),
         ),
-      ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).pushNamed(
+      TokenSendView.routeName,
+      arguments: Tuple4(widget.walletId, widget.coin, contract, autoFillData),
     );
   }
 
@@ -376,6 +409,27 @@ class _OpenCryptoPayConfirmViewState
 
   @override
   Widget build(BuildContext context) {
+    final body = Padding(
+      padding: const EdgeInsets.all(16),
+      child: _OpenCryptoPayConfirmBody(
+        isLoading: _isLoading,
+        errorMessage: _errorMessage,
+        paymentDetails: widget.paymentDetails,
+        selectedMethod: widget.selectedMethod,
+        selectedAsset: widget.selectedAsset,
+        txDetails: _txDetails,
+        onRetry: () => unawaited(_fetch()),
+        onProceed: () => unawaited(_proceedToSend()),
+      ),
+    );
+
+    if (widget.isDesktop) {
+      return _OpenCryptoPayConfirmDesktopFrame(
+        title: "Confirm Payment",
+        child: body,
+      );
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -389,21 +443,43 @@ class _OpenCryptoPayConfirmViewState
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: _OpenCryptoPayConfirmBody(
-              isLoading: _isLoading,
-              errorMessage: _errorMessage,
-              paymentDetails: widget.paymentDetails,
-              selectedMethod: widget.selectedMethod,
-              selectedAsset: widget.selectedAsset,
-              txDetails: _txDetails,
-              onRetry: () => unawaited(_fetch()),
-              onProceed: () => unawaited(_proceedToSend()),
-            ),
+        body: SafeArea(child: body),
+      ),
+    );
+  }
+}
+
+class _OpenCryptoPayConfirmDesktopFrame extends StatelessWidget {
+  const _OpenCryptoPayConfirmDesktopFrame({
+    required this.title,
+    required this.child,
+  });
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height - 64,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(title, style: STextStyles.desktopH3(context)),
+              ),
+              const DesktopDialogCloseButton(),
+            ],
           ),
-        ),
+          Flexible(child: child),
+        ],
       ),
     );
   }

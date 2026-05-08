@@ -16,6 +16,8 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -39,6 +41,7 @@ class OpenCryptoPayView extends ConsumerStatefulWidget {
     required this.qrUrl,
     required this.walletId,
     required this.coin,
+    this.isDesktop = false,
   });
 
   static const String routeName = "/openCryptoPayView";
@@ -48,6 +51,7 @@ class OpenCryptoPayView extends ConsumerStatefulWidget {
   /// Only methods/assets this wallet can safely settle are offered.
   final String walletId;
   final CryptoCurrency coin;
+  final bool isDesktop;
 
   @override
   ConsumerState<OpenCryptoPayView> createState() => _OpenCryptoPayViewState();
@@ -128,17 +132,34 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       return;
     }
 
-    final result = await Navigator.of(context).push<OpenCryptoPayConfirmResult>(
-      MaterialPageRoute<OpenCryptoPayConfirmResult>(
-        builder: (_) => OpenCryptoPayConfirmView(
-          paymentDetails: _details!,
-          selectedMethod: method,
-          selectedAsset: asset,
-          walletId: widget.walletId,
-          coin: widget.coin,
-        ),
-      ),
-    );
+    final result = widget.isDesktop
+        ? await showDialog<OpenCryptoPayConfirmResult>(
+            context: context,
+            barrierDismissible: true,
+            builder: (_) => DesktopDialog(
+              maxHeight: MediaQuery.sizeOf(context).height - 64,
+              maxWidth: 580,
+              child: OpenCryptoPayConfirmView(
+                paymentDetails: _details!,
+                selectedMethod: method,
+                selectedAsset: asset,
+                walletId: widget.walletId,
+                coin: widget.coin,
+                isDesktop: true,
+              ),
+            ),
+          )
+        : await Navigator.of(context).push<OpenCryptoPayConfirmResult>(
+            MaterialPageRoute<OpenCryptoPayConfirmResult>(
+              builder: (_) => OpenCryptoPayConfirmView(
+                paymentDetails: _details!,
+                selectedMethod: method,
+                selectedAsset: asset,
+                walletId: widget.walletId,
+                coin: widget.coin,
+              ),
+            ),
+          );
 
     if (result == OpenCryptoPayConfirmResult.quoteExpired && mounted) {
       await _fetch();
@@ -147,6 +168,24 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
 
   @override
   Widget build(BuildContext context) {
+    final body = Padding(
+      padding: const EdgeInsets.all(16),
+      child: _OpenCryptoPayBody(
+        isLoading: _isLoading,
+        errorMessage: _errorMessage,
+        details: _details,
+        coin: widget.coin,
+        enabledErc20Tokens: _details == null ? const [] : _enabledErc20Tokens(),
+        isSupportedOption: _isSupportedOption,
+        onRetry: () => unawaited(_fetch()),
+        onSelected: (method, asset) => unawaited(_onSelected(method, asset)),
+      ),
+    );
+
+    if (widget.isDesktop) {
+      return _OpenCryptoPayDesktopFrame(title: "Open CryptoPay", child: body);
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -160,24 +199,40 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: _OpenCryptoPayBody(
-              isLoading: _isLoading,
-              errorMessage: _errorMessage,
-              details: _details,
-              coin: widget.coin,
-              enabledErc20Tokens: _details == null
-                  ? const []
-                  : _enabledErc20Tokens(),
-              isSupportedOption: _isSupportedOption,
-              onRetry: () => unawaited(_fetch()),
-              onSelected: (method, asset) =>
-                  unawaited(_onSelected(method, asset)),
-            ),
+        body: SafeArea(child: body),
+      ),
+    );
+  }
+}
+
+class _OpenCryptoPayDesktopFrame extends StatelessWidget {
+  const _OpenCryptoPayDesktopFrame({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height - 64,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(title, style: STextStyles.desktopH3(context)),
+              ),
+              const DesktopDialogCloseButton(),
+            ],
           ),
-        ),
+          Flexible(child: child),
+        ],
       ),
     );
   }

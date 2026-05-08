@@ -23,6 +23,7 @@ import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/masternodes/masternodes_home_view.dart';
 import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
 import '../../../../pages/salvium_stake/salvium_create_stake_view.dart';
@@ -32,6 +33,7 @@ import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/wallet/my_paynym_account_state_provider.dart';
+import '../../../../services/open_crypto_pay/lnurl_utils.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -61,6 +63,7 @@ import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
@@ -78,6 +81,7 @@ enum WalletFeature {
   anonymizeFunds("Privatize funds", "Privatize funds"),
   swap("Swap", ""),
   buy("Buy", "Buy cryptocurrency"),
+  openCryptoPay("Pay", "Open CryptoPay payments"),
   paynym("PayNym", "Increased address privacy using BIP47"),
   coinControl(
     "Coin control",
@@ -129,6 +133,58 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     ref.read(currentDesktopMenuItemProvider.state).state =
         DesktopMenuItemId.buy;
     ref.read(prevDesktopMenuItemProvider.state).state = DesktopMenuItemId.buy;
+  }
+
+  Future<void> _onOpenCryptoPayPressed() async {
+    try {
+      final qrResult = await showDialog<String>(
+        context: context,
+        builder: (_) => const QrCodeScannerDialog(),
+      );
+
+      if (qrResult == null) {
+        Logging.instance.w("Qr scanning cancelled");
+        return;
+      }
+
+      if (!LnurlUtils.isOpenCryptoPayUrl(qrResult)) {
+        if (mounted) {
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message:
+                  "The scanned QR code is not an Open CryptoPay payment code.",
+              context: context,
+            ),
+          );
+        }
+        return;
+      }
+
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => DesktopDialog(
+          maxHeight: MediaQuery.sizeOf(context).height - 64,
+          maxWidth: 580,
+          child: OpenCryptoPayView(
+            qrUrl: qrResult,
+            walletId: widget.walletId,
+            coin: wallet.info.coin,
+            isDesktop: true,
+          ),
+        ),
+      );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to scan QR for OpenCryptoPay",
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   Future<void> _onMorePressed(
@@ -493,6 +549,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (showExchange && AppConfig.hasFeature(AppFeature.buy))
         (WalletFeature.buy, Assets.svg.swap, _onBuyPressed),
+
+      if (!isViewOnly)
+        (
+          WalletFeature.openCryptoPay,
+          Assets.svg.qrcode,
+          _onOpenCryptoPayPressed,
+        ),
 
       if (wallet is LibSalviumWallet)
         (
