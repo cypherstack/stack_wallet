@@ -80,6 +80,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
   bool _sending = false;
   bool _loading = false;
   bool _retrying = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
@@ -87,11 +88,18 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
     _messageController = TextEditingController();
     if (widget.model.apiTicketId != 0) {
       _loadFromApi();
+      if (!_isCarResearch) {
+        _pollTimer = Timer.periodic(
+          const Duration(seconds: 30),
+          (_) => _loadFromApi(),
+        );
+      }
     }
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _messageController.dispose();
     super.dispose();
   }
@@ -129,6 +137,19 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
           widget.model.status = ShopInBitOrderModel.statusFromTicketState(
             statusResp.value!.state,
           );
+        }
+
+        if (widget.model.status == ShopInBitOrderStatus.offerAvailable &&
+            (widget.model.offerProductName == null ||
+                widget.model.offerPrice == null)) {
+          final offerResp = await client.getTicketFull(id);
+          if (!offerResp.hasError && offerResp.value != null) {
+            final t = offerResp.value!;
+            widget.model.setOffer(
+              productName: t.productName,
+              price: t.customerPrice,
+            );
+          }
         }
       }
 

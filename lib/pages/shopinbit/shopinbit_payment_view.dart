@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
@@ -33,7 +31,6 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_send_from_view.dart';
-import 'shopinbit_tickets_view.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({super.key, required this.model});
@@ -48,7 +45,6 @@ class ShopInBitPaymentView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
-  bool _termsAccepted = false;
   bool _loading = false;
   int _selectedMethod = 0;
   Timer? _pollTimer;
@@ -76,8 +72,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     'payment_processing',
   }.contains(_status);
 
-  bool get _payNowEnabled =>
-      _termsAccepted && !_isExpiredOrInvalid && !_isTerminal;
+  bool get _payNowEnabled => !_isExpiredOrInvalid && !_isTerminal;
 
   @override
   void initState() {
@@ -158,11 +153,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       setState(() => _loading = false);
       _startPolling();
     }
-  }
-
-  Future<void> _openTerms() async {
-    const url = "https://api.shopinbit.com/static/policy/terms.html";
-    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
   Future<void> _checkForPayment() async {
@@ -334,6 +324,14 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     Navigator.of(context).pop();
   }
 
+  void _navigateToTickets() {
+    if (Util.isDesktop) {
+      Navigator.of(context, rootNavigator: true).pop();
+    } else {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
   void _navigateToSendFrom({
     required CryptoCurrency coin,
     required Amount? amount,
@@ -466,16 +464,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           ],
         ),
       ),
-    );
-  }
-
-  void _copyAddress(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: _currentAddress));
-    showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
     );
   }
 
@@ -709,59 +697,15 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
               ],
             ),
           ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          PrimaryButton(
+            label: "View My Requests",
+            onPressed: _navigateToTickets,
+          ),
         ],
         SizedBox(height: isDesktop ? 24 : 16),
         // Coin list (replaces tab selector + QR + address + global button)
         if (!_isExpiredOrInvalid) ...coinRows,
-        SizedBox(height: isDesktop ? 16 : 12),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _termsAccepted = !_termsAccepted;
-            });
-          },
-          child: Container(
-            color: Colors.transparent,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: IgnorePointer(
-                    child: Checkbox(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _termsAccepted,
-                      onChanged: (_) {},
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                          : STextStyles.w500_14(context),
-                      children: [
-                        const TextSpan(text: "I accept the "),
-                        TextSpan(
-                          text: "Terms & Conditions",
-                          style: STextStyles.richLink(
-                            context,
-                          ).copyWith(fontSize: isDesktop ? null : 14),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = _openTerms,
-                        ),
-                        const TextSpan(text: "."),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
 

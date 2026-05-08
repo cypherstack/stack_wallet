@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import '../../../../themes/stack_colors.dart';
 import 'order_item.dart';
 
 enum CakePayOrderStatus {
@@ -23,6 +26,41 @@ enum CakePayOrderStatus {
       (e) => e.value == s,
       orElse: () => CakePayOrderStatus.new_,
     );
+  }
+
+  String get label => switch (this) {
+    CakePayOrderStatus.new_ => "New",
+    CakePayOrderStatus.expiredButStillPending => "Expired (pending)",
+    CakePayOrderStatus.expired => "Expired",
+    CakePayOrderStatus.failed => "Failed",
+    CakePayOrderStatus.paid => "Paid",
+    CakePayOrderStatus.paidPartial => "Partially paid",
+    CakePayOrderStatus.pendingPurchase => "Pending purchase",
+    CakePayOrderStatus.purchaseProcessing => "Processing",
+    CakePayOrderStatus.purchased => "Purchased",
+    CakePayOrderStatus.pendingEmail => "Pending email",
+    CakePayOrderStatus.complete => "Complete",
+    CakePayOrderStatus.pendingRefund => "Pending refund",
+    CakePayOrderStatus.refunded => "Refunded",
+  };
+
+  Color color(StackColors themeColors) {
+    return switch (this) {
+      CakePayOrderStatus.complete ||
+      CakePayOrderStatus.purchased => themeColors.accentColorGreen,
+      CakePayOrderStatus.new_ ||
+      CakePayOrderStatus.paid ||
+      CakePayOrderStatus.paidPartial => themeColors.accentColorBlue,
+      CakePayOrderStatus.pendingPurchase ||
+      CakePayOrderStatus.purchaseProcessing ||
+      CakePayOrderStatus.pendingEmail ||
+      CakePayOrderStatus.expiredButStillPending =>
+        themeColors.accentColorYellow,
+      CakePayOrderStatus.expired ||
+      CakePayOrderStatus.failed ||
+      CakePayOrderStatus.pendingRefund ||
+      CakePayOrderStatus.refunded => themeColors.textSubtitle1,
+    };
   }
 }
 

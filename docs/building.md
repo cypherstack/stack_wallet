@@ -89,7 +89,7 @@ After installing the prerequisites listed above, download the code and init the 
 ```
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
-git submodule update --init --recursive
+git submodule foreach 'git fetch --tags' && git submodule update --init --recursive
 ```
 
 Build the secure storage dependencies in order to target Linux (not needed for Windows or other platforms):

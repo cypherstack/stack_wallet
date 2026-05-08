@@ -395,7 +395,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<Address> generateNextSparkAddress({required bool saveToDB}) async {
     final currentDiversifier =
-        (await getCurrentReceivingAddress())?.derivationIndex;
+        (await getCurrentReceivingSparkAddress())?.derivationIndex;
     // if current is null, start at index 1
     int diversifier = (currentDiversifier ?? 0) + 1;
     if (diversifier == libSpark.sparkChange) {
