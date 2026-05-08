@@ -390,77 +390,159 @@ class _OpenCryptoPayConfirmViewState
           ),
         ),
         body: SafeArea(
-          child: Padding(padding: const EdgeInsets.all(16), child: _body()),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: _OpenCryptoPayConfirmBody(
+              isLoading: _isLoading,
+              errorMessage: _errorMessage,
+              paymentDetails: widget.paymentDetails,
+              selectedMethod: widget.selectedMethod,
+              selectedAsset: widget.selectedAsset,
+              txDetails: _txDetails,
+              onRetry: () => unawaited(_fetch()),
+              onProceed: () => unawaited(_proceedToSend()),
+            ),
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _body() {
-    if (_isLoading) return const Center(child: LoadingIndicator());
+class _OpenCryptoPayConfirmBody extends StatelessWidget {
+  const _OpenCryptoPayConfirmBody({
+    required this.isLoading,
+    required this.errorMessage,
+    required this.paymentDetails,
+    required this.selectedMethod,
+    required this.selectedAsset,
+    required this.txDetails,
+    required this.onRetry,
+    required this.onProceed,
+  });
 
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _errorMessage!,
-              style: STextStyles.itemSubtitle(context),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            PrimaryButton(label: "Retry", onPressed: _fetch),
-          ],
-        ),
-      );
+  final bool isLoading;
+  final String? errorMessage;
+  final OpenCryptoPayPaymentDetails paymentDetails;
+  final OpenCryptoPayTransferMethod selectedMethod;
+  final OpenCryptoPayAsset selectedAsset;
+  final OpenCryptoPayTransactionDetails? txDetails;
+  final VoidCallback onRetry;
+  final VoidCallback onProceed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) return const Center(child: LoadingIndicator());
+
+    final error = errorMessage;
+    if (error != null) {
+      return _OpenCryptoPayConfirmError(message: error, onRetry: onRetry);
     }
 
-    final details = widget.paymentDetails;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          RoundedWhiteContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Payment Summary",
-                  style: STextStyles.itemSubtitle12(context),
-                ),
-                const SizedBox(height: 8),
-                if (details.recipient?.name != null)
-                  _row("To", details.recipient!.name!),
-                if (details.requestedAmount != null)
-                  _row(
-                    "Fiat amount",
-                    "${details.requestedAmount!.amount} "
-                        "${details.requestedAmount!.asset}",
-                  ),
-                _row(
-                  "Crypto amount",
-                  "${widget.selectedAsset.amount} "
-                      "${widget.selectedAsset.asset}",
-                ),
-                _row("Network", widget.selectedMethod.method),
-              ],
-            ),
+          _OpenCryptoPaySummaryCard(
+            paymentDetails: paymentDetails,
+            selectedMethod: selectedMethod,
+            selectedAsset: selectedAsset,
           ),
-          if (_txDetails?.hint != null) ...[
+          if (txDetails?.hint != null) ...[
             const SizedBox(height: 16),
             RoundedWhiteContainer(
-              child: Text(_txDetails!.hint!, style: STextStyles.label(context)),
+              child: Text(txDetails!.hint!, style: STextStyles.label(context)),
             ),
           ],
           const SizedBox(height: 24),
-          PrimaryButton(label: "Proceed to Send", onPressed: _proceedToSend),
+          PrimaryButton(label: "Proceed to Send", onPressed: onProceed),
         ],
       ),
     );
   }
+}
 
-  Widget _row(String label, String value) {
+class _OpenCryptoPayConfirmError extends StatelessWidget {
+  const _OpenCryptoPayConfirmError({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            message,
+            style: STextStyles.itemSubtitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(label: "Retry", onPressed: onRetry),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenCryptoPaySummaryCard extends StatelessWidget {
+  const _OpenCryptoPaySummaryCard({
+    required this.paymentDetails,
+    required this.selectedMethod,
+    required this.selectedAsset,
+  });
+
+  final OpenCryptoPayPaymentDetails paymentDetails;
+  final OpenCryptoPayTransferMethod selectedMethod;
+  final OpenCryptoPayAsset selectedAsset;
+
+  @override
+  Widget build(BuildContext context) {
+    return RoundedWhiteContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Payment Summary", style: STextStyles.itemSubtitle12(context)),
+          const SizedBox(height: 8),
+          if (paymentDetails.recipient?.name != null)
+            _OpenCryptoPaySummaryRow(
+              label: "To",
+              value: paymentDetails.recipient!.name!,
+            ),
+          if (paymentDetails.requestedAmount != null)
+            _OpenCryptoPaySummaryRow(
+              label: "Fiat amount",
+              value:
+                  "${paymentDetails.requestedAmount!.amount} "
+                  "${paymentDetails.requestedAmount!.asset}",
+            ),
+          _OpenCryptoPaySummaryRow(
+            label: "Crypto amount",
+            value: "${selectedAsset.amount} ${selectedAsset.asset}",
+          ),
+          _OpenCryptoPaySummaryRow(
+            label: "Network",
+            value: selectedMethod.method,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenCryptoPaySummaryRow extends StatelessWidget {
+  const _OpenCryptoPaySummaryRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(

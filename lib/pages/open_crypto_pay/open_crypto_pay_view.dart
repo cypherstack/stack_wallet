@@ -21,6 +21,16 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'open_crypto_pay_confirm_view.dart';
 
+typedef _OpenCryptoPayOptionSupported =
+    bool Function(
+      OpenCryptoPayTransferMethod method,
+      OpenCryptoPayAsset asset,
+      Iterable<EthContract> enabledErc20Tokens,
+    );
+
+typedef _OpenCryptoPayOptionSelected =
+    void Function(OpenCryptoPayTransferMethod method, OpenCryptoPayAsset asset);
+
 /// Shows the payment details from an Open CryptoPay QR code and lets the user
 /// choose a payment method/asset that is supported by this wallet.
 class OpenCryptoPayView extends ConsumerStatefulWidget {
@@ -151,44 +161,67 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
           ),
         ),
         body: SafeArea(
-          child: Padding(padding: const EdgeInsets.all(16), child: _body()),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: _OpenCryptoPayBody(
+              isLoading: _isLoading,
+              errorMessage: _errorMessage,
+              details: _details,
+              coin: widget.coin,
+              enabledErc20Tokens: _details == null
+                  ? const []
+                  : _enabledErc20Tokens(),
+              isSupportedOption: _isSupportedOption,
+              onRetry: () => unawaited(_fetch()),
+              onSelected: (method, asset) =>
+                  unawaited(_onSelected(method, asset)),
+            ),
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _body() {
-    if (_isLoading) return const Center(child: LoadingIndicator());
+class _OpenCryptoPayBody extends StatelessWidget {
+  const _OpenCryptoPayBody({
+    required this.isLoading,
+    required this.errorMessage,
+    required this.details,
+    required this.coin,
+    required this.enabledErc20Tokens,
+    required this.isSupportedOption,
+    required this.onRetry,
+    required this.onSelected,
+  });
 
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _errorMessage!,
-              style: STextStyles.itemSubtitle(context),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            PrimaryButton(label: "Retry", onPressed: _fetch),
-          ],
-        ),
-      );
+  final bool isLoading;
+  final String? errorMessage;
+  final OpenCryptoPayPaymentDetails? details;
+  final CryptoCurrency coin;
+  final List<EthContract> enabledErc20Tokens;
+  final _OpenCryptoPayOptionSupported isSupportedOption;
+  final VoidCallback onRetry;
+  final _OpenCryptoPayOptionSelected onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) return const Center(child: LoadingIndicator());
+
+    final error = errorMessage;
+    if (error != null) {
+      return _OpenCryptoPayError(message: error, onRetry: onRetry);
     }
 
-    final details = _details;
+    final details = this.details;
     if (details == null) {
       return const Center(child: Text("No payment data"));
     }
 
-    final enabledErc20Tokens = _enabledErc20Tokens();
-
-    // Flatten into (method, asset) pairs that this wallet can safely settle.
     final options = [
       for (final m in details.availableMethods)
         for (final a in m.assets)
-          if (_isSupportedOption(m, a, enabledErc20Tokens))
+          if (isSupportedOption(m, a, enabledErc20Tokens))
             (method: m, asset: a),
     ];
 
@@ -197,11 +230,11 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (details.recipient != null) ...[
-            _recipientCard(details.recipient!),
+            _OpenCryptoPayRecipientCard(recipient: details.recipient!),
             const SizedBox(height: 16),
           ],
           if (details.requestedAmount != null) ...[
-            _amountCard(details),
+            _OpenCryptoPayAmountCard(details: details),
             const SizedBox(height: 16),
           ],
           Text(
@@ -213,7 +246,7 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
             RoundedWhiteContainer(
               child: Text(
                 "No supported Open CryptoPay option available for "
-                "${widget.coin.prettyName}.",
+                "${coin.prettyName}.",
                 style: STextStyles.itemSubtitle(context),
               ),
             )
@@ -221,7 +254,11 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
             ...options.map(
               (o) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: _methodCard(o.method, o.asset),
+                child: _OpenCryptoPayMethodCard(
+                  method: o.method,
+                  asset: o.asset,
+                  onTap: () => onSelected(o.method, o.asset),
+                ),
               ),
             ),
           if (details.quote != null) ...[
@@ -235,8 +272,40 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       ),
     );
   }
+}
 
-  Widget _recipientCard(OpenCryptoPayRecipient recipient) {
+class _OpenCryptoPayError extends StatelessWidget {
+  const _OpenCryptoPayError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            message,
+            style: STextStyles.itemSubtitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(label: "Retry", onPressed: onRetry),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenCryptoPayRecipientCard extends StatelessWidget {
+  const _OpenCryptoPayRecipientCard({required this.recipient});
+
+  final OpenCryptoPayRecipient recipient;
+
+  @override
+  Widget build(BuildContext context) {
     return RoundedWhiteContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,8 +326,15 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       ),
     );
   }
+}
 
-  Widget _amountCard(OpenCryptoPayPaymentDetails details) {
+class _OpenCryptoPayAmountCard extends StatelessWidget {
+  const _OpenCryptoPayAmountCard({required this.details});
+
+  final OpenCryptoPayPaymentDetails details;
+
+  @override
+  Widget build(BuildContext context) {
     return RoundedWhiteContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,13 +356,23 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       ),
     );
   }
+}
 
-  Widget _methodCard(
-    OpenCryptoPayTransferMethod method,
-    OpenCryptoPayAsset asset,
-  ) {
+class _OpenCryptoPayMethodCard extends StatelessWidget {
+  const _OpenCryptoPayMethodCard({
+    required this.method,
+    required this.asset,
+    required this.onTap,
+  });
+
+  final OpenCryptoPayTransferMethod method;
+  final OpenCryptoPayAsset asset;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _onSelected(method, asset),
+      onTap: onTap,
       child: RoundedWhiteContainer(
         child: Row(
           children: [
