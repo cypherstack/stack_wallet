@@ -19,11 +19,14 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -76,7 +79,7 @@ jobs:
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: flutter build linux --release
+        run: flutter build linux --release --verbose
 
       - name: Package
         run: |
@@ -90,11 +93,14 @@ jobs:
 
   build-android:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -186,7 +192,7 @@ jobs:
           path: android-artifacts/
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     defaults:
       run:
         shell: bash
@@ -214,6 +220,13 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
 
       - name: Configure app
         run: |
@@ -243,6 +256,9 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build secp256k1.dll for Windows
+        run: dart run coinlib:build_windows
 
       - name: Build
         run: flutter build windows --release
@@ -284,6 +300,10 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
 
       - name: Configure app
         run: |
@@ -355,10 +375,19 @@ jobs:
           toolchain: '1.71.0'
           targets: aarch64-apple-ios
 
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
 
       - name: Configure app
         run: |

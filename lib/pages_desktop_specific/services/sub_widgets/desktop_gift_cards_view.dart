@@ -59,6 +59,10 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
                       Assets.svg.creditCard,
                       width: 48,
                       height: 48,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).extension<StackColors>()!.textDark,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                   Padding(

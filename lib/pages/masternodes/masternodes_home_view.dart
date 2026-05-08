@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar_community/isar.dart';
+
+import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -10,7 +13,6 @@ import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -68,9 +70,9 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
   Future<({String txid, int vout, String address})?>
   _findCollateralUtxo() async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
-    final List<UTXO> utxos =
-        await (wallet.mainDB.getUTXOs(widget.walletId) as dynamic).findAll()
-            as List<UTXO>;
+    final List<UTXO> utxos = await wallet.mainDB
+        .getUTXOs(widget.walletId)
+        .findAll();
     final currentChainHeight = await wallet.chainHeight;
     final masternodeRaw = Amount.fromDecimal(
       kMasterNodeValue,
