@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../models/epic_slatepack_models.dart';
@@ -81,6 +82,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
+import '../masternodes/masternodes_home_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -142,6 +144,7 @@ class _SendViewState extends ConsumerState<SendView> {
   late final bool hasOptionalMemo;
   late final bool isFiro;
   late final bool isEth;
+  late final bool _isMasternodeCollateralSelfSend;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -268,6 +271,82 @@ class _SendViewState extends ConsumerState<SendView> {
         });
       }
     }
+  }
+
+  Future<void> _pickMyAddressForMasternodeCollateral() async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! FiroWallet) {
+      return;
+    }
+
+    var currentAddress = await wallet.getCurrentReceivingAddress();
+    if (currentAddress == null) {
+      await wallet.generateNewReceivingAddress();
+      currentAddress = await wallet.getCurrentReceivingAddress();
+    }
+
+    final allWalletAddresses = await wallet.mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAll();
+
+    final transparentAddresses = allWalletAddresses
+        .where((e) => e.type != AddressType.spark)
+        .map((e) => e.value)
+        .where((String e) => e.isNotEmpty)
+        .toSet();
+
+    if (currentAddress != null &&
+        wallet.cryptoCurrency.getAddressType(currentAddress.value) !=
+            AddressType.spark) {
+      transparentAddresses.add(currentAddress.value);
+    }
+
+    final addresses = <String>{...transparentAddresses}.toList()..sort();
+
+    if (!mounted || addresses.isEmpty) {
+      return;
+    }
+
+    final selectedAddress = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Choose your address"),
+        content: SizedBox(
+          width: 520,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: addresses.length,
+            itemBuilder: (_, index) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                addresses[index],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => Navigator.of(ctx).pop(addresses[index]),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+        ],
+      ),
+    );
+
+    if (selectedAddress == null) {
+      return;
+    }
+
+    _address = selectedAddress;
+    sendToController.text = selectedAddress;
+    _setValidAddressProviders(_address);
+    setState(() {
+      _addressToggleFlag = true;
+    });
   }
 
   Future<void> _scanQr() async {
@@ -867,13 +946,15 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     }
 
+    final shouldShowBuildingDialog = mounted && !Util.isDesktop;
     try {
       bool wasCancelled = false;
 
-      if (mounted) {
+      if (shouldShowBuildingDialog) {
         unawaited(
           showDialog<void>(
             context: context,
+            useRootNavigator: false,
             useSafeArea: false,
             barrierDismissible: false,
             builder: (context) {
@@ -885,8 +966,6 @@ class _SendViewState extends ConsumerState<SendView> {
                         BalanceType.private,
                 onCancel: () {
                   wasCancelled = true;
-
-                  Navigator.of(context).pop();
                 },
               );
             },
@@ -1062,8 +1141,10 @@ class _SendViewState extends ConsumerState<SendView> {
           txData = txData.copyWith(noteOnChain: onChainNoteController.text);
         }
 
-        // pop building dialog
-        Navigator.of(context).pop();
+        if (shouldShowBuildingDialog) {
+          // pop building dialog
+          Navigator.of(context, rootNavigator: false).pop();
+        }
 
         unawaited(
           Navigator.of(context).push(
@@ -1073,7 +1154,11 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: txData,
                 walletId: walletId,
                 isPaynymTransaction: isPaynymSend,
-                onSuccess: clearSendForm,
+                onSuccess: () {
+                  if (mounted) {
+                    clearSendForm();
+                  }
+                },
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -1085,8 +1170,10 @@ class _SendViewState extends ConsumerState<SendView> {
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
-        // pop building dialog
-        Navigator.of(context).pop();
+        if (shouldShowBuildingDialog) {
+          // pop building dialog
+          Navigator.of(context, rootNavigator: false).pop();
+        }
 
         unawaited(
           showDialog<dynamic>(
@@ -1266,8 +1353,14 @@ class _SendViewState extends ConsumerState<SendView> {
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
+    _isMasternodeCollateralSelfSend =
+        (_data?.note.contains("Masternode collateral prep") ?? false) && isFiro;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isMasternodeCollateralSelfSend) {
+        ref.read(publicPrivateBalanceStateProvider.state).state =
+            BalanceType.public;
+      }
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
@@ -1476,12 +1569,10 @@ class _SendViewState extends ConsumerState<SendView> {
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 50));
-              }
-              if (context.mounted) {
+            onPressed: () {
+              if (_isMasternodeCollateralSelfSend) {
+                Navigator.of(context).pop();
+              } else {
                 Navigator.of(context).pop();
               }
             },
@@ -1827,6 +1918,18 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         arguments: widget.coin,
                                                       );
                                                     },
+                                                    child:
+                                                        const AddressBookIcon(),
+                                                  ),
+                                                if (_isMasternodeCollateralSelfSend)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "My addresses button. Opens your wallet addresses for collateral self-send.",
+                                                    key: const Key(
+                                                      "sendViewMyAddressesButtonKey",
+                                                    ),
+                                                    onTap:
+                                                        _pickMyAddressForMasternodeCollateral,
                                                     child:
                                                         const AddressBookIcon(),
                                                   ),

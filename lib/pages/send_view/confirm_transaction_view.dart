@@ -24,8 +24,8 @@ import '../../models/isar/models/transaction_note.dart';
 import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/global/global_nav_key_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -57,7 +57,6 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -65,7 +64,6 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
-import '../masternodes/create_masternode_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
@@ -78,7 +76,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.txData,
     required this.walletId,
     required this.onSuccess,
-    this.routeOnSuccessName = WalletView.routeName,
+    this.routeOnSuccessName,
     this.isTradeTransaction = false,
     this.isPaynymTransaction = false,
     this.isPaynymNotificationTransaction = false,
@@ -90,7 +88,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
 
   final TxData txData;
   final String walletId;
-  final String routeOnSuccessName;
+  final String? routeOnSuccessName;
   final bool isTradeTransaction;
   final bool isPaynymTransaction;
   final bool isPaynymNotificationTransaction;
@@ -312,106 +310,28 @@ class _ConfirmTransactionViewState
     }
   }
 
-  Future<int?> _resolveFiroCollateralVout({
-    required FiroWallet wallet,
-    required String txid,
-    required String recipientAddress,
-    required Amount amount,
-  }) async {
-    try {
-      final tx = await wallet.electrumXClient.getTransaction(txHash: txid);
-      final outputs = tx['vout'];
-      if (outputs is! List) {
-        return null;
-      }
-
-      for (final output in outputs) {
-        if (output is! Map) {
-          continue;
-        }
-        final outputMap = Map<String, dynamic>.from(output);
-        final n = outputMap['n'];
-        final outputIndex = switch (n) {
-          int value => value,
-          String value => int.tryParse(value),
-          _ => null,
-        };
-        if (outputIndex == null) {
-          continue;
-        }
-
-        final valueDecimal = Decimal.tryParse(outputMap['value'].toString());
-        if (valueDecimal == null) {
-          continue;
-        }
-        final outputAmount = Amount.fromDecimal(
-          valueDecimal,
-          fractionDigits: wallet.cryptoCurrency.fractionDigits,
-        );
-        if (outputAmount != amount) {
-          continue;
-        }
-
-        final scriptPubKey = outputMap['scriptPubKey'];
-        if (scriptPubKey is! Map) {
-          continue;
-        }
-
-        final recipientAddresses = <String>{};
-        final addresses = scriptPubKey['addresses'];
-        if (addresses is List) {
-          recipientAddresses.addAll(addresses.whereType<String>());
-        }
-
-        final address = scriptPubKey['address'];
-        if (address is String) {
-          recipientAddresses.add(address);
-        }
-
-        if (recipientAddresses.contains(recipientAddress)) {
-          return outputIndex;
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to resolve collateral vout for txid=$txid: $e",
-        error: e,
-        stackTrace: s,
-      );
-    }
-
-    return null;
-  }
-
-  void _showMasternodeSubmittedDialog(BuildContext? rootContext, String txid) {
-    if (rootContext == null) {
-      return;
-    }
-    unawaited(
-      showDialog<void>(
-        context: rootContext,
-        builder: (_) => StackOkDialog(
-          title: "Masternode Registration Submitted",
-          message:
-              "Masternode registration submitted, your masternode will "
-              "appear in the list after the tx is confirmed.\n\nTransaction "
-              "ID: $txid",
-          desktopPopRootNavigator: Util.isDesktop,
-          maxWidth: Util.isDesktop ? 400 : null,
-        ),
-      ),
-    );
-  }
-
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
+    var isSendingDialogOpen = true;
+
+    void closeSendingDialog() {
+      if (!context.mounted || !isSendingDialogOpen) {
+        return;
+      }
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      isSendingDialogOpen = false;
+    }
 
     unawaited(
       showDialog<dynamic>(
         context: context,
+        useRootNavigator: true,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
@@ -420,7 +340,7 @@ class _ConfirmTransactionViewState
             controller: sendProgressController,
           );
         },
-      ),
+      ).whenComplete(() => isSendingDialogOpen = false),
     );
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
@@ -481,6 +401,7 @@ class _ConfirmTransactionViewState
                 context,
                 wallet as MimblewimblecoinWallet,
               );
+              closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
               // Handle MWCMQS or HTTP transactions normally.
@@ -504,6 +425,7 @@ class _ConfirmTransactionViewState
                 context,
                 wallet as EpiccashWallet,
               );
+              closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
               // Handle Epicbox transactions normally.
@@ -553,6 +475,8 @@ class _ConfirmTransactionViewState
         unawaited(wallet.refresh());
       }
 
+      closeSendingDialog();
+
       widget.onSuccess.call();
 
       // Check for 1000 FIRO transparent self-send → prompt MN registration
@@ -583,97 +507,28 @@ class _ConfirmTransactionViewState
                 .findFirst();
 
             if (ownAddress != null && context.mounted) {
-              final collateralVout = await _resolveFiroCollateralVout(
-                wallet: wallet,
-                txid: confirmedTx.txid!,
-                recipientAddress: mnRecipient.address,
-                amount: masternodeAmount,
+              await showDialog<void>(
+                context: context,
+                builder: (_) => StackOkDialog(
+                  title: "Collateral transaction sent",
+                  message:
+                      "Your 1000 FIRO collateral transaction was sent "
+                      "successfully. Once it confirms, open Masternodes and "
+                      "click Create Masternode to continue.",
+                  desktopPopRootNavigator: Util.isDesktop,
+                  maxWidth: Util.isDesktop ? 420 : null,
+                ),
               );
-              if (!context.mounted) {
-                return;
-              }
 
-              if (collateralVout == null) {
-                unawaited(
-                  showFloatingFlushBar(
-                    type: FlushBarType.warning,
-                    message:
-                        "Unable to determine collateral output index "
-                        "automatically. Open Masternodes and select your "
-                        "1000 FIRO UTXO manually.",
-                    context: context,
-                  ),
-                );
-              } else {
+              if (context.mounted) {
+                // Pop confirm + send; returns to the screen that opened send
+                // (e.g. Masternodes or desktop wallet) without relying on
+                // popUntil matching a route name in the nested navigator.
+                final navigator = Navigator.of(context);
+                for (var i = 0; i < 2 && navigator.canPop(); i++) {
+                  navigator.pop();
+                }
                 navigatedToMN = true;
-                final rootContext = ref.read(pNavKey).currentContext;
-
-                void completeMnParentNavigation() {
-                  if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-                    if (isDesktop) {
-                      Navigator.of(
-                        context,
-                      ).popUntil(ModalRoute.withName(routeOnSuccessName));
-                    } else {
-                      final navigator = Navigator.of(context);
-                      navigator.popUntil(
-                        ModalRoute.withName(routeOnSuccessName),
-                      );
-                    }
-                  } else {
-                    widget.onSuccessInsteadOfRouteOnSuccess!.call();
-                  }
-                }
-
-                completeMnParentNavigation();
-
-                if (isDesktop) {
-                  if (rootContext != null && rootContext.mounted) {
-                    unawaited(
-                      showDialog<Object>(
-                        context: rootContext,
-                        barrierDismissible: true,
-                        builder: (_) => SDialog(
-                          child: CreateMasternodeView(
-                            firoWalletId: walletId,
-                            collateralTxid: confirmedTx.txid!,
-                            collateralVout: collateralVout,
-                            collateralAddress: mnRecipient.address,
-                          ),
-                        ),
-                      ).then((result) {
-                        if (result is String) {
-                          _showMasternodeSubmittedDialog(rootContext, result);
-                        }
-                      }),
-                    );
-                  }
-                } else {
-                  final navContext =
-                      (rootContext != null && rootContext.mounted)
-                      ? rootContext
-                      : context;
-                  if (!navContext.mounted) {
-                    return;
-                  }
-                  unawaited(
-                    Navigator.of(navContext)
-                        .pushNamed(
-                          CreateMasternodeView.routeName,
-                          arguments: {
-                            'walletId': walletId,
-                            'collateralTxid': confirmedTx.txid!,
-                            'collateralVout': collateralVout,
-                            'collateralAddress': mnRecipient.address,
-                          },
-                        )
-                        .then((result) {
-                          if (result is String) {
-                            _showMasternodeSubmittedDialog(rootContext, result);
-                          }
-                        }),
-                  );
-                }
               }
             }
           } else if (mnRecipient != null &&
@@ -747,7 +602,7 @@ class _ConfirmTransactionViewState
     } on BadHttpAddressException catch (_) {
       if (context.mounted) {
         // pop building dialog
-        Navigator.of(context).pop();
+        closeSendingDialog();
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -763,7 +618,7 @@ class _ConfirmTransactionViewState
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        closeSendingDialog();
 
         await showDialog<void>(
           context: context,
@@ -840,7 +695,9 @@ class _ConfirmTransactionViewState
 
     isDesktop = Util.isDesktop;
     walletId = widget.walletId;
-    routeOnSuccessName = widget.routeOnSuccessName;
+    routeOnSuccessName =
+        widget.routeOnSuccessName ??
+        (Util.isDesktop ? DesktopWalletView.routeName : WalletView.routeName);
     _noteFocusNode = FocusNode();
     noteController = TextEditingController();
     noteController.text = widget.txData.note ?? "";
@@ -981,8 +838,7 @@ class _ConfirmTransactionViewState
                 AppBarBackButton(
                   size: 40,
                   iconSize: 24,
-                  onPressed: () =>
-                      Navigator.of(context, rootNavigator: true).pop(),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 Text(
                   "Confirm $unit transaction",
