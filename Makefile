@@ -43,12 +43,13 @@ help: ## Show available commands
 
 check-reqs: ## Verify essential build tools
 	@echo "Checking core prerequisites..."
-	@command -v $(FLUTTER) >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
-	@command -v $(DART) >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed."; exit 1; }
+	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@[ -n "$(DART)" ] && command -v "$(DART)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed."; exit 1; }
 	@command -v rustup >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup not installed."; exit 1; }
 	@rustup which rustc >/dev/null 2>&1 || { echo >&2 "[ERROR] rustc toolchain not available via rustup."; exit 1; }
 	@rustup which cargo >/dev/null 2>&1 || { echo >&2 "[ERROR] cargo toolchain not available via rustup."; exit 1; }
 	@rustup run stable rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup stable toolchain not available."; exit 1; }
+	@rustup run 1.85.1 rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup 1.85.1 toolchain not available."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
 	@command -v meson >/dev/null 2>&1 || { \
@@ -201,6 +202,8 @@ macos-restore-metadata:
 		$(FLUTTER) config --enable-macos-desktop >/dev/null
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		$(FLUTTER) create --platforms=macos . > /dev/null
+	@# `flutter create` synthesizes a counter-app widget test that doesn't apply to this app.
+	@rm -f test/widget_test.dart
 	@rm -rf macos/Runner.xcworkspace macos/Pods macos/Podfile.lock
 	@chmod -R u+rwX macos 2>/dev/null || true
 	@chflags -R nouchg macos 2>/dev/null || true
@@ -264,7 +267,7 @@ macos-build-native:
 	@# Ensure local rustup home has a usable default toolchain for native plugin scripts.
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
-		rustup toolchain install stable 1.85.1 >/dev/null
+		rustup toolchain install --no-self-update stable 1.85.1 >/dev/null
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		rustup default stable >/dev/null
@@ -283,6 +286,7 @@ macos-build-native:
 		PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" \
 		CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER="/usr/bin/clang" \
 		MAKEFLAGS= \
 		MFLAGS= \
 		CARGO_MAKEFLAGS= \
@@ -295,7 +299,7 @@ macos-build-native:
 		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
-		$(FLUTTER) dart run coinlib:build_macos
+		$(FLUTTER) pub run coinlib:build_macos
 	@echo "--- Patching Podfile..."
 	@sed -i.bak -e "s/platform :osx, '10.11'/platform :osx, '11.0'/g" -e "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile 2>/dev/null || true
 	@rm -f macos/Podfile.bak
@@ -308,16 +312,21 @@ macos-build-app:
 	@# Reassert macOS platform metadata in the same local HOME used for the final build.
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		$(FLUTTER) create --platforms=macos . --no-pub >/dev/null
+	@# `flutter create` synthesizes a counter-app widget test that doesn't apply to this app.
+	@rm -f test/widget_test.dart
+	@chmod -R u+w macos/Runner.xcworkspace macos/Runner.xcodeproj 2>/dev/null || true
 	@# Cargokit calls `rustup run stable cargo ...`; ensure local `stable` exists and is selected.
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
-		rustup toolchain install stable >/dev/null
+		rustup toolchain install --no-self-update stable >/dev/null
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		rustup default stable >/dev/null
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		rustup run stable rustc -V
+	@echo "--- Cleaning stale Spark Mobile framework from local pub cache..."
+	@find "$(PUB_CACHE)/git" -path '*/flutter_libsparkmobile-*/macos/flutter_libsparkmobile.framework' -prune -exec rm -rf {} + 2>/dev/null || true
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		HOME="$(PROJECT_HOME)" \
 		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
@@ -326,6 +335,7 @@ macos-build-app:
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" \
 		CARGO_HOME="$(PROJECT_CARGO_HOME)" \
 		RUSTUP_TOOLCHAIN="$(MACOS_FINAL_RUST_TOOLCHAIN)" \
+		CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER="/usr/bin/clang" \
 		PATH="$(PROJECT_CARGO_HOME)/bin:$$(dirname "$$(rustup which rustc)"):$${PATH}" \
 		ARCHS=arm64 EXCLUDED_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES $(FLUTTER) build macos --release
 
@@ -385,7 +395,7 @@ build-linux: check-reqs init patch-submodules ## Build Linux Release
 		'Cflags: -I$${includedir} -I$${includedir}/_build' \
 		> scripts/linux/pc/libsecret-1.pc
 	@if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then \
-		$(FLUTTER) dart run coinlib:build_linux; \
+		$(FLUTTER) pub run coinlib:build_linux; \
 	else \
 		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
 	fi
