@@ -145,6 +145,7 @@ class _SendViewState extends ConsumerState<SendView> {
   late final bool isFiro;
   late final bool isEth;
   late final bool _isMasternodeCollateralSelfSend;
+  late final bool _isMasternodeCollateralUnshield;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -1353,11 +1354,19 @@ class _SendViewState extends ConsumerState<SendView> {
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
+    _isMasternodeCollateralUnshield =
+        (_data?.note.contains("Masternode collateral unshield") ?? false) &&
+        isFiro;
     _isMasternodeCollateralSelfSend =
-        (_data?.note.contains("Masternode collateral prep") ?? false) && isFiro;
+        ((_data?.note.contains("Masternode collateral prep") ?? false) ||
+            _isMasternodeCollateralUnshield) &&
+        isFiro;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isMasternodeCollateralSelfSend) {
+      if (_isMasternodeCollateralUnshield) {
+        ref.read(publicPrivateBalanceStateProvider.state).state =
+            BalanceType.private;
+      } else if (_isMasternodeCollateralSelfSend) {
         ref.read(publicPrivateBalanceStateProvider.state).state =
             BalanceType.public;
       }
