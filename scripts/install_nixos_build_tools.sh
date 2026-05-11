@@ -34,13 +34,14 @@ nix --extra-experimental-features "nix-command flakes" profile add \
   nixpkgs#clang || true
 
 echo "Ensuring Rust toolchains are installed..."
-rustup toolchain install stable
+# Two toolchains are required:
+#   - stable: used for frostdart, coinlib, secp256k1, and everything else
+#   - 1.85.1: pinned for flutter_libepiccash / flutter_libmwc (older Rust dialect)
+# See scripts/rust_version.sh and flake.nix.
+rustup toolchain install --no-self-update stable 1.85.1
 rustup default stable
-rustup toolchain install 1.89.0 1.85.1
-rustup default 1.89.0
 rustup target add aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu --toolchain stable >/dev/null 2>&1 || true
 rustup target add aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu --toolchain 1.85.1 >/dev/null 2>&1 || true
-rustup target add aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu --toolchain 1.89.0 >/dev/null 2>&1 || true
 
 echo "Installing Rust CLI build tools..."
 cargo install cargo-ndk cbindgen cargo-lipo || true
