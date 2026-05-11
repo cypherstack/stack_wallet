@@ -33,7 +33,8 @@ export PUB_CACHE
 
 .PHONY: help check-reqs check-reqs-macos check-reqs-windows check-macos-sdk bootstrap-macos macos-local-state init clean prebuild-unix prebuild-windows deps-linux patch-submodules \
 	build-linux build-macos build-ios build-android build-windows \
-	macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app diagnose-macos-env
+	macos-prepare macos-configure macos-restore-metadata macos-build-native macos-build-app diagnose-macos-env \
+	test-mwc
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -338,6 +339,19 @@ macos-build-app:
 		CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER="/usr/bin/clang" \
 		PATH="$(PROJECT_CARGO_HOME)/bin:$$(dirname "$$(rustup which rustc)"):$${PATH}" \
 		ARCHS=arm64 EXCLUDED_ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES $(FLUTTER) build macos --release
+
+test-mwc: ## Run MWC FFI integration test on macOS (assumes prior `make build-macos`)
+	@# Flutter's first-launch helper rewrites MACOSX_DEPLOYMENT_TARGET=10.15; reassert 11.0.
+	@sed -i.bak -e "s/MACOSX_DEPLOYMENT_TARGET = 10\\.15;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g" macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
+	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
+		HOME="$(PROJECT_HOME)" \
+		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
+		TMPDIR="$(PROJECT_TMP)" \
+		PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" \
+		CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		$(FLUTTER) test integration_test/mwc_ffi_test.dart -d macos
 
 diagnose-macos-env: ## Print macOS build env and tool resolution
 	@echo "--- Toolchain diagnostics ---"
