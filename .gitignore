@@ -34,6 +34,15 @@ Microsoft.Windows*
 /build/
 android/app/.cxx
 
+# Nix / direnv / project-local toolchain state
+.direnv/
+.build-home/
+.cargo-home/
+.rustup-home/
+.nix-bin/
+.tmp/
+.cache/
+
 # Web related
 lib/generated_plugin_registrant.dart
 
