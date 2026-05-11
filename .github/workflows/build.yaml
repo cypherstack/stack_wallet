@@ -239,6 +239,23 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # Stack Wallet uses mwebd.exe as a subprocess on Windows, not the FFI
+      # DLL, so we don't need libmwebd.dll. The upstream plugin's Windows
+      # build path requires WSL, which the GitHub runner lacks.
+      - name: Patch flutter_mwebd to skip Windows FFI build (CI workaround)
+        run: |
+          set -euo pipefail
+          cache_root="$(cygpath -u "$LOCALAPPDATA")/Pub/Cache/hosted/pub.dev"
+          plugin_dir=$(find "$cache_root" -maxdepth 1 -type d -name 'flutter_mwebd-*' -print -quit)
+          if [ -z "$plugin_dir" ] || [ ! -f "$plugin_dir/pubspec.yaml" ]; then
+            echo "::error::Could not locate flutter_mwebd in $cache_root"
+            exit 1
+          fi
+          pubspec="$plugin_dir/pubspec.yaml"
+          echo "Patching $pubspec"
+          sed -i '/^      windows:$/,/^        ffiPlugin: true$/d' "$pubspec"
+          flutter pub get
+
       - name: Create git_versions.dart stubs
         run: |
           mkdir -p crypto_plugins/flutter_libepiccash/lib
