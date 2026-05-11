@@ -344,6 +344,9 @@ test-mwc: ## Run MWC FFI integration test on macOS (assumes prior `make build-ma
 	@# Flutter's first-launch helper rewrites MACOSX_DEPLOYMENT_TARGET=10.15; reassert 11.0.
 	@sed -i.bak -e "s/MACOSX_DEPLOYMENT_TARGET = 10\\.15;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g" macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
+	@# `flutter test` re-runs pod install which re-prepares flutter_libsparkmobile; remove stale framework so the prepare step can write.
+	@find "$(PUB_CACHE)/git" -path '*/flutter_libsparkmobile-*/macos/flutter_libsparkmobile.framework' -prune -exec rm -rf {} + 2>/dev/null || true
+	@chmod -R u+w macos/Runner.xcodeproj macos 2>/dev/null || true
 	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
 		HOME="$(PROJECT_HOME)" \
 		XDG_CACHE_HOME="$(PROJECT_CACHE)" \
