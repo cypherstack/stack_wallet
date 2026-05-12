@@ -23,8 +23,9 @@
           pkg-config
           gnumake
           gnused
-          (python3.withPackages (ps: with ps; [ 
-            pip toml tomli jinja2 markdown markupsafe pygments typogrify 
+          rsync
+          (python3.withPackages (ps: with ps; [
+            pip toml tomli jinja2 markdown markupsafe pygments typogrify
           ]))
         ];
 
