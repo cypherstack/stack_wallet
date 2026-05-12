@@ -389,11 +389,6 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.71.0'
-          targets: aarch64-apple-ios
-
-      - uses: dtolnay/rust-toolchain@master
-        with:
           toolchain: stable
           targets: aarch64-apple-ios
 
