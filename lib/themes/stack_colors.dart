@@ -45,7 +45,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textError;
   final Color textRestore;
 
-// button background
+  // button background
   final Color buttonBackPrimary;
   final Color buttonBackSecondary;
   final Color buttonBackPrimaryDisabled;
@@ -58,7 +58,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color numpadBackDefault;
   final Color bottomNavBack;
 
-// button text/element
+  // button text/element
   final Color buttonTextPrimary;
   final Color buttonTextSecondary;
   final Color buttonTextPrimaryDisabled;
@@ -73,17 +73,17 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color customTextButtonEnabledText;
   final Color customTextButtonDisabledText;
 
-// switch background
+  // switch background
   final Color switchBGOn;
   final Color switchBGOff;
   final Color switchBGDisabled;
 
-// switch circle
+  // switch circle
   final Color switchCircleOn;
   final Color switchCircleOff;
   final Color switchCircleDisabled;
 
-// step indicator background
+  // step indicator background
   final Color stepIndicatorBGCheck;
   final Color stepIndicatorBGNumber;
   final Color stepIndicatorBGInactive;
@@ -93,7 +93,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color stepIndicatorIconNumber;
   final Color stepIndicatorIconInactive;
 
-// checkbox
+  // checkbox
   final Color checkboxBGChecked;
   final Color checkboxBorderEmpty;
   final Color checkboxBGDisabled;
@@ -101,7 +101,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color checkboxIconDisabled;
   final Color checkboxTextLabel;
 
-// snack bar
+  // snack bar
   final Color snackBarBackSuccess;
   final Color snackBarBackError;
   final Color snackBarBackInfo;
@@ -109,7 +109,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color snackBarTextError;
   final Color snackBarTextInfo;
 
-// icons
+  // icons
   final Color bottomNavIconBack;
   final Color bottomNavIconIcon;
   final Color bottomNavIconIconHighlighted;
@@ -122,7 +122,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color settingsIconBack2;
   final Color settingsIconElement;
 
-// text field
+  // text field
   final Color textFieldActiveBG;
   final Color textFieldDefaultBG;
   final Color textFieldErrorBG;
@@ -145,12 +145,12 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textFieldErrorSearchIconRight;
   final Color textFieldSuccessSearchIconRight;
 
-// settings item level2
+  // settings item level2
   final Color settingsItem2ActiveBG;
   final Color settingsItem2ActiveText;
   final Color settingsItem2ActiveSub;
 
-// radio buttons
+  // radio buttons
   final Color radioButtonIconBorder;
   final Color radioButtonIconBorderDisabled;
   final Color radioButtonBorderEnabled;
@@ -162,19 +162,19 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color radioButtonLabelEnabled;
   final Color radioButtonLabelDisabled;
 
-// info text
+  // info text
   final Color infoItemBG;
   final Color infoItemLabel;
   final Color infoItemText;
   final Color infoItemIcons;
 
-// popup
+  // popup
   final Color popupBG;
 
-// currency list
+  // currency list
   final Color currencyListItemBG;
 
-// bottom nav
+  // bottom nav
   final Color stackWalletBG;
   final Color stackWalletMid;
   final Color stackWalletBottom;
@@ -192,7 +192,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textConfirmTotalAmount;
   final Color textSelectedWordTableItem;
 
-// rate type toggle
+  // rate type toggle
   final Color rateTypeToggleColorOn;
   final Color rateTypeToggleColorOff;
   final Color rateTypeToggleDesktopColorOn;
@@ -732,7 +732,8 @@ class StackColors extends ThemeExtension<StackColors> {
           buttonBackBorderDisabled ?? this.buttonBackBorderDisabled,
       buttonBackBorderSecondary:
           buttonBackBorderSecondary ?? this.buttonBackBorderSecondary,
-      buttonBackBorderSecondaryDisabled: buttonBackBorderSecondaryDisabled ??
+      buttonBackBorderSecondaryDisabled:
+          buttonBackBorderSecondaryDisabled ??
           this.buttonBackBorderSecondaryDisabled,
       numberBackDefault: numberBackDefault ?? this.numberBackDefault,
       numpadBackDefault: numpadBackDefault ?? this.numpadBackDefault,
@@ -824,11 +825,13 @@ class StackColors extends ThemeExtension<StackColors> {
           textFieldSuccessLabel ?? this.textFieldSuccessLabel,
       textFieldActiveSearchIconRight:
           textFieldActiveSearchIconRight ?? this.textFieldActiveSearchIconRight,
-      textFieldDefaultSearchIconRight: textFieldDefaultSearchIconRight ??
+      textFieldDefaultSearchIconRight:
+          textFieldDefaultSearchIconRight ??
           this.textFieldDefaultSearchIconRight,
       textFieldErrorSearchIconRight:
           textFieldErrorSearchIconRight ?? this.textFieldErrorSearchIconRight,
-      textFieldSuccessSearchIconRight: textFieldSuccessSearchIconRight ??
+      textFieldSuccessSearchIconRight:
+          textFieldSuccessSearchIconRight ??
           this.textFieldSuccessSearchIconRight,
       settingsItem2ActiveBG:
           settingsItem2ActiveBG ?? this.settingsItem2ActiveBG,
@@ -919,26 +922,14 @@ class StackColors extends ThemeExtension<StackColors> {
       gradientBackground: other.gradientBackground,
       homeViewButtonBarBoxShadow: other.homeViewButtonBarBoxShadow,
       standardBoxShadow: other.standardBoxShadow,
-      background: Color.lerp(
-        background,
-        other.background,
-        t,
-      )!,
+      background: Color.lerp(background, other.background, t)!,
       backgroundAppBar: Color.lerp(
         backgroundAppBar,
         other.backgroundAppBar,
         t,
       )!,
-      overlay: Color.lerp(
-        overlay,
-        other.overlay,
-        t,
-      )!,
-      accentColorBlue: Color.lerp(
-        accentColorBlue,
-        other.accentColorBlue,
-        t,
-      )!,
+      overlay: Color.lerp(overlay, other.overlay, t)!,
+      accentColorBlue: Color.lerp(accentColorBlue, other.accentColorBlue, t)!,
       accentColorGreen: Color.lerp(
         accentColorGreen,
         other.accentColorGreen,
@@ -949,91 +940,31 @@ class StackColors extends ThemeExtension<StackColors> {
         other.accentColorYellow,
         t,
       )!,
-      accentColorRed: Color.lerp(
-        accentColorRed,
-        other.accentColorRed,
-        t,
-      )!,
+      accentColorRed: Color.lerp(accentColorRed, other.accentColorRed, t)!,
       accentColorOrange: Color.lerp(
         accentColorOrange,
         other.accentColorOrange,
         t,
       )!,
-      accentColorDark: Color.lerp(
-        accentColorDark,
-        other.accentColorDark,
-        t,
-      )!,
-      shadow: Color.lerp(
-        shadow,
-        other.shadow,
-        t,
-      )!,
-      textDark: Color.lerp(
-        textDark,
-        other.textDark,
-        t,
-      )!,
-      textDark2: Color.lerp(
-        textDark2,
-        other.textDark2,
-        t,
-      )!,
-      textDark3: Color.lerp(
-        textDark3,
-        other.textDark3,
-        t,
-      )!,
-      textSubtitle1: Color.lerp(
-        textSubtitle1,
-        other.textSubtitle1,
-        t,
-      )!,
-      textSubtitle2: Color.lerp(
-        textSubtitle2,
-        other.textSubtitle2,
-        t,
-      )!,
-      textSubtitle3: Color.lerp(
-        textSubtitle3,
-        other.textSubtitle3,
-        t,
-      )!,
-      textSubtitle4: Color.lerp(
-        textSubtitle4,
-        other.textSubtitle4,
-        t,
-      )!,
-      textSubtitle5: Color.lerp(
-        textSubtitle5,
-        other.textSubtitle5,
-        t,
-      )!,
-      textSubtitle6: Color.lerp(
-        textSubtitle6,
-        other.textSubtitle6,
-        t,
-      )!,
-      textWhite: Color.lerp(
-        textWhite,
-        other.textWhite,
-        t,
-      )!,
+      accentColorDark: Color.lerp(accentColorDark, other.accentColorDark, t)!,
+      shadow: Color.lerp(shadow, other.shadow, t)!,
+      textDark: Color.lerp(textDark, other.textDark, t)!,
+      textDark2: Color.lerp(textDark2, other.textDark2, t)!,
+      textDark3: Color.lerp(textDark3, other.textDark3, t)!,
+      textSubtitle1: Color.lerp(textSubtitle1, other.textSubtitle1, t)!,
+      textSubtitle2: Color.lerp(textSubtitle2, other.textSubtitle2, t)!,
+      textSubtitle3: Color.lerp(textSubtitle3, other.textSubtitle3, t)!,
+      textSubtitle4: Color.lerp(textSubtitle4, other.textSubtitle4, t)!,
+      textSubtitle5: Color.lerp(textSubtitle5, other.textSubtitle5, t)!,
+      textSubtitle6: Color.lerp(textSubtitle6, other.textSubtitle6, t)!,
+      textWhite: Color.lerp(textWhite, other.textWhite, t)!,
       textFavoriteCard: Color.lerp(
         textFavoriteCard,
         other.textFavoriteCard,
         t,
       )!,
-      textError: Color.lerp(
-        textError,
-        other.textError,
-        t,
-      )!,
-      textRestore: Color.lerp(
-        textRestore,
-        other.textRestore,
-        t,
-      )!,
+      textError: Color.lerp(textError, other.textError, t)!,
+      textRestore: Color.lerp(textRestore, other.textRestore, t)!,
       buttonBackPrimary: Color.lerp(
         buttonBackPrimary,
         other.buttonBackPrimary,
@@ -1084,11 +1015,7 @@ class StackColors extends ThemeExtension<StackColors> {
         other.numpadBackDefault,
         t,
       )!,
-      bottomNavBack: Color.lerp(
-        bottomNavBack,
-        other.bottomNavBack,
-        t,
-      )!,
+      bottomNavBack: Color.lerp(bottomNavBack, other.bottomNavBack, t)!,
       buttonTextPrimary: Color.lerp(
         buttonTextPrimary,
         other.buttonTextPrimary,
@@ -1139,11 +1066,7 @@ class StackColors extends ThemeExtension<StackColors> {
         other.numpadTextDefault,
         t,
       )!,
-      bottomNavText: Color.lerp(
-        bottomNavText,
-        other.bottomNavText,
-        t,
-      )!,
+      bottomNavText: Color.lerp(bottomNavText, other.bottomNavText, t)!,
       customTextButtonEnabledText: Color.lerp(
         customTextButtonEnabledText,
         other.customTextButtonEnabledText,
@@ -1154,31 +1077,15 @@ class StackColors extends ThemeExtension<StackColors> {
         other.customTextButtonDisabledText,
         t,
       )!,
-      switchBGOn: Color.lerp(
-        switchBGOn,
-        other.switchBGOn,
-        t,
-      )!,
-      switchBGOff: Color.lerp(
-        switchBGOff,
-        other.switchBGOff,
-        t,
-      )!,
+      switchBGOn: Color.lerp(switchBGOn, other.switchBGOn, t)!,
+      switchBGOff: Color.lerp(switchBGOff, other.switchBGOff, t)!,
       switchBGDisabled: Color.lerp(
         switchBGDisabled,
         other.switchBGDisabled,
         t,
       )!,
-      switchCircleOn: Color.lerp(
-        switchCircleOn,
-        other.switchCircleOn,
-        t,
-      )!,
-      switchCircleOff: Color.lerp(
-        switchCircleOff,
-        other.switchCircleOff,
-        t,
-      )!,
+      switchCircleOn: Color.lerp(switchCircleOn, other.switchCircleOn, t)!,
+      switchCircleOff: Color.lerp(switchCircleOff, other.switchCircleOff, t)!,
       switchCircleDisabled: Color.lerp(
         switchCircleDisabled,
         other.switchCircleDisabled,
@@ -1304,21 +1211,13 @@ class StackColors extends ThemeExtension<StackColors> {
         other.topNavIconPrimary,
         t,
       )!,
-      topNavIconGreen: Color.lerp(
-        topNavIconGreen,
-        other.topNavIconGreen,
-        t,
-      )!,
+      topNavIconGreen: Color.lerp(topNavIconGreen, other.topNavIconGreen, t)!,
       topNavIconYellow: Color.lerp(
         topNavIconYellow,
         other.topNavIconYellow,
         t,
       )!,
-      topNavIconRed: Color.lerp(
-        topNavIconRed,
-        other.topNavIconRed,
-        t,
-      )!,
+      topNavIconRed: Color.lerp(topNavIconRed, other.topNavIconRed, t)!,
       settingsIconBack: Color.lerp(
         settingsIconBack,
         other.settingsIconBack,
@@ -1509,56 +1408,24 @@ class StackColors extends ThemeExtension<StackColors> {
         other.radioButtonLabelDisabled,
         t,
       )!,
-      infoItemBG: Color.lerp(
-        infoItemBG,
-        other.infoItemBG,
-        t,
-      )!,
-      infoItemLabel: Color.lerp(
-        infoItemLabel,
-        other.infoItemLabel,
-        t,
-      )!,
-      infoItemText: Color.lerp(
-        infoItemText,
-        other.infoItemText,
-        t,
-      )!,
-      infoItemIcons: Color.lerp(
-        infoItemIcons,
-        other.infoItemIcons,
-        t,
-      )!,
-      popupBG: Color.lerp(
-        popupBG,
-        other.popupBG,
-        t,
-      )!,
+      infoItemBG: Color.lerp(infoItemBG, other.infoItemBG, t)!,
+      infoItemLabel: Color.lerp(infoItemLabel, other.infoItemLabel, t)!,
+      infoItemText: Color.lerp(infoItemText, other.infoItemText, t)!,
+      infoItemIcons: Color.lerp(infoItemIcons, other.infoItemIcons, t)!,
+      popupBG: Color.lerp(popupBG, other.popupBG, t)!,
       currencyListItemBG: Color.lerp(
         currencyListItemBG,
         other.currencyListItemBG,
         t,
       )!,
-      stackWalletBG: Color.lerp(
-        stackWalletBG,
-        other.stackWalletBG,
-        t,
-      )!,
-      stackWalletMid: Color.lerp(
-        stackWalletMid,
-        other.stackWalletMid,
-        t,
-      )!,
+      stackWalletBG: Color.lerp(stackWalletBG, other.stackWalletBG, t)!,
+      stackWalletMid: Color.lerp(stackWalletMid, other.stackWalletMid, t)!,
       stackWalletBottom: Color.lerp(
         stackWalletBottom,
         other.stackWalletBottom,
         t,
       )!,
-      bottomNavShadow: Color.lerp(
-        bottomNavShadow,
-        other.bottomNavShadow,
-        t,
-      )!,
+      bottomNavShadow: Color.lerp(bottomNavShadow, other.bottomNavShadow, t)!,
       favoriteStarActive: Color.lerp(
         favoriteStarActive,
         other.favoriteStarActive,
@@ -1569,16 +1436,8 @@ class StackColors extends ThemeExtension<StackColors> {
         other.favoriteStarInactive,
         t,
       )!,
-      splash: Color.lerp(
-        splash,
-        other.splash,
-        t,
-      )!,
-      highlight: Color.lerp(
-        highlight,
-        other.highlight,
-        t,
-      )!,
+      splash: Color.lerp(splash, other.splash, t)!,
+      highlight: Color.lerp(highlight, other.highlight, t)!,
       warningForeground: Color.lerp(
         warningForeground,
         other.warningForeground,
@@ -1629,26 +1488,14 @@ class StackColors extends ThemeExtension<StackColors> {
         other.rateTypeToggleDesktopColorOff,
         t,
       )!,
-      ethTagText: Color.lerp(
-        ethTagText,
-        other.ethTagText,
-        t,
-      )!,
-      ethTagBG: Color.lerp(
-        ethTagBG,
-        other.ethTagBG,
-        t,
-      )!,
+      ethTagText: Color.lerp(ethTagText, other.ethTagText, t)!,
+      ethTagBG: Color.lerp(ethTagBG, other.ethTagBG, t)!,
       ethWalletTagText: Color.lerp(
         ethWalletTagText,
         other.ethWalletTagText,
         t,
       )!,
-      ethWalletTagBG: Color.lerp(
-        ethWalletTagBG,
-        other.ethWalletTagBG,
-        t,
-      )!,
+      ethWalletTagBG: Color.lerp(ethWalletTagBG, other.ethWalletTagBG, t)!,
       tokenSummaryTextPrimary: Color.lerp(
         tokenSummaryTextPrimary,
         other.tokenSummaryTextPrimary,
@@ -1659,11 +1506,7 @@ class StackColors extends ThemeExtension<StackColors> {
         other.tokenSummaryTextSecondary,
         t,
       )!,
-      tokenSummaryBG: Color.lerp(
-        tokenSummaryBG,
-        other.tokenSummaryBG,
-        t,
-      )!,
+      tokenSummaryBG: Color.lerp(tokenSummaryBG, other.tokenSummaryBG, t)!,
       tokenSummaryButtonBG: Color.lerp(
         tokenSummaryButtonBG,
         other.tokenSummaryButtonBG,
@@ -1711,125 +1554,95 @@ class StackColors extends ThemeExtension<StackColors> {
 
   ButtonStyle? getDeleteEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              textFieldErrorBG,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(textFieldErrorBG),
+      );
 
   ButtonStyle? getDeleteDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              buttonBackSecondaryDisabled,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(
+          buttonBackSecondaryDisabled,
+        ),
+      );
 
   ButtonStyle? getPrimaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              buttonBackPrimary,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(buttonBackPrimary),
+      );
 
   ButtonStyle? getPrimaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              buttonBackPrimaryDisabled,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(
+          buttonBackPrimaryDisabled,
+        ),
+      );
 
   ButtonStyle? getOutlineBlueButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              Colors.transparent,
-            ),
-            side: MaterialStateProperty.all<BorderSide>(
-              BorderSide(
-                color: customTextButtonEnabledText,
-              ),
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
+        side: MaterialStateProperty.all<BorderSide>(
+          BorderSide(color: customTextButtonEnabledText),
+        ),
+      );
 
   ButtonStyle? getOutlineBlueButtonDisabledStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              Colors.transparent,
-            ),
-            side: MaterialStateProperty.all<BorderSide>(
-              BorderSide(
-                color: customTextButtonDisabledText,
-              ),
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
+        side: MaterialStateProperty.all<BorderSide>(
+          BorderSide(color: customTextButtonDisabledText),
+        ),
+      );
 
   ButtonStyle? getSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              buttonBackSecondary,
-            ),
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(
-                side: BorderSide(
-                  color: buttonBackBorderSecondary,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(10000),
-              ),
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(buttonBackSecondary),
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(
+            side: BorderSide(color: buttonBackBorderSecondary, width: 1),
+            borderRadius: BorderRadius.circular(10000),
+          ),
+        ),
+      );
 
   ButtonStyle? getSecondaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              buttonBackSecondaryDisabled,
+        backgroundColor: MaterialStateProperty.all<Color>(
+          buttonBackSecondaryDisabled,
+        ),
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(
+            side: BorderSide(
+              color: buttonBackBorderSecondaryDisabled,
+              width: 1,
             ),
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(
-                side: BorderSide(
-                  color: buttonBackBorderSecondaryDisabled,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(10000),
-              ),
-            ),
-          );
+            borderRadius: BorderRadius.circular(10000),
+          ),
+        ),
+      );
 
   ButtonStyle? getSmallSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              textFieldDefaultBG,
-            ),
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(
-                side: BorderSide(
-                  color: buttonBackBorderSecondary,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(10000),
-              ),
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(textFieldDefaultBG),
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(
+            side: BorderSide(color: buttonBackBorderSecondary, width: 1),
+            borderRadius: BorderRadius.circular(10000),
+          ),
+        ),
+      );
 
   ButtonStyle? getDesktopMenuButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              popupBG,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(popupBG),
+      );
 
   ButtonStyle? getDesktopMenuButtonStyleSelected(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              textFieldDefaultBG,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(textFieldDefaultBG),
+      );
 
   ButtonStyle? getDesktopSettingsButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              background,
-            ),
-            overlayColor: MaterialStateProperty.all<Color>(
-              Colors.transparent,
-            ),
-          );
+        backgroundColor: MaterialStateProperty.all<Color>(background),
+        overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
+      );
 }
