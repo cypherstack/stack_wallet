@@ -12,3 +12,4 @@ cmake --build .
 mkdir -p ../../../../../build
 cp lib/libsecp256k1.so.2.*.* "../../../../../build/libsecp256k1.so"
 cd ../../../
+#!/usr/bin/env bash

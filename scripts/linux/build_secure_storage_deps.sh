@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "${USE_SYSTEM_SECURE_STORAGE_DEPS:-0}" = "1" ]; then
     echo "USE_SYSTEM_SECURE_STORAGE_DEPS is set; skipping build of jsoncpp and libsecret (using system packages)"
