@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/exchange/change_now/change_now_exchange.dart';
+import '../services/exchange/exolix/exolix_exchange.dart';
 import '../services/exchange/nanswap/nanswap_exchange.dart';
 import '../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../services/exchange/trocador/trocador_exchange.dart';
@@ -50,6 +51,8 @@ class _EXCHANGE {
   String get nanswap => "${_path}nanswap.svg";
   String get wizard => "${_path}wizard.svg";
 
+  String get exolix => "${_path}exolix.png";
+
   String getIconFor({required String exchangeName}) {
     switch (exchangeName) {
       case SimpleSwapExchange.exchangeName:
@@ -64,6 +67,8 @@ class _EXCHANGE {
         return nanswap;
       case WizardSwapExchange.exchangeName:
         return wizard;
+      case ExolixExchange.exchangeName:
+        return exolix;
       default:
         throw ArgumentError(
           "Invalid exchange name passed to "

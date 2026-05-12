@@ -1538,14 +1538,17 @@ class StackColors extends ThemeExtension<StackColors> {
       case "Finished":
       case "finished":
       case "Completed":
+      case "success":
         return accentColorGreen;
       case "Failed":
       case "failed":
       case "closed":
       case "expired":
+      case "overdue":
         return accentColorRed;
       case "Refunded":
       case "refunded":
+      case "refund":
         return textSubtitle2;
       default:
         return const Color(0xFFD3A90F);
