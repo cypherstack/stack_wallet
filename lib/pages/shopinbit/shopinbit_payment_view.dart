@@ -29,6 +29,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_send_from_view.dart';
 
@@ -471,14 +472,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    const loadingOverlay = Center(
-      child: SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-    );
-
     // Build coin rows from _methods/_addresses
     final coinRows = <Widget>[];
     for (int i = 0; i < _methods.length; i++) {
@@ -737,7 +730,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                 child: Stack(
                   children: [
                     SingleChildScrollView(child: content),
-                    if (_loading) loadingOverlay,
+                    if (_loading) const LoadingIndicator(width: 24, height: 24),
                   ],
                 ),
               ),
@@ -779,7 +772,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                         ),
                       ),
                     ),
-                    if (_loading) loadingOverlay,
+                    if (_loading) const LoadingIndicator(width: 24, height: 24),
                   ],
                 );
               },

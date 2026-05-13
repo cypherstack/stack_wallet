@@ -15,6 +15,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_offer_view.dart';
 
@@ -497,14 +498,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
               return _chatBubble(message, isDesktop);
             },
           ),
-          if (_loading)
-            const Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
+          if (_loading) const LoadingIndicator(width: 24, height: 24),
         ],
       ),
     );

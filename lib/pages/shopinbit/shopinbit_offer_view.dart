@@ -11,6 +11,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_shipping_view.dart';
 
@@ -154,14 +155,6 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
       ],
     );
 
-    const loadingOverlay = Center(
-      child: SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-    );
-
     if (isDesktop) {
       return DesktopDialog(
         maxWidth: 580,
@@ -187,7 +180,12 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                child: Stack(children: [content, if (_loading) loadingOverlay]),
+                child: Stack(
+                  children: [
+                    content,
+                    if (_loading) const LoadingIndicator(width: 24, height: 24),
+                  ],
+                ),
               ),
             ),
           ],
@@ -220,7 +218,7 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
                       ),
                     ),
                   ),
-                  if (_loading) loadingOverlay,
+                  if (_loading) const LoadingIndicator(width: 24, height: 24),
                 ],
               );
             },

@@ -15,6 +15,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_car_fee_view.dart';
 import 'shopinbit_car_research_payment_view.dart';
@@ -446,14 +447,7 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
     final content = Stack(
       children: [
         list,
-        if (_syncing)
-          const Center(
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
+        if (_syncing) const LoadingIndicator(width: 24, height: 24),
       ],
     );
 

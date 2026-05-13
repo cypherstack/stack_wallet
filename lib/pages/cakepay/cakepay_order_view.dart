@@ -23,6 +23,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'cakepay_send_from_view.dart';
@@ -215,12 +216,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       setState(() {
         _loading = false;
         if (!resp.hasError && resp.value != null) {
-          var order = resp.value!;
-          final override = CakePayService.devStatusOverrides[order.orderId];
-          if (override != null) {
-            order = order.copyWith(status: override);
-          }
-          _order = order;
+          _order = resp.value!;
           if (_isTerminal(_order!.status)) {
             _pollTimer?.cancel();
             _countdownTimer?.cancel();
@@ -324,60 +320,6 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     ];
   }
 
-  String _statusLabel(CakePayOrderStatus status) {
-    switch (status) {
-      case CakePayOrderStatus.new_:
-        return "New";
-      case CakePayOrderStatus.expiredButStillPending:
-        return "Expired (pending)";
-      case CakePayOrderStatus.expired:
-        return "Expired";
-      case CakePayOrderStatus.failed:
-        return "Failed";
-      case CakePayOrderStatus.paid:
-        return "Paid";
-      case CakePayOrderStatus.paidPartial:
-        return "Partially paid";
-      case CakePayOrderStatus.pendingPurchase:
-        return "Pending purchase";
-      case CakePayOrderStatus.purchaseProcessing:
-        return "Processing";
-      case CakePayOrderStatus.purchased:
-        return "Purchased";
-      case CakePayOrderStatus.pendingEmail:
-        return "Pending email";
-      case CakePayOrderStatus.complete:
-        return "Complete";
-      case CakePayOrderStatus.pendingRefund:
-        return "Pending refund";
-      case CakePayOrderStatus.refunded:
-        return "Refunded";
-    }
-  }
-
-  Color _statusColor(BuildContext context, CakePayOrderStatus status) {
-    final colors = Theme.of(context).extension<StackColors>()!;
-    switch (status) {
-      case CakePayOrderStatus.complete:
-      case CakePayOrderStatus.purchased:
-        return colors.accentColorGreen;
-      case CakePayOrderStatus.new_:
-      case CakePayOrderStatus.paid:
-      case CakePayOrderStatus.paidPartial:
-        return colors.accentColorBlue;
-      case CakePayOrderStatus.pendingPurchase:
-      case CakePayOrderStatus.purchaseProcessing:
-      case CakePayOrderStatus.pendingEmail:
-      case CakePayOrderStatus.expiredButStillPending:
-        return colors.accentColorYellow;
-      case CakePayOrderStatus.expired:
-      case CakePayOrderStatus.failed:
-      case CakePayOrderStatus.pendingRefund:
-      case CakePayOrderStatus.refunded:
-        return colors.textSubtitle1;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -385,13 +327,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     if (_loading) {
       return _scaffold(
         isDesktop: isDesktop,
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
+        child: const LoadingIndicator(width: 24, height: 24),
       );
     }
 
@@ -412,24 +348,33 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     final order = _order!;
     final paymentOptions = order.paymentOptions;
 
-    final statusBadge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: _statusColor(context, order.status).withValues(alpha: 0.2),
-      ),
-      child: Text(
-        _statusLabel(order.status),
-        style:
-            (isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context))
-                .copyWith(color: _statusColor(context, order.status)),
-      ),
-    );
-
     final details = <Widget>[
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [statusBadge]),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: order.status
+                  .color(Theme.of(context).extension<StackColors>()!)
+                  .withValues(alpha: 0.2),
+            ),
+            child: Text(
+              order.status.label,
+              style:
+                  (isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.itemSubtitle12(context))
+                      .copyWith(
+                        color: order.status.color(
+                          Theme.of(context).extension<StackColors>()!,
+                        ),
+                      ),
+            ),
+          ),
+        ],
+      ),
       SizedBox(height: isDesktop ? 8 : 6),
       RoundedWhiteContainer(
         child: GestureDetector(
@@ -727,7 +672,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _statusLabel(status),
+                  status.label,
                   style:
                       (isDesktop
                               ? STextStyles.desktopTextExtraExtraSmall(context)

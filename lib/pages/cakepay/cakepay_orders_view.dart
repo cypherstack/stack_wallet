@@ -10,6 +10,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'cakepay_order_view.dart';
 
@@ -44,12 +45,7 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
       for (final id in orderIds) {
         final resp = await CakePayService.instance.client.getOrder(id);
         if (!resp.hasError && resp.value != null) {
-          var order = resp.value!;
-          final override = CakePayService.devStatusOverrides[order.orderId];
-          if (override != null) {
-            order = order.copyWith(status: override);
-          }
-          results.add(order);
+          results.add(resp.value!);
         }
       }
 
@@ -193,14 +189,7 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
     final content = Stack(
       children: [
         list,
-        if (_syncing)
-          const Center(
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
+        if (_syncing) const LoadingIndicator(width: 24, height: 24),
       ],
     );
 

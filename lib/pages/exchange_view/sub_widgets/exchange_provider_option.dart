@@ -36,6 +36,7 @@ import '../../../widgets/dialogs/basic_dialog.dart';
 import '../../../widgets/exchange/trocador/trocador_kyc_info_button.dart';
 import '../../../widgets/exchange/trocador/trocador_rating_type_enum.dart';
 import '../../../widgets/icon_widgets/exchange_icon.dart';
+import '../../../widgets/loading_indicator.dart';
 
 class ExchangeOption extends ConsumerStatefulWidget {
   const ExchangeOption({
@@ -388,9 +389,7 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                                     if (loadingProgress == null) {
                                       return child;
                                     } else {
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
+                                      return const LoadingIndicator();
                                     }
                                   },
                               errorBuilder: (context, error, stackTrace) {
