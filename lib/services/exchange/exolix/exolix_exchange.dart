@@ -9,7 +9,8 @@ import '../../../models/exchange/response_objects/trade.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../exchange.dart';
 import '../exchange_response.dart';
-import 'exolix_api.dart';
+import 'api/dto/exolix_currency.dart';
+import 'api/exolix_api.dart';
 
 class ExolixExchange extends Exchange {
   ExolixExchange._();
