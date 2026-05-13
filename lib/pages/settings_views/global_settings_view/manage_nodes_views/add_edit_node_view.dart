@@ -259,6 +259,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           clearnetEnabled: plainEnabled,
           forceNoTor: forceNoTor,
           isPrimary: false,
+          nodeApiSecret: formData.apiSecret,
         );
 
         await ref
@@ -288,6 +289,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           clearnetEnabled: plainEnabled,
           forceNoTor: forceNoTor,
           isPrimary: formData.isPrimary ?? false,
+          nodeApiSecret: formData.apiSecret,
         );
 
         await ref
