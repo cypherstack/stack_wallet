@@ -102,5 +102,15 @@ jobs:
       - name: Install macOS build dependencies
         run: ./scripts/install_macos_build_tools.sh
 
+      - name: Select Xcode
+        run: |
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name 'Xcode*.app' -type d | head -1)
+          if [ -n "$XCODE_PATH" ]; then
+            sudo xcode-select --switch "$XCODE_PATH"
+            echo "Using Xcode at: $XCODE_PATH"
+          else
+            echo "Xcode not found" && exit 1
+          fi
+
       - name: Fresh clone smoke build (macOS)
         run: make build-macos VERSION=0.0.1 BUILD_NUM=1
