@@ -47,6 +47,14 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   static bool _mwcLogsInitialized = false;
 
+  /// Tracks wallets that have been openWallet'd in *this* process. The
+  /// `${walletId}_wallet` value in secure storage is a serialized Rust
+  /// pointer (u64): it persists across launches via libsecret but only
+  /// dereferences safely inside the process that wrote it. Anything in
+  /// secure storage from a previous process is a dangling pointer that
+  /// will SIGSEGV the host on FFI use.
+  static final Set<String> _openedInProcess = <String>{};
+
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
     final int lastScannedBlock =
@@ -99,10 +107,21 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   Future<String> _ensureWalletOpen() async {
     return await _walletOpenMutex.protect(() async {
-      final existing = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
-      if (existing != null && existing.isNotEmpty) return existing;
+      if (_openedInProcess.contains(walletId)) {
+        // We opened this wallet earlier in *this* process; secure storage
+        // holds the live handle.
+        final existing = await secureStorageInterface.read(
+          key: '${walletId}_wallet',
+        );
+        if (existing != null && existing.isNotEmpty) return existing;
+      } else {
+        // Whatever is in secure storage is a serialized Rust pointer from a
+        // previous process. Dereferencing it in this process crashes the
+        // host on the next FFI call (e.g. scanOutputs). Drop it so callers
+        // that read `${walletId}_wallet` directly pick up the fresh handle
+        // we're about to write.
+        await secureStorageInterface.delete(key: '${walletId}_wallet');
+      }
 
       final config = await _getRealConfig();
       // Initialize MWC's own Rust logger once per process so trace-level
@@ -133,6 +152,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         key: '${walletId}_wallet',
         value: opened,
       );
+      _openedInProcess.add(walletId);
       return opened;
     });
   }
