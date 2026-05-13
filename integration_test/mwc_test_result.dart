@@ -8,7 +8,7 @@ class TestResult {
   final String? error;
   final String? stackTrace;
   final DateTime timestamp;
-  
+
   TestResult({
     required this.name,
     required this.description,
@@ -18,7 +18,7 @@ class TestResult {
     this.error,
     this.stackTrace,
   }) : timestamp = DateTime.now();
-  
+
   /// Get a summary string for this test result.
   String get summary {
     final status = passed ? 'PASS' : 'FAIL';

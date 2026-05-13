@@ -7,10 +7,13 @@ void main() {
   testWidgets('MWC FFI smoke', (tester) async {
     await FFITestService.initialize();
     final ok = await FFITestService.runAllTests();
-    expect(ok, isTrue,
-        reason: FFITestService.testResults
-            .where((r) => !r.passed)
-            .map((r) => '${r.name}: ${r.error}')
-            .join('\n'));
+    expect(
+      ok,
+      isTrue,
+      reason: FFITestService.testResults
+          .where((r) => !r.passed)
+          .map((r) => '${r.name}: ${r.error}')
+          .join('\n'),
+    );
   });
 }
