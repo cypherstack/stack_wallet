@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
@@ -394,7 +395,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<Address> generateNextSparkAddress({required bool saveToDB}) async {
     final currentDiversifier =
-        (await getCurrentReceivingAddress())?.derivationIndex;
+        (await getCurrentReceivingSparkAddress())?.derivationIndex;
     // if current is null, start at index 1
     int diversifier = (currentDiversifier ?? 0) + 1;
     if (diversifier == libSpark.sparkChange) {
@@ -1546,9 +1547,63 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
         .toList(); // deep copy
     final feesObject = await fees;
+    final minRelayFeeRatePerKB = BigInt.from(1000);
+    final mintFeeRatePerKB = feesObject.medium < minRelayFeeRatePerKB
+        ? minRelayFeeRatePerKB
+        : feesObject.medium;
     final currentHeight = await chainHeight;
     final random = Random.secure();
     final List<TxData> results = [];
+
+    final String? autoMintSparkAddress = autoMintAll
+        ? (await getCurrentReceivingSparkAddress())?.value
+        : null;
+    if (autoMintAll && autoMintSparkAddress == null) {
+      throw Exception("No current Spark receiving address found.");
+    }
+
+    // Cache signing keys lazily for selected inputs. This mirrors the subset
+    // of addSigningKeys used by Firo Spark mints; Firo currently supports only
+    // BIP44 transparent inputs, so caching from the wallet root is valid here.
+    final root = await getRootHDNode();
+    final Map<String, _SparkMintSigningKey> signingKeyCache = {};
+    Future<_SparkMintSigningKey> getCachedSigningKey(String address) async {
+      final existing = signingKeyCache[address];
+      if (existing != null) {
+        return existing;
+      }
+
+      final derivePathType = cryptoCurrency.addressType(address: address);
+      final dbAddress = await mainDB.getAddress(walletId, address);
+      if (dbAddress?.derivationPath == null) {
+        throw Exception(
+          "Signing key not found for address $address. "
+          "Local db may be corrupt. Rescan wallet.",
+        );
+      }
+
+      final key = root.derivePath(dbAddress!.derivationPath!.value);
+      final cached = (derivePathType: derivePathType, key: key);
+      signingKeyCache[address] = cached;
+      return cached;
+    }
+
+    Address? cachedChangeAddress;
+    Future<Address> getMintChangeAddress() async {
+      cachedChangeAddress ??= await getCurrentChangeAddress();
+      if (cachedChangeAddress == null) {
+        throw Exception("No current change address found.");
+      }
+      return cachedChangeAddress!;
+    }
+
+    // Pre-fetch wallet-owned addresses for output ownership checks.
+    final walletAddresses = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .valueProperty()
+        .findAll();
+    final walletAddressSet = walletAddresses.toSet();
 
     valueAndUTXOs.shuffle(random);
 
@@ -1590,7 +1645,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         }
 
         // if (!MoneyRange(mintedValue) || mintedValue == 0) {
-        if (mintedValue == BigInt.zero) {
+        if (mintedValue <= BigInt.zero) {
           valueAndUTXOs.remove(itr);
           skipCoin = true;
           break;
@@ -1609,11 +1664,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
         if (autoMintAll) {
           singleTxOutputs.add(
-            MutableSparkRecipient(
-              (await getCurrentReceivingSparkAddress())!.value,
-              mintedValue,
-              "",
-            ),
+            MutableSparkRecipient(autoMintSparkAddress!, mintedValue, ""),
           );
         } else {
           BigInt remainingMintValue = BigInt.parse(mintedValue.toString());
@@ -1641,25 +1692,42 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           }
         }
 
-        if (subtractFeeFromAmount) {
-          final BigInt singleFee =
-              nFeeRet ~/ BigInt.from(singleTxOutputs.length);
-          BigInt remainder = nFeeRet % BigInt.from(singleTxOutputs.length);
+        if (subtractFeeFromAmount && nFeeRet > BigInt.zero) {
+          var remainingFee = nFeeRet;
+          var outputIndex = 0;
+          while (singleTxOutputs.isNotEmpty && remainingFee > BigInt.zero) {
+            if (outputIndex >= singleTxOutputs.length) {
+              outputIndex = 0;
+            }
 
-          for (int i = 0; i < singleTxOutputs.length; ++i) {
-            if (singleTxOutputs[i].value <= singleFee) {
-              singleTxOutputs.removeAt(i);
-              remainder += singleTxOutputs[i].value - singleFee;
-              --i;
+            final outputsLeft = BigInt.from(
+              singleTxOutputs.length - outputIndex,
+            );
+            var feeShare = remainingFee ~/ outputsLeft;
+            if (remainingFee % outputsLeft != BigInt.zero) {
+              feeShare += BigInt.one;
             }
-            singleTxOutputs[i].value -= singleFee;
-            if (remainder > BigInt.zero &&
-                singleTxOutputs[i].value >
-                    nFeeRet % BigInt.from(singleTxOutputs.length)) {
-              // first receiver pays the remainder not divisible by output count
-              singleTxOutputs[i].value -= remainder;
-              remainder = BigInt.zero;
+
+            if (singleTxOutputs[outputIndex].value <= feeShare) {
+              remainingFee -= singleTxOutputs[outputIndex].value;
+              singleTxOutputs.removeAt(outputIndex);
+              continue;
             }
+
+            singleTxOutputs[outputIndex].value -= feeShare;
+            remainingFee -= feeShare;
+            ++outputIndex;
+          }
+
+          if (singleTxOutputs.isEmpty) {
+            if (autoMintAll) {
+              throw Exception(
+                "UTXO value is too small to cover Spark mint fee",
+              );
+            }
+            valueAndUTXOs.remove(itr);
+            skipCoin = true;
+            break;
           }
         }
 
@@ -1694,11 +1762,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         BigInt nValueIn = BigInt.zero;
         for (final utxo in itr) {
           if (nValueToSelect > nValueIn) {
-            setCoins.add(
-              (await addSigningKeys([
-                StandardInput(utxo),
-              ])).whereType<StandardInput>().first,
+            final cached = await getCachedSigningKey(utxo.address!);
+            final input = StandardInput(
+              utxo,
+              derivePathType: cached.derivePathType,
             );
+            input.key = cached.key;
+            setCoins.add(input);
             nValueIn += BigInt.from(utxo.value);
           }
         }
@@ -1720,9 +1790,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               throw Exception("Change index out of range");
             }
 
-            final changeAddress = await getCurrentChangeAddress();
+            final changeAddress = await getMintChangeAddress();
             vout.insert(nChangePosInOut, (
-              changeAddress!.value,
+              changeAddress.value,
               nChange.toInt(),
               null,
             ));
@@ -1817,13 +1887,19 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           throw Exception("Transaction too large");
         }
 
-        const nBytesBuffer = 10;
+        // ECDSA DER signatures are not fixed-size. Even with low-S
+        // normalization, the encoded signature length can vary across
+        // signatures, so the dummy signed transaction used for fee estimation
+        // can be smaller than the final signed transaction. Use a per-input
+        // safety margin so fee estimation remains an upper bound for many-input
+        // Spark mints.
+        final nBytesBuffer = 10 + 4 * setCoins.length;
         final nFeeNeeded = BigInt.from(
           estimateTxFee(
             vSize: nBytes + nBytesBuffer,
-            feeRatePerKB: feesObject.medium,
+            feeRatePerKB: mintFeeRatePerKB,
           ),
-        ); // One day we'll do this properly
+        );
 
         if (nFeeRet >= nFeeNeeded) {
           for (final usedCoin in setCoins) {
@@ -1984,19 +2060,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             addresses: [
               if (addressOrScript is String) addressOrScript.toString(),
             ],
-            walletOwns:
-                (await mainDB.isar.addresses
-                    .where()
-                    .walletIdEqualTo(walletId)
-                    .filter()
-                    .valueEqualTo(
-                      addressOrScript is Uint8List
-                          ? output.$3!
-                          : addressOrScript as String,
-                    )
-                    .valueProperty()
-                    .findFirst()) !=
-                null,
+            walletOwns: walletAddressSet.contains(
+              addressOrScript is Uint8List
+                  ? output.$3!
+                  : addressOrScript as String,
+            ),
           ),
         );
       }
@@ -2026,6 +2094,18 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         rethrow;
       }
       final builtTx = txb.build();
+      final actualFee =
+          vin
+              .map((e) => BigInt.from(e.utxo.value))
+              .fold(BigInt.zero, (p, e) => p + e) -
+          vout.map((e) => BigInt.from(e.$2)).fold(BigInt.zero, (p, e) => p + e);
+      if (actualFee != nFeeRet) {
+        Logging.instance.e(
+          "Spark mint fee accounting mismatch: "
+          "expected=$nFeeRet, actual=$actualFee",
+        );
+        throw Exception("Spark mint fee accounting mismatch");
+      }
 
       // TODO: see todo at top of this function
       assert(outputs.length == 1);
@@ -2076,11 +2156,14 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 
       Logging.instance.i("nFeeRet=$nFeeRet, vSize=${data.vSize}");
+      // Sanity check: with the fee rate clamped to at least 1 sat/vbyte, this
+      // should only fire if fee accounting or size estimation regresses.
       if (nFeeRet.toInt() < data.vSize!) {
         Logging.instance.w(
-          "Spark mint transaction failed: $nFeeRet is less than ${data.vSize}",
+          "Fee rate below 1 sat/byte minimum relay fee: "
+          "fee=$nFeeRet sats, vSize=${data.vSize} bytes",
         );
-        throw Exception("fee is less than vSize");
+        throw Exception("Fee rate below 1 sat/byte minimum relay fee");
       }
 
       results.add(data);
@@ -2128,6 +2211,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     if (!autoMintAll && valueToMint > BigInt.zero) {
       // TODO: Is this a valid error message?
       throw Exception("Failed to mint expected amounts");
+    }
+
+    if (autoMintAll && results.isEmpty) {
+      throw Exception("No Spark mint transactions were created");
     }
 
     return results;
@@ -2506,6 +2593,11 @@ BigInt _min(BigInt a, BigInt b) {
 BigInt _sum(List<UTXO> utxos) => utxos
     .map((e) => BigInt.from(e.value))
     .fold(BigInt.zero, (previousValue, element) => previousValue + element);
+
+typedef _SparkMintSigningKey = ({
+  DerivePathType derivePathType,
+  coinlib.HDPrivateKey key,
+});
 
 class MutableSparkRecipient {
   String address;

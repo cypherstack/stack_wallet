@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
+
+import '../../../hive/hive_ce_test_utils.dart';
 
 @GenerateMocks([
   // ElectrumXClient,
@@ -329,7 +330,7 @@ void main() {
     const testWalletName = "Test Wallet";
 
     setUp(() async {
-      await setUpTestHive();
+      await setUpHiveCeTest();
 
       final wallets = await Hive.openBox<dynamic>('wallets');
       await wallets.put('currentWalletName', testWalletName);
@@ -3015,7 +3016,7 @@ void main() {
     // });
     //
     tearDown(() async {
-      await tearDownTestHive();
+      await tearDownHiveCeTest();
     });
   });
 

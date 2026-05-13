@@ -1,128 +1,83 @@
-#should deny
 name: Test
 on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:test
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - name: Prepare repository
-        uses: actions/checkout@v4
-      - name: Install Flutter 
-        uses: subosito/flutter-action@v2 
+        uses: actions/checkout@v6
         with:
-          flutter-version: '3.38.1'
-          channel: 'stable'
-
-          #      - name: Setup | Rust
-          #        uses: dtolnay/rust-toolchain@stable
-          #        with:
-          #          components: clippy
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
-
-      - name: install dependencies
-        run: |
-          cargo install cargo-ndk
-          rustup target add x86_64-unknown-linux-gnu
-          sudo apt update
-          sudo apt install -y meson ninja-build libglib2.0-dev libgcrypt20-dev libgirepository1.0-dev unzip automake build-essential file pkg-config git python3 libtool cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm debhelper libclang-dev opencl-headers libssl-dev ocl-icd-opencl-dev libc6-dev-i386
-          #      - name: Build Epic Cash
-          #run: |
-          #cd crypto_plugins/flutter_libepiccash/scripts/linux/
-          #./build_all.sh
+          fetch-depth: 0
+          submodules: recursive
 
       - name: Configure app
         run: |
           cd scripts
-          yes yes | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" || true
+          echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" -d -s
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Create temp files
-        id: secret-file1
+      - name: Create git_versions.dart stubs
         run: |
-          $secretFileExchange = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/external_api_keys.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:CHANGE_NOW);
-          Set-Content $secretFileExchange -Value $encodedBytes -AsByteStream;
-          $secretFileExchangeHash = Get-FileHash $secretFileExchange;
-          Write-Output "Secret file $secretFileExchange has hash $($secretFileExchangeHash.Hash)";
-          
-          $secretFileBitcoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:BITCOIN_TEST);
-          Set-Content $secretFileBitcoin -Value $encodedBytes -AsByteStream;
-          $secretFileBitcoinHash = Get-FileHash $secretFileBitcoin;
-          Write-Output "Secret file $secretFileBitcoin has hash $($secretFileBitcoinHash.Hash)";
-          
-          $secretFileDogecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:DOGECOIN_TEST);
-          Set-Content $secretFileDogecoin -Value $encodedBytes -AsByteStream;
-          $secretFileDogecoinHash = Get-FileHash $secretFileDogecoin;
-          Write-Output "Secret file $secretFileDogecoin has hash $($secretFileDogecoinHash.Hash)";
-          
-          $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:FIRO_TEST);
-          Set-Content $secretFileFiro -Value $encodedBytes -AsByteStream;
-          $secretFileFiroHash = Get-FileHash $secretFileFiro;
-          Write-Output "Secret file $secretFileFiro has hash $($secretFileFiroHash.Hash)";
-          
-          $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:BITCOINCASH_TEST);
-          Set-Content $secretFileBitcoinCash -Value $encodedBytes -AsByteStream;
-          $secretFileBitcoinCashHash = Get-FileHash $secretFileBitcoinCash;
-          Write-Output "Secret file $secretFileBitcoinCash has hash $($secretFileBitcoinCashHash.Hash)";
-          
-          $secretFileNamecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/namecoin/namecoin_wallet_test_parameters.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:NAMECOIN_TEST);
-          Set-Content $secretFileNamecoin -Value $encodedBytes -AsByteStream;
-          $secretFileNamecoinHash = Get-FileHash $secretFileNamecoin;
-          Write-Output "Secret file $secretFileNamecoin has hash $($secretFileNamecoinHash.Hash)";
-          
-          $secretFileParticl = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/particl/particl_wallet_test_parameters.dart";
-          $encodedBytes = [System.Convert]::FromBase64String($env:PARTICL_TEST);
-          Set-Content $secretFileParticl -Value $encodedBytes -AsByteStream;
-          $secretFileParticlHash = Get-FileHash $secretFileParticl;
-          Write-Output "Secret file $secretFileParticl has hash $($secretFileParticlHash.Hash)";
-          
-        shell: pwsh
+          mkdir -p crypto_plugins/flutter_libepiccash/lib
+          mkdir -p crypto_plugins/flutter_libmwc/lib
+
+          cat > crypto_plugins/flutter_libepiccash/lib/git_versions.dart << 'EOF'
+          String getPluginVersion() => "stub-for-tests";
+          EOF
+
+          cat > crypto_plugins/flutter_libmwc/lib/git_versions.dart << 'EOF'
+          String getPluginVersion() => "stub-for-tests";
+          EOF
+
+      - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-          BITCOIN_TEST: ${{ secrets.BITCOIN_TEST }}
-          DOGECOIN_TEST: ${{ secrets.DOGECOIN_TEST }}
-          FIRO_TEST: ${{ secrets.FIRO_TEST }}
-          BITCOINCASH_TEST: ${{ secrets.BITCOINCASH_TEST }}
-          NAMECOIN_TEST: ${{ secrets.NAMECOIN_TEST }}
-          PARTICL_TEST: ${{ secrets.PARTICL_TEST }}
+        run: |
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Verify Dart formatting
-        run: dart format --output=none --set-exit-if-changed .
+      - name: Ensure app config for tests
+        run: bash scripts/ensure_test_app_config.sh
 
+      - name: Create test stubs
+        run: bash prebuild.sh
+        working-directory: scripts
+
+      - name: Check formatting of changed files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} HEAD)
+          else
+            BASE=${{ github.event.before }}
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACM "$BASE"..HEAD -- '*.dart')
+          if [ -z "$FILES" ]; then
+            echo "No Dart files changed."
+            exit 0
+          fi
+          echo "Checking formatting of $(echo "$FILES" | wc -l) file(s):"
+          echo "$FILES"
+          dart format --output=none --set-exit-if-changed $FILES
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
-        run: flutter test --coverage
+        run: |
+          bash scripts/ensure_test_app_config.sh
+          test -s lib/app_config.g.dart
+          grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
+          flutter test --coverage
       - name: Upload to code coverage
         uses: codecov/codecov-action@v1.2.2
         if: success() || failure()
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
-      - name: Delete temp files
-        run: |
-          $secretFileExchange = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/external_api_keys.dart";
-          $secretFileBitcoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart";
-          $secretFileDogecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart";
-          $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
-          $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
-          $secretFileNamecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/namecoin/namecoin_wallet_test_parameters.dart";
-          $secretFileParticl = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/particl/particl_wallet_test_parameters.dart";
-
-          Remove-Item -Path $secretFileExchange;
-          Remove-Item -Path $secretFileBitcoin;
-          Remove-Item -Path $secretFileDogecoin;
-          Remove-Item -Path $secretFileFiro;
-          Remove-Item -Path $secretFileBitcoinCash;
-          Remove-Item -Path $secretFileNamecoin;
-          Remove-Item -Path $secretFileParticl;
-        shell: pwsh
-        if: always()

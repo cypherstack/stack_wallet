@@ -5,14 +5,11 @@ import '../../../pages_desktop_specific/ordinals/desktop_ordinal_details_view.da
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../widgets/ordinal_image.dart';
 import '../../../widgets/rounded_white_container.dart';
 
 class OrdinalCard extends StatelessWidget {
-  const OrdinalCard({
-    super.key,
-    required this.walletId,
-    required this.ordinal,
-  });
+  const OrdinalCard({super.key, required this.walletId, required this.ordinal});
 
   final String walletId;
   final Ordinal ordinal;
@@ -38,12 +35,7 @@ class OrdinalCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
-              child: Image.network(
-                ordinal.content, // Use the preview URL as the image source
-                fit: BoxFit.cover,
-                filterQuality:
-                    FilterQuality.none, // Set the filter mode to nearest
-              ),
+              child: OrdinalImage(url: ordinal.content),
             ),
           ),
           const Spacer(),

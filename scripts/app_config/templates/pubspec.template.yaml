@@ -95,7 +95,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 7145be16bb88cffbd53326f7fa4570e414be09e4
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   stack_wallet_backup:
     git:
@@ -325,6 +325,12 @@ dependency_overrides:
       url: https://github.com/cypherstack/bip47.git
       ref: 3ef6b94375d7b4d972b0bc0bd9597532381a88ec
 
+  # bip47 pins a different bitcoindart commit; override to ours
+  bitcoindart:
+    git:
+      url: https://github.com/cypherstack/bitcoindart.git
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
+
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
@@ -341,7 +347,8 @@ dependency_overrides:
   # required to override solana's lower version
   decimal: ^3.2.4
 
-  analyzer: ^8.2.0
+  # pin analyzer below 8.4.0 to avoid source_gen 3.1.0 incompatibility (getInvocation() removed in 8.4.0+)
+  analyzer: ">=8.2.0 <8.4.0"
 
   # xelis override
   json_rpc_2: ^4.0.0

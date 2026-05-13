@@ -35,6 +35,9 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
   @override
   int get isarTransactionVersion => 2;
 
+  @override
+  String get ordServerBaseUrl => 'https://ord-litecoin.stackwallet.com';
+
   LitecoinWallet(CryptoCurrencyNetwork network) : super(Litecoin(network) as T);
 
   @override
@@ -86,9 +89,7 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
-    final updateInscriptionsFuture = refreshInscriptions(
-      overrideAddressesToCheck: allAddressesSet.toList(),
-    );
+    final updateInscriptionsFuture = refreshInscriptions();
 
     // Fetch history from ElectrumX.
     final List<Map<String, dynamic>> allTxHashes = await fetchHistory(

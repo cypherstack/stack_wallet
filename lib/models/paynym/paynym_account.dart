@@ -37,24 +37,24 @@ class PaynymAccount {
   );
 
   PaynymAccount.fromMap(Map<String, dynamic> map)
-      : nymID = map["nymID"] as String,
-        nymName = map["nymName"] as String,
-        segwit = map["segwit"] as bool,
-        codes = (map["codes"] as List<dynamic>)
-            .map((e) => PaynymCode.fromMap(Map<String, dynamic>.from(e as Map)))
-            .toList(),
-        followers = (map["followers"] as List<dynamic>)
-            .map(
-              (e) => PaynymAccountLite.fromMap(
-                  Map<String, dynamic>.from(e as Map)),
-            )
-            .toList(),
-        following = (map["following"] as List<dynamic>)
-            .map(
-              (e) => PaynymAccountLite.fromMap(
-                  Map<String, dynamic>.from(e as Map)),
-            )
-            .toList();
+    : nymID = map["nymID"] as String,
+      nymName = map["nymName"] as String,
+      segwit = map["segwit"] as bool,
+      codes = (map["codes"] as List<dynamic>)
+          .map((e) => PaynymCode.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList(),
+      followers = (map["followers"] as List<dynamic>)
+          .map(
+            (e) =>
+                PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)),
+          )
+          .toList(),
+      following = (map["following"] as List<dynamic>)
+          .map(
+            (e) =>
+                PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)),
+          )
+          .toList();
 
   PaynymAccount copyWith({
     String? nymID,
@@ -75,13 +75,13 @@ class PaynymAccount {
   }
 
   Map<String, dynamic> toMap() => {
-        "nymID": nymID,
-        "nymName": nymName,
-        "segwit": segwit,
-        "codes": codes.map((e) => e.toMap()),
-        "followers": followers.map((e) => e.toMap()),
-        "following": followers.map((e) => e.toMap()),
-      };
+    "nymID": nymID,
+    "nymName": nymName,
+    "segwit": segwit,
+    "codes": codes.map((e) => e.toMap()),
+    "followers": followers.map((e) => e.toMap()),
+    "following": following.map((e) => e.toMap()),
+  };
 
   @override
   String toString() {
