@@ -30,6 +30,7 @@ import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../services/exchange/exchange_response.dart';
+import '../../services/exchange/exolix/exolix_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
@@ -81,6 +82,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     } else {
       return [
         ChangeNowExchange.instance,
+        ExolixExchange.instance,
         TrocadorExchange.instance,
         NanswapExchange.instance,
         WizardSwapExchange.instance,
