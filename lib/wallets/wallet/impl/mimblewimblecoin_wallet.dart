@@ -45,6 +45,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   NodeModel? _mimblewimblecoinNode;
   Timer? timer;
 
+  static bool _mwcLogsInitialized = false;
+
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
     final int lastScannedBlock =
@@ -103,6 +105,18 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       if (existing != null && existing.isNotEmpty) return existing;
 
       final config = await _getRealConfig();
+      // Initialize MWC's own Rust logger once per process so trace-level
+      // output from scan()/listener lands in <wallet_dir>/mwc-wallet.log.
+      // This is invaluable when the native side crashes silently (SIGSEGV
+      // / abort) without leaving a Rust panic.
+      if (!_mwcLogsInitialized) {
+        try {
+          await libMwc.initLogs(config: config);
+          _mwcLogsInitialized = true;
+        } catch (e, s) {
+          Logging.instance.w("libMwc.initLogs failed: $e\n$s");
+        }
+      }
       final password = await secureStorageInterface.read(
         key: '${walletId}_password',
       );
