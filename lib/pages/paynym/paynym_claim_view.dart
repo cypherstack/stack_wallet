@@ -32,10 +32,7 @@ import 'dialogs/claiming_paynym_dialog.dart';
 import 'paynym_home_view.dart';
 
 class PaynymClaimView extends ConsumerStatefulWidget {
-  const PaynymClaimView({
-    super.key,
-    required this.walletId,
-  });
+  const PaynymClaimView({super.key, required this.walletId});
 
   final String walletId;
 
@@ -80,23 +77,20 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
               leading: Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 24,
-                      right: 20,
-                    ),
+                    padding: const EdgeInsets.only(left: 24, right: 20),
                     child: AppBarIconButton(
                       size: 32,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                       shadows: const [],
                       icon: SvgPicture.asset(
                         Assets.svg.arrowLeft,
                         width: 18,
                         height: 18,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.topNavIconPrimary,
                       ),
                       onPressed: Navigator.of(context).pop,
                     ),
@@ -107,13 +101,8 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                     height: 42,
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    "PayNym",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  const SizedBox(width: 10),
+                  Text("PayNym", style: STextStyles.desktopH3(context)),
                 ],
               ),
             )
@@ -129,52 +118,36 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
       body: ConditionalParent(
         condition: !isDesktop,
         builder: (child) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(16), child: child),
         ),
         child: ConditionalParent(
           condition: isDesktop,
-          builder: (child) => SizedBox(
-            width: 328,
-            child: child,
-          ),
+          builder: (child) => SizedBox(width: 328, child: child),
           child: Column(
             children: [
-              const Spacer(
-                flex: 1,
-              ),
+              const Spacer(flex: 1),
               SvgPicture.asset(
                 Assets.svg.unclaimedPaynym,
                 width: MediaQuery.of(context).size.width / 2,
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               Text(
                 "You do not have a PayNym yet.\nClaim yours now!",
                 style: isDesktop
                     ? STextStyles.desktopSubtitleH2(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle1,
                       )
                     : STextStyles.baseXS(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle1,
                       ),
                 textAlign: TextAlign.center,
               ),
-              if (isDesktop)
-                const SizedBox(
-                  height: 30,
-                ),
-              if (!isDesktop)
-                const Spacer(
-                  flex: 2,
-                ),
+              if (isDesktop) const SizedBox(height: 30),
+              if (!isDesktop) const Spacer(flex: 2),
               PrimaryButton(
                 label: "Claim",
                 onPressed: () async {
@@ -187,8 +160,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                     ).then((value) => shouldCancel = value == true),
                   );
 
-                  final wallet = ref.read(pWallets).getWallet(widget.walletId)
-                      as PaynymInterface;
+                  final wallet =
+                      ref.read(pWallets).getWallet(widget.walletId)
+                          as PaynymInterface;
 
                   if (shouldCancel) return;
 
@@ -225,11 +199,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                         Navigator.of(context, rootNavigator: true).pop();
                         Navigator.of(context).pop();
                       } else {
-                        Navigator.of(context).popUntil(
-                          ModalRoute.withName(
-                            WalletView.routeName,
-                          ),
-                        );
+                        Navigator.of(
+                          context,
+                        ).popUntil(ModalRoute.withName(WalletView.routeName));
                       }
                       await Navigator.of(context).pushNamed(
                         PaynymHomeView.routeName,
@@ -240,11 +212,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                         Navigator.of(context, rootNavigator: true).pop();
                         Navigator.of(context).pop();
                       } else {
-                        Navigator.of(context).popUntil(
-                          ModalRoute.withName(
-                            WalletView.routeName,
-                          ),
-                        );
+                        Navigator.of(
+                          context,
+                        ).popUntil(ModalRoute.withName(WalletView.routeName));
                       }
                     }
                     return;
@@ -252,8 +222,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
 
                   if (shouldCancel) return;
 
-                  final token =
-                      await ref.read(paynymAPIProvider).token(pCode.toString());
+                  final token = await ref
+                      .read(paynymAPIProvider)
+                      .token(pCode.toString());
 
                   debugPrint("token result: $token");
 
@@ -268,8 +239,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   }
 
                   // sign token with notification private key
-                  final signature =
-                      await wallet.signStringWithNotificationKey(token.value!);
+                  final signature = await wallet.signStringWithNotificationKey(
+                    token.value!,
+                  );
 
                   debugPrint("signature: $signature");
 
@@ -287,8 +259,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   if (claim.statusCode == 200 ||
                       claim.value?.claimed == pCode.toString() ||
                       claim.value?.claimed == "true") {
-                    final account =
-                        await ref.read(paynymAPIProvider).nym(pCode.toString());
+                    final account = await ref
+                        .read(paynymAPIProvider)
+                        .nym(pCode.toString());
                     // if (!account.value!.segwit) {
                     //   for (int i = 0; i < 100; i++) {
                     //     final result = await _addSegwitCode(account.value!);
@@ -305,11 +278,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                         Navigator.of(context, rootNavigator: true).pop();
                         Navigator.of(context).pop();
                       } else {
-                        Navigator.of(context).popUntil(
-                          ModalRoute.withName(
-                            WalletView.routeName,
-                          ),
-                        );
+                        Navigator.of(
+                          context,
+                        ).popUntil(ModalRoute.withName(WalletView.routeName));
                       }
                       await Navigator.of(context).pushNamed(
                         PaynymHomeView.routeName,
@@ -328,10 +299,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   }
                 },
               ),
-              if (isDesktop)
-                const Spacer(
-                  flex: 2,
-                ),
+              if (isDesktop) const Spacer(flex: 2),
             ],
           ),
         ),

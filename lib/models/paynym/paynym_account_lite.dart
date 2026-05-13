@@ -27,11 +27,11 @@ class PaynymAccountLite {
   });
 
   PaynymAccountLite.fromMap(Map<String, dynamic> map)
-      : nymId = map["nymId"] as String,
-        nymName = map["nymName"] as String,
-        code = map["code"] as String,
-        segwit = map["segwit"] as bool,
-        taproot = map["taproot"] as bool? ?? inferTaproot(map["code"] as String);
+    : nymId = map["nymId"] as String,
+      nymName = map["nymName"] as String,
+      code = map["code"] as String,
+      segwit = map["segwit"] as bool,
+      taproot = map["taproot"] as bool? ?? inferTaproot(map["code"] as String);
 
   static bool inferTaproot(String paymentCodeString) {
     try {
@@ -46,12 +46,12 @@ class PaynymAccountLite {
   }
 
   Map<String, dynamic> toMap() => {
-        "nymId": nymId,
-        "nymName": nymName,
-        "code": code,
-        "segwit": segwit,
-        "taproot": taproot,
-      };
+    "nymId": nymId,
+    "nymName": nymName,
+    "code": code,
+    "segwit": segwit,
+    "taproot": taproot,
+  };
 
   @override
   String toString() {

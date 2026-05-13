@@ -15,13 +15,10 @@ class PaynymClaim {
   PaynymClaim(this.claimed, this.token);
 
   PaynymClaim.fromMap(Map<String, dynamic> map)
-      : claimed = map["claimed"].toString(),
-        token = map["token"] as String;
+    : claimed = map["claimed"].toString(),
+      token = map["token"] as String;
 
-  Map<String, dynamic> toMap() => {
-        "claimed": claimed,
-        "token": token,
-      };
+  Map<String, dynamic> toMap() => {"claimed": claimed, "token": token};
 
   @override
   String toString() {

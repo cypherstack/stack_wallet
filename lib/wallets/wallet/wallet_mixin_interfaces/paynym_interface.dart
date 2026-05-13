@@ -109,20 +109,16 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         break;
     }
 
-    final address =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .subTypeEqualTo(AddressSubType.paynymReceive)
-            .and()
-            .typeEqualTo(filterType)
-            .and()
-            .anyOf<String, Address>(
-              keys,
-              (q, String e) => q.otherDataEqualTo(e),
-            )
-            .sortByDerivationIndexDesc()
-            .findFirst();
+    final address = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .subTypeEqualTo(AddressSubType.paynymReceive)
+        .and()
+        .typeEqualTo(filterType)
+        .and()
+        .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
+        .sortByDerivationIndexDesc()
+        .findFirst();
 
     if (address == null) {
       final generatedAddress = await _generatePaynymReceivingAddress(
@@ -131,12 +127,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         derivePathType: derivePathType,
       );
 
-      final existing =
-          await mainDB
-              .getAddresses(walletId)
-              .filter()
-              .valueEqualTo(generatedAddress.value)
-              .findFirst();
+      final existing = await mainDB
+          .getAddresses(walletId)
+          .filter()
+          .valueEqualTo(generatedAddress.value)
+          .findFirst();
 
       if (existing == null) {
         await mainDB.putAddress(generatedAddress);
@@ -224,12 +219,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       value: result.address,
       publicKey: [],
       derivationIndex: index,
-      derivationPath:
-          DerivationPath()
-            ..value = _receivingPaynymAddressDerivationPath(
-              index,
-              testnet: info.coin.network.isTestNet,
-            ),
+      derivationPath: DerivationPath()
+        ..value = _receivingPaynymAddressDerivationPath(
+          index,
+          testnet: info.coin.network.isTestNet,
+        ),
       type: result.type,
       subType: AddressSubType.paynymReceive,
       otherData: await storeCode(sender.toString()),
@@ -264,12 +258,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       value: result.address,
       publicKey: [],
       derivationIndex: index,
-      derivationPath:
-          DerivationPath()
-            ..value = _sendPaynymAddressDerivationPath(
-              index,
-              testnet: info.coin.network.isTestNet,
-            ),
+      derivationPath: DerivationPath()
+        ..value = _sendPaynymAddressDerivationPath(
+          index,
+          testnet: info.coin.network.isTestNet,
+        ),
       type: result.type,
       subType: AddressSubType.paynymSend,
       otherData: await storeCode(other.toString()),
@@ -300,12 +293,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         derivePathType: derivePathType,
       );
 
-      final existing =
-          await mainDB
-              .getAddresses(walletId)
-              .filter()
-              .valueEqualTo(nextAddress.value)
-              .findFirst();
+      final existing = await mainDB
+          .getAddresses(walletId)
+          .filter()
+          .valueEqualTo(nextAddress.value)
+          .findFirst();
 
       if (existing == null) {
         await mainDB.putAddress(nextAddress);
@@ -409,12 +401,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     // Clean prefix: strip leading length byte if present (coinlib recalculates)
     final prefixBytes =
         cryptoCurrency.networkParams.messagePrefix.toUint8ListFromUtf8;
-    final ignoreFirstByte =
-        prefixBytes.first == prefixBytes.length - 1;
-    final prefix = (ignoreFirstByte
-            ? prefixBytes.sublist(1)
-            : prefixBytes)
-        .toUtf8String;
+    final ignoreFirstByte = prefixBytes.first == prefixBytes.length - 1;
+    final prefix =
+        (ignoreFirstByte ? prefixBytes.sublist(1) : prefixBytes).toUtf8String;
 
     final signed = coinlib.MessageSignature.sign(
       key: key,
@@ -490,19 +479,15 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
     for (int i = startIndex; i < maxCount; i++) {
       final keys = await lookupKey(pCode.toString());
-      final address =
-          await mainDB
-              .getAddresses(walletId)
-              .filter()
-              .subTypeEqualTo(AddressSubType.paynymSend)
-              .and()
-              .anyOf<String, Address>(
-                keys,
-                (q, String e) => q.otherDataEqualTo(e),
-              )
-              .and()
-              .derivationIndexEqualTo(i)
-              .findFirst();
+      final address = await mainDB
+          .getAddresses(walletId)
+          .filter()
+          .subTypeEqualTo(AddressSubType.paynymSend)
+          .and()
+          .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
+          .and()
+          .derivationIndexEqualTo(i)
+          .findFirst();
 
       if (address != null) {
         final count = await fetchTxCount(
@@ -586,9 +571,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       // end since taproot inputs don't expose the raw public key needed by the
       // receiver to compute ECDH for BIP47 notification parsing.
       spendableOutputs.sort((a, b) {
-        final aIsTaproot = a.address?.startsWith('bc1p') == true ||
+        final aIsTaproot =
+            a.address?.startsWith('bc1p') == true ||
             a.address?.startsWith('tb1p') == true;
-        final bIsTaproot = b.address?.startsWith('bc1p') == true ||
+        final bIsTaproot =
+            b.address?.startsWith('bc1p') == true ||
             b.address?.startsWith('tb1p') == true;
         if (aIsTaproot != bIsTaproot) {
           return aIsTaproot ? 1 : -1;
@@ -624,10 +611,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       // gather required signing data
-      final inputsWithKeys =
-          (await addSigningKeys(
-            utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
-          )).whereType<StandardInput>().toList();
+      final inputsWithKeys = (await addSigningKeys(
+        utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
+      )).whereType<StandardInput>().toList();
 
       final vSizeForNoChange = BigInt.from(
         (await _createNotificationTx(
@@ -923,8 +909,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         clTx = clTx.addInput(input);
       }
 
-      final String notificationAddress =
-          targetPaymentCode.notificationAddressP2PKH();
+      final String notificationAddress = targetPaymentCode
+          .notificationAddressP2PKH();
 
       final address = coinlib.Address.fromString(
         normalizeAddress(notificationAddress),
@@ -1092,13 +1078,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
     final myNotificationAddress = await getMyNotificationAddress();
 
-    final txns =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .subTypeEqualTo(TransactionSubType.bip47Notification)
-            .findAll();
+    final txns = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .findAll();
 
     for (final tx in txns) {
       switch (tx.type) {
@@ -1132,15 +1117,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         case TransactionType.outgoing:
           for (final output in tx.outputs) {
             for (final outputAddress in output.addresses) {
-              final address =
-                  await mainDB.isar.addresses
-                      .where()
-                      .walletIdEqualTo(walletId)
-                      .filter()
-                      .subTypeEqualTo(AddressSubType.paynymNotification)
-                      .and()
-                      .valueEqualTo(outputAddress)
-                      .findFirst();
+              final address = await mainDB.isar.addresses
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .filter()
+                  .subTypeEqualTo(AddressSubType.paynymNotification)
+                  .and()
+                  .valueEqualTo(outputAddress)
+                  .findFirst();
 
               if (address?.otherData != null) {
                 final code = await paymentCodeStringByKey(address!.otherData!);
@@ -1194,8 +1178,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       final designatedInput = transaction.inputs.first;
 
-      final txPoint =
-          designatedInput.outpoint!.txid.toUint8ListFromHex.reversed.toList();
+      final txPoint = designatedInput.outpoint!.txid.toUint8ListFromHex.reversed
+          .toList();
       final txPointIndex = designatedInput.outpoint!.vout;
 
       final rev = Uint8List(txPoint.length + 4);
@@ -1258,8 +1242,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       final designatedInput = transaction.inputs.first;
 
-      final txPoint =
-          designatedInput.outpoint!.txid.toUint8ListFromHex.toList();
+      final txPoint = designatedInput.outpoint!.txid.toUint8ListFromHex
+          .toList();
       final txPointIndex = designatedInput.outpoint!.vout;
 
       final rev = Uint8List(txPoint.length + 4);
@@ -1309,13 +1293,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
   Future<List<PaymentCode>>
   getAllPaymentCodesFromNotificationTransactions() async {
-    final txns =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .subTypeEqualTo(TransactionSubType.bip47Notification)
-            .findAll();
+    final txns = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .findAll();
 
     final List<PaymentCode> codes = [];
 
@@ -1326,15 +1309,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           for (final outputAddress in output.addresses.where(
             (e) => e.isNotEmpty,
           )) {
-            final address =
-                await mainDB.isar.addresses
-                    .where()
-                    .walletIdEqualTo(walletId)
-                    .filter()
-                    .subTypeEqualTo(AddressSubType.paynymNotification)
-                    .and()
-                    .valueEqualTo(outputAddress)
-                    .findFirst();
+            final address = await mainDB.isar.addresses
+                .where()
+                .walletIdEqualTo(walletId)
+                .filter()
+                .subTypeEqualTo(AddressSubType.paynymNotification)
+                .and()
+                .valueEqualTo(outputAddress)
+                .findFirst();
 
             if (address?.otherData != null) {
               final codeString = await paymentCodeStringByKey(
@@ -1380,15 +1362,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   Future<void> checkForNotificationTransactionsTo(
     Set<String> otherCodeStrings,
   ) async {
-    final sentNotificationTransactions =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .subTypeEqualTo(TransactionSubType.bip47Notification)
-            .and()
-            .typeEqualTo(TransactionType.outgoing)
-            .findAll();
+    final sentNotificationTransactions = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .and()
+        .typeEqualTo(TransactionType.outgoing)
+        .findAll();
 
     final List<PaymentCode> codes = [];
     for (final codeString in otherCodeStrings) {
@@ -1547,17 +1528,16 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   }
 
   Future<Address> getMyNotificationAddress() async {
-    final storedAddress =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .subTypeEqualTo(AddressSubType.paynymNotification)
-            .and()
-            .typeEqualTo(AddressType.p2pkh)
-            .and()
-            .not()
-            .typeEqualTo(AddressType.nonWallet)
-            .findFirst();
+    final storedAddress = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .subTypeEqualTo(AddressSubType.paynymNotification)
+        .and()
+        .typeEqualTo(AddressType.p2pkh)
+        .and()
+        .not()
+        .typeEqualTo(AddressType.nonWallet)
+        .findFirst();
 
     if (storedAddress != null) {
       return storedAddress;
@@ -1576,19 +1556,20 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         pubkey: paymentCode.notificationPublicKey(),
       );
 
-      final addressString =
-          btc_dart.P2PKH(data: data, network: networkType).data.address!;
+      final addressString = btc_dart
+          .P2PKH(data: data, network: networkType)
+          .data
+          .address!;
 
       Address address = Address(
         walletId: walletId,
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
-        derivationPath:
-            DerivationPath()
-              ..value = _notificationDerivationPath(
-                testnet: info.coin.network.isTestNet,
-              ),
+        derivationPath: DerivationPath()
+          ..value = _notificationDerivationPath(
+            testnet: info.coin.network.isTestNet,
+          ),
         type: AddressType.p2pkh,
         subType: AddressSubType.paynymNotification,
         otherData: await storeCode(paymentCode.toString()),
@@ -1599,17 +1580,16 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       // beginning to see if there already was notification address. This would
       // lead to a Unique Index violation  error
       await mainDB.isar.writeTxn(() async {
-        final storedAddress =
-            await mainDB
-                .getAddresses(walletId)
-                .filter()
-                .subTypeEqualTo(AddressSubType.paynymNotification)
-                .and()
-                .typeEqualTo(AddressType.p2pkh)
-                .and()
-                .not()
-                .typeEqualTo(AddressType.nonWallet)
-                .findFirst();
+        final storedAddress = await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .subTypeEqualTo(AddressSubType.paynymNotification)
+            .and()
+            .typeEqualTo(AddressType.p2pkh)
+            .and()
+            .not()
+            .typeEqualTo(AddressType.nonWallet)
+            .findFirst();
 
         if (storedAddress == null) {
           await mainDB.isar.addresses.put(address);
@@ -1687,21 +1667,19 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         overrideAddresses ?? await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses =
-        allAddressesOld
-            .where(
-              (e) =>
-                  e.subType == AddressSubType.receiving ||
-                  e.subType == AddressSubType.paynymNotification ||
-                  e.subType == AddressSubType.paynymReceive,
-            )
-            .map((e) => e.value)
-            .toSet();
-    final Set<String> changeAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.change)
-            .map((e) => e.value)
-            .toSet();
+    final Set<String> receivingAddresses = allAddressesOld
+        .where(
+          (e) =>
+              e.subType == AddressSubType.receiving ||
+              e.subType == AddressSubType.paynymNotification ||
+              e.subType == AddressSubType.paynymReceive,
+        )
+        .map((e) => e.value)
+        .toSet();
+    final Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => e.value)
+        .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
@@ -1711,16 +1689,15 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       allAddressesSet,
     );
 
-    final unconfirmedTxs =
-        await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .heightIsNull()
-            .or()
-            .heightEqualTo(0)
-            .txidProperty()
-            .findAll();
+    final unconfirmedTxs = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .or()
+        .heightEqualTo(0)
+        .txidProperty()
+        .findAll();
 
     allTxHashes.addAll(unconfirmedTxs.map((e) => {"tx_hash": e}));
 
@@ -1752,13 +1729,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           "'message': 'No such mempool or blockchain transaction",
         )) {
           await mainDB.isar.writeTxn(
-            () async =>
-                await mainDB.isar.transactionV2s
-                    .where()
-                    .walletIdEqualTo(walletId)
-                    .filter()
-                    .txidEqualTo(txid)
-                    .deleteFirst(),
+            () async => await mainDB.isar.transactionV2s
+                .where()
+                .walletIdEqualTo(walletId)
+                .filter()
+                .txidEqualTo(txid)
+                .deleteFirst(),
           );
           continue;
         } else {

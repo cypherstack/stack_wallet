@@ -29,11 +29,7 @@ import '../desktop/primary_button.dart';
 import '../desktop/secondary_button.dart';
 import '../loading_indicator.dart';
 
-enum PaynymFollowToggleButtonStyle {
-  primary,
-  detailsPopup,
-  detailsDesktop,
-}
+enum PaynymFollowToggleButtonStyle { primary, detailsPopup, detailsDesktop }
 
 const kDisableFollowing = false;
 
@@ -63,12 +59,8 @@ class _PaynymFollowToggleButtonState
     unawaited(
       showDialog<void>(
         context: context,
-        builder: (context) => const LoadingIndicator(
-          width: 200,
-        ),
-      ).then(
-        (_) => loadingPopped = true,
-      ),
+        builder: (context) => const LoadingIndicator(width: 200),
+      ).then((_) => loadingPopped = true),
     );
 
     // get wallet to access paynym calls
@@ -81,29 +73,35 @@ class _PaynymFollowToggleButtonState
 
     final myPCode = await wallet.getPaymentCode(isSegwit: false);
 
-    PaynymResponse<String> token =
-        await ref.read(paynymAPIProvider).token(myPCode.toString());
+    PaynymResponse<String> token = await ref
+        .read(paynymAPIProvider)
+        .token(myPCode.toString());
 
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).follow(
+    var result = await ref
+        .read(paynymAPIProvider)
+        .follow(
           token.value!,
           signature,
           followedAccount.value!.nonSegwitPaymentCode.code,
         );
 
     int i = 0;
-    for (;
-        i < 10 &&
-            result.statusCode == 401; //"401 Unauthorized - Bad signature";
-        i++) {
+    for (
+      ;
+      i < 10 && result.statusCode == 401; //"401 Unauthorized - Bad signature";
+      i++
+    ) {
       token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).follow(
+      result = await ref
+          .read(paynymAPIProvider)
+          .follow(
             token.value!,
             signature,
             followedAccount.value!.nonSegwitPaymentCode.code,
@@ -115,7 +113,8 @@ class _PaynymFollowToggleButtonState
 
     Logging.instance.d("Follow result: $result on try $i");
 
-    final followSuccess = result.statusCode == 200 ||
+    final followSuccess =
+        result.statusCode == 200 ||
         result.value?.following == followedAccount.value?.nymID;
 
     if (followSuccess && followedAccount.value != null) {
@@ -163,7 +162,8 @@ class _PaynymFollowToggleButtonState
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Failed to follow ${followedAccount.value?.nymName ?? "PayNym"}",
+            message:
+                "Failed to follow ${followedAccount.value?.nymName ?? "PayNym"}",
             context: context,
           ),
         );
@@ -178,12 +178,8 @@ class _PaynymFollowToggleButtonState
     unawaited(
       showDialog<void>(
         context: context,
-        builder: (context) => const LoadingIndicator(
-          width: 200,
-        ),
-      ).then(
-        (_) => loadingPopped = true,
-      ),
+        builder: (context) => const LoadingIndicator(width: 200),
+      ).then((_) => loadingPopped = true),
     );
 
     final wallet =
@@ -195,29 +191,35 @@ class _PaynymFollowToggleButtonState
 
     final myPCode = await wallet.getPaymentCode(isSegwit: false);
 
-    PaynymResponse<String> token =
-        await ref.read(paynymAPIProvider).token(myPCode.toString());
+    PaynymResponse<String> token = await ref
+        .read(paynymAPIProvider)
+        .token(myPCode.toString());
 
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).unfollow(
+    var result = await ref
+        .read(paynymAPIProvider)
+        .unfollow(
           token.value!,
           signature,
           followedAccount.value!.nonSegwitPaymentCode.code,
         );
 
     int i = 0;
-    for (;
-        i < 10 &&
-            result.statusCode == 401; //"401 Unauthorized - Bad signature";
-        i++) {
+    for (
+      ;
+      i < 10 && result.statusCode == 401; //"401 Unauthorized - Bad signature";
+      i++
+    ) {
       token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).unfollow(
+      result = await ref
+          .read(paynymAPIProvider)
+          .unfollow(
             token.value!,
             signature,
             followedAccount.value!.nonSegwitPaymentCode.code,
@@ -228,7 +230,8 @@ class _PaynymFollowToggleButtonState
 
     Logging.instance.d("Unfollow result: $result on try $i");
 
-    final unfollowSuccess = result.statusCode == 200 ||
+    final unfollowSuccess =
+        result.statusCode == 200 ||
         result.value?.unfollowing == followedAccount.value?.nymID;
 
     if (unfollowSuccess && followedAccount.value != null) {
@@ -248,8 +251,9 @@ class _PaynymFollowToggleButtonState
 
       final myAccount = ref.read(myPaynymAccountStateProvider.state).state!;
 
-      myAccount.following
-          .removeWhere((e) => e.nymId == followedAccount.value!.nymID);
+      myAccount.following.removeWhere(
+        (e) => e.nymId == followedAccount.value!.nymID,
+      );
 
       ref.read(myPaynymAccountStateProvider.state).state = myAccount.copyWith();
 
@@ -267,7 +271,8 @@ class _PaynymFollowToggleButtonState
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Failed to unfollow ${followedAccount.value?.nymName ?? "PayNym"}",
+            message:
+                "Failed to unfollow ${followedAccount.value?.nymName ?? "PayNym"}",
             context: context,
           ),
         );
@@ -323,8 +328,9 @@ class _PaynymFollowToggleButtonState
             isFollowing ? Assets.svg.userMinus : Assets.svg.userPlus,
             width: 16,
             height: 16,
-            color:
-                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.buttonTextSecondary,
           ),
           onPressed: kDisableFollowing ? null : _onPressed,
         );
@@ -337,8 +343,9 @@ class _PaynymFollowToggleButtonState
             isFollowing ? Assets.svg.userMinus : Assets.svg.userPlus,
             width: 16,
             height: 16,
-            color:
-                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.buttonTextSecondary,
           ),
           iconSpacing: 6,
           onPressed: kDisableFollowing ? null : _onPressed,

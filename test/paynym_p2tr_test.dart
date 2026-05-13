@@ -61,8 +61,7 @@ void main() {
   });
 
   group('PaynymAccountLite.fromMap taproot inference', () {
-    test(
-        'fromMap infers taproot=true when taproot key is absent '
+    test('fromMap infers taproot=true when taproot key is absent '
         'but payment code has taproot bit set', () {
       final map = <String, dynamic>{
         'nymId': 'test-id',
@@ -76,8 +75,7 @@ void main() {
       expect(account.taproot, isTrue);
     });
 
-    test(
-        'fromMap infers taproot=false when taproot key is absent '
+    test('fromMap infers taproot=false when taproot key is absent '
         'and payment code does not have taproot bit set', () {
       final map = <String, dynamic>{
         'nymId': 'test-id',
