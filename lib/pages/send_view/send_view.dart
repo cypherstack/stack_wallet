@@ -160,7 +160,6 @@ class _SendViewState extends ConsumerState<SendView> {
     try {
       // auto fill address
       _address = paymentData.address.trim();
-      sendToController.text = _address!;
 
       // autofill notes field
       if (paymentData.message != null) {
@@ -180,7 +179,25 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(pSendAmount.notifier).state = amount;
       }
 
+      // Extract OP_RETURN data if present (for Rosen Bridge and other protocols)
+      // Must be set BEFORE sendToController.text to avoid re-entrant
+      // onChanged handler reading stale null value.
+      if (paymentData.additionalParams.containsKey('op_return')) {
+        final data = paymentData.additionalParams['op_return'];
+        ref.read(pOpReturnData.notifier).state = data;
+        Logging.instance.i(
+          "Extracted OP_RETURN data from URI, length: ${data!.length ~/ 2} bytes",
+        );
+      } else {
+        ref.read(pOpReturnData.notifier).state = null;
+      }
+
       _setValidAddressProviders(_address);
+
+      // Assign controller.text last — it triggers onChanged which depends
+      // on pOpReturnData already being set above.
+      sendToController.text = _address!;
+
       setState(() {
         _addressToggleFlag = sendToController.text.isNotEmpty;
       });
@@ -923,6 +940,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
+            opReturnData: ref.read(pOpReturnData),
           ),
         );
       } else if (wallet is FiroWallet) {
@@ -964,6 +982,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
+                  opReturnData: ref.read(pOpReturnData),
                 ),
               );
             }
@@ -1136,6 +1155,7 @@ class _SendViewState extends ConsumerState<SendView> {
     memoController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    ref.read(pOpReturnData.notifier).state = null;
     if (mounted) {
       setState(() {});
     }
@@ -1726,9 +1746,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     final trimmed = newValue.trim();
 
                                     if ((trimmed.length -
-                                                (_address?.length ?? 0))
-                                            .abs() >
-                                        1) {
+                                                    (_address?.length ?? 0))
+                                                .abs() >
+                                            1 ||
+                                        trimmed.contains(':')) {
                                       final parsed =
                                           AddressUtils.parsePaymentUri(
                                             trimmed,
@@ -1737,6 +1758,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                       if (parsed != null) {
                                         _applyUri(parsed);
                                       } else {
+                                        ref.read(pOpReturnData.notifier).state =
+                                            null;
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
                                         );
@@ -1947,6 +1970,38 @@ class _SendViewState extends ConsumerState<SendView> {
                                           ),
                                         ),
                                       ),
+                                ),
+                              ),
+                            if (ref.watch(pOpReturnData) != null &&
+                                _address != null &&
+                                _address!.isNotEmpty &&
+                                (ref.watch(pValidSendToAddress) ||
+                                    ref.watch(pValidSparkSendToAddress)) &&
+                                balType == BalanceType.public)
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 12.0,
+                                    top: 4.0,
+                                  ),
+                                  child: Tooltip(
+                                    message: AddressUtils.formatOpReturnTooltip(
+                                      ref.watch(pOpReturnData)!,
+                                    ),
+                                    child: Text(
+                                      "Transaction includes metadata "
+                                      "(${ref.watch(pOpReturnData)!.length ~/ 2} bytes) "
+                                      "\u2014 tap for details",
+                                      textAlign: TextAlign.left,
+                                      style: STextStyles.label(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorGreen,
+                                          ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             Builder(
@@ -2666,16 +2721,42 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             const Spacer(),
                             const SizedBox(height: 12),
+                            if (ref.watch(pOpReturnData) != null &&
+                                balType == BalanceType.private)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 12.0,
+                                  right: 12.0,
+                                  bottom: 12.0,
+                                ),
+                                child: Text(
+                                  "Bridge data detected but Spark (private) "
+                                  "transactions cannot carry OP_RETURN data. "
+                                  "Switch to public balance to complete the "
+                                  "bridge transaction.",
+                                  textAlign: TextAlign.left,
+                                  style: STextStyles.label(context).copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textError,
+                                  ),
+                                ),
+                              ),
                             TextButton(
                               onPressed:
-                                  ref.watch(pPreviewTxButtonEnabled(coin))
+                                  ref.watch(pPreviewTxButtonEnabled(coin)) &&
+                                      (ref.watch(pOpReturnData) == null ||
+                                          balType != BalanceType.private)
                                   ? isMwcSlatepack
                                         ? _createSlatepack
                                         : isEpicSlatepack
                                         ? _createEpicSlatepack
                                         : _previewTransaction
                                   : null,
-                              style: ref.watch(pPreviewTxButtonEnabled(coin))
+                              style:
+                                  ref.watch(pPreviewTxButtonEnabled(coin)) &&
+                                      (ref.watch(pOpReturnData) == null ||
+                                          balType != BalanceType.private)
                                   ? Theme.of(context)
                                         .extension<StackColors>()!
                                         .getPrimaryEnabledButtonStyle(context)

@@ -23,6 +23,7 @@ class AddressUtils {
     'tx_payment_id',
     'recipient_name',
     'tx_description',
+    'op_return', // For Rosen Bridge and other OP_RETURN protocols.
     // TODO [prio=med]: Add more recognized params for other coins.
   };
 
@@ -268,23 +269,84 @@ class AddressUtils {
     if ((mimblewimblecoinAddress.startsWith("http://") ||
             mimblewimblecoinAddress.startsWith("https://")) &&
         mimblewimblecoinAddress.contains("@")) {
-      mimblewimblecoinAddress =
-          mimblewimblecoinAddress.replaceAll("http://", "");
-      mimblewimblecoinAddress =
-          mimblewimblecoinAddress.replaceAll("https://", "");
+      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+        "http://",
+        "",
+      );
+      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+        "https://",
+        "",
+      );
     }
     // strip mailto: prefix
     if (mimblewimblecoinAddress.startsWith("mailto:")) {
-      mimblewimblecoinAddress =
-          mimblewimblecoinAddress.replaceAll("mailto:", "");
+      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+        "mailto:",
+        "",
+      );
     }
     // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
     if (mimblewimblecoinAddress.endsWith("/") &&
         mimblewimblecoinAddress.contains("@")) {
       mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
-          0, mimblewimblecoinAddress.length - 1);
+        0,
+        mimblewimblecoinAddress.length - 1,
+      );
     }
     return mimblewimblecoinAddress;
+  }
+
+  /// Formats OP_RETURN hex data for display in tooltip.
+  /// If data matches Rosen Bridge format, shows structured fields.
+  /// Otherwise returns the raw hex with a generic description.
+  static String formatOpReturnTooltip(String hex) {
+    // Rosen Bridge OP_RETURN format:
+    // toChain(1B) + bridgeFee(8B) + networkFee(8B) + addrLen(1B) + toAddress(var)
+    const minRosenLen = 36; // minimum 18 bytes
+    if (hex.length < minRosenLen) {
+      return "Raw OP_RETURN data:\n$hex";
+    }
+
+    try {
+      const chains = [
+        'ergo',
+        'cardano',
+        'bitcoin',
+        'ethereum',
+        'binance',
+        'doge',
+        'bitcoin-runes',
+        'firo',
+      ];
+
+      final toChainCode = int.parse(hex.substring(0, 2), radix: 16);
+      if (toChainCode >= chains.length) {
+        return "Raw OP_RETURN data:\n$hex";
+      }
+
+      final bridgeFee = BigInt.parse(
+        hex.substring(2, 18),
+        radix: 16,
+      ).toString();
+      final networkFee = BigInt.parse(
+        hex.substring(18, 34),
+        radix: 16,
+      ).toString();
+      final addrLen = int.parse(hex.substring(34, 36), radix: 16);
+      final addrEnd = 36 + addrLen * 2;
+      if (hex.length < addrEnd) {
+        return "Raw OP_RETURN data:\n$hex";
+      }
+      final toAddressHex = hex.substring(36, addrEnd);
+
+      return "Rosen Bridge data\n"
+          "  To chain: ${chains[toChainCode]}\n"
+          "  Bridge fee: $bridgeFee\n"
+          "  Network fee: $networkFee\n"
+          "  To address (hex): $toAddressHex";
+    } catch (_) {
+      return "Raw OP_RETURN data:\n$hex";
+    }
   }
 }
 

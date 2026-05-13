@@ -650,6 +650,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
                       ? ref.read(pDesktopUseUTXOs)
                       : null,
+                  opReturnData: ref.read(pOpReturnData),
                 ),
               );
             }
@@ -920,8 +921,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
+        ref.read(pOpReturnData.notifier).state =
+            paymentData.additionalParams['op_return'];
         _applyUri(paymentData);
       } else {
+        ref.read(pOpReturnData.notifier).state = null;
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -1050,8 +1054,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
+          ref.read(pOpReturnData.notifier).state =
+              paymentData.additionalParams['op_return'];
           _applyUri(paymentData);
         } else {
+          ref.read(pOpReturnData.notifier).state = null;
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
@@ -1068,6 +1075,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           });
         }
       } catch (e) {
+        ref.read(pOpReturnData.notifier).state = null;
         // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
@@ -1754,14 +1762,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               onChanged: (newValue) async {
                 final trimmed = newValue;
 
-                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1 ||
+                    trimmed.contains(':')) {
                   final parsed = AddressUtils.parsePaymentUri(
                     trimmed,
                     logging: Logging.instance,
                   );
                   if (parsed != null) {
+                    ref.read(pOpReturnData.notifier).state =
+                        parsed.additionalParams['op_return'];
                     _applyUri(parsed);
                   } else {
+                    ref.read(pOpReturnData.notifier).state = null;
                     await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
@@ -1815,6 +1827,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     onTap: () {
                                       sendToController.text = "";
                                       _address = "";
+                                      ref.read(pOpReturnData.notifier).state =
+                                          null;
                                       _setValidAddressProviders(_address);
                                       setState(() {
                                         _addressToggleFlag = false;
@@ -1960,6 +1974,66 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
+        // OP_RETURN metadata info (green, public mode only, with tooltip)
+        Builder(
+          builder: (context) {
+            final opData = ref.watch(pOpReturnData);
+            final balType = ref.watch(publicPrivateBalanceStateProvider);
+            if (opData == null ||
+                opData.isEmpty ||
+                balType != BalanceType.public) {
+              return Container();
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Tooltip(
+                  message: AddressUtils.formatOpReturnTooltip(opData),
+                  child: Text(
+                    "Transaction includes metadata "
+                    "(${opData.length ~/ 2} bytes)",
+                    textAlign: TextAlign.left,
+                    style: STextStyles.label(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorGreen,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        // OP_RETURN bridge warning (red, private mode only)
+        Builder(
+          builder: (context) {
+            final opData = ref.watch(pOpReturnData);
+            final balType = ref.watch(publicPrivateBalanceStateProvider);
+            if (opData == null ||
+                opData.isEmpty ||
+                balType != BalanceType.private) {
+              return Container();
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Text(
+                  "Bridge data detected but Spark (private) transactions "
+                  "cannot carry OP_RETURN data. Switch to public balance "
+                  "to complete the bridge transaction.",
+                  textAlign: TextAlign.left,
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textError,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
         if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
           const SizedBox(height: 10),
         if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
