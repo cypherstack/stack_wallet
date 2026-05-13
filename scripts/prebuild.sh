@@ -4,7 +4,7 @@
 KEYS=../lib/external_api_keys.dart
 if ! test -f "$KEYS"; then
     echo 'prebuild.sh: creating template lib/external_api_keys.dart file'
-    printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";\nconst kNanswapApiKey = "";\nconst kNanoSwapRpcApiKey = "";\nconst kWizSwapApiKey = "";\n' > $KEYS
+    printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";\nconst kNanswapApiKey = "";\nconst kNanoSwapRpcApiKey = "";\nconst kWizSwapApiKey = "";\nconst kShopInBitAccessKey = "";\nconst kShopInBitPartnerSecret = "";\nconst kCakePayApiToken = "";\nconst kExolixApiKey = "";\n' > $KEYS
 fi
 
 # Create template wallet test parameter files if they don't already exist

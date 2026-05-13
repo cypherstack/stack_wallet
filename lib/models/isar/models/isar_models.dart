@@ -17,5 +17,6 @@ export 'blockchain_data/utxo.dart';
 export 'ethereum/eth_contract.dart';
 export 'log.dart';
 export 'solana/sol_contract.dart';
+export 'shopinbit_ticket.dart';
 export 'transaction_note.dart';
 export '../../../wallets/isar/models/wallet_solana_token_info.dart';

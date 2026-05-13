@@ -53,7 +53,11 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
 
 MWEBD_EXE_SHA256=""
 if  [[ "$1" == "windows" ]]; then
-  dart "${APP_PROJECT_ROOT_DIR}/tool/build_standalone_mwebd_windows.dart"
+  if [[ "${MWEBD_FETCH:-0}" == "1" ]]; then
+    dart "${APP_PROJECT_ROOT_DIR}/tool/build_standalone_mwebd_windows.dart" --fetch
+  else
+    dart "${APP_PROJECT_ROOT_DIR}/tool/build_standalone_mwebd_windows.dart"
+  fi
   MWEBD_EXE_SHA256="$(sha256sum "${APP_PROJECT_ROOT_DIR}/assets/windows/mwebd.exe" | awk '{print $1}')"
   dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
         "${PUBSPEC_FILE}" MWEBDEXE

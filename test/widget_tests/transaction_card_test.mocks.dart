@@ -1724,6 +1724,30 @@ class MockMainDB extends _i1.Mock implements _i3.MainDB {
             returnValueForMissingStub: _i10.Future<void>.value(),
           )
           as _i10.Future<void>);
+
+  @override
+  List<_i28.ShopInBitTicket> getShopInBitTickets() =>
+      (super.noSuchMethod(
+            Invocation.method(#getShopInBitTickets, []),
+            returnValue: <_i28.ShopInBitTicket>[],
+          )
+          as List<_i28.ShopInBitTicket>);
+
+  @override
+  _i10.Future<int> putShopInBitTicket(_i28.ShopInBitTicket? ticket) =>
+      (super.noSuchMethod(
+            Invocation.method(#putShopInBitTicket, [ticket]),
+            returnValue: _i10.Future<int>.value(0),
+          )
+          as _i10.Future<int>);
+
+  @override
+  _i10.Future<bool> deleteShopInBitTicket(String? ticketId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteShopInBitTicket, [ticketId]),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 }
 
 /// A class which mocks [IThemeAssets].
