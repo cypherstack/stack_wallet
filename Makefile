@@ -79,10 +79,10 @@ endif
 check-macos-sdk: ## Verify XCode on macOS
 ifeq ($(shell uname),Darwin)
 	@echo "Checking macOS SDK requirements..."
-	@xcode-select -p | grep -q "Xcode.app" || ( \
-		echo "[ERROR] Full Xcode installation not detected! Path: /Applications/Xcode.app"; \
+	@xcrun --sdk macosx --show-sdk-path >/dev/null 2>&1 || ( \
+		echo "[ERROR] macOS SDK not available. Install Xcode or run: sudo xcode-select --switch /Applications/Xcode.app"; \
 		exit 1)
-	@echo "[OK] Xcode SDK path looks good."
+	@echo "[OK] macOS SDK available at: $$(xcrun --sdk macosx --show-sdk-path)"
 endif
 
 check-reqs-macos: check-reqs ## Verify macOS-specific tools are available in PATH
