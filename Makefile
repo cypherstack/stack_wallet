@@ -344,6 +344,13 @@ test-mwc: ## Run MWC FFI integration test on macOS (assumes prior `make build-ma
 	@# Flutter's first-launch helper rewrites MACOSX_DEPLOYMENT_TARGET=10.15; reassert 11.0.
 	@sed -i.bak -e "s/MACOSX_DEPLOYMENT_TARGET = 10\\.15;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g" macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
 	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
+	@# Cargokit calls `rustup run stable cargo ...`; ensure local `stable` exists and is selected.
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup toolchain install --no-self-update stable >/dev/null
+	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
+		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		rustup default stable >/dev/null
 	@# `flutter test` re-runs pod install which re-prepares flutter_libsparkmobile; remove stale framework so the prepare step can write.
 	@find "$(PUB_CACHE)/git" -path '*/flutter_libsparkmobile-*/macos/flutter_libsparkmobile.framework' -prune -exec rm -rf {} + 2>/dev/null || true
 	@chmod -R u+w macos/Runner.xcodeproj macos 2>/dev/null || true
@@ -354,6 +361,7 @@ test-mwc: ## Run MWC FFI integration test on macOS (assumes prior `make build-ma
 		PUB_CACHE="$(PUB_CACHE)" \
 		RUSTUP_HOME="$(PROJECT_RUSTUP_HOME)" \
 		CARGO_HOME="$(PROJECT_CARGO_HOME)" \
+		PATH="$(PROJECT_CARGO_HOME)/bin:$$PATH" \
 		$(FLUTTER) test integration_test/mwc_ffi_test.dart -d macos
 
 diagnose-macos-env: ## Print macOS build env and tool resolution

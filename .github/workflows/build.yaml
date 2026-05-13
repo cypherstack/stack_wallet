@@ -322,29 +322,13 @@ jobs:
         with:
           go-version: '1.24.13'
 
-      - name: Configure app
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install required Rust toolchains
         run: |
-          cd scripts
-          echo "yes" | ./build_app.sh \
-            -v "${{ steps.ver.outputs.version }}" \
-            -b "${{ steps.ver.outputs.build_number }}" \
-            -p macos -a stack_wallet -d -s
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-
-          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
-            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
-          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
-            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
+          rustup toolchain install 1.85.1
+          rustup target add aarch64-apple-darwin --toolchain stable
+          rustup target add aarch64-apple-darwin --toolchain 1.85.1
 
       - name: Decode secrets
         env:
@@ -352,7 +336,7 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build macos --release
+        run: make build-macos VERSION="${{ steps.ver.outputs.version }}" BUILD_NUM="${{ steps.ver.outputs.build_number }}"
 
       - name: Package
         run: |
