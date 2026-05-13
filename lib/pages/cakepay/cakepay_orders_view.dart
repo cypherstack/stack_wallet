@@ -39,7 +39,7 @@ class _CakePayOrdersViewState extends State<CakePayOrdersView> {
   Future<void> _syncFromApi() async {
     setState(() => _syncing = true);
     try {
-      final orderIds = CakePayService.instance.getOrderIds();
+      final orderIds = await CakePayService.instance.getOrderIds();
       final results = <CakePayOrder>[];
 
       for (final id in orderIds) {
