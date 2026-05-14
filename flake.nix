@@ -27,6 +27,7 @@
           gnumake
           gnused
           rsync
+          protobuf
           (python3.withPackages (ps: with ps; [
             pip toml tomli jinja2 markdown markupsafe pygments typogrify
           ]))
@@ -36,7 +37,6 @@
           gtk3 glib openssl xz clang libgcrypt gobject-introspection
           llvmPackages.libclang
           llvmPackages.clang
-          protobuf
           opencv
           sysprof
           libsysprof-capture
@@ -113,6 +113,7 @@
               export STRIP=/usr/bin/strip
               
               export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT" 
+              export PROTOC="${pkgs.protobuf}/bin/protoc"
 
               mkdir -p .nix-bin
               ln -sf /usr/bin/clang .nix-bin/cc
