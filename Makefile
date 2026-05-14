@@ -188,10 +188,8 @@ macos-configure:
 		echo "--- Creating flutter_libmwc git_versions.dart from example..."; \
 		cp crypto_plugins/flutter_libmwc/lib/git_versions_example.dart crypto_plugins/flutter_libmwc/lib/git_versions.dart; \
 	fi
-	@if [ ! -f pubspec.yaml ]; then \
-		echo "--- pubspec.yaml missing; generating from template..."; \
-		cp scripts/app_config/templates/pubspec.template.yaml pubspec.yaml; \
-	fi
+	@echo "--- Regenerating pubspec.yaml from template..."
+	@cp scripts/app_config/templates/pubspec.template.yaml pubspec.yaml
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
 		./scripts/app_config/configure_stack_wallet.sh macos
 	@env HOME="$(PROJECT_HOME)" XDG_CACHE_HOME="$(PROJECT_CACHE)" TMPDIR="$(PROJECT_TMP)" PUB_CACHE="$(PUB_CACHE)" \
