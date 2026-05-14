@@ -15,6 +15,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
@@ -96,15 +97,19 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
     });
   }
 
-  void _onCardTapped(CakePayCard card) {
+  Future<void> _onCardTapped(CakePayCard card) async {
     if (Util.isDesktop) {
+      // this pop makes going back annoying as the whole list needs to be
+      // searched again with API calls etc. Leaving in for now as this is how I
+      // found it and removing here could introduce worse issues somewhere else.
       Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
+
+      await showDialog<void>(
         context: context,
         builder: (_) => CakePayCardDetailView(card: card),
       );
     } else {
-      Navigator.of(
+      await Navigator.of(
         context,
       ).pushNamed(CakePayCardDetailView.routeName, arguments: card);
     }
@@ -165,7 +170,10 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
               ),
             ),
             body: SafeArea(
-              child: Padding(padding: const EdgeInsets.all(16), child: child),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                child: child,
+              ),
             ),
           ),
         ),
@@ -205,6 +213,9 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                       shrinkWrap: isDesktop,
                       primary: isDesktop ? false : null,
                       itemCount: cards.length,
+                      padding: isDesktop
+                          ? null
+                          : const EdgeInsets.only(bottom: 16),
                       separatorBuilder: (_, __) =>
                           SizedBox(height: isDesktop ? 16 : 12),
                       itemBuilder: (_, index) => _CardTile(
@@ -256,9 +267,16 @@ class _SearchField extends StatelessWidget {
               focusNode,
               context,
             ).copyWith(
-              prefixIcon: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                child: Icon(Icons.search, size: 20),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 16,
+                ),
+                child: SvgPicture.asset(
+                  Assets.svg.search,
+                  width: 16,
+                  height: 16,
+                ),
               ),
             ),
         onSubmitted: onSubmitted,
@@ -411,10 +429,15 @@ class _CardTile extends StatelessWidget {
                       width: isDesktop ? 60 : 48,
                       height: isDesktop ? 40 : 32,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          Icon(Icons.card_giftcard, size: isDesktop ? 40 : 32),
+                      errorBuilder: (_, __, ___) => CreditCardIcon(
+                        width: isDesktop ? 40 : 32,
+                        height: isDesktop ? 40 : 32,
+                      ),
                     )
-                  : Icon(Icons.card_giftcard, size: isDesktop ? 40 : 32),
+                  : CreditCardIcon(
+                      width: isDesktop ? 40 : 32,
+                      height: isDesktop ? 40 : 32,
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -445,7 +468,12 @@ class _CardTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: colors.textSubtitle1),
+            SvgPicture.asset(
+              Assets.svg.chevronRight,
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(colors.textSubtitle1, .srcIn),
+            ),
           ],
         ),
       ),
