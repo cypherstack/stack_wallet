@@ -90,30 +90,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - uses: cachix/install-nix-action@v27
         with:
-          flutter-version: '3.38.1'
-          channel: 'stable'
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install macOS build dependencies
-        run: ./scripts/install_macos_build_tools.sh
-
-      - name: Select Xcode
-        run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name 'Xcode*.app' -type d | head -1)
-          if [ -n "$XCODE_PATH" ]; then
-            sudo xcode-select --switch "$XCODE_PATH"
-            echo "Using Xcode at: $XCODE_PATH"
-          else
-            echo "Xcode not found" && exit 1
-          fi
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
       - name: Fresh clone smoke build (macOS)
-        run: make build-macos VERSION=0.0.1 BUILD_NUM=1
+        run: nix develop --command make build-macos VERSION=0.0.1 BUILD_NUM=1
 
       - name: MWC FFI integration test
-        run: make test-mwc
+        run: nix develop --command make test-mwc

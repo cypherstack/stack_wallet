@@ -313,22 +313,10 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: cachix/install-nix-action@v27
         with:
-          flutter-version: '3.38.1'
-          channel: 'stable'
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.13'
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install required Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup target add aarch64-apple-darwin --toolchain stable
-          rustup target add aarch64-apple-darwin --toolchain 1.85.1
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
       - name: Decode secrets
         env:
@@ -336,7 +324,7 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: make build-macos VERSION="${{ steps.ver.outputs.version }}" BUILD_NUM="${{ steps.ver.outputs.build_number }}"
+        run: nix develop --command make build-macos VERSION="${{ steps.ver.outputs.version }}" BUILD_NUM="${{ steps.ver.outputs.build_number }}"
 
       - name: Package
         run: |
