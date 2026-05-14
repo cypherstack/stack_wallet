@@ -12,9 +12,10 @@ cd secp256k1
 git checkout 68b55209f1ba3e6c0417789598f5f75649e9c14c
 git reset --hard
 
+rm -rf build
 mkdir -p build
 cd build
-cmake ..
+cmake .. -DSECP256K1_ENABLE_MODULE_RECOVERY=ON
 cmake --build .
 
 SECP_SO="$(find lib -maxdepth 1 -type f -name 'libsecp256k1.so*' | sort | head -n1)"
