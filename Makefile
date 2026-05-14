@@ -296,6 +296,7 @@ macos-build-native:
 		AR="/usr/bin/ar" \
 		RANLIB="/usr/bin/ranlib" \
 		SDKROOT="$$(xcrun --sdk macosx --show-sdk-path)" \
+		PROTOC="$(PROTOC_PATH)" \
 		PATH="$(PROJECT_CARGO_HOME)/bin:$$PATH" \
 		bash scripts/macos/build_all.sh
 	@rm -rf build/secp256k1
