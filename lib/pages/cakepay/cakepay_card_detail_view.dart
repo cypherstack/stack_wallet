@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -16,10 +15,11 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfields/adaptive_text_field.dart';
 import 'cakepay_order_view.dart';
 
 class CakePayCardDetailView extends StatefulWidget {
@@ -40,29 +40,17 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
   int _quantity = 1;
   bool _termsAccepted = false;
   final _customAmountController = TextEditingController();
-  final _customAmountFocusNode = FocusNode();
   final _emailController = TextEditingController();
-  final _emailFocusNode = FocusNode();
 
-  @override
-  void initState() {
-    super.initState();
-    _card = widget.card;
-    if (_card.isFixedDenomination && _card.denominations.isNotEmpty) {
-      _selectedDenomination = _card.denominations.first;
+  bool _canPurchase = false;
+
+  void _updateCanPurchase() {
+    if (mounted) {
+      final check = _checkCanPurchase();
+      if (check != _canPurchase) {
+        setState(() => _canPurchase = check);
+      }
     }
-    _emailFocusNode.addListener(() {
-      setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _customAmountController.dispose();
-    _customAmountFocusNode.dispose();
-    _emailController.dispose();
-    _emailFocusNode.dispose();
-    super.dispose();
   }
 
   String get _priceString {
@@ -72,7 +60,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
     return _customAmountController.text.trim();
   }
 
-  bool get _canPurchase {
+  bool _checkCanPurchase() {
     if (!_termsAccepted || _purchasing) return false;
     if (_emailController.text.trim().isEmpty) return false;
     final price = _priceString;
@@ -184,7 +172,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
   }
 
   Future<void> _purchase() async {
-    if (!_canPurchase) return;
+    if (!_checkCanPurchase()) return;
     setState(() => _purchasing = true);
 
     final resp = await CakePayService.instance.client.createOrder(
@@ -202,8 +190,6 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
       if (!resp.hasError && resp.value != null) {
         final order = resp.value!;
 
-        // Track order ID locally so the orders list view can fetch it
-        // via getOrder() without requiring Knox user auth.
         await CakePayService.instance.addOrderId(order.orderId);
 
         if (mounted) {
@@ -221,33 +207,45 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
           }
         }
       } else {
+        final String errorMessage;
+        if (resp.exception != null) {
+          final ex = resp.exception!;
+          final body = ex.responseBody;
+          errorMessage = "${ex.message}${body != null ? "\n$body" : ""}";
+        } else {
+          errorMessage = "Failed to create order";
+        }
         await showDialog<dynamic>(
           context: context,
           useSafeArea: false,
           barrierDismissible: true,
           builder: (context) {
-            return StackDialog(
+            return StackOkDialog(
               title: "Purchase failed",
-              message: resp.exception?.message ?? "Failed to create order",
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+              message: errorMessage,
+              maxWidth: Util.isDesktop ? 580 : null,
+              desktopPopRootNavigator: Util.isDesktop,
             );
           },
         );
       }
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _card = widget.card;
+    if (_card.isFixedDenomination && _card.denominations.isNotEmpty) {
+      _selectedDenomination = _card.denominations.first;
+    }
+  }
+
+  @override
+  void dispose() {
+    _customAmountController.dispose();
+    _emailController.dispose();
+    super.dispose();
   }
 
   @override
@@ -257,34 +255,33 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
 
     return ConditionalParent(
       condition: isDesktop,
-      builder: (child) => DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 700,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "Gift Card",
-                    style: STextStyles.desktopH3(context),
+      builder: (child) => SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "Gift Card",
+                      style: STextStyles.desktopH3(context),
+                    ),
                   ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 8,
-                ),
-                child: child,
+                  const DesktopDialogCloseButton(),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       child: ConditionalParent(
@@ -303,105 +300,108 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                child: child,
+                child: SingleChildScrollView(child: child),
               ),
             ),
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (card.cardImageUrl != null)
-                _CardImage(imageUrl: card.cardImageUrl!, isDesktop: isDesktop),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: .min,
+          children: [
+            if (card.cardImageUrl != null)
+              _CardImage(imageUrl: card.cardImageUrl!, isDesktop: isDesktop),
+            SizedBox(height: isDesktop ? 24 : 16),
+            Text(
+              card.name,
+              style: isDesktop
+                  ? STextStyles.desktopH2(context)
+                  : STextStyles.pageTitleH1(context),
+            ),
+            if (card.description != null && card.description!.isNotEmpty) ...[
               SizedBox(height: isDesktop ? 16 : 12),
-              Text(
-                card.name,
-                style: isDesktop
-                    ? STextStyles.desktopH2(context)
-                    : STextStyles.pageTitleH1(context),
-              ),
-              if (card.description != null && card.description!.isNotEmpty) ...[
-                SizedBox(height: isDesktop ? 16 : 12),
-                _PlainInfoBlock(text: card.description!, isDesktop: isDesktop),
-              ],
-              if (card.howToUse != null && card.howToUse!.isNotEmpty) ...[
-                SizedBox(height: isDesktop ? 16 : 12),
-                _TitledInfoBlock(
-                  title: "How to use",
-                  body: card.howToUse!,
-                  isDesktop: isDesktop,
-                ),
-              ],
-              if (card.termsAndConditions != null &&
-                  card.termsAndConditions!.isNotEmpty) ...[
-                SizedBox(height: isDesktop ? 16 : 12),
-                _TitledInfoBlock(
-                  title: "Terms & conditions",
-                  body: card.termsAndConditions!,
-                  isDesktop: isDesktop,
-                ),
-              ],
-              if (card.expiryAndValidity != null &&
-                  card.expiryAndValidity!.isNotEmpty) ...[
-                SizedBox(height: isDesktop ? 16 : 12),
-                _TitledInfoBlock(
-                  title: "Expiry & validity",
-                  body: card.expiryAndValidity!,
-                  isDesktop: isDesktop,
-                ),
-              ],
-              SizedBox(height: isDesktop ? 24 : 16),
-              _DenominationSelector(
-                card: card,
-                isDesktop: isDesktop,
-                selectedDenomination: _selectedDenomination,
-                customAmountController: _customAmountController,
-                customAmountFocusNode: _customAmountFocusNode,
-                onDenominationSelected: (Decimal d) =>
-                    setState(() => _selectedDenomination = d),
-                onCustomAmountChanged: () => setState(() {}),
-              ),
-              SizedBox(height: isDesktop ? 16 : 12),
-              _QuantityRow(
-                isDesktop: isDesktop,
-                quantity: _quantity,
-                onDecrement: _quantity > 1
-                    ? () => setState(() => _quantity--)
-                    : null,
-                onIncrement: () => setState(() => _quantity++),
-              ),
-              SizedBox(height: isDesktop ? 16 : 12),
-              _TermsCheckbox(
-                isDesktop: isDesktop,
-                accepted: _termsAccepted,
-                onToggle: () =>
-                    setState(() => _termsAccepted = !_termsAccepted),
-                onOpenTerms: _openTerms,
-              ),
-              SizedBox(height: isDesktop ? 16 : 12),
-              Text(
-                "Email for receipt and delivery",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context),
-              ),
-              const SizedBox(height: 8),
-              _EmailField(
-                isDesktop: isDesktop,
-                controller: _emailController,
-                focusNode: _emailFocusNode,
-                onChanged: () => setState(() {}),
-              ),
-              SizedBox(height: isDesktop ? 24 : 16),
-              PrimaryButton(
-                label: _purchasing ? "Processing..." : "Purchase",
-                enabled: _canPurchase,
-                onPressed: _canPurchase ? _purchase : null,
-              ),
-              if (!isDesktop) const SizedBox(height: 16),
+              _PlainInfoBlock(text: card.description!, isDesktop: isDesktop),
             ],
-          ),
+            if (card.howToUse != null && card.howToUse!.isNotEmpty) ...[
+              SizedBox(height: isDesktop ? 16 : 12),
+              _TitledInfoBlock(
+                title: "How to use",
+                body: card.howToUse!,
+                isDesktop: isDesktop,
+              ),
+            ],
+            if (card.termsAndConditions != null &&
+                card.termsAndConditions!.isNotEmpty) ...[
+              SizedBox(height: isDesktop ? 16 : 12),
+              _TitledInfoBlock(
+                title: "Terms & conditions",
+                body: card.termsAndConditions!,
+                isDesktop: isDesktop,
+              ),
+            ],
+            if (card.expiryAndValidity != null &&
+                card.expiryAndValidity!.isNotEmpty) ...[
+              SizedBox(height: isDesktop ? 16 : 12),
+              _TitledInfoBlock(
+                title: "Expiry & validity",
+                body: card.expiryAndValidity!,
+                isDesktop: isDesktop,
+              ),
+            ],
+            SizedBox(height: isDesktop ? 24 : 16),
+            _DenominationSelector(
+              card: card,
+              isDesktop: isDesktop,
+              selectedDenomination: _selectedDenomination,
+              customAmountController: _customAmountController,
+              onDenominationSelected: (Decimal d) {
+                setState(() => _selectedDenomination = d);
+                _updateCanPurchase();
+              },
+              onCustomAmountChanged: _updateCanPurchase,
+            ),
+            SizedBox(height: isDesktop ? 16 : 12),
+            _QuantityRow(
+              isDesktop: isDesktop,
+              quantity: _quantity,
+              onDecrement: _quantity > 1
+                  ? () => setState(() => _quantity--)
+                  : null,
+              onIncrement: () => setState(() => _quantity++),
+            ),
+            SizedBox(height: isDesktop ? 16 : 12),
+            _TermsCheckbox(
+              isDesktop: isDesktop,
+              accepted: _termsAccepted,
+              onToggle: () {
+                setState(() => _termsAccepted = !_termsAccepted);
+                _updateCanPurchase();
+              },
+              onOpenTerms: _openTerms,
+            ),
+            SizedBox(height: isDesktop ? 16 : 12),
+            Text(
+              "Email for receipt and delivery",
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.itemSubtitle12(context),
+            ),
+            const SizedBox(height: 8),
+            AdaptiveTextField(
+              labelText: "Email",
+              controller: _emailController,
+              showPasteClearButton: true,
+              keyboardType: .emailAddress,
+              onChangedComprehensive: (_) => _updateCanPurchase(),
+            ),
+            SizedBox(height: isDesktop ? 24 : 16),
+            PrimaryButton(
+              label: _purchasing ? "Processing..." : "Purchase",
+              enabled: _canPurchase,
+              onPressed: _canPurchase ? _purchase : null,
+            ),
+            SizedBox(height: isDesktop ? 32 : 16),
+          ],
         ),
       ),
     );
@@ -495,7 +495,6 @@ class _DenominationSelector extends StatelessWidget {
     required this.isDesktop,
     required this.selectedDenomination,
     required this.customAmountController,
-    required this.customAmountFocusNode,
     required this.onDenominationSelected,
     required this.onCustomAmountChanged,
   });
@@ -504,7 +503,6 @@ class _DenominationSelector extends StatelessWidget {
   final bool isDesktop;
   final Decimal? selectedDenomination;
   final TextEditingController customAmountController;
-  final FocusNode customAmountFocusNode;
   final ValueChanged<Decimal> onDenominationSelected;
   final VoidCallback onCustomAmountChanged;
 
@@ -518,7 +516,7 @@ class _DenominationSelector extends StatelessWidget {
           final bool selected = d == selectedDenomination;
           return ChoiceChip(
             label: Text(
-              "${d.toStringAsFixed(0)} ${card.currencyCode ?? ''}",
+              "${d.toStringAsFixed(2)} ${card.currencyCode ?? ''}",
               style:
                   (isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -543,53 +541,22 @@ class _DenominationSelector extends StatelessWidget {
     if (card.isRangeDenomination) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: .min,
         children: [
           Text(
-            "Enter amount (${card.minValue?.toStringAsFixed(0) ?? '?'} - "
-            "${card.maxValue?.toStringAsFixed(0) ?? '?'} "
+            "Enter amount (${card.minValue?.toStringAsFixed(2) ?? '?'} - "
+            "${card.maxValue?.toStringAsFixed(2) ?? '?'} "
             "${card.currencyCode ?? ''})",
             style: isDesktop
                 ? STextStyles.desktopTextExtraExtraSmall(context)
                 : STextStyles.itemSubtitle12(context),
           ),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              controller: customAmountController,
-              focusNode: customAmountFocusNode,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => onCustomAmountChanged(),
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveText,
-                      height: 1.8,
-                    )
-                  : STextStyles.field(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveText,
-                    ),
-              decoration:
-                  standardInputDecoration(
-                    "Amount",
-                    customAmountFocusNode,
-                    context,
-                    desktopMed: isDesktop,
-                  ).copyWith(
-                    filled: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-            ),
+          AdaptiveTextField(
+            labelText: "Amount",
+            controller: customAmountController,
+            keyboardType: const .numberWithOptions(decimal: true),
+            onChangedComprehensive: (_) => onCustomAmountChanged(),
           ),
         ],
       );
@@ -705,60 +672,6 @@ class _TermsCheckbox extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _EmailField extends StatelessWidget {
-  const _EmailField({
-    required this.isDesktop,
-    required this.controller,
-    required this.focusNode,
-    required this.onChanged,
-  });
-
-  final bool isDesktop;
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final VoidCallback onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        autocorrect: false,
-        enableSuggestions: false,
-        keyboardType: TextInputType.emailAddress,
-        onChanged: (_) => onChanged(),
-        style: isDesktop
-            ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-                height: 1.8,
-              )
-            : STextStyles.field(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-              ),
-        decoration:
-            standardInputDecoration(
-              "Email",
-              focusNode,
-              context,
-              desktopMed: isDesktop,
-            ).copyWith(
-              filled: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
       ),
     );
   }

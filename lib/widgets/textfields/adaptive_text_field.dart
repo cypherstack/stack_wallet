@@ -26,6 +26,7 @@ class AdaptiveTextField extends StatefulWidget {
     this.minLines,
     this.maxLines,
     this.showPasteClearButton = false,
+    this.keyboardType,
   });
 
   final String? labelText;
@@ -49,6 +50,8 @@ class AdaptiveTextField extends StatefulWidget {
 
   /// If this is not null, [showPasteClearButton] will be ignored.
   final List<Widget>? suffixIcons;
+
+  final TextInputType? keyboardType;
 
   @override
   State<AdaptiveTextField> createState() => _AdaptiveTextFieldState();
@@ -112,6 +115,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
         autocorrect: widget.autocorrect,
         enableSuggestions: widget.enableSuggestions,
         onSubmitted: widget.onSubmitted,
+        keyboardType: widget.keyboardType,
         decoration:
             standardInputDecoration(
               widget.labelText,

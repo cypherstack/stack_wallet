@@ -10,7 +10,6 @@ import '../../../db/isar/main_db.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
-import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../services/shopinbit/shopinbit_service.dart';
@@ -89,7 +88,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
     return shouldContinue ?? false;
   }
 
-  void _showShopDialog(BuildContext context) async {
+  Future<void> _showShopDialog(BuildContext context) async {
     final service = ShopInBitService.instance;
     final model = ShopInBitOrderModel();
     bool isFirstRun = false;
@@ -111,12 +110,12 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       }
     }
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     if (isFirstRun) {
       // First run: show service overview then go directly to Step2
       // (name was just entered in setup dialog, no need to show Step1 again).
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => DesktopDialog(
@@ -144,7 +143,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                 ),
                 const Spacer(),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SecondaryButton(
                       width: 200,
@@ -154,36 +153,6 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         Navigator.of(dialogContext, rootNavigator: true).pop();
                       },
                     ),
-                    const SizedBox(width: 20),
-                    PrimaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Continue",
-                      onPressed: () async {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => ShopInBitStep2(model: model),
-                        );
-                        if (mounted) setState(() {});
-                      },
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SecondaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Cancel",
-                      onPressed: () {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                      },
-                    ),
-                    const SizedBox(width: 20),
                     PrimaryButton(
                       width: 200,
                       buttonHeight: ButtonHeight.l,
