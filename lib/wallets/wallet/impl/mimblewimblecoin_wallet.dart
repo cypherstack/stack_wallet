@@ -589,8 +589,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final String nodeApiAddress = uri.toString();
     final walletDir = await _currentWalletDirPath();
 
-    await _ensureApiSecret(walletDir);
-
     final Map<String, dynamic> config = {};
     config["wallet_dir"] = walletDir;
     config["check_node_api_http_addr"] = nodeApiAddress;
@@ -1462,6 +1460,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<void> updateNode() async {
     _mimblewimblecoinNode = getCurrentNode();
+
+    final walletDir = await _currentWalletDirPath();
+    await _ensureApiSecret(walletDir);
 
     // TODO: [prio=low] move this out of secure storage if secure storage not needed
     final String stringConfig = await _getConfig();
