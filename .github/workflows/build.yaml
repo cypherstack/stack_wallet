@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      - staging
   workflow_dispatch:
     inputs:
       version:
@@ -40,9 +42,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -114,9 +119,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -209,9 +217,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -235,6 +246,25 @@ jobs:
             -v "${{ steps.ver.outputs.version }}" \
             -b "${{ steps.ver.outputs.build_number }}" \
             -p windows -a stack_wallet -d -s
+
+      # The Actions windows-2022 runner user lacks SeCreateSymbolicLinkPrivilege,
+      # so link_assets.sh's mklink /D calls either fail or produce broken reparse
+      # points that Flutter's asset resolver cannot traverse. Replace each of
+      # the five gitignored asset directories with real copies instead.
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/stack_wallet"
+            # Remove whatever link_assets.sh left (reparse point, symlink, or nothing).
+            # cmd.exe rmdir on a junction/symlink removes the link, not the target.
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
 
       - name: Get dependencies
         run: flutter pub get
@@ -306,9 +336,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -380,9 +413,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
