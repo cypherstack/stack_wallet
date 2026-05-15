@@ -10,7 +10,7 @@ PLUGINS_DIR=../../crypto_plugins
 
 (cd "${PLUGINS_DIR}"/flutter_libmwc/scripts/ios && ./download.sh)
 
-# frostdart iOS is built from source by Cargokit at pod install time
+(cd "${PLUGINS_DIR}"/frostdart/scripts/ios && ./download.sh)
 
 wait
 echo "Done"
