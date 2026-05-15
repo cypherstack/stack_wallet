@@ -20,9 +20,9 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -882,31 +882,33 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   Widget _scaffold({required bool isDesktop, required Widget child}) {
     return ConditionalParent(
       condition: isDesktop,
-      builder: (child) => DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 650,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text("Order", style: STextStyles.desktopH3(context)),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 8,
-                ),
-                child: child,
+      builder: (child) => SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text("Order", style: STextStyles.desktopH3(context)),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 8,
+                  ),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       child: ConditionalParent(
