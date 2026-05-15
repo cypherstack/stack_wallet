@@ -421,10 +421,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 iconSize: 16,
                 title: "Epicbox Servers",
                 onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    ManageEpicboxView.routeName,
-                    arguments: walletId,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ManageEpicboxView.routeName, arguments: walletId);
                 },
               ),
             if (canBackup) const SizedBox(height: 8),
