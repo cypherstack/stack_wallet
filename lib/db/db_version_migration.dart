@@ -374,8 +374,20 @@ class DbVersionMigrator with WalletDB {
         return await migrate(15, secureStore: secureStore);
 
       case 15:
-        // No-op: nodeApiSecret field added to NodeModel (Hive field 15).
-        // Existing nodes read null; updateDefaults() backfills from defaultNode.
+        // Clear stale MWC wallet handles from older builds.
+        await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+        final mwcMigrationWalletsService = WalletsService();
+        final mwcMigrationWalletNames =
+            await mwcMigrationWalletsService.walletNames;
+        final mwcIdentifier = Mimblewimblecoin(
+          CryptoCurrencyNetwork.main,
+        ).identifier;
+        for (final walletId in mwcMigrationWalletNames.keys) {
+          if (mwcMigrationWalletNames[walletId]!.coinIdentifier ==
+              mwcIdentifier) {
+            await secureStore.delete(key: '${walletId}_wallet');
+          }
+        }
 
         // update version
         await DB.instance.put<dynamic>(

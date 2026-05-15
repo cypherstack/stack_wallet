@@ -101,9 +101,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       final cached = _walletHandle;
       if (cached != null && cached.isNotEmpty) return cached;
 
-      // Drop stale pointer left by pre-instance-var builds.
-      await secureStorageInterface.delete(key: '${walletId}_wallet');
-
       final config = await _getRealConfig();
       if (!_mwcLogsInitialized) {
         try {
