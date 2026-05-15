@@ -512,6 +512,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           ),
           witnessValue: insAndKeys[i].utxo.value,
           redeemScript: extraData[i].redeem,
+          isParticl: true,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );
       }

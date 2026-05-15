@@ -537,9 +537,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -562,8 +561,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             BalanceType.private,
                     onCancel: () {
                       wasCancelled = true;
-
-                      Navigator.of(context).pop();
                     },
                   ),
                 ),
@@ -775,8 +772,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     } catch (e, s) {
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted) {
-        // pop building dialog
-        Navigator.of(context, rootNavigator: true).pop();
+        if (!wasCancelled) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
 
         unawaited(
           showDialog<void>(

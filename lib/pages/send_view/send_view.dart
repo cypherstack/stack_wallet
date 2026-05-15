@@ -948,9 +948,8 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     final shouldShowBuildingDialog = mounted && !Util.isDesktop;
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (shouldShowBuildingDialog) {
         unawaited(
           showDialog<void>(
@@ -973,8 +972,6 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         );
       }
-
-      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
 
@@ -1125,9 +1122,25 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       }
 
-      final results = await Future.wait([txDataFuture, time]);
-
-      TxData txData = results.first as TxData;
+      TxData txData;
+      if (Util.isDesktop && mounted) {
+        Exception? buildEx;
+        final desktopResult = await showLoading<TxData>(
+          whileFuture: txDataFuture,
+          context: context,
+          message: "Generating transaction...",
+          delay: const Duration(milliseconds: 2500),
+          rootNavigator: true,
+          onException: (e) => buildEx = e,
+        );
+        if (buildEx != null) throw buildEx!;
+        if (desktopResult == null || !mounted) return;
+        txData = desktopResult;
+      } else {
+        final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
+        final results = await Future.wait([txDataFuture, time]);
+        txData = results.first as TxData;
+      }
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {
@@ -1171,7 +1184,7 @@ class _SendViewState extends ConsumerState<SendView> {
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
-        if (shouldShowBuildingDialog) {
+        if (shouldShowBuildingDialog && !wasCancelled) {
           // pop building dialog
           Navigator.of(context, rootNavigator: false).pop();
         }
