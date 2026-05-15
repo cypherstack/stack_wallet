@@ -1137,7 +1137,9 @@ class _SendViewState extends ConsumerState<SendView> {
         if (desktopResult == null || !mounted) return;
         txData = desktopResult;
       } else {
-        final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
+        final time = Future<dynamic>.delayed(
+          const Duration(milliseconds: 2500),
+        );
         final results = await Future.wait([txDataFuture, time]);
         txData = results.first as TxData;
       }
