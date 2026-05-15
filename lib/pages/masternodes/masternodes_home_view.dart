@@ -214,6 +214,74 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
           spendableBalance <
               _masternodeCollateralRaw + estimatedConsolidationFee.raw) {
         final feeDecimal = estimatedConsolidationFee.decimal;
+
+        final feeBuffer = Amount.fromDecimal(
+          Decimal.parse("0.00001"),
+          fractionDigits: wallet.cryptoCurrency.fractionDigits,
+        );
+        final desiredOnTransparent = estimatedConsolidationFee + feeBuffer;
+
+        Amount sparkFeeEstimate;
+        try {
+          sparkFeeEstimate = await wallet.estimateFeeForSpark(
+            desiredOnTransparent,
+          );
+        } catch (_) {
+          sparkFeeEstimate = estimatedConsolidationFee;
+        }
+        if (!mounted) return;
+
+        final requiredFromSpark = desiredOnTransparent + sparkFeeEstimate;
+        final canUnshieldFromSpark = sparkBalance >= requiredFromSpark.raw;
+
+        if (canUnshieldFromSpark) {
+          final unshieldDecimal = requiredFromSpark.decimal;
+          final shouldOpenSend = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => StackDialog(
+              title: "Unshield FIRO to cover consolidation fee?",
+              message:
+                  "You have exactly 1000 FIRO on your transparent balance, "
+                  "but a network fee of $feeDecimal FIRO is needed to "
+                  "consolidate it into a single 1000 FIRO collateral UTXO.\n\n"
+                  "Your private Spark balance has enough to cover this fee. "
+                  "Do you want to unshield $unshieldDecimal FIRO from your "
+                  "private Spark balance to your transparent balance? Once "
+                  "this transaction is confirmed, click \"Create Masternode\" "
+                  "again to continue to the next step.",
+              leftButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.button(ctx).copyWith(
+                    color: Theme.of(
+                      ctx,
+                    ).extension<StackColors>()!.accentColorDark,
+                  ),
+                ),
+              ),
+              rightButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text("Open Send", style: STextStyles.button(ctx)),
+              ),
+            ),
+          );
+          if (shouldOpenSend == true && mounted) {
+            await _openCreateCollateralSendFlow(
+              wallet,
+              fromPrivate: true,
+              unshieldAmount: unshieldDecimal,
+            );
+          }
+          return;
+        }
+
         await showDialog<void>(
           context: context,
           builder: (ctx) => StackOkDialog(
