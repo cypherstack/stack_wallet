@@ -42,6 +42,7 @@ import 'models/node_model.dart';
 import 'models/notification_model.dart';
 import 'models/trade_wallet_lookup.dart';
 import 'pages/already_running_view.dart';
+import 'pages/downgrade_detected_view.dart';
 import 'pages/campfire_migrate_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -229,6 +230,47 @@ void main(List<String> args) async {
       return;
     }
     rethrow;
+  }
+
+  // Guard against downgrade: if the on-disk data version is newer than this
+  // binary knows about, Isar would silently delete any collection that is not
+  // in this binary's schema list, causing irreversible wallet-data loss.
+  // Instead, refuse to open and show a blocking error screen.
+  final int storedDataVersion =
+      DB.instance.get<dynamic>(
+            boxName: DB.boxNameDBInfo,
+            key: "hive_data_version",
+          )
+          as int? ??
+      0;
+  if (storedDataVersion > Constants.currentDataVersion) {
+    Widget errorApp;
+    try {
+      await StackFileSystem.initThemesDir();
+      await MainDB.instance.initMainDB();
+      ThemeService.instance.init(MainDB.instance);
+      errorApp = const ProviderScope(child: DowngradeDetectedApp());
+    } catch (_) {
+      errorApp = MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
+        home: Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Text(
+                '${AppConfig.appName} was previously run with a newer version. '
+                'Please reinstall the latest version to avoid data loss.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 16),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    runApp(errorApp);
+    return;
   }
   await Prefs.instance.init();
 

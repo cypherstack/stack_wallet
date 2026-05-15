@@ -68,6 +68,20 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             key: "hive_data_version",
           ) as int? ??
           0;
+
+      // Guard against downgrade: if the stored version is newer than this
+      // binary understands, opening Isar would silently delete any collection
+      // unknown to this schema, causing irreversible data loss.  Refuse to
+      // proceed and let the login() catch block surface this to the user.
+      if (dbVersion > Constants.currentDataVersion) {
+        throw Exception(
+          "${AppConfig.appName} was previously run with a newer version "
+          "(data version $dbVersion, this binary knows up to "
+          "${Constants.currentDataVersion}). "
+          "Please reinstall the latest version to avoid data loss.",
+        );
+      }
+
       if (dbVersion < Constants.currentDataVersion) {
         try {
           await DbVersionMigrator().migrate(
