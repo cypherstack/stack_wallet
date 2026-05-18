@@ -15,7 +15,6 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_container.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
-import 'shopinbit_step_1.dart';
 import 'shopinbit_step_3.dart';
 import 'shopinbit_step_4.dart';
 
@@ -33,46 +32,19 @@ class ShopInBitStep2 extends StatefulWidget {
 class _ShopInBitStep2State extends State<ShopInBitStep2> {
   ShopInBitCategory? _selected;
 
-  void _popBack() {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => ShopInBitStep1(model: widget.model),
-      );
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
-
   void _continue() {
     widget.model.category = _selected;
     final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
 
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      if (skipGuidelines) {
-        widget.model.guidelinesAccepted = true;
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
-      } else {
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
-      }
+    if (skipGuidelines) {
+      widget.model.guidelinesAccepted = true;
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
     } else {
-      if (skipGuidelines) {
-        widget.model.guidelinesAccepted = true;
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
-      } else {
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
-      }
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
     }
   }
 
@@ -101,11 +73,7 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
                 children: [
                   Row(
                     children: [
-                      AppBarBackButton(
-                        isCompact: true,
-                        iconSize: 23,
-                        onPressed: _popBack,
-                      ),
+                      const AppBarBackButton(isCompact: true, iconSize: 23),
                       Text("ShopinBit", style: STextStyles.desktopH3(context)),
                     ],
                   ),
@@ -125,40 +93,29 @@ class _ShopInBitStep2State extends State<ShopInBitStep2> {
       child: ConditionalParent(
         condition: !isDesktop,
         builder: (content) => Background(
-          child: PopScope(
-            canPop: false,
-            onPopInvokedWithResult: (bool didPop, dynamic result) {
-              if (!didPop) {
-                _popBack();
-              }
-            },
-            child: Scaffold(
-              backgroundColor: Theme.of(
-                context,
-              ).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(onPressed: _popBack),
-                title: Text(
-                  "ShopinBit",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 32,
-                          ),
-                          child: IntrinsicHeight(child: content),
+          child: Scaffold(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: const AppBarBackButton(),
+              title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
+            ),
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 32,
                         ),
+                        child: IntrinsicHeight(child: content),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

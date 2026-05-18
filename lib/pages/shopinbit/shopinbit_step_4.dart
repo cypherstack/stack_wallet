@@ -1,11 +1,11 @@
+import 'dart:async';
+
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'dart:async';
 
 import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
@@ -17,16 +17,15 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
-import '../../widgets/stack_dialog.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
-import 'shopinbit_step_3.dart';
 import 'shopinbit_car_fee_view.dart';
 import 'shopinbit_order_created.dart';
 import 'shopinbit_tickets_view.dart';
@@ -130,7 +129,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     final shouldContinue = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Util.isDesktop
+      builder: (context) => Util.isDesktop
           ? DesktopDialog(
               maxWidth: 550,
               maxHeight: 250,
@@ -157,24 +156,14 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                           width: 200,
                           buttonHeight: ButtonHeight.l,
                           label: "Cancel",
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(false);
-                          },
+                          onPressed: () => Navigator.of(context).pop(false),
                         ),
                         const SizedBox(width: 20),
                         PrimaryButton(
                           width: 200,
                           buttonHeight: ButtonHeight.l,
                           label: "Continue",
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(true);
-                          },
+                          onPressed: () => Navigator.of(context).pop(true),
                         ),
                       ],
                     ),
@@ -188,27 +177,13 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                   "You are about to open "
                   "${uri.scheme}://${uri.host} "
                   "in your browser.",
-              leftButton: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
-                  ),
-                ),
+              leftButton: SecondaryButton(
+                label: "Cancel",
+                onPressed: () => Navigator.of(context).pop(false),
               ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: Text("Continue", style: STextStyles.button(context)),
+              rightButton: PrimaryButton(
+                label: "Continue",
+                onPressed: () => Navigator.of(context).pop(true),
               ),
             ),
     );
@@ -445,19 +420,6 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     super.dispose();
   }
 
-  void _popBack() {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => ShopInBitStep3(model: widget.model),
-      );
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
-
   Future<void> _fetchCountries() async {
     setState(() => _loadingCountries = true);
     try {
@@ -624,7 +586,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
 
       assert(
         widget.model.category != null,
-        'Step 4 reached with null category: Step 2 must set category before reaching Step 4',
+        'Step 4 reached with null category: Step 2 must set category before'
+        ' reaching Step 4',
       );
 
       // API service_type: travel requests use "concierge" because the
@@ -1063,7 +1026,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               : STextStyles.field(context),
           decoration:
               standardInputDecoration(
-                "Describe what you'd like to purchase (e.g., electronics, luxury goods, services...)",
+                "Describe what you'd like to purchase "
+                "(e.g., electronics, luxury goods, services...)",
                 _whatToPurchaseFocusNode,
                 context,
                 desktopMed: isDesktop,
@@ -1555,7 +1519,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
                       ),
                       const TextSpan(
                         text:
-                            "\u20AC223 (incl. VAT): one-time payment, credited toward your purchase.",
+                            "\u20AC223 (incl. VAT): one-time payment, "
+                            "credited toward your purchase.",
                       ),
                     ],
                   ),
@@ -1968,7 +1933,8 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               : STextStyles.field(context),
           decoration:
               standardInputDecoration(
-                "Describe your specific requirements (luggage, cabin class, hotel stars, etc.)",
+                "Describe your specific requirements "
+                "(luggage, cabin class, hotel stars, etc.)",
                 _arrangementDetailsFocusNode,
                 context,
                 desktopMed: isDesktop,
@@ -2407,11 +2373,7 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
               children: [
                 Row(
                   children: [
-                    AppBarBackButton(
-                      isCompact: true,
-                      iconSize: 23,
-                      onPressed: _popBack,
-                    ),
+                    const AppBarBackButton(isCompact: true, iconSize: 23),
                     Text("ShopinBit", style: STextStyles.desktopH3(context)),
                   ],
                 ),
@@ -2433,37 +2395,27 @@ class _ShopInBitStep4State extends State<ShopInBitStep4> {
     }
 
     return Background(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, dynamic result) {
-          if (!didPop) {
-            _popBack();
-          }
-        },
-        child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(onPressed: _popBack),
-            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
-          ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 32,
-                      ),
-                      child: IntrinsicHeight(child: content),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: const AppBarBackButton(),
+          title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 32,
                     ),
+                    child: IntrinsicHeight(child: content),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),

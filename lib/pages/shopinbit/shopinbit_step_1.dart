@@ -32,18 +32,9 @@ class _ShopInBitStep1State extends State<ShopInBitStep1> {
 
   void _continue() {
     widget.model.displayName = _nameController.text.trim();
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => ShopInBitStep2(model: widget.model),
-      );
-    } else {
-      Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep2.routeName, arguments: widget.model);
-    }
+    Navigator.of(
+      context,
+    ).pushNamed(ShopInBitStep2.routeName, arguments: widget.model);
   }
 
   @override

@@ -20,11 +20,13 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/textfields/adaptive_text_field.dart';
 import '../../desktop_menu.dart';
 import '../../settings/settings_menu.dart';
+import 'sub_widgets/desktop_shopin_bit_first_run.dart';
 
 class DesktopShopInBitView extends ConsumerStatefulWidget {
   const DesktopShopInBitView({super.key});
@@ -118,60 +120,9 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (dialogContext) => DesktopDialog(
-          maxWidth: 550,
-          maxHeight: 300,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("ShopinBit", style: STextStyles.desktopH2(dialogContext)),
-                const SizedBox(height: 16),
-                RichText(
-                  text: TextSpan(
-                    style: STextStyles.desktopTextSmall(dialogContext),
-                    children: const [
-                      TextSpan(
-                        text:
-                            "Please note the following before proceeding:"
-                            "\n\n\u2022 Minimum order amount: 1,000 EUR"
-                            "\n\u2022 Service fee: 10% of the order total",
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SecondaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Cancel",
-                      onPressed: () {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                      },
-                    ),
-                    PrimaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Continue",
-                      onPressed: () async {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => ShopInBitStep1(model: model),
-                        );
-                        if (mounted) setState(() {});
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+        builder: (_) => NestedNavigatorDialog(
+          initialRoute: DesktopShopinBitFirstRun.routeName,
+          initialRouteArgs: model,
         ),
       );
     } else {
@@ -179,8 +130,13 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => ShopInBitStep1(model: model),
+        builder: (_) => NestedNavigatorDialog(
+          initialRoute: ShopInBitStep1.routeName,
+          initialRouteArgs: model,
+        ),
       );
+
+      // TODO: figure out and comment why this is needed
       if (mounted) setState(() {});
     }
   }
