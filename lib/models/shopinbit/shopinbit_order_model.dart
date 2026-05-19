@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 
 import '../../services/shopinbit/src/models/ticket.dart';
+import '../../themes/stack_colors.dart';
 import '../isar/models/shopinbit_ticket.dart';
 
 enum ShopInBitCategory { concierge, travel, car }
@@ -16,7 +19,29 @@ enum ShopInBitOrderStatus {
   delivered,
   closed,
   cancelled,
-  refunded,
+  refunded;
+
+  String get label => switch (this) {
+    .pending => "Pending",
+    .reviewing => "Under review",
+    .offerAvailable => "Offer available",
+    .accepted => "Accepted",
+    .paymentPending => "Awaiting payment",
+    .paid => "Paid",
+    .shipping => "Shipping",
+    .delivered => "Delivered",
+    .closed => "Closed",
+    .cancelled => "Cancelled",
+    .refunded => "Refunded",
+  };
+
+  Color getColor(StackColors colors) => switch (this) {
+    .delivered => colors.accentColorGreen,
+    .offerAvailable => colors.accentColorBlue,
+    .pending || .reviewing => colors.accentColorYellow,
+    .closed || .cancelled || .refunded => colors.textSubtitle1,
+    _ => colors.accentColorDark,
+  };
 }
 
 class ShopInBitMessage {

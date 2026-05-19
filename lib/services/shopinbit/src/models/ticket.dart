@@ -16,10 +16,10 @@ enum TicketState {
   final String value;
   const TicketState(this.value);
 
-  static TicketState fromString(String s) {
+  static TicketState fromString(String value) {
     return TicketState.values.firstWhere(
-      (e) => e.value == s,
-      orElse: () => TicketState.newTicket,
+      (e) => e.value == value,
+      orElse: () => throw Exception("Unknown TicketState string found: $value"),
     );
   }
 }
@@ -104,9 +104,7 @@ class TicketFull {
   }
 }
 
-int _toInt(dynamic v) {
-  if (v is int) return v;
-  if (v is String) return int.parse(v);
-  if (v is double) return v.toInt();
-  return 0;
+int _toInt(dynamic value) {
+  if (value is int) return value;
+  return int.parse(value.toString());
 }

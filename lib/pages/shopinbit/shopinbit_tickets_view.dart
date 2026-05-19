@@ -172,51 +172,6 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
     }
   }
 
-  String _statusLabel(ShopInBitOrderStatus status) {
-    switch (status) {
-      case ShopInBitOrderStatus.pending:
-        return "Pending";
-      case ShopInBitOrderStatus.reviewing:
-        return "Under review";
-      case ShopInBitOrderStatus.offerAvailable:
-        return "Offer available";
-      case ShopInBitOrderStatus.accepted:
-        return "Accepted";
-      case ShopInBitOrderStatus.paymentPending:
-        return "Awaiting payment";
-      case ShopInBitOrderStatus.paid:
-        return "Paid";
-      case ShopInBitOrderStatus.shipping:
-        return "Shipping";
-      case ShopInBitOrderStatus.delivered:
-        return "Delivered";
-      case ShopInBitOrderStatus.closed:
-        return "Closed";
-      case ShopInBitOrderStatus.cancelled:
-        return "Cancelled";
-      case ShopInBitOrderStatus.refunded:
-        return "Refunded";
-    }
-  }
-
-  Color _statusColor(BuildContext context, ShopInBitOrderStatus status) {
-    switch (status) {
-      case ShopInBitOrderStatus.delivered:
-        return Theme.of(context).extension<StackColors>()!.accentColorGreen;
-      case ShopInBitOrderStatus.offerAvailable:
-        return Theme.of(context).extension<StackColors>()!.accentColorBlue;
-      case ShopInBitOrderStatus.pending:
-      case ShopInBitOrderStatus.reviewing:
-        return Theme.of(context).extension<StackColors>()!.accentColorYellow;
-      case ShopInBitOrderStatus.closed:
-      case ShopInBitOrderStatus.cancelled:
-      case ShopInBitOrderStatus.refunded:
-        return Theme.of(context).extension<StackColors>()!.textSubtitle1;
-      default:
-        return Theme.of(context).extension<StackColors>()!.accentColorDark;
-    }
-  }
-
   String _categoryLabel(ShopInBitCategory? category) {
     switch (category) {
       case ShopInBitCategory.concierge:
@@ -359,13 +314,16 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
                                   ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    color: _statusColor(
-                                      context,
-                                      ticket.status,
-                                    ).withOpacity(0.2),
+                                    color: ticket.status
+                                        .getColor(
+                                          Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!,
+                                        )
+                                        .withOpacity(0.2),
                                   ),
                                   child: Text(
-                                    _statusLabel(ticket.status),
+                                    ticket.status.label,
                                     style:
                                         (isDesktop
                                                 ? STextStyles.desktopTextExtraExtraSmall(
@@ -375,9 +333,10 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
                                                     context,
                                                   ))
                                             .copyWith(
-                                              color: _statusColor(
-                                                context,
-                                                ticket.status,
+                                              color: ticket.status.getColor(
+                                                Theme.of(
+                                                  context,
+                                                ).extension<StackColors>()!,
                                               ),
                                             ),
                                   ),
