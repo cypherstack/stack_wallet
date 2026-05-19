@@ -310,102 +310,52 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
             fractionDigits: wallet.cryptoCurrency.fractionDigits,
           ).decimal;
 
-          if (Util.isDesktop) {
-            final shouldOpenSend = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => StackDialog(
-                title: "Unshield FIRO for masternode collateral?",
-                message:
-                    "Masternode collateral must be a single 1000 FIRO UTXO "
-                    "in your transparent balance. You will need to unshield "
-                    "part of your Spark private balance into your transparent "
-                    "balance to create this collateral along with the "
-                    "transaction fee required to register it.\n\n"
-                    "Do you want to unshield $deficitDecimal FIRO from your "
-                    "private Spark balance to your transparent balance? Once "
-                    "this transaction is confirmed, click \"Create Masternode\" "
-                    "again to continue to the next step.\n\n"
-                    "Note: there may be an additional step to consolidate your "
-                    "transparent balance into a single UTXO before allowing "
-                    "you to register your masternode.",
-                leftButton: TextButton(
-                  style: Theme.of(ctx)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(ctx),
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(
-                    "Cancel",
-                    style: STextStyles.button(ctx).copyWith(
-                      color: Theme.of(
-                        ctx,
-                      ).extension<StackColors>()!.accentColorDark,
-                    ),
+          final shouldOpenSend = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => StackDialog(
+              title: "Unshield FIRO for masternode collateral?",
+              message:
+                  "Masternode collateral must be a single 1000 FIRO UTXO "
+                  "in your transparent balance. You will need to unshield "
+                  "part of your Spark private balance into your transparent "
+                  "balance to create this collateral along with the "
+                  "transaction fee required to register it.\n\n"
+                  "Do you want to unshield $deficitDecimal FIRO from your "
+                  "private Spark balance to your transparent balance? Once "
+                  "this transaction is confirmed, click \"Create Masternode\" "
+                  "again to continue to the next step.\n\n"
+                  "Note: there may be an additional step to consolidate your "
+                  "transparent balance into a single UTXO before allowing "
+                  "you to register your masternode.",
+              leftButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.button(ctx).copyWith(
+                    color: Theme.of(
+                      ctx,
+                    ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
-                rightButton: TextButton(
-                  style: Theme.of(
-                    ctx,
-                  ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text("Open Send", style: STextStyles.button(ctx)),
-                ),
               ),
-            );
-            if (shouldOpenSend == true && mounted) {
-              await _openCreateCollateralSendFlow(
-                wallet,
-                fromPrivate: true,
-                unshieldAmount: deficitDecimal,
-              );
-            }
-          } else {
-            final shouldOpenSend = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => StackDialog(
-                title: "Unshield FIRO for masternode collateral?",
-                message:
-                    "Masternode collateral must be a single 1000 FIRO UTXO "
-                    "in your transparent balance. You will need to unshield "
-                    "part of your Spark private balance into your transparent "
-                    "balance to create this collateral along with the "
-                    "transaction fee required to register it.\n\n"
-                    "Do you want to unshield $deficitDecimal FIRO from your "
-                    "private Spark balance to your transparent balance? Once "
-                    "this transaction is confirmed, click \"Create Masternode\" "
-                    "again to continue to the next step.\n\n"
-                    "Note: there may be an additional step to consolidate your "
-                    "transparent balance into a single UTXO before allowing "
-                    "you to register your masternode.",
-                leftButton: TextButton(
-                  style: Theme.of(ctx)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(ctx),
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(
-                    "Cancel",
-                    style: STextStyles.button(ctx).copyWith(
-                      color: Theme.of(
-                        ctx,
-                      ).extension<StackColors>()!.accentColorDark,
-                    ),
-                  ),
-                ),
-                rightButton: TextButton(
-                  style: Theme.of(
-                    ctx,
-                  ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text("Open Send", style: STextStyles.button(ctx)),
-                ),
+              rightButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text("Open Send", style: STextStyles.button(ctx)),
               ),
+            ),
+          );
+          if (shouldOpenSend == true && mounted) {
+            await _openCreateCollateralSendFlow(
+              wallet,
+              fromPrivate: true,
+              unshieldAmount: deficitDecimal,
             );
-            if (shouldOpenSend == true && mounted) {
-              await _openCreateCollateralSendFlow(
-                wallet,
-                fromPrivate: true,
-                unshieldAmount: deficitDecimal,
-              );
-            }
           }
         } else {
           await showDialog<void>(
@@ -426,49 +376,43 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
         return;
       }
 
-      if (Util.isDesktop) {
-        final shouldOpenSend = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => StackDialog(
-            title: "Set up your 1000 FIRO masternode collateral?",
-            message:
-                "Registering a masternode requires a 1000 FIRO collateral: "
-                "a single confirmed amount sitting in your wallet. We didn't "
-                "find one, but you have enough FIRO to create it.\n\n"
-                "We can help by opening the Send window with a new address "
-                "you own pre-filled, ready for you to send 1000 FIRO to it. "
-                "This consolidates your smaller amounts into the single 1000 "
-                "FIRO collateral you need. The network fee is paid from your "
-                "remaining balance.\n\n"
-                "Once you have sent it, wait for the transaction to confirm, "
-                "then click Create Masternode again to continue.",
-            leftButton: TextButton(
-              style: Theme.of(
-                ctx,
-              ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(
-                "Cancel",
-                style: STextStyles.button(ctx).copyWith(
-                  color: Theme.of(
-                    ctx,
-                  ).extension<StackColors>()!.accentColorDark,
-                ),
+      final shouldOpenSend = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => StackDialog(
+          title: "Set up your 1000 FIRO masternode collateral?",
+          message:
+              "Registering a masternode requires a 1000 FIRO collateral: "
+              "a single confirmed amount sitting in your wallet. We didn't "
+              "find one, but you have enough FIRO to create it.\n\n"
+              "We can help by opening the Send window with a new address "
+              "you own pre-filled, ready for you to send 1000 FIRO to it. "
+              "This consolidates your smaller amounts into the single 1000 "
+              "FIRO collateral you need. The network fee is paid from your "
+              "remaining balance.\n\n"
+              "Once you have sent it, wait for the transaction to confirm, "
+              "then click Create Masternode again to continue.",
+          leftButton: TextButton(
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              "Cancel",
+              style: STextStyles.button(ctx).copyWith(
+                color: Theme.of(ctx).extension<StackColors>()!.accentColorDark,
               ),
             ),
-            rightButton: TextButton(
-              style: Theme.of(
-                ctx,
-              ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text("Open Send", style: STextStyles.button(ctx)),
-            ),
           ),
-        );
-        if (shouldOpenSend == true && mounted) {
-          await _openCreateCollateralSendFlow(wallet);
-        }
-      } else {
+          rightButton: TextButton(
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text("Open Send", style: STextStyles.button(ctx)),
+          ),
+        ),
+      );
+      if (shouldOpenSend == true && mounted) {
         await _openCreateCollateralSendFlow(wallet);
       }
       return;
