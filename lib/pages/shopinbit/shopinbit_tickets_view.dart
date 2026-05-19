@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/shopinbit_ticket.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -21,16 +22,17 @@ import 'shopinbit_car_fee_view.dart';
 import 'shopinbit_car_research_payment_view.dart';
 import 'shopinbit_ticket_detail.dart';
 
-class ShopInBitTicketsView extends StatefulWidget {
+class ShopInBitTicketsView extends ConsumerStatefulWidget {
   const ShopInBitTicketsView({super.key});
 
   static const String routeName = "/shopInBitTickets";
 
   @override
-  State<ShopInBitTicketsView> createState() => _ShopInBitTicketsViewState();
+  ConsumerState<ShopInBitTicketsView> createState() =>
+      _ShopInBitTicketsViewState();
 }
 
-class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
+class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   List<ShopInBitOrderModel> _tickets = [];
   bool _syncing = false;
   ShopInBitTicket? _pendingTicket;
@@ -112,7 +114,7 @@ class _ShopInBitTicketsViewState extends State<ShopInBitTicketsView> {
   Future<void> _syncFromApi() async {
     setState(() => _syncing = true);
     try {
-      final service = ShopInBitService.instance;
+      final service = ref.read(pShopinBitService);
       final customerKey = await service.ensureCustomerKey();
       final resp = await service.client.getTicketsByCustomer(customerKey);
 

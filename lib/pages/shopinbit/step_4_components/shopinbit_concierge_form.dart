@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
 import "../../../models/shopinbit/shopinbit_order_model.dart";
+import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/util.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
@@ -17,16 +19,18 @@ const List<String> _conciergeConditions = ["NEW", "USED"];
 const int _minConciergeBudget = 1000;
 const int _maxConciergeBudget = 100000;
 
-class ShopInBitConciergeForm extends StatefulWidget {
+class ShopInBitConciergeForm extends ConsumerStatefulWidget {
   const ShopInBitConciergeForm({super.key, required this.model});
 
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitConciergeForm> createState() => _ShopInBitConciergeFormState();
+  ConsumerState<ShopInBitConciergeForm> createState() =>
+      _ShopInBitConciergeFormState();
 }
 
-class _ShopInBitConciergeFormState extends State<ShopInBitConciergeForm> {
+class _ShopInBitConciergeFormState
+    extends ConsumerState<ShopInBitConciergeForm> {
   final TextEditingController _whatToPurchaseController =
       TextEditingController();
   final FocusNode _whatToPurchaseFocusNode = FocusNode();
@@ -103,7 +107,11 @@ class _ShopInBitConciergeFormState extends State<ShopInBitConciergeForm> {
       ..deliveryCountry = countryIso;
 
     try {
-      await submitShopInBitRequest(context, widget.model);
+      await submitShopInBitRequest(
+        context,
+        widget.model,
+        ref.read(pShopinBitService),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

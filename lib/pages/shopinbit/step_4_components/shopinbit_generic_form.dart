@@ -1,6 +1,8 @@
 import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
 import "../../../models/shopinbit/shopinbit_order_model.dart";
+import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/util.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_privacy_checkbox.dart";
@@ -14,16 +16,17 @@ import "shopinbit_step4_text_field.dart";
 ///
 /// Note: the original code used the travel copy for this fallback; that
 /// behaviour is preserved here.
-class ShopInBitGenericForm extends StatefulWidget {
+class ShopInBitGenericForm extends ConsumerStatefulWidget {
   const ShopInBitGenericForm({super.key, required this.model});
 
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitGenericForm> createState() => _ShopInBitGenericFormState();
+  ConsumerState<ShopInBitGenericForm> createState() =>
+      _ShopInBitGenericFormState();
 }
 
-class _ShopInBitGenericFormState extends State<ShopInBitGenericForm> {
+class _ShopInBitGenericFormState extends ConsumerState<ShopInBitGenericForm> {
   late final TextEditingController _descriptionController;
   final FocusNode _descriptionFocusNode = FocusNode();
 
@@ -63,7 +66,11 @@ class _ShopInBitGenericFormState extends State<ShopInBitGenericForm> {
       ..requestDescription = _descriptionController.text.trim()
       ..deliveryCountry = _selectedCountryIso!;
     try {
-      await submitShopInBitRequest(context, widget.model);
+      await submitShopInBitRequest(
+        context,
+        widget.model,
+        ref.read(pShopinBitService),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

@@ -10,9 +10,9 @@ import '../../db/isar/main_db.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -22,16 +22,16 @@ import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../more_view/services_view.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/stack_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
+import '../more_view/services_view.dart';
 import 'shopinbit_order_created.dart';
 import 'shopinbit_send_from_view.dart';
 import 'shopinbit_tickets_view.dart';
@@ -240,7 +240,8 @@ class _ShopInBitCarResearchPaymentViewState
           showFloatingFlushBar(
             type: FlushBarType.info,
             message:
-                "Payment not yet confirmed. Please wait a moment and try again.",
+                "Payment not yet confirmed. "
+                "Please wait a moment and try again.",
             context: context,
           ),
         );
@@ -345,7 +346,9 @@ class _ShopInBitCarResearchPaymentViewState
 
   Future<void> _pollStatus() async {
     try {
-      final resp = await ShopInBitService.instance.client
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
           .getCarResearchInvoiceStatus(widget.invoice.btcpayInvoice);
       if (resp.hasError || resp.value == null) {
         if (mounted) {
@@ -394,8 +397,9 @@ class _ShopInBitCarResearchPaymentViewState
     if (_flowState == _PaymentFlowState.loggingPayment ||
         _flowState == _PaymentFlowState.creatingRequest ||
         _flowState == _PaymentFlowState.complete ||
-        _flowState == _PaymentFlowState.error)
+        _flowState == _PaymentFlowState.error) {
       return;
+    }
 
     // Skip logCarResearchPayment if the fee was already logged.
     final existingFeeTicket = widget.model.feeTicketNumber;
@@ -426,17 +430,22 @@ class _ShopInBitCarResearchPaymentViewState
       setState(() => _flowState = _PaymentFlowState.creatingRequest);
       _pollTimer?.cancel();
       try {
-        final customerKey = await ShopInBitService.instance.ensureCustomerKey();
+        final customerKey = await ref
+            .read(pShopinBitService)
+            .ensureCustomerKey();
         final comment =
             "${widget.model.requestDescription}\n\n"
             "The Client paid the car research fee (#$existingFeeTicket)";
-        final reqResp = await ShopInBitService.instance.client.createRequest(
-          customerPseudonym: widget.model.displayName,
-          externalCustomerKey: customerKey,
-          serviceType: "car",
-          comment: comment,
-          deliveryCountry: widget.model.deliveryCountry,
-        );
+        final reqResp = await ref
+            .read(pShopinBitService)
+            .client
+            .createRequest(
+              customerPseudonym: widget.model.displayName,
+              externalCustomerKey: customerKey,
+              serviceType: "car",
+              comment: comment,
+              deliveryCountry: widget.model.deliveryCountry,
+            );
         if (reqResp.hasError || reqResp.value == null) {
           if (mounted) {
             setState(() => _flowState = _PaymentFlowState.error);
@@ -517,7 +526,9 @@ class _ShopInBitCarResearchPaymentViewState
     _pollTimer?.cancel();
 
     try {
-      final logResp = await ShopInBitService.instance.client
+      final logResp = await ref
+          .read(pShopinBitService)
+          .client
           .logCarResearchPayment(widget.invoice.btcpayInvoice);
       if (logResp.hasError || logResp.value == null) {
         if (mounted) {
@@ -535,7 +546,8 @@ class _ShopInBitCarResearchPaymentViewState
 
       final feeResult = logResp.value!;
 
-      // Persist feeTicketNumber on the existing model (a new DB row creates a spurious list entry).
+      // Persist feeTicketNumber on the existing model (a new DB row creates a
+      // spurious list entry).
       widget.model.feeTicketNumber = feeResult.ticketNumber;
       widget.model.needsCreateRequest = true;
       await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
@@ -543,18 +555,21 @@ class _ShopInBitCarResearchPaymentViewState
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.creatingRequest);
 
-      final customerKey = await ShopInBitService.instance.ensureCustomerKey();
+      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
       final comment =
           "${widget.model.requestDescription}\n\n"
           "The Client paid the car research fee (#${feeResult.ticketNumber})";
 
-      final reqResp = await ShopInBitService.instance.client.createRequest(
-        customerPseudonym: widget.model.displayName,
-        externalCustomerKey: customerKey,
-        serviceType: "car",
-        comment: comment,
-        deliveryCountry: widget.model.deliveryCountry,
-      );
+      final reqResp = await ref
+          .read(pShopinBitService)
+          .client
+          .createRequest(
+            customerPseudonym: widget.model.displayName,
+            externalCustomerKey: customerKey,
+            serviceType: "car",
+            comment: comment,
+            deliveryCountry: widget.model.deliveryCountry,
+          );
 
       if (reqResp.hasError || reqResp.value == null) {
         // createRequest failed: fee receipt already persisted, show retry
@@ -645,13 +660,16 @@ class _ShopInBitCarResearchPaymentViewState
           "${widget.model.requestDescription}\n\n"
           "The Client paid the car research fee (#$feeTicketNumber)";
 
-      final reqResp = await ShopInBitService.instance.client.createRequest(
-        customerPseudonym: widget.model.displayName,
-        externalCustomerKey: customerKey,
-        serviceType: "car",
-        comment: comment,
-        deliveryCountry: widget.model.deliveryCountry,
-      );
+      final reqResp = await ref
+          .read(pShopinBitService)
+          .client
+          .createRequest(
+            customerPseudonym: widget.model.displayName,
+            externalCustomerKey: customerKey,
+            serviceType: "car",
+            comment: comment,
+            deliveryCountry: widget.model.deliveryCountry,
+          );
 
       if (reqResp.hasError || reqResp.value == null) {
         if (mounted) {

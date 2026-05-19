@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -18,7 +19,7 @@ import '../exchange_view/sub_widgets/step_row.dart';
 import 'shopinbit_step_3.dart';
 import 'shopinbit_step_4.dart';
 
-class ShopInBitStep2 extends StatefulWidget {
+class ShopInBitStep2 extends ConsumerStatefulWidget {
   const ShopInBitStep2({super.key, required this.model});
 
   static const String routeName = "/shopInBitStep2";
@@ -26,23 +27,26 @@ class ShopInBitStep2 extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitStep2> createState() => _ShopInBitStep2State();
+  ConsumerState<ShopInBitStep2> createState() => _ShopInBitStep2State();
 }
 
-class _ShopInBitStep2State extends State<ShopInBitStep2> {
+class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
   ShopInBitCategory? _selected;
 
-  void _continue() {
+  Future<void> _continue() async {
     widget.model.category = _selected;
-    final skipGuidelines = ShopInBitService.instance.loadGuidelinesAccepted();
+    final skipGuidelines =
+        (await ref.read(pSharedDrift).shopinBitSettingsDao.getSettings())
+            .guidelinesAccepted;
+    if (!mounted) return;
 
     if (skipGuidelines) {
       widget.model.guidelinesAccepted = true;
-      Navigator.of(
+      await Navigator.of(
         context,
       ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
     } else {
-      Navigator.of(
+      await Navigator.of(
         context,
       ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
     }

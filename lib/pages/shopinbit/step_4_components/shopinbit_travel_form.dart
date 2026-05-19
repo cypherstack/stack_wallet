@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
 import "../../../models/shopinbit/shopinbit_order_model.dart";
+import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 import "shopinbit_country_picker.dart";
@@ -54,16 +56,17 @@ const int _minArrangementDetailsLength = 10;
 /// Travel request form. Collects arrangement type, departure / destinations,
 /// dates (either exact or flexible), travelers and budget, then submits via
 /// the shared submit helper.
-class ShopInBitTravelForm extends StatefulWidget {
+class ShopInBitTravelForm extends ConsumerStatefulWidget {
   const ShopInBitTravelForm({super.key, required this.model});
 
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitTravelForm> createState() => _ShopInBitTravelFormState();
+  ConsumerState<ShopInBitTravelForm> createState() =>
+      _ShopInBitTravelFormState();
 }
 
-class _ShopInBitTravelFormState extends State<ShopInBitTravelForm> {
+class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
   final TextEditingController _arrangementDetailsController =
       TextEditingController();
   final FocusNode _arrangementDetailsFocusNode = FocusNode();
@@ -271,7 +274,11 @@ class _ShopInBitTravelFormState extends State<ShopInBitTravelForm> {
       // structured comment field.
       ..deliveryCountry = "DE";
     try {
-      await submitShopInBitRequest(context, widget.model);
+      await submitShopInBitRequest(
+        context,
+        widget.model,
+        ref.read(pShopinBitService),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

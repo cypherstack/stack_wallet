@@ -1,10 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -14,23 +16,21 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../shopinbit/shopinbit_settings_view.dart';
 import '../shopinbit/shopinbit_setup_view.dart';
-import '../shopinbit/shopinbit_step_1.dart';
 import '../shopinbit/shopinbit_step_2.dart';
 import '../shopinbit/shopinbit_tickets_view.dart';
 
-class ServicesView extends StatefulWidget {
+class ServicesView extends ConsumerStatefulWidget {
   const ServicesView({super.key});
 
   static const String routeName = "/servicesView";
 
   @override
-  State<ServicesView> createState() => _ServicesViewState();
+  ConsumerState<ServicesView> createState() => _ServicesViewState();
 }
 
-class _ServicesViewState extends State<ServicesView> {
+class _ServicesViewState extends ConsumerState<ServicesView> {
   Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
     final uri = Uri.parse(url);
     final shouldContinue = await showDialog<bool>(
@@ -69,7 +69,7 @@ class _ServicesViewState extends State<ServicesView> {
     return shouldContinue ?? false;
   }
 
-  void _showShopDialog(BuildContext context) {
+  void _showShopDialog() {
     showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -142,12 +142,17 @@ class _ServicesViewState extends State<ServicesView> {
                     onPressed: () async {
                       Navigator.of(dialogContext).pop();
                       final model = ShopInBitOrderModel();
-                      final service = ShopInBitService.instance;
+                      final settings = await ref
+                          .read(pSharedDrift)
+                          .shopinBitSettingsDao
+                          .getSettings();
 
-                      if (service.loadSetupComplete()) {
+                      if (!mounted) return;
+
+                      if (settings.setupComplete) {
                         // Returning user: pre-load display name,
                         // skip Step 1, go to Step 2
-                        final savedName = service.loadDisplayName();
+                        final savedName = settings.displayName;
                         if (savedName != null && savedName.isNotEmpty) {
                           model.displayName = savedName;
                         }
@@ -303,7 +308,7 @@ class _ServicesViewState extends State<ServicesView> {
                     PrimaryButton(
                       label: "Shop with ShopinBit",
                       enabled: true,
-                      onPressed: () => _showShopDialog(context),
+                      onPressed: _showShopDialog,
                     ),
                     const SizedBox(height: 12),
                     Builder(

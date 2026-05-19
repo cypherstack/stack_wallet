@@ -11,9 +11,9 @@ import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -108,9 +108,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
 
   Future<void> _pollPayment() async {
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null && mounted) {
         setState(() => _applyPaymentInfo(resp.value!));
         if (_isTerminal) {
@@ -123,9 +124,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Future<void> _loadPayment() async {
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null) {
         _applyPaymentInfo(resp.value!);
       }
@@ -142,10 +144,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Future<void> _refreshInvoice() async {
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-        retry: true,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId, retry: true);
       if (!resp.hasError && resp.value != null) {
         _applyPaymentInfo(resp.value!);
       }
@@ -160,9 +162,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     _pollTimer?.cancel();
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null && mounted) {
         setState(() => _applyPaymentInfo(resp.value!));
         final status = resp.value!.status;

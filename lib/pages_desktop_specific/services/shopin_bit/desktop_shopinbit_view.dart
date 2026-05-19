@@ -11,8 +11,9 @@ import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
+import '../../../providers/db/drift_provider.dart';
 import '../../../providers/desktop/current_desktop_menu_item.dart';
-import '../../../services/shopinbit/shopinbit_service.dart';
+import '../../../providers/global/shopin_bit_service_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -90,12 +91,16 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
     return shouldContinue ?? false;
   }
 
-  Future<void> _showShopDialog(BuildContext context) async {
-    final service = ShopInBitService.instance;
+  Future<void> _showShopDialog() async {
+    final dao = ref.read(pSharedDrift).shopinBitSettingsDao;
+    final settings = await dao.getSettings();
     final model = ShopInBitOrderModel();
     bool isFirstRun = false;
 
-    if (!service.loadSetupComplete()) {
+    if (!settings.setupComplete) {
+      // something went wrong
+      if (!mounted) return;
+
       // First-time user: show setup.
       final completed = await showDialog<bool>(
         context: context,
@@ -106,13 +111,13 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       isFirstRun = true;
     } else {
       // Returning user: restore display name.
-      final savedName = service.loadDisplayName();
+      final savedName = settings.displayName;
       if (savedName != null && savedName.isNotEmpty) {
         model.displayName = savedName;
       }
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     if (isFirstRun) {
       // First run: show service overview then go directly to Step2
@@ -239,7 +244,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         buttonHeight: ButtonHeight.m,
                         enabled: true,
                         label: "Shop with ShopinBit",
-                        onPressed: () => _showShopDialog(context),
+                        onPressed: _showShopDialog,
                       ),
                       const SizedBox(width: 16),
                       Builder(
@@ -296,29 +301,41 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
   }
 }
 
-class _ShopInBitDesktopSetupDialog extends StatefulWidget {
+class _ShopInBitDesktopSetupDialog extends ConsumerStatefulWidget {
   const _ShopInBitDesktopSetupDialog({required this.model});
 
   final ShopInBitOrderModel model;
 
   @override
-  State<_ShopInBitDesktopSetupDialog> createState() =>
+  ConsumerState<_ShopInBitDesktopSetupDialog> createState() =>
       _ShopInBitDesktopSetupDialogState();
 }
 
 class _ShopInBitDesktopSetupDialogState
-    extends State<_ShopInBitDesktopSetupDialog> {
+    extends ConsumerState<_ShopInBitDesktopSetupDialog> {
   late final Future<String> _keyFuture;
-  late final TextEditingController _nameController;
+  final TextEditingController _nameController = TextEditingController();
 
   bool get _canContinue => _nameController.text.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _keyFuture = ShopInBitService.instance.ensureCustomerKey();
-    final existingName = ShopInBitService.instance.loadDisplayName();
-    _nameController = TextEditingController(text: existingName ?? '');
+    _keyFuture = ref.read(pShopinBitService).ensureCustomerKey();
+
+    // not the greatest solution but its the least invasive with the current
+    // ui code impl
+    () async {
+      final settings = await ref
+          .read(pSharedDrift)
+          .shopinBitSettingsDao
+          .getSettings();
+      if (mounted) {
+        setState(() {
+          _nameController.text = settings.displayName ?? "";
+        });
+      }
+    }();
   }
 
   @override
@@ -330,8 +347,9 @@ class _ShopInBitDesktopSetupDialogState
   Future<void> _completeSetup() async {
     final name = _nameController.text.trim();
     widget.model.displayName = name;
-    await ShopInBitService.instance.setDisplayName(name);
-    await ShopInBitService.instance.setSetupComplete(true);
+    final dao = ref.read(pSharedDrift).shopinBitSettingsDao;
+    await dao.setDisplayName(name);
+    await dao.setSetupComplete(true);
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop(true);
     }

@@ -1,15 +1,16 @@
 import "package:dropdown_button2/dropdown_button2.dart";
 import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_svg/svg.dart";
 
-import "../../../services/shopinbit/shopinbit_service.dart";
+import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../themes/stack_colors.dart";
 import "../../../utilities/assets.dart";
 import "../../../utilities/constants.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 
-class ShopInBitCountryPicker extends StatefulWidget {
+class ShopInBitCountryPicker extends ConsumerStatefulWidget {
   const ShopInBitCountryPicker({
     super.key,
     required this.selectedIso,
@@ -22,10 +23,12 @@ class ShopInBitCountryPicker extends StatefulWidget {
   final String hintText;
 
   @override
-  State<ShopInBitCountryPicker> createState() => _ShopInBitCountryPickerState();
+  ConsumerState<ShopInBitCountryPicker> createState() =>
+      _ShopInBitCountryPickerState();
 }
 
-class _ShopInBitCountryPickerState extends State<ShopInBitCountryPicker> {
+class _ShopInBitCountryPickerState
+    extends ConsumerState<ShopInBitCountryPicker> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _countries = [];
   bool _loading = false;
@@ -45,7 +48,7 @@ class _ShopInBitCountryPickerState extends State<ShopInBitCountryPicker> {
   Future<void> _fetchCountries() async {
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getCountries();
+      final resp = await ref.read(pShopinBitService).client.getCountries();
       if (resp.hasError || resp.value == null) return;
       _countries = resp.value!;
       if (widget.selectedIso != null &&

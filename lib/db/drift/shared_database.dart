@@ -28,13 +28,72 @@ class CakepayOrders extends Table {
   Set<Column> get primaryKey => {orderId};
 }
 
-@DriftDatabase(tables: [CakepayOrders])
+class ShopinBitSettings extends Table {
+  // Single row table - always row 0
+  IntColumn get id => integer().withDefault(const Constant(0))();
+
+  BoolColumn get guidelinesAccepted =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get setupComplete =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get displayName => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftAccessor(tables: [ShopinBitSettings])
+class ShopinBitSettingsDao extends DatabaseAccessor<SharedDatabase>
+    with _$ShopinBitSettingsDaoMixin {
+  ShopinBitSettingsDao(super.db);
+
+  Future<ShopinBitSetting> getSettings() async {
+    final ShopinBitSetting? row = await (select(
+      shopinBitSettings,
+    )..where((t) => t.id.equals(0))).getSingleOrNull();
+    if (row != null) return row;
+
+    return into(
+      shopinBitSettings,
+    ).insertReturning(ShopinBitSettingsCompanion.insert(id: const Value(0)));
+  }
+
+  Future<void> setGuidelinesAccepted(bool accepted) =>
+      _update(ShopinBitSettingsCompanion(guidelinesAccepted: Value(accepted)));
+
+  Future<void> setSetupComplete(bool complete) =>
+      _update(ShopinBitSettingsCompanion(setupComplete: Value(complete)));
+
+  Future<void> setDisplayName(String name) =>
+      _update(ShopinBitSettingsCompanion(displayName: Value(name)));
+
+  Future<void> _update(ShopinBitSettingsCompanion changes) async {
+    await getSettings(); // ensure row exists
+    await (update(
+      shopinBitSettings,
+    )..where((t) => t.id.equals(0))).write(changes);
+  }
+}
+
+@DriftDatabase(
+  tables: [CakepayOrders, ShopinBitSettings],
+  daos: [ShopinBitSettingsDao],
+)
 final class SharedDatabase extends _$SharedDatabase {
   SharedDatabase._([QueryExecutor? executor])
     : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from == 1 && to == 2) {
+        await m.createTable(shopinBitSettings);
+      }
+    },
+  );
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

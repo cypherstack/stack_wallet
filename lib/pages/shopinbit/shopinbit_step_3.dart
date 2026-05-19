@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -14,7 +15,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
 import 'shopinbit_step_4.dart';
 
-class ShopInBitStep3 extends StatefulWidget {
+class ShopInBitStep3 extends ConsumerStatefulWidget {
   const ShopInBitStep3({super.key, required this.model});
 
   static const String routeName = "/shopInBitStep3";
@@ -22,10 +23,10 @@ class ShopInBitStep3 extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitStep3> createState() => _ShopInBitStep3State();
+  ConsumerState<ShopInBitStep3> createState() => _ShopInBitStep3State();
 }
 
-class _ShopInBitStep3State extends State<ShopInBitStep3> {
+class _ShopInBitStep3State extends ConsumerState<ShopInBitStep3> {
   bool _agreed = false;
 
   String _guidelinesText() {
@@ -76,7 +77,7 @@ class _ShopInBitStep3State extends State<ShopInBitStep3> {
   void _continue() {
     widget.model.guidelinesAccepted = true;
     // Persist acceptance.
-    ShopInBitService.instance.setGuidelinesAccepted(true);
+    ref.read(pSharedDrift).shopinBitSettingsDao.setGuidelinesAccepted(true);
 
     Navigator.of(
       context,

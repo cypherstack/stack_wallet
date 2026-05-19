@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -15,7 +16,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_shipping_view.dart';
 
-class ShopInBitOfferView extends StatefulWidget {
+class ShopInBitOfferView extends ConsumerStatefulWidget {
   const ShopInBitOfferView({super.key, required this.model});
 
   static const String routeName = "/shopInBitOffer";
@@ -23,10 +24,10 @@ class ShopInBitOfferView extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitOfferView> createState() => _ShopInBitOfferViewState();
+  ConsumerState<ShopInBitOfferView> createState() => _ShopInBitOfferViewState();
 }
 
-class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
+class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
   bool _loading = false;
 
   @override
@@ -40,9 +41,10 @@ class _ShopInBitOfferViewState extends State<ShopInBitOfferView> {
   Future<void> _loadOffer() async {
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getTicketFull(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getTicketFull(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null) {
         final t = resp.value!;
         widget.model.setOffer(

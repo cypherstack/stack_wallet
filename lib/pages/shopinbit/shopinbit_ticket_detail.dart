@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -19,7 +20,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_offer_view.dart';
 
-class ShopInBitTicketDetail extends StatefulWidget {
+class ShopInBitTicketDetail extends ConsumerStatefulWidget {
   const ShopInBitTicketDetail({super.key, required this.model});
 
   static const String routeName = "/shopInBitTicketDetail";
@@ -27,10 +28,11 @@ class ShopInBitTicketDetail extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitTicketDetail> createState() => _ShopInBitTicketDetailState();
+  ConsumerState<ShopInBitTicketDetail> createState() =>
+      _ShopInBitTicketDetailState();
 }
 
-class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
+class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   late final TextEditingController _messageController;
 
   bool _sending = false;
@@ -65,7 +67,7 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
   Future<void> _loadFromApi() async {
     setState(() => _loading = true);
     try {
-      final client = ShopInBitService.instance.client;
+      final client = ref.read(pShopinBitService).client;
       final id = widget.model.apiTicketId;
 
       final messagesResp = await client.getMessages(id);
@@ -129,10 +131,10 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
 
     try {
       if (widget.model.apiTicketId != 0) {
-        await ShopInBitService.instance.client.sendMessage(
-          widget.model.apiTicketId,
-          text,
-        );
+        await ref
+            .read(pShopinBitService)
+            .client
+            .sendMessage(widget.model.apiTicketId, text);
         // Reload messages from API to get accurate state
         await _loadFromApi();
       }
@@ -152,18 +154,21 @@ class _ShopInBitTicketDetailState extends State<ShopInBitTicketDetail> {
 
     try {
       final model = widget.model;
-      final customerKey = await ShopInBitService.instance.ensureCustomerKey();
+      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
       final comment =
           "${model.requestDescription}\n\n"
           "The Client paid the car research fee (#${model.feeTicketNumber})";
 
-      final reqResp = await ShopInBitService.instance.client.createRequest(
-        customerPseudonym: model.displayName,
-        externalCustomerKey: customerKey,
-        serviceType: "car_research",
-        comment: comment,
-        deliveryCountry: model.deliveryCountry,
-      );
+      final reqResp = await ref
+          .read(pShopinBitService)
+          .client
+          .createRequest(
+            customerPseudonym: model.displayName,
+            externalCustomerKey: customerKey,
+            serviceType: "car_research",
+            comment: comment,
+            deliveryCountry: model.deliveryCountry,
+          );
 
       if (reqResp.hasError || reqResp.value == null) {
         if (mounted) {

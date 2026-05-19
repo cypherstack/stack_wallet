@@ -17,9 +17,9 @@ import "../shopinbit_order_created.dart";
 Future<void> submitShopInBitRequest(
   BuildContext context,
   ShopInBitOrderModel model,
+  ShopInBitService service,
 ) async {
   try {
-    final ShopInBitService service = ShopInBitService.instance;
     final String customerKey = await service.ensureCustomerKey();
 
     assert(
