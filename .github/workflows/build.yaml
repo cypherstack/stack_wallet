@@ -169,7 +169,8 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
+          [ -s android/keystore-orig.jks ] || { echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is empty or not set"; exit 1; }
           keytool -importkeystore \
             -srckeystore android/keystore-orig.jks \
             -destkeystore android/keystore.jks \
