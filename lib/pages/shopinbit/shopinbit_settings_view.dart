@@ -600,7 +600,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                                                     text: _currentKey!,
                                                   ),
                                                 );
-                                                if (mounted) {
+                                                if (context.mounted) {
                                                   unawaited(
                                                     showFloatingFlushBar(
                                                       type: FlushBarType.info,
