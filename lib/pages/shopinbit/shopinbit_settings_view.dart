@@ -240,7 +240,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                               ).pop(),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 24),
                           Expanded(
                             child: PrimaryButton(
                               label: "I saved my key",
@@ -314,7 +314,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: TextButton(
                         style: Theme.of(context)
@@ -837,7 +837,9 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
                     ).pop(false),
                   ),
                 ),
-                const SizedBox(width: 16),
+                Util.isDesktop
+                    ? const SizedBox(width: 24)
+                    : const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: "Confirm",
