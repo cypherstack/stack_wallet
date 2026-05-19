@@ -1,0 +1,347 @@
+import "dart:async";
+
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+
+import "../../../db/isar/main_db.dart";
+import "../../../models/shopinbit/shopinbit_order_model.dart";
+import "../../../themes/stack_colors.dart";
+import "../../../utilities/text_styles.dart";
+import "../../../utilities/util.dart";
+import "../../../widgets/rounded_white_container.dart";
+import "../shopinbit_car_fee_view.dart";
+import "../shopinbit_tickets_view.dart";
+import "shopinbit_country_picker.dart";
+import "shopinbit_labeled_checkbox.dart";
+import "shopinbit_privacy_checkbox.dart";
+import "shopinbit_step4_dropdown.dart";
+import "shopinbit_step4_header.dart";
+import "shopinbit_step4_submit_button.dart";
+import "shopinbit_step4_text_field.dart";
+
+const List<String> _carConditions = ["NEW", "PREOWNED"];
+
+const int _minCarBudget = 20000;
+const int _minCarFieldLength = 3;
+
+class ShopInBitCarResearchForm extends StatefulWidget {
+  const ShopInBitCarResearchForm({super.key, required this.model});
+
+  final ShopInBitOrderModel model;
+
+  @override
+  State<ShopInBitCarResearchForm> createState() =>
+      _ShopInBitCarResearchFormState();
+}
+
+class _ShopInBitCarResearchFormState extends State<ShopInBitCarResearchForm> {
+  final TextEditingController _brandController = TextEditingController();
+  final FocusNode _brandFocusNode = FocusNode();
+  bool _brandTouched = false;
+
+  final TextEditingController _modelController = TextEditingController();
+  final FocusNode _modelFocusNode = FocusNode();
+  bool _modelTouched = false;
+
+  final TextEditingController _carDescriptionController =
+      TextEditingController();
+  final FocusNode _carDescriptionFocusNode = FocusNode();
+  bool _carDescriptionTouched = false;
+
+  final TextEditingController _carBudgetController = TextEditingController();
+  final FocusNode _carBudgetFocusNode = FocusNode();
+  bool _carBudgetTouched = false;
+
+  String? _selectedCarCondition;
+  bool _feeAcknowledged = false;
+  String? _selectedCountryIso;
+  bool _privacyAccepted = false;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _wireTouchOnBlur(_brandFocusNode, () => _brandTouched = true);
+    _wireTouchOnBlur(_modelFocusNode, () => _modelTouched = true);
+    _wireTouchOnBlur(
+      _carDescriptionFocusNode,
+      () => _carDescriptionTouched = true,
+    );
+    _wireTouchOnBlur(_carBudgetFocusNode, () => _carBudgetTouched = true);
+    if (widget.model.deliveryCountry.isNotEmpty) {
+      _selectedCountryIso = widget.model.deliveryCountry;
+    }
+  }
+
+  void _wireTouchOnBlur(FocusNode node, VoidCallback markTouched) {
+    node.addListener(() {
+      if (!node.hasFocus) markTouched();
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _brandController.dispose();
+    _brandFocusNode.dispose();
+    _modelController.dispose();
+    _modelFocusNode.dispose();
+    _carDescriptionController.dispose();
+    _carDescriptionFocusNode.dispose();
+    _carBudgetController.dispose();
+    _carBudgetFocusNode.dispose();
+    super.dispose();
+  }
+
+  bool get _canContinue {
+    final int? carBudgetValue = int.tryParse(_carBudgetController.text.trim());
+    return !_submitting &&
+        _privacyAccepted &&
+        _feeAcknowledged &&
+        _brandController.text.trim().length >= _minCarFieldLength &&
+        _modelController.text.trim().length >= _minCarFieldLength &&
+        _carDescriptionController.text.trim().length >= _minCarFieldLength &&
+        _selectedCarCondition != null &&
+        carBudgetValue != null &&
+        carBudgetValue >= _minCarBudget &&
+        _selectedCountryIso != null;
+  }
+
+  Future<void> _submit() async {
+    setState(() => _submitting = true);
+    try {
+      final String countryIso = _selectedCountryIso!;
+
+      widget.model
+        ..requestDescription =
+            "Brand: ${_brandController.text.trim()}\n"
+            "Model: ${_modelController.text.trim()}\n"
+            "Condition: $_selectedCarCondition\n"
+            "Description: ${_carDescriptionController.text.trim()}\n"
+            "Budget: ${_carBudgetController.text.trim()} EUR\n"
+            "Delivery country: $countryIso"
+        ..deliveryCountry = countryIso;
+
+      // Block if another car research flow is already in progress.
+      final existingPending = MainDB.instance
+          .getShopInBitTickets()
+          .where((t) => t.isPendingPayment)
+          .toList();
+
+      if (existingPending.isNotEmpty && mounted) {
+        final bool? resumePrevious = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text("In-Progress Car Research"),
+            content: const Text(
+              "You have an unfinished car research payment. "
+              "Would you like to resume it or start a new search?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text("Resume Previous"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text("Start New"),
+              ),
+            ],
+          ),
+        );
+
+        if (resumePrevious == true && mounted) {
+          unawaited(
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              ShopInBitTicketsView.routeName,
+              (route) => route.isFirst,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (!mounted) return;
+
+      if (Util.isDesktop) {
+        Navigator.of(context, rootNavigator: true).pop();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (_) => ShopInBitCarFeeView(model: widget.model),
+          ),
+        );
+      } else {
+        unawaited(
+          Navigator.of(
+            context,
+          ).pushNamed(ShopInBitCarFeeView.routeName, arguments: widget.model),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDesktop = Util.isDesktop;
+
+    final String? brandError =
+        _brandTouched &&
+            _brandController.text.trim().length < _minCarFieldLength
+        ? "Minimum $_minCarFieldLength characters"
+        : null;
+
+    final String? modelError =
+        _modelTouched &&
+            _modelController.text.trim().length < _minCarFieldLength
+        ? "Minimum $_minCarFieldLength characters"
+        : null;
+
+    final String? carDescriptionError =
+        _carDescriptionTouched &&
+            _carDescriptionController.text.trim().length < _minCarFieldLength
+        ? "Minimum $_minCarFieldLength characters"
+        : null;
+
+    final String carBudgetText = _carBudgetController.text.trim();
+    final int? carBudgetValue = int.tryParse(carBudgetText);
+    final String? carBudgetError =
+        _carBudgetTouched &&
+            (carBudgetText.isEmpty ||
+                carBudgetValue == null ||
+                carBudgetValue < _minCarBudget)
+        ? "Minimum budget is 20,000\u20AC"
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const ShopInBitStep4Header(
+          title: "Car Research request",
+          subtitle: "Tell us about the car you're looking for.",
+        ),
+        SizedBox(height: isDesktop ? 32 : 24),
+        ShopInBitCountryPicker(
+          selectedIso: _selectedCountryIso,
+          onChanged: (iso) => setState(() => _selectedCountryIso = iso),
+        ),
+        SizedBox(height: isDesktop ? 24 : 16),
+        ShopInBitStep4TextField(
+          controller: _brandController,
+          focusNode: _brandFocusNode,
+          hintText: "Car brand (e.g., BMW, Mercedes, Toyota...)",
+          errorText: brandError,
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: isDesktop ? 24 : 16),
+        ShopInBitStep4TextField(
+          controller: _modelController,
+          focusNode: _modelFocusNode,
+          hintText: "Car model (e.g., 3 Series, E-Class, Camry...)",
+          errorText: modelError,
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: isDesktop ? 24 : 16),
+        ShopInBitStep4Dropdown(
+          value: _selectedCarCondition,
+          items: _carConditions,
+          hintText: "Condition",
+          onChanged: (value) => setState(() => _selectedCarCondition = value),
+        ),
+        SizedBox(height: isDesktop ? 24 : 16),
+        ShopInBitStep4TextField(
+          controller: _carDescriptionController,
+          focusNode: _carDescriptionFocusNode,
+          hintText:
+              "Describe your requirements "
+              "(year, mileage, features...)",
+          minLines: 3,
+          maxLines: 6,
+          errorText: carDescriptionError,
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: isDesktop ? 24 : 16),
+        ShopInBitStep4TextField(
+          controller: _carBudgetController,
+          focusNode: _carBudgetFocusNode,
+          hintText: "Budget (\u20AC, minimum 20,000)",
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          suffixText: "\u20AC",
+          errorText: carBudgetError,
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: isDesktop ? 24 : 16),
+        _CarResearchFeeInfo(isDesktop: isDesktop),
+        SizedBox(height: isDesktop ? 16 : 12),
+        ShopInBitLabeledCheckbox(
+          value: _feeAcknowledged,
+          onChanged: (v) => setState(() => _feeAcknowledged = v),
+          label: "I acknowledge the \u20AC223 research fee",
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        ShopInBitPrivacyCheckbox(
+          value: _privacyAccepted,
+          onChanged: (v) => setState(() => _privacyAccepted = v),
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        ShopInBitStep4SubmitButton(
+          submitting: _submitting,
+          enabled: _canContinue,
+          onPressed: _submit,
+        ),
+      ],
+    );
+  }
+}
+
+/// Info box showing the €223 (incl. VAT) research fee disclosure.
+class _CarResearchFeeInfo extends StatelessWidget {
+  const _CarResearchFeeInfo({required this.isDesktop});
+
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle baseStyle = isDesktop
+        ? STextStyles.desktopTextSmall(context)
+        : STextStyles.w500_14(context);
+
+    return RoundedWhiteContainer(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 20,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldActiveSearchIconLeft,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: baseStyle,
+                children: [
+                  TextSpan(
+                    text: "Research fee: ",
+                    style: baseStyle.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(
+                    text:
+                        "\u20AC223 (incl. VAT): one-time payment, "
+                        "credited toward your purchase.",
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
