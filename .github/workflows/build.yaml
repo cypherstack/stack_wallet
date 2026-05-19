@@ -169,7 +169,16 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/keystore.jks
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
+          keytool -importkeystore \
+            -srckeystore android/keystore-orig.jks \
+            -destkeystore android/keystore.jks \
+            -deststoretype pkcs12 \
+            -srcstorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -deststorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -noprompt \
+            -J-Dkeystore.pkcs12.legacy
+          rm android/keystore-orig.jks
           cat > android/key.properties <<EOF
           storeFile=../keystore.jks
           storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
