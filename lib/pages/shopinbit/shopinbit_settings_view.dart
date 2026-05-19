@@ -13,11 +13,13 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
@@ -35,7 +37,6 @@ class ShopInBitSettingsView extends ConsumerStatefulWidget {
 
 class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   final _manualKeyController = TextEditingController();
-  final _verifyKeyController = TextEditingController();
   final _displayNameController = TextEditingController();
 
   String? _currentKey;
@@ -66,7 +67,6 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   @override
   void dispose() {
     _manualKeyController.dispose();
-    _verifyKeyController.dispose();
     _displayNameController.dispose();
     super.dispose();
   }
@@ -173,7 +173,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   }
 
   Future<bool?> _showChangeWarning() async {
-    final result = await showDialog<bool>(
+    final confirmSaved = await showDialog<bool>(
       context: context,
       builder: (context) {
         // TODO: this conditional can probably be merged when we have time
@@ -237,7 +237,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                               onPressed: () => Navigator.of(
                                 context,
                                 rootNavigator: true,
-                              ).pop(false),
+                              ).pop(),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -248,7 +248,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                               onPressed: () => Navigator.of(
                                 context,
                                 rootNavigator: true,
-                              ).pop(null),
+                              ).pop(true),
                             ),
                           ),
                         ],
@@ -303,7 +303,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                         style: Theme.of(context)
                             .extension<StackColors>()!
                             .getSecondaryEnabledButtonStyle(context),
-                        onPressed: () => Navigator.of(context).pop(false),
+                        onPressed: () => Navigator.of(context).pop(),
                         child: Text(
                           "Cancel",
                           style: STextStyles.button(context).copyWith(
@@ -320,7 +320,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                         style: Theme.of(context)
                             .extension<StackColors>()!
                             .getPrimaryEnabledButtonStyle(context),
-                        onPressed: () => Navigator.of(context).pop(null),
+                        onPressed: () => Navigator.of(context).pop(true),
                         child: Text(
                           "I saved my key",
                           style: STextStyles.button(context),
@@ -336,163 +336,12 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
       },
     );
 
-    if (result == false || !mounted) return false;
+    if (confirmSaved != true || !mounted) return false;
 
-    return _showVerifyDialog();
-  }
-
-  Future<bool?> _showVerifyDialog() async {
-    _verifyKeyController.clear();
     return showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            final matches = _verifyKeyController.text.trim() == _currentKey;
-
-            // TODO: this conditional can probably be merged when we have time
-            if (Util.isDesktop) {
-              return DesktopDialog(
-                maxWidth: 550,
-                maxHeight: double.infinity,
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Text(
-                            "Verify your key",
-                            style: STextStyles.desktopH3(ctx),
-                          ),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 32,
-                        right: 32,
-                        bottom: 32,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Enter your current customer key to "
-                            "confirm you have saved it.",
-                            style: STextStyles.desktopTextExtraExtraSmall(ctx),
-                          ),
-                          const SizedBox(height: 16),
-                          AdaptiveTextField(
-                            labelText: "Enter current key",
-                            controller: _verifyKeyController,
-                            onChangedComprehensive: (_) =>
-                                setDialogState(() {}),
-                          ),
-                          const SizedBox(height: 32),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: SecondaryButton(
-                                  label: "Cancel",
-                                  buttonHeight: ButtonHeight.l,
-                                  onPressed: () => Navigator.of(
-                                    ctx,
-                                    rootNavigator: true,
-                                  ).pop(false),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: PrimaryButton(
-                                  label: "Confirm",
-                                  buttonHeight: ButtonHeight.l,
-                                  enabled: matches,
-                                  onPressed: () => Navigator.of(
-                                    ctx,
-                                    rootNavigator: true,
-                                  ).pop(true),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              return StackDialogBase(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Verify your key",
-                      style: STextStyles.pageTitleH2(ctx),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Enter your current customer key to "
-                      "confirm you have saved it.",
-                      style: STextStyles.smallMed14(ctx),
-                    ),
-                    const SizedBox(height: 16),
-                    AdaptiveTextField(
-                      labelText: "Enter current key",
-                      controller: _verifyKeyController,
-                      onChangedComprehensive: (_) => setDialogState(() {}),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            style: Theme.of(ctx)
-                                .extension<StackColors>()!
-                                .getSecondaryEnabledButtonStyle(ctx),
-                            onPressed: () => Navigator.of(ctx).pop(false),
-                            child: Text(
-                              "Cancel",
-                              style: STextStyles.button(ctx).copyWith(
-                                color: Theme.of(
-                                  ctx,
-                                ).extension<StackColors>()!.accentColorDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextButton(
-                            style: matches
-                                ? Theme.of(ctx)
-                                      .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonStyle(ctx)
-                                : Theme.of(ctx)
-                                      .extension<StackColors>()!
-                                      .getPrimaryDisabledButtonStyle(ctx),
-                            onPressed: matches
-                                ? () => Navigator.of(ctx).pop(true)
-                                : null,
-                            child: Text(
-                              "Confirm",
-                              style: STextStyles.button(ctx),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }
-          },
-        );
-      },
+      builder: (_) => _VerifyKeyDialog(currentKey: _currentKey!),
     );
   }
 
@@ -881,5 +730,132 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
         ),
       );
     }
+  }
+}
+
+class _VerifyKeyDialog extends StatefulWidget {
+  const _VerifyKeyDialog({super.key, required this.currentKey});
+
+  final String currentKey;
+
+  @override
+  State<_VerifyKeyDialog> createState() => _VerifyKeyDialogState();
+}
+
+class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
+  final _verifyKeyController = TextEditingController();
+
+  bool _confirmEnabled = false;
+
+  @override
+  void dispose() {
+    _verifyKeyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConditionalParent(
+      condition: Util.isDesktop,
+      builder: (child) => SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: .start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      "Verify your key",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: child,
+              ),
+            ],
+          ),
+        ),
+      ),
+      child: ConditionalParent(
+        condition: !Util.isDesktop,
+        builder: (child) => StackDialogBase(
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Text("Verify your key", style: STextStyles.pageTitleH2(context)),
+              const SizedBox(height: 24),
+              child,
+            ],
+          ),
+        ),
+        child: Column(
+          mainAxisSize: .min,
+          crossAxisAlignment: .start,
+          children: [
+            Text(
+              "Enter your current customer key to "
+              "confirm you have saved it.",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.smallMed14(context),
+            ),
+            Util.isDesktop
+                ? const SizedBox(height: 32)
+                : const SizedBox(height: 16),
+            AdaptiveTextField(
+              labelText: "Enter current key",
+              controller: _verifyKeyController,
+              onChangedComprehensive: (_) {
+                if (_verifyKeyController.text == widget.currentKey) {
+                  if (!_confirmEnabled) setState(() => _confirmEnabled = true);
+                } else {
+                  if (_confirmEnabled) setState(() => _confirmEnabled = false);
+                }
+              },
+            ),
+            Util.isDesktop
+                ? const SizedBox(height: 32)
+                : const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Cancel",
+                    buttonHeight: ButtonHeight.l,
+                    onPressed: () => Navigator.of(
+                      context,
+                      rootNavigator: Util.isDesktop,
+                    ).pop(false),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Confirm",
+                    buttonHeight: ButtonHeight.l,
+                    enabled: _confirmEnabled,
+                    onPressed: _confirmEnabled
+                        ? () => Navigator.of(
+                            context,
+                            rootNavigator: Util.isDesktop,
+                          ).pop(true)
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
