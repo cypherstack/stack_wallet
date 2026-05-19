@@ -20,7 +20,7 @@ cp -r ../../rust build/rust
 cd build/rust
 
 # some people need this apparently
-export PROTOC=/opt/homebrew/bin/protoc
+# export PROTOC=/opt/homebrew/bin/protoc
 unset MAKEFLAGS MFLAGS CARGO_MAKEFLAGS MAKELEVEL MAKE_TERMOUT MAKE_TERMERR
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 
