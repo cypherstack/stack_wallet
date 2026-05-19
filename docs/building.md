@@ -349,7 +349,7 @@ or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWi
 Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script using PowerShell on the Windows host as in
 ```
 cd scripts
-powershell -ExecutionPolicy Bypass -File .\prebuild.ps1
+powershell -ExecutionPolicy Bypass -File prebuild.ps1
 cd .. // When finished go back to the root directory.
 ```
 
