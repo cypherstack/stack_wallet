@@ -7,6 +7,8 @@ import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_step_3.dart';
 import '../../../pages/shopinbit/shopinbit_step_4.dart';
+import '../../../pages/shopinbit/shopinbit_ticket_detail.dart';
+import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../pages_desktop_specific/services/shopin_bit/sub_widgets/desktop_shopin_bit_first_run.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -75,6 +77,25 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         if (args is ShopInBitOrderModel) {
           return getRoute(
             builder: (_) => ShopInBitStep4(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ShopInBitOrderModel",
+        );
+
+      case ShopInBitTicketsView.routeName:
+        return getRoute(
+          builder: (_) => const ShopInBitTicketsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitTicketDetail.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            builder: (_) => ShopInBitTicketDetail(model: args),
             settings: RouteSettings(name: settings.name),
           );
         }

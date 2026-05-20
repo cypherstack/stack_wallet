@@ -265,7 +265,9 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                             onPressed: () async {
                               await showDialog<void>(
                                 context: context,
-                                builder: (_) => const ShopInBitTicketsView(),
+                                builder: (_) => const NestedNavigatorDialog(
+                                  initialRoute: ShopInBitTicketsView.routeName,
+                                ),
                               );
                               if (mounted) setState(() {});
                             },

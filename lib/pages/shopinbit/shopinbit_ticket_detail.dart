@@ -12,11 +12,13 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_offer_view.dart';
 
@@ -459,24 +461,34 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         : const SizedBox.shrink();
 
     final chatArea = Expanded(
-      child: Stack(
-        children: [
-          ListView.builder(
-            reverse: true,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: model.messages.length,
-            itemBuilder: (context, index) {
-              final message = model.messages[model.messages.length - 1 - index];
-              return _chatBubble(message, isDesktop);
-            },
-          ),
-          if (_loading) const LoadingIndicator(width: 24, height: 24),
-        ],
+      child: ConditionalParent(
+        condition: Util.isDesktop,
+        builder: (child) => RoundedContainer(
+          padding: .zero,
+          color: Theme.of(context).extension<StackColors>()!.textFieldActiveBG,
+          child: child,
+        ),
+        child: Stack(
+          children: [
+            ListView.builder(
+              reverse: true,
+              padding: const EdgeInsets.all(8),
+              itemCount: model.messages.length,
+              itemBuilder: (context, index) {
+                final message =
+                    model.messages[model.messages.length - 1 - index];
+                return _chatBubble(message, isDesktop);
+              },
+            ),
+            // TODO: fix loading from locking everything up
+            if (_loading) const LoadingIndicator(width: 24, height: 24),
+          ],
+        ),
       ),
     );
 
     final inputBar = Container(
-      padding: EdgeInsets.all(isDesktop ? 16 : 8),
+      padding: Util.isDesktop ? null : const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: BorderRadius.circular(12),
@@ -509,15 +521,17 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
               onSubmitted: (_) => _sendMessage(),
             ),
           ),
-          IconButton(
-            onPressed: _sendMessage,
-            icon: Icon(
-              Icons.send,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorBlue,
+          if (!Util.isDesktop) const SizedBox(width: 8),
+          if (!Util.isDesktop)
+            IconButton(
+              onPressed: _sendMessage,
+              icon: Icon(
+                Icons.send,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.accentColorBlue,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -576,51 +590,63 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       ],
     );
 
-    if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 600,
-        maxHeight: 650,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text("Request", style: STextStyles.desktopH3(context)),
+    return ConditionalParent(
+      condition: isDesktop,
+      builder: (child) => SDialog(
+        contentCanScroll: false,
+        child: SizedBox(
+          width: 600,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "Request",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                  ),
+                  child: child,
                 ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 8,
-                ),
-                child: body,
+              ),
+            ],
+          ),
+        ),
+      ),
+      child: ConditionalParent(
+        condition: !isDesktop,
+        builder: (child) => Background(
+          child: Scaffold(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: Text(
+                model.ticketId ?? "Request",
+                style: STextStyles.navBarTitle(context),
               ),
             ),
-          ],
-        ),
-      );
-    }
-
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: Text(
-            model.ticketId ?? "Request",
-            style: STextStyles.navBarTitle(context),
+            body: SafeArea(
+              child: Padding(padding: const EdgeInsets.all(16), child: child),
+            ),
           ),
         ),
-        body: SafeArea(
-          child: Padding(padding: const EdgeInsets.all(16), child: body),
-        ),
+        child: body,
       ),
     );
   }

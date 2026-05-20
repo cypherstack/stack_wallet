@@ -3,6 +3,7 @@ import "dart:convert";
 
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_svg/flutter_svg.dart";
 
 import "../../db/drift/shared_db/shared_database.dart";
 import "../../models/shopinbit/shopinbit_order_model.dart";
@@ -10,14 +11,16 @@ import "../../providers/db/drift_provider.dart";
 import "../../providers/global/shopin_bit_service_provider.dart";
 import "../../services/shopinbit/src/models/car_research.dart";
 import "../../themes/stack_colors.dart";
+import "../../utilities/assets.dart";
+import "../../utilities/show_loading.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
 import "../../widgets/background.dart";
+import "../../widgets/conditional_parent.dart";
 import "../../widgets/custom_buttons/app_bar_icon_button.dart";
-import "../../widgets/desktop/desktop_dialog.dart";
 import "../../widgets/desktop/desktop_dialog_close_button.dart";
-import "../../widgets/loading_indicator.dart";
-import "../../widgets/rounded_white_container.dart";
+import "../../widgets/dialogs/s_dialog.dart";
+import "../../widgets/rounded_container.dart";
 import "shopinbit_car_fee_view.dart";
 import "shopinbit_car_research_payment_view.dart";
 import "shopinbit_ticket_detail.dart";
@@ -34,7 +37,6 @@ class ShopInBitTicketsView extends ConsumerStatefulWidget {
 
 class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   List<ShopInBitOrderModel> _tickets = [];
-  bool _syncing = false;
   ShopInBitTicket? _pendingTicket;
   StreamSubscription<List<ShopInBitTicket>>? _ticketsSub;
 
@@ -52,7 +54,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
             .toList();
       });
     });
-    _syncFromApi();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncFromApi());
   }
 
   @override
@@ -109,7 +111,15 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   }
 
   Future<void> _syncFromApi() async {
-    setState(() => _syncing = true);
+    await showLoading(
+      context: context,
+      message: "Loading requests...",
+      whileFutureAlt: _syncFromApiHelper,
+      rootNavigator: Util.isDesktop,
+    );
+  }
+
+  Future<void> _syncFromApiHelper() async {
     try {
       final service = ref.read(pShopinBitService);
       final customerKey = await service.ensureCustomerKey();
@@ -166,291 +176,240 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
       }
     } catch (_) {
       // Fall back to local data — stream listener still has whatever was last persisted.
-    } finally {
-      if (mounted) {
-        setState(() => _syncing = false);
-      }
     }
   }
 
-  String _categoryLabel(ShopInBitCategory? category) => switch (category) {
-    ShopInBitCategory.concierge => "Concierge",
-    ShopInBitCategory.travel => "Travel",
-    ShopInBitCategory.car => "Car",
-    null => "",
-  };
+  static String _categoryLabel(ShopInBitCategory? category) =>
+      switch (category) {
+        ShopInBitCategory.concierge => "Concierge",
+        ShopInBitCategory.travel => "Travel",
+        ShopInBitCategory.car => "Car",
+        null => "",
+      };
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
+    final pending = _pendingTicket;
+    final hasTickets = _tickets.isNotEmpty;
 
-    final resumeCard = _pendingTicket != null
-        ? GestureDetector(
-            onTap: () => _resumeFlow(_pendingTicket!),
-            child: RoundedWhiteContainer(
-              child: Row(
+    return ConditionalParent(
+      condition: isDesktop,
+      builder: (child) => SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Car Research (In Progress)",
-                              style: isDesktop
-                                  ? STextStyles.desktopTextSmall(context)
-                                  : STextStyles.titleBold12(context),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorYellow
-                                    .withOpacity(0.2),
-                              ),
-                              child: Text(
-                                "Resume",
-                                style:
-                                    (isDesktop
-                                            ? STextStyles.desktopTextExtraExtraSmall(
-                                                context,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context,
-                                              ))
-                                        .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorYellow,
-                                        ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Tap to continue your car research payment",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                              : STextStyles.itemSubtitle12(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle1,
-                                ),
-                        ),
-                      ],
+                  Padding(
+                    padding: const .only(left: 32),
+                    child: Text(
+                      "My requests",
+                      style: STextStyles.desktopH3(context),
                     ),
                   ),
-                  SizedBox(width: isDesktop ? 16 : 8),
-                  Icon(
-                    Icons.chevron_right,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle1,
-                  ),
+                  const DesktopDialogCloseButton(),
                 ],
               ),
-            ),
-          )
-        : const SizedBox.shrink();
-
-    final ticketList = _tickets.isEmpty
-        ? null
-        : ListView.separated(
-            shrinkWrap: true,
-            itemCount: _tickets.length,
-            separatorBuilder: (_, __) => SizedBox(height: isDesktop ? 16 : 12),
-            itemBuilder: (context, index) {
-              final ticket = _tickets[index];
-              return GestureDetector(
-                onTap: () {
-                  if (isDesktop) {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    showDialog<void>(
-                      context: context,
-                      builder: (_) => ShopInBitTicketDetail(model: ticket),
-                    );
-                  } else {
-                    Navigator.of(context).pushNamed(
-                      ShopInBitTicketDetail.routeName,
-                      arguments: ticket,
-                    );
-                  }
-                },
-                child: RoundedWhiteContainer(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  ticket.ticketId ?? "N/A",
-                                  style: isDesktop
-                                      ? STextStyles.desktopTextSmall(context)
-                                      : STextStyles.titleBold12(context),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: ticket.status
-                                        .getColor(
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!,
-                                        )
-                                        .withOpacity(0.2),
-                                  ),
-                                  child: Text(
-                                    ticket.status.label,
-                                    style:
-                                        (isDesktop
-                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                    context,
-                                                  )
-                                                : STextStyles.itemSubtitle12(
-                                                    context,
-                                                  ))
-                                            .copyWith(
-                                              color: ticket.status.getColor(
-                                                Theme.of(
-                                                  context,
-                                                ).extension<StackColors>()!,
-                                              ),
-                                            ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "${_categoryLabel(ticket.category)} \u2022 "
-                              "${ticket.requestDescription}",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: isDesktop
-                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    )
-                                  : STextStyles.itemSubtitle12(
-                                      context,
-                                    ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle1,
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: isDesktop ? 16 : 8),
-                      Icon(
-                        Icons.chevron_right,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
-                      ),
-                    ],
+              Flexible(
+                child: Padding(
+                  padding: const .only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                    top: 16,
                   ),
+                  child: child,
                 ),
-              );
-            },
-          );
-
-    final Widget list;
-    if (_pendingTicket == null && _tickets.isEmpty) {
-      list = Center(
-        child: Text(
-          _syncing ? "Loading requests..." : "No requests yet",
-          style: isDesktop
-              ? STextStyles.desktopTextSmall(context)
-              : STextStyles.itemSubtitle(context),
-        ),
-      );
-    } else if (ticketList == null) {
-      list = resumeCard;
-    } else {
-      list = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_pendingTicket != null) ...[
-            resumeCard,
-            SizedBox(height: isDesktop ? 16 : 12),
-          ],
-          ticketList,
-        ],
-      );
-    }
-
-    final content = Stack(
-      children: [
-        list,
-        if (_syncing) const LoadingIndicator(width: 24, height: 24),
-      ],
-    );
-
-    if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 550,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "My requests",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                child: content,
               ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+            ],
           ),
-          title: Text("My requests", style: STextStyles.navBarTitle(context)),
-        ),
-        body: SafeArea(
-          child: Padding(padding: const EdgeInsets.all(16), child: content),
         ),
       ),
+      child: ConditionalParent(
+        condition: !isDesktop,
+        builder: (child) => Background(
+          child: Scaffold(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: Text(
+                "My requests",
+                style: STextStyles.navBarTitle(context),
+              ),
+            ),
+            body: SafeArea(
+              child: Padding(padding: const .all(16), child: child),
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: .min,
+          children: [
+            if (pending == null && !hasTickets)
+              Center(
+                child: Text(
+                  "No requests yet",
+                  style: Util.isDesktop
+                      ? STextStyles.desktopTextSmall(context)
+                      : STextStyles.itemSubtitle(context),
+                ),
+              )
+            else ...[
+              if (pending != null) ...[
+                RoundedContainer(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
+                  onPressed: () => _resumeFlow(pending),
+                  child: _RequestRow(
+                    title: "Car Research (In Progress)",
+                    subtitle: "Tap to continue your car research payment",
+                    badgeText: "Resume",
+                    badgeColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.accentColorYellow,
+                  ),
+                ),
+                if (hasTickets) SizedBox(height: isDesktop ? 16 : 12),
+              ],
+              if (hasTickets)
+                ListView.separated(
+                  shrinkWrap: true,
+                  primary: isDesktop ? false : null,
+                  itemCount: _tickets.length,
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: isDesktop ? 16 : 12),
+                  itemBuilder: (context, index) {
+                    final ticket = _tickets[index];
+
+                    return RoundedContainer(
+                      padding: .all(Util.isDesktop ? 16 : 12),
+                      borderColor: Util.isDesktop
+                          ? Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG
+                          : null,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.popupBG,
+                      onPressed: () => Navigator.of(context).pushNamed(
+                        ShopInBitTicketDetail.routeName,
+                        arguments: ticket,
+                      ),
+                      child: _RequestRow(
+                        title: ticket.ticketId ?? "N/A",
+                        subtitle:
+                            "${_categoryLabel(ticket.category)} \u2022 ${ticket.requestDescription}",
+                        badgeText: ticket.status.label,
+                        badgeColor: ticket.status.getColor(
+                          Theme.of(context).extension<StackColors>()!,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+              // // TODO: fix loading from locking everything up
+              // if (_syncing) const LoadingIndicator(width: 24, height: 24),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestRow extends StatelessWidget {
+  const _RequestRow({
+    required this.title,
+    required this.subtitle,
+    required this.badgeText,
+    required this.badgeColor,
+  });
+
+  final String title;
+  final String subtitle;
+  final String badgeText;
+  final Color badgeColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+    final stackColors = Theme.of(context).extension<StackColors>()!;
+
+    final titleStyle = isDesktop
+        ? STextStyles.desktopTextSmall(context)
+        : STextStyles.titleBold12(context);
+
+    final subtitleStyle = isDesktop
+        ? STextStyles.desktopTextExtraExtraSmall(context)
+        : STextStyles.itemSubtitle12(
+            context,
+          ).copyWith(color: stackColors.textSubtitle1);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(title, style: titleStyle),
+                  _StatusBadge(text: badgeText, color: badgeColor),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: subtitleStyle,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: isDesktop ? 16 : 8),
+        SvgPicture.asset(
+          Assets.svg.chevronRight,
+          width: 14,
+          colorFilter: ColorFilter.mode(stackColors.textSubtitle1, .srcIn),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.text, required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+    final style =
+        (isDesktop
+                ? STextStyles.desktopTextExtraExtraSmall(context)
+                : STextStyles.itemSubtitle12(context))
+            .copyWith(color: color);
+
+    return Container(
+      padding: const .symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.2),
+      ),
+      child: Text(text, style: style),
     );
   }
 }
