@@ -54,12 +54,14 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
           .read(pSharedDrift)
           .shopinBitSettingsDao
           .getSettings();
-      final key = await ref.read(pShopinBitService).loadCustomerKey();
       if (mounted) {
-        setState(() {
-          _currentKey = key;
-          _displayNameController.text = settings.displayName ?? "";
-        });
+        final key = await ref.read(pShopinBitService).loadCustomerKey();
+        if (mounted) {
+          setState(() {
+            _currentKey = key;
+            _displayNameController.text = settings.displayName ?? "";
+          });
+        }
       }
     }();
   }
