@@ -237,6 +237,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   }
 
   String _formatTime(DateTime dt) {
+    // TODO: local time is a start but this is still far from ideal...
+    if (dt.isUtc) {
+      dt = dt.toLocal();
+    }
+
     final hour = dt.hour.toString().padLeft(2, '0');
     final minute = dt.minute.toString().padLeft(2, '0');
     return "$hour:$minute";
