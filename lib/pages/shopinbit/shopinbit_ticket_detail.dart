@@ -386,45 +386,56 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     final isDesktop = Util.isDesktop;
     final model = widget.model;
 
-    final statusBar = RoundedWhiteContainer(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            model.ticketId ?? "Request",
-            style: isDesktop
-                ? STextStyles.desktopTextSmall(context)
-                : STextStyles.titleBold12(context),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: model.status
-                  .getColor(Theme.of(context).extension<StackColors>()!)
-                  .withOpacity(0.2),
+    final statusBar = Padding(
+      padding: .only(bottom: isDesktop ? 12 : 8),
+      child: RoundedWhiteContainer(
+        borderColor: isDesktop
+            ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+            : null,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SelectableText(
+              model.ticketId ?? "Request",
+              style: isDesktop
+                  ? STextStyles.desktopTextSmall(context)
+                  : STextStyles.titleBold12(context),
             ),
-            child: Text(
-              model.status.label,
-              style:
-                  (isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                          : STextStyles.itemSubtitle12(context))
-                      .copyWith(
-                        color: model.status.getColor(
-                          Theme.of(context).extension<StackColors>()!,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: model.status
+                    .getColor(Theme.of(context).extension<StackColors>()!)
+                    .withOpacity(0.2),
+              ),
+              child: Text(
+                model.status.label,
+                style:
+                    (isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                            : STextStyles.itemSubtitle12(context))
+                        .copyWith(
+                          color: model.status.getColor(
+                            Theme.of(context).extension<StackColors>()!,
+                          ),
                         ),
-                      ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
     final offerBanner = model.status == ShopInBitOrderStatus.offerAvailable
         ? Padding(
-            padding: EdgeInsets.only(bottom: isDesktop ? 16 : 12),
+            padding: .only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
+              borderColor: isDesktop
+                  ? Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG
+                  : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -494,12 +505,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       ),
     );
 
-    final inputBar = Container(
-      padding: Util.isDesktop ? null : const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    final inputBar = RoundedContainer(
+      padding: Util.isDesktop ? .zero : const .all(8),
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: Row(
         children: [
           Expanded(
@@ -548,6 +556,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         ? Padding(
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
+              borderColor: isDesktop
+                  ? Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG
+                  : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -558,7 +571,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                         : STextStyles.titleBold12(context),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  SelectableText(
                     model.requestDescription,
                     style: isDesktop
                         ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -586,6 +599,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         : const SizedBox.shrink();
 
     final body = Column(
+      mainAxisSize: .min,
+      crossAxisAlignment: .stretch,
       children: [
         statusBar,
         retryButton,
