@@ -105,7 +105,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
 
   fusiondart:
     git:
@@ -323,7 +323,7 @@ dependency_overrides:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 3ef6b94375d7b4d972b0bc0bd9597532381a88ec
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
 
   # bip47 pins a different bitcoindart commit; override to ours
   bitcoindart:

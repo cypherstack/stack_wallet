@@ -11,7 +11,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
 import '../../../models/exchange/aggregate_currency.dart';
@@ -24,7 +23,6 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_unit.dart';
-import '../../../utilities/assets.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -37,6 +35,7 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/basic_dialog.dart';
 import '../../../widgets/exchange/trocador/trocador_kyc_info_button.dart';
 import '../../../widgets/exchange/trocador/trocador_rating_type_enum.dart';
+import '../../../widgets/icon_widgets/exchange_icon.dart';
 
 class ExchangeOption extends ConsumerStatefulWidget {
   const ExchangeOption({
@@ -395,25 +394,13 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                                     }
                                   },
                               errorBuilder: (context, error, stackTrace) {
-                                return SvgPicture.asset(
-                                  Assets.exchange.getIconFor(
-                                    exchangeName: widget.exchange.name,
-                                  ),
-                                  width: isDesktop ? 32 : 24,
-                                  height: isDesktop ? 32 : 24,
-                                );
+                                return ExchangeIcon(exchange: widget.exchange);
                               },
                               width: isDesktop ? 32 : 24,
                               height: isDesktop ? 32 : 24,
                             ),
                           )
-                        : SvgPicture.asset(
-                            Assets.exchange.getIconFor(
-                              exchangeName: widget.exchange.name,
-                            ),
-                            width: isDesktop ? 32 : 24,
-                            height: isDesktop ? 32 : 24,
-                          ),
+                        : ExchangeIcon(exchange: widget.exchange),
                   ),
                 ),
                 const SizedBox(width: 10),
