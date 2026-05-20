@@ -17,6 +17,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
@@ -360,7 +361,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                   : null,
               onIncrement: () => setState(() => _quantity++),
             ),
-            SizedBox(height: isDesktop ? 16 : 12),
+            SizedBox(height: isDesktop ? 24 : 16),
             _TermsCheckbox(
               isDesktop: isDesktop,
               accepted: _termsAccepted,
@@ -370,7 +371,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
               },
               onOpenTerms: _openTerms,
             ),
-            SizedBox(height: isDesktop ? 16 : 12),
+            SizedBox(height: isDesktop ? 24 : 16),
             Text(
               "Email for receipt and delivery",
               style: isDesktop
@@ -407,18 +408,33 @@ class _CardImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return ConditionalParent(
+      condition: isDesktop,
+      builder: (child) => Padding(
+        padding: const .symmetric(vertical: 8),
+        child: Center(child: child),
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.network(
           imageUrl,
-          width: isDesktop ? 200 : 150,
-          fit: BoxFit.contain,
-          errorBuilder: (BuildContext _, Object __, StackTrace? ___) =>
-              CreditCardIcon(
+          width: isDesktop ? 300 : null,
+          fit: isDesktop ? .contain : .fitWidth,
+          loadingBuilder: (_, child, event) {
+            if (event != null) {
+              return LoadingIndicator(
                 width: isDesktop ? 80 : 60,
                 height: isDesktop ? 80 : 60,
-              ),
+              );
+            }
+            return child;
+          },
+          errorBuilder: (BuildContext _, Object __, StackTrace? ___) => Center(
+            child: CreditCardIcon(
+              width: isDesktop ? 80 : 60,
+              height: isDesktop ? 80 : 60,
+            ),
+          ),
         ),
       ),
     );
@@ -434,6 +450,10 @@ class _PlainInfoBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RoundedWhiteContainer(
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+          : null,
+      padding: isDesktop ? const .all(16) : const .all(12),
       child: Text(
         text,
         style: isDesktop
@@ -458,6 +478,10 @@ class _TitledInfoBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RoundedWhiteContainer(
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+          : null,
+      padding: isDesktop ? const .all(16) : const .all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
