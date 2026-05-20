@@ -2,9 +2,10 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
-import "../../../db/isar/main_db.dart";
 import "../../../models/shopinbit/shopinbit_order_model.dart";
+import "../../../providers/db/drift_provider.dart";
 import "../../../themes/stack_colors.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
@@ -24,17 +25,18 @@ const List<String> _carConditions = ["NEW", "PREOWNED"];
 const int _minCarBudget = 20000;
 const int _minCarFieldLength = 3;
 
-class ShopInBitCarResearchForm extends StatefulWidget {
+class ShopInBitCarResearchForm extends ConsumerStatefulWidget {
   const ShopInBitCarResearchForm({super.key, required this.model});
 
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitCarResearchForm> createState() =>
+  ConsumerState<ShopInBitCarResearchForm> createState() =>
       _ShopInBitCarResearchFormState();
 }
 
-class _ShopInBitCarResearchFormState extends State<ShopInBitCarResearchForm> {
+class _ShopInBitCarResearchFormState
+    extends ConsumerState<ShopInBitCarResearchForm> {
   final TextEditingController _brandController = TextEditingController();
   final FocusNode _brandFocusNode = FocusNode();
   bool _brandTouched = false;
@@ -123,10 +125,10 @@ class _ShopInBitCarResearchFormState extends State<ShopInBitCarResearchForm> {
         ..deliveryCountry = countryIso;
 
       // Block if another car research flow is already in progress.
-      final existingPending = MainDB.instance
-          .getShopInBitTickets()
-          .where((t) => t.isPendingPayment)
-          .toList();
+      final db = ref.read(pSharedDrift);
+      final existingPending = await (db.select(
+        db.shopInBitTickets,
+      )..where((t) => t.isPendingPayment.equals(true))).get();
 
       if (existingPending.isNotEmpty && mounted) {
         final bool? resumePrevious = await showDialog<bool>(

@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../db/isar/main_db.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -309,38 +308,6 @@ class HiddenSettings extends StatelessWidget {
                                 return Container();
                               }
                             },
-                          ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () async {
-                              final tickets = MainDB.instance
-                                  .getShopInBitTickets();
-                              for (final t in tickets) {
-                                await MainDB.instance.deleteShopInBitTicket(
-                                  t.ticketId,
-                                );
-                              }
-                              if (context.mounted) {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message:
-                                        "Deleted ${tickets.length} ShopinBit request(s)",
-                                    context: context,
-                                  ),
-                                );
-                              }
-                            },
-                            child: RoundedWhiteContainer(
-                              child: Text(
-                                "Delete all ShopinBit requests",
-                                style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
-                                ),
-                              ),
-                            ),
                           ),
                           const SizedBox(height: 12),
                           Consumer(

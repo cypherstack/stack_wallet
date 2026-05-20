@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
-import '../../db/isar/main_db.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -484,10 +483,15 @@ class _ShopInBitCarResearchPaymentViewState
         widget.model.status = ShopInBitOrderStatus.pending;
         widget.model.isPendingPayment = false;
         widget.model.needsCreateRequest = false;
-        await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+        final db = ref.read(pSharedDrift);
+        await db
+            .into(db.shopInBitTickets)
+            .insertOnConflictUpdate(widget.model.toCompanion());
         // Remove the sentinel record.
         if (prevTicketId != null && prevTicketId != widget.model.ticketId) {
-          await MainDB.instance.deleteShopInBitTicket(prevTicketId);
+          await (db.delete(
+            db.shopInBitTickets,
+          )..where((t) => t.ticketId.equals(prevTicketId))).go();
         }
         if (!mounted) return;
         setState(() => _flowState = _PaymentFlowState.complete);
@@ -550,7 +554,10 @@ class _ShopInBitCarResearchPaymentViewState
       // spurious list entry).
       widget.model.feeTicketNumber = feeResult.ticketNumber;
       widget.model.needsCreateRequest = true;
-      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(widget.model.toCompanion());
 
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.creatingRequest);
@@ -611,9 +618,13 @@ class _ShopInBitCarResearchPaymentViewState
       widget.model.status = ShopInBitOrderStatus.pending;
       widget.model.isPendingPayment = false;
       widget.model.needsCreateRequest = false;
-      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(widget.model.toCompanion());
       if (prevTicketId != null && prevTicketId != widget.model.ticketId) {
-        await MainDB.instance.deleteShopInBitTicket(prevTicketId);
+        await (db.delete(
+          db.shopInBitTickets,
+        )..where((t) => t.ticketId.equals(prevTicketId))).go();
       }
 
       if (!mounted) return;
@@ -691,16 +702,18 @@ class _ShopInBitCarResearchPaymentViewState
       widget.model.status = ShopInBitOrderStatus.pending;
       // Flow complete: clear the resume flag before saving.
       widget.model.isPendingPayment = false;
-      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(widget.model.toCompanion());
 
       // Update fee receipt ticket
-      final feeTickets = MainDB.instance.getShopInBitTickets().where(
-        (t) => t.ticketId == feeTicketNumber,
-      );
+      final feeTickets = await (db.select(
+        db.shopInBitTickets,
+      )..where((t) => t.ticketId.equals(feeTicketNumber))).get();
       if (feeTickets.isNotEmpty) {
-        final feeTicket = feeTickets.first;
-        feeTicket.needsCreateRequest = false;
-        await MainDB.instance.putShopInBitTicket(feeTicket);
+        final feeTicket = feeTickets.first.copyWith(needsCreateRequest: false);
+        await db.into(db.shopInBitTickets).insertOnConflictUpdate(feeTicket);
       }
 
       if (!mounted) return;

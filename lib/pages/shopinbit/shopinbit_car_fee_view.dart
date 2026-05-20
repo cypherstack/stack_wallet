@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
@@ -276,7 +276,10 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       widget.model.isPendingPayment = true;
       widget.model.carResearchExpiresAt = invoice.expiresAt;
       widget.model.carResearchPaymentLinks = jsonEncode(invoice.paymentLinks);
-      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(widget.model.toCompanion());
 
       // Best-effort fee fetch; do not block navigation on fee parse failure.
       await _loadFee(invoice);

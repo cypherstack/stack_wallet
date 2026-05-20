@@ -2,7 +2,12 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path/path.dart' as path;
 
-import '../../utilities/stack_file_system.dart';
+import '../../../models/shopinbit/shopinbit_order_model.dart'
+    show ShopInBitCategory, ShopInBitOrderStatus;
+import '../../../utilities/stack_file_system.dart';
+import 'tables/cakepay_orders.dart';
+import 'tables/shopin_bit_settings.dart';
+import 'tables/shopin_bit_tickets.dart';
 
 part 'shared_database.g.dart';
 
@@ -21,25 +26,39 @@ abstract final class SharedDrift {
   }
 }
 
-class CakepayOrders extends Table {
-  TextColumn get orderId => text()();
+@DriftDatabase(
+  tables: [CakepayOrders, ShopinBitSettings, ShopInBitTickets],
+  daos: [ShopinBitSettingsDao],
+)
+final class SharedDatabase extends _$SharedDatabase {
+  SharedDatabase._([QueryExecutor? executor])
+    : super(executor ?? _openConnection());
 
   @override
-  Set<Column> get primaryKey => {orderId};
-}
-
-class ShopinBitSettings extends Table {
-  // Single row table - always row 0
-  IntColumn get id => integer().withDefault(const Constant(0))();
-
-  BoolColumn get guidelinesAccepted =>
-      boolean().withDefault(const Constant(false))();
-  BoolColumn get setupComplete =>
-      boolean().withDefault(const Constant(false))();
-  TextColumn get displayName => text().nullable()();
+  int get schemaVersion => 2;
 
   @override
-  Set<Column> get primaryKey => {id};
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from == 1 && to == 2) {
+        await m.createTable(shopinBitSettings);
+        await m.createTable(shopInBitTickets);
+      }
+    },
+  );
+
+  static QueryExecutor _openConnection() {
+    return driftDatabase(
+      name: "shared",
+      native: DriftNativeOptions(
+        shareAcrossIsolates: true,
+        databasePath: () async {
+          final dir = await StackFileSystem.applicationDriftDirectory();
+          return path.join(dir.path, "shared", "shared.db");
+        },
+      ),
+    );
+  }
 }
 
 @DriftAccessor(tables: [ShopinBitSettings])
@@ -72,39 +91,5 @@ class ShopinBitSettingsDao extends DatabaseAccessor<SharedDatabase>
     await (update(
       shopinBitSettings,
     )..where((t) => t.id.equals(0))).write(changes);
-  }
-}
-
-@DriftDatabase(
-  tables: [CakepayOrders, ShopinBitSettings],
-  daos: [ShopinBitSettingsDao],
-)
-final class SharedDatabase extends _$SharedDatabase {
-  SharedDatabase._([QueryExecutor? executor])
-    : super(executor ?? _openConnection());
-
-  @override
-  int get schemaVersion => 2;
-
-  @override
-  MigrationStrategy get migration => MigrationStrategy(
-    onUpgrade: (m, from, to) async {
-      if (from == 1 && to == 2) {
-        await m.createTable(shopinBitSettings);
-      }
-    },
-  );
-
-  static QueryExecutor _openConnection() {
-    return driftDatabase(
-      name: "shared",
-      native: DriftNativeOptions(
-        shareAcrossIsolates: true,
-        databasePath: () async {
-          final dir = await StackFileSystem.applicationDriftDirectory();
-          return path.join(dir.path, "shared", "shared.db");
-        },
-      ),
-    );
   }
 }

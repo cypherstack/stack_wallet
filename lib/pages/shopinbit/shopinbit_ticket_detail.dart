@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -106,8 +106,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         }
       }
 
+      final db = ref.read(pSharedDrift);
       unawaited(
-        MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket()),
+        db
+            .into(db.shopInBitTickets)
+            .insertOnConflictUpdate(widget.model.toCompanion()),
       );
     } catch (_) {
       // Silently fall back to local data
@@ -138,8 +141,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         // Reload messages from API to get accurate state
         await _loadFromApi();
       }
+      final db = ref.read(pSharedDrift);
       unawaited(
-        MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket()),
+        db
+            .into(db.shopInBitTickets)
+            .insertOnConflictUpdate(widget.model.toCompanion()),
       );
     } catch (_) {
       // Keep optimistic local message
@@ -193,10 +199,15 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         ..displayName = model.displayName
         ..requestDescription = model.requestDescription
         ..deliveryCountry = model.deliveryCountry;
-      await MainDB.instance.putShopInBitTicket(requestModel.toIsarTicket());
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(requestModel.toCompanion());
 
       model.needsCreateRequest = false;
-      await MainDB.instance.putShopInBitTicket(model.toIsarTicket());
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(model.toCompanion());
 
       if (!mounted) return;
       setState(() => _retrying = false);

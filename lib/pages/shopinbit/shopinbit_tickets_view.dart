@@ -1,26 +1,26 @@
-import 'dart:async';
-import 'dart:convert';
+import "dart:async";
+import "dart:convert";
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
-import '../../db/isar/main_db.dart';
-import '../../models/isar/models/shopinbit_ticket.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../providers/global/shopin_bit_service_provider.dart';
-import '../../services/shopinbit/src/models/car_research.dart';
-import '../../themes/stack_colors.dart';
-import '../../utilities/text_styles.dart';
-import '../../utilities/util.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
-import '../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../widgets/loading_indicator.dart';
-import '../../widgets/rounded_white_container.dart';
-import 'shopinbit_car_fee_view.dart';
-import 'shopinbit_car_research_payment_view.dart';
-import 'shopinbit_ticket_detail.dart';
+import "../../db/drift/shared_db/shared_database.dart";
+import "../../models/shopinbit/shopinbit_order_model.dart";
+import "../../providers/db/drift_provider.dart";
+import "../../providers/global/shopin_bit_service_provider.dart";
+import "../../services/shopinbit/src/models/car_research.dart";
+import "../../themes/stack_colors.dart";
+import "../../utilities/text_styles.dart";
+import "../../utilities/util.dart";
+import "../../widgets/background.dart";
+import "../../widgets/custom_buttons/app_bar_icon_button.dart";
+import "../../widgets/desktop/desktop_dialog.dart";
+import "../../widgets/desktop/desktop_dialog_close_button.dart";
+import "../../widgets/loading_indicator.dart";
+import "../../widgets/rounded_white_container.dart";
+import "shopinbit_car_fee_view.dart";
+import "shopinbit_car_research_payment_view.dart";
+import "shopinbit_ticket_detail.dart";
 
 class ShopInBitTicketsView extends ConsumerStatefulWidget {
   const ShopInBitTicketsView({super.key});
@@ -36,36 +36,33 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   List<ShopInBitOrderModel> _tickets = [];
   bool _syncing = false;
   ShopInBitTicket? _pendingTicket;
-  StreamSubscription<void>? _isarSub;
+  StreamSubscription<List<ShopInBitTicket>>? _ticketsSub;
 
   @override
   void initState() {
     super.initState();
-    _loadLocal();
-    _syncFromApi();
-    // Refresh on ticket writes.
-    _isarSub = MainDB.instance.isar.shopInBitTickets.watchLazy().listen((_) {
-      if (mounted) setState(_loadLocal);
+    final db = ref.read(pSharedDrift);
+    _ticketsSub = db.select(db.shopInBitTickets).watch().listen((rows) {
+      if (!mounted) return;
+      setState(() {
+        _pendingTicket = rows.where((t) => t.isPendingPayment).firstOrNull;
+        _tickets = rows
+            .where((t) => !t.isPendingPayment)
+            .map(ShopInBitOrderModel.fromDriftRow)
+            .toList();
+      });
     });
+    _syncFromApi();
   }
 
   @override
   void dispose() {
-    _isarSub?.cancel();
+    _ticketsSub?.cancel();
     super.dispose();
   }
 
-  void _loadLocal() {
-    final allTickets = MainDB.instance.getShopInBitTickets();
-    _pendingTicket = allTickets.where((t) => t.isPendingPayment).firstOrNull;
-    _tickets = allTickets
-        .where((t) => !t.isPendingPayment)
-        .map(ShopInBitOrderModel.fromIsarTicket)
-        .toList();
-  }
-
   void _resumeFlow(ShopInBitTicket pending) {
-    final model = ShopInBitOrderModel.fromIsarTicket(pending);
+    final model = ShopInBitOrderModel.fromDriftRow(pending);
     final expiresAt = pending.carResearchExpiresAt;
     final linksJson = pending.carResearchPaymentLinks;
     final isDesktop = Util.isDesktop;
@@ -120,14 +117,16 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
 
       if (resp.hasError || resp.value == null) return;
 
-      for (final ref in resp.value!) {
-        final localIdx = _tickets.indexWhere((t) => t.apiTicketId == ref.id);
+      for (final ticketRef in resp.value!) {
+        final localIdx = _tickets.indexWhere(
+          (t) => t.apiTicketId == ticketRef.id,
+        );
         if (localIdx < 0) continue;
 
         // Car research tickets return 403 on /tickets/:id/* endpoints.
         // if (_tickets[localIdx].category == ShopInBitCategory.car) continue;
 
-        final statusResp = await service.client.getTicketStatus(ref.id);
+        final statusResp = await service.client.getTicketStatus(ticketRef.id);
         if (statusResp.hasError || statusResp.value == null) continue;
 
         _tickets[localIdx].status = ShopInBitOrderModel.statusFromTicketState(
@@ -137,7 +136,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
         if (_tickets[localIdx].status == ShopInBitOrderStatus.offerAvailable &&
             (_tickets[localIdx].offerProductName == null ||
                 _tickets[localIdx].offerPrice == null)) {
-          final offerResp = await service.client.getTicketFull(ref.id);
+          final offerResp = await service.client.getTicketFull(ticketRef.id);
           if (!offerResp.hasError && offerResp.value != null) {
             _tickets[localIdx].setOffer(
               productName: offerResp.value!.productName,
@@ -146,7 +145,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
           }
         }
 
-        final msgsResp = await service.client.getMessages(ref.id);
+        final msgsResp = await service.client.getMessages(ticketRef.id);
         if (!msgsResp.hasError && msgsResp.value != null) {
           _tickets[localIdx].clearMessages();
           for (final m in msgsResp.value!) {
@@ -160,32 +159,26 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
           }
         }
 
-        await MainDB.instance.putShopInBitTicket(
-          _tickets[localIdx].toIsarTicket(),
-        );
+        final db = ref.read(pSharedDrift);
+        await db
+            .into(db.shopInBitTickets)
+            .insertOnConflictUpdate(_tickets[localIdx].toCompanion());
       }
     } catch (_) {
-      // Fall back to local data
+      // Fall back to local data — stream listener still has whatever was last persisted.
     } finally {
       if (mounted) {
-        _loadLocal();
         setState(() => _syncing = false);
       }
     }
   }
 
-  String _categoryLabel(ShopInBitCategory? category) {
-    switch (category) {
-      case ShopInBitCategory.concierge:
-        return "Concierge";
-      case ShopInBitCategory.travel:
-        return "Travel";
-      case ShopInBitCategory.car:
-        return "Car";
-      case null:
-        return "";
-    }
-  }
+  String _categoryLabel(ShopInBitCategory? category) => switch (category) {
+    ShopInBitCategory.concierge => "Concierge",
+    ShopInBitCategory.travel => "Travel",
+    ShopInBitCategory.car => "Car",
+    null => "",
+  };
 
   @override
   Widget build(BuildContext context) {

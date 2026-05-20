@@ -2,7 +2,7 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 
-import "../../../db/isar/main_db.dart";
+import "../../../db/drift/shared_db/shared_database.dart";
 import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../notifications/show_flush_bar.dart";
 import "../../../services/shopinbit/shopinbit_service.dart";
@@ -18,6 +18,7 @@ Future<void> submitShopInBitRequest(
   BuildContext context,
   ShopInBitOrderModel model,
   ShopInBitService service,
+  SharedDatabase db,
 ) async {
   try {
     final String customerKey = await service.ensureCustomerKey();
@@ -64,7 +65,9 @@ Future<void> submitShopInBitRequest(
       ..apiTicketId = ref.id
       ..ticketId = ref.number
       ..status = ShopInBitOrderStatus.pending;
-    await MainDB.instance.putShopInBitTicket(model.toIsarTicket());
+    await db
+        .into(db.shopInBitTickets)
+        .insertOnConflictUpdate(model.toCompanion());
 
     if (!context.mounted) return;
     if (Util.isDesktop) {

@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import '../../db/drift/shared_database.dart';
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../external_api_keys.dart';
 import 'src/client.dart';
 

@@ -73,7 +73,6 @@ class MainDB {
         TokenWalletInfoSchema,
         FrostWalletInfoSchema,
         WalletSolanaTokenInfoSchema,
-        ShopInBitTicketSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -81,13 +80,6 @@ class MainDB {
       name: "wallet_data",
       maxSizeMiB: Platform.isWindows ? 1024 : 512,
     );
-
-    // Clear on schema mismatch; tickets are recoverable from the API.
-    try {
-      isar.shopInBitTickets.where().findAllSync();
-    } catch (_) {
-      await isar.writeTxn(() async => isar.shopInBitTickets.clear());
-    }
 
     return true;
   }
@@ -654,34 +646,4 @@ class MainDB {
       isar.writeTxn(() async {
         await isar.solContracts.putAll(tokens);
       });
-
-  // ========== ShopInBit tickets ===============================================
-
-  List<ShopInBitTicket> getShopInBitTickets() {
-    try {
-      return isar.shopInBitTickets.where().sortByCreatedAtDesc().findAllSync();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<int> putShopInBitTicket(ShopInBitTicket ticket) async {
-    try {
-      return await isar.writeTxn(() async {
-        return await isar.shopInBitTickets.put(ticket);
-      });
-    } catch (e) {
-      throw MainDBException("failed putShopInBitTicket", e);
-    }
-  }
-
-  Future<bool> deleteShopInBitTicket(String ticketId) async {
-    try {
-      return await isar.writeTxn(() async {
-        return await isar.shopInBitTickets.deleteByTicketId(ticketId);
-      });
-    } catch (e) {
-      throw MainDBException("failed deleteShopInBitTicket: $ticketId", e);
-    }
-  }
 }

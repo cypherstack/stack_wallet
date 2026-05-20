@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show TableOrViewStatements;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
-import '../../../db/isar/main_db.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
@@ -247,11 +247,15 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         onPressed: _showShopDialog,
                       ),
                       const SizedBox(width: 16),
-                      Builder(
-                        builder: (context) {
-                          final count = MainDB.instance
-                              .getShopInBitTickets()
-                              .length;
+                      StreamBuilder(
+                        stream: ref
+                            .watch(pSharedDrift)
+                            .shopInBitTickets
+                            .count()
+                            .watchSingleOrNull(),
+                        builder: (context, snapshot) {
+                          final count = snapshot.data ?? 0;
+
                           return SecondaryButton(
                             width: 200,
                             buttonHeight: ButtonHeight.m,

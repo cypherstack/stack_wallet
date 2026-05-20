@@ -3,6 +3,7 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 
 import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
+import "../../../providers/providers.dart";
 import "../../../utilities/util.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_privacy_checkbox.dart";
@@ -70,6 +71,7 @@ class _ShopInBitGenericFormState extends ConsumerState<ShopInBitGenericForm> {
         context,
         widget.model,
         ref.read(pShopinBitService),
+        ref.read(pSharedDrift),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
