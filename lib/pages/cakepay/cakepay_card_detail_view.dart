@@ -193,18 +193,9 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
         await CakePayService.instance.addOrderId(order.orderId);
 
         if (mounted) {
-          if (Util.isDesktop) {
-            Navigator.of(context, rootNavigator: true).pop();
-            await showDialog<void>(
-              context: context,
-              builder: (_) => CakePayOrderView(orderId: order.orderId),
-            );
-          } else {
-            await Navigator.of(context).pushReplacementNamed(
-              CakePayOrderView.routeName,
-              arguments: order.orderId,
-            );
-          }
+          await Navigator.of(
+            context,
+          ).pushReplacementNamed(CakePayOrderView.routeName, arguments: order);
         }
       } else {
         final String errorMessage;

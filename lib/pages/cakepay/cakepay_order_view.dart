@@ -14,6 +14,7 @@ import '../../services/cakepay/src/models/order.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -23,25 +24,24 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart';
 import 'cakepay_send_from_view.dart';
 
 class CakePayOrderView extends ConsumerStatefulWidget {
-  const CakePayOrderView({super.key, required this.orderId});
+  const CakePayOrderView({super.key, required this.order});
 
   static const String routeName = "/cakePayOrder";
 
-  final String orderId;
+  final CakePayOrder order;
 
   @override
   ConsumerState<CakePayOrderView> createState() => _CakePayOrderViewState();
 }
 
 class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
-  CakePayOrder? _order;
-  bool _loading = true;
+  late CakePayOrder _order;
   Timer? _pollTimer;
   Timer? _countdownTimer;
   Duration _timeRemaining = Duration.zero;
@@ -50,7 +50,11 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   @override
   void initState() {
     super.initState();
-    _loadOrder();
+    _order = widget.order;
+
+    // TODO: _loadOrder already locked up the ui previously, this just puts a
+    //  nicer loading ui in place
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadOrder());
     _pollTimer = Timer.periodic(
       const Duration(seconds: 15),
       (_) => _loadOrder(),
@@ -74,9 +78,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   }
 
   void _updateTimeRemaining() {
-    if (_order?.expirationTime == null) return;
+    if (_order.expirationTime == null) return;
     final expiresAt = DateTime.fromMillisecondsSinceEpoch(
-      _order!.expirationTime!,
+      _order.expirationTime!,
     );
     final remaining = expiresAt.difference(DateTime.now());
     if (mounted) {
@@ -107,7 +111,6 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   }) {
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
         builder: (_) => CakePaySendFromView(
@@ -211,16 +214,26 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   }
 
   Future<void> _loadOrder() async {
-    final resp = await CakePayService.instance.client.getOrder(widget.orderId);
+    await showLoading(
+      context: context,
+      message: "Updating order...",
+      whileFutureAlt: _loadOrderHelper,
+      rootNavigator: Util.isDesktop,
+    );
+  }
+
+  Future<void> _loadOrderHelper() async {
+    final resp = await CakePayService.instance.client.getOrder(
+      widget.order.orderId,
+    );
     if (mounted) {
       setState(() {
-        _loading = false;
         if (!resp.hasError && resp.value != null) {
           _order = resp.value!;
-          if (_isTerminal(_order!.status)) {
+          if (_isTerminal(_order.status)) {
             _pollTimer?.cancel();
             _countdownTimer?.cancel();
-          } else if (_order!.expirationTime != null) {
+          } else if (_order.expirationTime != null) {
             _startCountdown();
           }
         }
@@ -266,42 +279,34 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     return [
       // Copyable order ID.
       RoundedWhiteContainer(
-        child: GestureDetector(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: order.orderId));
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Order ID copied",
-              iconAsset: Assets.svg.copy,
-              context: context,
-            );
-          },
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Order ID", style: subtitleStyle),
-                    const SizedBox(height: 4),
-                    Text(
-                      order.orderId,
-                      style: isDesktop
-                          ? STextStyles.desktopTextSmall(context)
-                          : STextStyles.titleBold12(context),
-                    ),
-                  ],
-                ),
+        onPressed: () {
+          Clipboard.setData(ClipboardData(text: order.orderId));
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "Order ID copied",
+            iconAsset: Assets.svg.copy,
+            context: context,
+          );
+        },
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Order ID", style: subtitleStyle),
+                  const SizedBox(height: 4),
+                  Text(
+                    order.orderId,
+                    style: isDesktop
+                        ? STextStyles.desktopTextSmall(context)
+                        : STextStyles.titleBold12(context),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.copy,
-                size: 14,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorBlue,
-              ),
-            ],
-          ),
+            ),
+            IconCopyButton(data: order.orderId),
+          ],
         ),
       ),
       // Created-at timestamp.
@@ -324,28 +329,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    if (_loading) {
-      return _scaffold(
-        isDesktop: isDesktop,
-        child: const LoadingIndicator(width: 24, height: 24),
-      );
-    }
-
-    if (_order == null) {
-      return _scaffold(
-        isDesktop: isDesktop,
-        child: Center(
-          child: Text(
-            "Failed to load order",
-            style: isDesktop
-                ? STextStyles.desktopTextSmall(context)
-                : STextStyles.itemSubtitle(context),
-          ),
-        ),
-      );
-    }
-
-    final order = _order!;
+    final order = _order;
     final paymentOptions = order.paymentOptions;
 
     final details = <Widget>[
@@ -377,46 +361,38 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       ),
       SizedBox(height: isDesktop ? 8 : 6),
       RoundedWhiteContainer(
-        child: GestureDetector(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: order.orderId));
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Order ID copied",
-              iconAsset: Assets.svg.copy,
-              context: context,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Order ID",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SelectableText(
-                    order.orderId,
-                    style: isDesktop
-                        ? STextStyles.desktopTextSmall(context)
-                        : STextStyles.titleBold12(context),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.copy,
-                    size: 14,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorBlue,
-                  ),
-                ],
-              ),
-            ],
-          ),
+        onPressed: () {
+          Clipboard.setData(ClipboardData(text: order.orderId));
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "Order ID copied",
+            iconAsset: Assets.svg.copy,
+            context: context,
+          );
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Order ID",
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.itemSubtitle12(context),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SelectableText(
+                  order.orderId,
+                  style: isDesktop
+                      ? STextStyles.desktopTextSmall(context)
+                      : STextStyles.titleBold12(context),
+                ),
+                const SizedBox(width: 6),
+                IconCopyButton(data: order.orderId),
+              ],
+            ),
+          ],
         ),
       ),
       SizedBox(height: isDesktop ? 16 : 12),
@@ -833,13 +809,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               : STextStyles.itemSubtitle12(context),
                         ),
                         const Spacer(),
-                        Icon(
-                          Icons.copy,
-                          size: 14,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue,
-                        ),
+                        IconCopyButton(data: order.orderId),
                         const SizedBox(width: 4),
                         Text("Copy", style: STextStyles.link2(context)),
                       ],

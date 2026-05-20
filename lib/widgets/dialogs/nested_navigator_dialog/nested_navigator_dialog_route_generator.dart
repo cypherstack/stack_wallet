@@ -3,6 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../models/shopinbit/shopinbit_order_model.dart';
+import '../../../pages/cakepay/cakepay_card_detail_view.dart';
+import '../../../pages/cakepay/cakepay_order_view.dart';
+import '../../../pages/cakepay/cakepay_orders_view.dart';
+import '../../../pages/cakepay/cakepay_vendors_view.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_step_3.dart';
@@ -10,6 +14,8 @@ import '../../../pages/shopinbit/shopinbit_step_4.dart';
 import '../../../pages/shopinbit/shopinbit_ticket_detail.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../pages_desktop_specific/services/shopin_bit/sub_widgets/desktop_shopin_bit_first_run.dart';
+import '../../../services/cakepay/src/models/card.dart';
+import '../../../services/cakepay/src/models/order.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../conditional_parent.dart';
@@ -103,6 +109,44 @@ abstract final class NestedNavigatorDialogRouteGenerator {
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
           "Expected ShopInBitOrderModel",
+        );
+
+      case CakePayVendorsView.routeName:
+        return getRoute(
+          builder: (_) => const CakePayVendorsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePayOrdersView.routeName:
+        return getRoute(
+          builder: (_) => const CakePayOrdersView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePayCardDetailView.routeName:
+        if (args is CakePayCard) {
+          return getRoute(
+            builder: (_) => CakePayCardDetailView(card: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected CakePayCard",
+        );
+
+      case CakePayOrderView.routeName:
+        if (args is CakePayOrder) {
+          return getRoute(
+            builder: (_) => CakePayOrderView(order: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected CakePayOrder",
         );
 
       default:

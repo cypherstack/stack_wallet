@@ -380,7 +380,8 @@ class _RequestRow extends StatelessWidget {
         SizedBox(width: isDesktop ? 16 : 8),
         SvgPicture.asset(
           Assets.svg.chevronRight,
-          width: 14,
+          width: 20,
+          height: 20,
           colorFilter: ColorFilter.mode(stackColors.textSubtitle1, .srcIn),
         ),
       ],

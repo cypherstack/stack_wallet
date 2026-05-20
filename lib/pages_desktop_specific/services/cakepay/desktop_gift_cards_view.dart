@@ -10,6 +10,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/tor_subscription.dart';
@@ -105,7 +106,9 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
                             onPressed: () {
                               showDialog<void>(
                                 context: context,
-                                builder: (_) => const CakePayVendorsView(),
+                                builder: (_) => const NestedNavigatorDialog(
+                                  initialRoute: CakePayVendorsView.routeName,
+                                ),
                               );
                             },
                           ),
@@ -118,7 +121,9 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
                             onPressed: () {
                               showDialog<void>(
                                 context: context,
-                                builder: (_) => const CakePayOrdersView(),
+                                builder: (_) => const NestedNavigatorDialog(
+                                  initialRoute: CakePayOrdersView.routeName,
+                                ),
                               );
                             },
                           ),

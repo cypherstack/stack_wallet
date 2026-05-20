@@ -258,6 +258,7 @@ import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settin
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import 'services/cakepay/src/models/card.dart';
+import 'services/cakepay/src/models/order.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'services/shopinbit/src/models/car_research.dart';
@@ -1105,10 +1106,10 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CakePayOrderView.routeName:
-        if (args is String) {
+        if (args is CakePayOrder) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CakePayOrderView(orderId: args),
+            builder: (_) => CakePayOrderView(order: args),
             settings: RouteSettings(name: settings.name),
           );
         }
