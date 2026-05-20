@@ -312,7 +312,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   }
 
   Widget _chatBubble(ShopInBitMessage message, bool isDesktop) {
-    final textColor = message.isFromUser ? Colors.white : null;
+    final textColor = message.isFromUser
+        ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+        : Theme.of(context).extension<StackColors>()!.buttonTextSecondary;
 
     return Align(
       alignment: message.isFromUser
@@ -324,8 +326,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: message.isFromUser
-              ? Theme.of(context).extension<StackColors>()!.accentColorBlue
-              : Theme.of(context).extension<StackColors>()!.popupBG,
+              ? Theme.of(context).extension<StackColors>()!.buttonBackPrimary
+              : Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
