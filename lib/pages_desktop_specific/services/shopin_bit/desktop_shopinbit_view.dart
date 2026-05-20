@@ -240,7 +240,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                   child: Row(
                     children: [
                       PrimaryButton(
-                        width: 250,
+                        width: 224,
                         buttonHeight: ButtonHeight.m,
                         enabled: true,
                         label: "Shop with ShopinBit",
@@ -257,7 +257,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                           final count = snapshot.data ?? 0;
 
                           return SecondaryButton(
-                            width: 200,
+                            width: 196,
                             buttonHeight: ButtonHeight.m,
                             label: count > 0
                                 ? "My requests ($count)"
@@ -276,7 +276,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                       ),
                       const SizedBox(width: 16),
                       SecondaryButton(
-                        width: 140,
+                        width: 118,
                         buttonHeight: ButtonHeight.m,
                         label: "Settings",
                         onPressed: () {
