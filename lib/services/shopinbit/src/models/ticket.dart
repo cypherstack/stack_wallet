@@ -35,10 +35,7 @@ class TicketRef {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      "id": id,
-      "number": number,
-    };
+    return {"id": id, "number": number};
   }
 
   @override
