@@ -1,13 +1,12 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
-import "package:url_launcher/url_launcher.dart";
 
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/desktop/desktop_dialog.dart";
 import "../../../widgets/desktop/primary_button.dart";
 import "../../../widgets/desktop/secondary_button.dart";
-import "../../../widgets/stack_dialog.dart";
+import "../../../widgets/dialogs/request_external_link_navigation_dialog.dart";
 
 const String _shopInBitPrivacyUrl =
     "https://api.shopinbit.com/static/policy/privacy.html";
@@ -21,45 +20,6 @@ class ShopInBitPrivacyCheckbox extends StatelessWidget {
 
   final bool value;
   final ValueChanged<bool> onChanged;
-
-  Future<void> _openPrivacyPolicy(BuildContext context) async {
-    final bool shouldOpen = await _showOpenBrowserWarning(
-      context,
-      _shopInBitPrivacyUrl,
-    );
-    if (shouldOpen) {
-      await launchUrl(
-        Uri.parse(_shopInBitPrivacyUrl),
-        mode: LaunchMode.externalApplication,
-      );
-    }
-  }
-
-  Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
-    final Uri uri = Uri.parse(url);
-    final String message =
-        "You are about to open ${uri.scheme}://${uri.host} in your browser.";
-
-    final bool? shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Util.isDesktop
-          ? _DesktopBrowserWarning(message: message)
-          : StackDialog(
-              title: "Attention",
-              message: message,
-              leftButton: SecondaryButton(
-                label: "Cancel",
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              rightButton: PrimaryButton(
-                label: "Continue",
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ),
-    );
-    return shouldContinue ?? false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +65,10 @@ class ShopInBitPrivacyCheckbox extends StatelessWidget {
                         context,
                       ).copyWith(fontSize: isDesktop ? 18 : 14),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => _openPrivacyPolicy(context),
+                        ..onTap = () => showRequestExternalLinkAndMaybeLaunch(
+                          context,
+                          uri: Uri.parse(_shopInBitPrivacyUrl),
+                        ),
                     ),
                     const TextSpan(text: "."),
                   ],

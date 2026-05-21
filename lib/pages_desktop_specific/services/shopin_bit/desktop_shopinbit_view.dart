@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
@@ -22,6 +21,7 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
+import '../../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/textfields/adaptive_text_field.dart';
@@ -40,57 +40,6 @@ class DesktopShopInBitView extends ConsumerStatefulWidget {
 }
 
 class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
-  Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    final shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => DesktopDialog(
-        maxWidth: 550,
-        maxHeight: 250,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          child: Column(
-            children: [
-              Text("Attention", style: STextStyles.desktopH2(context)),
-              const SizedBox(height: 16),
-              Text(
-                "You are about to open "
-                "${uri.scheme}://${uri.host} "
-                "in your browser.",
-                style: STextStyles.desktopTextSmall(context),
-              ),
-              const SizedBox(height: 35),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SecondaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true).pop(false);
-                    },
-                  ),
-                  const SizedBox(width: 20),
-                  PrimaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Continue",
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true).pop(true);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    return shouldContinue ?? false;
-  }
-
   Future<void> _showShopDialog() async {
     final dao = ref.read(pSharedDrift).shopinBitSettingsDao;
     final settings = await dao.getSettings();
@@ -196,16 +145,10 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                             ..onTap = () async {
                               const url =
                                   "https://api.shopinbit.com/static/policy/terms.html";
-                              final shouldOpen = await _showOpenBrowserWarning(
+                              await showRequestExternalLinkAndMaybeLaunch(
                                 context,
-                                url,
+                                uri: Uri.parse(url),
                               );
-                              if (shouldOpen) {
-                                await launchUrl(
-                                  Uri.parse(url),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              }
                             },
                         ),
                         const TextSpan(text: " and "),
@@ -218,16 +161,11 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                             ..onTap = () async {
                               const url =
                                   "https://api.shopinbit.com/static/policy/privacy.html";
-                              final shouldOpen = await _showOpenBrowserWarning(
+
+                              await showRequestExternalLinkAndMaybeLaunch(
                                 context,
-                                url,
+                                uri: Uri.parse(url),
                               );
-                              if (shouldOpen) {
-                                await launchUrl(
-                                  Uri.parse(url),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              }
                             },
                         ),
                         const TextSpan(text: "."),

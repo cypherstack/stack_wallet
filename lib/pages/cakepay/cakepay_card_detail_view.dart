@@ -1,7 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
@@ -11,10 +10,9 @@ import '../../utilities/util.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/loading_indicator.dart';
@@ -75,101 +73,9 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
     return true;
   }
 
-  Future<bool> _showOpenBrowserWarning(String url) async {
-    final uri = Uri.parse(url);
-    final shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => Util.isDesktop
-          ? DesktopDialog(
-              maxWidth: 550,
-              maxHeight: 250,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 20,
-                ),
-                child: Column(
-                  children: [
-                    Text("Attention", style: STextStyles.desktopH2(context)),
-                    const SizedBox(height: 16),
-                    Text(
-                      "You are about to open "
-                      "${uri.scheme}://${uri.host} "
-                      "in your browser.",
-                      style: STextStyles.desktopTextSmall(context),
-                    ),
-                    const SizedBox(height: 35),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SecondaryButton(
-                          width: 200,
-                          buttonHeight: ButtonHeight.l,
-                          label: "Cancel",
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(false);
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        PrimaryButton(
-                          width: 200,
-                          buttonHeight: ButtonHeight.l,
-                          label: "Continue",
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(true);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : StackDialog(
-              title: "Attention",
-              message:
-                  "You are about to open "
-                  "${uri.scheme}://${uri.host} "
-                  "in your browser.",
-              leftButton: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
-                  ),
-                ),
-              ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: Text("Continue", style: STextStyles.button(context)),
-              ),
-            ),
-    );
-    return shouldContinue ?? false;
-  }
-
   Future<void> _openTerms() async {
     const url = "https://cakepay.com/terms/";
-    if (await _showOpenBrowserWarning(url)) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    }
+    await showRequestExternalLinkAndMaybeLaunch(context, uri: Uri.parse(url));
   }
 
   Future<void> _purchase() async {

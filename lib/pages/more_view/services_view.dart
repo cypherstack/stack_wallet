@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/providers.dart';
@@ -14,6 +13,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../shopinbit/shopinbit_settings_view.dart';
@@ -31,44 +31,6 @@ class ServicesView extends ConsumerStatefulWidget {
 }
 
 class _ServicesViewState extends ConsumerState<ServicesView> {
-  Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    final shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => StackDialog(
-        title: "Attention",
-        message:
-            "You are about to open "
-            "${uri.scheme}://${uri.host} "
-            "in your browser.",
-        leftButton: TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-          child: Text(
-            "Cancel",
-            style: STextStyles.button(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorDark,
-            ),
-          ),
-        ),
-        rightButton: TextButton(
-          style: Theme.of(
-            context,
-          ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
-          child: Text("Continue", style: STextStyles.button(context)),
-        ),
-      ),
-    );
-    return shouldContinue ?? false;
-  }
-
   void _showShopDialog() {
     showDialog<void>(
       context: context,
@@ -99,16 +61,11 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                       ..onTap = () async {
                         const url =
                             "https://api.shopinbit.com/static/policy/privacy.html";
-                        final shouldOpen = await _showOpenBrowserWarning(
-                          dialogContext,
-                          url,
+
+                        await showRequestExternalLinkAndMaybeLaunch(
+                          context,
+                          uri: Uri.parse(url),
                         );
-                        if (shouldOpen) {
-                          await launchUrl(
-                            Uri.parse(url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        }
                       },
                   ),
                   const TextSpan(text: "."),
@@ -270,14 +227,11 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                               ..onTap = () async {
                                 const url =
                                     "https://api.shopinbit.com/static/policy/terms.html";
-                                final shouldOpen =
-                                    await _showOpenBrowserWarning(context, url);
-                                if (shouldOpen) {
-                                  await launchUrl(
-                                    Uri.parse(url),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
+
+                                await showRequestExternalLinkAndMaybeLaunch(
+                                  context,
+                                  uri: Uri.parse(url),
+                                );
                               },
                           ),
                           const TextSpan(text: " and "),
@@ -290,14 +244,11 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                               ..onTap = () async {
                                 const url =
                                     "https://api.shopinbit.com/static/policy/privacy.html";
-                                final shouldOpen =
-                                    await _showOpenBrowserWarning(context, url);
-                                if (shouldOpen) {
-                                  await launchUrl(
-                                    Uri.parse(url),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
+
+                                await showRequestExternalLinkAndMaybeLaunch(
+                                  context,
+                                  uri: Uri.parse(url),
+                                );
                               },
                           ),
                           const TextSpan(text: "."),
