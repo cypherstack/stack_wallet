@@ -71,6 +71,7 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/frost_scaffold.dart';
+import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
@@ -96,6 +97,8 @@ import '../exchange_view/wallet_initiated_exchange_view.dart';
 import '../finalize_view/finalize_view.dart';
 import '../masternodes/masternodes_home_view.dart';
 import '../monkey/monkey_view.dart';
+import '../more_view/gift_cards_view.dart';
+import '../more_view/services_view.dart';
 import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../ordinals/ordinals_view.dart';
@@ -109,8 +112,6 @@ import '../settings_views/wallet_settings_view/wallet_network_settings_view/wall
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../signing/signing_view.dart';
 import '../spark_names/spark_names_home_view.dart';
-import '../more_view/gift_cards_view.dart';
-import '../more_view/services_view.dart';
 import '../token_view/my_tokens_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
@@ -1364,8 +1365,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       ),
                     WalletNavigationBarItemData(
                       label: "Gift cards",
-                      icon: SvgPicture.asset(
-                        Assets.svg.creditCard,
+                      icon: CreditCardIcon(
                         height: 20,
                         width: 20,
                         color: Theme.of(

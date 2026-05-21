@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/tor_service.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/tor_subscription.dart';
 import '../cakepay/cakepay_orders_view.dart';
@@ -51,11 +50,7 @@ class _GiftCardsViewState extends ConsumerState<GiftCardsView> {
             context,
           ).extension<StackColors>()!.background,
           appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            leading: const AppBarBackButton(),
             title: Text("Gift cards", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
@@ -69,11 +64,7 @@ class _GiftCardsViewState extends ConsumerState<GiftCardsView> {
                       children: [
                         Row(
                           children: [
-                            SvgPicture.asset(
-                              Assets.svg.creditCard,
-                              width: 32,
-                              height: 32,
-                            ),
+                            const CreditCardIcon(width: 32, height: 32),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -116,6 +107,19 @@ class _GiftCardsViewState extends ConsumerState<GiftCardsView> {
                         Row(
                           children: [
                             Expanded(
+                              child: SecondaryButton(
+                                label: "My Orders",
+                                enabled: !_torEnabled,
+                                onPressed: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(CakePayOrdersView.routeName);
+                                },
+                              ),
+                            ),
+
+                            const SizedBox(width: 16),
+                            Expanded(
                               child: PrimaryButton(
                                 label: "Browse",
                                 enabled: !_torEnabled,
@@ -123,17 +127,6 @@ class _GiftCardsViewState extends ConsumerState<GiftCardsView> {
                                   Navigator.of(
                                     context,
                                   ).pushNamed(CakePayVendorsView.routeName);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: SecondaryButton(
-                                label: "My Orders",
-                                onPressed: () {
-                                  Navigator.of(
-                                    context,
-                                  ).pushNamed(CakePayOrdersView.routeName);
                                 },
                               ),
                             ),

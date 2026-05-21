@@ -9,6 +9,8 @@ import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../pages_desktop_specific/desktop_home_view.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/coin_icon_provider.dart';
@@ -25,7 +27,6 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../../wallets/wallet/impl/ethereum_wallet.dart';
 import '../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
@@ -36,7 +37,6 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import '../../pages_desktop_specific/desktop_home_view.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import 'shopinbit_confirm_send_view.dart';
@@ -250,7 +250,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
 
     Amount? sendAmount = amount;
     if (sendAmount == null) {
-      if (ShopInBitService.instance.client.sandbox) {
+      if (ref.read(pShopinBitService).client.sandbox) {
         sendAmount = Amount(
           rawValue: BigInt.from(10000),
           fractionDigits: fractionDigits,

@@ -3,12 +3,13 @@ import 'dart:convert';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/db/drift_provider.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
@@ -17,7 +18,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../more_view/services_view.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -25,10 +25,11 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
+import '../more_view/services_view.dart';
 import 'shopinbit_car_research_payment_view.dart';
 import 'shopinbit_step_2.dart';
 
-class ShopInBitCarFeeView extends StatefulWidget {
+class ShopInBitCarFeeView extends ConsumerStatefulWidget {
   const ShopInBitCarFeeView({super.key, required this.model});
 
   static const String routeName = "/shopInBitCarFee";
@@ -36,10 +37,11 @@ class ShopInBitCarFeeView extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitCarFeeView> createState() => _ShopInBitCarFeeViewState();
+  ConsumerState<ShopInBitCarFeeView> createState() =>
+      _ShopInBitCarFeeViewState();
 }
 
-class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
+class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
   late final TextEditingController _nameController;
   late final TextEditingController _streetController;
   late final TextEditingController _cityController;
@@ -179,7 +181,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   Future<void> _fetchCountries() async {
     setState(() => _loadingCountries = true);
     try {
-      final resp = await ShopInBitService.instance.client.getCountries();
+      final resp = await ref.read(pShopinBitService).client.getCountries();
       if (resp.hasError || resp.value == null) return;
       _countries = resp.value!;
       if (_selectedCountryIso != null &&
@@ -209,7 +211,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
-      await ShopInBitService.instance.ensureCustomerKey();
+      await ref.read(pShopinBitService).ensureCustomerKey();
 
       // Delivery address (always provided)
       final deliveryName = _splitFullName(_nameController.text);
@@ -221,7 +223,8 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         country: _selectedCountryIso!,
       );
 
-      // Billing address: use separate billing fields if different, else use delivery
+      // Billing address: use separate billing fields if different,
+      // else use delivery
       final Address billing;
       if (_differentBilling) {
         final billingName = _splitFullName(_billingNameController.text);
@@ -244,7 +247,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         );
       }
 
-      final resp = await ShopInBitService.instance.client
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
           .createCarResearchInvoice(billing: billing);
 
       if (resp.hasError || resp.value == null) {
@@ -264,13 +269,17 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
       final invoice = resp.value!;
 
       // Persist pending state so the user can resume if they close the dialog.
-      // Sentinel ticketId; unique-replace index ensures at most one pending record.
+      // Sentinel ticketId; unique-replace index ensures at most one pending
+      // record.
       widget.model.ticketId = "pending-car-research";
       widget.model.carResearchInvoiceId = invoice.btcpayInvoice;
       widget.model.isPendingPayment = true;
       widget.model.carResearchExpiresAt = invoice.expiresAt;
       widget.model.carResearchPaymentLinks = jsonEncode(invoice.paymentLinks);
-      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(widget.model.toCompanion());
 
       // Best-effort fee fetch; do not block navigation on fee parse failure.
       await _loadFee(invoice);
@@ -328,7 +337,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     // a fee field. Today the endpoint returns only {status, additional}, so
     // we source the displayed amount from the BIP21 payment URIs instead.
     try {
-      final resp = await ShopInBitService.instance.client
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
           .getCarResearchInvoiceStatus(invoice.btcpayInvoice);
       if (resp.hasError || resp.value == null) {
         Logging.instance.i(
@@ -471,9 +482,12 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                 Assets.svg.chevronDown,
                 width: 12,
                 height: 6,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                  .srcIn,
+                ),
               ),
             ),
           ),

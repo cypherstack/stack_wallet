@@ -5,10 +5,11 @@ enum WebhookEventType {
   final String value;
   const WebhookEventType(this.value);
 
-  static WebhookEventType fromString(String s) {
+  static WebhookEventType fromString(String value) {
     return WebhookEventType.values.firstWhere(
-      (e) => e.value == s,
-      orElse: () => WebhookEventType.ticketStateChanged,
+      (e) => e.value == value,
+      orElse: () =>
+          throw Exception("Unknown WebhookEventType string found: $value"),
     );
   }
 }
