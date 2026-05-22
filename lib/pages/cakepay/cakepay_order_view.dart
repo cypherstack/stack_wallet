@@ -7,14 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/cakepay_orders_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
-import '../../services/cakepay/cakepay_service.dart';
+import '../../services/cakepay/cakepay_orders_service.dart';
 import '../../services/cakepay/src/models/order.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -26,6 +26,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
+import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../wallet_view/transaction_views/transaction_details_view.dart';
 import 'cakepay_send_from_view.dart';
@@ -42,56 +43,62 @@ class CakePayOrderView extends ConsumerStatefulWidget {
 }
 
 class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
-  late CakePayOrder _order;
-  Timer? _pollTimer;
+  late final CakePayOrdersService _ordersService;
   Timer? _countdownTimer;
-  Duration _timeRemaining = Duration.zero;
+  int? _countdownExpiration;
   int _selectedPaymentMethod = 0;
+  bool _polling = false;
 
   @override
   void initState() {
     super.initState();
-    _order = widget.order;
-
-    // TODO: _loadOrder already locked up the ui previously, this just puts a
-    //  nicer loading ui in place
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadOrder());
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => _loadOrder(),
-    );
+    _ordersService = ref.read(pCakePayOrdersService);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _polling = true;
+      _ordersService.startPolling(widget.order.orderId);
+    });
   }
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    if (_polling) {
+      _ordersService.stopPolling(widget.order.orderId);
+    }
     _countdownTimer?.cancel();
     super.dispose();
   }
 
-  void _startCountdown() {
+  void _ensureCountdown(int? expirationTime) {
+    if (expirationTime == null) {
+      if (_countdownTimer != null) {
+        _countdownTimer?.cancel();
+        _countdownTimer = null;
+        _countdownExpiration = null;
+      }
+      return;
+    }
+    if (_countdownExpiration == expirationTime && _countdownTimer != null) {
+      return;
+    }
+    _countdownExpiration = expirationTime;
     _countdownTimer?.cancel();
-    _updateTimeRemaining();
-    _countdownTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => _updateTimeRemaining(),
-    );
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final remaining = _computeRemaining(expirationTime);
+      if (remaining <= Duration.zero) {
+        _countdownTimer?.cancel();
+        _countdownTimer = null;
+        _countdownExpiration = null;
+      }
+      setState(() {});
+    });
   }
 
-  void _updateTimeRemaining() {
-    if (_order.expirationTime == null) return;
-    final expiresAt = DateTime.fromMillisecondsSinceEpoch(
-      _order.expirationTime!,
-    );
+  Duration _computeRemaining(int expirationTime) {
+    final expiresAt = DateTime.fromMillisecondsSinceEpoch(expirationTime);
     final remaining = expiresAt.difference(DateTime.now());
-    if (mounted) {
-      setState(() {
-        _timeRemaining = remaining.isNegative ? Duration.zero : remaining;
-      });
-    }
-    if (remaining.isNegative) {
-      _countdownTimer?.cancel();
-    }
+    return remaining.isNegative ? Duration.zero : remaining;
   }
 
   String _formatDuration(Duration d) {
@@ -214,41 +221,6 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     );
   }
 
-  Future<void> _loadOrder() async {
-    await showLoading(
-      context: context,
-      message: "Updating order...",
-      whileFutureAlt: _loadOrderHelper,
-      rootNavigator: Util.isDesktop,
-    );
-  }
-
-  Future<void> _loadOrderHelper() async {
-    final resp = await CakePayService.instance.client.getOrder(
-      widget.order.orderId,
-    );
-    if (mounted) {
-      setState(() {
-        if (!resp.hasError && resp.value != null) {
-          _order = resp.value!;
-          if (_isTerminal(_order.status)) {
-            _pollTimer?.cancel();
-            _countdownTimer?.cancel();
-          } else if (_order.expirationTime != null) {
-            _startCountdown();
-          }
-        }
-      });
-    }
-  }
-
-  bool _isTerminal(CakePayOrderStatus status) {
-    return status == CakePayOrderStatus.complete ||
-        status == CakePayOrderStatus.expired ||
-        status == CakePayOrderStatus.failed ||
-        status == CakePayOrderStatus.refunded;
-  }
-
   /// Whether the order has received payment and is being processed or
   /// is already complete.  Payment UI should be hidden for these.
   bool _isPaidOrBeyond(CakePayOrderStatus status) {
@@ -330,7 +302,13 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    final order = _order;
+    final service = ref.watch(pCakePayOrdersService);
+    final order = service.get(widget.order.orderId) ?? widget.order;
+    final isRefreshing = service.isRefreshing(widget.order.orderId);
+    _ensureCountdown(order.expirationTime);
+    final remaining = order.expirationTime == null
+        ? Duration.zero
+        : _computeRemaining(order.expirationTime!);
     final paymentOptions = order.paymentOptions;
 
     final details = <Widget>[
@@ -373,6 +351,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Order ID",
@@ -380,18 +359,23 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                   ? STextStyles.desktopTextExtraExtraSmall(context)
                   : STextStyles.itemSubtitle12(context),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SelectableText(
-                  order.orderId,
-                  style: isDesktop
-                      ? STextStyles.desktopTextSmall(context)
-                      : STextStyles.titleBold12(context),
-                ),
-                const SizedBox(width: 6),
-                IconCopyButton(data: order.orderId),
-              ],
+            const SizedBox(width: 8),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: SelectableText(
+                      order.orderId,
+                      style: isDesktop
+                          ? STextStyles.desktopTextSmall(context)
+                          : STextStyles.titleBold12(context),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconCopyButton(data: order.orderId),
+                ],
+              ),
             ),
           ],
         ),
@@ -524,7 +508,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
 
     // Expiration countdown.
     if (order.expirationTime != null) {
-      final isExpired = _timeRemaining == Duration.zero;
+      final isExpired = remaining == Duration.zero;
       details.add(
         RoundedWhiteContainer(
           child: Row(
@@ -537,7 +521,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                     : STextStyles.itemSubtitle12(context),
               ),
               Text(
-                _formatDuration(_timeRemaining),
+                _formatDuration(remaining),
                 style:
                     (isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -547,7 +531,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               ? Theme.of(
                                   context,
                                 ).extension<StackColors>()!.accentColorRed
-                              : _timeRemaining.inMinutes < 5
+                              : remaining.inMinutes < 5
                               ? Theme.of(
                                   context,
                                 ).extension<StackColors>()!.accentColorOrange
@@ -840,17 +824,33 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       details.add(SizedBox(height: isDesktop ? 8 : 6));
     }
 
-    final content = SingleChildScrollView(
+    final scrollable = SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: details,
       ),
     );
 
-    return _scaffold(isDesktop: isDesktop, child: content);
+    final content = RefreshControl(
+      onRefresh: () => service.refreshOne(widget.order.orderId),
+      child: scrollable,
+    );
+
+    return _scaffold(
+      isDesktop: isDesktop,
+      isRefreshing: isRefreshing,
+      onRefresh: () => service.refreshOne(widget.order.orderId),
+      child: content,
+    );
   }
 
-  Widget _scaffold({required bool isDesktop, required Widget child}) {
+  Widget _scaffold({
+    required bool isDesktop,
+    required bool isRefreshing,
+    required Future<void> Function() onRefresh,
+    required Widget child,
+  }) {
     return ConditionalParent(
       condition: isDesktop,
       builder: (child) => SDialog(
@@ -866,9 +866,19 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                     padding: const EdgeInsets.only(left: 32),
                     child: Text("Order", style: STextStyles.desktopH3(context)),
                   ),
-                  DesktopDialogCloseButton(
-                    onPressedOverride: () =>
-                        confirmCloseNestedNavigatorDialog(context),
+                  Row(
+                    mainAxisSize: .min,
+                    children: [
+                      RefreshButton(
+                        isRefreshing: isRefreshing,
+                        onPressed: () => onRefresh(),
+                      ),
+                      const SizedBox(width: 8),
+                      DesktopDialogCloseButton(
+                        onPressedOverride: () =>
+                            confirmCloseNestedNavigatorDialog(context),
+                      ),
+                    ],
                   ),
                 ],
               ),

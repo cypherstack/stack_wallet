@@ -8,7 +8,9 @@ import 'package:intl/intl.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/drift_provider.dart';
+import '../../providers/global/shopin_bit_orders_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
+import '../../services/shopinbit/shopinbit_orders_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -17,9 +19,8 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_offer_view.dart';
@@ -38,90 +39,43 @@ class ShopInBitTicketDetail extends ConsumerStatefulWidget {
 
 class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   late final TextEditingController _messageController;
+  late final ShopInBitOrdersService _ordersService;
+  late final ShopInBitOrderModel _model;
+  bool _polling = false;
 
   bool _sending = false;
-  bool _loading = false;
   bool _retrying = false;
-  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _messageController = TextEditingController();
-    if (widget.model.apiTicketId != 0) {
-      _loadFromApi();
-      if (!_isCarResearch) {
-        _pollTimer = Timer.periodic(
-          const Duration(seconds: 30),
-          (_) => _loadFromApi(),
+    _ordersService = ref.read(pShopInBitOrdersService);
+    _model = _ordersService.upsert(widget.model);
+    if (_model.apiTicketId != 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _polling = true;
+        _ordersService.startPolling(
+          _model.apiTicketId,
+          pollInBackground: !_isCarResearch,
         );
-      }
+      });
     }
   }
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    if (_polling) {
+      _ordersService.stopPolling(_model.apiTicketId);
+    }
     _messageController.dispose();
     super.dispose();
   }
 
-  bool get _isCarResearch => widget.model.category == ShopInBitCategory.car;
+  bool get _isCarResearch => _model.category == ShopInBitCategory.car;
 
-  Future<void> _loadFromApi() async {
-    setState(() => _loading = true);
-    try {
-      final client = ref.read(pShopinBitService).client;
-      final id = widget.model.apiTicketId;
-
-      final messagesResp = await client.getMessages(id);
-      final statusResp = await client.getTicketStatus(id);
-
-      if (!messagesResp.hasError && messagesResp.value != null) {
-        final apiMessages = messagesResp.value!;
-        widget.model.clearMessages();
-        for (final m in apiMessages) {
-          widget.model.addMessage(
-            ShopInBitMessage(
-              text: m.content,
-              timestamp: m.timestamp,
-              isFromUser: !m.fromAgent,
-            ),
-          );
-        }
-      }
-
-      if (!statusResp.hasError && statusResp.value != null) {
-        widget.model.status = ShopInBitOrderModel.statusFromTicketState(
-          statusResp.value!.state,
-        );
-      }
-
-      if (widget.model.status == ShopInBitOrderStatus.offerAvailable &&
-          (widget.model.offerProductName == null ||
-              widget.model.offerPrice == null)) {
-        final offerResp = await client.getTicketFull(id);
-        if (!offerResp.hasError && offerResp.value != null) {
-          final t = offerResp.value!;
-          widget.model.setOffer(
-            productName: t.productName,
-            price: t.customerPrice,
-          );
-        }
-      }
-
-      final db = ref.read(pSharedDrift);
-      unawaited(
-        db
-            .into(db.shopInBitTickets)
-            .insertOnConflictUpdate(widget.model.toCompanion()),
-      );
-    } catch (_) {
-      // Silently fall back to local data
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
+  Future<void> _refresh() => _ordersService.refreshOne(_model.apiTicketId);
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
@@ -131,25 +85,25 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     _messageController.clear();
 
     // Add optimistic local message
-    widget.model.addMessage(
+    _model.addMessage(
       ShopInBitMessage(text: text, timestamp: DateTime.now(), isFromUser: true),
     );
     setState(() {});
 
     try {
-      if (widget.model.apiTicketId != 0) {
+      if (_model.apiTicketId != 0) {
         await ref
             .read(pShopinBitService)
             .client
-            .sendMessage(widget.model.apiTicketId, text);
-        // Reload messages from API to get accurate state
-        await _loadFromApi();
+            .sendMessage(_model.apiTicketId, text);
+        // Pull fresh state from the API via the service so the watcher updates.
+        await _refresh();
       }
       final db = ref.read(pSharedDrift);
       unawaited(
         db
             .into(db.shopInBitTickets)
-            .insertOnConflictUpdate(widget.model.toCompanion()),
+            .insertOnConflictUpdate(_model.toCompanion()),
       );
     } catch (_) {
       // Keep optimistic local message
@@ -163,7 +117,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     setState(() => _retrying = true);
 
     try {
-      final model = widget.model;
+      final model = _model;
       final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
       final comment =
           "${model.requestDescription}\n\n"
@@ -388,7 +342,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final model = widget.model;
+    final service = ref.watch(pShopInBitOrdersService);
+    final model = service.get(_model.apiTicketId) ?? _model;
+    final isRefreshing = service.isRefreshing(_model.apiTicketId);
 
     final statusBar = Padding(
       padding: .only(bottom: isDesktop ? 12 : 8),
@@ -482,6 +438,17 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
           )
         : const SizedBox.shrink();
 
+    final chatList = ListView.builder(
+      reverse: true,
+      padding: const EdgeInsets.all(8),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: model.messages.length,
+      itemBuilder: (context, index) {
+        final message = model.messages[model.messages.length - 1 - index];
+        return _chatBubble(message, isDesktop);
+      },
+    );
+
     final chatArea = Expanded(
       child: ConditionalParent(
         condition: Util.isDesktop,
@@ -490,22 +457,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
           color: Theme.of(context).extension<StackColors>()!.textFieldActiveBG,
           child: child,
         ),
-        child: Stack(
-          children: [
-            ListView.builder(
-              reverse: true,
-              padding: const EdgeInsets.all(8),
-              itemCount: model.messages.length,
-              itemBuilder: (context, index) {
-                final message =
-                    model.messages[model.messages.length - 1 - index];
-                return _chatBubble(message, isDesktop);
-              },
-            ),
-            // TODO: fix loading from locking everything up
-            if (_loading) const LoadingIndicator(width: 24, height: 24),
-          ],
-        ),
+        child: RefreshControl(onRefresh: _refresh, child: chatList),
       ),
     );
 
@@ -588,8 +540,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
         : const SizedBox.shrink();
 
     final retryButton =
-        widget.model.needsCreateRequest &&
-            widget.model.category == ShopInBitCategory.car
+        model.needsCreateRequest && model.category == ShopInBitCategory.car
         ? Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: PrimaryButton(
@@ -634,9 +585,16 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                       style: STextStyles.desktopH3(context),
                     ),
                   ),
-                  DesktopDialogCloseButton(
-                    onPressedOverride: () =>
-                        confirmCloseNestedNavigatorDialog(context),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RefreshButton(
+                        isRefreshing: isRefreshing,
+                        onPressed: _refresh,
+                      ),
+                      const SizedBox(width: 8),
+                      const DesktopDialogCloseButton(),
+                    ],
                   ),
                 ],
               ),
