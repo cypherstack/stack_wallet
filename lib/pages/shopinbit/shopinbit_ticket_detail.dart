@@ -17,6 +17,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_container.dart';
@@ -633,7 +634,10 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                       style: STextStyles.desktopH3(context),
                     ),
                   ),
-                  const DesktopDialogCloseButton(),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: () =>
+                        confirmCloseNestedNavigatorDialog(context),
+                  ),
                 ],
               ),
               Expanded(

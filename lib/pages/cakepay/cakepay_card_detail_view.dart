@@ -12,6 +12,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
@@ -169,7 +170,10 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                       style: STextStyles.desktopH3(context),
                     ),
                   ),
-                  const DesktopDialogCloseButton(),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: () =>
+                        confirmCloseNestedNavigatorDialog(context),
+                  ),
                 ],
               ),
               Flexible(

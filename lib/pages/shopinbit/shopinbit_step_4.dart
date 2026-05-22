@@ -9,6 +9,7 @@ import "../../widgets/conditional_parent.dart";
 import "../../widgets/custom_buttons/app_bar_icon_button.dart";
 import "../../widgets/desktop/desktop_dialog.dart";
 import "../../widgets/desktop/desktop_dialog_close_button.dart";
+import "../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart";
 import "step_4_components/shopinbit_car_research_form.dart";
 import "step_4_components/shopinbit_concierge_form.dart";
 import "step_4_components/shopinbit_generic_form.dart";
@@ -61,7 +62,10 @@ class _ShopInBitStep4DesktopShell extends StatelessWidget {
                   Text("ShopinBit", style: STextStyles.desktopH3(context)),
                 ],
               ),
-              const DesktopDialogCloseButton(),
+              DesktopDialogCloseButton(
+                onPressedOverride: () =>
+                    confirmCloseNestedNavigatorDialog(context),
+              ),
             ],
           ),
           Expanded(
