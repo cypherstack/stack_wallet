@@ -60,6 +60,15 @@ abstract final class NestedNavigatorDialogRouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
+        if (args is ({ShopInBitOrderModel model, bool isActuallyFirstStep})) {
+          return getRoute(
+            builder: (_) => ShopInBitStep2(
+              model: args.model,
+              isActuallyFirstStep: args.isActuallyFirstStep,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"

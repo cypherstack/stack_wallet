@@ -23,7 +23,6 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/refresh_control.dart';
@@ -874,10 +873,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                         onPressed: () => onRefresh(),
                       ),
                       const SizedBox(width: 8),
-                      DesktopDialogCloseButton(
-                        onPressedOverride: () =>
-                            NestedNavigatorDialog.of(context).close(),
-                      ),
+                      const DesktopDialogCloseButton(),
                     ],
                   ),
                 ],

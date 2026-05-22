@@ -118,7 +118,7 @@ class NestedNavigatorDialogState extends State<NestedNavigatorDialog> {
   @override
   void initState() {
     super.initState();
-    _observer = _CloseOnEmptyObserver(close);
+    _observer = _CloseOnEmptyObserver(() => close(args: const .noWarning()));
     _navigatorKey = widget.navigatorKey ?? GlobalKey<NavigatorState>();
   }
 

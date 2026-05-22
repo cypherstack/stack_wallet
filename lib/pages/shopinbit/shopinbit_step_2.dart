@@ -21,11 +21,16 @@ import 'shopinbit_step_3.dart';
 import 'shopinbit_step_4.dart';
 
 class ShopInBitStep2 extends ConsumerStatefulWidget {
-  const ShopInBitStep2({super.key, required this.model});
+  const ShopInBitStep2({
+    super.key,
+    required this.model,
+    this.isActuallyFirstStep = false,
+  });
 
   static const String routeName = "/shopInBitStep2";
 
   final ShopInBitOrderModel model;
+  final bool isActuallyFirstStep;
 
   @override
   ConsumerState<ShopInBitStep2> createState() => _ShopInBitStep2State();
@@ -78,13 +83,22 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
                 children: [
                   Row(
                     children: [
-                      const AppBarBackButton(isCompact: true, iconSize: 23),
+                      widget.isActuallyFirstStep
+                          ? const SizedBox(width: 32)
+                          : const AppBarBackButton(
+                              isCompact: true,
+                              iconSize: 23,
+                            ),
                       Text("ShopinBit", style: STextStyles.desktopH3(context)),
                     ],
                   ),
                   DesktopDialogCloseButton(
                     onPressedOverride: () =>
-                        NestedNavigatorDialog.of(context).close(),
+                        NestedNavigatorDialog.of(context).close(
+                          args: widget.isActuallyFirstStep
+                              ? const .noWarning()
+                              : const .genericWarning(),
+                        ),
                   ),
                 ],
               ),

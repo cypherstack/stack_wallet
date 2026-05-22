@@ -87,7 +87,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
         barrierDismissible: false,
         builder: (_) => NestedNavigatorDialog(
           initialRoute: ShopInBitStep2.routeName,
-          initialRouteArgs: model,
+          initialRouteArgs: (model: model, isActuallyFirstStep: true),
         ),
       );
 
