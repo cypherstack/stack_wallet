@@ -879,6 +879,12 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+
       - name: Configure app
         run: |
           cd scripts
@@ -959,6 +965,12 @@ jobs:
         with:
           go-version: '1.24.13'
 
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+
       - name: Configure app
         run: |
           cd scripts
@@ -1028,6 +1040,14 @@ jobs:
         with:
           go-version: '1.24.13'
 
+      - name: Install additional Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add aarch64-apple-ios --toolchain 1.89.0
+          rustup target add x86_64-apple-ios --toolchain 1.89.0
+
       - name: Configure app
         run: |
           cd scripts
@@ -1085,7 +1105,9 @@ jobs:
       - name: Stage bundle and icon
         run: |
           tar -xzf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" -C flatpak/
-          cp asset_sources/icon/campfire/icon.png flatpak/com.cypherstack.campfire.png
+          convert -resize 512x512! \
+            asset_sources/icon/campfire/icon.png \
+            flatpak/com.cypherstack.campfire.png
 
       - name: Install Flatpak tools
         run: |
@@ -1317,6 +1339,12 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+
       - name: Configure app
         run: |
           cd scripts
@@ -1397,6 +1425,13 @@ jobs:
         with:
           go-version: '1.24.13'
 
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add aarch64-apple-darwin --toolchain 1.89.0
+
       - name: Configure app
         run: |
           cd scripts
@@ -1465,6 +1500,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24.13'
+
+      - name: Install additional Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add aarch64-apple-ios --toolchain 1.89.0
+          rustup target add x86_64-apple-ios --toolchain 1.89.0
 
       - name: Configure app
         run: |
