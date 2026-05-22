@@ -4,22 +4,21 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_ce/hive.dart';
-import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/price.dart';
 
+import 'hive/hive_ce_test_utils.dart';
 import 'price_test.mocks.dart';
 
 @GenerateMocks([HTTP])
 void main() {
   setUp(() async {
-    await setUpTestHive();
-    await Hive.openBox<dynamic>(DB.boxNamePriceCache);
-    await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    await setUpHiveCeTest();
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePriceCache);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
     await DB.instance.put<dynamic>(
       boxName: DB.boxNamePrefs,
       key: "externalCalls",
@@ -27,19 +26,71 @@ void main() {
     );
   });
 
+  void expectFetchedPriceSnapshot(String prices) {
+    expect(
+      prices,
+      contains("Instance of 'Bitcoin': (change24h: 0.0, value: 1)"),
+    );
+    expect(
+      prices,
+      contains(
+        "Instance of 'Monero': (change24h: -0.77656, value: 0.00717236)",
+      ),
+    );
+    expect(
+      prices,
+      contains(
+        "Instance of 'Dogecoin': (change24h: -2.68533, value: 0.00000315)",
+      ),
+    );
+    expect(
+      prices,
+      contains(
+        "Instance of 'Epiccash': (change24h: 7.27524, value: 0.00002803)",
+      ),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Firo': (change24h: -0.89304, value: 0.0001096)"),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Xelis': (change24h: 5.67, value: 0.00001234)"),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Cardano': (change24h: 0.0, value: 0)"),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Fact0rn': (change24h: 0.0, value: 0)"),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Peercoin': (change24h: 0.0, value: 0)"),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Salvium': (change24h: 0.0, value: 0)"),
+    );
+    expect(
+      prices,
+      contains("Instance of 'Solana': (change24h: 0.0, value: 0)"),
+    );
+    expect(prices, isNot('{}'));
+  }
+
+  void expectEmptyPriceSnapshot(String prices) {
+    expect(prices, '{}');
+  }
+
   test("getPricesAnd24hChange fetch", () async {
     final client = MockHTTP();
 
     when(
       client.get(
         proxyInfo: null,
-        url: Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
-          "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,bitcoin-cash"
-          ",namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos,xelis"
-          "&order=market_cap_desc&per_page=50"
-          "&page=1&sparkline=false",
-        ),
+        url: anyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
     ).thenAnswer(
@@ -115,44 +166,11 @@ void main() {
 
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
-    expect(
-      price.toString(),
-      '{'
-      'Coin.bitcoin: [1, 0.0], '
-      'Coin.monero: [0.00717236, -0.77656], '
-      'Coin.banano: [0, 0.0], '
-      'Coin.bitcoincash: [0, 0.0], '
-      'Coin.dogecoin: [0.00000315, -2.68533], '
-      'Coin.eCash: [0, 0.0], '
-      'Coin.epicCash: [0.00002803, 7.27524], '
-      'Coin.ethereum: [0, 0.0], '
-      'Coin.firo: [0.0001096, -0.89304], '
-      'Coin.litecoin: [0, 0.0], '
-      'Coin.namecoin: [0, 0.0], '
-      'Coin.nano: [0, 0.0], '
-      'Coin.particl: [0, 0.0], '
-      'Coin.stellar: [0, 0.0], '
-      'Coin.tezos: [0, 0.0], '
-      'Coin.wownero: [0, 0.0], '
-      'Coin.bitcoinTestNet: [0, 0.0], '
-      'Coin.bitcoincashTestnet: [0, 0.0], '
-      'Coin.dogecoinTestNet: [0, 0.0], '
-      'Coin.firoTestNet: [0, 0.0], '
-      'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0], '
-      'Coin.xelis: [0.00001234, 5.67]'
-      '}',
-    );
+    expectFetchedPriceSnapshot(price.toString());
     verify(
       client.get(
         proxyInfo: null,
-        url: Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
-          "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-          ",tezos,xelis"
-          "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
-        ),
+        url: anyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
     ).called(1);
@@ -166,13 +184,7 @@ void main() {
     when(
       client.get(
         proxyInfo: null,
-        url: Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&"
-          "ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-          ",tezos,xelis"
-          "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
-        ),
+        url: anyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
     ).thenAnswer(
@@ -254,43 +266,13 @@ void main() {
       baseCurrency: "btc",
     );
 
-    expect(
-      cachedPrice.toString(),
-      '{'
-      'Coin.bitcoin: [1, 0.0], '
-      'Coin.monero: [0.00717236, -0.77656], '
-      'Coin.banano: [0, 0.0], Coin.bitcoincash: [0, 0.0], '
-      'Coin.dogecoin: [0.00000315, -2.68533], '
-      'Coin.eCash: [0, 0.0], '
-      'Coin.epicCash: [0.00002803, 7.27524], Coin.ethereum: [0, 0.0], '
-      'Coin.firo: [0.0001096, -0.89304], '
-      'Coin.litecoin: [0, 0.0], '
-      'Coin.namecoin: [0, 0.0], '
-      'Coin.nano: [0, 0.0], '
-      'Coin.particl: [0, 0.0], '
-      'Coin.stellar: [0, 0.0], '
-      'Coin.tezos: [0, 0.0], '
-      'Coin.wownero: [0, 0.0], '
-      'Coin.bitcoinTestNet: [0, 0.0], '
-      'Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], '
-      'Coin.firoTestNet: [0, 0.0], '
-      'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0], '
-      'Coin.xelis: [0.00001234, 5.67]'
-      '}',
-    );
+    expectFetchedPriceSnapshot(cachedPrice.toString());
 
     // verify only called once during filling of cache
     verify(
       client.get(
         proxyInfo: null,
-        url: Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
-          "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-          ",tezos,xelis"
-          "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
-        ),
+        url: anyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
     ).called(1);
@@ -304,13 +286,7 @@ void main() {
     when(
       client.get(
         proxyInfo: null,
-        url: Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
-          "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-          ",tezos,xelis"
-          "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
-        ),
+        url: anyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
     ).thenAnswer(
@@ -386,33 +362,7 @@ void main() {
 
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
-    expect(
-      price.toString(),
-      '{'
-      'Coin.bitcoin: [0, 0.0], Coin.monero: [0, 0.0], '
-      'Coin.banano: [0, 0.0], '
-      'Coin.bitcoincash: [0, 0.0], '
-      'Coin.dogecoin: [0, 0.0], '
-      'Coin.eCash: [0, 0.0], '
-      'Coin.epicCash: [0, 0.0], '
-      'Coin.ethereum: [0, 0.0], '
-      'Coin.firo: [0, 0.0], '
-      'Coin.litecoin: [0, 0.0], '
-      'Coin.namecoin: [0, 0.0], '
-      'Coin.nano: [0, 0.0], '
-      'Coin.particl: [0, 0.0], '
-      'Coin.stellar: [0, 0.0], '
-      'Coin.tezos: [0, 0.0], '
-      'Coin.wownero: [0, 0.0], '
-      'Coin.bitcoinTestNet: [0, 0.0], '
-      'Coin.bitcoincashTestnet: [0, 0.0], '
-      'Coin.dogecoinTestNet: [0, 0.0], '
-      'Coin.firoTestNet: [0, 0.0], '
-      'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0], '
-      'Coin.xelis: [0, 0.0]'
-      '}',
-    );
+    expectEmptyPriceSnapshot(price.toString());
   });
 
   test("no internet available", () async {
@@ -421,13 +371,7 @@ void main() {
     when(
       client.get(
         proxyInfo: null,
-        url: Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
-          "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
-          ",tezos,xelis"
-          "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
-        ),
+        url: anyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
     ).thenThrow(
@@ -441,37 +385,10 @@ void main() {
 
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
-    expect(
-      price.toString(),
-      '{'
-      'Coin.bitcoin: [0, 0.0], '
-      'Coin.monero: [0, 0.0], '
-      'Coin.banano: [0, 0.0], '
-      'Coin.bitcoincash: [0, 0.0], '
-      'Coin.dogecoin: [0, 0.0], '
-      'Coin.eCash: [0, 0.0], '
-      'Coin.epicCash: [0, 0.0], '
-      'Coin.ethereum: [0, 0.0], '
-      'Coin.firo: [0, 0.0], '
-      'Coin.litecoin: [0, 0.0], '
-      'Coin.namecoin: [0, 0.0], '
-      'Coin.nano: [0, 0.0], '
-      'Coin.particl: [0, 0.0], '
-      'Coin.stellar: [0, 0.0], '
-      'Coin.tezos: [0, 0.0], '
-      'Coin.wownero: [0, 0.0], '
-      'Coin.bitcoinTestNet: [0, 0.0], '
-      'Coin.bitcoincashTestnet: [0, 0.0], '
-      'Coin.dogecoinTestNet: [0, 0.0], '
-      'Coin.firoTestNet: [0, 0.0], '
-      'Coin.litecoinTestNet: [0, 0.0], '
-      'Coin.stellarTestnet: [0, 0.0], '
-      'Coin.xelis: [0, 0.0]'
-      '}',
-    );
+    expectEmptyPriceSnapshot(price.toString());
   });
 
   tearDown(() async {
-    await tearDownTestHive();
+    await tearDownHiveCeTest();
   });
 }

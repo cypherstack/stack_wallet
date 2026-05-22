@@ -11,11 +11,12 @@ import 'package:logger/logger.dart' as _i16;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i14;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
+import 'package:stackwallet/models/epicbox_server_model.dart' as _i20;
 import 'package:stackwallet/models/node_model.dart' as _i19;
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart'
-    as _i21;
+    as _i22;
 import 'package:stackwallet/services/node_service.dart' as _i2;
-import 'package:stackwallet/services/tor_service.dart' as _i20;
+import 'package:stackwallet/services/tor_service.dart' as _i21;
 import 'package:stackwallet/services/wallets.dart' as _i9;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i17;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i15;
@@ -968,6 +969,64 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           as _i10.Future<void>);
 
   @override
+  _i10.Future<void> updateDefaultEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaultEpicBoxes, []),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
+
+  @override
+  _i10.Future<void> setPrimaryEpicBox({
+    required _i20.EpicBoxServerModel? epicBox,
+    bool? shouldNotifyListeners = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryEpicBox, [], {
+              #epicBox: epicBox,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
+
+  @override
+  List<_i20.EpicBoxServerModel> getEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#getEpicBoxes, []),
+            returnValue: <_i20.EpicBoxServerModel>[],
+          )
+          as List<_i20.EpicBoxServerModel>);
+
+  @override
+  _i20.EpicBoxServerModel? getEpicBoxById({required String? id}) =>
+      (super.noSuchMethod(Invocation.method(#getEpicBoxById, [], {#id: id}))
+          as _i20.EpicBoxServerModel?);
+
+  @override
+  _i10.Future<void> addEpicBox(
+    _i20.EpicBoxServerModel? epicBox,
+    bool? shouldNotifyListeners,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
+
+  @override
+  _i10.Future<void> deleteEpicBox(String? id, bool? shouldNotifyListeners) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
+
+  @override
   _i10.Future<void> updateCommunityNodes() =>
       (super.noSuchMethod(
             Invocation.method(#updateCommunityNodes, []),
@@ -1004,18 +1063,18 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
 /// A class which mocks [TorService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTorService extends _i1.Mock implements _i20.TorService {
+class MockTorService extends _i1.Mock implements _i21.TorService {
   MockTorService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i21.TorConnectionStatus get status =>
+  _i22.TorConnectionStatus get status =>
       (super.noSuchMethod(
             Invocation.getter(#status),
-            returnValue: _i21.TorConnectionStatus.disconnected,
+            returnValue: _i22.TorConnectionStatus.disconnected,
           )
-          as _i21.TorConnectionStatus);
+          as _i22.TorConnectionStatus);
 
   @override
   ({_i8.InternetAddress host, int port}) getProxyInfo() =>

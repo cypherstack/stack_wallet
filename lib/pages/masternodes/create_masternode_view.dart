@@ -14,12 +14,18 @@ class CreateMasternodeView extends ConsumerStatefulWidget {
   const CreateMasternodeView({
     super.key,
     required this.firoWalletId,
+    required this.collateralTxid,
+    required this.collateralVout,
+    required this.collateralAddress,
     this.popTxidOnSuccess = true,
   });
 
   static const routeName = "/createMasternodeView";
 
   final String firoWalletId;
+  final String collateralTxid;
+  final int collateralVout;
+  final String collateralAddress;
   final bool popTxidOnSuccess;
 
   @override
@@ -107,6 +113,9 @@ class _CreateMasternodeDialogState extends ConsumerState<CreateMasternodeView> {
         ),
         child: RegisterMasternodeForm(
           firoWalletId: widget.firoWalletId,
+          collateralTxid: widget.collateralTxid,
+          collateralVout: widget.collateralVout,
+          collateralAddress: widget.collateralAddress,
           onRegistrationSuccess: (txid) {
             if (widget.popTxidOnSuccess && mounted) {
               Navigator.of(context, rootNavigator: Util.isDesktop).pop(txid);

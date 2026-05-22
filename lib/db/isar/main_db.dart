@@ -80,6 +80,7 @@ class MainDB {
       name: "wallet_data",
       maxSizeMiB: Platform.isWindows ? 1024 : 512,
     );
+
     return true;
   }
 

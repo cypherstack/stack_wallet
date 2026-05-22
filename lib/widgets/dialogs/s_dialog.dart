@@ -29,30 +29,26 @@ class SDialog extends StatelessWidget {
     return Padding(
       padding: margin ?? EdgeInsets.all(Util.isDesktop ? 32 : 16),
       child: Column(
-        mainAxisAlignment: mainAxisAlignment ??
+        mainAxisAlignment:
+            mainAxisAlignment ??
             (Util.isDesktop ? MainAxisAlignment.center : MainAxisAlignment.end),
         crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
+        mainAxisSize: .min,
         children: [
           Flexible(
             child: Material(
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: background ??
+                  color:
+                      background ??
                       Theme.of(context).extension<StackColors>()!.popupBG,
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: ConditionalParent(
                   condition: contentCanScroll,
-                  builder: (child) => SingleChildScrollView(
-                    child: child,
-                  ),
-                  child: Padding(
-                    padding: padding,
-                    child: child,
-                  ),
+                  builder: (child) => SingleChildScrollView(child: child),
+                  child: Padding(padding: padding, child: child),
                 ),
               ),
             ),
