@@ -5,12 +5,12 @@ import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../providers/providers.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_privacy_checkbox.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit.dart";
 import "shopinbit_step4_submit_button.dart";
-import "shopinbit_step4_text_field.dart";
 
 /// Fallback Step 4 form used when no category was selected. Collects a free
 /// text description and a delivery country.
@@ -90,13 +90,15 @@ class _ShopInBitGenericFormState extends ConsumerState<ShopInBitGenericForm> {
           subtitle: "Provide details about your trip.",
         ),
         SizedBox(height: isDesktop ? 32 : 24),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _descriptionController,
           focusNode: _descriptionFocusNode,
-          hintText:
+          labelText:
               "Describe your travel request (destinations, dates, passengers)",
           minLines: 3,
           maxLines: 6,
+          autocorrect: false,
+          enableSuggestions: false,
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: isDesktop ? 24 : 16),

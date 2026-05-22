@@ -18,7 +18,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfields/adaptive_text_field.dart';
 import 'shopinbit_payment_view.dart';
 
 class ShopInBitShippingView extends ConsumerStatefulWidget {
@@ -252,45 +252,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     }
   }
 
-  Widget _buildField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String label,
-    required bool isDesktop,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        autocorrect: false,
-        enableSuggestions: false,
-        onChanged: (_) => setState(() {}),
-        style: isDesktop
-            ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-                height: 1.8,
-              )
-            : STextStyles.field(context),
-        decoration:
-            standardInputDecoration(
-              label,
-              focusNode,
-              context,
-              desktopMed: isDesktop,
-            ).copyWith(
-              filled: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -313,37 +274,45 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
               : STextStyles.itemSubtitle(context),
         ),
         SizedBox(height: isDesktop ? 32 : 24),
-        _buildField(
+        AdaptiveTextField(
           controller: _nameController,
           focusNode: _nameFocusNode,
-          label: "Full name",
-          isDesktop: isDesktop,
+          labelText: "Full name",
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
         ),
         spacing,
-        _buildField(
+        AdaptiveTextField(
           controller: _streetController,
           focusNode: _streetFocusNode,
-          label: "Street address",
-          isDesktop: isDesktop,
+          labelText: "Street address",
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
         ),
         spacing,
         Row(
           children: [
             Expanded(
-              child: _buildField(
+              child: AdaptiveTextField(
                 controller: _cityController,
                 focusNode: _cityFocusNode,
-                label: "City",
-                isDesktop: isDesktop,
+                labelText: "City",
+                autocorrect: false,
+                enableSuggestions: false,
+                onChanged: (_) => setState(() {}),
               ),
             ),
             SizedBox(width: isDesktop ? 16 : 12),
             Expanded(
-              child: _buildField(
+              child: AdaptiveTextField(
                 controller: _postalCodeController,
                 focusNode: _postalCodeFocusNode,
-                label: "Postal code",
-                isDesktop: isDesktop,
+                labelText: "Postal code",
+                autocorrect: false,
+                enableSuggestions: false,
+                onChanged: (_) => setState(() {}),
               ),
             ),
           ],
@@ -523,37 +492,45 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                 : STextStyles.titleBold12(context),
           ),
           spacing,
-          _buildField(
+          AdaptiveTextField(
             controller: _billingNameController,
             focusNode: _billingNameFocusNode,
-            label: "Full name",
-            isDesktop: isDesktop,
+            labelText: "Full name",
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
           ),
           spacing,
-          _buildField(
+          AdaptiveTextField(
             controller: _billingStreetController,
             focusNode: _billingStreetFocusNode,
-            label: "Street address",
-            isDesktop: isDesktop,
+            labelText: "Street address",
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
           ),
           spacing,
           Row(
             children: [
               Expanded(
-                child: _buildField(
+                child: AdaptiveTextField(
                   controller: _billingCityController,
                   focusNode: _billingCityFocusNode,
-                  label: "City",
-                  isDesktop: isDesktop,
+                  labelText: "City",
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
               SizedBox(width: isDesktop ? 16 : 12),
               Expanded(
-                child: _buildField(
+                child: AdaptiveTextField(
                   controller: _billingPostalCodeController,
                   focusNode: _billingPostalCodeFocusNode,
-                  label: "Postal code",
-                  isDesktop: isDesktop,
+                  labelText: "Postal code",
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
             ],

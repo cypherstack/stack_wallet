@@ -10,6 +10,7 @@ import "../../../themes/stack_colors.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/rounded_white_container.dart";
+import "../../../widgets/textfields/adaptive_text_field.dart";
 import "../shopinbit_car_fee_view.dart";
 import "../shopinbit_tickets_view.dart";
 import "shopinbit_country_picker.dart";
@@ -18,7 +19,6 @@ import "shopinbit_privacy_checkbox.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit_button.dart";
-import "shopinbit_step4_text_field.dart";
 
 const List<String> _carConditions = ["NEW", "PREOWNED"];
 
@@ -231,18 +231,22 @@ class _ShopInBitCarResearchFormState
           onChanged: (iso) => setState(() => _selectedCountryIso = iso),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _brandController,
           focusNode: _brandFocusNode,
-          hintText: "Car brand (e.g., BMW, Mercedes, Toyota...)",
+          labelText: "Car brand (e.g., BMW, Mercedes, Toyota...)",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: brandError,
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _modelController,
           focusNode: _modelFocusNode,
-          hintText: "Car model (e.g., 3 Series, E-Class, Camry...)",
+          labelText: "Car model (e.g., 3 Series, E-Class, Camry...)",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: modelError,
           onChanged: (_) => setState(() {}),
         ),
@@ -254,25 +258,29 @@ class _ShopInBitCarResearchFormState
           onChanged: (value) => setState(() => _selectedCarCondition = value),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _carDescriptionController,
           focusNode: _carDescriptionFocusNode,
-          hintText:
+          labelText:
               "Describe your requirements "
               "(year, mileage, features...)",
           minLines: 3,
           maxLines: 6,
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: carDescriptionError,
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _carBudgetController,
           focusNode: _carBudgetFocusNode,
-          hintText: "Budget (\u20AC, minimum 20,000)",
+          labelText: "Budget (\u20AC, minimum 20,000)",
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           suffixText: "\u20AC",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: carBudgetError,
           onChanged: (_) => setState(() {}),
         ),

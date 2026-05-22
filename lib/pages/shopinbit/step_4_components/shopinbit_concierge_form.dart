@@ -6,6 +6,7 @@ import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../providers/db/drift_provider.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
@@ -13,7 +14,6 @@ import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit.dart";
 import "shopinbit_step4_submit_button.dart";
-import "shopinbit_step4_text_field.dart";
 
 const List<String> _conciergeConditions = ["NEW", "USED"];
 
@@ -143,14 +143,16 @@ class _ShopInBitConciergeFormState
               "for you.",
         ),
         SizedBox(height: isDesktop ? 16 : 12),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _whatToPurchaseController,
           focusNode: _whatToPurchaseFocusNode,
-          hintText:
+          labelText:
               "Describe what you'd like to purchase "
               "(e.g., electronics, luxury goods, services...)",
           minLines: 3,
           maxLines: 6,
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: whatToPurchaseError,
           onChanged: (_) => setState(() {}),
         ),
@@ -162,14 +164,16 @@ class _ShopInBitConciergeFormState
           onChanged: (value) => setState(() => _selectedCondition = value),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _budgetController,
           focusNode: _budgetFocusNode,
-          hintText: "Budget (\u20AC)",
+          labelText: "Budget (\u20AC)",
           enabled: !_noLimit,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           suffixText: "\u20AC",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: budgetError,
           onChanged: (_) => setState(() {}),
         ),
