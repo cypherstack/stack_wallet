@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
 import "../../../themes/stack_colors.dart";
+import "../../../utilities/constants.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/stack_text_field.dart";
@@ -53,37 +54,40 @@ class ShopInBitStep4TextField extends StatelessWidget {
           )
         : STextStyles.field(context);
 
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      autocorrect: false,
-      enableSuggestions: false,
-      enabled: enabled,
-      readOnly: readOnly,
-      onTap: onTap,
-      minLines: minLines,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      onChanged: onChanged,
-      style: style,
-      decoration:
-          standardInputDecoration(
-            hintText,
-            focusNode,
-            context,
-            desktopMed: Util.isDesktop,
-          ).copyWith(
-            filled: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        autocorrect: false,
+        enableSuggestions: false,
+        enabled: enabled,
+        readOnly: readOnly,
+        onTap: onTap,
+        minLines: minLines,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        onChanged: onChanged,
+        style: style,
+        decoration:
+            standardInputDecoration(
+              hintText,
+              focusNode,
+              context,
+              desktopMed: Util.isDesktop,
+            ).copyWith(
+              filled: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              errorText: errorText,
+              suffixText: suffixText,
+              suffixIcon: suffixIcon,
+              labelText: labelText,
             ),
-            errorText: errorText,
-            suffixText: suffixText,
-            suffixIcon: suffixIcon,
-            labelText: labelText,
-          ),
+      ),
     );
   }
 }

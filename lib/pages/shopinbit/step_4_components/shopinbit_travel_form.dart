@@ -353,7 +353,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           hintText: "Arrangement type",
           onChanged: (value) => setState(() => _selectedArrangement = value),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
         ShopInBitStep4TextField(
           controller: _arrangementDetailsController,
           focusNode: _arrangementDetailsFocusNode,
@@ -375,7 +375,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
               setState(() => _selectedDepartureCountryIso = iso),
           hintText: "Departure country",
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
         ShopInBitStep4TextField(
           controller: _departureCityController,
           focusNode: _departureCityFocusNode,
@@ -383,11 +383,11 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           errorText: departureCityError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
         ShopInBitStep4TextField(
           controller: _destinationsController,
           focusNode: _destinationsFocusNode,
-          hintText: "e.g. Paris, France; Rome, Italy",
+          hintText: "Destination city",
           enabled: !_needsRecommendations,
           errorText: destinationsError,
           onChanged: (_) => setState(() {}),
@@ -408,7 +408,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           hintText: "Date mode",
           onChanged: (value) => setState(() => _selectedDateMode = value),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
 
         if (_selectedDateMode == _exactDates) ...[
           ShopInBitStep4TextField(
@@ -424,7 +424,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             suffixIcon: const Icon(Icons.calendar_today, size: 18),
             errorText: departureDateError,
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
+          SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4TextField(
             controller: _returnDateController,
             focusNode: _returnDateFocusNode,
@@ -438,7 +438,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             suffixIcon: const Icon(Icons.calendar_today, size: 18),
             errorText: returnDateError,
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
+          SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4Dropdown(
             value: _selectedFlexibility,
             items: _flexibilities,
@@ -454,14 +454,14 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             hintText: "Year",
             onChanged: (value) => setState(() => _selectedYear = value),
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
+          SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4Dropdown(
             value: _selectedMonthSeason,
             items: _months,
             hintText: "Month or season",
             onChanged: (value) => setState(() => _selectedMonthSeason = value),
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
+          SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4TextField(
             controller: _tripLengthController,
             focusNode: _tripLengthFocusNode,
