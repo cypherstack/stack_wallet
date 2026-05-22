@@ -398,7 +398,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           errorText: destinationsError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 12 : 8),
+        SizedBox(height: isDesktop ? 16 : 12),
         ShopInBitLabeledCheckbox(
           value: _needsRecommendations,
           onChanged: (v) => setState(() => _needsRecommendations = v),
@@ -531,12 +531,12 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
         // Travel doesn't collect delivery country: destinations are in the
         // form and the API field is set to "DE" on submit.
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 32 : 20),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,

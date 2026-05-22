@@ -3,10 +3,12 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_svg/flutter_svg.dart";
 
 import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../providers/db/drift_provider.dart";
 import "../../../themes/stack_colors.dart";
+import "../../../utilities/assets.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/rounded_white_container.dart";
@@ -292,12 +294,12 @@ class _ShopInBitCarResearchFormState
           onChanged: (v) => setState(() => _feeAcknowledged = v),
           label: "I acknowledge the \u20AC223 research fee",
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 32 : 20),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,
@@ -321,15 +323,22 @@ class _CarResearchFeeInfo extends StatelessWidget {
         : STextStyles.w500_14(context);
 
     return RoundedWhiteContainer(
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 20,
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconLeft,
+          SvgPicture.asset(
+            Assets.svg.circleInfo,
+            width: 20,
+            height: 20,
+            colorFilter: ColorFilter.mode(
+              Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconLeft,
+              .srcIn,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

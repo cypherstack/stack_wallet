@@ -3,9 +3,6 @@ import "package:flutter/material.dart";
 
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
-import "../../../widgets/desktop/desktop_dialog.dart";
-import "../../../widgets/desktop/primary_button.dart";
-import "../../../widgets/desktop/secondary_button.dart";
 import "../../../widgets/dialogs/request_external_link_navigation_dialog.dart";
 
 const String _shopInBitPrivacyUrl =
@@ -74,49 +71,6 @@ class ShopInBitPrivacyCheckbox extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DesktopBrowserWarning extends StatelessWidget {
-  const _DesktopBrowserWarning({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return DesktopDialog(
-      maxWidth: 550,
-      maxHeight: 250,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-        child: Column(
-          children: [
-            Text("Attention", style: STextStyles.desktopH2(context)),
-            const SizedBox(height: 16),
-            Text(message, style: STextStyles.desktopTextSmall(context)),
-            const SizedBox(height: 35),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SecondaryButton(
-                  width: 200,
-                  buttonHeight: ButtonHeight.l,
-                  label: "Cancel",
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
-                const SizedBox(width: 20),
-                PrimaryButton(
-                  width: 200,
-                  buttonHeight: ButtonHeight.l,
-                  label: "Continue",
-                  onPressed: () => Navigator.of(context).pop(true),
-                ),
-              ],
             ),
           ],
         ),

@@ -183,17 +183,17 @@ class _ShopInBitConciergeFormState
           onChanged: (v) => setState(() => _noLimit = v),
           label: "No budget limit",
         ),
-        SizedBox(height: isDesktop ? 12 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
         ShopInBitCountryPicker(
           selectedIso: _selectedCountryIso,
           onChanged: (iso) => setState(() => _selectedCountryIso = iso),
         ),
-        SizedBox(height: isDesktop ? 12 : 12),
+        SizedBox(height: isDesktop ? 16 : 12),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 32 : 20),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,
