@@ -484,9 +484,75 @@ jobs:
           name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}
           path: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
+  build-flatpak:
+    runs-on: ubuntu-24.04
+    needs: build-linux
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
+
+      - name: Stage bundle and icon
+        run: |
+          tar -xzf "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" -C flatpak/
+          cp asset_sources/icon/stack_wallet/icon.png flatpak/com.cypherstack.stackwallet.png
+
+      - name: Install Flatpak tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Set up Flathub remote
+        run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Cache Flatpak SDK
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/flatpak
+          key: flatpak-freedesktop-24.08-v1
+
+      - name: Install Flatpak SDK
+        run: |
+          flatpak install --user --noninteractive flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --force-clean \
+            --repo=flatpak-repo \
+            build-flatpak flatpak/com.cypherstack.stackwallet.yaml
+
+      - name: Bundle Flatpak
+        run: |
+          flatpak build-bundle flatpak-repo \
+            "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
+            com.cypherstack.stackwallet
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}
+          path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak
+
   release:
     if: github.ref_type == 'tag'
-    needs: [build-linux, build-android, build-windows, build-macos, build-ios]
+    needs: [build-linux, build-android, build-windows, build-macos, build-ios, build-flatpak]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -503,7 +569,7 @@ jobs:
             name=$(basename "$dir")
             (cd "$dir" && zip -r "../../release-files/${name}.zip" .)
           done
-          find artifacts/ \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" \) -mindepth 2 -exec mv {} release-files/ \;
+          find artifacts/ \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" -o -name "*.flatpak" \) -mindepth 2 -exec mv {} release-files/ \;
           find artifacts/ -name "*.apk" -mindepth 2 -exec mv {} release-files/ \;
 
       - uses: softprops/action-gh-release@v2
