@@ -172,7 +172,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
                   ),
                   DesktopDialogCloseButton(
                     onPressedOverride: () =>
-                        confirmCloseNestedNavigatorDialog(context),
+                        NestedNavigatorDialog.of(context).close(),
                   ),
                 ],
               ),

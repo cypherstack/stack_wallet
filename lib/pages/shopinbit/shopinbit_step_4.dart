@@ -65,7 +65,7 @@ class _ShopInBitStep4DesktopShell extends StatelessWidget {
                 ),
                 DesktopDialogCloseButton(
                   onPressedOverride: () =>
-                      confirmCloseNestedNavigatorDialog(context),
+                      NestedNavigatorDialog.of(context).close(),
                 ),
               ],
             ),

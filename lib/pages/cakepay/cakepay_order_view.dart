@@ -876,7 +876,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                       const SizedBox(width: 8),
                       DesktopDialogCloseButton(
                         onPressedOverride: () =>
-                            confirmCloseNestedNavigatorDialog(context),
+                            NestedNavigatorDialog.of(context).close(),
                       ),
                     ],
                   ),

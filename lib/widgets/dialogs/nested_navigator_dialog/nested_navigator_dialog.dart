@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../utilities/text_styles.dart';
-import '../../desktop/desktop_dialog.dart';
+import '../../../utilities/util.dart';
 import '../../desktop/primary_button.dart';
 import '../../desktop/secondary_button.dart';
+import '../s_dialog.dart';
 import 'nested_navigator_dialog_route_generator.dart';
 
 class NestedNavigatorDialog extends StatefulWidget {
@@ -42,9 +43,76 @@ class NestedNavigatorDialogState extends State<NestedNavigatorDialog> {
 
   NavigatorState? _parentNavigator;
 
-  /// Closes the whole dialog (not just the current step).
-  void close() {
-    if (mounted) _parentNavigator?.pop();
+  Future<void> close({
+    NestedNavigatorDialogCloseArgs args = const .genericWarning(),
+  }) async {
+    if (!mounted) return;
+
+    final bool proceed = switch (args) {
+      _NoWarning() => true,
+      _GenericWarning() => await _showGenericWarning(),
+      _CustomWarning(:final shouldClose) => await shouldClose(),
+    };
+
+    if (proceed && mounted) _parentNavigator?.pop();
+  }
+
+  Future<bool> _showGenericWarning() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (context) {
+        assert(Util.isDesktop, "");
+
+        return SDialog(
+          padding: const .all(32),
+          child: SizedBox(
+            width: 500,
+            child: Column(
+              crossAxisAlignment: .start,
+              mainAxisSize: .min,
+              children: [
+                Text("Discard changes?", style: STextStyles.desktopH3(context)),
+                const SizedBox(height: 16),
+                Text(
+                  "Are you sure you want to close?",
+                  style: STextStyles.desktopTextSmall(context),
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        label: "Cancel",
+                        buttonHeight: ButtonHeight.l,
+                        onPressed: () => Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).pop(false),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: PrimaryButton(
+                        label: "Discard",
+                        buttonHeight: ButtonHeight.l,
+                        onPressed: () => Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).pop(true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    return confirmed ?? false;
   }
 
   @override
@@ -111,50 +179,26 @@ class _CloseOnEmptyObserver extends NavigatorObserver {
   }
 }
 
-/// Warns before closing the whole dialog. Wire this to the X on subsequent
-/// (non-root) steps so close does not silently act like back.
-Future<void> confirmCloseNestedNavigatorDialog(BuildContext context) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => DesktopDialog(
-      maxWidth: 450,
-      maxHeight: 210,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Close?", style: STextStyles.desktopH3(ctx)),
-            const SizedBox(height: 12),
-            Text(
-              "Are you sure you want to close?",
-              style: STextStyles.desktopTextMedium(ctx),
-            ),
-            const Spacer(),
-            Row(
-              children: [
-                Expanded(
-                  child: SecondaryButton(
-                    label: "Cancel",
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: PrimaryButton(
-                    label: "Close",
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-  if (!context.mounted) return;
-  if (confirmed == true) {
-    NestedNavigatorDialog.of(context).close();
-  }
+sealed class NestedNavigatorDialogCloseArgs {
+  const NestedNavigatorDialogCloseArgs();
+
+  const factory NestedNavigatorDialogCloseArgs.noWarning() = _NoWarning;
+  const factory NestedNavigatorDialogCloseArgs.genericWarning() =
+      _GenericWarning;
+  const factory NestedNavigatorDialogCloseArgs.customWarning(
+    Future<bool> Function() shouldClose,
+  ) = _CustomWarning;
+}
+
+class _NoWarning extends NestedNavigatorDialogCloseArgs {
+  const _NoWarning();
+}
+
+class _GenericWarning extends NestedNavigatorDialogCloseArgs {
+  const _GenericWarning();
+}
+
+class _CustomWarning extends NestedNavigatorDialogCloseArgs {
+  const _CustomWarning(this.shouldClose);
+  final Future<bool> Function() shouldClose;
 }

@@ -170,7 +170,7 @@ class _ShopInBitStep3State extends ConsumerState<ShopInBitStep3> {
                 ),
                 DesktopDialogCloseButton(
                   onPressedOverride: () =>
-                      confirmCloseNestedNavigatorDialog(context),
+                      NestedNavigatorDialog.of(context).close(),
                 ),
               ],
             ),
