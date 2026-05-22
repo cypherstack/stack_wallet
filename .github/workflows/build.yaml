@@ -542,6 +542,7 @@ jobs:
       - name: Bundle Flatpak
         run: |
           flatpak build-bundle flatpak-repo \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
             "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
             com.cypherstack.stackwallet
 
