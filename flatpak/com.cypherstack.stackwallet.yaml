@@ -10,6 +10,7 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
+  - --filesystem=~/.stackwallet
   - --talk-name=org.freedesktop.secrets
   - --talk-name=org.freedesktop.Notifications
 
