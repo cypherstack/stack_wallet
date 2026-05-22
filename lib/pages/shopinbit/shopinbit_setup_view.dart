@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/db/drift_provider.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfields/adaptive_text_field.dart';
 import 'shopinbit_step_2.dart';
 
-class ShopInBitSetupView extends StatefulWidget {
+class ShopInBitSetupView extends ConsumerStatefulWidget {
   const ShopInBitSetupView({super.key, required this.model});
 
   static const String routeName = "/shopInBitSetup";
@@ -22,44 +23,49 @@ class ShopInBitSetupView extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitSetupView> createState() => _ShopInBitSetupViewState();
+  ConsumerState<ShopInBitSetupView> createState() => _ShopInBitSetupViewState();
 }
 
-class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
+class _ShopInBitSetupViewState extends ConsumerState<ShopInBitSetupView> {
   late final Future<String> _keyFuture;
-  late final TextEditingController _nameController;
-  late final FocusNode _nameFocusNode;
+  final TextEditingController _nameController = TextEditingController();
 
   bool get _canContinue => _nameController.text.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _keyFuture = ShopInBitService.instance.ensureCustomerKey();
-    final existingName = ShopInBitService.instance.loadDisplayName();
-    _nameController = TextEditingController(text: existingName ?? '');
-    _nameFocusNode = FocusNode();
+    _keyFuture = ref.read(pShopinBitService).ensureCustomerKey();
 
-    _nameFocusNode.addListener(() {
-      setState(() {});
-    });
+    // not the greatest solution but its the least invasive with the current
+    // ui code impl
+    () async {
+      final settings = await ref
+          .read(pSharedDrift)
+          .shopinBitSettingsDao
+          .getSettings();
+      if (mounted) {
+        setState(() {
+          _nameController.text = settings.displayName ?? "";
+        });
+      }
+    }();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _nameFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _completeSetup() async {
     final name = _nameController.text.trim();
     widget.model.displayName = name;
-    await ShopInBitService.instance.setDisplayName(name);
-    await ShopInBitService.instance.setSetupComplete(true);
+    await ref.read(pSharedDrift).shopinBitSettingsDao.setDisplayName(name);
+    await ref.read(pSharedDrift).shopinBitSettingsDao.setSetupComplete(true);
 
     if (mounted) {
-      Navigator.of(
+      await Navigator.of(
         context,
       ).pushReplacementNamed(ShopInBitStep2.routeName, arguments: widget.model);
     }
@@ -158,30 +164,12 @@ class _ShopInBitSetupViewState extends State<ShopInBitSetupView> {
                             style: STextStyles.smallMed12(context),
                           ),
                           const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                            child: TextField(
-                              controller: _nameController,
-                              focusNode: _nameFocusNode,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              onChanged: (_) => setState(() {}),
-                              style: STextStyles.field(context),
-                              decoration:
-                                  standardInputDecoration(
-                                    "Display name",
-                                    _nameFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    filled: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                            ),
+                          AdaptiveTextField(
+                            labelText: "Display name",
+                            controller: _nameController,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            onChangedComprehensive: (_) => setState(() {}),
                           ),
                           const Spacer(),
                           PrimaryButton(

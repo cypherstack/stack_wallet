@@ -1,19 +1,18 @@
+import 'package:drift/drift.dart' show TableOrViewStatements;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
-import '../../../db/isar/main_db.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
-import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
+import '../../../providers/db/drift_provider.dart';
 import '../../../providers/desktop/current_desktop_menu_item.dart';
-import '../../../services/shopinbit/shopinbit_service.dart';
+import '../../../providers/global/shopin_bit_service_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -21,11 +20,14 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
+import '../../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/textfields/adaptive_text_field.dart';
 import '../../desktop_menu.dart';
 import '../../settings/settings_menu.dart';
+import 'sub_widgets/desktop_shopin_bit_first_run.dart';
 
 class DesktopShopInBitView extends ConsumerStatefulWidget {
   const DesktopShopInBitView({super.key});
@@ -38,63 +40,16 @@ class DesktopShopInBitView extends ConsumerStatefulWidget {
 }
 
 class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
-  Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    final shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => DesktopDialog(
-        maxWidth: 550,
-        maxHeight: 250,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          child: Column(
-            children: [
-              Text("Attention", style: STextStyles.desktopH2(context)),
-              const SizedBox(height: 16),
-              Text(
-                "You are about to open "
-                "${uri.scheme}://${uri.host} "
-                "in your browser.",
-                style: STextStyles.desktopTextSmall(context),
-              ),
-              const SizedBox(height: 35),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SecondaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true).pop(false);
-                    },
-                  ),
-                  const SizedBox(width: 20),
-                  PrimaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Continue",
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true).pop(true);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    return shouldContinue ?? false;
-  }
-
-  void _showShopDialog(BuildContext context) async {
-    final service = ShopInBitService.instance;
+  Future<void> _showShopDialog() async {
+    final dao = ref.read(pSharedDrift).shopinBitSettingsDao;
+    final settings = await dao.getSettings();
     final model = ShopInBitOrderModel();
     bool isFirstRun = false;
 
-    if (!service.loadSetupComplete()) {
+    if (!settings.setupComplete) {
+      // something went wrong
+      if (!mounted) return;
+
       // First-time user: show setup.
       final completed = await showDialog<bool>(
         context: context,
@@ -105,7 +60,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       isFirstRun = true;
     } else {
       // Returning user: restore display name.
-      final savedName = service.loadDisplayName();
+      final savedName = settings.displayName;
       if (savedName != null && savedName.isNotEmpty) {
         model.displayName = savedName;
       }
@@ -116,93 +71,12 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
     if (isFirstRun) {
       // First run: show service overview then go directly to Step2
       // (name was just entered in setup dialog, no need to show Step1 again).
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (dialogContext) => DesktopDialog(
-          maxWidth: 550,
-          maxHeight: 300,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("ShopinBit", style: STextStyles.desktopH2(dialogContext)),
-                const SizedBox(height: 16),
-                RichText(
-                  text: TextSpan(
-                    style: STextStyles.desktopTextSmall(dialogContext),
-                    children: const [
-                      TextSpan(
-                        text:
-                            "Please note the following before proceeding:"
-                            "\n\n\u2022 Minimum order amount: 1,000 EUR"
-                            "\n\u2022 Service fee: 10% of the order total",
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SecondaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Cancel",
-                      onPressed: () {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    PrimaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Continue",
-                      onPressed: () async {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => ShopInBitStep2(model: model),
-                        );
-                        if (mounted) setState(() {});
-                      },
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SecondaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Cancel",
-                      onPressed: () {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    PrimaryButton(
-                      width: 200,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Continue",
-                      onPressed: () async {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => ShopInBitStep1(model: model),
-                        );
-                        if (mounted) setState(() {});
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+        builder: (_) => NestedNavigatorDialog(
+          initialRoute: DesktopShopinBitFirstRun.routeName,
+          initialRouteArgs: model,
         ),
       );
     } else {
@@ -210,8 +84,13 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => ShopInBitStep1(model: model),
+        builder: (_) => NestedNavigatorDialog(
+          initialRoute: ShopInBitStep1.routeName,
+          initialRouteArgs: model,
+        ),
       );
+
+      // TODO: figure out and comment why this is needed
       if (mounted) setState(() {});
     }
   }
@@ -266,16 +145,10 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                             ..onTap = () async {
                               const url =
                                   "https://api.shopinbit.com/static/policy/terms.html";
-                              final shouldOpen = await _showOpenBrowserWarning(
+                              await showRequestExternalLinkAndMaybeLaunch(
                                 context,
-                                url,
+                                uri: Uri.parse(url),
                               );
-                              if (shouldOpen) {
-                                await launchUrl(
-                                  Uri.parse(url),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              }
                             },
                         ),
                         const TextSpan(text: " and "),
@@ -288,16 +161,11 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                             ..onTap = () async {
                               const url =
                                   "https://api.shopinbit.com/static/policy/privacy.html";
-                              final shouldOpen = await _showOpenBrowserWarning(
+
+                              await showRequestExternalLinkAndMaybeLaunch(
                                 context,
-                                url,
+                                uri: Uri.parse(url),
                               );
-                              if (shouldOpen) {
-                                await launchUrl(
-                                  Uri.parse(url),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              }
                             },
                         ),
                         const TextSpan(text: "."),
@@ -310,20 +178,24 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                   child: Row(
                     children: [
                       PrimaryButton(
-                        width: 250,
+                        width: 224,
                         buttonHeight: ButtonHeight.m,
                         enabled: true,
                         label: "Shop with ShopinBit",
-                        onPressed: () => _showShopDialog(context),
+                        onPressed: _showShopDialog,
                       ),
                       const SizedBox(width: 16),
-                      Builder(
-                        builder: (context) {
-                          final count = MainDB.instance
-                              .getShopInBitTickets()
-                              .length;
+                      StreamBuilder(
+                        stream: ref
+                            .watch(pSharedDrift)
+                            .shopInBitTickets
+                            .count()
+                            .watchSingleOrNull(),
+                        builder: (context, snapshot) {
+                          final count = snapshot.data ?? 0;
+
                           return SecondaryButton(
-                            width: 200,
+                            width: 196,
                             buttonHeight: ButtonHeight.m,
                             label: count > 0
                                 ? "My requests ($count)"
@@ -331,7 +203,9 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                             onPressed: () async {
                               await showDialog<void>(
                                 context: context,
-                                builder: (_) => const ShopInBitTicketsView(),
+                                builder: (_) => const NestedNavigatorDialog(
+                                  initialRoute: ShopInBitTicketsView.routeName,
+                                ),
                               );
                               if (mounted) setState(() {});
                             },
@@ -340,7 +214,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                       ),
                       const SizedBox(width: 16),
                       SecondaryButton(
-                        width: 140,
+                        width: 118,
                         buttonHeight: ButtonHeight.m,
                         label: "Settings",
                         onPressed: () {
@@ -371,29 +245,41 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
   }
 }
 
-class _ShopInBitDesktopSetupDialog extends StatefulWidget {
+class _ShopInBitDesktopSetupDialog extends ConsumerStatefulWidget {
   const _ShopInBitDesktopSetupDialog({required this.model});
 
   final ShopInBitOrderModel model;
 
   @override
-  State<_ShopInBitDesktopSetupDialog> createState() =>
+  ConsumerState<_ShopInBitDesktopSetupDialog> createState() =>
       _ShopInBitDesktopSetupDialogState();
 }
 
 class _ShopInBitDesktopSetupDialogState
-    extends State<_ShopInBitDesktopSetupDialog> {
+    extends ConsumerState<_ShopInBitDesktopSetupDialog> {
   late final Future<String> _keyFuture;
-  late final TextEditingController _nameController;
+  final TextEditingController _nameController = TextEditingController();
 
   bool get _canContinue => _nameController.text.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _keyFuture = ShopInBitService.instance.ensureCustomerKey();
-    final existingName = ShopInBitService.instance.loadDisplayName();
-    _nameController = TextEditingController(text: existingName ?? '');
+    _keyFuture = ref.read(pShopinBitService).ensureCustomerKey();
+
+    // not the greatest solution but its the least invasive with the current
+    // ui code impl
+    () async {
+      final settings = await ref
+          .read(pSharedDrift)
+          .shopinBitSettingsDao
+          .getSettings();
+      if (mounted) {
+        setState(() {
+          _nameController.text = settings.displayName ?? "";
+        });
+      }
+    }();
   }
 
   @override
@@ -405,8 +291,9 @@ class _ShopInBitDesktopSetupDialogState
   Future<void> _completeSetup() async {
     final name = _nameController.text.trim();
     widget.model.displayName = name;
-    await ShopInBitService.instance.setDisplayName(name);
-    await ShopInBitService.instance.setSetupComplete(true);
+    final dao = ref.read(pSharedDrift).shopinBitSettingsDao;
+    await dao.setDisplayName(name);
+    await dao.setSetupComplete(true);
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop(true);
     }

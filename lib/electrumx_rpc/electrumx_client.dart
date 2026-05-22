@@ -314,6 +314,8 @@ class ElectrumXClient {
         );
       }
 
+      await newClient.request('server.version');
+
       await ClientManager.sharedInstance.addClient(
         newClient,
         cryptoCurrency: cryptoCurrency,

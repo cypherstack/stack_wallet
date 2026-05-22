@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -125,7 +124,10 @@ class _ShopInBitConfirmSendViewState
           ? widget.tokenContract!.symbol.toUpperCase()
           : coin.ticker.toUpperCase();
 
-      unawaited(MainDB.instance.putShopInBitTicket(model.toIsarTicket()));
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(model.toCompanion());
 
       // pop back to wallet
       if (context.mounted) {

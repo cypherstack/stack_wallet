@@ -61,23 +61,6 @@ void main() {
       });
     });
 
-    group(
-      'toIsarTicket/fromIsarTicket round-trip for pending payment fields',
-      () {
-        test('isPendingPayment round-trips', () {
-          final model = ShopInBitOrderModel()
-            ..isPendingPayment = true
-            ..carResearchExpiresAt = DateTime(2026, 6, 1)
-            ..carResearchPaymentLinks = '{"BTC":"link"}';
-          final ticket = model.toIsarTicket();
-          final restored = ShopInBitOrderModel.fromIsarTicket(ticket);
-          expect(restored.isPendingPayment, isTrue);
-          expect(restored.carResearchExpiresAt, DateTime(2026, 6, 1));
-          expect(restored.carResearchPaymentLinks, '{"BTC":"link"}');
-        });
-      },
-    );
-
     group('live invoice routes to payment view', () {
       test('expiresAt in the future means invoice is live', () {
         final expiresAt = DateTime.now().add(const Duration(hours: 1));
