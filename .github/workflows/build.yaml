@@ -93,7 +93,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
   build-android:
@@ -203,6 +203,8 @@ jobs:
              android-artifacts/stack_wallet-android-armeabi-v7a-${VERSION}.apk
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
              android-artifacts/stack_wallet-android-x86_64-${VERSION}.apk
+          cp build/app/outputs/bundle/release/app-release.aab \
+             android-artifacts/stack_wallet-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v4
         with:
@@ -320,10 +322,16 @@ jobs:
       - name: Build
         run: flutter build windows --release
 
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+            -DestinationPath "stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}
-          path: build/windows/x64/runner/Release/
+          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+          path: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
 
   build-macos:
     runs-on: macos-latest
@@ -399,7 +407,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
           path: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-ios:
@@ -481,7 +489,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
           path: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
   build-campfire-linux:
@@ -545,7 +553,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: campfire-linux-x86_64-${{ steps.ver.outputs.version }}
+          name: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
   build-stack-duo-linux:
@@ -609,7 +617,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}
+          name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
   build-flatpak:
@@ -634,7 +642,7 @@ jobs:
       - name: Download Linux bundle
         uses: actions/download-artifact@v4
         with:
-          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
       - name: Stage bundle and icon
         run: |
@@ -671,11 +679,11 @@ jobs:
         run: |
           flatpak build-bundle flatpak-repo \
             --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
-            "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
+            "stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
             com.cypherstack.stackwallet
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}
-          path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          path: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
 
