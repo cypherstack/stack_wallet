@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../models/shopinbit/shopinbit_order_model.dart';
-import '../../../../pages/shopinbit/shopinbit_step_1.dart';
+import '../../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
@@ -54,7 +54,7 @@ class DesktopShopinBitFirstRun extends StatelessWidget {
                     buttonHeight: ButtonHeight.l,
                     label: "Continue",
                     onPressed: () => Navigator.of(context).pushReplacementNamed(
-                      ShopInBitStep1.routeName,
+                      ShopInBitStep2.routeName,
                       arguments: model,
                     ),
                   ),

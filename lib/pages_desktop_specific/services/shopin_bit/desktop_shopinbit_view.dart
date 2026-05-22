@@ -8,7 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../../app_config.dart';
 import '../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../notifications/show_flush_bar.dart';
-import '../../../pages/shopinbit/shopinbit_step_1.dart';
+import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../providers/db/drift_provider.dart';
 import '../../../providers/desktop/current_desktop_menu_item.dart';
@@ -80,12 +80,14 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
         ),
       );
     } else {
-      // Returning user: go directly to Step1 (skip service overview dialog).
+      // Returning user: go directly to Step2 (skip service overview dialog
+      // and the redundant display-name prompt; name is already loaded from
+      // settings into model).
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (_) => NestedNavigatorDialog(
-          initialRoute: ShopInBitStep1.routeName,
+          initialRoute: ShopInBitStep2.routeName,
           initialRouteArgs: model,
         ),
       );
