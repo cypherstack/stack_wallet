@@ -13,23 +13,30 @@ class AdaptiveTextField extends StatefulWidget {
   const AdaptiveTextField({
     super.key,
     this.labelText,
+    this.hintText,
     this.controller,
     this.focusNode,
     this.autocorrect,
     this.readOnly = false,
+    this.enabled = true,
     this.enableSuggestions = true,
     this.onChanged,
     this.onChangedComprehensive,
     this.onSubmitted,
+    this.onTap,
     this.suffixIcons,
+    this.suffixText,
+    this.errorText,
     this.contentPadding,
     this.minLines,
     this.maxLines,
+    this.inputFormatters,
     this.showPasteClearButton = false,
     this.keyboardType,
   });
 
   final String? labelText;
+  final String? hintText;
 
   final TextEditingController? controller;
   final FocusNode? focusNode;
@@ -39,17 +46,28 @@ class AdaptiveTextField extends StatefulWidget {
   final int? maxLines;
 
   final bool readOnly;
+  final bool enabled;
   final bool enableSuggestions;
 
   final void Function(String)? onChanged;
   final void Function(String)? onChangedComprehensive;
   final void Function(String)? onSubmitted;
+  final VoidCallback? onTap;
 
   /// This will be ignored if [suffixIcons] is not null!
   final bool showPasteClearButton;
 
   /// If this is not null, [showPasteClearButton] will be ignored.
   final List<Widget>? suffixIcons;
+
+  /// Optional trailing text rendered in the decoration's suffixText slot.
+  /// Ignored when [suffixIcons] is non-empty or [showPasteClearButton] is
+  /// true, since those occupy the same visual space.
+  final String? suffixText;
+
+  final String? errorText;
+
+  final List<TextInputFormatter>? inputFormatters;
 
   final TextInputType? keyboardType;
 
@@ -111,17 +129,27 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
         controller: controller,
         focusNode: _focusNode,
         onChanged: widget.onChanged,
+        onTap: widget.onTap,
         readOnly: widget.readOnly,
+        enabled: widget.enabled,
         autocorrect: widget.autocorrect,
         enableSuggestions: widget.enableSuggestions,
         onSubmitted: widget.onSubmitted,
         keyboardType: widget.keyboardType,
+        inputFormatters: widget.inputFormatters,
         decoration:
             standardInputDecoration(
               widget.labelText,
               _focusNode,
               context,
             ).copyWith(
+              hintText: widget.hintText,
+              errorText: widget.errorText,
+              suffixText:
+                  (widget.suffixIcons?.isNotEmpty != true &&
+                      !widget.showPasteClearButton)
+                  ? widget.suffixText
+                  : null,
               contentPadding:
                   widget.contentPadding ??
                   (Util.isDesktop
