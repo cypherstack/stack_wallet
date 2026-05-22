@@ -16,10 +16,10 @@ enum TicketState {
   final String value;
   const TicketState(this.value);
 
-  static TicketState fromString(String s) {
+  static TicketState fromString(String value) {
     return TicketState.values.firstWhere(
-      (e) => e.value == s,
-      orElse: () => TicketState.newTicket,
+      (e) => e.value == value,
+      orElse: () => throw Exception("Unknown TicketState string found: $value"),
     );
   }
 }
@@ -33,6 +33,13 @@ class TicketRef {
   factory TicketRef.fromJson(Map<String, dynamic> json) {
     return TicketRef(id: _toInt(json['id']), number: json['number'].toString());
   }
+
+  Map<String, dynamic> toMap() {
+    return {"id": id, "number": number};
+  }
+
+  @override
+  String toString() => toMap().toString();
 }
 
 class TicketStatus {
@@ -64,6 +71,20 @@ class TicketStatus {
       trackingLink: json['tracking_link'] as String?,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "ticket_id": ticketId,
+      "state": state.toString(),
+      "updated_at": updatedAt.toIso8601String(),
+      "last_agent_message_at": lastAgentMessageAt?.toIso8601String(),
+      "payment_invoice_status": paymentInvoiceStatus,
+      "tracking_link": trackingLink,
+    };
+  }
+
+  @override
+  String toString() => toMap().toString();
 }
 
 class TicketFull {
@@ -102,11 +123,26 @@ class TicketFull {
       vatRate: _toInt(json['vat_rate']),
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "number": number,
+      "product_name": productName,
+      "customer_price": customerPrice,
+      "partner_price": partnerPrice,
+      "partner_commission": partnerCommission,
+      "net_purchase_price": netPurchasePrice,
+      "net_shipping_costs": netShippingCosts,
+      "vat_rate": vatRate,
+    };
+  }
+
+  @override
+  String toString() => toMap().toString();
 }
 
-int _toInt(dynamic v) {
-  if (v is int) return v;
-  if (v is String) return int.parse(v);
-  if (v is double) return v.toInt();
-  return 0;
+int _toInt(dynamic value) {
+  if (value is int) return value;
+  return int.parse(value.toString());
 }

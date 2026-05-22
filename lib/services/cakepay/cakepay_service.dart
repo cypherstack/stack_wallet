@@ -1,15 +1,12 @@
-import '../../db/hive/db.dart';
+import 'package:drift/drift.dart';
+
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../external_api_keys.dart';
 import 'src/client.dart';
-import 'src/models/order.dart';
 
 class CakePayService {
   static final instance = CakePayService._();
   CakePayService._();
-
-  /// Dev-only: override order statuses for local UI testing.
-  /// Keys are order IDs, values are the status to pretend the API returned.
-  static final Map<String, CakePayOrderStatus> devStatusOverrides = {};
 
   CakePayClient? _client;
 
@@ -17,35 +14,29 @@ class CakePayService {
     return _client ??= CakePayClient(apiToken: kCakePayApiToken);
   }
 
-  // Mirrors ShopInBit's local ticket storage pattern but uses lightweight
-  // Hive prefs instead of a full Isar collection, since CakePay orders can
-  // be fetched individually via getOrder() with the seller key.
+  Future<void> addOrderId(String orderId) async {
+    final db = SharedDrift.get();
 
-  static const _kCakePayOrderIds = "cakePayOrderIds";
-
-  /// Persist a newly-created order ID so the orders list view can find it
-  /// later without requiring Knox user auth.
-  void addOrderId(String orderId) {
-    final ids = getOrderIds();
-    if (!ids.contains(orderId)) {
-      ids.insert(0, orderId);
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: _kCakePayOrderIds,
-        value: ids,
-      );
-    }
+    await db.transaction(() async {
+      await db
+          .into(db.cakepayOrders)
+          .insert(
+            CakepayOrdersCompanion.insert(orderId: orderId),
+            mode: .insertOrIgnore,
+          );
+    });
   }
 
   /// Return locally-tracked order IDs (most recent first).
-  List<String> getOrderIds() {
-    final raw = DB.instance.get<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: _kCakePayOrderIds,
-    );
-    if (raw is List) {
-      return raw.cast<String>().toList();
-    }
-    return [];
+  Future<List<String>> getOrderIds() async {
+    final db = SharedDrift.get();
+
+    final rows =
+        await (db.select(db.cakepayOrders)..orderBy([
+              (t) => OrderingTerm(expression: t.rowId, mode: OrderingMode.desc),
+            ]))
+            .get();
+
+    return rows.map((row) => row.orderId).toList();
   }
 }

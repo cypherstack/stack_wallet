@@ -241,9 +241,9 @@ import 'pages_desktop_specific/password/create_password_view.dart';
 import 'pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'pages_desktop_specific/password/forgot_password_desktop_view.dart';
 import 'pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
+import 'pages_desktop_specific/services/cakepay/desktop_gift_cards_view.dart';
 import 'pages_desktop_specific/services/desktop_services_view.dart';
-import 'pages_desktop_specific/services/sub_widgets/desktop_gift_cards_view.dart';
-import 'pages_desktop_specific/services/sub_widgets/desktop_shopinbit_view.dart';
+import 'pages_desktop_specific/services/shopin_bit/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/settings/desktop_settings_view.dart';
 import 'pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
@@ -254,11 +254,11 @@ import 'pages_desktop_specific/settings/settings_menu/desktop_support_view.dart'
 import 'pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
-import 'pages_desktop_specific/settings/settings_menu/shopinbit_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import 'services/cakepay/src/models/card.dart';
+import 'services/cakepay/src/models/order.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'services/shopinbit/src/models/car_research.dart';
@@ -1106,10 +1106,10 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CakePayOrderView.routeName:
-        if (args is String) {
+        if (args is CakePayOrder) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CakePayOrderView(orderId: args),
+            builder: (_) => CakePayOrderView(order: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2734,13 +2734,6 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AdvancedSettings(),
-          settings: RouteSettings(name: settings.name),
-        );
-
-      case ShopInBitDesktopSettings.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const ShopInBitDesktopSettings(),
           settings: RouteSettings(name: settings.name),
         );
 

@@ -1,10 +1,11 @@
+import 'package:drift/drift.dart' show TableOrViewStatements;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -12,64 +13,25 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../shopinbit/shopinbit_settings_view.dart';
 import '../shopinbit/shopinbit_setup_view.dart';
-import '../shopinbit/shopinbit_step_1.dart';
 import '../shopinbit/shopinbit_step_2.dart';
 import '../shopinbit/shopinbit_tickets_view.dart';
 
-class ServicesView extends StatefulWidget {
+class ServicesView extends ConsumerStatefulWidget {
   const ServicesView({super.key});
 
   static const String routeName = "/servicesView";
 
   @override
-  State<ServicesView> createState() => _ServicesViewState();
+  ConsumerState<ServicesView> createState() => _ServicesViewState();
 }
 
-class _ServicesViewState extends State<ServicesView> {
-  Future<bool> _showOpenBrowserWarning(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    final shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => StackDialog(
-        title: "Attention",
-        message:
-            "You are about to open "
-            "${uri.scheme}://${uri.host} "
-            "in your browser.",
-        leftButton: TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-          child: Text(
-            "Cancel",
-            style: STextStyles.button(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorDark,
-            ),
-          ),
-        ),
-        rightButton: TextButton(
-          style: Theme.of(
-            context,
-          ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
-          child: Text("Continue", style: STextStyles.button(context)),
-        ),
-      ),
-    );
-    return shouldContinue ?? false;
-  }
-
-  void _showShopDialog(BuildContext context) {
+class _ServicesViewState extends ConsumerState<ServicesView> {
+  void _showShopDialog() {
     showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -99,16 +61,11 @@ class _ServicesViewState extends State<ServicesView> {
                       ..onTap = () async {
                         const url =
                             "https://api.shopinbit.com/static/policy/privacy.html";
-                        final shouldOpen = await _showOpenBrowserWarning(
-                          dialogContext,
-                          url,
+
+                        await showRequestExternalLinkAndMaybeLaunch(
+                          context,
+                          uri: Uri.parse(url),
                         );
-                        if (shouldOpen) {
-                          await launchUrl(
-                            Uri.parse(url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        }
                       },
                   ),
                   const TextSpan(text: "."),
@@ -142,12 +99,17 @@ class _ServicesViewState extends State<ServicesView> {
                     onPressed: () async {
                       Navigator.of(dialogContext).pop();
                       final model = ShopInBitOrderModel();
-                      final service = ShopInBitService.instance;
+                      final settings = await ref
+                          .read(pSharedDrift)
+                          .shopinBitSettingsDao
+                          .getSettings();
 
-                      if (service.loadSetupComplete()) {
+                      if (!mounted) return;
+
+                      if (settings.setupComplete) {
                         // Returning user: pre-load display name,
                         // skip Step 1, go to Step 2
-                        final savedName = service.loadDisplayName();
+                        final savedName = settings.displayName;
                         if (savedName != null && savedName.isNotEmpty) {
                           model.displayName = savedName;
                         }
@@ -265,14 +227,11 @@ class _ServicesViewState extends State<ServicesView> {
                               ..onTap = () async {
                                 const url =
                                     "https://api.shopinbit.com/static/policy/terms.html";
-                                final shouldOpen =
-                                    await _showOpenBrowserWarning(context, url);
-                                if (shouldOpen) {
-                                  await launchUrl(
-                                    Uri.parse(url),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
+
+                                await showRequestExternalLinkAndMaybeLaunch(
+                                  context,
+                                  uri: Uri.parse(url),
+                                );
                               },
                           ),
                           const TextSpan(text: " and "),
@@ -285,14 +244,11 @@ class _ServicesViewState extends State<ServicesView> {
                               ..onTap = () async {
                                 const url =
                                     "https://api.shopinbit.com/static/policy/privacy.html";
-                                final shouldOpen =
-                                    await _showOpenBrowserWarning(context, url);
-                                if (shouldOpen) {
-                                  await launchUrl(
-                                    Uri.parse(url),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
+
+                                await showRequestExternalLinkAndMaybeLaunch(
+                                  context,
+                                  uri: Uri.parse(url),
+                                );
                               },
                           ),
                           const TextSpan(text: "."),
@@ -303,14 +259,17 @@ class _ServicesViewState extends State<ServicesView> {
                     PrimaryButton(
                       label: "Shop with ShopinBit",
                       enabled: true,
-                      onPressed: () => _showShopDialog(context),
+                      onPressed: _showShopDialog,
                     ),
                     const SizedBox(height: 12),
-                    Builder(
-                      builder: (context) {
-                        final count = MainDB.instance
-                            .getShopInBitTickets()
-                            .length;
+                    StreamBuilder(
+                      stream: ref
+                          .watch(pSharedDrift)
+                          .shopInBitTickets
+                          .count()
+                          .watchSingleOrNull(),
+                      builder: (context, snapshot) {
+                        final count = snapshot.data ?? 0;
                         return SecondaryButton(
                           label: count > 0
                               ? "My requests ($count)"
