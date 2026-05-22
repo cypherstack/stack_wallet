@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show TableOrViewStatements;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -187,31 +186,18 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         onPressed: _showShopDialog,
                       ),
                       const SizedBox(width: 16),
-                      StreamBuilder(
-                        stream: ref
-                            .watch(pSharedDrift)
-                            .shopInBitTickets
-                            .count()
-                            .watchSingleOrNull(),
-                        builder: (context, snapshot) {
-                          final count = snapshot.data ?? 0;
-
-                          return SecondaryButton(
-                            width: 196,
-                            buttonHeight: ButtonHeight.m,
-                            label: count > 0
-                                ? "My requests ($count)"
-                                : "My requests",
-                            onPressed: () async {
-                              await showDialog<void>(
-                                context: context,
-                                builder: (_) => const NestedNavigatorDialog(
-                                  initialRoute: ShopInBitTicketsView.routeName,
-                                ),
-                              );
-                              if (mounted) setState(() {});
-                            },
+                      SecondaryButton(
+                        width: 196,
+                        buttonHeight: ButtonHeight.m,
+                        label: "My requests",
+                        onPressed: () async {
+                          await showDialog<void>(
+                            context: context,
+                            builder: (_) => const NestedNavigatorDialog(
+                              initialRoute: ShopInBitTicketsView.routeName,
+                            ),
                           );
+                          if (mounted) setState(() {});
                         },
                       ),
                       const SizedBox(width: 16),
