@@ -227,7 +227,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     // "coinControl", "SendAll", "MWEB", "overrideFeeAmount",
     // because they do not need a selection or
     // do not meet the requirements for the algorithms
-    final bool useOptimalSelection = !coinControl &&
+    final bool useOptimalSelection =
+        !coinControl &&
         !isSendAll &&
         !isSendAllCoinControlUtxos &&
         overrideFeeAmount == null &&
@@ -652,8 +653,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     required BigInt feeRatePerKB,
     required Address changeAddress,
   }) async {
-    final List<BaseInput> candidateInputs =
-        await addSigningKeys(spendableOutputs);
+    final List<BaseInput> candidateInputs = await addSigningKeys(
+      spendableOutputs,
+    );
 
     final BigInt feePerKb = satsPerVByte != null
         ? BigInt.from(satsPerVByte * 1000)
@@ -668,18 +670,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final Map<int, BaseInput> candidateBaseInputs = {};
 
     for (int i = 0; i < candidateInputs.length; i++) {
-
       final baseInput = candidateInputs[i];
 
       if (baseInput is! StandardInput) {
         // This shouldn't be happening since only non MWEB inputs
         // will be given to this helper
-        throw Exception(
-          '''
+        throw Exception('''
           Unexpected input type ${baseInput.runtimeType}
           only StandardInput are supported
-          ''',
-        );
+          ''');
       }
 
       final input = standardInputToCoinlibInput(baseInput);
@@ -706,15 +705,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final coinlib.Program changeProgram = clChangeAddress.program;
 
-    final coinlib.CoinSelection selection =
-      coinlib.CoinSelection.optimal(
-        candidates: candidates,
-        recipients: [recipientOutput],
-        changeProgram: changeProgram,
-        feePerKb: feePerKb,
-        minFee: minFee,
-        minChange: cryptoCurrency.dustLimit.raw,
-      );
+    final coinlib.CoinSelection selection = coinlib.CoinSelection.optimal(
+      candidates: candidates,
+      recipients: [recipientOutput],
+      changeProgram: changeProgram,
+      feePerKb: feePerKb,
+      minFee: minFee,
+      minChange: cryptoCurrency.dustLimit.raw,
+    );
 
     if (selection.tooLarge) {
       throw Exception("Selected transaction would be too large");
@@ -727,8 +725,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     // This could be avoided since buildTransaction will do the exact opposite ?
     final List<BaseInput> selectedBaseInputs = [];
     for (final picked in selection.selected) {
-      final pickedTxid =
-          Uint8List.fromList(picked.input.prevOut.hash.reversed.toList()).toHex;
+      final pickedTxid = Uint8List.fromList(
+        picked.input.prevOut.hash.reversed.toList(),
+      ).toHex;
       final pickedVout = picked.input.prevOut.n;
       bool matched = false;
       for (final entry in candidateBaseInputs.entries) {
