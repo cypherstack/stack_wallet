@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -237,14 +238,16 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   }
 
   String _formatTime(DateTime dt) {
-    // TODO: local time is a start but this is still far from ideal...
-    if (dt.isUtc) {
-      dt = dt.toLocal();
-    }
-
-    final hour = dt.hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return "$hour:$minute";
+    final local = dt.toLocal();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    final hm = "$hour:$minute";
+    final now = DateTime.now();
+    final isToday =
+        local.year == now.year &&
+        local.month == now.month &&
+        local.day == now.day;
+    return isToday ? hm : "${DateFormat('MMM d').format(local)} $hm";
   }
 
   static final _imgTagRegex = RegExp(
