@@ -94,7 +94,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: AdvancedSettings.routeName,
       ), //advanced
-      if (familiarity >= 6)
+      if (AppConfig.hasFeature(.shopinBit) && familiarity >= 6)
         const Navigator(
           key: Key("settingsShopInBitDesktopKey"),
           onGenerateRoute: RouteGenerator.generateRoute,

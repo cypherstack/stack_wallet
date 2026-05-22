@@ -1348,7 +1348,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                    if (!viewOnly)
+                    if (!viewOnly && AppConfig.hasFeature(.shopinBit))
                       WalletNavigationBarItemData(
                         label: "Services",
                         icon: SvgPicture.asset(
@@ -1365,21 +1365,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           ).pushNamed(ServicesView.routeName);
                         },
                       ),
-                    WalletNavigationBarItemData(
-                      label: "Gift cards",
-                      icon: CreditCardIcon(
-                        height: 20,
-                        width: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.bottomNavIconIcon,
+                    if (AppConfig.hasFeature(.shopinBit))
+                      WalletNavigationBarItemData(
+                        label: "Gift cards",
+                        icon: CreditCardIcon(
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.bottomNavIconIcon,
+                        ),
+                        onTap: () {
+                          Navigator.of(
+                            context,
+                          ).pushNamed(GiftCardsView.routeName);
+                        },
                       ),
-                      onTap: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(GiftCardsView.routeName);
-                      },
-                    ),
                   ],
                 ),
               ),
