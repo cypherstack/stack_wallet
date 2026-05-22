@@ -160,7 +160,7 @@ install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (foll
 
 go version should be at least 1.24
 
-and use `scripts/build_app.sh` to build plugins:
+and use `scripts/build_app.sh` to build plugins: (see the [Build script section](#build-script-build_appsh) to understand the arguments)
 ```
 cd ..
 ./build_app.sh -a stack_wallet -p windows -v 2.4.4 -b 301
