@@ -1105,9 +1105,7 @@ jobs:
       - name: Stage bundle and icon
         run: |
           tar -xzf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" -C flatpak/
-          convert -resize 512x512! \
-            asset_sources/icon/campfire/icon.png \
-            flatpak/com.cypherstack.campfire.png
+          cp asset_sources/icon/campfire/icon.png flatpak/com.cypherstack.campfire.png
 
       - name: Install Flatpak tools
         run: |
