@@ -149,13 +149,21 @@ cd scripts/windows
 ./deps.sh
 ```
 
-install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `x86_64-w64-mingw32-gcc` 
+Upgrade the version of cmake >= 3.31.6, the default version of ubuntu 24.04 (3.28.1) will be too low to build libepiccash.
+You can use pip to install a specific version
+```
+sudo apt remove cmake
+pip install cmake==3.31.6
+```
+
+install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `mingw-w64` package installed to get the `x86_64-w64-mingw32-gcc` compiler.
+
 go version should be at least 1.24
 
-and use `scripts/build_app.sh` to build plugins:
+and use `scripts/build_app.sh` to build plugins: (see the [Build script section](#build-script-build_appsh) to understand the arguments)
 ```
 cd ..
-./build_app.sh -a stack_wallet -p windows -v 2.1.0 -b 210
+./build_app.sh -a stack_wallet -p windows -v 2.4.4 -b 301
 ```
 
 ### Running
@@ -255,17 +263,33 @@ flutter run macos
 ## Windows host
 
 ### Visual Studio
-Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
+Visual Studio 2022 is required for Windows development with the Flutter SDK.  Download it at https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
 
 ### Build plugins in WSL2
 Set up Ubuntu 24.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 24.04 host to get set up to build.  The Android Studio section may be skipped in WSL (it's only needed on the Windows host).
 
 Install the following libraries:
 ```
-sudo apt-get install libgtk2.0-dev
+sudo apt-get install libgtk2.0-dev nasm mingw-w64
 ```
 
-The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
+The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.
+
+In this case, you need to enable "metadata" in your wsl setup to be able to modify files on your Windows filesystem.
+Add this content to your /etc/wsl.conf in WSL.
+```
+[automount]
+options = "metadata"
+```
+Then restart the wsl from Windows
+```
+wsl --shutdown
+wsl
+```
+
+https://stackoverflow.com/questions/46610256/chmod-wsl-bash-doesnt-work/50856772#50856772
+
+Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
 
 - `stack_wallet/scripts/windows/build_all.sh`
 
@@ -296,11 +320,27 @@ Enable Developer Mode for symlink support,
 start ms-settings:developers
 ```
 
-You may need to install NuGet and CppWinRT / C++/WinRT SDKs version `2.0.210806.1`:
+Or enable it automatically from powershell:
 ```
-winget install 9WZDNCRDMDM3 # NuGet, can also use Microsoft.NuGet
-winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
+PS C:\WINDOWS\system32> reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
 ```
+
+
+Install NuGet:
+```
+winget install 9WZDNCRDMDM3 --accept-package-agreements # NuGet, can also use Microsoft.NuGet
+```
+
+Then restart your terminal and add a source to nuget:
+```
+nuget sources add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" 
+```
+
+Install and CppWinRT / C++/WinRT SDKs version `2.0.210806.1` with the help of nuget:
+```
+nuget install Microsoft.Windows.CppWinRT --Version 2.0.210806.1
+```
+
 or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722) by placing it in `flutter/bin` with [nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) and installing by running `nuget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1` in the root `stack_wallet` folder. 
 <!-- TODO: script this NuGet and WinCppRT installation -->
 
@@ -309,16 +349,18 @@ or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWi
 Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script using PowerShell on the Windows host as in
 ```
 cd scripts
-./prebuild.ps1
+powershell -ExecutionPolicy Bypass -File prebuild.ps1
 cd .. // When finished go back to the root directory.
 ```
+
+
 or manually by creating the files referenced in that script with the specified content. 
 
 ### Build frostdart
 
 In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
 ```
-cd crypto_plugins/frostdart
+cd crypto_plugins/frostdart/scripts/windows
 ./build_all.bat
 cd .. // When finished go back to the root directory.
 ```
@@ -328,6 +370,7 @@ cd .. // When finished go back to the root directory.
 Run the following commands:
 ```
 flutter pub get
+dart run coinlib:build_windows
 flutter run -d windows
 ```
 
