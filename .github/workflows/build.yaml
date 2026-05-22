@@ -102,7 +102,7 @@ jobs:
       contents: read
       packages: read
     container:
-      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:android
       credentials:
         username: ${{ github.actor }}
         password: ${{ github.token }}
@@ -189,6 +189,12 @@ jobs:
 
       - name: Build APKs
         run: flutter build apk --split-per-abi --release
+
+      - name: Clean intermediates before AAB
+        run: |
+          rm -rf build/app/intermediates
+          rm -rf build/app/tmp
+          find build -name '*.o' -delete 2>/dev/null || true
 
       - name: Build AAB
         run: flutter build appbundle --release
