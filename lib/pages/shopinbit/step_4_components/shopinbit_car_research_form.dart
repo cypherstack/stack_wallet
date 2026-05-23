@@ -294,12 +294,12 @@ class _ShopInBitCarResearchFormState
           onChanged: (v) => setState(() => _feeAcknowledged = v),
           label: "I acknowledge the \u20AC223 research fee",
         ),
-        SizedBox(height: isDesktop ? 24 : 16),
+        const SizedBox(height: 24),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 32 : 20),
+        const SizedBox(height: 32),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,

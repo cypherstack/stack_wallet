@@ -531,12 +531,12 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
         // Travel doesn't collect delivery country: destinations are in the
         // form and the API field is set to "DE" on submit.
-        SizedBox(height: isDesktop ? 24 : 16),
+        const SizedBox(height: 24),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 32 : 20),
+        const SizedBox(height: 32),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,

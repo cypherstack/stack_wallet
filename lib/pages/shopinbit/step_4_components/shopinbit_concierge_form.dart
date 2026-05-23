@@ -177,23 +177,23 @@ class _ShopInBitConciergeFormState
           errorText: budgetError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 12 : 8),
+        const SizedBox(height: 12),
         ShopInBitLabeledCheckbox(
           value: _noLimit,
           onChanged: (v) => setState(() => _noLimit = v),
           label: "No budget limit",
         ),
-        SizedBox(height: isDesktop ? 24 : 16),
+        SizedBox(height: isDesktop ? 24 : 20),
         ShopInBitCountryPicker(
           selectedIso: _selectedCountryIso,
           onChanged: (iso) => setState(() => _selectedCountryIso = iso),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 16 : 24),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 32 : 20),
+        const SizedBox(height: 32),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,
