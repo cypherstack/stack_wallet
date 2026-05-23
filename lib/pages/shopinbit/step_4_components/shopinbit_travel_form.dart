@@ -7,6 +7,7 @@ import "../../../providers/db/drift_provider.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/date_picker/date_picker.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
@@ -199,11 +200,11 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
     TextEditingController target,
     VoidCallback onPicked,
   ) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 3650)),
+    final now = DateTime.now();
+    final DateTime? picked = await showSWDatePicker(
+      context,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 3650)),
     );
     if (picked != null) {
       setState(() {

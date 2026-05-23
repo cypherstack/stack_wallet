@@ -12,7 +12,12 @@ import '../desktop/secondary_button.dart';
 
 part 'sw_date_picker.dart';
 
-Future<DateTime?> showSWDatePicker(BuildContext context) async {
+Future<DateTime?> showSWDatePicker(
+  BuildContext context, {
+  DateTime? firstDate,
+  DateTime? lastDate,
+  DateTime? currentDate,
+}) async {
   final Size size;
   if (Util.isDesktop) {
     size = const Size(450, 450);
@@ -31,19 +36,17 @@ Future<DateTime?> showSWDatePicker(BuildContext context) async {
     value: [now],
     dialogSize: size,
     config: CalendarDatePicker2WithActionButtonsConfig(
-      firstDate: DateTime(2007),
-      lastDate: now,
-      currentDate: now,
-      buttonPadding: const EdgeInsets.only(
-        right: 16,
-      ),
+      firstDate: firstDate ?? DateTime(2007),
+      lastDate: lastDate ?? now,
+      currentDate: currentDate ?? now,
+      buttonPadding: const EdgeInsets.only(right: 16),
       centerAlignModePicker: true,
-      selectedDayHighlightColor:
-          Theme.of(context).extension<StackColors>()!.accentColorDark,
-      daySplashColor: Theme.of(context)
-          .extension<StackColors>()!
-          .accentColorDark
-          .withOpacity(0.6),
+      selectedDayHighlightColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.accentColorDark,
+      daySplashColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.accentColorDark.withOpacity(0.6),
     ),
   );
   return date?.first;
@@ -63,10 +66,7 @@ Future<List<DateTime?>?> _showDatePickerDialog({
   TransitionBuilder? builder,
 }) {
   final dialog = Dialog(
-    insetPadding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 16,
-    ),
+    insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
     surfaceTintColor: Colors.transparent,
     shadowColor: Colors.transparent,
