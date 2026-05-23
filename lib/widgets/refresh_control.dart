@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../themes/stack_colors.dart';
 import '../utilities/util.dart';
+import 'animated_widgets/rotating_arrows.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 
 /// Wraps a scrollable [child] with a [RefreshIndicator] on mobile. On
@@ -32,27 +33,27 @@ class RefreshButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.isRefreshing,
-    this.tooltip = "Refresh",
+    // this.tooltip = "Refresh",
   });
 
   final VoidCallback onPressed;
   final bool isRefreshing;
-  final String tooltip;
+  // final String tooltip;
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).extension<StackColors>()!.textDark;
     return AppBarIconButton(
-      tooltip: tooltip,
-      semanticsLabel: tooltip,
+      // Don't use tooltip to be consistent with rest of UI
+      // tooltip: tooltip,TODO revisit this if adding tooltips to other controls
+      // semanticsLabel: tooltip,
+      color: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+      size: 40,
       onPressed: isRefreshing ? null : onPressed,
-      icon: isRefreshing
-          ? SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: color),
-            )
-          : Icon(Icons.refresh, color: color, size: 20),
+      icon: RotatingArrows(
+        spinByDefault: isRefreshing,
+        width: Util.isDesktop ? 21 : 24,
+        height: Util.isDesktop ? 21 : 24,
+      ),
     );
   }
 }
