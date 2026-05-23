@@ -490,6 +490,135 @@ jobs:
           name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}
           path: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
+  build-campfire-linux:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p linux -a campfire -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build
+        env:
+          USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+        run: flutter build linux --release --verbose
+
+      - name: Package
+        run: |
+          tar -czf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
+            -C build/linux/x64/release bundle
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+          path: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+  build-stack-duo-linux:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p linux -a stack_duo -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build
+        env:
+          USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+        run: flutter build linux --release --verbose
+
+      - name: Package
+        run: |
+          tar -czf "stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
+            -C build/linux/x64/release bundle
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+          path: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+
   build-flatpak:
     runs-on: ubuntu-24.04
     needs: build-linux
