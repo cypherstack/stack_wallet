@@ -12,11 +12,12 @@ import '../desktop/secondary_button.dart';
 
 part 'sw_date_picker.dart';
 
-Future<DateTime?> showSWDatePicker(
+Future<List<DateTime?>?> showSWDatePicker(
   BuildContext context, {
   DateTime? firstDate,
   DateTime? lastDate,
   DateTime? currentDate,
+  bool range = false,
 }) async {
   final Size size;
   if (Util.isDesktop) {
@@ -31,7 +32,7 @@ Future<DateTime?> showSWDatePicker(
 
   final now = DateTime.now();
 
-  final date = await _showDatePickerDialog(
+  final dates = await _showDatePickerDialog(
     context: context,
     value: [now],
     dialogSize: size,
@@ -39,6 +40,8 @@ Future<DateTime?> showSWDatePicker(
       firstDate: firstDate ?? DateTime(2007),
       lastDate: lastDate ?? now,
       currentDate: currentDate ?? now,
+      rangeBidirectional: range ? false : null,
+      calendarType: range ? .range : null,
       buttonPadding: const EdgeInsets.only(right: 16),
       centerAlignModePicker: true,
       selectedDayHighlightColor: Theme.of(
@@ -49,7 +52,8 @@ Future<DateTime?> showSWDatePicker(
       ).extension<StackColors>()!.accentColorDark.withOpacity(0.6),
     ),
   );
-  return date?.first;
+
+  return dates;
 }
 
 Future<List<DateTime?>?> _showDatePickerDialog({

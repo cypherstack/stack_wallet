@@ -201,11 +201,12 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
     VoidCallback onPicked,
   ) async {
     final now = DateTime.now();
-    final DateTime? picked = await showSWDatePicker(
+    final DateTime? picked = (await showSWDatePicker(
       context,
       firstDate: now,
       lastDate: now.add(const Duration(days: 3650)),
-    );
+      currentDate: _current,
+    ))?.first;
     if (picked != null) {
       setState(() {
         target.text = _formatDate(picked);
