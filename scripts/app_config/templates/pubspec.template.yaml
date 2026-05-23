@@ -220,7 +220,7 @@ dependencies:
     git:
       url: https://www.github.com/julian-CStack/coinlib
       path: coinlib_flutter
-      ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
+      ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -316,9 +316,9 @@ dependency_overrides:
   # coinlib_flutter requires this
   coinlib:
     git:
-      url: https://www.github.com/Cyrix126/coinlib
+      url: https://www.github.com/julian-CStack/coinlib
       path: coinlib
-      ref: 390aa75277b56828879f13e0c8defa779544888e
+      ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
 
   bip47:
     git:
