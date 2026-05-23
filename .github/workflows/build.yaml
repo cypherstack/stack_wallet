@@ -93,7 +93,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
           path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
   build-android:
@@ -102,7 +102,7 @@ jobs:
       contents: read
       packages: read
     container:
-      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:android
       credentials:
         username: ${{ github.actor }}
         password: ${{ github.token }}
@@ -190,6 +190,12 @@ jobs:
       - name: Build APKs
         run: flutter build apk --split-per-abi --release
 
+      - name: Clean intermediates before AAB
+        run: |
+          rm -rf build/app/intermediates
+          rm -rf build/app/tmp
+          find build -name '*.o' -delete 2>/dev/null || true
+
       - name: Build AAB
         run: flutter build appbundle --release
 
@@ -203,8 +209,6 @@ jobs:
              android-artifacts/stack_wallet-android-armeabi-v7a-${VERSION}.apk
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
              android-artifacts/stack_wallet-android-x86_64-${VERSION}.apk
-          cp build/app/outputs/bundle/release/app-release.aab \
-             android-artifacts/stack_wallet-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v4
         with:
@@ -322,16 +326,10 @@ jobs:
       - name: Build
         run: flutter build windows --release
 
-      - name: Package
-        shell: pwsh
-        run: |
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
-            -DestinationPath "stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
-
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
-          path: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}
+          path: build/windows/x64/runner/Release/
 
   build-macos:
     runs-on: macos-latest
@@ -407,7 +405,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
+          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}
           path: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-ios:
@@ -489,7 +487,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
+          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}
           path: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
   build-campfire-linux:
@@ -620,6 +618,7 @@ jobs:
           name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
+
   build-flatpak:
     runs-on: ubuntu-24.04
     needs: build-linux
@@ -642,7 +641,7 @@ jobs:
       - name: Download Linux bundle
         uses: actions/download-artifact@v4
         with:
-          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
 
       - name: Stage bundle and icon
         run: |
@@ -679,11 +678,37 @@ jobs:
         run: |
           flatpak build-bundle flatpak-repo \
             --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
-            "stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
+            "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
             com.cypherstack.stackwallet
 
       - uses: actions/upload-artifact@v4
         with:
-          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
-          path: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}
+          path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak
 
+  release:
+    if: github.ref_type == 'tag'
+    needs: [build-linux, build-android, build-windows, build-macos, build-ios, build-flatpak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package artifacts
+        run: |
+          mkdir -p release-files
+          for dir in artifacts/stack_wallet-windows-*/; do
+            [ -d "$dir" ] || continue
+            name=$(basename "$dir")
+            (cd "$dir" && zip -r "../../release-files/${name}.zip" .)
+          done
+          find artifacts/ \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" -o -name "*.flatpak" \) -mindepth 2 -exec mv {} release-files/ \;
+          find artifacts/ -name "*.apk" -mindepth 2 -exec mv {} release-files/ \;
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release-files/*
