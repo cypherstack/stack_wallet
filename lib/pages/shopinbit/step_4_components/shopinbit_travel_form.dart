@@ -83,14 +83,8 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
   final FocusNode _destinationsFocusNode = FocusNode();
   bool _destinationsTouched = false;
 
-  final TextEditingController _departureDateController =
-      TextEditingController();
-  final FocusNode _departureDateFocusNode = FocusNode();
-  bool _departureDateTouched = false;
-
-  final TextEditingController _returnDateController = TextEditingController();
-  final FocusNode _returnDateFocusNode = FocusNode();
-  bool _returnDateTouched = false;
+  DateTime? _departureDate;
+  DateTime? _returnDate;
 
   final TextEditingController _tripLengthController = TextEditingController();
   final FocusNode _tripLengthFocusNode = FocusNode();
@@ -130,11 +124,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       () => _departureCityTouched = true,
     );
     _wireTouchOnBlur(_destinationsFocusNode, () => _destinationsTouched = true);
-    _wireTouchOnBlur(
-      _departureDateFocusNode,
-      () => _departureDateTouched = true,
-    );
-    _wireTouchOnBlur(_returnDateFocusNode, () => _returnDateTouched = true);
     _wireTouchOnBlur(_tripLengthFocusNode, () => _tripLengthTouched = true);
     _wireTouchOnBlur(_travelBudgetFocusNode, () => _travelBudgetTouched = true);
   }
@@ -154,10 +143,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
     _departureCityFocusNode.dispose();
     _destinationsController.dispose();
     _destinationsFocusNode.dispose();
-    _departureDateController.dispose();
-    _departureDateFocusNode.dispose();
-    _returnDateController.dispose();
-    _returnDateFocusNode.dispose();
     _tripLengthController.dispose();
     _tripLengthFocusNode.dispose();
     _travelBudgetController.dispose();
@@ -170,9 +155,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       _selectedYear != null &&
           _selectedMonthSeason != null &&
           _tripLengthController.text.trim().isNotEmpty,
-    _exactDates =>
-      _departureDateController.text.trim().isNotEmpty &&
-          _returnDateController.text.trim().isNotEmpty,
+    _exactDates => _departureDate != null && _returnDate != null,
     _ => false,
   };
 
@@ -194,25 +177,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         _adults >= 1 &&
         travelBudgetValue != null &&
         travelBudgetValue >= _minTravelBudget;
-  }
-
-  Future<void> _pickDate(
-    TextEditingController target,
-    VoidCallback onPicked,
-  ) async {
-    final now = DateTime.now();
-    final DateTime? picked = (await showSWDatePicker(
-      context,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 3650)),
-      currentDate: _current,
-    ))?.first;
-    if (picked != null) {
-      setState(() {
-        target.text = _formatDate(picked);
-        onPicked();
-      });
-    }
   }
 
   String _formatDate(DateTime date) {
@@ -241,8 +205,8 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           ? " ($_selectedFlexibility)"
           : "";
       parts.add(
-        "Dates: ${_departureDateController.text.trim()} - "
-        "${_returnDateController.text.trim()}$flex",
+        "Dates: ${_formatDate(_departureDate!)} - "
+        "${_formatDate(_returnDate!)}$flex",
       );
     } else if (_selectedDateMode == _flexibleDates) {
       parts.add(
@@ -309,16 +273,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             !_needsRecommendations &&
             _destinationsController.text.trim().isEmpty
         ? "Required (or check 'I need recommendations')"
-        : null;
-
-    final String? departureDateError =
-        _departureDateTouched && _departureDateController.text.trim().isEmpty
-        ? "Required"
-        : null;
-
-    final String? returnDateError =
-        _returnDateTouched && _returnDateController.text.trim().isEmpty
-        ? "Required"
         : null;
 
     final String? tripLengthError =
@@ -419,36 +373,17 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         SizedBox(height: isDesktop ? 24 : 16),
 
         if (_selectedDateMode == _exactDates) ...[
-          AdaptiveTextField(
-            controller: _departureDateController,
-            focusNode: _departureDateFocusNode,
-            labelText: "Departure date",
-            hintText: "DD/MM/YYYY",
-            readOnly: true,
-            onTap: () => _pickDate(
-              _departureDateController,
-              () => _departureDateTouched = true,
-            ),
-            suffixIcons: const [Icon(Icons.calendar_today, size: 18)],
-            autocorrect: false,
-            enableSuggestions: false,
-            errorText: departureDateError,
-          ),
-          SizedBox(height: isDesktop ? 24 : 16),
-          AdaptiveTextField(
-            controller: _returnDateController,
-            focusNode: _returnDateFocusNode,
-            labelText: "Return date",
-            hintText: "DD/MM/YYYY",
-            readOnly: true,
-            onTap: () => _pickDate(
-              _returnDateController,
-              () => _returnDateTouched = true,
-            ),
-            suffixIcons: const [Icon(Icons.calendar_today, size: 18)],
-            autocorrect: false,
-            enableSuggestions: false,
-            errorText: returnDateError,
+          StackDateRangePicker(
+            fromDate: _departureDate,
+            toDate: _returnDate,
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 3650)),
+            onChanged: (from, to) {
+              setState(() {
+                _departureDate = from;
+                _returnDate = to;
+              });
+            },
           ),
           SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4Dropdown(
