@@ -117,6 +117,28 @@ class ElectrumXClient {
   final Mutex _torConnectingLock = Mutex();
   bool _requireMutex = false;
 
+  /// Optional hook fired after each successful RPC completes. Used by
+  /// higher layers (e.g. the wallet refresh idle watchdog) to detect
+  /// liveness during long sequential RPC loops without having to
+  /// instrument every call site.
+  ///
+  /// Single-subscriber. Invoked via [_fireOnRequestComplete] which
+  /// swallows exceptions so a faulty hook cannot be misattributed as
+  /// an RPC failure by the surrounding catch block.
+  void Function()? onRequestComplete;
+
+  void _fireOnRequestComplete() {
+    try {
+      onRequestComplete?.call();
+    } catch (e, s) {
+      Logging.instance.w(
+        "onRequestComplete hook threw",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
   ElectrumXClient({
     required String host,
     required int port,
@@ -370,6 +392,7 @@ class ElectrumXClient {
       }
 
       currentFailoverIndex = -1;
+      _fireOnRequestComplete();
 
       // If the command is a ping, a good return should always be null.
       if (command.contains("ping")) {
@@ -476,6 +499,7 @@ class ElectrumXClient {
       // }
 
       currentFailoverIndex = -1;
+      _fireOnRequestComplete();
       return response;
     } on WifiOnlyException {
       rethrow;

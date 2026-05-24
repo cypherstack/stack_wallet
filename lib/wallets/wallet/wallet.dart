@@ -105,8 +105,19 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // ===== private properties ===========================================
 
+  /// Maximum time with no refresh activity before the idle watchdog
+  /// trips and unblocks _refresh() so refreshMutex can be released.
+  static const _refreshIdleThreshold = Duration(minutes: 5);
+
+  /// How often the idle watchdog checks _lastRefreshProgress.
+  static const _refreshWatchdogTick = Duration(seconds: 30);
+
   Timer? _periodicRefreshTimer;
   Timer? _networkAliveTimer;
+
+  /// Timestamp of the last _fireRefreshPercentChange during an active
+  /// refresh. Consumed by the idle watchdog in _refresh() to detect hangs.
+  DateTime? _lastRefreshProgress;
 
   bool _shouldAutoSync = false;
 
@@ -603,6 +614,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _fireRefreshPercentChange(double percent) {
+    _lastRefreshProgress = DateTime.now();
     if (this is ElectrumXInterface) {
       (this as ElectrumXInterface?)?.refreshingPercent = percent;
     }
@@ -641,95 +653,66 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
       }
 
-      // add some small buffer before making calls.
-      // this can probably be removed in the future but was added as a
-      // debugging feature
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      // Idle watchdog: trips when no refresh activity has been observed
+      // for _refreshIdleThreshold, signalling that the refresh is wedged.
+      // Slow-but-active syncs keep the watchdog fed and aren't killed:
+      //   - _fireRefreshPercentChange ticks (coarse phase checkpoints)
+      //   - successful electrum RPCs (via ElectrumXClient.onRequestComplete)
+      //     — this covers Spark anon-set downloads and long updateTransactions
+      //     loops, which use electrumXClient directly and do not call
+      //     _fireRefreshPercentChange between phases.
+      // Per-call hang detection is still the responsibility of the
+      // underlying adapters (e.g. electrum's connectionTimeout). This only
+      // catches what slips through those layers and would otherwise hold
+      // refreshMutex locked until the app is force-closed.
+      _lastRefreshProgress = DateTime.now();
 
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      final Set<String> codesToCheck = {};
-      if (this is PaynymInterface && !viewOnly) {
-        // isSegwit does not matter here at all
-        final myCode = await (this as PaynymInterface).getPaymentCode(
-          isSegwit: false,
-        );
+      // Feed the watchdog from successful electrum RPCs, so long sequential
+      // fetches (e.g. updateTransactions on a wallet with a large history)
+      // are classified as active rather than idle.
+      if (this is ElectrumXInterface) {
+        (this as ElectrumXInterface).electrumXClient.onRequestComplete = () {
+          _lastRefreshProgress = DateTime.now();
+        };
+      }
 
-        final nym = await PaynymIsApi().nym(myCode.toString());
-        if (nym.value != null) {
-          for (final follower in nym.value!.followers) {
-            codesToCheck.add(follower.code);
-          }
-          for (final following in nym.value!.following) {
-            codesToCheck.add(following.code);
-          }
+      final watchdogCompleter = Completer<void>();
+      final watchdog = Timer.periodic(_refreshWatchdogTick, (timer) {
+        if (watchdogCompleter.isCompleted) {
+          timer.cancel();
+          return;
         }
-      }
-
-      _fireRefreshPercentChange(0);
-      await updateChainHeight();
-
-      if (this is BitcoinFrostWallet) {
-        await (this as BitcoinFrostWallet).lookAhead();
-      }
-
-      _fireRefreshPercentChange(0.1);
-
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is MultiAddressInterface) {
-        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-          await (this as MultiAddressInterface)
-              .checkReceivingAddressForTransactions();
+        final last = _lastRefreshProgress;
+        if (last == null) return;
+        if (DateTime.now().difference(last) >= _refreshIdleThreshold) {
+          timer.cancel();
+          watchdogCompleter.completeError(
+            TimeoutException(
+              'Wallet refresh for $walletId idle for '
+              '${_refreshIdleThreshold.inMinutes} min',
+              _refreshIdleThreshold,
+            ),
+          );
         }
-      }
+      });
 
-      _fireRefreshPercentChange(0.2);
-
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is MultiAddressInterface) {
-        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-          await (this as MultiAddressInterface)
-              .checkChangeAddressForTransactions();
+      final work = _doRefreshWork(viewOnly);
+      try {
+        await Future.any([work, watchdogCompleter.future]);
+      } finally {
+        watchdog.cancel();
+        if (this is ElectrumXInterface) {
+          (this as ElectrumXInterface).electrumXClient.onRequestComplete =
+              null;
         }
+        _lastRefreshProgress = null;
+        // If the watchdog won the race, `work` is detached and still
+        // running; an eventual throw would surface as an uncaught async
+        // error. Attach a no-op error handler to suppress it. If `work`
+        // completed first, this future is already resolved and the
+        // handler is a no-op.
+        unawaited(work.catchError((_) {}));
       }
-      _fireRefreshPercentChange(0.3);
-      if (this is SparkInterface && !viewOnly) {
-        // this should be called before updateTransactions()
-        await (this as SparkInterface).refreshSparkData((0.3, 0.6));
-      }
-
-      if (this is NamecoinWallet) {
-        await updateUTXOs();
-        _fireRefreshPercentChange(0.6);
-        await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
-        _fireRefreshPercentChange(0.70);
-        await updateTransactions();
-      } else {
-        final fetchFuture = updateTransactions();
-        _fireRefreshPercentChange(0.6);
-        final utxosRefreshFuture = updateUTXOs();
-        _fireRefreshPercentChange(0.65);
-        await utxosRefreshFuture;
-        _fireRefreshPercentChange(0.70);
-        await fetchFuture;
-      }
-
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
-        await (this as PaynymInterface).checkForNotificationTransactionsTo(
-          codesToCheck,
-        );
-        // check utxos again for notification outputs
-        await updateUTXOs();
-      }
-      _fireRefreshPercentChange(0.80);
-
-      // await getAllTxsToWatch();
-
-      _fireRefreshPercentChange(0.90);
-
-      await updateBalance();
-
-      _fireRefreshPercentChange(1.0);
 
       completer.complete();
     } catch (error, strace) {
@@ -748,6 +731,98 @@ abstract class Wallet<T extends CryptoCurrency> {
         "$walletId::${info.name}: ${DateTime.now().difference(start)}",
       );
     }
+  }
+
+  Future<void> _doRefreshWork(bool viewOnly) async {
+    // add some small buffer before making calls.
+    // this can probably be removed in the future but was added as a
+    // debugging feature
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+    final Set<String> codesToCheck = {};
+    if (this is PaynymInterface && !viewOnly) {
+      // isSegwit does not matter here at all
+      final myCode = await (this as PaynymInterface).getPaymentCode(
+        isSegwit: false,
+      );
+
+      final nym = await PaynymIsApi().nym(myCode.toString());
+      if (nym.value != null) {
+        for (final follower in nym.value!.followers) {
+          codesToCheck.add(follower.code);
+        }
+        for (final following in nym.value!.following) {
+          codesToCheck.add(following.code);
+        }
+      }
+    }
+
+    _fireRefreshPercentChange(0);
+    await updateChainHeight();
+
+    if (this is BitcoinFrostWallet) {
+      await (this as BitcoinFrostWallet).lookAhead();
+    }
+
+    _fireRefreshPercentChange(0.1);
+
+    // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+    if (this is MultiAddressInterface) {
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await (this as MultiAddressInterface)
+            .checkReceivingAddressForTransactions();
+      }
+    }
+
+    _fireRefreshPercentChange(0.2);
+
+    // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+    if (this is MultiAddressInterface) {
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await (this as MultiAddressInterface)
+            .checkChangeAddressForTransactions();
+      }
+    }
+    _fireRefreshPercentChange(0.3);
+    if (this is SparkInterface && !viewOnly) {
+      // this should be called before updateTransactions()
+      await (this as SparkInterface).refreshSparkData((0.3, 0.6));
+    }
+
+    if (this is NamecoinWallet) {
+      await updateUTXOs();
+      _fireRefreshPercentChange(0.6);
+      await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
+      _fireRefreshPercentChange(0.70);
+      await updateTransactions();
+    } else {
+      final fetchFuture = updateTransactions();
+      _fireRefreshPercentChange(0.6);
+      final utxosRefreshFuture = updateUTXOs();
+      await utxosRefreshFuture;
+      _fireRefreshPercentChange(0.65);
+      await fetchFuture;
+      _fireRefreshPercentChange(0.70);
+    }
+
+    // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+    if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
+      await (this as PaynymInterface).checkForNotificationTransactionsTo(
+        codesToCheck,
+      );
+      // check utxos again for notification outputs
+      await updateUTXOs();
+    }
+    _fireRefreshPercentChange(0.80);
+
+    // await getAllTxsToWatch();
+
+    _fireRefreshPercentChange(0.90);
+
+    await updateBalance();
+
+    _fireRefreshPercentChange(1.0);
   }
 
   Future<void> exit() async {
