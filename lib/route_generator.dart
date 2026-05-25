@@ -89,13 +89,6 @@ import 'pages/masternodes/create_masternode_view.dart';
 import 'pages/masternodes/masternode_details_view.dart';
 import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
-import 'pages/cakepay/cakepay_card_detail_view.dart';
-import 'services/cakepay/src/models/card.dart';
-import 'pages/cakepay/cakepay_confirm_send_view.dart';
-import 'pages/cakepay/cakepay_order_view.dart';
-import 'pages/cakepay/cakepay_orders_view.dart';
-import 'pages/cakepay/cakepay_send_from_view.dart';
-import 'pages/cakepay/cakepay_vendors_view.dart';
 import 'pages/more_view/gift_cards_view.dart';
 import 'pages/more_view/services_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
@@ -230,9 +223,6 @@ import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
-import 'pages_desktop_specific/more_view/sub_widgets/desktop_gift_cards_view.dart';
-import 'pages_desktop_specific/more_view/sub_widgets/desktop_services_view.dart';
-import 'pages_desktop_specific/more_view/sub_widgets/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
@@ -251,6 +241,9 @@ import 'pages_desktop_specific/password/create_password_view.dart';
 import 'pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'pages_desktop_specific/password/forgot_password_desktop_view.dart';
 import 'pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
+import 'pages_desktop_specific/services/cakepay/desktop_gift_cards_view.dart';
+import 'pages_desktop_specific/services/desktop_services_view.dart';
+import 'pages_desktop_specific/services/shopin_bit/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/settings/desktop_settings_view.dart';
 import 'pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
@@ -261,11 +254,11 @@ import 'pages_desktop_specific/settings/settings_menu/desktop_support_view.dart'
 import 'pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
-import 'pages_desktop_specific/settings/settings_menu/shopinbit_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import 'services/cakepay/src/models/card.dart';
+import 'services/cakepay/src/models/order.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'services/shopinbit/src/models/car_research.dart';
@@ -949,10 +942,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CreateMasternodeView.routeName:
-        if (args is String) {
+        if (args is Map<String, dynamic>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CreateMasternodeView(firoWalletId: args),
+            builder: (_) => CreateMasternodeView(
+              firoWalletId: args['walletId'] as String,
+              collateralTxid: args['collateralTxid'] as String,
+              collateralVout: args['collateralVout'] as int,
+              collateralAddress: args['collateralAddress'] as String,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1108,10 +1106,10 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CakePayOrderView.routeName:
-        if (args is String) {
+        if (args is CakePayOrder) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CakePayOrderView(orderId: args),
+            builder: (_) => CakePayOrderView(order: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2736,13 +2734,6 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AdvancedSettings(),
-          settings: RouteSettings(name: settings.name),
-        );
-
-      case ShopInBitDesktopSettings.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const ShopInBitDesktopSettings(),
           settings: RouteSettings(name: settings.name),
         );
 

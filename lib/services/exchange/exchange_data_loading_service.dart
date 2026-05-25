@@ -25,6 +25,7 @@ import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
 import 'change_now/change_now_exchange.dart';
+import 'exolix/exolix_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 import 'wizard_swap/wizard_swap_exchange.dart';
@@ -209,6 +210,7 @@ class ExchangeDataLoadingService {
           loadTrocadorCurrencies(),
           loadNanswapCurrencies(),
           loadWizardSwapCurrencies(),
+          loadExolixCurrencies(),
         ];
 
         // If using Tor, don't load data for exchanges which don't support Tor.
@@ -457,6 +459,29 @@ class ExchangeDataLoadingService {
       });
     } else {
       Logging.instance.w("loadWizardSwapCurrencies: $responseCurrencies");
+    }
+  }
+
+  Future<void> loadExolixCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
+    final responseCurrencies = await ExolixExchange.instance.getAllCurrencies(
+      false,
+    );
+
+    if (responseCurrencies.value != null) {
+      await (await isar).writeTxn(() async {
+        final idsToDelete = await (await isar).currencies
+            .where()
+            .exchangeNameEqualTo(ExolixExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
+      });
+    } else {
+      Logging.instance.w("loadExolixCurrencies: $responseCurrencies");
     }
   }
 

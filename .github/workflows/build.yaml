@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      - staging
   workflow_dispatch:
     inputs:
       version:
@@ -19,11 +21,14 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -37,9 +42,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -73,11 +81,10 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Build
-        run: flutter build linux --release
+        env:
+          USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+        run: flutter build linux --release --verbose
 
       - name: Package
         run: |
@@ -91,11 +98,14 @@ jobs:
 
   build-android:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     container:
-      image: stackwallet/stackwallet-ci:latest
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:latest
       credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -109,9 +119,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -145,9 +158,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Set up Android local.properties
         run: |
           cat > android/local.properties <<EOF
@@ -159,7 +169,17 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/keystore.jks
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
+          [ -s android/keystore-orig.jks ] || { echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is empty or not set"; exit 1; }
+          keytool -importkeystore \
+            -srckeystore android/keystore-orig.jks \
+            -destkeystore android/keystore.jks \
+            -deststoretype pkcs12 \
+            -srcstorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -deststorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -noprompt \
+            -J-Dkeystore.pkcs12.legacy
+          rm android/keystore-orig.jks
           cat > android/key.properties <<EOF
           storeFile=../keystore.jks
           storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
@@ -190,7 +210,7 @@ jobs:
           path: android-artifacts/
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     defaults:
       run:
         shell: bash
@@ -207,9 +227,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -219,6 +242,13 @@ jobs:
           flutter-version: '3.38.1'
           channel: 'stable'
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
       - name: Configure app
         run: |
           cd scripts
@@ -227,8 +257,44 @@ jobs:
             -b "${{ steps.ver.outputs.build_number }}" \
             -p windows -a stack_wallet -d -s
 
+      # The Actions windows-2022 runner user lacks SeCreateSymbolicLinkPrivilege,
+      # so link_assets.sh's mklink /D calls either fail or produce broken reparse
+      # points that Flutter's asset resolver cannot traverse. Replace each of
+      # the five gitignored asset directories with real copies instead.
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/stack_wallet"
+            # Remove whatever link_assets.sh left (reparse point, symlink, or nothing).
+            # cmd.exe rmdir on a junction/symlink removes the link, not the target.
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
+
       - name: Get dependencies
         run: flutter pub get
+
+      # Stack Wallet uses mwebd.exe as a subprocess on Windows, not the FFI
+      # DLL, so we don't need libmwebd.dll. The upstream plugin's Windows
+      # build path requires WSL, which the GitHub runner lacks.
+      - name: Patch flutter_mwebd to skip Windows FFI build (CI workaround)
+        run: |
+          set -euo pipefail
+          cache_root="$(cygpath -u "$LOCALAPPDATA")/Pub/Cache/hosted/pub.dev"
+          plugin_dir=$(find "$cache_root" -maxdepth 1 -type d -name 'flutter_mwebd-*' -print -quit)
+          if [ -z "$plugin_dir" ] || [ ! -f "$plugin_dir/pubspec.yaml" ]; then
+            echo "::error::Could not locate flutter_mwebd in $cache_root"
+            exit 1
+          fi
+          pubspec="$plugin_dir/pubspec.yaml"
+          echo "Patching $pubspec"
+          sed -i '/^      windows:$/,/^        ffiPlugin: true$/d' "$pubspec"
+          flutter pub get
 
       - name: Create git_versions.dart stubs
         run: |
@@ -248,22 +314,16 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Build secp256k1.dll for Windows
+        run: dart run coinlib:build_windows
 
       - name: Build
         run: flutter build windows --release
 
-      - name: Package
-        shell: pwsh
-        run: |
-          Compress-Archive -Path build\windows\x64\runner\Release\* `
-            -DestinationPath "stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
-
       - uses: actions/upload-artifact@v4
         with:
           name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}
-          path: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+          path: build/windows/x64/runner/Release/
 
   build-macos:
     runs-on: macos-latest
@@ -280,9 +340,12 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
@@ -291,6 +354,10 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
 
       - name: Configure app
         run: |
@@ -321,9 +388,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Build
         run: flutter build macos --release
 
@@ -353,22 +417,29 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
             BUILD_NUMBER="${{ github.run_number }}"
-          else
+          elif [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.71.0'
+          toolchain: stable
           targets: aarch64-apple-ios
 
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
 
       - name: Configure app
         run: |
@@ -399,9 +470,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Generate app config
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Build
         run: flutter build ios --release --no-codesign
 
@@ -426,9 +494,19 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-          merge-multiple: true
+
+      - name: Package artifacts
+        run: |
+          mkdir -p release-files
+          for dir in artifacts/stack_wallet-windows-*/; do
+            [ -d "$dir" ] || continue
+            name=$(basename "$dir")
+            (cd "$dir" && zip -r "../../release-files/${name}.zip" .)
+          done
+          find artifacts/ \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" \) -mindepth 2 -exec mv {} release-files/ \;
+          find artifacts/ -name "*.apk" -mindepth 2 -exec mv {} release-files/ \;
 
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: artifacts/*
+          files: release-files/*

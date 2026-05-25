@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
+import '../../pages/shopinbit/shopinbit_settings_view.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -26,7 +27,6 @@ import 'settings_menu/currency_settings/currency_settings.dart';
 import 'settings_menu/language_settings/language_settings.dart';
 import 'settings_menu/nodes_settings.dart';
 import 'settings_menu/security_settings.dart';
-import 'settings_menu/shopinbit_settings.dart';
 import 'settings_menu/syncing_preferences_settings.dart';
 import 'settings_menu/tor_settings/tor_settings.dart';
 
@@ -94,11 +94,11 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: AdvancedSettings.routeName,
       ), //advanced
-      if (familiarity >= 6)
+      if (AppConfig.hasFeature(.shopinBit) && familiarity >= 6)
         const Navigator(
           key: Key("settingsShopInBitDesktopKey"),
           onGenerateRoute: RouteGenerator.generateRoute,
-          initialRoute: ShopInBitDesktopSettings.routeName,
+          initialRoute: ShopInBitSettingsView.routeName,
         ), //shopinbit
     ];
     return DesktopScaffold(
