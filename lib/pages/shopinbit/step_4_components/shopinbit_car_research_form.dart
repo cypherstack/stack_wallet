@@ -11,7 +11,10 @@ import "../../../themes/stack_colors.dart";
 import "../../../utilities/assets.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/desktop/primary_button.dart";
+import "../../../widgets/desktop/secondary_button.dart";
 import "../../../widgets/rounded_white_container.dart";
+import "../../../widgets/stack_dialog.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "../shopinbit_car_fee_view.dart";
 import "../shopinbit_tickets_view.dart";
@@ -136,22 +139,22 @@ class _ShopInBitCarResearchFormState
         final bool? resumePrevious = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text("In-Progress Car Research"),
-            content: const Text(
-              "You have an unfinished car research payment. "
-              "Would you like to resume it or start a new search?",
+          builder: (context) => StackDialog(
+            width: Util.isDesktop ? 500 : null,
+            title: "In-Progress Car Research",
+            message:
+                "You have an unfinished car research payment. "
+                "Would you like to resume it or start a new search?",
+            leftButton: SecondaryButton(
+              label: "New",
+              buttonHeight: Util.isDesktop ? .l : null,
+              onPressed: Navigator.of(context).pop,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text("Resume Previous"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text("Start New"),
-              ),
-            ],
+            rightButton: PrimaryButton(
+              label: "Resume",
+              buttonHeight: Util.isDesktop ? .l : null,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
           ),
         );
 
@@ -168,21 +171,11 @@ class _ShopInBitCarResearchFormState
 
       if (!mounted) return;
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitCarFeeView(model: widget.model),
-          ),
-        );
-      } else {
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitCarFeeView.routeName, arguments: widget.model),
-        );
-      }
+      unawaited(
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: widget.model),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

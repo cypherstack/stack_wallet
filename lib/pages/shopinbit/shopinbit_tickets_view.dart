@@ -92,32 +92,16 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
         expiresAt: expiresAt,
         paymentLinks: links,
       );
-      if (isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        showDialog<void>(
-          context: context,
-          builder: (_) =>
-              ShopInBitCarResearchPaymentView(model: model, invoice: invoice),
-        );
-      } else {
-        Navigator.of(context).pushNamed(
-          ShopInBitCarResearchPaymentView.routeName,
-          arguments: (model, invoice),
-        );
-      }
+
+      Navigator.of(context).pushNamed(
+        ShopInBitCarResearchPaymentView.routeName,
+        arguments: (model, invoice),
+      );
     } else {
       // Invoice expired: navigate to fee view.
-      if (isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitCarFeeView(model: model),
-        );
-      } else {
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: model);
-      }
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitCarFeeView.routeName, arguments: model);
     }
   }
 

@@ -20,9 +20,10 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import '../more_view/services_view.dart';
@@ -286,25 +287,12 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
 
       if (!mounted) return;
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitCarResearchPaymentView(
-              model: widget.model,
-              invoice: invoice,
-            ),
-          ),
-        );
-      } else {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            ShopInBitCarResearchPaymentView.routeName,
-            arguments: (widget.model, invoice),
-          ),
-        );
-      }
+      unawaited(
+        Navigator.of(context).pushNamed(
+          ShopInBitCarResearchPaymentView.routeName,
+          arguments: (widget.model, invoice),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         setState(() => _submitting = false);
@@ -504,6 +492,7 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     final spacing = SizedBox(height: isDesktop ? 16 : 12);
 
     final content = Column(
+      mainAxisSize: .min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
@@ -514,6 +503,9 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
         ),
         SizedBox(height: isDesktop ? 16 : 8),
         RoundedWhiteContainer(
+          borderColor: isDesktop
+              ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+              : null,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -705,34 +697,41 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     );
 
     if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 750,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopinBit",
-                    style: STextStyles.desktopH3(context),
+      return SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
                   ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                child: SingleChildScrollView(child: content),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: () =>
+                        NestedNavigatorDialog.of(context).close(),
+                  ),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const .only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                    top: 16,
+                  ),
+                  child: content,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
