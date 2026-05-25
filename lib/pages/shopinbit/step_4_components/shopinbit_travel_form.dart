@@ -405,7 +405,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           ShopInBitStep4Dropdown(
             value: _selectedMonthSeason,
             items: _months,
-            hintText: "Month or season",
+            hintText: "Month",
             onChanged: (value) => setState(() => _selectedMonthSeason = value),
           ),
           SizedBox(height: isDesktop ? 24 : 16),
