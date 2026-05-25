@@ -117,6 +117,7 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
                           width: 200,
                           buttonHeight: ButtonHeight.m,
                           label: "My Orders",
+                          enabled: !_torEnabled,
                           onPressed: () {
                             showDialog<void>(
                               context: context,
