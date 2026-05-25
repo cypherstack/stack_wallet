@@ -538,6 +538,17 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
       ).withConverter<ShopInBitOrderStatus>(
         $ShopInBitTicketsTable.$converterstatus,
       );
+  static const VerificationMeta _statusRawMeta = const VerificationMeta(
+    'statusRaw',
+  );
+  @override
+  late final GeneratedColumn<String> statusRaw = GeneratedColumn<String>(
+    'status_raw',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _requestDescriptionMeta =
       const VerificationMeta('requestDescription');
   @override
@@ -762,6 +773,7 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     displayName,
     category,
     status,
+    statusRaw,
     requestDescription,
     deliveryCountry,
     offerProductName,
@@ -812,6 +824,12 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
       );
     } else if (isInserting) {
       context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('status_raw')) {
+      context.handle(
+        _statusRawMeta,
+        statusRaw.isAcceptableOrUnknown(data['status_raw']!, _statusRawMeta),
+      );
     }
     if (data.containsKey('request_description')) {
       context.handle(
@@ -1020,6 +1038,10 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
           data['${effectivePrefix}status'],
         )!,
       ),
+      statusRaw: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_raw'],
+      ),
       requestDescription: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}request_description'],
@@ -1121,6 +1143,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
   final String displayName;
   final ShopInBitCategory category;
   final ShopInBitOrderStatus status;
+  final String? statusRaw;
   final String requestDescription;
   final String deliveryCountry;
   final String? offerProductName;
@@ -1145,6 +1168,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     required this.displayName,
     required this.category,
     required this.status,
+    this.statusRaw,
     required this.requestDescription,
     required this.deliveryCountry,
     this.offerProductName,
@@ -1179,6 +1203,9 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       map['status'] = Variable<int>(
         $ShopInBitTicketsTable.$converterstatus.toSql(status),
       );
+    }
+    if (!nullToAbsent || statusRaw != null) {
+      map['status_raw'] = Variable<String>(statusRaw);
     }
     map['request_description'] = Variable<String>(requestDescription);
     map['delivery_country'] = Variable<String>(deliveryCountry);
@@ -1228,6 +1255,9 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       displayName: Value(displayName),
       category: Value(category),
       status: Value(status),
+      statusRaw: statusRaw == null && nullToAbsent
+          ? const Value.absent()
+          : Value(statusRaw),
       requestDescription: Value(requestDescription),
       deliveryCountry: Value(deliveryCountry),
       offerProductName: offerProductName == null && nullToAbsent
@@ -1278,6 +1308,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       status: $ShopInBitTicketsTable.$converterstatus.fromJson(
         serializer.fromJson<int>(json['status']),
       ),
+      statusRaw: serializer.fromJson<String?>(json['statusRaw']),
       requestDescription: serializer.fromJson<String>(
         json['requestDescription'],
       ),
@@ -1323,6 +1354,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       'status': serializer.toJson<int>(
         $ShopInBitTicketsTable.$converterstatus.toJson(status),
       ),
+      'statusRaw': serializer.toJson<String?>(statusRaw),
       'requestDescription': serializer.toJson<String>(requestDescription),
       'deliveryCountry': serializer.toJson<String>(deliveryCountry),
       'offerProductName': serializer.toJson<String?>(offerProductName),
@@ -1356,6 +1388,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     String? displayName,
     ShopInBitCategory? category,
     ShopInBitOrderStatus? status,
+    Value<String?> statusRaw = const Value.absent(),
     String? requestDescription,
     String? deliveryCountry,
     Value<String?> offerProductName = const Value.absent(),
@@ -1380,6 +1413,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     displayName: displayName ?? this.displayName,
     category: category ?? this.category,
     status: status ?? this.status,
+    statusRaw: statusRaw.present ? statusRaw.value : this.statusRaw,
     requestDescription: requestDescription ?? this.requestDescription,
     deliveryCountry: deliveryCountry ?? this.deliveryCountry,
     offerProductName: offerProductName.present
@@ -1420,6 +1454,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
           : this.displayName,
       category: data.category.present ? data.category.value : this.category,
       status: data.status.present ? data.status.value : this.status,
+      statusRaw: data.statusRaw.present ? data.statusRaw.value : this.statusRaw,
       requestDescription: data.requestDescription.present
           ? data.requestDescription.value
           : this.requestDescription,
@@ -1483,6 +1518,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
           ..write('displayName: $displayName, ')
           ..write('category: $category, ')
           ..write('status: $status, ')
+          ..write('statusRaw: $statusRaw, ')
           ..write('requestDescription: $requestDescription, ')
           ..write('deliveryCountry: $deliveryCountry, ')
           ..write('offerProductName: $offerProductName, ')
@@ -1512,6 +1548,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     displayName,
     category,
     status,
+    statusRaw,
     requestDescription,
     deliveryCountry,
     offerProductName,
@@ -1540,6 +1577,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
           other.displayName == this.displayName &&
           other.category == this.category &&
           other.status == this.status &&
+          other.statusRaw == this.statusRaw &&
           other.requestDescription == this.requestDescription &&
           other.deliveryCountry == this.deliveryCountry &&
           other.offerProductName == this.offerProductName &&
@@ -1566,6 +1604,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
   final Value<String> displayName;
   final Value<ShopInBitCategory> category;
   final Value<ShopInBitOrderStatus> status;
+  final Value<String?> statusRaw;
   final Value<String> requestDescription;
   final Value<String> deliveryCountry;
   final Value<String?> offerProductName;
@@ -1591,6 +1630,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     this.displayName = const Value.absent(),
     this.category = const Value.absent(),
     this.status = const Value.absent(),
+    this.statusRaw = const Value.absent(),
     this.requestDescription = const Value.absent(),
     this.deliveryCountry = const Value.absent(),
     this.offerProductName = const Value.absent(),
@@ -1617,6 +1657,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     required String displayName,
     required ShopInBitCategory category,
     required ShopInBitOrderStatus status,
+    this.statusRaw = const Value.absent(),
     required String requestDescription,
     required String deliveryCountry,
     this.offerProductName = const Value.absent(),
@@ -1658,6 +1699,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     Expression<String>? displayName,
     Expression<int>? category,
     Expression<int>? status,
+    Expression<String>? statusRaw,
     Expression<String>? requestDescription,
     Expression<String>? deliveryCountry,
     Expression<String>? offerProductName,
@@ -1684,6 +1726,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       if (displayName != null) 'display_name': displayName,
       if (category != null) 'category': category,
       if (status != null) 'status': status,
+      if (statusRaw != null) 'status_raw': statusRaw,
       if (requestDescription != null) 'request_description': requestDescription,
       if (deliveryCountry != null) 'delivery_country': deliveryCountry,
       if (offerProductName != null) 'offer_product_name': offerProductName,
@@ -1717,6 +1760,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     Value<String>? displayName,
     Value<ShopInBitCategory>? category,
     Value<ShopInBitOrderStatus>? status,
+    Value<String?>? statusRaw,
     Value<String>? requestDescription,
     Value<String>? deliveryCountry,
     Value<String?>? offerProductName,
@@ -1743,6 +1787,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       displayName: displayName ?? this.displayName,
       category: category ?? this.category,
       status: status ?? this.status,
+      statusRaw: statusRaw ?? this.statusRaw,
       requestDescription: requestDescription ?? this.requestDescription,
       deliveryCountry: deliveryCountry ?? this.deliveryCountry,
       offerProductName: offerProductName ?? this.offerProductName,
@@ -1785,6 +1830,9 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       map['status'] = Variable<int>(
         $ShopInBitTicketsTable.$converterstatus.toSql(status.value),
       );
+    }
+    if (statusRaw.present) {
+      map['status_raw'] = Variable<String>(statusRaw.value);
     }
     if (requestDescription.present) {
       map['request_description'] = Variable<String>(requestDescription.value);
@@ -1864,6 +1912,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
           ..write('displayName: $displayName, ')
           ..write('category: $category, ')
           ..write('status: $status, ')
+          ..write('statusRaw: $statusRaw, ')
           ..write('requestDescription: $requestDescription, ')
           ..write('deliveryCountry: $deliveryCountry, ')
           ..write('offerProductName: $offerProductName, ')
@@ -2230,6 +2279,7 @@ typedef $$ShopInBitTicketsTableCreateCompanionBuilder =
       required String displayName,
       required ShopInBitCategory category,
       required ShopInBitOrderStatus status,
+      Value<String?> statusRaw,
       required String requestDescription,
       required String deliveryCountry,
       Value<String?> offerProductName,
@@ -2257,6 +2307,7 @@ typedef $$ShopInBitTicketsTableUpdateCompanionBuilder =
       Value<String> displayName,
       Value<ShopInBitCategory> category,
       Value<ShopInBitOrderStatus> status,
+      Value<String?> statusRaw,
       Value<String> requestDescription,
       Value<String> deliveryCountry,
       Value<String?> offerProductName,
@@ -2312,6 +2363,11 @@ class $$ShopInBitTicketsTableFilterComposer
   get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get statusRaw => $composableBuilder(
+    column: $table.statusRaw,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get requestDescription => $composableBuilder(
@@ -2444,6 +2500,11 @@ class $$ShopInBitTicketsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get statusRaw => $composableBuilder(
+    column: $table.statusRaw,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get requestDescription => $composableBuilder(
     column: $table.requestDescription,
     builder: (column) => ColumnOrderings(column),
@@ -2562,6 +2623,9 @@ class $$ShopInBitTicketsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<ShopInBitOrderStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get statusRaw =>
+      $composableBuilder(column: $table.statusRaw, builder: (column) => column);
 
   GeneratedColumn<String> get requestDescription => $composableBuilder(
     column: $table.requestDescription,
@@ -2697,6 +2761,7 @@ class $$ShopInBitTicketsTableTableManager
                 Value<String> displayName = const Value.absent(),
                 Value<ShopInBitCategory> category = const Value.absent(),
                 Value<ShopInBitOrderStatus> status = const Value.absent(),
+                Value<String?> statusRaw = const Value.absent(),
                 Value<String> requestDescription = const Value.absent(),
                 Value<String> deliveryCountry = const Value.absent(),
                 Value<String?> offerProductName = const Value.absent(),
@@ -2723,6 +2788,7 @@ class $$ShopInBitTicketsTableTableManager
                 displayName: displayName,
                 category: category,
                 status: status,
+                statusRaw: statusRaw,
                 requestDescription: requestDescription,
                 deliveryCountry: deliveryCountry,
                 offerProductName: offerProductName,
@@ -2750,6 +2816,7 @@ class $$ShopInBitTicketsTableTableManager
                 required String displayName,
                 required ShopInBitCategory category,
                 required ShopInBitOrderStatus status,
+                Value<String?> statusRaw = const Value.absent(),
                 required String requestDescription,
                 required String deliveryCountry,
                 Value<String?> offerProductName = const Value.absent(),
@@ -2775,6 +2842,7 @@ class $$ShopInBitTicketsTableTableManager
                 displayName: displayName,
                 category: category,
                 status: status,
+                statusRaw: statusRaw,
                 requestDescription: requestDescription,
                 deliveryCountry: deliveryCountry,
                 offerProductName: offerProductName,
