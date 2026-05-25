@@ -60,15 +60,27 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
 
   /// Derive a country list from the loaded vendors so we don't need the
   /// broken /marketplace/countries/ endpoint.
-  void _deriveCountries() {
-    final seen = <String>{};
-    _countryNames =
-        _vendors
-            .map((v) => v.country)
-            .whereType<String>()
-            .where((c) => c.isNotEmpty && seen.add(c))
-            .toList()
-          ..sort();
+  Future<void> _deriveCountries() async {
+    // naive caching
+    if (_countryNames.isNotEmpty) return;
+
+    final response = await CakePayService.instance.client.getAllCountries();
+
+    if (response.hasError || response.value == null) {
+      if (mounted) {
+        setState(() {
+          _error = response.exception?.message ?? "Failed to load countries";
+        });
+      }
+    } else {
+      _countryNames =
+          response.value!
+              .where((e) => e.available)
+              .map((e) => e.name)
+              .toSet()
+              .toList(growable: false)
+            ..sort();
+    }
   }
 
   Future<void> _loadVendors() async {
@@ -86,15 +98,16 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
 
     if (!mounted) return;
 
-    setState(() {
-      _loading = false;
-      if (!resp.hasError && resp.value != null) {
-        _vendors = resp.value!;
-        _deriveCountries();
-      } else {
+    if (resp.hasError || resp.value == null) {
+      setState(() {
         _error = resp.exception?.message ?? "Failed to load gift cards";
-      }
-    });
+      });
+    } else {
+      _vendors = resp.value!;
+      await _deriveCountries();
+    }
+
+    if (mounted) setState(() => _loading = false);
   }
 
   Future<void> _onCardTapped(CakePayCard card) async {
