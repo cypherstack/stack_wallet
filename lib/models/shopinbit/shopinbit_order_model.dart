@@ -324,7 +324,6 @@ class ShopInBitOrderModel extends ChangeNotifier {
         )
         .toList();
 
-  static ShopInBitOrderModel fromIsarTicket(ShopInBitTicket ticket) {
     return ShopInBitOrderModel()
       .._displayName = ticket.displayName
       .._category = ticket.category

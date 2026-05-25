@@ -82,7 +82,8 @@ class ShopInBitOrdersService extends ChangeNotifier {
         final newStatus = ShopInBitOrderModel.statusFromTicketState(
           statusResp.value!.state,
         );
-        if (model.status != newStatus) {
+        model.statusRaw = statusResp.value!.stateRaw;
+        if (model.status != newStatus && newStatus != null) {
           model.status = newStatus;
           changed = true;
         }
