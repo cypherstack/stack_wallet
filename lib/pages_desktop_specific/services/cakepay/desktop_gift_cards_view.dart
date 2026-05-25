@@ -98,35 +98,33 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
                     ),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.m,
-                            label: "Browse Gift Cards",
-                            enabled: !_torEnabled,
-                            onPressed: () {
-                              showDialog<void>(
-                                context: context,
-                                builder: (_) => const NestedNavigatorDialog(
-                                  initialRoute: CakePayVendorsView.routeName,
-                                ),
-                              );
-                            },
-                          ),
+                        PrimaryButton(
+                          width: 220,
+                          buttonHeight: ButtonHeight.m,
+                          label: "Browse Gift Cards",
+                          enabled: !_torEnabled,
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const NestedNavigatorDialog(
+                                initialRoute: CakePayVendorsView.routeName,
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.m,
-                            label: "My Orders",
-                            onPressed: () {
-                              showDialog<void>(
-                                context: context,
-                                builder: (_) => const NestedNavigatorDialog(
-                                  initialRoute: CakePayOrdersView.routeName,
-                                ),
-                              );
-                            },
-                          ),
+                        SecondaryButton(
+                          width: 200,
+                          buttonHeight: ButtonHeight.m,
+                          label: "My Orders",
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const NestedNavigatorDialog(
+                                initialRoute: CakePayOrdersView.routeName,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
