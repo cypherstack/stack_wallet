@@ -4,10 +4,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
-import '../../services/cakepay/src/models/vendor.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -16,6 +16,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
+import '../../widgets/infinite_scroll_list_view.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_text_field.dart';
@@ -31,20 +32,21 @@ class CakePayVendorsView extends StatefulWidget {
 }
 
 class _CakePayVendorsViewState extends State<CakePayVendorsView> {
-  List<CakePayVendor> _vendors = [];
   List<String> _countryNames = [];
   String? _selectedCountry;
+  String? _searchQuery;
   bool _loading = true;
-  String? _error;
 
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   final _countrySearchController = TextEditingController();
 
+  final _listController = InfiniteScrollListController();
+
   @override
   void initState() {
     super.initState();
-    _loadVendors();
+    _loadCountries();
   }
 
   @override
@@ -55,59 +57,60 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
     super.dispose();
   }
 
-  List<CakePayCard> _availableCards() =>
-      _vendors.expand((v) => v.cards.where((c) => c.available)).toList();
+  Future<({List<CakePayCard> cards, int? nextPage})> _fetchCards(
+    int page,
+  ) async {
+    final response = await CakePayService.instance.client.getVendors(
+      page: page,
+      pageSize: 50,
+      country: _selectedCountry,
+      search: _searchQuery,
+    );
 
-  /// Derive a country list from the loaded vendors so we don't need the
-  /// broken /marketplace/countries/ endpoint.
-  Future<void> _deriveCountries() async {
+    if (response.hasError || response.value == null) {
+      throw response.exception ??
+          Exception("Unknown exception with value is null????");
+    }
+
+    return (
+      cards: response.value!.vendors
+          .expand((e) => e.cards.where((e) => e.available))
+          .toList(),
+      nextPage: response.value!.nextPage,
+    );
+  }
+
+  Future<void> _loadCountries() async {
     // naive caching
     if (_countryNames.isNotEmpty) return;
 
-    final response = await CakePayService.instance.client.getAllCountries();
-
-    if (response.hasError || response.value == null) {
-      if (mounted) {
-        setState(() {
-          _error = response.exception?.message ?? "Failed to load countries";
-        });
-      }
-    } else {
-      _countryNames =
-          response.value!
-              .where((e) => e.available)
-              .map((e) => e.name)
-              .toSet()
-              .toList(growable: false)
-            ..sort();
-    }
-  }
-
-  Future<void> _loadVendors() async {
     setState(() {
       _loading = true;
-      _error = null;
     });
 
-    final resp = await CakePayService.instance.client.getVendors(
-      country: _selectedCountry,
-      search: _searchController.text.trim().isNotEmpty
-          ? _searchController.text.trim()
-          : null,
-    );
+    try {
+      final response = await CakePayService.instance.client.getAllCountries();
 
-    if (!mounted) return;
-
-    if (resp.hasError || resp.value == null) {
-      setState(() {
-        _error = resp.exception?.message ?? "Failed to load gift cards";
-      });
-    } else {
-      _vendors = resp.value!;
-      await _deriveCountries();
+      if (response.hasError || response.value == null) {
+        Logging.instance.e(
+          response.exception?.message ?? "Failed to load countries",
+          error: response.exception,
+          stackTrace: StackTrace.current,
+        );
+      } else {
+        setState(() {
+          _countryNames =
+              response.value!
+                  .where((e) => e.available)
+                  .map((e) => e.name)
+                  .toSet()
+                  .toList(growable: false)
+                ..sort();
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-
-    if (mounted) setState(() => _loading = false);
   }
 
   Future<void> _onCardTapped(CakePayCard card) async {
@@ -119,7 +122,6 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final cards = _availableCards();
 
     return ConditionalParent(
       condition: isDesktop,
@@ -180,7 +182,10 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
             _SearchField(
               controller: _searchController,
               focusNode: _searchFocusNode,
-              onSubmitted: (_) => _loadVendors(),
+              onSubmitted: (value) {
+                setState(() => _searchQuery = value);
+                _listController.refresh();
+              },
             ),
             if (_countryNames.isNotEmpty) ...[
               SizedBox(height: isDesktop ? 12 : 12),
@@ -190,7 +195,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                 searchController: _countrySearchController,
                 onChanged: (value) {
                   setState(() => _selectedCountry = value);
-                  _loadVendors();
+                  _listController.refresh();
                 },
               ),
             ],
@@ -198,26 +203,25 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
             Expanded(
               child: _loading
                   ? const LoadingIndicator(width: 48, height: 48)
-                  : cards.isEmpty
-                  ? Center(
-                      child: Text(
-                        _error ?? "No gift cards found",
-                        style: isDesktop
-                            ? STextStyles.desktopTextSmall(context)
-                            : STextStyles.itemSubtitle(context),
-                      ),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: isDesktop,
-                      primary: isDesktop ? false : null,
-                      itemCount: cards.length,
+                  : InfiniteScrollListView<CakePayCard, int>(
+                      controller: _listController,
                       padding: .only(bottom: isDesktop ? 32 : 16),
-                      separatorBuilder: (_, __) =>
+                      firstPageKey: 1,
+                      separatorBuilder: (_, _) =>
                           SizedBox(height: isDesktop ? 16 : 12),
-                      itemBuilder: (_, index) => _CardTile(
-                        card: cards[index],
-                        onTap: () => _onCardTapped(cards[index]),
-                      ),
+                      fetchPage: (pageKey) async {
+                        final result = await _fetchCards(pageKey);
+                        return InfiniteScrollPage(
+                          items: result.cards,
+                          nextPageKey: result.nextPage,
+                        );
+                      },
+                      itemBuilder: (context, item, index) {
+                        return _CardTile(
+                          card: item,
+                          onTap: () => _onCardTapped(item),
+                        );
+                      },
                     ),
             ),
           ],

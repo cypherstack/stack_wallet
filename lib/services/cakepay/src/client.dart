@@ -41,7 +41,8 @@ class CakePayClient {
 
   // -- Marketplace --
 
-  Future<ApiResponse<List<CakePayVendor>>> getVendors({
+  Future<ApiResponse<({List<CakePayVendor> vendors, int? nextPage})>>
+  getVendors({
     String? country,
     String? countryCode,
     String? search,
@@ -70,23 +71,25 @@ class CakePayClient {
       '/marketplace/vendors/',
       query: query,
       parse: (body) {
-        final decoded = jsonDecode(body);
-        if (decoded is List) {
-          return decoded
-              .whereType<Map<String, dynamic>>()
-              .map(CakePayVendor.fromJson)
-              .toList();
-        }
-        if (decoded is Map<String, dynamic>) {
-          final results = decoded['results'];
-          if (results is List) {
-            return results
-                .whereType<Map<String, dynamic>>()
-                .map(CakePayVendor.fromJson)
-                .toList();
-          }
-        }
-        return [];
+        final dynamic decoded = jsonDecode(body);
+
+        final List<dynamic> rawList = switch (decoded) {
+          final List<dynamic> list => list,
+          {"results": final List<dynamic> results} => results,
+          _ => const <dynamic>[],
+        };
+
+        final List<CakePayVendor> vendors = rawList
+            .whereType<Map<String, dynamic>>()
+            .map(CakePayVendor.fromJson)
+            .toList();
+
+        final int? nextPage =
+            (page != null && pageSize != null && vendors.length >= pageSize)
+            ? page + 1
+            : null;
+
+        return (vendors: vendors, nextPage: nextPage);
       },
     );
   }
