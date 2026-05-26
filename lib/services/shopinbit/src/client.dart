@@ -544,14 +544,14 @@ class ShopInBitClient {
         return _httpClient.post(
           url: uri,
           headers: headers,
-          body: body != null ? jsonEncode(body) : null,
+          body: body != null ? _asciiSafeJson(body) : null,
           proxyInfo: proxy,
         );
       case 'PATCH':
         return _httpClient.patch(
           url: uri,
           headers: headers,
-          body: body != null ? jsonEncode(body) : null,
+          body: body != null ? _asciiSafeJson(body) : null,
           proxyInfo: proxy,
         );
       case 'DELETE':
@@ -559,6 +559,24 @@ class ShopInBitClient {
       default:
         throw ApiException('Unsupported method: $method');
     }
+  }
+
+  // Encode [body] as JSON with all non-ASCII characters replaced by \uXXXX
+  // escapes. The HTTP wrapper writes string bodies with the latin1 default of
+  // HttpClientRequest.write, which mangles multi-byte UTF-8 like the U+00B1/±.
+  static String _asciiSafeJson(Object body) {
+    final raw = jsonEncode(body);
+    final buf = StringBuffer();
+    for (int i = 0; i < raw.length; i++) {
+      final c = raw.codeUnitAt(i);
+      if (c < 0x80) {
+        buf.writeCharCode(c);
+      } else {
+        buf.write('\\u');
+        buf.write(c.toRadixString(16).padLeft(4, '0'));
+      }
+    }
+    return buf.toString();
   }
 
   Future<ApiResponse<T>> _request<T>(
