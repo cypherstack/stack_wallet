@@ -87,6 +87,37 @@ class HTTP {
     }
   }
 
+  Future<Response> put({
+    required Uri url,
+    Map<String, String>? headers,
+    Object? body,
+    required ({InternetAddress host, int port})? proxyInfo,
+  }) async {
+    final httpClient = HttpClient();
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(proxyInfo.host, proxyInfo.port),
+        ]);
+      }
+      final HttpClientRequest request = await httpClient.putUrl(url);
+
+      if (headers != null) {
+        headers.forEach((key, value) => request.headers.add(key, value));
+      }
+
+      if (body != null) request.write(body);
+
+      final response = await request.close();
+      return Response(await _bodyBytes(response), response.statusCode);
+    } catch (e, s) {
+      Logging.instance.w("HTTP.put() rethrew: ", error: e, stackTrace: s);
+      rethrow;
+    } finally {
+      httpClient.close(force: true);
+    }
+  }
+
   Future<Response> patch({
     required Uri url,
     Map<String, String>? headers,

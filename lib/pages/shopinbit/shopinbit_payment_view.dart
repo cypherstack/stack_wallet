@@ -121,13 +121,15 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     } catch (_) {}
   }
 
+  // Entered from the shipping view's PAY NOW button: create the invoice
+  // via PUT per the 1.0.4 spec. GET no longer creates invoices.
   Future<void> _loadPayment() async {
     setState(() => _loading = true);
     try {
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId);
+          .putPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null) {
         _applyPaymentInfo(resp.value!);
       }
@@ -147,7 +149,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId, retry: true);
+          .putPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null) {
         _applyPaymentInfo(resp.value!);
       }
