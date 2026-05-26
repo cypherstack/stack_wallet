@@ -136,6 +136,7 @@ class ShopInBitService {
       final feeTicketNumber = category == ShopInBitCategory.car
           ? _extractFeeTicketNumber(apiMessages)
           : null;
+      final requestDescription = _extractRequestDescription(apiMessages);
 
       final messages = apiMessages
           .map(
@@ -153,7 +154,7 @@ class ShopInBitService {
         category: Value(category),
         status: Value(mappedStatus),
         statusRaw: Value(statusResp.value!.stateRaw),
-        requestDescription: const Value(""),
+        requestDescription: Value(requestDescription),
         deliveryCountry: const Value(""),
         offerProductName: Value(offerProductName),
         offerPrice: Value(offerPrice),
@@ -180,22 +181,43 @@ class ShopInBitService {
   }
 }
 
-// The API does not return service_type for existing tickets, so we infer
-// category from the first user message. Stack Wallet's car flow always seeds
-// the comment with this exact phrase; travel cannot be distinguished from
-// concierge because Stack Wallet sends travel as service_type="concierge" too.
+// Infer category from the first user message.  The car flow always seeds
+// the comment with the "car research fee" line; travel requests built by
+// _buildRequestDescription always start with "Arrangement: " followed by
+// structured labels. Both are fragile against template changes in the form.
 final RegExp _kCarResearchFeeRegex = RegExp(r'car research fee \(#([^)]+)\)');
+final RegExp _kTravelArrangementRegex = RegExp(
+  r'^Arrangement:\s',
+  multiLine: true,
+);
 
 ShopInBitCategory _inferCategoryFromMessages(List<TicketMessage> messages) {
   final firstUser = messages.where((m) => !m.fromAgent).firstOrNull;
   if (firstUser == null) return ShopInBitCategory.concierge;
-  return _kCarResearchFeeRegex.hasMatch(firstUser.content)
-      ? ShopInBitCategory.car
-      : ShopInBitCategory.concierge;
+  final content = firstUser.content;
+  if (_kCarResearchFeeRegex.hasMatch(content)) {
+    return ShopInBitCategory.car;
+  }
+  if (_kTravelArrangementRegex.hasMatch(content)) {
+    return ShopInBitCategory.travel;
+  }
+  return ShopInBitCategory.concierge;
 }
 
 String? _extractFeeTicketNumber(List<TicketMessage> messages) {
   final firstUser = messages.where((m) => !m.fromAgent).firstOrNull;
   if (firstUser == null) return null;
   return _kCarResearchFeeRegex.firstMatch(firstUser.content)?.group(1);
+}
+
+// The original `comment` passed to POST /requests becomes the first user message.
+final RegExp _kHtmlTagRegex = RegExp(r'<[^>]+>');
+
+String _extractRequestDescription(List<TicketMessage> messages) {
+  final firstUser = messages.where((m) => !m.fromAgent).firstOrNull;
+  if (firstUser == null) return "";
+  return firstUser.content
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+      .replaceAll(_kHtmlTagRegex, '')
+      .trim();
 }
