@@ -226,11 +226,9 @@ class ShopInBitOrderCreated extends StatelessWidget {
                   buttonHeight: isDesktop ? .l : null,
                   onPressed: () {
                     if (Util.isDesktop) {
-                      DesktopDialogCloseButton(
-                        onPressedOverride: () => NestedNavigatorDialog.of(
-                          context,
-                        ).close(args: const .noWarning()),
-                      );
+                      NestedNavigatorDialog.of(
+                        context,
+                      ).close(args: const .noWarning());
                     } else {
                       _popToServices(context);
                     }
