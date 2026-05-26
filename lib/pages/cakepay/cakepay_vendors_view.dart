@@ -7,7 +7,6 @@ import '../../services/cakepay/src/models/card.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
-import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -15,6 +14,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/infinite_scroll_list_view.dart';
 import '../../widgets/loading_indicator.dart';
@@ -46,7 +46,13 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
   @override
   void initState() {
     super.initState();
-    _loadCountries();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        _countryNames = await CakePayService.instance.getCountryNames();
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+    });
   }
 
   @override
@@ -78,39 +84,6 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
           .toList(),
       nextPage: response.value!.nextPage,
     );
-  }
-
-  Future<void> _loadCountries() async {
-    // naive caching
-    if (_countryNames.isNotEmpty) return;
-
-    setState(() {
-      _loading = true;
-    });
-
-    try {
-      final response = await CakePayService.instance.client.getAllCountries();
-
-      if (response.hasError || response.value == null) {
-        Logging.instance.e(
-          response.exception?.message ?? "Failed to load countries",
-          error: response.exception,
-          stackTrace: StackTrace.current,
-        );
-      } else {
-        setState(() {
-          _countryNames =
-              response.value!
-                  .where((e) => e.available)
-                  .map((e) => e.name)
-                  .toSet()
-                  .toList(growable: false)
-                ..sort();
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   Future<void> _onCardTapped(CakePayCard card) async {
@@ -202,9 +175,10 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
             SizedBox(height: isDesktop ? 16 : 12),
             Expanded(
               child: _loading
-                  ? const LoadingIndicator(width: 48, height: 48)
+                  ? const LoadingIndicator(width: 64, height: 64)
                   : InfiniteScrollListView<CakePayCard, int>(
                       controller: _listController,
+                      prefetchThreshold: 300,
                       padding: .only(bottom: isDesktop ? 32 : 16),
                       firstPageKey: 1,
                       separatorBuilder: (_, _) =>
@@ -222,6 +196,52 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                           onTap: () => _onCardTapped(item),
                         );
                       },
+                      firstPageProgressBuilder: (_) =>
+                          const LoadingIndicator(width: 64, height: 64),
+                      newPageProgressBuilder: (_) => const Center(
+                        child: Padding(
+                          padding: .all(16),
+                          child: LoadingIndicator(width: 48, height: 48),
+                        ),
+                      ),
+                      emptyBuilder: (_) => Center(
+                        child: Padding(
+                          padding: const .all(24),
+                          child: Text(
+                            "No items",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      newPageErrorBuilder: (context, error, retry) => Center(
+                        child: Padding(
+                          padding: const .all(16),
+                          child: Column(
+                            mainAxisSize: .min,
+                            children: [
+                              Text(
+                                error.toString(),
+                                style: STextStyles.w500_14(context).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SecondaryButton(
+                                label: "Retry",
+                                buttonHeight: isDesktop ? .s : .l,
+                                width: 100,
+                                onPressed: retry,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
             ),
           ],

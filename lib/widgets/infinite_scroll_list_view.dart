@@ -1,78 +1,5 @@
 import "package:flutter/widgets.dart";
 
-/// A page of results returned from [InfiniteScrollListView.fetchPage].
-///
-/// Set [nextPageKey] to null to signal that this is the last page.
-class InfiniteScrollPage<T, K> {
-  InfiniteScrollPage({required this.items, required this.nextPageKey});
-
-  final List<T> items;
-  final K? nextPageKey;
-}
-
-/// Triggers refresh and retry on an [InfiniteScrollListView] from outside.
-///
-/// Create one in the parent's state, pass it to
-/// [InfiniteScrollListView.controller], and call [refresh] when search/filter
-/// state changes. In-flight fetches from before the refresh are discarded
-/// when they complete.
-class InfiniteScrollListController {
-  VoidCallback? _onRefresh;
-  VoidCallback? _onRetry;
-
-  void _attach({
-    required VoidCallback onRefresh,
-    required VoidCallback onRetry,
-  }) {
-    _onRefresh = onRefresh;
-    _onRetry = onRetry;
-  }
-
-  void _detach() {
-    _onRefresh = null;
-    _onRetry = null;
-  }
-
-  /// Discard current items and reload from the first page.
-  void refresh() => _onRefresh?.call();
-
-  /// Retry the last failed fetch.
-  void retry() => _onRetry?.call();
-}
-
-/// The load lifecycle of an [InfiniteScrollListView]. A sealed type so all
-/// transitions are explicit and the compiler enforces exhaustive handling.
-sealed class _Status<K> {
-  const _Status();
-}
-
-class _LoadingFirstPageStatus<K> extends _Status<K> {
-  const _LoadingFirstPageStatus();
-}
-
-class _LoadingMoreStatus<K> extends _Status<K> {
-  const _LoadingMoreStatus();
-}
-
-class _IdleStatus<K> extends _Status<K> {
-  const _IdleStatus({required this.nextPageKey});
-
-  /// Null means there are no more pages.
-  final K? nextPageKey;
-}
-
-class _FailedFirstPageStatus<K> extends _Status<K> {
-  const _FailedFirstPageStatus({required this.error, required this.pageKey});
-  final Object error;
-  final K pageKey;
-}
-
-class _FailedMoreStatus<K> extends _Status<K> {
-  const _FailedMoreStatus({required this.error, required this.pageKey});
-  final Object error;
-  final K pageKey;
-}
-
 /// A generic infinite-scroll [ListView].
 ///
 /// Works correctly with [shrinkWrap] as long as the parent provides bounded
@@ -150,32 +77,6 @@ class _InfiniteScrollListViewState<T, K>
   /// completes, the result is discarded.
   int _generation = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-    widget.controller?._attach(onRefresh: _refresh, onRetry: _retry);
-    // Status defaults to _LoadingFirstPage so _runFetch can be called directly.
-    _runFetch(widget.firstPageKey);
-  }
-
-  @override
-  void didUpdateWidget(covariant InfiniteScrollListView<T, K> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller?._detach();
-      widget.controller?._attach(onRefresh: _refresh, onRetry: _retry);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller?._detach();
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   /// Transition status to a loading variant and start a fetch.
   void _fetch(K pageKey) {
     setState(() {
@@ -218,6 +119,17 @@ class _InfiniteScrollListViewState<T, K>
             ? _FailedFirstPageStatus<K>(error: error, pageKey: pageKey)
             : _FailedMoreStatus<K>(error: error, pageKey: pageKey);
       });
+
+      if (!wasFirstPage) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_scrollController.hasClients) return;
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+          );
+        });
+      }
     }
   }
 
@@ -258,6 +170,32 @@ class _InfiniteScrollListViewState<T, K>
             _FailedMoreStatus<K>(:final pageKey)) {
       _fetch(pageKey);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    widget.controller?._attach(onRefresh: _refresh, onRetry: _retry);
+    // Status defaults to _LoadingFirstPage so _runFetch can be called directly.
+    _runFetch(widget.firstPageKey);
+  }
+
+  @override
+  void didUpdateWidget(covariant InfiniteScrollListView<T, K> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._detach();
+      widget.controller?._attach(onRefresh: _refresh, onRetry: _retry);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?._detach();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -326,6 +264,85 @@ class _InfiniteScrollListViewState<T, K>
     );
   }
 }
+
+// =============================================================================
+// ========= Supporting ========================================================
+
+/// A page of results returned from [InfiniteScrollListView.fetchPage].
+///
+/// Set [nextPageKey] to null to signal that this is the last page.
+class InfiniteScrollPage<T, K> {
+  InfiniteScrollPage({required this.items, required this.nextPageKey});
+
+  final List<T> items;
+  final K? nextPageKey;
+}
+
+/// Triggers refresh and retry on an [InfiniteScrollListView] from outside.
+///
+/// Create one in the parent's state, pass it to
+/// [InfiniteScrollListView.controller], and call [refresh] when search/filter
+/// state changes. In-flight fetches from before the refresh are discarded
+/// when they complete.
+class InfiniteScrollListController {
+  VoidCallback? _onRefresh;
+  VoidCallback? _onRetry;
+
+  void _attach({
+    required VoidCallback onRefresh,
+    required VoidCallback onRetry,
+  }) {
+    _onRefresh = onRefresh;
+    _onRetry = onRetry;
+  }
+
+  void _detach() {
+    _onRefresh = null;
+    _onRetry = null;
+  }
+
+  /// Discard current items and reload from the first page.
+  void refresh() => _onRefresh?.call();
+
+  /// Retry the last failed fetch.
+  void retry() => _onRetry?.call();
+}
+
+/// The load lifecycle of an [InfiniteScrollListView]. A sealed type so all
+/// transitions are explicit and the compiler enforces exhaustive handling.
+sealed class _Status<K> {
+  const _Status();
+}
+
+class _LoadingFirstPageStatus<K> extends _Status<K> {
+  const _LoadingFirstPageStatus();
+}
+
+class _LoadingMoreStatus<K> extends _Status<K> {
+  const _LoadingMoreStatus();
+}
+
+class _IdleStatus<K> extends _Status<K> {
+  const _IdleStatus({required this.nextPageKey});
+
+  /// Null means there are no more pages.
+  final K? nextPageKey;
+}
+
+class _FailedFirstPageStatus<K> extends _Status<K> {
+  const _FailedFirstPageStatus({required this.error, required this.pageKey});
+  final Object error;
+  final K pageKey;
+}
+
+class _FailedMoreStatus<K> extends _Status<K> {
+  const _FailedMoreStatus({required this.error, required this.pageKey});
+  final Object error;
+  final K pageKey;
+}
+
+// =============================================================================
+// ========= Default widgets ===================================================
 
 class _DefaultFirstPageProgress extends StatelessWidget {
   const _DefaultFirstPageProgress();

@@ -444,11 +444,7 @@ class CakePayClient {
     final headers = overrideHeaders ?? _authHeaders;
     final proxy = _proxyInfo;
 
-    try {
-      throw Exception(path);
-    } catch (e, s) {
-      Logging.instance.f("$_kTag $method $uri", error: e, stackTrace: s);
-    }
+    Logging.instance.t("$_kTag $method $uri");
 
     switch (method) {
       case 'GET':
