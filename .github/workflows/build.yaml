@@ -1655,3 +1655,30 @@ jobs:
           name: stack_duo-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
           path: stack_duo-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
 
+  release:
+    if: github.ref_type == 'tag'
+    needs: [build-linux, build-android, build-windows, build-macos, build-ios, build-flatpak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package artifacts
+        run: |
+          mkdir -p release-files
+          for dir in artifacts/stack_wallet-windows-*/; do
+            [ -d "$dir" ] || continue
+            name=$(basename "$dir")
+            (cd "$dir" && zip -r "../../release-files/${name}.zip" .)
+          done
+          find artifacts/ \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" -o -name "*.flatpak" \) -mindepth 2 -exec mv {} release-files/ \;
+          find artifacts/ -name "*.apk" -mindepth 2 -exec mv {} release-files/ \;
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release-files/*
+

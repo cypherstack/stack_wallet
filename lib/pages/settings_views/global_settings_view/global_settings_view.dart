@@ -247,33 +247,37 @@ class GlobalSettingsView extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                  Consumer(
-                                    builder: (_, ref, __) {
-                                      final familiarity = ref.watch(
-                                        prefsChangeNotifierProvider.select(
-                                          (v) => v.familiarity,
-                                        ),
-                                      );
-                                      if (familiarity < 6) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      return Column(
-                                        children: [
-                                          const SizedBox(height: 8),
-                                          SettingsListButton(
-                                            iconAssetName: Assets.svg.key,
-                                            iconSize: 16,
-                                            title: "ShopinBit",
-                                            onPressed: () {
-                                              Navigator.of(context).pushNamed(
-                                                ShopInBitSettingsView.routeName,
-                                              );
-                                            },
+                                  if (AppConfig.hasFeature(
+                                    AppFeature.shopinBit,
+                                  ))
+                                    Consumer(
+                                      builder: (_, ref, __) {
+                                        final familiarity = ref.watch(
+                                          prefsChangeNotifierProvider.select(
+                                            (v) => v.familiarity,
                                           ),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                                        );
+                                        if (familiarity < 6) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        return Column(
+                                          children: [
+                                            const SizedBox(height: 8),
+                                            SettingsListButton(
+                                              iconAssetName: Assets.svg.key,
+                                              iconSize: 16,
+                                              title: "ShopinBit",
+                                              onPressed: () {
+                                                Navigator.of(context).pushNamed(
+                                                  ShopInBitSettingsView
+                                                      .routeName,
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.questionMessage,

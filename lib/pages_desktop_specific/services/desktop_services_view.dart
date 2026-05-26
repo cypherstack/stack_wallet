@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../app_config.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -12,7 +13,22 @@ import '../settings/settings_menu_item.dart';
 import 'cakepay/desktop_gift_cards_view.dart';
 import 'shopin_bit/desktop_shopinbit_view.dart';
 
-final selectedServicesMenuItemStateProvider = StateProvider<int>((_) => 0);
+final _selectedServicesMenuItemStateProvider = StateProvider<_MenuItem?>(
+  (_) => _labels.firstOrNull,
+);
+
+enum _MenuItem {
+  shopinBit("Services"),
+  cakePay("Gift Cards");
+
+  final String value;
+  const _MenuItem(this.value);
+}
+
+final _labels = [
+  if (AppConfig.hasFeature(.shopinBit)) _MenuItem.shopinBit,
+  if (AppConfig.hasFeature(.cakePay)) _MenuItem.cakePay,
+];
 
 class DesktopServicesView extends ConsumerStatefulWidget {
   const DesktopServicesView({super.key});
@@ -25,22 +41,22 @@ class DesktopServicesView extends ConsumerStatefulWidget {
 }
 
 class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
-  final List<String> _labels = const ["Services", "Gift Cards"];
-
   @override
   Widget build(BuildContext context) {
-    final List<Widget> contentViews = [
-      const Navigator(
-        key: Key("servicesShopInBitDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: DesktopShopInBitView.routeName,
-      ),
-      const Navigator(
-        key: Key("servicesGiftCardsDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: DesktopGiftCardsView.routeName,
-      ),
-    ];
+    final Map<_MenuItem, Widget> contentViews = {
+      if (AppConfig.hasFeature(.shopinBit))
+        .shopinBit: const Navigator(
+          key: Key("servicesShopInBitDesktopKey"),
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: DesktopShopInBitView.routeName,
+        ),
+      if (AppConfig.hasFeature(.cakePay))
+        .cakePay: const Navigator(
+          key: Key("servicesGiftCardsDesktopKey"),
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: DesktopGiftCardsView.routeName,
+        ),
+    };
 
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
@@ -68,12 +84,11 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          for (int i = 0; i < _labels.length; i++)
-                            Column(
+                          ..._labels.map(
+                            (label) => Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (i > 0) const SizedBox(height: 2),
-                                SettingsMenuItem<int>(
+                                SettingsMenuItem<_MenuItem?>(
                                   icon: SvgPicture.asset(
                                     Assets.svg.polygon,
                                     width: 11,
@@ -81,28 +96,28 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
                                     color:
                                         ref
                                                 .watch(
-                                                  selectedServicesMenuItemStateProvider
+                                                  _selectedServicesMenuItemStateProvider
                                                       .state,
                                                 )
                                                 .state ==
-                                            i
+                                            label
                                         ? Theme.of(context)
                                               .extension<StackColors>()!
                                               .accentColorBlue
                                         : Colors.transparent,
                                   ),
-                                  label: _labels[i],
-                                  value: i,
+                                  label: label.value,
+                                  value: label,
                                   group: ref
                                       .watch(
-                                        selectedServicesMenuItemStateProvider
+                                        _selectedServicesMenuItemStateProvider
                                             .state,
                                       )
                                       .state,
                                   onChanged: (newValue) =>
                                       ref
                                               .read(
-                                                selectedServicesMenuItemStateProvider
+                                                _selectedServicesMenuItemStateProvider
                                                     .state,
                                               )
                                               .state =
@@ -110,6 +125,7 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
                                 ),
                               ],
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -121,8 +137,8 @@ class _DesktopServicesViewState extends ConsumerState<DesktopServicesView> {
           Expanded(
             child:
                 contentViews[ref
-                    .watch(selectedServicesMenuItemStateProvider.state)
-                    .state],
+                    .watch(_selectedServicesMenuItemStateProvider.state)
+                    .state]!,
           ),
         ],
       ),

@@ -44,6 +44,7 @@ import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
@@ -561,6 +562,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             prefsChangeNotifierProvider.select((value) => value.enableExchange),
           ),
       (wallet is CoinControlInterface &&
+          wallet is! SalviumWallet &&
           ref.watch(
             prefsChangeNotifierProvider.select(
               (value) => value.enableCoinControl,

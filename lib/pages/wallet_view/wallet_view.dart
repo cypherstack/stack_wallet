@@ -54,6 +54,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
@@ -1172,6 +1173,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         },
                       ),
                     if (wallet is CoinControlInterface &&
+                        wallet is! SalviumWallet &&
                         ref.watch(
                           prefsChangeNotifierProvider.select(
                             (value) => value.enableCoinControl,
@@ -1346,7 +1348,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                    if (!viewOnly)
+                    if (!viewOnly && AppConfig.hasFeature(.shopinBit))
                       WalletNavigationBarItemData(
                         label: "Services",
                         icon: SvgPicture.asset(
@@ -1363,21 +1365,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           ).pushNamed(ServicesView.routeName);
                         },
                       ),
-                    WalletNavigationBarItemData(
-                      label: "Gift cards",
-                      icon: CreditCardIcon(
-                        height: 20,
-                        width: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.bottomNavIconIcon,
+                    if (AppConfig.hasFeature(.shopinBit))
+                      WalletNavigationBarItemData(
+                        label: "Gift cards",
+                        icon: CreditCardIcon(
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.bottomNavIconIcon,
+                        ),
+                        onTap: () {
+                          Navigator.of(
+                            context,
+                          ).pushNamed(GiftCardsView.routeName);
+                        },
                       ),
-                      onTap: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(GiftCardsView.routeName);
-                      },
-                    ),
                   ],
                 ),
               ),

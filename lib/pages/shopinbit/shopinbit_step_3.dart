@@ -11,6 +11,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
 import 'shopinbit_step_4.dart';
@@ -167,7 +168,10 @@ class _ShopInBitStep3State extends ConsumerState<ShopInBitStep3> {
                     Text("ShopinBit", style: STextStyles.desktopH3(context)),
                   ],
                 ),
-                const DesktopDialogCloseButton(),
+                DesktopDialogCloseButton(
+                  onPressedOverride: () =>
+                      NestedNavigatorDialog.of(context).close(),
+                ),
               ],
             ),
             Expanded(

@@ -17,6 +17,7 @@ class ShopInBitStep4Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: .min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!Util.isDesktop) ...[
