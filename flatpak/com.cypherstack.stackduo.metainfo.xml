@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.cypherstack.stackduo</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>Stack Duo</name>
+  <summary>An open-source, multicoin wallet for everyone</summary>
+  <description>
+    <p>
+      Stack Duo is an open-source, non-custodial cryptocurrency wallet.
+    </p>
+  </description>
+  <url type="homepage">https://stackwallet.com</url>
+  <url type="bugtracker">https://github.com/cypherstack/stack_wallet/issues</url>
+  <content_rating type="oars-1.1"/>
+</component>

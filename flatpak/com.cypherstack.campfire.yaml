@@ -1,0 +1,33 @@
+app-id: com.cypherstack.campfire
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: campfire
+
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=~/.campfire
+  - --talk-name=org.freedesktop.secrets
+  - --talk-name=org.freedesktop.Notifications
+
+modules:
+  - name: campfire
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/campfire
+      - install -Dm755 bundle/campfire /app/lib/campfire/campfire
+      - cp -r bundle/lib bundle/data /app/lib/campfire/
+      - install -Dm755 campfire.sh /app/bin/campfire
+      - install -Dm644 com.cypherstack.campfire.desktop
+          /app/share/applications/com.cypherstack.campfire.desktop
+      - install -Dm644 com.cypherstack.campfire.metainfo.xml
+          /app/share/metainfo/com.cypherstack.campfire.metainfo.xml
+      - install -Dm644 com.cypherstack.campfire.png
+          /app/share/icons/hicolor/512x512/apps/com.cypherstack.campfire.png
+    sources:
+      - type: dir
+        path: .
