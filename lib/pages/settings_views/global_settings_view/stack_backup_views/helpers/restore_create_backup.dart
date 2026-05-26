@@ -11,8 +11,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
@@ -21,6 +21,7 @@ import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../../app_config.dart';
+import '../../../../../db/drift/shared_db/shared_database.dart';
 import '../../../../../db/hive/db.dart';
 import '../../../../../db/isar/main_db.dart';
 import '../../../../../models/exchange/change_now/exchange_transaction.dart';
@@ -34,7 +35,9 @@ import '../../../../../models/trade_wallet_lookup.dart';
 import '../../../../../models/wallet_restore_state.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
+import '../../../../../services/cakepay/cakepay_service.dart';
 import '../../../../../services/node_service.dart';
+import '../../../../../services/shopinbit/shopinbit_service.dart';
 import '../../../../../services/trade_notes_service.dart';
 import '../../../../../services/trade_sent_from_stack_service.dart';
 import '../../../../../services/trade_service.dart';
@@ -235,6 +238,29 @@ abstract class SWB {
       } catch (e, s) {
         Logging.instance.e("", error: e, stackTrace: s);
       }
+
+      Logging.instance.i("SWB backing up cakepay orders");
+      final cakepayOrderIds = await CakePayService.instance.getOrderIds();
+      backupJson["cakepayOrderIds"] = cakepayOrderIds;
+
+      Logging.instance.i("SWB backing up shopin bit info");
+      final sharedDB = SharedDrift.get();
+      final shopinBitSettings = await sharedDB.shopinBitSettings.select().get();
+      final shopinBitCustomerKey =
+          await (ShopInBitService()..ensureInitialized(_secureStore))
+              .loadCustomerKey();
+      final shopinBitOrders = await sharedDB.shopInBitTickets.select().get();
+
+      backupJson["shopinBit"] = {
+        if (shopinBitCustomerKey != null)
+          "shopinBitCustomerKey": shopinBitCustomerKey,
+        if (shopinBitSettings.isNotEmpty)
+          "shopinBitSettings": shopinBitSettings.first.toJson(),
+        if (shopinBitOrders.isNotEmpty)
+          "shopinBitOrders": shopinBitOrders
+              .map((e) => e.toJson())
+              .toList(growable: false),
+      };
 
       Logging.instance.d("SWB backing up prefs");
 
@@ -609,6 +635,9 @@ abstract class SWB {
 
     uiState?.preferences = StackRestoringStatus.restoring;
 
+    Logging.instance.d("SWB restoring cakepay order ids and shop in bit info");
+    await _restoreCakepayAndShopinBitInfo(validJSON, secureStorageInterface);
+
     Logging.instance.d("SWB restoring prefs");
     await _restorePrefs(prefs);
 
@@ -886,6 +915,12 @@ abstract class SWB {
     final Map<String, dynamic>? tradeNotes =
         revertToState.validJSON["tradeNotes"] as Map<String, dynamic>?;
 
+    // cakepay and shopinbit
+    await _restoreCakepayAndShopinBitInfo(
+      revertToState.validJSON,
+      secureStorageInterface,
+    );
+
     // prefs
     await _restorePrefs(prefs);
 
@@ -1083,6 +1118,65 @@ abstract class SWB {
     _cancelCompleter!.complete();
     _shouldCancelRestore = false;
     Logging.instance.d("Revert SWB complete");
+  }
+
+  static Future<void> _restoreCakepayAndShopinBitInfo(
+    Map<String, dynamic> backupJson,
+    SecureStorageInterface _secureStore,
+  ) async {
+    final cakepayOrderIds = (backupJson["cakepayOrderIds"] as List? ?? [])
+        .cast<String>();
+    for (final orderId in cakepayOrderIds) {
+      await CakePayService.instance.addOrderId(orderId);
+    }
+
+    final sharedDB = SharedDrift.get();
+    final json = backupJson["shopinBit"] as Map? ?? {};
+
+    if (json.isEmpty) return;
+
+    final shopinBitCustomerKey = json["shopinBitCustomerKey"] as String?;
+    if (shopinBitCustomerKey != null) {
+      final currentKey =
+          await (ShopInBitService()..ensureInitialized(_secureStore))
+              .loadCustomerKey();
+
+      if (currentKey != null && currentKey != shopinBitCustomerKey) {
+        // TODO come back to this at some point
+        // for now
+        Logging.instance.w(
+          "SWB restore found mismatching shopinbit customer keys. "
+          "Ignoring the backup data in favor of the current data.",
+        );
+        return;
+      }
+    }
+
+    final shopinBitSettings = json["shopinBitSettings"] as Map?;
+    if (shopinBitSettings != null) {
+      final settings = ShopinBitSetting.fromJson(shopinBitSettings.cast());
+
+      await sharedDB.transaction(() async {
+        await sharedDB
+            .into(sharedDB.shopinBitSettings)
+            .insertOnConflictUpdate(settings.toCompanion(true));
+      });
+    }
+
+    final shopinBitOrders = json["shopinBitOrders"] as List?;
+    if (shopinBitOrders != null) {
+      final orders = shopinBitOrders
+          .map((e) => ShopInBitTicket.fromJson((e as Map).cast()))
+          .map((e) => e.toCompanion(true));
+
+      await sharedDB.transaction(() async {
+        for (final order in orders) {
+          await sharedDB
+              .into(sharedDB.shopInBitTickets)
+              .insertOnConflictUpdate(order);
+        }
+      });
+    }
   }
 
   static Future<void> _restorePrefs(Map<String, dynamic> prefs) async {

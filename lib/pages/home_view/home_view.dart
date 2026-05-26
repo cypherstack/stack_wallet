@@ -491,7 +491,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         previous,
                         next,
                       ) {
-                        if (next is int && next >= 0 && next <= 2) {
+                        if (next >= 0 && next < _children.length) {
                           // if (next == 1) {
                           //   _exchangeDataLoadingService.loadAll(ref);
                           // }

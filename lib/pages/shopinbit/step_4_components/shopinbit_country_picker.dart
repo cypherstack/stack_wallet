@@ -78,88 +78,85 @@ class _ShopInBitCountryPickerState
           ).copyWith(color: stackColors.textFieldDefaultSearchIconLeft)
         : STextStyles.fieldLabel(context);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton2<String>(
-          value: widget.selectedIso,
-          items: _countries
-              .map(
-                (c) => DropdownMenuItem<String>(
-                  value: c["iso"] as String,
-                  child: Text(c["label"] as String, style: itemStyle),
-                ),
-              )
-              .toList(),
-          onMenuStateChange: (isOpen) {
-            if (!isOpen) {
-              _searchController.clear();
-            }
+    return DropdownButtonHideUnderline(
+      child: DropdownButton2<String>(
+        value: widget.selectedIso,
+        items: _countries
+            .map(
+              (c) => DropdownMenuItem<String>(
+                value: c["iso"] as String,
+                child: Text(c["label"] as String, style: itemStyle),
+              ),
+            )
+            .toList(),
+        onMenuStateChange: (isOpen) {
+          if (!isOpen) {
+            _searchController.clear();
+          }
+        },
+        onChanged: _loading ? null : widget.onChanged,
+        hint: Text(
+          _loading ? "Loading countries..." : widget.hintText,
+          style: hintStyle,
+        ),
+        isExpanded: true,
+        buttonStyleData: ButtonStyleData(
+          decoration: BoxDecoration(
+            color: stackColors.textFieldDefaultBG,
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+        ),
+        iconStyleData: IconStyleData(
+          icon: Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: SvgPicture.asset(
+              Assets.svg.chevronDown,
+              width: 12,
+              height: 6,
+              color: stackColors.textFieldActiveSearchIconRight,
+            ),
+          ),
+        ),
+        dropdownStyleData: DropdownStyleData(
+          offset: const Offset(0, -10),
+          elevation: 0,
+          maxHeight: 300,
+          decoration: BoxDecoration(
+            color: stackColors.textFieldDefaultBG,
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+        ),
+        dropdownSearchData: DropdownSearchData<String>(
+          searchController: _searchController,
+          searchInnerWidgetHeight: 48,
+          searchInnerWidget: TextFormField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              hintText: "Search...",
+              hintStyle: STextStyles.fieldLabel(context),
+              border: InputBorder.none,
+            ),
+          ),
+          searchMatchFn: (item, searchValue) {
+            final String? label = _countries
+                .where((c) => c["iso"] == item.value)
+                .map((c) => c["label"] as String)
+                .firstOrNull;
+            return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
+                false;
           },
-          onChanged: _loading ? null : widget.onChanged,
-          hint: Text(
-            _loading ? "Loading countries..." : widget.hintText,
-            style: hintStyle,
-          ),
-          isExpanded: true,
-          buttonStyleData: ButtonStyleData(
-            decoration: BoxDecoration(
-              color: stackColors.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          iconStyleData: IconStyleData(
-            icon: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: stackColors.textFieldActiveSearchIconRight,
-              ),
-            ),
-          ),
-          dropdownStyleData: DropdownStyleData(
-            offset: const Offset(0, 0),
-            elevation: 0,
-            maxHeight: 300,
-            decoration: BoxDecoration(
-              color: stackColors.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          dropdownSearchData: DropdownSearchData<String>(
-            searchController: _searchController,
-            searchInnerWidgetHeight: 48,
-            searchInnerWidget: TextFormField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                hintText: "Search...",
-                hintStyle: STextStyles.fieldLabel(context),
-                border: InputBorder.none,
-              ),
-            ),
-            searchMatchFn: (item, searchValue) {
-              final String? label = _countries
-                  .where((c) => c["iso"] == item.value)
-                  .map((c) => c["label"] as String)
-                  .firstOrNull;
-              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
-                  false;
-            },
-          ),
-          menuItemStyleData: const MenuItemStyleData(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
+        ),
+        menuItemStyleData: const MenuItemStyleData(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
     );

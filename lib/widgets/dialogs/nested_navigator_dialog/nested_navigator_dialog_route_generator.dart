@@ -7,6 +7,9 @@ import '../../../pages/cakepay/cakepay_card_detail_view.dart';
 import '../../../pages/cakepay/cakepay_order_view.dart';
 import '../../../pages/cakepay/cakepay_orders_view.dart';
 import '../../../pages/cakepay/cakepay_vendors_view.dart';
+import '../../../pages/shopinbit/shopinbit_car_fee_view.dart';
+import '../../../pages/shopinbit/shopinbit_car_research_payment_view.dart';
+import '../../../pages/shopinbit/shopinbit_order_created.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_step_3.dart';
@@ -16,6 +19,7 @@ import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../pages_desktop_specific/services/shopin_bit/sub_widgets/desktop_shopin_bit_first_run.dart';
 import '../../../services/cakepay/src/models/card.dart';
 import '../../../services/cakepay/src/models/order.dart';
+import '../../../services/shopinbit/src/models/models.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../conditional_parent.dart';
@@ -60,6 +64,15 @@ abstract final class NestedNavigatorDialogRouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
+        if (args is ({ShopInBitOrderModel model, bool isActuallyFirstStep})) {
+          return getRoute(
+            builder: (_) => ShopInBitStep2(
+              model: args.model,
+              isActuallyFirstStep: args.isActuallyFirstStep,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
@@ -96,6 +109,48 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         return getRoute(
           builder: (_) => const ShopInBitTicketsView(),
           settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitOrderCreated.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            builder: (_) => ShopInBitOrderCreated(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ShopInBitOrderModel",
+        );
+
+      case ShopInBitCarFeeView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            builder: (_) => ShopInBitCarFeeView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ShopInBitOrderModel",
+        );
+
+      case ShopInBitCarResearchPaymentView.routeName:
+        if (args is (ShopInBitOrderModel, CarResearchInvoice)) {
+          return getRoute(
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              model: args.$1,
+              invoice: args.$2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ({ShopInBitOrderModel model, CarResearchInvoice invoice})",
         );
 
       case ShopInBitTicketDetail.routeName:
@@ -214,7 +269,7 @@ abstract final class NestedNavigatorDialogRouteGenerator {
               ],
             ),
           ),
-          child: Text(
+          child: SelectableText(
             "Error handling route, this is not supposed to happen. "
             "Contact developers.\n$message",
           ),

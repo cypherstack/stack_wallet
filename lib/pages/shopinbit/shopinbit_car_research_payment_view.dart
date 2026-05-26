@@ -23,10 +23,10 @@ import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
@@ -407,22 +407,13 @@ class _ShopInBitCarResearchPaymentViewState
         // Both steps already done: navigate to success directly.
         if (!mounted) return;
         setState(() => _flowState = _PaymentFlowState.complete);
-        if (Util.isDesktop) {
-          Navigator.of(context, rootNavigator: true).pop();
-          unawaited(
-            showDialog<void>(
-              context: context,
-              builder: (_) => ShopInBitOrderCreated(model: widget.model),
-            ),
-          );
-        } else {
-          unawaited(
-            Navigator.of(context).pushNamed(
-              ShopInBitOrderCreated.routeName,
-              arguments: widget.model,
-            ),
-          );
-        }
+
+        unawaited(
+          Navigator.of(
+            context,
+          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
+        );
+
         return;
       }
       // Fee logged; skip to createRequest.
@@ -495,22 +486,12 @@ class _ShopInBitCarResearchPaymentViewState
         }
         if (!mounted) return;
         setState(() => _flowState = _PaymentFlowState.complete);
-        if (Util.isDesktop) {
-          Navigator.of(context, rootNavigator: true).pop();
-          unawaited(
-            showDialog<void>(
-              context: context,
-              builder: (_) => ShopInBitOrderCreated(model: widget.model),
-            ),
-          );
-        } else {
-          unawaited(
-            Navigator.of(context).pushNamed(
-              ShopInBitOrderCreated.routeName,
-              arguments: widget.model,
-            ),
-          );
-        }
+
+        unawaited(
+          Navigator.of(
+            context,
+          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
+        );
       } catch (e) {
         if (mounted) {
           setState(() => _flowState = _PaymentFlowState.error);
@@ -630,21 +611,11 @@ class _ShopInBitCarResearchPaymentViewState
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.complete);
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitOrderCreated(model: widget.model),
-          ),
-        );
-      } else {
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
-        );
-      }
+      unawaited(
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
+      );
     } catch (e) {
       if (mounted) {
         setState(() => _flowState = _PaymentFlowState.error);
@@ -719,21 +690,11 @@ class _ShopInBitCarResearchPaymentViewState
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.complete);
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitOrderCreated(model: widget.model),
-          ),
-        );
-      } else {
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
-        );
-      }
+      unawaited(
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
+      );
     } catch (e) {
       if (mounted) {
         setState(() => _flowState = _PaymentFlowState.error);
@@ -848,6 +809,7 @@ class _ShopInBitCarResearchPaymentViewState
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: .min,
       children: [
         Text(
           "Car research payment",
@@ -987,34 +949,38 @@ class _ShopInBitCarResearchPaymentViewState
     );
 
     if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 750,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopinBit",
-                    style: STextStyles.desktopH3(context),
+      return SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
                   ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                child: SingleChildScrollView(child: content),
+                  const DesktopDialogCloseButton(),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const .only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                    top: 16,
+                  ),
+                  child: content,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }

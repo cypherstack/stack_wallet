@@ -223,17 +223,20 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                 isExpandedInitially: !_isMinimized,
                               ),
                             ],
-                            const SizedBox(height: 2),
-                            DesktopMenuItem(
-                              key: const ValueKey('services'),
-                              duration: duration,
-                              icon: const DesktopServicesIcon(),
-                              label: "Services",
-                              value: DesktopMenuItemId.services,
-                              onChanged: updateSelectedMenuItem,
-                              controller: controllers[3],
-                              isExpandedInitially: !_isMinimized,
-                            ),
+                            if (AppConfig.hasFeature(.shopinBit) ||
+                                AppConfig.hasFeature(.cakePay)) ...[
+                              const SizedBox(height: 2),
+                              DesktopMenuItem(
+                                key: const ValueKey('services'),
+                                duration: duration,
+                                icon: const DesktopServicesIcon(),
+                                label: "Services",
+                                value: DesktopMenuItemId.services,
+                                onChanged: updateSelectedMenuItem,
+                                controller: controllers[3],
+                                isExpandedInitially: !_isMinimized,
+                              ),
+                            ],
                             const SizedBox(height: 2),
                             DesktopMenuItem(
                               key: const ValueKey('notifications'),

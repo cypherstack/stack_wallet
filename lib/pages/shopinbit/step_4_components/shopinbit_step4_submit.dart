@@ -6,7 +6,6 @@ import "../../../db/drift/shared_db/shared_database.dart";
 import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../notifications/show_flush_bar.dart";
 import "../../../services/shopinbit/shopinbit_service.dart";
-import "../../../utilities/util.dart";
 import "../shopinbit_order_created.dart";
 
 /// Submits a ShopinBit request to the API and navigates to the order-created
@@ -70,21 +69,12 @@ Future<void> submitShopInBitRequest(
         .insertOnConflictUpdate(model.toCompanion());
 
     if (!context.mounted) return;
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitOrderCreated(model: model),
-        ),
-      );
-    } else {
-      unawaited(
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitOrderCreated.routeName, arguments: model),
-      );
-    }
+
+    unawaited(
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitOrderCreated.routeName, arguments: model),
+    );
   } catch (e) {
     if (context.mounted) {
       unawaited(

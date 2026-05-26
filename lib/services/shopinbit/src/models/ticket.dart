@@ -1,3 +1,5 @@
+import '../../../../utilities/logger.dart';
+
 enum TicketState {
   newTicket('NEW'),
   checking('CHECKING'),
@@ -11,16 +13,25 @@ enum TicketState {
   replyNeeded('REPLY NEEDED'),
   closed('CLOSED'),
   closedCancelled('CLOSED/CANCELLED'),
-  merged('MERGED');
+  merged('MERGED'),
+  // Sentinel for any state string the API returns that this client does not
+  // recognise (e.g. the API added a new state, or renamed an existing one).
+  // Callers must handle this explicitly: treat as "do not trust", do not
+  // overwrite previously known good state with it.
+  unknown('UNKNOWN');
 
   final String value;
   const TicketState(this.value);
 
-  static TicketState fromString(String value) {
-    return TicketState.values.firstWhere(
-      (e) => e.value == value,
-      orElse: () => throw Exception("Unknown TicketState string found: $value"),
+  static TicketState fromString(String s) {
+    for (final e in TicketState.values) {
+      if (e.value == s) return e;
+    }
+    Logging.instance.w(
+      "ShopInBit: unrecognised TicketState '$s' from API: "
+      "mapping to TicketState.unknown",
     );
+    return TicketState.unknown;
   }
 }
 
@@ -45,6 +56,10 @@ class TicketRef {
 class TicketStatus {
   final int ticketId;
   final TicketState state;
+  // The raw 'state' string returned by the API. Preserved verbatim so that
+  // unknown / renamed states can be re-derived later via a client update,
+  // rather than being lost to TicketState.unknown.
+  final String stateRaw;
   final DateTime updatedAt;
   final DateTime? lastAgentMessageAt;
   final String? paymentInvoiceStatus;
@@ -53,6 +68,7 @@ class TicketStatus {
   TicketStatus({
     required this.ticketId,
     required this.state,
+    required this.stateRaw,
     required this.updatedAt,
     this.lastAgentMessageAt,
     this.paymentInvoiceStatus,
@@ -60,9 +76,11 @@ class TicketStatus {
   });
 
   factory TicketStatus.fromJson(Map<String, dynamic> json) {
+    final rawState = json['state'] as String;
     return TicketStatus(
       ticketId: _toInt(json['ticket_id']),
-      state: TicketState.fromString(json['state'] as String),
+      state: TicketState.fromString(rawState),
+      stateRaw: rawState,
       updatedAt: DateTime.parse(json['updated_at'] as String),
       lastAgentMessageAt: json['last_agent_message_at'] != null
           ? DateTime.parse(json['last_agent_message_at'] as String)

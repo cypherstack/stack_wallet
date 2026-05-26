@@ -12,6 +12,7 @@ class ShopInBitTickets extends Table {
 
   IntColumn get category => intEnum<ShopInBitCategory>()();
   IntColumn get status => intEnum<ShopInBitOrderStatus>()();
+  TextColumn get statusRaw => text().nullable()();
 
   TextColumn get requestDescription => text()();
   TextColumn get deliveryCountry => text()();

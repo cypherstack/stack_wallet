@@ -8,11 +8,10 @@ import "package:flutter_svg/flutter_svg.dart";
 import "../../db/drift/shared_db/shared_database.dart";
 import "../../models/shopinbit/shopinbit_order_model.dart";
 import "../../providers/db/drift_provider.dart";
-import "../../providers/global/shopin_bit_service_provider.dart";
+import "../../providers/global/shopin_bit_orders_provider.dart";
 import "../../services/shopinbit/src/models/car_research.dart";
 import "../../themes/stack_colors.dart";
 import "../../utilities/assets.dart";
-import "../../utilities/show_loading.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
 import "../../widgets/background.dart";
@@ -20,6 +19,7 @@ import "../../widgets/conditional_parent.dart";
 import "../../widgets/custom_buttons/app_bar_icon_button.dart";
 import "../../widgets/desktop/desktop_dialog_close_button.dart";
 import "../../widgets/dialogs/s_dialog.dart";
+import "../../widgets/refresh_control.dart";
 import "../../widgets/rounded_container.dart";
 import "shopinbit_car_fee_view.dart";
 import "shopinbit_car_research_payment_view.dart";
@@ -39,6 +39,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   List<ShopInBitOrderModel> _tickets = [];
   ShopInBitTicket? _pendingTicket;
   StreamSubscription<List<ShopInBitTicket>>? _ticketsSub;
+  bool _refreshing = false;
 
   @override
   void initState() {
@@ -54,13 +55,23 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
             .toList();
       });
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _syncFromApi());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
   }
 
   @override
   void dispose() {
     _ticketsSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    if (mounted) setState(() => _refreshing = true);
+    try {
+      await ref.read(pShopInBitOrdersService).refreshAll();
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
   }
 
   void _resumeFlow(ShopInBitTicket pending) {
@@ -81,101 +92,16 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
         expiresAt: expiresAt,
         paymentLinks: links,
       );
-      if (isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        showDialog<void>(
-          context: context,
-          builder: (_) =>
-              ShopInBitCarResearchPaymentView(model: model, invoice: invoice),
-        );
-      } else {
-        Navigator.of(context).pushNamed(
-          ShopInBitCarResearchPaymentView.routeName,
-          arguments: (model, invoice),
-        );
-      }
+
+      Navigator.of(context).pushNamed(
+        ShopInBitCarResearchPaymentView.routeName,
+        arguments: (model, invoice),
+      );
     } else {
       // Invoice expired: navigate to fee view.
-      if (isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitCarFeeView(model: model),
-        );
-      } else {
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: model);
-      }
-    }
-  }
-
-  Future<void> _syncFromApi() async {
-    await showLoading(
-      context: context,
-      message: "Loading requests...",
-      whileFutureAlt: _syncFromApiHelper,
-      rootNavigator: Util.isDesktop,
-    );
-  }
-
-  Future<void> _syncFromApiHelper() async {
-    try {
-      final service = ref.read(pShopinBitService);
-      final customerKey = await service.ensureCustomerKey();
-      final resp = await service.client.getTicketsByCustomer(customerKey);
-
-      if (resp.hasError || resp.value == null) return;
-
-      for (final ticketRef in resp.value!) {
-        final localIdx = _tickets.indexWhere(
-          (t) => t.apiTicketId == ticketRef.id,
-        );
-        if (localIdx < 0) continue;
-
-        // Car research tickets return 403 on /tickets/:id/* endpoints.
-        // if (_tickets[localIdx].category == ShopInBitCategory.car) continue;
-
-        final statusResp = await service.client.getTicketStatus(ticketRef.id);
-        if (statusResp.hasError || statusResp.value == null) continue;
-
-        _tickets[localIdx].status = ShopInBitOrderModel.statusFromTicketState(
-          statusResp.value!.state,
-        );
-
-        if (_tickets[localIdx].status == ShopInBitOrderStatus.offerAvailable &&
-            (_tickets[localIdx].offerProductName == null ||
-                _tickets[localIdx].offerPrice == null)) {
-          final offerResp = await service.client.getTicketFull(ticketRef.id);
-          if (!offerResp.hasError && offerResp.value != null) {
-            _tickets[localIdx].setOffer(
-              productName: offerResp.value!.productName,
-              price: offerResp.value!.customerPrice,
-            );
-          }
-        }
-
-        final msgsResp = await service.client.getMessages(ticketRef.id);
-        if (!msgsResp.hasError && msgsResp.value != null) {
-          _tickets[localIdx].clearMessages();
-          for (final m in msgsResp.value!) {
-            _tickets[localIdx].addMessage(
-              ShopInBitMessage(
-                text: m.content,
-                timestamp: m.timestamp,
-                isFromUser: !m.fromAgent,
-              ),
-            );
-          }
-        }
-
-        final db = ref.read(pSharedDrift);
-        await db
-            .into(db.shopInBitTickets)
-            .insertOnConflictUpdate(_tickets[localIdx].toCompanion());
-      }
-    } catch (_) {
-      // Fall back to local data — stream listener still has whatever was last persisted.
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitCarFeeView.routeName, arguments: model);
     }
   }
 
@@ -186,6 +112,73 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
         ShopInBitCategory.car => "Car",
         null => "",
       };
+
+  List<Widget> _buildListChildren({
+    required BuildContext context,
+    required bool isDesktop,
+    required ShopInBitTicket? pending,
+    required bool hasTickets,
+  }) {
+    if (pending == null && !hasTickets) {
+      return [
+        const SizedBox(height: 80),
+        Center(
+          child: Text(
+            _refreshing ? "Loading requests..." : "No requests yet",
+            style: isDesktop
+                ? STextStyles.desktopTextSmall(context)
+                : STextStyles.itemSubtitle(context),
+          ),
+        ),
+      ];
+    }
+
+    final children = <Widget>[];
+    if (pending != null) {
+      children.add(
+        RoundedContainer(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          onPressed: () => _resumeFlow(pending),
+          child: _RequestRow(
+            title: "Car Research (In Progress)",
+            subtitle: "Tap to continue your car research payment",
+            badgeText: "Resume",
+            badgeColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.accentColorYellow,
+          ),
+        ),
+      );
+      if (hasTickets) children.add(SizedBox(height: isDesktop ? 16 : 12));
+    }
+    for (var i = 0; i < _tickets.length; i++) {
+      final ticket = _tickets[i];
+      if (i > 0) children.add(SizedBox(height: isDesktop ? 16 : 12));
+      children.add(
+        RoundedContainer(
+          padding: EdgeInsets.all(isDesktop ? 16 : 12),
+          borderColor: isDesktop
+              ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+              : null,
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          onPressed: () => Navigator.of(
+            context,
+          ).pushNamed(ShopInBitTicketDetail.routeName, arguments: ticket),
+          child: _RequestRow(
+            title: ticket.ticketId ?? "N/A",
+            subtitle:
+                "${_categoryLabel(ticket.category)} • "
+                "${ticket.requestDescription}",
+            badgeText: ticket.status.label,
+            badgeColor: ticket.status.getColor(
+              Theme.of(context).extension<StackColors>()!,
+            ),
+          ),
+        ),
+      );
+    }
+    return children;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +204,17 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
                       style: STextStyles.desktopH3(context),
                     ),
                   ),
-                  const DesktopDialogCloseButton(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RefreshButton(
+                        isRefreshing: _refreshing,
+                        onPressed: _refresh,
+                      ),
+                      const SizedBox(width: 8),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
                 ],
               ),
               Flexible(
@@ -250,76 +253,21 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
             ),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: .min,
-          children: [
-            if (pending == null && !hasTickets)
-              Center(
-                child: Text(
-                  "No requests yet",
-                  style: Util.isDesktop
-                      ? STextStyles.desktopTextSmall(context)
-                      : STextStyles.itemSubtitle(context),
-                ),
-              )
-            else ...[
-              if (pending != null) ...[
-                RoundedContainer(
-                  color: Theme.of(context).extension<StackColors>()!.popupBG,
-                  onPressed: () => _resumeFlow(pending),
-                  child: _RequestRow(
-                    title: "Car Research (In Progress)",
-                    subtitle: "Tap to continue your car research payment",
-                    badgeText: "Resume",
-                    badgeColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorYellow,
-                  ),
-                ),
-                if (hasTickets) SizedBox(height: isDesktop ? 16 : 12),
-              ],
-              if (hasTickets)
-                ListView.separated(
-                  shrinkWrap: true,
-                  primary: isDesktop ? false : null,
-                  itemCount: _tickets.length,
-                  separatorBuilder: (_, __) =>
-                      SizedBox(height: isDesktop ? 16 : 12),
-                  itemBuilder: (context, index) {
-                    final ticket = _tickets[index];
-
-                    return RoundedContainer(
-                      padding: .all(Util.isDesktop ? 16 : 12),
-                      borderColor: Util.isDesktop
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG
-                          : null,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.popupBG,
-                      onPressed: () => Navigator.of(context).pushNamed(
-                        ShopInBitTicketDetail.routeName,
-                        arguments: ticket,
-                      ),
-                      child: _RequestRow(
-                        title: ticket.ticketId ?? "N/A",
-                        subtitle:
-                            "${_categoryLabel(ticket.category)} \u2022 ${ticket.requestDescription}",
-                        badgeText: ticket.status.label,
-                        badgeColor: ticket.status.getColor(
-                          Theme.of(context).extension<StackColors>()!,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-              // // TODO: fix loading from locking everything up
-              // if (_syncing) const LoadingIndicator(width: 24, height: 24),
+        child: RefreshControl(
+          onRefresh: _refresh,
+          child: ListView(
+            shrinkWrap: true,
+            physics: const AlwaysScrollableScrollPhysics(),
+            primary: isDesktop ? false : null,
+            children: [
+              ..._buildListChildren(
+                context: context,
+                isDesktop: isDesktop,
+                pending: pending,
+                hasTickets: hasTickets,
+              ),
             ],
-          ],
+          ),
         ),
       ),
     );
