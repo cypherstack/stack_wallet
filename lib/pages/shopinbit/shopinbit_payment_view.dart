@@ -121,17 +121,31 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     } catch (_) {}
   }
 
-  // Entered from the shipping view's PAY NOW button: create the invoice
-  // via PUT per the 1.0.4 spec. GET no longer creates invoices.
+  // The shipping view's PAY NOW button is the only path into this view today,
+  // but we still GET first per the 1.0.4 spec's "page reload recovery"
+  // guidance: if a live invoice already exists for this ticket, reuse it.  PUT
+  // (which regenerates) only when GET shows there isn't one.  An empty
+  // paymentLinks map covers all "no live invoice" cases the server returns
+  // (fresh ticket, expired, invalid) and a non-empty map covers everything
+  // worth preserving (live, paid, paid_late, processing).
   Future<void> _loadPayment() async {
     setState(() => _loading = true);
     try {
-      final resp = await ref
-          .read(pShopinBitService)
-          .client
-          .putPayment(widget.model.apiTicketId);
-      if (!resp.hasError && resp.value != null) {
-        _applyPaymentInfo(resp.value!);
+      final client = ref.read(pShopinBitService).client;
+      final getResp = await client.getPayment(widget.model.apiTicketId);
+      PaymentInfo? info;
+      if (!getResp.hasError &&
+          getResp.value != null &&
+          getResp.value!.paymentLinks.isNotEmpty) {
+        info = getResp.value!;
+      } else {
+        final putResp = await client.putPayment(widget.model.apiTicketId);
+        if (!putResp.hasError && putResp.value != null) {
+          info = putResp.value!;
+        }
+      }
+      if (info != null) {
+        _applyPaymentInfo(info);
       }
     } catch (_) {
       // Fall back to local/dummy data
