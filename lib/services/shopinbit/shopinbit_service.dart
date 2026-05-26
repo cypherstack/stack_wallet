@@ -1,3 +1,4 @@
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../external_api_keys.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
@@ -61,5 +62,11 @@ class ShopInBitService {
     client.externalCustomerKey = null;
     await _secure.delete(key: _kShopinBitCustomerKeyKeySecureStore);
     Logging.instance.i("ShopInBitService: customer key cleared");
+  }
+
+  Future<List<ShopInBitTicketsCompanion>> fetchAllForCustomerKey(
+    String customerKey,
+  ) async {
+    throw UnimplementedError("TODO");
   }
 }
