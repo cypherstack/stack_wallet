@@ -76,7 +76,7 @@ dependencies:
 
 # %%ENABLE_SAL%%
 #  cs_salvium: ^2.0.0
-#  cs_salvium_flutter_libs: ^2.0.1
+#  cs_salvium_flutter_libs: ^3.0.1
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
