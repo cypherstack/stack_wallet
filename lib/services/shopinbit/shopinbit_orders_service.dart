@@ -158,12 +158,27 @@ class ShopInBitOrdersService extends ChangeNotifier {
   Future<void> refreshAll() async {
     try {
       final customerKey = await shopInBitService.ensureCustomerKey();
+      final db = SharedDrift.get();
+
+      // Backfill rows for tickets that exist on the API but not locally
+      // (created on another device, web dashboard, etc.). A failure here
+      // shouldn't stop the refresh of tickets we already know about.
+      try {
+        final newCompanions = await shopInBitService.fetchAllForCustomerKey(
+          customerKey,
+        );
+        for (final companion in newCompanions) {
+          await db.into(db.shopInBitTickets).insertOnConflictUpdate(companion);
+        }
+      } catch (_) {
+        // Fall through to the refresh-existing path.
+      }
+
       final resp = await shopInBitService.client.getTicketsByCustomer(
         customerKey,
       );
       if (resp.hasError || resp.value == null) return;
 
-      final db = SharedDrift.get();
       final localRows = await db.select(db.shopInBitTickets).get();
       final byApiId = {for (final r in localRows) r.apiTicketId: r};
 
