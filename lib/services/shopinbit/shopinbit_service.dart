@@ -10,7 +10,9 @@ class ShopInBitService {
 
   SecureStorageInterface get _secure {
     if (_secureStorageInterface == null) {
-      throw Exception("Did you forget to call ShopInBitService.init()?");
+      throw Exception(
+        "Did you forget to call ShopInBitService.ensureInitialized()?",
+      );
     }
     return _secureStorageInterface!;
   }
