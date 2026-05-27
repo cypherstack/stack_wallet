@@ -89,7 +89,7 @@ class _ShopInBitCarResearchPaymentViewState
   bool get _payNowEnabled =>
       !_isTerminal && _flowState == _PaymentFlowState.idle;
 
-  void _confirmPayment() {
+  Future<void> _confirmPayment() async {
     // Keep polling while the user is in the send flow.
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
@@ -100,7 +100,7 @@ class _ShopInBitCarResearchPaymentViewState
       coin: AppConfig.getCryptoCurrencyForTicker(ticker),
     );
 
-    final navigated = tryNavigateToShopInBitWalletSend(
+    final navigated = await tryNavigateToShopInBitWalletSend(
       ref: ref,
       context: context,
       ticker: ticker,
@@ -113,6 +113,7 @@ class _ShopInBitCarResearchPaymentViewState
     );
 
     if (navigated) return;
+    if (!mounted) return;
 
     // No compatible wallet coin found: surface an info flushbar and keep
     // the user on this screen so they can pay externally and then use the
@@ -826,7 +827,7 @@ class _ShopInBitCarResearchPaymentViewState
           enabled: _payNowEnabled,
           onPressed: _payNowEnabled
               ? (hasWallets
-                    ? _confirmPayment
+                    ? () => unawaited(_confirmPayment())
                     : () => unawaited(_checkForPayment()))
               : null,
         ),

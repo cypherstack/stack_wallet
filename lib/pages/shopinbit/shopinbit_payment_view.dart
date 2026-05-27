@@ -244,7 +244,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     }
   }
 
-  void _confirmPayment() {
+  Future<void> _confirmPayment() async {
     _pollTimer?.cancel();
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
@@ -256,7 +256,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       amountFallback: _paymentInfo?.due,
     );
 
-    if (tryNavigateToShopInBitWalletSend(
+    if (await tryNavigateToShopInBitWalletSend(
       ref: ref,
       context: context,
       ticker: ticker,
@@ -268,6 +268,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     )) {
       return;
     }
+    if (!mounted) return;
 
     widget.model.status = ShopInBitOrderStatus.paymentPending;
     widget.model.paymentMethod = method;
@@ -306,7 +307,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   void _onOwnedCoinTap(int methodIndex) {
     if (!_payNowEnabled) return;
     _selectedMethod = methodIndex;
-    _confirmPayment();
+    unawaited(_confirmPayment());
   }
 
   void _onUnownedCoinTap(int methodIndex) {

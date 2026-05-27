@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -127,7 +125,8 @@ bool hasShopInBitWalletForTicker({
   return wallets.wallets.any((e) => e.info.coin == coin);
 }
 
-void _pushShopInBitSendFrom({
+// Pushes the send-from view and awaits it.
+Future<void> _pushShopInBitSendFrom({
   required BuildContext context,
   required CryptoCurrency coin,
   required Amount? amount,
@@ -136,26 +135,24 @@ void _pushShopInBitSendFrom({
   EthContract? tokenContract,
   bool popDesktopBeforeShow = false,
   String? routeOnSuccessName,
-}) {
+}) async {
   if (Util.isDesktop) {
     if (popDesktopBeforeShow) {
       Navigator.of(context, rootNavigator: true).pop();
     }
-    unawaited(
-      showDialog<void>(
-        context: context,
-        builder: (_) => ShopInBitSendFromView(
-          coin: coin,
-          amount: amount,
-          address: address,
-          model: model,
-          shouldPopRoot: true,
-          tokenContract: tokenContract,
-        ),
+    await showDialog<void>(
+      context: context,
+      builder: (_) => ShopInBitSendFromView(
+        coin: coin,
+        amount: amount,
+        address: address,
+        model: model,
+        shouldPopRoot: true,
+        tokenContract: tokenContract,
       ),
     );
   } else {
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       RouteGenerator.getRoute<dynamic>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
         builder: (_) => ShopInBitSendFromView(
@@ -172,11 +169,8 @@ void _pushShopInBitSendFrom({
   }
 }
 
-// Tries to launch the in-wallet send flow for [ticker]/[address]. Returns
-// true when navigation happened. Returns false when no compatible wallet
-// or token contract was found, leaving the caller to handle the
-// "pay externally" path (flushbar, status change, etc).
-bool tryNavigateToShopInBitWalletSend({
+// Tries to launch the in-wallet send flow for [ticker]/[address].
+Future<bool> tryNavigateToShopInBitWalletSend({
   required WidgetRef ref,
   required BuildContext context,
   required String ticker,
@@ -186,12 +180,12 @@ bool tryNavigateToShopInBitWalletSend({
   required ShopInBitOrderModel model,
   bool popDesktopBeforeShow = false,
   String? routeOnSuccessName,
-}) {
+}) async {
   if (address.isEmpty) return false;
 
   final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
   if (coin != null) {
-    _pushShopInBitSendFrom(
+    await _pushShopInBitSendFrom(
       context: context,
       coin: coin,
       amount: amount,
@@ -211,7 +205,7 @@ bool tryNavigateToShopInBitWalletSend({
     if (tokenContract != null) {
       final ethCoin = AppConfig.getCryptoCurrencyForTicker("ETH");
       if (ethCoin != null) {
-        _pushShopInBitSendFrom(
+        await _pushShopInBitSendFrom(
           context: context,
           coin: ethCoin,
           amount: amount,
