@@ -19,6 +19,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
+import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
@@ -780,9 +781,9 @@ class _ShopInBitCarResearchPaymentViewState
                             : STextStyles.itemSubtitle12(context),
                       ),
                       const Spacer(),
-                      Icon(
-                        Icons.copy,
-                        size: 14,
+                      CopyIcon(
+                        width: 14,
+                        height: 14,
                         color: Theme.of(
                           context,
                         ).extension<StackColors>()!.accentColorBlue,
