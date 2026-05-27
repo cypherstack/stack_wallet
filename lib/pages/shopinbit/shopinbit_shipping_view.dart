@@ -187,6 +187,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
       postalCode: postalCode,
       country: country,
     );
+    // Keep deliveryCountry authoritative and in sync with the shipping
+    // country. No-op when it was already set (the normal flow); fills the gap
+    // for restored orders, where deliveryCountry came back empty from the API
+    // and the user picked one here.
+    widget.model.deliveryCountry = country;
 
     // Pre-load the payment info before pushing the payment view so it renders
     // populated immediately. The Continue button's spinner (_submitting)
@@ -260,6 +265,171 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     );
   }
 
+  // Read-only display of the locked delivery country. Looks like the other
+  // fields but isn't editable; the country was fixed when the offer was priced.
+  Widget _buildLockedCountryField(
+    BuildContext context, {
+    required bool isDesktop,
+  }) {
+    final label =
+        _countries
+            .where((c) => c['iso'] == _selectedCountryIso)
+            .map((c) => c['label'] as String)
+            .firstOrNull ??
+        (_selectedCountryIso ?? "");
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "Country",
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
+                  )
+                : STextStyles.fieldLabel(context),
+          ),
+          Text(
+            label,
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                  )
+                : STextStyles.w500_14(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Editable, searchable country dropdown. Only shown when the delivery country
+  // wasn't pre-set (restored-from-API orders).
+  Widget _buildCountryDropdown(
+    BuildContext context, {
+    required bool isDesktop,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<String>(
+          value: _selectedCountryIso,
+          items: _countries
+              .map(
+                (c) => DropdownMenuItem<String>(
+                  value: c['iso'] as String,
+                  child: Text(
+                    c['label'] as String,
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveText,
+                          )
+                        : STextStyles.w500_14(context),
+                  ),
+                ),
+              )
+              .toList(),
+          onMenuStateChange: (isOpen) {
+            if (!isOpen) {
+              _countrySearchController.clear();
+            }
+          },
+          onChanged: _loadingCountries
+              ? null
+              : (value) => setState(() => _selectedCountryIso = value),
+          hint: Text(
+            _loadingCountries ? "Loading countries..." : "Country",
+            style: isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
+                  )
+                : STextStyles.fieldLabel(context),
+          ),
+          isExpanded: true,
+          buttonStyleData: ButtonStyleData(
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          iconStyleData: IconStyleData(
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 12,
+                height: 6,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              ),
+            ),
+          ),
+          dropdownStyleData: DropdownStyleData(
+            offset: const Offset(0, 0),
+            elevation: 0,
+            maxHeight: 300,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          dropdownSearchData: DropdownSearchData<String>(
+            searchController: _countrySearchController,
+            searchInnerWidgetHeight: 48,
+            searchInnerWidget: TextFormField(
+              controller: _countrySearchController,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                hintText: "Search...",
+                hintStyle: STextStyles.fieldLabel(context),
+                border: InputBorder.none,
+              ),
+            ),
+            searchMatchFn: (item, searchValue) {
+              final label = _countries
+                  .where((c) => c['iso'] == item.value)
+                  .map((c) => c['label'] as String)
+                  .firstOrNull;
+              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
+                  false;
+            },
+          ),
+          menuItemStyleData: const MenuItemStyleData(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -327,120 +497,25 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           ],
         ),
         spacing,
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
+        // The delivery country was chosen when the offer was requested and the
+        // price (incl. shipping + VAT) was calculated from it, so it can't be
+        // changed here. Restored-from-API orders are the exception: they come
+        // back with no country, so we let the user supply one (and warn that it
+        // may not match what the offer was priced for).
+        if (_countryLocked)
+          _buildLockedCountryField(context, isDesktop: isDesktop)
+        else ...[
+          _buildCountryDropdown(context, isDesktop: isDesktop),
+          SizedBox(height: isDesktop ? 8 : 6),
+          Text(
+            "This order was started on another device. Choosing a country "
+            "here may not match the delivery destination the offer was "
+            "priced for.",
+            style: isDesktop
+                ? STextStyles.desktopTextSmall(context)
+                : STextStyles.itemSubtitle(context),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton2<String>(
-              value: _selectedCountryIso,
-              items: _countries
-                  .map(
-                    (c) => DropdownMenuItem<String>(
-                      value: c['iso'] as String,
-                      child: Text(
-                        c['label'] as String,
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldActiveText,
-                              )
-                            : STextStyles.w500_14(context),
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onMenuStateChange: (isOpen) {
-                if (!isOpen) {
-                  _countrySearchController.clear();
-                }
-              },
-              onChanged: (_countryLocked || _loadingCountries)
-                  ? null
-                  : (value) => setState(() => _selectedCountryIso = value),
-              hint: Text(
-                _loadingCountries ? "Loading countries..." : "Country",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultSearchIconLeft,
-                      )
-                    : STextStyles.fieldLabel(context),
-              ),
-              isExpanded: true,
-              buttonStyleData: ButtonStyleData(
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-              ),
-              iconStyleData: IconStyleData(
-                icon: Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: SvgPicture.asset(
-                    Assets.svg.chevronDown,
-                    width: 12,
-                    height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-                  ),
-                ),
-              ),
-              dropdownStyleData: DropdownStyleData(
-                offset: const Offset(0, 0),
-                elevation: 0,
-                maxHeight: 300,
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-              ),
-              dropdownSearchData: DropdownSearchData<String>(
-                searchController: _countrySearchController,
-                searchInnerWidgetHeight: 48,
-                searchInnerWidget: TextFormField(
-                  controller: _countrySearchController,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    hintText: "Search...",
-                    hintStyle: STextStyles.fieldLabel(context),
-                    border: InputBorder.none,
-                  ),
-                ),
-                searchMatchFn: (item, searchValue) {
-                  final label = _countries
-                      .where((c) => c['iso'] == item.value)
-                      .map((c) => c['label'] as String)
-                      .firstOrNull;
-                  return label?.toLowerCase().contains(
-                        searchValue.toLowerCase(),
-                      ) ??
-                      false;
-                },
-              ),
-              menuItemStyleData: const MenuItemStyleData(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-            ),
-          ),
-        ),
+        ],
         spacing,
         // Billing address toggle.
         GestureDetector(
