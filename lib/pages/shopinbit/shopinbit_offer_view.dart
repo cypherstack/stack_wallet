@@ -13,7 +13,6 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_shipping_view.dart';
 
@@ -195,13 +194,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
                     bottom: 32,
                     top: 16,
                   ),
-                  child: Stack(
-                    children: [
-                      content,
-                      if (_loading)
-                        const LoadingIndicator(width: 24, height: 24),
-                    ],
-                  ),
+                  child: content,
                 ),
               ),
             ],
@@ -222,21 +215,16 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 32,
-                        ),
-                        child: IntrinsicHeight(child: content),
-                      ),
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 32,
                     ),
+                    child: IntrinsicHeight(child: content),
                   ),
-                  if (_loading) const LoadingIndicator(width: 24, height: 24),
-                ],
+                ),
               );
             },
           ),

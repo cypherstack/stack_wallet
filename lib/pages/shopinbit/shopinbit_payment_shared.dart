@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/shopinbit/src/models/payment.dart';
 import '../../services/wallets.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -17,7 +19,6 @@ import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/loading_indicator.dart';
 import 'shopinbit_send_from_view.dart';
 
 final String kShopInBitUsdtContractAddress = DefaultTokens.list
@@ -223,20 +224,45 @@ Future<bool> tryNavigateToShopInBitWalletSend({
   return false;
 }
 
+// Fetches the live payment info for a ticket so the caller can pass it into
+// the payment view as an arg (rather than loading it after the view is up).
+// GET first to reuse an existing invoice per the spec's "page reload
+// recovery" guidance; PUT (which regenerates) only when GET shows none.
+// Returns null on any failure so the view can fall back to polling.
+Future<PaymentInfo?> fetchShopInBitPaymentInfo(
+  WidgetRef ref,
+  int apiTicketId,
+) async {
+  try {
+    final client = ref.read(pShopinBitService).client;
+    final getResp = await client.getPayment(apiTicketId);
+    if (!getResp.hasError &&
+        getResp.value != null &&
+        getResp.value!.paymentLinks.isNotEmpty) {
+      return getResp.value;
+    }
+    final putResp = await client.putPayment(apiTicketId);
+    if (!putResp.hasError && putResp.value != null) {
+      return putResp.value;
+    }
+  } catch (_) {
+    // Degrade to polling-only.
+  }
+  return null;
+}
+
 // Shared mobile chrome for the two ShopInBit payment views: Background +
 // PopScope (back goes through [onBack]) + AppBar + scrollable, intrinsic
-// height body. Set [showLoading] to overlay a spinner.
+// height body.
 class ShopInBitPaymentMobileScaffold extends StatelessWidget {
   const ShopInBitPaymentMobileScaffold({
     super.key,
     required this.onBack,
     required this.child,
-    this.showLoading = false,
   });
 
   final VoidCallback onBack;
   final Widget child;
-  final bool showLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -259,22 +285,16 @@ class ShopInBitPaymentMobileScaffold extends StatelessWidget {
           body: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                return Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 32,
-                          ),
-                          child: IntrinsicHeight(child: child),
-                        ),
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 32,
                       ),
+                      child: IntrinsicHeight(child: child),
                     ),
-                    if (showLoading)
-                      const LoadingIndicator(width: 24, height: 24),
-                  ],
+                  ),
                 );
               },
             ),

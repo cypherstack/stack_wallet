@@ -16,6 +16,7 @@ import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -23,16 +24,23 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_payment_shared.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
-  const ShopInBitPaymentView({super.key, required this.model});
+  const ShopInBitPaymentView({
+    super.key,
+    required this.model,
+    this.initialPaymentInfo,
+  });
 
   static const String routeName = "/shopInBitPayment";
 
   final ShopInBitOrderModel model;
+
+  // Pre-loaded by the caller (see fetchShopInBitPaymentInfo) so the view can
+  // render populated immediately instead of fetching after it's pushed.
+  final PaymentInfo? initialPaymentInfo;
 
   @override
   ConsumerState<ShopInBitPaymentView> createState() =>
@@ -40,7 +48,6 @@ class ShopInBitPaymentView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
-  bool _loading = false;
   int _selectedMethod = 0;
   Timer? _pollTimer;
 
@@ -72,8 +79,13 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialPaymentInfo != null) {
+      _applyPaymentInfo(widget.initialPaymentInfo!);
+    }
+    // Poll even when the pre-load returned null so the view can still recover
+    // a live invoice on its own.
     if (widget.model.apiTicketId != 0) {
-      _loadPayment();
+      _startPolling();
     }
   }
 
@@ -115,132 +127,80 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     } catch (_) {}
   }
 
-  // The shipping view's PAY NOW button is the only path into this view today,
-  // but we still GET first per the 1.0.4 spec's "page reload recovery"
-  // guidance: if a live invoice already exists for this ticket, reuse it.  PUT
-  // (which regenerates) only when GET shows there isn't one.  An empty
-  // paymentLinks map covers all "no live invoice" cases the server returns
-  // (fresh ticket, expired, invalid) and a non-empty map covers everything
-  // worth preserving (live, paid, paid_late, processing).
-  Future<void> _loadPayment() async {
-    setState(() => _loading = true);
-    try {
-      final client = ref.read(pShopinBitService).client;
-      final getResp = await client.getPayment(widget.model.apiTicketId);
-      PaymentInfo? info;
-      if (!getResp.hasError &&
-          getResp.value != null &&
-          getResp.value!.paymentLinks.isNotEmpty) {
-        info = getResp.value!;
-      } else {
-        final putResp = await client.putPayment(widget.model.apiTicketId);
-        if (!putResp.hasError && putResp.value != null) {
-          info = putResp.value!;
-        }
-      }
-      if (info != null) {
-        _applyPaymentInfo(info);
-      }
-    } catch (_) {
-      // Fall back to local/dummy data
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        _startPolling();
-      }
-    }
-  }
-
   Future<void> _refreshInvoice() async {
-    setState(() => _loading = true);
-    try {
-      final resp = await ref
+    _pollTimer?.cancel();
+    final resp = await showLoading(
+      whileFuture: ref
           .read(pShopinBitService)
           .client
-          .putPayment(widget.model.apiTicketId);
-      if (!resp.hasError && resp.value != null) {
-        _applyPaymentInfo(resp.value!);
-      }
-    } catch (_) {}
-    if (mounted) {
-      setState(() => _loading = false);
-      _startPolling();
+          .putPayment(widget.model.apiTicketId),
+      context: context,
+      message: "Refreshing invoice",
+    );
+    if (!mounted) return;
+    if (resp != null && !resp.hasError && resp.value != null) {
+      setState(() => _applyPaymentInfo(resp.value!));
     }
+    _startPolling();
   }
 
   Future<void> _checkForPayment() async {
     _pollTimer?.cancel();
-    setState(() => _loading = true);
-    try {
-      final resp = await ref
+    final resp = await showLoading(
+      whileFuture: ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId);
-      if (!resp.hasError && resp.value != null && mounted) {
-        setState(() => _applyPaymentInfo(resp.value!));
-        final status = resp.value!.status;
-        if (const {
-          'paid',
-          'paid_over',
-          'paid_late',
-          'payment_processing',
-        }.contains(status)) {
-          if (mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.success,
-                message: "Payment received!",
-                context: context,
-              ),
-            );
-          }
-        } else if (status == 'underpaid') {
-          if (mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.warning,
-                message: "Underpaid. Remaining: ${resp.value!.due ?? '?'} EUR.",
-                context: context,
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.info,
-                message: "No payment detected yet.",
-                context: context,
-              ),
-            );
-          }
-        }
-      } else if (mounted) {
+          .getPayment(widget.model.apiTicketId),
+      context: context,
+      message: "Checking for payment",
+    );
+    if (!mounted) return;
+
+    if (resp != null && !resp.hasError && resp.value != null) {
+      setState(() => _applyPaymentInfo(resp.value!));
+      final status = resp.value!.status;
+      if (const {
+        'paid',
+        'paid_over',
+        'paid_late',
+        'payment_processing',
+      }.contains(status)) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Payment received!",
+            context: context,
+          ),
+        );
+      } else if (status == 'underpaid') {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: resp.exception?.message ?? "Failed to check payment.",
+            message: "Underpaid. Remaining: ${resp.value!.due ?? '?'} EUR.",
+            context: context,
+          ),
+        );
+      } else {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "No payment detected yet.",
             context: context,
           ),
         );
       }
-    } catch (e) {
-      if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: e.toString(),
-            context: context,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        if (!_isTerminal) {
-          _startPolling();
-        }
-      }
+    } else {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: resp?.exception?.message ?? "Failed to check payment.",
+          context: context,
+        ),
+      );
+    }
+
+    if (!_isTerminal) {
+      _startPolling();
     }
   }
 
@@ -634,12 +594,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                   horizontal: 32,
                   vertical: 8,
                 ),
-                child: Stack(
-                  children: [
-                    SingleChildScrollView(child: content),
-                    if (_loading) const LoadingIndicator(width: 24, height: 24),
-                  ],
-                ),
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],
@@ -649,7 +604,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
 
     return ShopInBitPaymentMobileScaffold(
       onBack: _popToTickets,
-      showLoading: _loading,
       child: content,
     );
   }

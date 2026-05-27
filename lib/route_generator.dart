@@ -262,6 +262,7 @@ import 'services/cakepay/src/models/order.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'services/shopinbit/src/models/car_research.dart';
+import 'services/shopinbit/src/models/payment.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
@@ -1258,10 +1259,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ShopInBitPaymentView.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args is (ShopInBitOrderModel, PaymentInfo?)) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ShopInBitPaymentView(model: args),
+            builder: (_) => ShopInBitPaymentView(
+              model: args.$1,
+              initialPaymentInfo: args.$2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

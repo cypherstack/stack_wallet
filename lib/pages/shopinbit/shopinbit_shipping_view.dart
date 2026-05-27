@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
+import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
@@ -19,6 +20,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
+import 'shopinbit_payment_shared.dart';
 import 'shopinbit_payment_view.dart';
 
 class ShopInBitShippingView extends ConsumerStatefulWidget {
@@ -186,6 +188,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
       country: country,
     );
 
+    // Pre-load the payment info before pushing the payment view so it renders
+    // populated immediately. The Continue button's spinner (_submitting)
+    // already covers this wait.
+    PaymentInfo? paymentInfo;
     if (widget.model.apiTicketId != 0) {
       setState(() => _submitting = true);
       try {
@@ -232,6 +238,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           // Sandbox may fail here; continue anyway.
           debugPrint("submitAddress failed: ${resp.exception?.message}");
         }
+
+        paymentInfo = await fetchShopInBitPaymentInfo(
+          ref,
+          widget.model.apiTicketId,
+        );
       } catch (e) {
         debugPrint("submitAddress threw: $e");
       } finally {
@@ -242,9 +253,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     if (!mounted) return;
 
     unawaited(
-      Navigator.of(
-        context,
-      ).pushNamed(ShopInBitPaymentView.routeName, arguments: widget.model),
+      Navigator.of(context).pushNamed(
+        ShopInBitPaymentView.routeName,
+        arguments: (widget.model, paymentInfo),
+      ),
     );
   }
 
