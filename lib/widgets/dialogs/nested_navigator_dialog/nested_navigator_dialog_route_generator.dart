@@ -11,6 +11,7 @@ import '../../../pages/shopinbit/shopinbit_car_fee_view.dart';
 import '../../../pages/shopinbit/shopinbit_car_research_payment_view.dart';
 import '../../../pages/shopinbit/shopinbit_offer_view.dart';
 import '../../../pages/shopinbit/shopinbit_order_created.dart';
+import '../../../pages/shopinbit/shopinbit_payment_view.dart';
 import '../../../pages/shopinbit/shopinbit_shipping_view.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_step_2.dart';
@@ -185,6 +186,19 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         if (args is ShopInBitOrderModel) {
           return getRoute(
             builder: (_) => ShopInBitShippingView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ShopInBitOrderModel",
+        );
+
+      case ShopInBitPaymentView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            builder: (_) => ShopInBitPaymentView(model: args),
             settings: RouteSettings(name: settings.name),
           );
         }
