@@ -254,6 +254,13 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
           .createCarResearchInvoice(billing: billing);
 
       if (resp.hasError || resp.value == null) {
+        Logging.instance.e(
+          "Failed to create invoice",
+          error: resp.exception,
+          stackTrace: StackTrace.current,
+        );
+        // TODO: show error dialogs so users can easily see what happened and share with support without digging through logs
+
         if (mounted) {
           setState(() => _submitting = false);
           unawaited(
@@ -293,7 +300,9 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
           arguments: (widget.model, invoice),
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e("Create invoice failed", error: e, stackTrace: s);
+      // TODO: show error dialogs so users can easily see what happened and share with support without digging through logs
       if (mounted) {
         setState(() => _submitting = false);
         unawaited(
