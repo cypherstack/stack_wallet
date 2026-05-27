@@ -396,34 +396,56 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                       context,
                     ).extension<StackColors>()!.textFieldDefaultBG
                   : null,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Offer available",
-                    style: isDesktop
-                        ? STextStyles.desktopTextSmall(context)
-                        : STextStyles.titleBold12(context),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "${model.offerProductName ?? 'Item'} \u2014 "
-                    "${model.offerPrice ?? '0'} EUR",
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraExtraSmall(context)
-                        : STextStyles.itemSubtitle12(context),
-                  ),
-                  SizedBox(height: isDesktop ? 12 : 8),
-                  PrimaryButton(
-                    label: "Review offer",
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        ShopInBitOfferView.routeName,
-                        arguments: model,
-                      );
-                    },
-                  ),
-                ],
+              child: ConditionalParent(
+                condition: Util.isDesktop,
+                builder: (child) => Row(
+                  children: [
+                    Expanded(child: child),
+                    PrimaryButton(
+                      label: "Review offer",
+                      width: 220,
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          ShopInBitOfferView.routeName,
+                          arguments: model,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: .start,
+                  mainAxisSize: .min,
+                  children: [
+                    Text(
+                      "Offer available",
+                      style: isDesktop
+                          ? STextStyles.desktopTextSmall(context)
+                          : STextStyles.titleBold12(context),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "${model.offerProductName ?? 'Item'} \u2014 "
+                      "${model.offerPrice ?? '0'} EUR",
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.itemSubtitle12(context),
+                    ),
+                    if (!Util.isDesktop) const SizedBox(height: 12),
+                    if (!Util.isDesktop)
+                      PrimaryButton(
+                        label: "Review offer",
+                        buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            ShopInBitOfferView.routeName,
+                            arguments: model,
+                          );
+                        },
+                      ),
+                  ],
+                ),
               ),
             ),
           )
