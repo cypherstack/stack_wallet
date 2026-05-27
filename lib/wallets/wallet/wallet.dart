@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
@@ -703,8 +704,11 @@ abstract class Wallet<T extends CryptoCurrency> {
         await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
 
-      final skipNetworkFetch =
-          info.isHardwareWallet && prefs.enableMockHardwareAutoSigner;
+      // The mock auto-signer injects fake balances/UTXOs and must never run in
+      // a release build, so it is gated behind kDebugMode.
+      final skipNetworkFetch = kDebugMode &&
+          info.isHardwareWallet &&
+          prefs.enableMockHardwareAutoSigner;
 
       if (skipNetworkFetch) {
         _fireRefreshPercentChange(0.70);
@@ -738,7 +742,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       _fireRefreshPercentChange(0.90);
 
-      if (info.isHardwareWallet && prefs.enableMockHardwareAutoSigner) {
+      if (kDebugMode &&
+          info.isHardwareWallet &&
+          prefs.enableMockHardwareAutoSigner) {
         // Preserve injected mock balance during refresh
       } else {
         await updateBalance();
@@ -821,8 +827,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
     }
 
-    // Inject mock balance and UTXO for hardware wallets when mock signer is on
-    if (info.isHardwareWallet && prefs.enableMockHardwareAutoSigner) {
+    // Inject mock balance and UTXO for hardware wallets when mock signer is on.
+    // Gated behind kDebugMode so release builds can never inject fake balances.
+    if (kDebugMode &&
+        info.isHardwareWallet &&
+        prefs.enableMockHardwareAutoSigner) {
       final fd = cryptoCurrency.fractionDigits;
       final mockSats = BigInt.from(10) * BigInt.from(10).pow(fd);
       final mockBalance = Balance(

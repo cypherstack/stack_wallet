@@ -178,6 +178,9 @@ class _HardwareWalletConnectViewState
           connection: connection,
         );
 
+        // TODO [prio=med]: account discovery. This is hardcoded to the first
+        // mainnet Bitcoin BIP84 account (m/84'/0'/0') and does not support
+        // other coins, account indices, or testnet (coin type 1').
         const path = "m/84'/0'/0'";
 
         try {
