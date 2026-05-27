@@ -7,11 +7,12 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_shipping_view.dart';
@@ -65,6 +66,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
     final model = widget.model;
 
     final content = Column(
+      mainAxisSize: .min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
@@ -124,73 +126,86 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
             ],
           ),
         ),
-        const Spacer(),
-        PrimaryButton(
-          label: "Accept offer",
-          enabled: !_loading,
-          onPressed: () {
-            model.status = ShopInBitOrderStatus.accepted;
-            if (isDesktop) {
-              Navigator.of(context, rootNavigator: true).pop();
-              showDialog<void>(
-                context: context,
-                builder: (_) => ShopInBitShippingView(model: model),
-              );
-            } else {
-              Navigator.of(
-                context,
-              ).pushNamed(ShopInBitShippingView.routeName, arguments: model);
-            }
-          },
-        ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        SecondaryButton(
-          label: "Decline",
-          onPressed: () {
-            if (isDesktop) {
-              Navigator.of(context, rootNavigator: true).pop();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+        isDesktop ? const SizedBox(height: 40) : const Spacer(),
+        BranchedParent(
+          condition: isDesktop,
+          conditionBranchBuilder: (children) => Row(
+            children: [
+              Expanded(child: children[1]),
+              const SizedBox(width: 16),
+              Expanded(child: children[0]),
+            ],
+          ),
+          otherBranchBuilder: (children) => Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: .stretch,
+            children: [children[0], const SizedBox(height: 16), children[1]],
+          ),
+          children: [
+            PrimaryButton(
+              label: "Accept offer",
+              buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+              enabled: !_loading,
+              onPressed: () {
+                // TODO verify this is ok to stay set to accepted if the next route pops back and then decline is tapped
+                model.status = ShopInBitOrderStatus.accepted;
+
+                Navigator.of(
+                  context,
+                ).pushNamed(ShopInBitShippingView.routeName, arguments: model);
+              },
+            ),
+            SecondaryButton(
+              label: "Decline",
+              buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         ),
       ],
     );
 
     if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 600,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopinBit",
-                    style: STextStyles.desktopH3(context),
+      return SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              Flexible(
+                child: Padding(
+                  padding: const .only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                    top: 16,
+                  ),
+                  child: Stack(
+                    children: [
+                      content,
+                      if (_loading)
+                        const LoadingIndicator(width: 24, height: 24),
+                    ],
                   ),
                 ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                child: Stack(
-                  children: [
-                    content,
-                    if (_loading) const LoadingIndicator(width: 24, height: 24),
-                  ],
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }

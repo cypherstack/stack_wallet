@@ -78,7 +78,6 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     final model = ShopInBitOrderModel.fromDriftRow(pending);
     final expiresAt = pending.carResearchExpiresAt;
     final linksJson = pending.carResearchPaymentLinks;
-    final isDesktop = Util.isDesktop;
 
     if (expiresAt != null &&
         expiresAt.isAfter(DateTime.now()) &&

@@ -417,19 +417,10 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                   PrimaryButton(
                     label: "Review offer",
                     onPressed: () {
-                      if (isDesktop) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        showDialog<void>(
-                          context: context,
-
-                          builder: (_) => ShopInBitOfferView(model: model),
-                        );
-                      } else {
-                        Navigator.of(context).pushNamed(
-                          ShopInBitOfferView.routeName,
-                          arguments: model,
-                        );
-                      }
+                      Navigator.of(context).pushNamed(
+                        ShopInBitOfferView.routeName,
+                        arguments: model,
+                      );
                     },
                   ),
                 ],
