@@ -790,6 +790,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => StackDialogBase(
+          keyboardPaddingAmount: MediaQuery.of(context).viewInsets.bottom,
           child: Column(
             mainAxisSize: .min,
             children: [
