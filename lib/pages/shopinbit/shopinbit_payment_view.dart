@@ -82,11 +82,24 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     if (widget.initialPaymentInfo != null) {
       _applyPaymentInfo(widget.initialPaymentInfo!);
     }
-    // Poll even when the pre-load returned null so the view can still recover
-    // a live invoice on its own.
     if (widget.model.apiTicketId != 0) {
-      _startPolling();
+      // If the pre-load didn't hand us usable payment links, recover them: 
+      // GET, then PUT to generate one.
+      if (_addresses.every((a) => a.isEmpty)) {
+        unawaited(_recoverPaymentInfo());
+      } else {
+        _startPolling();
+      }
     }
+  }
+
+  Future<void> _recoverPaymentInfo() async {
+    final info = await fetchShopInBitPaymentInfo(ref, widget.model.apiTicketId);
+    if (!mounted) return;
+    if (info != null) {
+      setState(() => _applyPaymentInfo(info));
+    }
+    _startPolling();
   }
 
   @override
@@ -230,13 +243,18 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     }
     if (!mounted) return;
 
-    widget.model.status = ShopInBitOrderStatus.paymentPending;
-    widget.model.paymentMethod = method;
-
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-    } else {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+    // Couldn't launch the in-wallet send.
+    unawaited(
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message:
+            "Payment details for $ticker aren't ready yet. "
+            "Please wait a moment or refresh the invoice.",
+        context: context,
+      ),
+    );
+    if (!_isTerminal) {
+      _startPolling();
     }
   }
 
