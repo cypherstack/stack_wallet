@@ -93,10 +93,29 @@ ShopInBitPaymentTarget parseShopInBitPaymentTarget({
   return ShopInBitPaymentTarget(address: address, amount: amount);
 }
 
-// True if any wallet in [wallets] can send the given upper-cased [ticker].
-// USDT is special-cased to look at Ethereum wallets' token contracts.
-bool hasShopInBitWalletForTicker(Wallets wallets, String ticker) {
+// USDT exists on multiple chains (ERC-20, TRC-20, BEP-20, ...) and the
+// ShopInBit API just keys the payment link as "USDT". Only treat it as
+// ETH-USDT when the URI scheme is `ethereum:` or the address looks like a
+// bare Ethereum hex address. Anything else (Tron, etc.) we don't support
+// in-app and the user has to pay externally.
+final RegExp _kEthAddressRegExp = RegExp(r'^0x[0-9a-fA-F]{40}$');
+
+bool _isEthereumUsdtUri(String paymentUri) {
+  final trimmed = paymentUri.trim();
+  if (trimmed.toLowerCase().startsWith('ethereum:')) return true;
+  return _kEthAddressRegExp.hasMatch(trimmed);
+}
+
+// True if any wallet in [wallets] can send the given upper-cased [ticker]
+// for the given [paymentUri]. USDT is special-cased to look at Ethereum
+// wallets' token contracts, gated on the URI actually being ETH-chain.
+bool hasShopInBitWalletForTicker({
+  required Wallets wallets,
+  required String ticker,
+  required String paymentUri,
+}) {
   if (ticker == "USDT") {
+    if (!_isEthereumUsdtUri(paymentUri)) return false;
     return wallets.wallets.any(
       (w) =>
           w.info.coin is Ethereum &&
@@ -161,6 +180,7 @@ bool tryNavigateToShopInBitWalletSend({
   required WidgetRef ref,
   required BuildContext context,
   required String ticker,
+  required String paymentUri,
   required String address,
   required Amount? amount,
   required ShopInBitOrderModel model,
@@ -184,6 +204,7 @@ bool tryNavigateToShopInBitWalletSend({
   }
 
   if (ticker == "USDT") {
+    if (!_isEthereumUsdtUri(paymentUri)) return false;
     final tokenContract = ref
         .read(mainDBProvider)
         .getEthContractSync(kShopInBitUsdtContractAddress);

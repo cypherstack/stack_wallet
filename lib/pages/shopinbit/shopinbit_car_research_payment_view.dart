@@ -104,6 +104,7 @@ class _ShopInBitCarResearchPaymentViewState
       ref: ref,
       context: context,
       ticker: ticker,
+      paymentUri: _currentAddress,
       address: target.address,
       amount: target.amount,
       model: widget.model,
@@ -630,7 +631,11 @@ class _ShopInBitCarResearchPaymentViewState
         ? _methods[_selectedMethod].toUpperCase()
         : "";
 
-    final hasWallets = hasShopInBitWalletForTicker(ref.watch(pWallets), ticker);
+    final hasWallets = hasShopInBitWalletForTicker(
+      wallets: ref.watch(pWallets),
+      ticker: ticker,
+      paymentUri: _currentAddress,
+    );
 
     final methodSelector = _methods.length <= 1
         ? Padding(

@@ -259,6 +259,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       ref: ref,
       context: context,
       ticker: ticker,
+      paymentUri: _currentAddress,
       address: target.address,
       amount: target.amount,
       model: widget.model,
@@ -376,7 +377,11 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     for (int i = 0; i < _methods.length; i++) {
       final ticker = _methods[i].toUpperCase();
       final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      final hasWallet = hasShopInBitWalletForTicker(wallets, ticker);
+      final hasWallet = hasShopInBitWalletForTicker(
+        wallets: wallets,
+        ticker: ticker,
+        paymentUri: _addresses[i],
+      );
       final amountStr = _addresses[i].isNotEmpty
           ? _parseBip21Amount(_addresses[i])
           : null;
