@@ -16,6 +16,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/detail_item.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
@@ -265,12 +266,9 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     );
   }
 
-  // Read-only display of the locked delivery country. Looks like the other
-  // fields but isn't editable; the country was fixed when the offer was priced.
-  Widget _buildLockedCountryField(
-    BuildContext context, {
-    required bool isDesktop,
-  }) {
+  // Read-only display of the locked delivery country: it was fixed when the
+  // offer was priced and can't change here.
+  Widget _buildLockedCountryField() {
     final label =
         _countries
             .where((c) => c['iso'] == _selectedCountryIso)
@@ -278,39 +276,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
             .firstOrNull ??
         (_selectedCountryIso ?? "");
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-        borderRadius: BorderRadius.circular(
-          Constants.size.circularBorderRadius,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Country",
-            style: isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
-                  )
-                : STextStyles.fieldLabel(context),
-          ),
-          Text(
-            label,
-            style: isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
-                  )
-                : STextStyles.w500_14(context),
-          ),
-        ],
-      ),
+    return DetailItem(
+      title: "Country",
+      detail: label,
+      disableSelectableText: true,
     );
   }
 
@@ -503,7 +472,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         // back with no country, so we let the user supply one (and warn that it
         // may not match what the offer was priced for).
         if (_countryLocked)
-          _buildLockedCountryField(context, isDesktop: isDesktop)
+          _buildLockedCountryField()
         else ...[
           _buildCountryDropdown(context, isDesktop: isDesktop),
           SizedBox(height: isDesktop ? 8 : 6),
