@@ -790,6 +790,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => StackDialogBase(
+          keyboardPaddingAmount: MediaQuery.of(context).viewInsets.bottom,
           child: Column(
             mainAxisSize: .min,
             children: [
@@ -832,7 +833,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                     onPressed: () => Navigator.of(
                       context,
                       rootNavigator: Util.isDesktop,
@@ -845,7 +846,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Confirm",
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                     enabled: _confirmEnabled,
                     onPressed: _confirmEnabled
                         ? () => Navigator.of(

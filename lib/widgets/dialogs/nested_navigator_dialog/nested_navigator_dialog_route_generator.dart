@@ -9,7 +9,9 @@ import '../../../pages/cakepay/cakepay_orders_view.dart';
 import '../../../pages/cakepay/cakepay_vendors_view.dart';
 import '../../../pages/shopinbit/shopinbit_car_fee_view.dart';
 import '../../../pages/shopinbit/shopinbit_car_research_payment_view.dart';
+import '../../../pages/shopinbit/shopinbit_offer_view.dart';
 import '../../../pages/shopinbit/shopinbit_order_created.dart';
+import '../../../pages/shopinbit/shopinbit_shipping_view.dart';
 import '../../../pages/shopinbit/shopinbit_step_1.dart';
 import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_step_3.dart';
@@ -157,6 +159,32 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         if (args is ShopInBitOrderModel) {
           return getRoute(
             builder: (_) => ShopInBitTicketDetail(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ShopInBitOrderModel",
+        );
+
+      case ShopInBitOfferView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            builder: (_) => ShopInBitOfferView(model: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ShopInBitOrderModel",
+        );
+
+      case ShopInBitShippingView.routeName:
+        if (args is ShopInBitOrderModel) {
+          return getRoute(
+            builder: (_) => ShopInBitShippingView(model: args),
             settings: RouteSettings(name: settings.name),
           );
         }

@@ -292,13 +292,29 @@ class ShopInBitClient {
 
   // -- Payment --
 
-  Future<ApiResponse<PaymentInfo>> getPayment(
-    int ticketId, {
-    bool retry = false,
-  }) async {
-    final path = '/tickets/$ticketId/payment';
-    final query = retry ? {'retry': 'true'} : null;
-    return _request('GET', path, query: query, parse: PaymentInfo.fromJson);
+  /// Read existing invoice state. Use this for polling, page-reload recovery,
+  /// and any view that just wants to show the current invoice; per ShopinBit
+  /// 1.0.4 this endpoint is read-only and will not create or regenerate the
+  /// invoice. Call [putPayment] for that.
+  Future<ApiResponse<PaymentInfo>> getPayment(int ticketId) async {
+    return _request(
+      'GET',
+      '/tickets/$ticketId/payment',
+      parse: PaymentInfo.fromJson,
+    );
+  }
+
+  /// Create or regenerate the BTCPay invoice for [ticketId]. Per the 1.0.4
+  /// spec call this only after the customer has accepted the offer, submitted
+  /// shipping/billing, seen the Terms & Conditions, and explicitly clicked
+  /// PAY NOW.  Repeated calls regenerate the invoice and invalidate any in-
+  /// flight payment.
+  Future<ApiResponse<PaymentInfo>> putPayment(int ticketId) async {
+    return _request(
+      'PUT',
+      '/tickets/$ticketId/payment',
+      parse: PaymentInfo.fromJson,
+    );
   }
 
   // -- Vouchers --
@@ -544,6 +560,13 @@ class ShopInBitClient {
         return _httpClient.post(
           url: uri,
           headers: headers,
+          body: body != null ? _asciiSafeJson(body) : null,
+          proxyInfo: proxy,
+        );
+      case 'PUT':
+        return _httpClient.put(
+          url: uri,
+          headers: headers,
           body: body != null ? jsonEncode(body) : null,
           proxyInfo: proxy,
         );
@@ -551,7 +574,7 @@ class ShopInBitClient {
         return _httpClient.patch(
           url: uri,
           headers: headers,
-          body: body != null ? jsonEncode(body) : null,
+          body: body != null ? _asciiSafeJson(body) : null,
           proxyInfo: proxy,
         );
       case 'DELETE':
@@ -559,6 +582,24 @@ class ShopInBitClient {
       default:
         throw ApiException('Unsupported method: $method');
     }
+  }
+
+  // Encode [body] as JSON with all non-ASCII characters replaced by \uXXXX
+  // escapes. The HTTP wrapper writes string bodies with the latin1 default of
+  // HttpClientRequest.write, which mangles multi-byte UTF-8 like the U+00B1/±.
+  static String _asciiSafeJson(Object body) {
+    final raw = jsonEncode(body);
+    final buf = StringBuffer();
+    for (int i = 0; i < raw.length; i++) {
+      final c = raw.codeUnitAt(i);
+      if (c < 0x80) {
+        buf.writeCharCode(c);
+      } else {
+        buf.write('\\u');
+        buf.write(c.toRadixString(16).padLeft(4, '0'));
+      }
+    }
+    return buf.toString();
   }
 
   Future<ApiResponse<T>> _request<T>(

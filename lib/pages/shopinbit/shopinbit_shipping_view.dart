@@ -15,9 +15,9 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import 'shopinbit_payment_view.dart';
 
@@ -235,21 +235,12 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     }
 
     if (!mounted) return;
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitPaymentView(model: widget.model),
-        ),
-      );
-    } else {
-      unawaited(
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitPaymentView.routeName, arguments: widget.model),
-      );
-    }
+
+    unawaited(
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitPaymentView.routeName, arguments: widget.model),
+    );
   }
 
   @override
@@ -258,6 +249,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     final spacing = SizedBox(height: isDesktop ? 16 : 12);
 
     final content = Column(
+      mainAxisSize: .min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
@@ -666,34 +658,38 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     );
 
     if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 700,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopinBit",
-                    style: STextStyles.desktopH3(context),
+      return SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
                   ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                child: SingleChildScrollView(child: content),
+                  const DesktopDialogCloseButton(),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const .only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                    top: 16,
+                  ),
+                  child: SingleChildScrollView(child: content),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
