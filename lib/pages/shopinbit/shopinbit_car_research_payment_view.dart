@@ -1,28 +1,20 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
-import '../../route_generator.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/address_utils.dart';
-import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -32,7 +24,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../more_view/services_view.dart';
 import 'shopinbit_order_created.dart';
-import 'shopinbit_send_from_view.dart';
+import 'shopinbit_payment_shared.dart';
 import 'shopinbit_tickets_view.dart';
 
 enum _PaymentFlowState {
@@ -101,78 +93,24 @@ class _ShopInBitCarResearchPaymentViewState
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
 
-    final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+    final target = parseShopInBitPaymentTarget(
+      paymentUri: _currentAddress,
+      ticker: ticker,
+      coin: AppConfig.getCryptoCurrencyForTicker(ticker),
+    );
 
-    String address = "";
-    Amount? amount;
-    EthContract? tokenContract;
+    final navigated = tryNavigateToShopInBitWalletSend(
+      ref: ref,
+      context: context,
+      ticker: ticker,
+      address: target.address,
+      amount: target.amount,
+      model: widget.model,
+      // After the wallet send, pop back here so polling can continue.
+      routeOnSuccessName: ShopInBitCarResearchPaymentView.routeName,
+    );
 
-    if (_currentAddress.isNotEmpty) {
-      final parsed = AddressUtils.parsePaymentUri(_currentAddress);
-
-      if (parsed?.address != null && parsed!.address.isNotEmpty) {
-        address = parsed.address;
-      } else {
-        final raw = _currentAddress;
-        final colonIdx = raw.indexOf(':');
-        if (colonIdx != -1) {
-          final afterScheme = raw.substring(colonIdx + 1);
-          final qIdx = afterScheme.indexOf('?');
-          address = qIdx != -1 ? afterScheme.substring(0, qIdx) : afterScheme;
-        } else {
-          address = raw;
-        }
-      }
-
-      String? amountStr = parsed?.amount;
-      if (amountStr == null || amountStr.isEmpty) {
-        final uri = Uri.tryParse(_currentAddress);
-        if (uri != null) {
-          amountStr = uri.queryParameters['amount'];
-        }
-      }
-      // Car research flow has no concierge PaymentInfo.due fallback.
-
-      final int fractionDigits;
-      if (coin != null) {
-        fractionDigits = coin.fractionDigits;
-      } else if (ticker == "USDT") {
-        fractionDigits = 6;
-      } else {
-        fractionDigits = 8;
-      }
-
-      if (amountStr != null && amountStr.isNotEmpty) {
-        try {
-          amount = Amount.fromDecimal(
-            Decimal.parse(amountStr),
-            fractionDigits: fractionDigits,
-          );
-        } catch (_) {}
-      }
-    }
-
-    if (coin != null && address.isNotEmpty) {
-      _navigateToSendFrom(coin: coin, amount: amount, address: address);
-      return;
-    }
-
-    if (ticker == "USDT" && address.isNotEmpty) {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      tokenContract = ref.read(mainDBProvider).getEthContractSync(usdtAddress);
-      if (tokenContract != null) {
-        final ethCoin = AppConfig.getCryptoCurrencyForTicker("ETH");
-        if (ethCoin != null) {
-          _navigateToSendFrom(
-            coin: ethCoin,
-            amount: amount,
-            address: address,
-            tokenContract: tokenContract,
-          );
-          return;
-        }
-      }
-    }
+    if (navigated) return;
 
     // No compatible wallet coin found: surface an info flushbar and keep
     // the user on this screen so they can pay externally and then use the
@@ -186,46 +124,6 @@ class _ShopInBitCarResearchPaymentViewState
         context: context,
       ),
     );
-  }
-
-  void _navigateToSendFrom({
-    required CryptoCurrency coin,
-    required Amount? amount,
-    required String address,
-    EthContract? tokenContract,
-  }) {
-    if (Util.isDesktop) {
-      // Show send-from on top of the payment dialog, not instead of it.
-      unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitSendFromView(
-            coin: coin,
-            amount: amount,
-            address: address,
-            model: widget.model,
-            shouldPopRoot: true,
-            tokenContract: tokenContract,
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        RouteGenerator.getRoute<dynamic>(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => ShopInBitSendFromView(
-            coin: coin,
-            amount: amount,
-            address: address,
-            model: widget.model,
-            tokenContract: tokenContract,
-            // After wallet send, pop back to this view to continue polling.
-            routeOnSuccessName: ShopInBitCarResearchPaymentView.routeName,
-          ),
-          settings: const RouteSettings(name: ShopInBitSendFromView.routeName),
-        ),
-      );
-    }
   }
 
   Future<void> _checkForPayment() async {
@@ -731,26 +629,7 @@ class _ShopInBitCarResearchPaymentViewState
         ? _methods[_selectedMethod].toUpperCase()
         : "";
 
-    bool hasWallets = false;
-    if (ticker == "USDT") {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      hasWallets = ref
-          .watch(pWallets)
-          .wallets
-          .any(
-            (w) =>
-                w.info.coin is Ethereum &&
-                w.info.tokenContractAddresses.contains(usdtAddress),
-          );
-    } else {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      if (coin != null) {
-        hasWallets = ref
-            .watch(pWallets)
-            .wallets
-            .any((e) => e.info.coin == coin);
-      }
-    }
+    final hasWallets = hasShopInBitWalletForTicker(ref.watch(pWallets), ticker);
 
     final methodSelector = _methods.length <= 1
         ? Padding(
@@ -985,41 +864,9 @@ class _ShopInBitCarResearchPaymentViewState
       );
     }
 
-    return Background(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, dynamic result) {
-          if (!didPop) {
-            _popToTickets();
-          }
-        },
-        child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(onPressed: _popToTickets),
-            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
-          ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 32,
-                      ),
-                      child: IntrinsicHeight(child: content),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+    return ShopInBitPaymentMobileScaffold(
+      onBack: _popToTickets,
+      child: content,
     );
   }
 }

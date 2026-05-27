@@ -1,37 +1,30 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
-import '../../route_generator.dart';
 import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
-import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
-import 'shopinbit_send_from_view.dart';
+import 'shopinbit_payment_shared.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({super.key, required this.model});
@@ -255,79 +248,23 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
 
-    final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+    final target = parseShopInBitPaymentTarget(
+      paymentUri: _currentAddress,
+      ticker: ticker,
+      coin: AppConfig.getCryptoCurrencyForTicker(ticker),
+      amountFallback: _paymentInfo?.due,
+    );
 
-    String address = "";
-    Amount? amount;
-    EthContract? tokenContract;
-
-    if (_currentAddress.isNotEmpty) {
-      final parsed = AddressUtils.parsePaymentUri(_currentAddress);
-
-      if (parsed?.address != null && parsed!.address.isNotEmpty) {
-        address = parsed.address;
-      } else {
-        final raw = _currentAddress;
-        final colonIdx = raw.indexOf(':');
-        if (colonIdx != -1) {
-          final afterScheme = raw.substring(colonIdx + 1);
-          final qIdx = afterScheme.indexOf('?');
-          address = qIdx != -1 ? afterScheme.substring(0, qIdx) : afterScheme;
-        } else {
-          address = raw;
-        }
-      }
-
-      String? amountStr = parsed?.amount;
-      if (amountStr == null || amountStr.isEmpty) {
-        final uri = Uri.tryParse(_currentAddress);
-        if (uri != null) {
-          amountStr = uri.queryParameters['amount'];
-        }
-      }
-      if (amountStr == null || amountStr.isEmpty) {
-        amountStr = _paymentInfo?.due;
-      }
-
-      final int fractionDigits;
-      if (coin != null) {
-        fractionDigits = coin.fractionDigits;
-      } else if (ticker == "USDT") {
-        fractionDigits = 6;
-      } else {
-        fractionDigits = 8;
-      }
-
-      if (amountStr != null && amountStr.isNotEmpty) {
-        try {
-          amount = Amount.fromDecimal(
-            Decimal.parse(amountStr),
-            fractionDigits: fractionDigits,
-          );
-        } catch (_) {}
-      }
-    }
-
-    if (coin != null && address.isNotEmpty) {
-      _navigateToSendFrom(coin: coin, amount: amount, address: address);
+    if (tryNavigateToShopInBitWalletSend(
+      ref: ref,
+      context: context,
+      ticker: ticker,
+      address: target.address,
+      amount: target.amount,
+      model: widget.model,
+      popDesktopBeforeShow: true,
+    )) {
       return;
-    }
-
-    if (ticker == "USDT" && address.isNotEmpty) {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      tokenContract = ref.read(mainDBProvider).getEthContractSync(usdtAddress);
-      if (tokenContract != null) {
-        final ethCoin = AppConfig.getCryptoCurrencyForTicker("ETH");
-        if (ethCoin != null) {
-          _navigateToSendFrom(
-            coin: ethCoin,
-            amount: amount,
-            address: address,
-            tokenContract: tokenContract,
-          );
-          return;
-        }
-      }
     }
 
     widget.model.status = ShopInBitOrderStatus.paymentPending;
@@ -350,64 +287,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     } else {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
-  }
-
-  void _navigateToSendFrom({
-    required CryptoCurrency coin,
-    required Amount? amount,
-    required String address,
-    EthContract? tokenContract,
-  }) {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitSendFromView(
-            coin: coin,
-            amount: amount,
-            address: address,
-            model: widget.model,
-            shouldPopRoot: true,
-            tokenContract: tokenContract,
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        RouteGenerator.getRoute<dynamic>(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => ShopInBitSendFromView(
-            coin: coin,
-            amount: amount,
-            address: address,
-            model: widget.model,
-            tokenContract: tokenContract,
-          ),
-          settings: const RouteSettings(name: ShopInBitSendFromView.routeName),
-        ),
-      );
-    }
-  }
-
-  bool _hasWalletForTicker(String ticker) {
-    if (ticker == "USDT") {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      return ref
-          .read(pWallets)
-          .wallets
-          .any(
-            (w) =>
-                w.info.coin is Ethereum &&
-                w.info.tokenContractAddresses.contains(usdtAddress),
-          );
-    } else {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      if (coin != null) {
-        return ref.read(pWallets).wallets.any((e) => e.info.coin == coin);
-      }
-    }
-    return false;
   }
 
   String? _parseBip21Amount(String bip21Uri) {
@@ -491,12 +370,13 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
+    final wallets = ref.watch(pWallets);
     // Build coin rows from _methods/_addresses
     final coinRows = <Widget>[];
     for (int i = 0; i < _methods.length; i++) {
       final ticker = _methods[i].toUpperCase();
       final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      final hasWallet = _hasWalletForTicker(ticker);
+      final hasWallet = hasShopInBitWalletForTicker(wallets, ticker);
       final amountStr = _addresses[i].isNotEmpty
           ? _parseBip21Amount(_addresses[i])
           : null;
@@ -759,46 +639,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       );
     }
 
-    return Background(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, dynamic result) {
-          if (!didPop) {
-            _popToTickets();
-          }
-        },
-        child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(onPressed: _popToTickets),
-            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
-          ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 32,
-                          ),
-                          child: IntrinsicHeight(child: content),
-                        ),
-                      ),
-                    ),
-                    if (_loading) const LoadingIndicator(width: 24, height: 24),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+    return ShopInBitPaymentMobileScaffold(
+      onBack: _popToTickets,
+      showLoading: _loading,
+      child: content,
     );
   }
 }

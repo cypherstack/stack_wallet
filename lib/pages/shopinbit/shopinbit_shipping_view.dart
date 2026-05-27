@@ -63,6 +63,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   List<Map<String, dynamic>> _countries = [];
   String? _selectedCountryIso;
   bool _loadingCountries = false;
+  // True when we arrived with a pre-set delivery country (the normal new-order
+  // path). Restored-from-API orders land here with no country, so we unlock
+  // the dropdown only in that case.
+  late final bool _countryLocked;
 
   bool _submitting = false;
 
@@ -109,6 +113,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     _selectedCountryIso = widget.model.deliveryCountry.isNotEmpty
         ? widget.model.deliveryCountry
         : null;
+    _countryLocked = _selectedCountryIso != null;
 
     for (final node in [
       _nameFocusNode,
@@ -341,9 +346,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                   _countrySearchController.clear();
                 }
               },
-              onChanged: null,
+              onChanged: (_countryLocked || _loadingCountries)
+                  ? null
+                  : (value) => setState(() => _selectedCountryIso = value),
               hint: Text(
-                "Country",
+                _loadingCountries ? "Loading countries..." : "Country",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)

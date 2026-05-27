@@ -1,0 +1,271 @@
+import 'dart:async';
+
+import 'package:decimal/decimal.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../app_config.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../providers/providers.dart';
+import '../../route_generator.dart';
+import '../../services/wallets.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/default_eth_tokens.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/loading_indicator.dart';
+import 'shopinbit_send_from_view.dart';
+
+final String kShopInBitUsdtContractAddress = DefaultTokens.list
+    .firstWhere((t) => t.symbol == "USDT")
+    .address;
+
+// Address + amount pulled out of one of the API's payment_links entries.
+class ShopInBitPaymentTarget {
+  const ShopInBitPaymentTarget({required this.address, required this.amount});
+
+  final String address;
+  final Amount? amount;
+}
+
+// Parses a BIP21-style payment URI (or a bare address) into a destination
+// address and optional Amount. `amountFallback` covers the concierge case
+// where the URI itself has no amount but the API response carries one
+// (PaymentInfo.due).
+ShopInBitPaymentTarget parseShopInBitPaymentTarget({
+  required String paymentUri,
+  required String ticker,
+  CryptoCurrency? coin,
+  String? amountFallback,
+}) {
+  String address = "";
+  final parsed = AddressUtils.parsePaymentUri(paymentUri);
+
+  if (parsed?.address != null && parsed!.address.isNotEmpty) {
+    address = parsed.address;
+  } else {
+    final colonIdx = paymentUri.indexOf(':');
+    if (colonIdx != -1) {
+      final afterScheme = paymentUri.substring(colonIdx + 1);
+      final qIdx = afterScheme.indexOf('?');
+      address = qIdx != -1 ? afterScheme.substring(0, qIdx) : afterScheme;
+    } else {
+      address = paymentUri;
+    }
+  }
+
+  String? amountStr = parsed?.amount;
+  if (amountStr == null || amountStr.isEmpty) {
+    final uri = Uri.tryParse(paymentUri);
+    if (uri != null) {
+      amountStr = uri.queryParameters['amount'];
+    }
+  }
+  if (amountStr == null || amountStr.isEmpty) {
+    amountStr = amountFallback;
+  }
+
+  final int fractionDigits;
+  if (coin != null) {
+    fractionDigits = coin.fractionDigits;
+  } else if (ticker == "USDT") {
+    fractionDigits = 6;
+  } else {
+    fractionDigits = 8;
+  }
+
+  Amount? amount;
+  if (amountStr != null && amountStr.isNotEmpty) {
+    try {
+      amount = Amount.fromDecimal(
+        Decimal.parse(amountStr),
+        fractionDigits: fractionDigits,
+      );
+    } catch (_) {}
+  }
+
+  return ShopInBitPaymentTarget(address: address, amount: amount);
+}
+
+// True if any wallet in [wallets] can send the given upper-cased [ticker].
+// USDT is special-cased to look at Ethereum wallets' token contracts.
+bool hasShopInBitWalletForTicker(Wallets wallets, String ticker) {
+  if (ticker == "USDT") {
+    return wallets.wallets.any(
+      (w) =>
+          w.info.coin is Ethereum &&
+          w.info.tokenContractAddresses.contains(kShopInBitUsdtContractAddress),
+    );
+  }
+  final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+  if (coin == null) return false;
+  return wallets.wallets.any((e) => e.info.coin == coin);
+}
+
+void _pushShopInBitSendFrom({
+  required BuildContext context,
+  required CryptoCurrency coin,
+  required Amount? amount,
+  required String address,
+  required ShopInBitOrderModel model,
+  EthContract? tokenContract,
+  bool popDesktopBeforeShow = false,
+  String? routeOnSuccessName,
+}) {
+  if (Util.isDesktop) {
+    if (popDesktopBeforeShow) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (_) => ShopInBitSendFromView(
+          coin: coin,
+          amount: amount,
+          address: address,
+          model: model,
+          shouldPopRoot: true,
+          tokenContract: tokenContract,
+        ),
+      ),
+    );
+  } else {
+    Navigator.of(context).push(
+      RouteGenerator.getRoute<dynamic>(
+        shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+        builder: (_) => ShopInBitSendFromView(
+          coin: coin,
+          amount: amount,
+          address: address,
+          model: model,
+          tokenContract: tokenContract,
+          routeOnSuccessName: routeOnSuccessName,
+        ),
+        settings: const RouteSettings(name: ShopInBitSendFromView.routeName),
+      ),
+    );
+  }
+}
+
+// Tries to launch the in-wallet send flow for [ticker]/[address]. Returns
+// true when navigation happened. Returns false when no compatible wallet
+// or token contract was found, leaving the caller to handle the
+// "pay externally" path (flushbar, status change, etc).
+bool tryNavigateToShopInBitWalletSend({
+  required WidgetRef ref,
+  required BuildContext context,
+  required String ticker,
+  required String address,
+  required Amount? amount,
+  required ShopInBitOrderModel model,
+  bool popDesktopBeforeShow = false,
+  String? routeOnSuccessName,
+}) {
+  if (address.isEmpty) return false;
+
+  final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+  if (coin != null) {
+    _pushShopInBitSendFrom(
+      context: context,
+      coin: coin,
+      amount: amount,
+      address: address,
+      model: model,
+      popDesktopBeforeShow: popDesktopBeforeShow,
+      routeOnSuccessName: routeOnSuccessName,
+    );
+    return true;
+  }
+
+  if (ticker == "USDT") {
+    final tokenContract = ref
+        .read(mainDBProvider)
+        .getEthContractSync(kShopInBitUsdtContractAddress);
+    if (tokenContract != null) {
+      final ethCoin = AppConfig.getCryptoCurrencyForTicker("ETH");
+      if (ethCoin != null) {
+        _pushShopInBitSendFrom(
+          context: context,
+          coin: ethCoin,
+          amount: amount,
+          address: address,
+          model: model,
+          tokenContract: tokenContract,
+          popDesktopBeforeShow: popDesktopBeforeShow,
+          routeOnSuccessName: routeOnSuccessName,
+        );
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// Shared mobile chrome for the two ShopInBit payment views: Background +
+// PopScope (back goes through [onBack]) + AppBar + scrollable, intrinsic
+// height body. Set [showLoading] to overlay a spinner.
+class ShopInBitPaymentMobileScaffold extends StatelessWidget {
+  const ShopInBitPaymentMobileScaffold({
+    super.key,
+    required this.onBack,
+    required this.child,
+    this.showLoading = false,
+  });
+
+  final VoidCallback onBack;
+  final Widget child;
+  final bool showLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Background(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (!didPop) {
+            onBack();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(onPressed: onBack),
+            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
+          ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 32,
+                          ),
+                          child: IntrinsicHeight(child: child),
+                        ),
+                      ),
+                    ),
+                    if (showLoading)
+                      const LoadingIndicator(width: 24, height: 24),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
