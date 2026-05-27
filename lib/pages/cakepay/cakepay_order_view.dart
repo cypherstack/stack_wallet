@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -558,9 +559,10 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 20,
+                  SvgPicture.asset(
+                    Assets.svg.checkCircle,
+                    width: 20,
+                    height: 20,
                     color: Theme.of(
                       context,
                     ).extension<StackColors>()!.accentColorGreen,
@@ -622,9 +624,10 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         RoundedWhiteContainer(
           child: Row(
             children: [
-              Icon(
-                Icons.cancel,
-                size: 20,
+              SvgPicture.asset(
+                Assets.svg.circleX,
+                width: 20,
+                height: 20,
                 color: Theme.of(
                   context,
                 ).extension<StackColors>()!.textSubtitle1,

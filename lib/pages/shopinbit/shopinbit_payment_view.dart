@@ -22,6 +22,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_payment_shared.dart';
@@ -342,9 +343,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                      Icons.copy,
-                      size: 14,
+                    CopyIcon(
+                      width: 14,
+                      height: 14,
                       color: Theme.of(
                         context,
                       ).extension<StackColors>()!.accentColorBlue,
@@ -437,9 +438,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                   if (hasWallet)
                     Text("PAY NOW", style: STextStyles.link2(context))
                   else
-                    Icon(
-                      Icons.info_outline,
-                      size: 18,
+                    SvgPicture.asset(
+                      Assets.svg.circleInfo,
+                      width: 18,
+                      height: 18,
                       color: Theme.of(
                         context,
                       ).extension<StackColors>()!.textSubtitle2,

@@ -11,6 +11,7 @@ import '../../utilities/text_styles.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import 'shopinbit_step_2.dart';
@@ -141,7 +142,10 @@ class _ShopInBitSetupViewState extends ConsumerState<ShopInBitSetupView> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.copy, size: 20),
+                                      icon: const CopyIcon(
+                                        width: 20,
+                                        height: 20,
+                                      ),
                                       onPressed: () {
                                         Clipboard.setData(
                                           ClipboardData(text: key),

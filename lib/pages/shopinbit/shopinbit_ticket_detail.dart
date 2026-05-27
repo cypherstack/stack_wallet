@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
@@ -12,6 +13,7 @@ import '../../providers/global/shopin_bit_orders_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/shopinbit_orders_service.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -509,8 +511,10 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
           if (!Util.isDesktop)
             IconButton(
               onPressed: _sendMessage,
-              icon: Icon(
-                Icons.send,
+              icon: SvgPicture.asset(
+                Assets.svg.send,
+                width: 24,
+                height: 24,
                 color: Theme.of(
                   context,
                 ).extension<StackColors>()!.accentColorBlue,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../providers/global/cakepay_orders_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -135,8 +137,10 @@ class _CakePayOrdersViewState extends ConsumerState<CakePayOrdersView> {
                   ),
                 ),
                 SizedBox(width: isDesktop ? 16 : 8),
-                Icon(
-                  Icons.chevron_right,
+                SvgPicture.asset(
+                  Assets.svg.chevronRight,
+                  width: 24,
+                  height: 24,
                   color: Theme.of(
                     context,
                   ).extension<StackColors>()!.textSubtitle1,
