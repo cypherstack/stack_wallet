@@ -25,6 +25,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import '../more_view/services_view.dart';
 import 'shopinbit_car_research_payment_view.dart';
@@ -259,15 +260,17 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
           error: resp.exception,
           stackTrace: StackTrace.current,
         );
-        // TODO: show error dialogs so users can easily see what happened and share with support without digging through logs
 
         if (mounted) {
           setState(() => _submitting = false);
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message: resp.exception?.message ?? "Failed to create invoice",
-              context: context,
+          await showDialog<void>(
+            context: context,
+            useRootNavigator: Util.isDesktop,
+            builder: (context) => StackOkDialog(
+              title: "Failed to create invoice",
+              maxWidth: Util.isDesktop ? 500 : null,
+              message: resp.exception?.message,
+              desktopPopRootNavigator: Util.isDesktop,
             ),
           );
         }
@@ -302,14 +305,16 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       );
     } catch (e, s) {
       Logging.instance.e("Create invoice failed", error: e, stackTrace: s);
-      // TODO: show error dialogs so users can easily see what happened and share with support without digging through logs
       if (mounted) {
         setState(() => _submitting = false);
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to create invoice",
+            maxWidth: Util.isDesktop ? 500 : null,
             message: e.toString(),
-            context: context,
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
