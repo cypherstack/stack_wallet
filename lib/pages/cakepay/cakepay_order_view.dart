@@ -28,6 +28,7 @@ import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import '../wallet_view/transaction_views/transaction_details_view.dart';
 import 'cakepay_send_from_view.dart';
 
@@ -174,19 +175,31 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     final coin = _resolveCoin(option.ticker);
 
     if (option.address.trim().isEmpty) {
-      showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "No payment address available for $label",
-        context: context,
+      unawaited(
+        showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "No payment address available for $label",
+            maxWidth: Util.isDesktop ? 500 : null,
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        ),
       );
       return;
     }
 
     if (coin == null) {
-      showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "No wallet support for $label",
-        context: context,
+      unawaited(
+        showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "No wallet support for $label",
+            maxWidth: Util.isDesktop ? 500 : null,
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        ),
       );
       return;
     }
