@@ -396,11 +396,14 @@ class _ShopInBitCarResearchPaymentViewState
       } catch (e) {
         if (mounted) {
           setState(() => _flowState = _PaymentFlowState.error);
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
+          await showDialog<void>(
+            context: context,
+            useRootNavigator: Util.isDesktop,
+            builder: (context) => StackOkDialog(
+              title: "Failed to submit car research request",
+              maxWidth: Util.isDesktop ? 500 : null,
               message: e.toString(),
-              context: context,
+              desktopPopRootNavigator: Util.isDesktop,
             ),
           );
         }
@@ -419,11 +422,14 @@ class _ShopInBitCarResearchPaymentViewState
       if (logResp.hasError || logResp.value == null) {
         if (mounted) {
           setState(() => _flowState = _PaymentFlowState.error);
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message: logResp.exception?.message ?? "Failed to log payment",
-              context: context,
+          await showDialog<void>(
+            context: context,
+            useRootNavigator: Util.isDesktop,
+            builder: (context) => StackOkDialog(
+              title: "Failed to log car research payment",
+              maxWidth: Util.isDesktop ? 500 : null,
+              message: logResp.exception?.message,
+              desktopPopRootNavigator: Util.isDesktop,
             ),
           );
         }
@@ -520,11 +526,14 @@ class _ShopInBitCarResearchPaymentViewState
     } catch (e) {
       if (mounted) {
         setState(() => _flowState = _PaymentFlowState.error);
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to process car research payment",
+            maxWidth: Util.isDesktop ? 500 : null,
             message: e.toString(),
-            context: context,
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
