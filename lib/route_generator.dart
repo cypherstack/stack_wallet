@@ -1226,10 +1226,17 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ShopInBitShippingView.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args
+            is ({
+              ShopInBitOrderModel model,
+              List<Map<String, dynamic>> countries,
+            })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ShopInBitShippingView(model: args),
+            builder: (_) => ShopInBitShippingView(
+              model: args.model,
+              countries: args.countries,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

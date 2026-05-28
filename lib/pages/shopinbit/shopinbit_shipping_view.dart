@@ -16,9 +16,9 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/detail_item.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/detail_item.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
@@ -26,11 +26,16 @@ import 'shopinbit_payment_shared.dart';
 import 'shopinbit_payment_view.dart';
 
 class ShopInBitShippingView extends ConsumerStatefulWidget {
-  const ShopInBitShippingView({super.key, required this.model});
+  const ShopInBitShippingView({
+    super.key,
+    required this.model,
+    required this.countries,
+  });
 
   static const String routeName = "/shopInBitShipping";
 
   final ShopInBitOrderModel model;
+  final List<Map<String, dynamic>> countries;
 
   @override
   ConsumerState<ShopInBitShippingView> createState() =>
@@ -64,13 +69,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   String? _billingSelectedCountryIso;
   bool _differentBilling = false;
 
-  List<Map<String, dynamic>> _countries = [];
-  String? _selectedCountryIso;
-  bool _loadingCountries = false;
-  // True when we arrived with a pre-set delivery country (the normal new-order
-  // path). Restored-from-API orders land here with no country, so we unlock
-  // the dropdown only in that case.
-  late final bool _countryLocked;
+  late final String _selectedCountryIso;
+  late final String _deliveryCountryLabel;
 
   bool _submitting = false;
 
@@ -80,8 +80,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         _nameController.text.trim().isNotEmpty &&
         _streetController.text.trim().isNotEmpty &&
         _cityController.text.trim().isNotEmpty &&
-        _postalCodeController.text.trim().isNotEmpty &&
-        _selectedCountryIso != null;
+        _postalCodeController.text.trim().isNotEmpty;
     if (!shippingValid) return false;
     if (_differentBilling) {
       return _billingNameController.text.trim().isNotEmpty &&
@@ -114,10 +113,16 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     _billingCityFocusNode = FocusNode();
     _billingPostalCodeFocusNode = FocusNode();
 
-    _selectedCountryIso = widget.model.deliveryCountry.isNotEmpty
-        ? widget.model.deliveryCountry
-        : null;
-    _countryLocked = _selectedCountryIso != null;
+    _selectedCountryIso = widget.model.deliveryCountry;
+
+    // firstWhere should never fail here as the caller of this widget must
+    // check that countries contains the expected value. Failure here should be
+    // considered unrecoverable/fatal as it indicates a bug elsewhere
+    _deliveryCountryLabel =
+        widget.countries.firstWhere(
+              (e) => e["iso"] == _selectedCountryIso,
+            )["label"]
+            as String;
 
     for (final node in [
       _nameFocusNode,
@@ -131,8 +136,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     ]) {
       node.addListener(() => setState(() {}));
     }
-
-    _fetchCountries();
   }
 
   @override
@@ -158,29 +161,12 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     super.dispose();
   }
 
-  Future<void> _fetchCountries() async {
-    setState(() => _loadingCountries = true);
-    try {
-      final resp = await ref.read(pShopinBitService).client.getCountries();
-      if (resp.hasError || resp.value == null) return;
-      _countries = resp.value!;
-      if (_selectedCountryIso != null &&
-          !_countries.any((c) => c['iso'] == _selectedCountryIso)) {
-        _selectedCountryIso = null;
-      }
-    } catch (_) {
-      // leave list empty; user will see no items
-    } finally {
-      if (mounted) setState(() => _loadingCountries = false);
-    }
-  }
-
   Future<void> _continue() async {
     final name = _nameController.text.trim();
     final street = _streetController.text.trim();
     final city = _cityController.text.trim();
     final postalCode = _postalCodeController.text.trim();
-    final country = _selectedCountryIso!;
+    final country = _selectedCountryIso;
 
     widget.model.setShippingAddress(
       name: name,
@@ -189,11 +175,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
       postalCode: postalCode,
       country: country,
     );
-    // Keep deliveryCountry authoritative and in sync with the shipping
-    // country. No-op when it was already set (the normal flow); fills the gap
-    // for restored orders, where deliveryCountry came back empty from the API
-    // and the user picked one here.
-    widget.model.deliveryCountry = country;
 
     // The payment view needs a live invoice, so load it here and only navigate
     // once we have usable payment links.
@@ -294,139 +275,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     );
   }
 
-  // Read-only display of the locked delivery country: it was fixed when the
-  // offer was priced and can't change here.
-  Widget _buildLockedCountryField() {
-    final label =
-        _countries
-            .where((c) => c['iso'] == _selectedCountryIso)
-            .map((c) => c['label'] as String)
-            .firstOrNull ??
-        (_selectedCountryIso ?? "");
-
-    return DetailItem(
-      title: "Country",
-      detail: label,
-      disableSelectableText: true,
-    );
-  }
-
-  // Editable, searchable country dropdown. Only shown when the delivery country
-  // wasn't pre-set (restored-from-API orders).
-  Widget _buildCountryDropdown(
-    BuildContext context, {
-    required bool isDesktop,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton2<String>(
-          value: _selectedCountryIso,
-          items: _countries
-              .map(
-                (c) => DropdownMenuItem<String>(
-                  value: c['iso'] as String,
-                  child: Text(
-                    c['label'] as String,
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
-                          )
-                        : STextStyles.w500_14(context),
-                  ),
-                ),
-              )
-              .toList(),
-          onMenuStateChange: (isOpen) {
-            if (!isOpen) {
-              _countrySearchController.clear();
-            }
-          },
-          onChanged: _loadingCountries
-              ? null
-              : (value) => setState(() => _selectedCountryIso = value),
-          hint: Text(
-            _loadingCountries ? "Loading countries..." : "Country",
-            style: isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
-                  )
-                : STextStyles.fieldLabel(context),
-          ),
-          isExpanded: true,
-          buttonStyleData: ButtonStyleData(
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          iconStyleData: IconStyleData(
-            icon: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-              ),
-            ),
-          ),
-          dropdownStyleData: DropdownStyleData(
-            offset: const Offset(0, 0),
-            elevation: 0,
-            maxHeight: 300,
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          dropdownSearchData: DropdownSearchData<String>(
-            searchController: _countrySearchController,
-            searchInnerWidgetHeight: 48,
-            searchInnerWidget: TextFormField(
-              controller: _countrySearchController,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                hintText: "Search...",
-                hintStyle: STextStyles.fieldLabel(context),
-                border: InputBorder.none,
-              ),
-            ),
-            searchMatchFn: (item, searchValue) {
-              final label = _countries
-                  .where((c) => c['iso'] == item.value)
-                  .map((c) => c['label'] as String)
-                  .firstOrNull;
-              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
-                  false;
-            },
-          ),
-          menuItemStyleData: const MenuItemStyleData(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -494,25 +342,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           ],
         ),
         spacing,
-        // The delivery country was chosen when the offer was requested and the
-        // price (incl. shipping + VAT) was calculated from it, so it can't be
-        // changed here. Restored-from-API orders are the exception: they come
-        // back with no country, so we let the user supply one (and warn that it
-        // may not match what the offer was priced for).
-        if (_countryLocked)
-          _buildLockedCountryField()
-        else ...[
-          _buildCountryDropdown(context, isDesktop: isDesktop),
-          SizedBox(height: isDesktop ? 8 : 6),
-          Text(
-            "This order was started on another device. Choosing a country "
-            "here may not match the delivery destination the offer was "
-            "priced for.",
-            style: isDesktop
-                ? STextStyles.desktopTextSmall(context)
-                : STextStyles.itemSubtitle(context),
-          ),
-        ],
+        DetailItem(
+          title: "Country",
+          detail: _deliveryCountryLabel,
+          disableSelectableText: true,
+        ),
         spacing,
         // Billing address toggle.
         GestureDetector(
@@ -627,7 +461,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
                 value: _billingSelectedCountryIso,
-                items: _countries
+                items: widget.countries
                     .map(
                       (c) => DropdownMenuItem<String>(
                         value: c['iso'] as String,
@@ -651,15 +485,13 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                     _billingCountrySearchController.clear();
                   }
                 },
-                onChanged: _loadingCountries
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _billingSelectedCountryIso = value;
-                        });
-                      },
+                onChanged: (value) {
+                  setState(() {
+                    _billingSelectedCountryIso = value;
+                  });
+                },
                 hint: Text(
-                  _loadingCountries ? "Loading countries..." : "Country",
+                  "Country",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraSmall(context).copyWith(
                           color: Theme.of(context)
@@ -722,7 +554,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                     ),
                   ),
                   searchMatchFn: (item, searchValue) {
-                    final label = _countries
+                    final label = widget.countries
                         .where((c) => c['iso'] == item.value)
                         .map((c) => c['label'] as String)
                         .firstOrNull;

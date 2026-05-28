@@ -183,9 +183,16 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         );
 
       case ShopInBitShippingView.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args
+            is ({
+              ShopInBitOrderModel model,
+              List<Map<String, dynamic>> countries,
+            })) {
           return getRoute(
-            builder: (_) => ShopInBitShippingView(model: args),
+            builder: (_) => ShopInBitShippingView(
+              model: args.model,
+              countries: args.countries,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

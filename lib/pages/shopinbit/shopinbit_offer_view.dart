@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -14,6 +15,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import 'shopinbit_shipping_view.dart';
 
 class ShopInBitOfferView extends ConsumerStatefulWidget {
@@ -145,13 +147,59 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               label: "Accept offer",
               buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
               enabled: !_loading,
-              onPressed: () {
+              onPressed: () async {
                 // TODO verify this is ok to stay set to accepted if the next route pops back and then decline is tapped
                 model.status = ShopInBitOrderStatus.accepted;
 
-                Navigator.of(
-                  context,
-                ).pushNamed(ShopInBitShippingView.routeName, arguments: model);
+                final shopinBitApi = ref.read(pShopinBitService).client;
+                final response = await showLoading(
+                  context: context,
+                  rootNavigator: true,
+                  message: "Updating available countries",
+                  whileFuture: shopinBitApi.getCountries(),
+                  delay: const Duration(
+                    seconds: 1,
+                  ), // at least 1 sec to prevent ui flashing
+                );
+
+                if (!context.mounted) return;
+
+                String? errorMessage;
+
+                if (response?.value == null) {
+                  errorMessage =
+                      response?.exception?.toString() ??
+                      "Failed to fetch countries data";
+                } else if (response!.value!
+                        .where((c) => c['iso'] == model.deliveryCountry)
+                        .length !=
+                    1) {
+                  errorMessage =
+                      "Delivery country code \""
+                      "${model.deliveryCountry}"
+                      "\" is invalid";
+                }
+
+                if (errorMessage != null) {
+                  await showDialog<dynamic>(
+                    context: context,
+                    useRootNavigator: Util.isDesktop,
+                    builder: (context) => StackOkDialog(
+                      title: "ShopinBit API error",
+                      maxWidth: Util.isDesktop ? 500 : null,
+                      message: errorMessage,
+                      desktopPopRootNavigator: Util.isDesktop,
+                    ),
+                  );
+                  return;
+                }
+
+                if (context.mounted) {
+                  await Navigator.of(context).pushNamed(
+                    ShopInBitShippingView.routeName,
+                    arguments: (model: model, countries: response!.value!),
+                  );
+                }
               },
             ),
             SecondaryButton(
