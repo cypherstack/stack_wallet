@@ -27,14 +27,11 @@ if [[ ! -f "${PUBSPEC_FILE}" ]]; then
 fi
 
 # String replacements.
-if [[ "$(uname)" == 'Darwin' ]]; then
-  # macos specific sed
-  sed -i '' "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-else
-  sed -i "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-fi
+sed -i.bak \
+  -e "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" \
+  -e "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" \
+  "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
 
 # Ensure app assets are linked for this flavor/platform.
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${NEW_BASIC_NAME}" "$1"
@@ -81,6 +78,8 @@ const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
   AppFeature.tor,
+  AppFeature.shopinBit,
+  AppFeature.cakePay,
   AppFeature.swap
 };
 

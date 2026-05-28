@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -x -e
 
 # Function to display usage.
@@ -33,11 +34,10 @@ if [ ! -f "$PUBSPEC_FILE" ]; then
     exit 1
 fi
 
-# ==========================================
-# FIX: Cross-Platform sed (macOS, Linux, Nix)
-# ==========================================
-sed -i.bak "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
-sed -i.bak "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
+sed -i.bak \
+  -e "s/PLACEHOLDER_V/$VERSION/g" \
+  -e "s/PLACEHOLDER_B/$BUILD_NUMBER/g" \
+  "${PUBSPEC_FILE}"
 rm -f "${PUBSPEC_FILE}.bak"
 
 echo "Updated $PUBSPEC_FILE with version: $VERSION and build number: $BUILD_NUMBER"

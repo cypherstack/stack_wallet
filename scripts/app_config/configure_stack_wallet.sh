@@ -20,11 +20,12 @@ export NEW_BASIC_NAME="stack_wallet"
 NEW_PUBSPEC_NAME="stackwallet"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
-if [[ ! -f "${PUBSPEC_FILE}" ]]; then
-  echo "Error: pubspec.yaml not found at ${PUBSPEC_FILE}" >&2
-  echo "Run from repo root and restore it with: git checkout -- pubspec.yaml" >&2
-  exit 1
-fi
+# String replacements.
+sed -i.bak \
+  -e "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" \
+  -e "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" \
+  "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
 
 # ==========================================
 # FIX: Cross-Platform sed (macOS, Linux, Nix)
@@ -106,6 +107,8 @@ const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
   AppFeature.tor,
+  AppFeature.shopinBit,
+  AppFeature.cakePay,
   AppFeature.swap
 };
 
