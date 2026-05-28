@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
