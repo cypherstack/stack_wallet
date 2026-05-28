@@ -566,11 +566,14 @@ class _ShopInBitCarResearchPaymentViewState
       if (reqResp.hasError || reqResp.value == null) {
         if (mounted) {
           setState(() => _flowState = _PaymentFlowState.error);
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message: reqResp.exception?.message ?? "Retry failed",
-              context: context,
+          await showDialog<void>(
+            context: context,
+            useRootNavigator: Util.isDesktop,
+            builder: (context) => StackOkDialog(
+              title: "Retry failed",
+              maxWidth: Util.isDesktop ? 500 : null,
+              message: reqResp.exception?.message,
+              desktopPopRootNavigator: Util.isDesktop,
             ),
           );
         }
@@ -608,11 +611,14 @@ class _ShopInBitCarResearchPaymentViewState
     } catch (e) {
       if (mounted) {
         setState(() => _flowState = _PaymentFlowState.error);
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Retry failed",
+            maxWidth: Util.isDesktop ? 500 : null,
             message: e.toString(),
-            context: context,
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
