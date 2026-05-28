@@ -1259,12 +1259,12 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ShopInBitPaymentView.routeName:
-        if (args is (ShopInBitOrderModel, PaymentInfo?)) {
+        if (args is (ShopInBitOrderModel, PaymentInfo)) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ShopInBitPaymentView(
               model: args.$1,
-              initialPaymentInfo: args.$2,
+              paymentInfo: args.$2,
             ),
             settings: RouteSettings(name: settings.name),
           );

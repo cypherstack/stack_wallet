@@ -20,6 +20,7 @@ import '../../widgets/detail_item.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
+import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_payment_view.dart';
@@ -194,74 +195,101 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     // and the user picked one here.
     widget.model.deliveryCountry = country;
 
-    // Pre-load the payment info before pushing the payment view so it renders
-    // populated immediately. The Continue button's spinner (_submitting)
-    // already covers this wait.
+    // The payment view needs a live invoice, so load it here and only navigate
+    // once we have usable payment links.
+    if (widget.model.apiTicketId == 0) {
+      // No ticket, nothing to invoice.
+      await _showPaymentLoadError(
+        "This request isn't ready for payment yet. Please try again.",
+      );
+      return;
+    }
+
     PaymentInfo? paymentInfo;
-    if (widget.model.apiTicketId != 0) {
-      setState(() => _submitting = true);
-      try {
-        // Split name into first/last
-        final parts = name.split(' ');
-        final firstName = parts.first;
-        final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    setState(() => _submitting = true);
+    try {
+      // Split name into first/last
+      final parts = name.split(' ');
+      final firstName = parts.first;
+      final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
 
-        Address? billingAddress;
-        if (_differentBilling) {
-          final billingName = _billingNameController.text.trim();
-          final billingParts = billingName.split(' ');
-          final billingFirst = billingParts.first;
-          final billingLast = billingParts.length > 1
-              ? billingParts.sublist(1).join(' ')
-              : '';
-          billingAddress = Address(
-            firstName: billingFirst,
-            lastName: billingLast,
-            street: _billingStreetController.text.trim(),
-            zip: _billingPostalCodeController.text.trim(),
-            city: _billingCityController.text.trim(),
-            country: _billingSelectedCountryIso!,
-          );
-        }
-
-        final resp = await ref
-            .read(pShopinBitService)
-            .client
-            .submitAddress(
-              widget.model.apiTicketId,
-              shipping: Address(
-                firstName: firstName,
-                lastName: lastName,
-                street: street,
-                zip: postalCode,
-                city: city,
-                country: country,
-              ),
-              billing: billingAddress,
-            );
-
-        if (resp.hasError) {
-          // Sandbox may fail here; continue anyway.
-          debugPrint("submitAddress failed: ${resp.exception?.message}");
-        }
-
-        paymentInfo = await fetchShopInBitPaymentInfo(
-          ref,
-          widget.model.apiTicketId,
+      Address? billingAddress;
+      if (_differentBilling) {
+        final billingName = _billingNameController.text.trim();
+        final billingParts = billingName.split(' ');
+        final billingFirst = billingParts.first;
+        final billingLast = billingParts.length > 1
+            ? billingParts.sublist(1).join(' ')
+            : '';
+        billingAddress = Address(
+          firstName: billingFirst,
+          lastName: billingLast,
+          street: _billingStreetController.text.trim(),
+          zip: _billingPostalCodeController.text.trim(),
+          city: _billingCityController.text.trim(),
+          country: _billingSelectedCountryIso!,
         );
-      } catch (e) {
-        debugPrint("submitAddress threw: $e");
-      } finally {
-        if (mounted) setState(() => _submitting = false);
       }
+
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .submitAddress(
+            widget.model.apiTicketId,
+            shipping: Address(
+              firstName: firstName,
+              lastName: lastName,
+              street: street,
+              zip: postalCode,
+              city: city,
+              country: country,
+            ),
+            billing: billingAddress,
+          );
+
+      if (resp.hasError) {
+        // Sandbox may fail here; continue anyway.
+        debugPrint("submitAddress failed: ${resp.exception?.message}");
+      }
+
+      paymentInfo = await fetchShopInBitPaymentInfo(
+        ref,
+        widget.model.apiTicketId,
+      );
+    } catch (e) {
+      debugPrint("submitAddress threw: $e");
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
 
     if (!mounted) return;
+
+    if (paymentInfo == null || paymentInfo.paymentLinks.isEmpty) {
+      // No live invoice; don't open a payment view with empty addresses.
+      await _showPaymentLoadError(
+        "We couldn't load the payment details for this order. "
+        "Please try again in a moment.",
+      );
+      return;
+    }
 
     unawaited(
       Navigator.of(context).pushNamed(
         ShopInBitPaymentView.routeName,
         arguments: (widget.model, paymentInfo),
+      ),
+    );
+  }
+
+  Future<void> _showPaymentLoadError(String message) async {
+    await showDialog<void>(
+      context: context,
+      useRootNavigator: Util.isDesktop,
+      builder: (context) => StackOkDialog(
+        title: "Couldn't load payment details",
+        maxWidth: Util.isDesktop ? 500 : null,
+        message: message,
+        desktopPopRootNavigator: Util.isDesktop,
       ),
     );
   }

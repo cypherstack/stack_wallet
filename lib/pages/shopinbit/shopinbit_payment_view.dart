@@ -32,16 +32,15 @@ class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({
     super.key,
     required this.model,
-    this.initialPaymentInfo,
+    required this.paymentInfo,
   });
 
   static const String routeName = "/shopInBitPayment";
 
   final ShopInBitOrderModel model;
 
-  // Pre-loaded by the caller (see fetchShopInBitPaymentInfo) so the view can
-  // render populated immediately instead of fetching after it's pushed.
-  final PaymentInfo? initialPaymentInfo;
+  // Caller loads this before pushing, so we always open with usable addresses.
+  final PaymentInfo paymentInfo;
 
   @override
   ConsumerState<ShopInBitPaymentView> createState() =>
@@ -80,27 +79,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialPaymentInfo != null) {
-      _applyPaymentInfo(widget.initialPaymentInfo!);
-    }
+    _applyPaymentInfo(widget.paymentInfo);
     if (widget.model.apiTicketId != 0) {
-      // If the pre-load didn't hand us usable payment links, recover them:
-      // GET, then PUT to generate one.
-      if (_addresses.every((a) => a.isEmpty)) {
-        unawaited(_recoverPaymentInfo());
-      } else {
-        _startPolling();
-      }
+      _startPolling();
     }
-  }
-
-  Future<void> _recoverPaymentInfo() async {
-    final info = await fetchShopInBitPaymentInfo(ref, widget.model.apiTicketId);
-    if (!mounted) return;
-    if (info != null) {
-      setState(() => _applyPaymentInfo(info));
-    }
-    _startPolling();
   }
 
   @override
@@ -289,6 +271,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
 
   void _onOwnedCoinTap(int methodIndex) {
     if (!_payNowEnabled) return;
+    if (_addresses[methodIndex].isEmpty) return;
     _selectedMethod = methodIndex;
     unawaited(_confirmPayment());
   }
@@ -362,14 +345,14 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     for (int i = 0; i < _methods.length; i++) {
       final ticker = _methods[i].toUpperCase();
       final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      final hasAddress = _addresses[i].isNotEmpty;
       final hasWallet = hasShopInBitWalletForTicker(
         wallets: wallets,
         ticker: ticker,
         paymentUri: _addresses[i],
       );
-      final amountStr = _addresses[i].isNotEmpty
-          ? _parseBip21Amount(_addresses[i])
-          : null;
+      final canPayNow = hasWallet && hasAddress;
+      final amountStr = hasAddress ? _parseBip21Amount(_addresses[i]) : null;
 
       if (i > 0) {
         coinRows.add(const SizedBox(height: 8));
@@ -378,11 +361,13 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       coinRows.add(
         RoundedWhiteContainer(
           child: Opacity(
-            opacity: hasWallet ? 1.0 : 0.5,
+            opacity: canPayNow ? 1.0 : 0.5,
             child: InkWell(
-              onTap: hasWallet
-                  ? () => _onOwnedCoinTap(i)
-                  : () => _onUnownedCoinTap(i),
+              onTap: !hasAddress
+                  ? null
+                  : (hasWallet
+                        ? () => _onOwnedCoinTap(i)
+                        : () => _onUnownedCoinTap(i)),
               child: Row(
                 children: [
                   if (coin != null)
@@ -419,7 +404,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                       ],
                     ),
                   ),
-                  if (hasWallet)
+                  if (canPayNow)
                     Text("PAY NOW", style: STextStyles.link2(context))
                   else
                     SvgPicture.asset(

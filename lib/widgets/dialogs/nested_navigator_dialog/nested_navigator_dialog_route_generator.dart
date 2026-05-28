@@ -196,11 +196,11 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         );
 
       case ShopInBitPaymentView.routeName:
-        if (args is (ShopInBitOrderModel, PaymentInfo?)) {
+        if (args is (ShopInBitOrderModel, PaymentInfo)) {
           return getRoute(
             builder: (_) => ShopInBitPaymentView(
               model: args.$1,
-              initialPaymentInfo: args.$2,
+              paymentInfo: args.$2,
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -208,7 +208,7 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected (ShopInBitOrderModel, PaymentInfo?)",
+          "Expected (ShopInBitOrderModel, PaymentInfo)",
         );
 
       case CakePayVendorsView.routeName:
