@@ -25,6 +25,7 @@ import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import 'shopinbit_offer_view.dart';
 
 class ShopInBitTicketDetail extends ConsumerStatefulWidget {
@@ -139,11 +140,14 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       if (reqResp.hasError || reqResp.value == null) {
         if (mounted) {
           setState(() => _retrying = false);
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message: reqResp.exception?.message ?? "Failed to create request",
-              context: context,
+          await showDialog<void>(
+            context: context,
+            useRootNavigator: Util.isDesktop,
+            builder: (context) => StackOkDialog(
+              title: "Failed to create request",
+              maxWidth: Util.isDesktop ? 500 : null,
+              message: reqResp.exception?.message,
+              desktopPopRootNavigator: Util.isDesktop,
             ),
           );
         }
@@ -183,11 +187,14 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     } catch (e) {
       if (mounted) {
         setState(() => _retrying = false);
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to create request",
+            maxWidth: Util.isDesktop ? 500 : null,
             message: e.toString(),
-            context: context,
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
