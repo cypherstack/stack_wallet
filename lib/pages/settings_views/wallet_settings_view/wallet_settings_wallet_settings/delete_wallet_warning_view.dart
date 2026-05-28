@@ -59,10 +59,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 RoundedContainer(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.warningBackground,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.warningBackground,
                   child: Text(
                     "You are going to permanently delete your wallet.\n\n"
                     "If you delete your wallet, the only way you can have access"
@@ -70,10 +69,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     "${AppConfig.appName} does not keep nor is able to restore "
                     "your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
                     style: STextStyles.baseXS(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.warningForeground,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.warningForeground,
                     ),
                   ),
                 ),
@@ -88,10 +86,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),
@@ -130,10 +127,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                           myName: wallet.frostInfo.myName,
                           config: results[1]!,
                           keys: results[0]!,
-                          prevGen:
-                              results[2] == null || results[3] == null
-                                  ? null
-                                  : (config: results[3]!, keys: results[2]!),
+                          prevGen: results[2] == null || results[3] == null
+                              ? null
+                              : (config: results[3]!, keys: results[2]!),
                         );
                       }
                     } else {

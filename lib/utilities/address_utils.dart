@@ -325,21 +325,29 @@ class AddressUtils {
     if ((mimblewimblecoinAddress.startsWith("http://") ||
             mimblewimblecoinAddress.startsWith("https://")) &&
         mimblewimblecoinAddress.contains("@")) {
-      mimblewimblecoinAddress =
-          mimblewimblecoinAddress.replaceAll("http://", "");
-      mimblewimblecoinAddress =
-          mimblewimblecoinAddress.replaceAll("https://", "");
+      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+        "http://",
+        "",
+      );
+      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+        "https://",
+        "",
+      );
     }
     // strip mailto: prefix
     if (mimblewimblecoinAddress.startsWith("mailto:")) {
-      mimblewimblecoinAddress =
-          mimblewimblecoinAddress.replaceAll("mailto:", "");
+      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
+        "mailto:",
+        "",
+      );
     }
     // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
     if (mimblewimblecoinAddress.endsWith("/") &&
         mimblewimblecoinAddress.contains("@")) {
       mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
-          0, mimblewimblecoinAddress.length - 1);
+        0,
+        mimblewimblecoinAddress.length - 1,
+      );
     }
     return mimblewimblecoinAddress;
   }

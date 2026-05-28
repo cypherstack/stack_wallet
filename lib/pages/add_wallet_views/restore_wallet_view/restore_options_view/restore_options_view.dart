@@ -868,26 +868,27 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
             style: Util.isDesktop
                 ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
                 : STextStyles.field(context),
-            decoration: standardInputDecoration(
-              "monero_wallet:<address>?seed=...",
-              FocusNode(),
-              context,
-            ).copyWith(
-              suffixIcon: UnconstrainedBox(
-                child: TextFieldIconButton(
-                  child: _uriController.text.isNotEmpty
-                      ? XIcon(
-                          width: Util.isDesktop ? 24 : 16,
-                          height: Util.isDesktop ? 24 : 16,
-                        )
-                      : const SizedBox.shrink(),
-                  onTap: () {
-                    _uriController.clear();
-                    _onUriChanged("");
-                  },
+            decoration:
+                standardInputDecoration(
+                  "monero_wallet:<address>?seed=...",
+                  FocusNode(),
+                  context,
+                ).copyWith(
+                  suffixIcon: UnconstrainedBox(
+                    child: TextFieldIconButton(
+                      child: _uriController.text.isNotEmpty
+                          ? XIcon(
+                              width: Util.isDesktop ? 24 : 16,
+                              height: Util.isDesktop ? 24 : 16,
+                            )
+                          : const SizedBox.shrink(),
+                      onTap: () {
+                        _uriController.clear();
+                        _onUriChanged("");
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
             maxLines: 3,
             minLines: 1,
             onChanged: _onUriChanged,
