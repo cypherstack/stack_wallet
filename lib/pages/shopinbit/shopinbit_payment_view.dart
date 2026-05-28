@@ -25,6 +25,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import 'shopinbit_payment_shared.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
@@ -83,7 +84,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       _applyPaymentInfo(widget.initialPaymentInfo!);
     }
     if (widget.model.apiTicketId != 0) {
-      // If the pre-load didn't hand us usable payment links, recover them: 
+      // If the pre-load didn't hand us usable payment links, recover them:
       // GET, then PUT to generate one.
       if (_addresses.every((a) => a.isEmpty)) {
         unawaited(_recoverPaymentInfo());
@@ -203,13 +204,17 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
         );
       }
     } else {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: resp?.exception?.message ?? "Failed to check payment.",
-          context: context,
+      await showDialog<void>(
+        context: context,
+        useRootNavigator: Util.isDesktop,
+        builder: (context) => StackOkDialog(
+          title: "Failed to check payment",
+          maxWidth: Util.isDesktop ? 500 : null,
+          message: resp?.exception?.message,
+          desktopPopRootNavigator: Util.isDesktop,
         ),
       );
+      if (!mounted) return;
     }
 
     if (!_isTerminal) {
