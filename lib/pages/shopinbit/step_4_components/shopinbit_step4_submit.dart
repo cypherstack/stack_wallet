@@ -4,8 +4,9 @@ import "package:flutter/material.dart";
 
 import "../../../db/drift/shared_db/shared_database.dart";
 import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../notifications/show_flush_bar.dart";
 import "../../../services/shopinbit/shopinbit_service.dart";
+import "../../../utilities/util.dart";
+import "../../../widgets/stack_dialog.dart";
 import "../shopinbit_order_created.dart";
 
 /// Submits a ShopinBit request to the API and navigates to the order-created
@@ -48,11 +49,14 @@ Future<void> submitShopInBitRequest(
 
     if (resp.hasError) {
       if (context.mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: resp.exception?.message ?? "Failed to create request",
-            context: context,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to create request",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message: resp.exception?.message,
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
@@ -77,11 +81,14 @@ Future<void> submitShopInBitRequest(
     );
   } catch (e) {
     if (context.mounted) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Failed to create request: $e",
-          context: context,
+      await showDialog<void>(
+        context: context,
+        useRootNavigator: Util.isDesktop,
+        builder: (context) => StackOkDialog(
+          title: "Failed to create request",
+          maxWidth: Util.isDesktop ? 500 : null,
+          message: e.toString(),
+          desktopPopRootNavigator: Util.isDesktop,
         ),
       );
     }
