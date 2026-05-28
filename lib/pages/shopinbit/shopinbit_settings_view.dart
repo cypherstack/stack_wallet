@@ -166,16 +166,21 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
       }
     } catch (e) {
       if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "Failed to set key: $e",
-            context: context,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to set key",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
     } finally {
-      setState(() => _loading = false);
+      // Awaiting the error dialog above means the widget can unmount before
+      // we get here.
+      if (mounted) setState(() => _loading = false);
     }
   }
 
