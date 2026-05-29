@@ -10,6 +10,7 @@ import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
+import '../../services/shopinbit/src/models/ticket.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
@@ -17,7 +18,6 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
@@ -28,14 +28,7 @@ import 'shopinbit_order_created.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_tickets_view.dart';
 
-enum _PaymentFlowState {
-  idle,
-  polling,
-  loggingPayment,
-  creatingRequest,
-  complete,
-  error,
-}
+enum _PaymentFlowState { idle, polling, finalizing, complete, error }
 
 class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
   const ShopInBitCarResearchPaymentView({
@@ -56,24 +49,11 @@ class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
 
 class _ShopInBitCarResearchPaymentViewState
     extends ConsumerState<ShopInBitCarResearchPaymentView> {
-  static const Set<String> _terminalStates = {
-    // concierge heritage
-    "paid",
-    "paid_over",
-    "paid_late",
-    "payment_processing",
-    // BTCPay / car research likely
-    "settled",
-    "confirmed",
-    "complete",
-    "completed",
-    "finalized",
-  };
-
   Timer? _pollTimer;
   Map<String, dynamic>? _status;
   _PaymentFlowState _flowState = _PaymentFlowState.idle;
   String _statusString = "ready_to_pay";
+  String? _additional;
   List<String> _methods = [];
   List<String> _addresses = [];
   int _selectedMethod = 0;
@@ -81,10 +61,7 @@ class _ShopInBitCarResearchPaymentViewState
   String get _currentAddress =>
       _selectedMethod < _addresses.length ? _addresses[_selectedMethod] : "";
 
-  bool get _isTerminal {
-    final s = _statusString.toLowerCase().trim();
-    return _terminalStates.contains(s);
-  }
+  bool get _isTerminal => carResearchIsFinalized(_statusString, _additional);
 
   bool get _payNowEnabled =>
       !_isTerminal && _flowState == _PaymentFlowState.idle;
@@ -135,7 +112,7 @@ class _ShopInBitCarResearchPaymentViewState
     try {
       await _pollStatus();
       if (!mounted) return;
-      if (!_isTerminal && _flowState != _PaymentFlowState.loggingPayment) {
+      if (!_isTerminal && _flowState != _PaymentFlowState.finalizing) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -274,10 +251,11 @@ class _ShopInBitCarResearchPaymentViewState
       setState(() {
         _status = resp.value!;
         _statusString = _status!["status"]?.toString() ?? _statusString;
+        _additional = _status!["additional"]?.toString();
       });
       if (_isTerminal) {
         _pollTimer?.cancel();
-        await _processPaymentAndRequest();
+        await _finalizePayment();
       }
     } catch (e) {
       if (mounted) {
@@ -292,223 +270,77 @@ class _ShopInBitCarResearchPaymentViewState
     }
   }
 
-  Future<void> _processPaymentAndRequest() async {
-    // Guard: only one entry allowed
-    if (_flowState == _PaymentFlowState.loggingPayment ||
-        _flowState == _PaymentFlowState.creatingRequest ||
+  Future<void> _finalizePayment() async {
+    if (_flowState == _PaymentFlowState.finalizing ||
         _flowState == _PaymentFlowState.complete ||
         _flowState == _PaymentFlowState.error) {
       return;
     }
 
-    // Skip logCarResearchPayment if the fee was already logged.
-    final existingFeeTicket = widget.model.feeTicketNumber;
-    if (existingFeeTicket != null) {
-      if (!widget.model.needsCreateRequest) {
-        // Both steps already done: navigate to success directly.
-        if (!mounted) return;
-        setState(() => _flowState = _PaymentFlowState.complete);
-
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
-        );
-
-        return;
-      }
-      // Fee logged; skip to createRequest.
-      setState(() => _flowState = _PaymentFlowState.creatingRequest);
-      _pollTimer?.cancel();
-      try {
-        final customerKey = await ref
-            .read(pShopinBitService)
-            .ensureCustomerKey();
-        final comment =
-            "${widget.model.requestDescription}\n\n"
-            "The Client paid the car research fee (#$existingFeeTicket)";
-        final reqResp = await ref
-            .read(pShopinBitService)
-            .client
-            .createRequest(
-              customerPseudonym: widget.model.displayName,
-              externalCustomerKey: customerKey,
-              serviceType: "car",
-              comment: comment,
-              deliveryCountry: widget.model.deliveryCountry,
-            );
-        if (reqResp.hasError || reqResp.value == null) {
-          if (mounted) {
-            setState(() => _flowState = _PaymentFlowState.error);
-            await showDialog<void>(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => StackDialog(
-                title: "Request Failed",
-                message:
-                    "Payment was confirmed but we couldn't submit your car "
-                    "research request. You can retry from My Requests.\n\n"
-                    "Error: ${reqResp.exception?.message ?? 'Unknown error'}",
-                leftButton: SecondaryButton(
-                  label: "Retry Now",
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    _retryCreateRequest(existingFeeTicket, customerKey);
-                  },
-                ),
-                rightButton: PrimaryButton(
-                  label: "My Requests",
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    _popToTickets();
-                  },
-                ),
-              ),
-            );
-          }
-          return;
-        }
-        final requestRef = reqResp.value!;
-        final prevTicketId = widget.model.ticketId;
-        widget.model.apiTicketId = requestRef.id;
-        widget.model.ticketId = requestRef.number;
-        widget.model.status = ShopInBitOrderStatus.pending;
-        widget.model.isPendingPayment = false;
-        widget.model.needsCreateRequest = false;
-        final db = ref.read(pSharedDrift);
-        await db
-            .into(db.shopInBitTickets)
-            .insertOnConflictUpdate(widget.model.toCompanion());
-        // Remove the sentinel record.
-        if (prevTicketId != null && prevTicketId != widget.model.ticketId) {
-          await (db.delete(
-            db.shopInBitTickets,
-          )..where((t) => t.ticketId.equals(prevTicketId))).go();
-        }
-        if (!mounted) return;
-        setState(() => _flowState = _PaymentFlowState.complete);
-
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
-        );
-      } catch (e) {
-        if (mounted) {
-          setState(() => _flowState = _PaymentFlowState.error);
-          await showDialog<void>(
-            context: context,
-            useRootNavigator: Util.isDesktop,
-            builder: (context) => StackOkDialog(
-              title: "Failed to submit car research request",
-              maxWidth: Util.isDesktop ? 500 : null,
-              message: e.toString(),
-              desktopPopRootNavigator: Util.isDesktop,
-            ),
-          );
-        }
-      }
-      return;
-    }
-
-    setState(() => _flowState = _PaymentFlowState.loggingPayment);
+    setState(() => _flowState = _PaymentFlowState.finalizing);
     _pollTimer?.cancel();
 
+    final db = ref.read(pSharedDrift);
+    final client = ref.read(pShopinBitService).client;
+
     try {
-      final logResp = await ref
-          .read(pShopinBitService)
-          .client
-          .logCarResearchPayment(widget.invoice.btcpayInvoice);
+      // Best-effort: the BTCPay webhook is the failsafe that finalizes the fee
+      // and creates the receipt and real car ticket even if this call fails.
+      final logResp = await client.logCarResearchPayment(
+        widget.invoice.btcpayInvoice,
+      );
+
       if (logResp.hasError || logResp.value == null) {
+        // Payment is confirmed but we could not log it. The webhook will
+        // finalize it server side, so send the user to their requests where
+        // the finalized ticket will appear, and leave the pending record so
+        // they can resume if needed.
         if (mounted) {
-          setState(() => _flowState = _PaymentFlowState.error);
           await showDialog<void>(
             context: context,
             useRootNavigator: Util.isDesktop,
             builder: (context) => StackOkDialog(
-              title: "Failed to log car research payment",
+              title: "Payment received",
               maxWidth: Util.isDesktop ? 500 : null,
-              message: logResp.exception?.message,
+              message:
+                  "We're finalizing your car research request. It will "
+                  "appear in My Requests shortly.",
               desktopPopRootNavigator: Util.isDesktop,
             ),
           );
         }
+        if (mounted) _popToTickets();
         return;
       }
 
-      final feeResult = logResp.value!;
+      final result = logResp.value!;
+      widget.model.feeTicketNumber = result.ticketNumber;
 
-      // Persist feeTicketNumber on the existing model (a new DB row creates a
-      // spurious list entry).
-      widget.model.feeTicketNumber = feeResult.ticketNumber;
-      widget.model.needsCreateRequest = true;
-      final db = ref.read(pSharedDrift);
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(widget.model.toCompanion());
+      // log-payment returns the partner-scoped fee receipt, which the customer
+      // key cannot poll. Adopt the customer-facing car research ticket the
+      // backend created from the cached request so polling targets it instead.
+      final realTicket = await _resolveRealTicket(result.ticketId);
 
-      if (!mounted) return;
-      setState(() => _flowState = _PaymentFlowState.creatingRequest);
-
-      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
-      final comment =
-          "${widget.model.requestDescription}\n\n"
-          "The Client paid the car research fee (#${feeResult.ticketNumber})";
-
-      final reqResp = await ref
-          .read(pShopinBitService)
-          .client
-          .createRequest(
-            customerPseudonym: widget.model.displayName,
-            externalCustomerKey: customerKey,
-            serviceType: "car",
-            comment: comment,
-            deliveryCountry: widget.model.deliveryCountry,
-          );
-
-      if (reqResp.hasError || reqResp.value == null) {
-        // createRequest failed: fee receipt already persisted, show retry
-        if (mounted) {
-          setState(() => _flowState = _PaymentFlowState.error);
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (ctx) => StackDialog(
-              title: "Request Failed",
-              message:
-                  "Payment was confirmed but we couldn't submit your car "
-                  "research request. You can retry from My Requests.\n\n"
-                  "Error: ${reqResp.exception?.message ?? 'Unknown error'}",
-              leftButton: SecondaryButton(
-                label: "Retry Now",
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _retryCreateRequest(feeResult.ticketNumber, customerKey);
-                },
-              ),
-              rightButton: PrimaryButton(
-                label: "My Requests",
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _popToTickets();
-                },
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      final requestRef = reqResp.value!;
       final prevTicketId = widget.model.ticketId;
-      widget.model.apiTicketId = requestRef.id;
-      widget.model.ticketId = requestRef.number;
+      if (realTicket != null) {
+        widget.model.apiTicketId = realTicket.id;
+        widget.model.ticketId = realTicket.number;
+      } else {
+        // Backend has not surfaced the ticket yet. Show the receipt number and
+        // leave polling disabled so we don't hammer the inaccessible receipt;
+        // the requests list refresh will pick up the real ticket later.
+        widget.model.apiTicketId = 0;
+        widget.model.ticketId = result.ticketNumber;
+      }
       widget.model.status = ShopInBitOrderStatus.pending;
       widget.model.isPendingPayment = false;
       widget.model.needsCreateRequest = false;
+
       await db
           .into(db.shopInBitTickets)
           .insertOnConflictUpdate(widget.model.toCompanion());
+
+      // Drop the sentinel pending row now that we have a real ticket id.
       if (prevTicketId != null && prevTicketId != widget.model.ticketId) {
         await (db.delete(
           db.shopInBitTickets,
@@ -540,88 +372,32 @@ class _ShopInBitCarResearchPaymentViewState
     }
   }
 
-  Future<void> _retryCreateRequest(
-    String feeTicketNumber,
-    String customerKey,
-  ) async {
-    if (_flowState == _PaymentFlowState.creatingRequest) return;
-    setState(() => _flowState = _PaymentFlowState.creatingRequest);
-
+  /// Find the customer-facing car research ticket the backend created from the
+  /// cached request, excluding the partner-scoped fee receipt and any ticket we
+  /// already track. Returns the newest match, or null if none is visible yet.
+  Future<TicketRef?> _resolveRealTicket(int receiptTicketId) async {
+    final service = ref.read(pShopinBitService);
+    final db = ref.read(pSharedDrift);
     try {
-      final comment =
-          "${widget.model.requestDescription}\n\n"
-          "The Client paid the car research fee (#$feeTicketNumber)";
+      final customerKey = await service.ensureCustomerKey();
+      final resp = await service.client.getTicketsByCustomer(customerKey);
+      if (resp.hasError || resp.value == null) return null;
 
-      final reqResp = await ref
-          .read(pShopinBitService)
-          .client
-          .createRequest(
-            customerPseudonym: widget.model.displayName,
-            externalCustomerKey: customerKey,
-            serviceType: "car",
-            comment: comment,
-            deliveryCountry: widget.model.deliveryCountry,
-          );
+      final knownApiIds = (await db.select(db.shopInBitTickets).get())
+          .map((t) => t.apiTicketId)
+          .toSet();
 
-      if (reqResp.hasError || reqResp.value == null) {
-        if (mounted) {
-          setState(() => _flowState = _PaymentFlowState.error);
-          await showDialog<void>(
-            context: context,
-            useRootNavigator: Util.isDesktop,
-            builder: (context) => StackOkDialog(
-              title: "Retry failed",
-              maxWidth: Util.isDesktop ? 500 : null,
-              message: reqResp.exception?.message,
-              desktopPopRootNavigator: Util.isDesktop,
-            ),
-          );
-        }
-        return;
-      }
+      final candidates =
+          resp.value!
+              .where(
+                (t) => t.id != receiptTicketId && !knownApiIds.contains(t.id),
+              )
+              .toList()
+            ..sort((a, b) => b.id.compareTo(a.id));
 
-      final requestRef = reqResp.value!;
-      widget.model.apiTicketId = requestRef.id;
-      widget.model.ticketId = requestRef.number;
-      widget.model.status = ShopInBitOrderStatus.pending;
-      // Flow complete: clear the resume flag before saving.
-      widget.model.isPendingPayment = false;
-      final db = ref.read(pSharedDrift);
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(widget.model.toCompanion());
-
-      // Update fee receipt ticket
-      final feeTickets = await (db.select(
-        db.shopInBitTickets,
-      )..where((t) => t.ticketId.equals(feeTicketNumber))).get();
-      if (feeTickets.isNotEmpty) {
-        final feeTicket = feeTickets.first.copyWith(needsCreateRequest: false);
-        await db.into(db.shopInBitTickets).insertOnConflictUpdate(feeTicket);
-      }
-
-      if (!mounted) return;
-      setState(() => _flowState = _PaymentFlowState.complete);
-
-      unawaited(
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() => _flowState = _PaymentFlowState.error);
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: Util.isDesktop,
-          builder: (context) => StackOkDialog(
-            title: "Retry failed",
-            maxWidth: Util.isDesktop ? 500 : null,
-            message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
-          ),
-        );
-      }
+      return candidates.isEmpty ? null : candidates.first;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -835,8 +611,7 @@ class _ShopInBitCarResearchPaymentViewState
         PrimaryButton(
           label: _flowState == _PaymentFlowState.polling
               ? "Checking..."
-              : (_flowState == _PaymentFlowState.loggingPayment ||
-                    _flowState == _PaymentFlowState.creatingRequest)
+              : _flowState == _PaymentFlowState.finalizing
               ? "Processing..."
               : (hasWallets ? "PAY NOW" : "CHECK FOR PAYMENT"),
           enabled: _payNowEnabled,

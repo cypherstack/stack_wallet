@@ -162,5 +162,9 @@ class TicketFull {
 
 int _toInt(dynamic value) {
   if (value is int) return value;
-  return int.parse(value.toString());
+  if (value is num) return value.toInt();
+  // Un-priced offers come back with empty/missing numeric fields; returning 0
+  // is safe as it's validated downstream and 0s result in an error dialog
+  // that pricing's unavailable.
+  return int.tryParse(value.toString()) ?? 0;
 }
