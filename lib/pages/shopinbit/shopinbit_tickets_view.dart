@@ -9,9 +9,11 @@ import "../../db/drift/shared_db/shared_database.dart";
 import "../../models/shopinbit/shopinbit_order_model.dart";
 import "../../providers/db/drift_provider.dart";
 import "../../providers/global/shopin_bit_orders_provider.dart";
+import "../../providers/global/shopin_bit_service_provider.dart";
 import "../../services/shopinbit/src/models/car_research.dart";
 import "../../themes/stack_colors.dart";
 import "../../utilities/assets.dart";
+import "../../utilities/show_loading.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
 import "../../widgets/background.dart";
@@ -74,34 +76,81 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     }
   }
 
-  void _resumeFlow(ShopInBitTicket pending) {
+  Future<void> _resumeFlow(ShopInBitTicket pending) async {
     final model = ShopInBitOrderModel.fromDriftRow(pending);
-    final expiresAt = pending.carResearchExpiresAt;
-    final linksJson = pending.carResearchPaymentLinks;
 
-    if (expiresAt != null &&
-        expiresAt.isAfter(DateTime.now()) &&
-        linksJson != null) {
-      // Invoice still live: navigate directly to payment view.
-      final links = (jsonDecode(linksJson) as Map<String, dynamic>).map(
-        (k, v) => MapEntry(k, v as String),
-      );
-      final invoice = CarResearchInvoice(
-        btcpayInvoice: pending.carResearchInvoiceId!,
-        expiresAt: expiresAt,
-        paymentLinks: links,
-      );
+    // Recover the live invoice from the server first so resume works even if
+    // local invoice state was lost.
+    final response = await showLoading(
+      context: context,
+      rootNavigator: true,
+      message: "Checking your car research payment",
+      whileFuture: ref
+          .read(pShopinBitService)
+          .client
+          .getCurrentCarResearchInvoices(),
+      delay: const Duration(seconds: 1),
+    );
+    if (!mounted) return;
 
-      Navigator.of(context).pushNamed(
+    final invoice = _liveInvoiceFrom(response?.value, pending);
+
+    if (invoice != null) {
+      await Navigator.of(context).pushNamed(
         ShopInBitCarResearchPaymentView.routeName,
         arguments: (model, invoice),
       );
     } else {
-      // Invoice expired: navigate to fee view.
-      Navigator.of(
+      // No recoverable invoice anywhere: re-create one from the fee view.
+      await Navigator.of(
         context,
       ).pushNamed(ShopInBitCarFeeView.routeName, arguments: model);
     }
+  }
+
+  /// Pick a still-payable invoice, preferring the server's current invoices
+  /// and falling back to locally stored invoice state.
+  CarResearchInvoice? _liveInvoiceFrom(
+    List<CarResearchCurrentInvoice>? current,
+    ShopInBitTicket pending,
+  ) {
+    if (current != null && current.isNotEmpty) {
+      final match = current.firstWhere(
+        (i) => i.invoiceId == pending.carResearchInvoiceId,
+        orElse: () => current.first,
+      );
+      final payable =
+          match.expiresAt != null &&
+          match.paymentLinks.isNotEmpty &&
+          (match.expiresAt!.isAfter(DateTime.now()) ||
+              carResearchIsFinalized(match.status, match.additional));
+      if (payable) {
+        return CarResearchInvoice(
+          btcpayInvoice: match.invoiceId,
+          expiresAt: match.expiresAt!,
+          paymentLinks: match.paymentLinks,
+        );
+      }
+    }
+
+    final expiresAt = pending.carResearchExpiresAt;
+    final linksJson = pending.carResearchPaymentLinks;
+    final invoiceId = pending.carResearchInvoiceId;
+    if (expiresAt != null &&
+        expiresAt.isAfter(DateTime.now()) &&
+        linksJson != null &&
+        invoiceId != null) {
+      final links = (jsonDecode(linksJson) as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, v as String),
+      );
+      return CarResearchInvoice(
+        btcpayInvoice: invoiceId,
+        expiresAt: expiresAt,
+        paymentLinks: links,
+      );
+    }
+
+    return null;
   }
 
   static String _categoryLabel(ShopInBitCategory? category) =>
@@ -137,7 +186,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
       children.add(
         RoundedContainer(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          onPressed: () => _resumeFlow(pending),
+          onPressed: () => unawaited(_resumeFlow(pending)),
           child: _RequestRow(
             title: "Car Research (In Progress)",
             subtitle: "Tap to continue your car research payment",
