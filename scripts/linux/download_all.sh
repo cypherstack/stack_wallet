@@ -16,7 +16,5 @@ if [[ "$APP" = "stack_wallet" || "$APP" = "stack_duo" ]]; then
     (cd ../../crypto_plugins/frostdart/scripts/linux && ./download.sh)
 fi
 
-./build_secp256k1.sh
-
 wait
 echo "Done"
