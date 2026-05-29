@@ -248,10 +248,18 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
         );
       }
 
+      // Cache the car request alongside billing so the backend failsafe can
+      // create the real car research ticket once the fee is paid.
+      final request = CarResearchRequest(
+        customerPseudonym: widget.model.displayName,
+        comment: widget.model.requestDescription,
+        deliveryCountry: widget.model.deliveryCountry,
+      );
+
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .createCarResearchInvoice(billing: billing);
+          .createCarResearchInvoice(billing: billing, request: request);
 
       if (resp.hasError || resp.value == null) {
         Logging.instance.e(
