@@ -7,7 +7,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_orders_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
@@ -25,7 +24,6 @@ import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../../widgets/stack_dialog.dart';
 import 'shopinbit_offer_view.dart';
 
 class ShopInBitTicketDetail extends ConsumerStatefulWidget {
@@ -47,7 +45,6 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   bool _polling = false;
 
   bool _sending = false;
-  bool _retrying = false;
 
   @override
   void initState() {
@@ -112,92 +109,6 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       // Keep optimistic local message
     } finally {
       if (mounted) setState(() => _sending = false);
-    }
-  }
-
-  Future<void> _retryCreateRequest() async {
-    if (_retrying) return;
-    setState(() => _retrying = true);
-
-    try {
-      final model = _model;
-      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
-      final comment =
-          "${model.requestDescription}\n\n"
-          "The Client paid the car research fee (#${model.feeTicketNumber})";
-
-      final reqResp = await ref
-          .read(pShopinBitService)
-          .client
-          .createRequest(
-            customerPseudonym: model.displayName,
-            externalCustomerKey: customerKey,
-            serviceType: "car_research",
-            comment: comment,
-            deliveryCountry: model.deliveryCountry,
-          );
-
-      if (reqResp.hasError || reqResp.value == null) {
-        if (mounted) {
-          setState(() => _retrying = false);
-          await showDialog<void>(
-            context: context,
-            useRootNavigator: Util.isDesktop,
-            builder: (context) => StackOkDialog(
-              title: "Failed to create request",
-              maxWidth: Util.isDesktop ? 500 : null,
-              message: reqResp.exception?.message,
-              desktopPopRootNavigator: Util.isDesktop,
-            ),
-          );
-        }
-        return;
-      }
-
-      final requestRef = reqResp.value!;
-      final requestModel = ShopInBitOrderModel()
-        ..ticketId = requestRef.number
-        ..apiTicketId = requestRef.id
-        ..category = ShopInBitCategory.car
-        ..status = ShopInBitOrderStatus.pending
-        ..displayName = model.displayName
-        ..requestDescription = model.requestDescription
-        ..deliveryCountry = model.deliveryCountry;
-      final db = ref.read(pSharedDrift);
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(requestModel.toCompanion());
-
-      model.needsCreateRequest = false;
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(model.toCompanion());
-
-      if (!mounted) return;
-      setState(() => _retrying = false);
-
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: "Car research request submitted successfully!",
-          context: context,
-        ),
-      );
-      Navigator.of(context).pop();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _retrying = false);
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: Util.isDesktop,
-          builder: (context) => StackOkDialog(
-            title: "Failed to create request",
-            maxWidth: Util.isDesktop ? 500 : null,
-            message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
-          ),
-        );
-      }
     }
   }
 
@@ -563,16 +474,21 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
           )
         : const SizedBox.shrink();
 
-    final retryButton =
+    // After the fee is paid the backend creates the real car ticket from the
+    // cached request, so we surface a finalizing note instead of asking the
+    // client to create the request itself.
+    final finalizingNote =
         model.needsCreateRequest && model.category == ShopInBitCategory.car
         ? Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            child: PrimaryButton(
-              label: _retrying ? "Submitting..." : "Complete Request",
-              enabled: !_retrying,
-              onPressed: _retrying
-                  ? null
-                  : () => unawaited(_retryCreateRequest()),
+            child: RoundedWhiteContainer(
+              child: Text(
+                "We're finalizing your car research request. Pull to refresh "
+                "if it doesn't appear shortly.",
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.itemSubtitle12(context),
+              ),
             ),
           )
         : const SizedBox.shrink();
@@ -582,7 +498,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       crossAxisAlignment: .stretch,
       children: [
         statusBar,
-        retryButton,
+        finalizingNote,
         offerBanner,
         requestDetailsSection,
         chatArea,
