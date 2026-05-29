@@ -355,16 +355,43 @@ class ShopInBitClient {
 
   Future<ApiResponse<CarResearchInvoice>> createCarResearchInvoice({
     required Address billing,
+    CarResearchRequest? request,
   }) async {
     return _request(
       'POST',
       '/car-research/invoice',
       body: {
         'billing': billing.toJson(),
+        if (request != null) 'request': request.toJson(),
         if (_externalCustomerKey != null)
           'external_customer_key': _externalCustomerKey,
       },
       parse: CarResearchInvoice.fromJson,
+    );
+  }
+
+  /// Unresolved car research invoices for the current partner/customer pair.
+  /// Used to recover a fee payment the user started but did not finish.
+  Future<ApiResponse<List<CarResearchCurrentInvoice>>>
+  getCurrentCarResearchInvoices() async {
+    return _requestRaw(
+      'GET',
+      '/car-research/invoices/current',
+      parse: (body) {
+        if (body.isEmpty) return <CarResearchCurrentInvoice>[];
+        final decoded = jsonDecode(body);
+        final list = decoded is List
+            ? decoded
+            : (decoded as Map<String, dynamic>)['invoices'] as List? ??
+                  const [];
+        return list
+            .map(
+              (e) => CarResearchCurrentInvoice.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
+            .toList();
+      },
     );
   }
 
