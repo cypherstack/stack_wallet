@@ -13,7 +13,6 @@ import "../../providers/global/shopin_bit_service_provider.dart";
 import "../../services/shopinbit/src/models/car_research.dart";
 import "../../themes/stack_colors.dart";
 import "../../utilities/assets.dart";
-import "../../utilities/show_loading.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
 import "../../widgets/background.dart";
@@ -21,6 +20,7 @@ import "../../widgets/conditional_parent.dart";
 import "../../widgets/custom_buttons/app_bar_icon_button.dart";
 import "../../widgets/desktop/desktop_dialog_close_button.dart";
 import "../../widgets/dialogs/s_dialog.dart";
+import "../../widgets/loading_indicator.dart";
 import "../../widgets/refresh_control.dart";
 import "../../widgets/rounded_container.dart";
 import "shopinbit_car_fee_view.dart";
@@ -42,6 +42,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   ShopInBitTicket? _pendingTicket;
   StreamSubscription<List<ShopInBitTicket>>? _ticketsSub;
   bool _refreshing = false;
+  bool _resuming = false;
 
   @override
   void initState() {
@@ -77,23 +78,27 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   }
 
   Future<void> _resumeFlow(ShopInBitTicket pending) async {
+    if (_resuming) return;
     final model = ShopInBitOrderModel.fromDriftRow(pending);
 
     // Recover the live invoice from the server first so resume works even if
     // local invoice state was lost.
-    final response = await showLoading(
-      context: context,
-      rootNavigator: true,
-      message: "Checking your car research payment",
-      whileFuture: ref
-          .read(pShopinBitService)
-          .client
-          .getCurrentCarResearchInvoices(),
-      delay: const Duration(seconds: 1),
-    );
+    setState(() => _resuming = true);
+    List<CarResearchCurrentInvoice>? current;
+    try {
+      current = (await ref
+              .read(pShopinBitService)
+              .client
+              .getCurrentCarResearchInvoices())
+          .value;
+    } catch (_) {
+      // Fall back to locally stored invoice state below.
+    } finally {
+      if (mounted) setState(() => _resuming = false);
+    }
     if (!mounted) return;
 
-    final invoice = _liveInvoiceFrom(response?.value, pending);
+    final invoice = _liveInvoiceFrom(current, pending);
 
     if (invoice != null) {
       await Navigator.of(context).pushNamed(
@@ -186,14 +191,17 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
       children.add(
         RoundedContainer(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          onPressed: () => unawaited(_resumeFlow(pending)),
+          onPressed: _resuming ? null : () => unawaited(_resumeFlow(pending)),
           child: _RequestRow(
             title: "Car Research (In Progress)",
-            subtitle: "Tap to continue your car research payment",
+            subtitle: _resuming
+                ? "Checking your car research payment..."
+                : "Tap to continue your car research payment",
             badgeText: "Resume",
             badgeColor: Theme.of(
               context,
             ).extension<StackColors>()!.accentColorYellow,
+            loading: _resuming,
           ),
         ),
       );
@@ -328,12 +336,14 @@ class _RequestRow extends StatelessWidget {
     required this.subtitle,
     required this.badgeText,
     required this.badgeColor,
+    this.loading = false,
   });
 
   final String title;
   final String subtitle;
   final String badgeText;
   final Color badgeColor;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -374,12 +384,21 @@ class _RequestRow extends StatelessWidget {
           ),
         ),
         SizedBox(width: isDesktop ? 16 : 8),
-        SvgPicture.asset(
-          Assets.svg.chevronRight,
-          width: 20,
-          height: 20,
-          colorFilter: ColorFilter.mode(stackColors.textSubtitle1, .srcIn),
-        ),
+        loading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: LoadingIndicator(),
+              )
+            : SvgPicture.asset(
+                Assets.svg.chevronRight,
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(
+                  stackColors.textSubtitle1,
+                  .srcIn,
+                ),
+              ),
       ],
     );
   }
