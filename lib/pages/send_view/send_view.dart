@@ -184,12 +184,12 @@ class _SendViewState extends ConsumerState<SendView> {
       // onChanged handler reading stale null value.
       if (paymentData.additionalParams.containsKey('op_return')) {
         final data = paymentData.additionalParams['op_return'];
-        ref.read(pOpReturnData.notifier).state = data;
+        _setOpReturnData(data);
         Logging.instance.i(
           "Extracted OP_RETURN data from URI, length: ${data!.length ~/ 2} bytes",
         );
       } else {
-        ref.read(pOpReturnData.notifier).state = null;
+        _setOpReturnData(null);
       }
 
       _setValidAddressProviders(_address);
@@ -541,11 +541,50 @@ class _SendViewState extends ConsumerState<SendView> {
   Map<Amount, String> cachedFiroSparkFees = {};
   Map<Amount, String> cachedFiroPublicFees = {};
 
+  void _setOpReturnData(String? data) {
+    if (!mounted) {
+      return;
+    }
+    ref.read(pOpReturnData.notifier).state = data;
+  }
+
+  Amount _addOpReturnFeeIfNeeded({
+    required Amount fee,
+    required BigInt feeRate,
+    required FiroWallet wallet,
+  }) {
+    final opReturnData = ref.read(pOpReturnData);
+    if (opReturnData == null ||
+        opReturnData.isEmpty ||
+        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
+      return fee;
+    }
+
+    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
+      opReturnData,
+    );
+    final extraFee = wallet.estimateTxFee(
+      vSize: extraOutputVSize,
+      feeRatePerKB: feeRate,
+    );
+
+    return fee +
+        Amount(
+          rawValue: BigInt.from(extraFee),
+          fractionDigits: coin.fractionDigits,
+        );
+  }
+
   Future<String> calculateFees(Amount amount) async {
+    final hasOpReturnData =
+        isFiro &&
+        ref.read(publicPrivateBalanceStateProvider) == BalanceType.public &&
+        (ref.read(pOpReturnData)?.isNotEmpty ?? false);
+
     if (isFiro) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
-          if (cachedFiroPublicFees[amount] != null) {
+          if (!hasOpReturnData && cachedFiroPublicFees[amount] != null) {
             return cachedFiroPublicFees[amount]!;
           }
           break;
@@ -607,10 +646,18 @@ class _SendViewState extends ConsumerState<SendView> {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           fee = await firoWallet.estimateFeeFor(amount, feeRate);
-          cachedFiroPublicFees[amount] = ref
+          fee = _addOpReturnFeeIfNeeded(
+            fee: fee,
+            feeRate: feeRate,
+            wallet: firoWallet,
+          );
+          final formatted = ref
               .read(pAmountFormatter(coin))
               .format(fee, withUnitName: true, indicatePrecisionLoss: false);
-          return cachedFiroPublicFees[amount]!;
+          if (!hasOpReturnData) {
+            cachedFiroPublicFees[amount] = formatted;
+          }
+          return formatted;
 
         case BalanceType.private:
           fee = await firoWallet.estimateFeeForSpark(amount);
@@ -1146,6 +1193,9 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void clearSendForm() {
+    if (!mounted) {
+      return;
+    }
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -1155,10 +1205,8 @@ class _SendViewState extends ConsumerState<SendView> {
     memoController.text = "";
     _address = "";
     _addressToggleFlag = false;
-    ref.read(pOpReturnData.notifier).state = null;
-    if (mounted) {
-      setState(() {});
-    }
+    _setOpReturnData(null);
+    setState(() {});
   }
 
   String _getSendAllTitle(
@@ -1758,8 +1806,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       if (parsed != null) {
                                         _applyUri(parsed);
                                       } else {
-                                        ref.read(pOpReturnData.notifier).state =
-                                            null;
+                                        _setOpReturnData(null);
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
                                         );

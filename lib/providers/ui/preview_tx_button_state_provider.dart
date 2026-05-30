@@ -23,7 +23,7 @@ final pValidSparkSendToAddress = StateProvider.autoDispose<bool>((_) => false);
 
 final pIsExchangeAddress = StateProvider<bool>((_) => false);
 
-final pOpReturnData = StateProvider<String?>((_) => null);
+final pOpReturnData = StateProvider.autoDispose<String?>((_) => null);
 
 // MWC Transaction Method Provider.
 final pSelectedMwcTransactionMethod = StateProvider<MwcTransactionMethod>(

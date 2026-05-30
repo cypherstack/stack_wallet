@@ -847,6 +847,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void clearSendForm() {
+    if (!mounted) {
+      return;
+    }
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -854,9 +857,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
-    if (mounted) {
-      setState(() {});
+    _setOpReturnData(null);
+    setState(() {});
+  }
+
+  void _setOpReturnData(String? data) {
+    if (!mounted) {
+      return;
     }
+    ref.read(pOpReturnData.notifier).state = data;
   }
 
   void _cryptoAmountChanged() async {
@@ -921,11 +930,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
-        ref.read(pOpReturnData.notifier).state =
-            paymentData.additionalParams['op_return'];
+        _setOpReturnData(paymentData.additionalParams['op_return']);
         _applyUri(paymentData);
       } else {
-        ref.read(pOpReturnData.notifier).state = null;
+        _setOpReturnData(null);
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -1054,11 +1062,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
-          ref.read(pOpReturnData.notifier).state =
-              paymentData.additionalParams['op_return'];
+          _setOpReturnData(paymentData.additionalParams['op_return']);
           _applyUri(paymentData);
         } else {
-          ref.read(pOpReturnData.notifier).state = null;
+          _setOpReturnData(null);
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
@@ -1075,7 +1082,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           });
         }
       } catch (e) {
-        ref.read(pOpReturnData.notifier).state = null;
+        _setOpReturnData(null);
         // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
@@ -1769,11 +1776,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     logging: Logging.instance,
                   );
                   if (parsed != null) {
-                    ref.read(pOpReturnData.notifier).state =
-                        parsed.additionalParams['op_return'];
+                    _setOpReturnData(parsed.additionalParams['op_return']);
                     _applyUri(parsed);
                   } else {
-                    ref.read(pOpReturnData.notifier).state = null;
+                    _setOpReturnData(null);
                     await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
@@ -1827,8 +1833,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     onTap: () {
                                       sendToController.text = "";
                                       _address = "";
-                                      ref.read(pOpReturnData.notifier).state =
-                                          null;
+                                      _setOpReturnData(null);
                                       _setValidAddressProviders(_address);
                                       setState(() {
                                         _addressToggleFlag = false;

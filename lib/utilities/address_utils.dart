@@ -348,6 +348,25 @@ class AddressUtils {
       return "Raw OP_RETURN data:\n$hex";
     }
   }
+
+  static int opReturnOutputVSizeFromHex(String hex) {
+    if (hex.length.isOdd || !RegExp(r'^[0-9a-fA-F]*$').hasMatch(hex)) {
+      throw const FormatException("Invalid OP_RETURN hex");
+    }
+
+    final dataBytes = hex.length ~/ 2;
+    if (dataBytes > 80) {
+      throw FormatException(
+        "OP_RETURN data exceeds 80 byte limit: $dataBytes bytes",
+      );
+    }
+
+    final pushPrefixBytes = dataBytes <= 75 ? 1 : 2;
+    final scriptBytes = 1 + pushPrefixBytes + dataBytes;
+
+    // value(8) + compact script length(1, since max script is 83 bytes) + script
+    return 8 + 1 + scriptBytes;
+  }
 }
 
 class PaymentUriData {
