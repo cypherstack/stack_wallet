@@ -308,15 +308,18 @@ class AddressUtils {
     }
 
     try {
+      // Must match @rosen-bridge/rosen-extractor SUPPORTED_CHAINS order.
       const chains = [
         'ergo',
         'cardano',
         'bitcoin',
         'ethereum',
         'binance',
+        'base',
         'doge',
         'bitcoin-runes',
         'firo',
+        'handshake',
       ];
 
       final toChainCode = int.parse(hex.substring(0, 2), radix: 16);
