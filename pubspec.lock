@@ -351,7 +351,7 @@ packages:
       path: coinlib
       ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
       resolved-ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
-      url: "https://www.github.com/julian-CStack/coinlib"
+      url: "https://github.com/cypherstack/coinlib"
     source: git
     version: "4.1.0"
   coinlib_flutter:
@@ -360,7 +360,7 @@ packages:
       path: coinlib_flutter
       ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
       resolved-ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
-      url: "https://www.github.com/julian-CStack/coinlib"
+      url: "https://github.com/cypherstack/coinlib"
     source: git
     version: "4.0.0"
   collection:
