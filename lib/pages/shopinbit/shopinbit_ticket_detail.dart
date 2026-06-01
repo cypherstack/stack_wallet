@@ -6,11 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../providers/db/drift_provider.dart';
-import '../../providers/global/shopin_bit_orders_provider.dart';
+import '../../db/drift/shared_db/shared_database.dart';
+import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
-import '../../services/shopinbit/shopinbit_orders_service.dart';
+import '../../services/shopinbit/src/models/message.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -27,11 +26,11 @@ import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_offer_view.dart';
 
 class ShopInBitTicketDetail extends ConsumerStatefulWidget {
-  const ShopInBitTicketDetail({super.key, required this.model});
+  const ShopInBitTicketDetail({super.key, required this.apiTicketId});
 
   static const String routeName = "/shopInBitTicketDetail";
 
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
 
   @override
   ConsumerState<ShopInBitTicketDetail> createState() =>
@@ -40,73 +39,72 @@ class ShopInBitTicketDetail extends ConsumerStatefulWidget {
 
 class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   late final TextEditingController _messageController;
-  late final ShopInBitOrdersService _ordersService;
-  late final ShopInBitOrderModel _model;
-  bool _polling = false;
+
+  // Optimistically-shown messages the user just sent, kept until the next
+  // refresh folds them into the persisted ticket row.
+  final List<TicketMessage> _pending = [];
 
   bool _sending = false;
+
+  int get _id => widget.apiTicketId;
 
   @override
   void initState() {
     super.initState();
+
     _messageController = TextEditingController();
-    _ordersService = ref.read(pShopInBitOrdersService);
-    _model = _ordersService.upsert(widget.model);
-    if (_model.apiTicketId != 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _polling = true;
-        _ordersService.startPolling(
-          _model.apiTicketId,
-          pollInBackground: !_isCarResearch,
-        );
-      });
-    }
+
+    // start with a refresh right away and then start polling for updates
+    unawaited(_refresh().then((_) => _startPolling()));
   }
 
   @override
   void dispose() {
-    if (_polling) {
-      _ordersService.stopPolling(_model.apiTicketId);
-    }
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
     _messageController.dispose();
     super.dispose();
   }
 
-  bool get _isCarResearch => _model.category == ShopInBitCategory.car;
+  Timer? _pollingTimer;
+  Future<void> _poll() async {
+    await _refresh();
+    if (!mounted) return;
+    _pollingTimer = Timer(const Duration(seconds: 30), _poll);
+  }
 
-  Future<void> _refresh() => _ordersService.refreshOne(_model.apiTicketId);
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    unawaited(_poll());
+  }
+
+  Future<void> _refresh() => ref.read(pShopinBitService).refreshOne(_id);
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty || _sending) return;
 
-    setState(() => _sending = true);
+    setState(() {
+      _sending = true;
+      _pending.add(
+        TicketMessage(
+          timestamp: DateTime.now(),
+          fromAgent: false,
+          content: text,
+        ),
+      );
+    });
     _messageController.clear();
 
-    // Add optimistic local message
-    _model.addMessage(
-      ShopInBitMessage(text: text, timestamp: DateTime.now(), isFromUser: true),
-    );
-    setState(() {});
-
     try {
-      if (_model.apiTicketId != 0) {
-        await ref
-            .read(pShopinBitService)
-            .client
-            .sendMessage(_model.apiTicketId, text);
-        // Pull fresh state from the API via the service so the watcher updates.
+      final ok = await ref.read(pShopinBitService).sendMessage(_id, text);
+      if (ok) {
+        // Pull the server's copy into the DB row, then drop our optimistic one.
         await _refresh();
+        if (mounted) setState(() => _pending.clear());
       }
-      final db = ref.read(pSharedDrift);
-      unawaited(
-        db
-            .into(db.shopInBitTickets)
-            .insertOnConflictUpdate(_model.toCompanion()),
-      );
     } catch (_) {
-      // Keep optimistic local message
+      // Keep the optimistic message on failure so the text isn't lost.
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -194,40 +192,35 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     return widgets;
   }
 
-  Widget _chatBubble(ShopInBitMessage message, bool isDesktop) {
-    final textColor = message.isFromUser
+  Widget _chatBubble(TicketMessage message, bool isDesktop) {
+    final isFromUser = !message.fromAgent;
+    final textColor = isFromUser
         ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
         : Theme.of(context).extension<StackColors>()!.buttonTextSecondary;
 
     return Align(
-      alignment: message.isFromUser
-          ? Alignment.centerRight
-          : Alignment.centerLeft,
+      alignment: isFromUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(maxWidth: isDesktop ? 380 : 260),
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: message.isFromUser
+          color: isFromUser
               ? Theme.of(context).extension<StackColors>()!.buttonBackPrimary
               : Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
-            bottomLeft: message.isFromUser
-                ? const Radius.circular(12)
-                : Radius.zero,
-            bottomRight: message.isFromUser
-                ? Radius.zero
-                : const Radius.circular(12),
+            bottomLeft: isFromUser ? const Radius.circular(12) : Radius.zero,
+            bottomRight: isFromUser ? Radius.zero : const Radius.circular(12),
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (message.isFromUser)
+            if (isFromUser)
               Text(
-                message.text,
+                message.content,
                 style:
                     (isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -235,7 +228,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                         .copyWith(color: textColor),
               )
             else
-              ..._buildMessageContent(message.text, isDesktop, textColor),
+              ..._buildMessageContent(message.content, isDesktop, textColor),
             const SizedBox(height: 4),
             Text(
               _formatTime(message.timestamp),
@@ -245,7 +238,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                           : STextStyles.itemSubtitle12(context))
                       .copyWith(
                         fontSize: 10,
-                        color: message.isFromUser
+                        color: isFromUser
                             ? Colors.white.withOpacity(0.7)
                             : Theme.of(context)
                                   .extension<StackColors>()!
@@ -262,9 +255,15 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final service = ref.watch(pShopInBitOrdersService);
-    final model = service.get(_model.apiTicketId) ?? _model;
-    final isRefreshing = service.isRefreshing(_model.apiTicketId);
+    final ShopInBitTicket? ticket = ref
+        .watch(pShopInBitTicket(_id))
+        .asData
+        ?.value;
+
+    final ticketNumber = ticket?.ticketNumber ?? "Request";
+    final status = ticket?.status ?? ShopInBitOrderStatus.pending;
+    final isCarResearch = ticket?.category == ShopInBitCategory.car;
+    final messages = <TicketMessage>[...?ticket?.messages, ..._pending];
 
     final statusBar = Padding(
       padding: .only(bottom: isDesktop ? 12 : 8),
@@ -276,7 +275,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SelectableText(
-              model.ticketId ?? "Request",
+              ticketNumber,
               style: isDesktop
                   ? STextStyles.desktopTextSmall(context)
                   : STextStyles.titleBold12(context),
@@ -285,18 +284,18 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: model.status
+                color: status
                     .getColor(Theme.of(context).extension<StackColors>()!)
                     .withOpacity(0.2),
               ),
               child: Text(
-                model.status.label,
+                status.label,
                 style:
                     (isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
                             : STextStyles.itemSubtitle12(context))
                         .copyWith(
-                          color: model.status.getColor(
+                          color: status.getColor(
                             Theme.of(context).extension<StackColors>()!,
                           ),
                         ),
@@ -307,7 +306,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       ),
     );
 
-    final offerBanner = model.status == ShopInBitOrderStatus.offerAvailable
+    final offerBanner = status == ShopInBitOrderStatus.offerAvailable
         ? Padding(
             padding: .only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
@@ -328,7 +327,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           ShopInBitOfferView.routeName,
-                          arguments: model,
+                          arguments: _id,
                         );
                       },
                     ),
@@ -346,8 +345,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "${model.offerProductName ?? 'Item'} \u2014 "
-                      "${model.offerPrice ?? '0'} EUR",
+                      "${ticket?.offerProductName ?? 'Item'} — "
+                      "${ticket?.offerPrice ?? '0'} EUR",
                       style: isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)
                           : STextStyles.itemSubtitle12(context),
@@ -360,7 +359,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                             ShopInBitOfferView.routeName,
-                            arguments: model,
+                            arguments: _id,
                           );
                         },
                       ),
@@ -375,9 +374,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       reverse: true,
       padding: const EdgeInsets.all(8),
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: model.messages.length,
+      itemCount: messages.length,
       itemBuilder: (context, index) {
-        final message = model.messages[model.messages.length - 1 - index];
+        final message = messages[messages.length - 1 - index];
         return _chatBubble(message, isDesktop);
       },
     );
@@ -443,7 +442,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     );
 
     final requestDetailsSection =
-        _isCarResearch && model.requestDescription.isNotEmpty
+        isCarResearch && (ticket?.requestDescription.isNotEmpty ?? false)
         ? Padding(
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
@@ -463,7 +462,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                   ),
                   const SizedBox(height: 8),
                   SelectableText(
-                    model.requestDescription,
+                    ticket!.requestDescription,
                     style: isDesktop
                         ? STextStyles.desktopTextExtraExtraSmall(context)
                         : STextStyles.itemSubtitle12(context),
@@ -474,31 +473,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
           )
         : const SizedBox.shrink();
 
-    // After the fee is paid the backend creates the real car ticket from the
-    // cached request, so we surface a finalizing note instead of asking the
-    // client to create the request itself.
-    final finalizingNote =
-        model.needsCreateRequest && model.category == ShopInBitCategory.car
-        ? Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: RoundedWhiteContainer(
-              child: Text(
-                "We're finalizing your car research request. Pull to refresh "
-                "if it doesn't appear shortly.",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context),
-              ),
-            ),
-          )
-        : const SizedBox.shrink();
-
     final body = Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
       children: [
         statusBar,
-        finalizingNote,
         offerBanner,
         requestDetailsSection,
         chatArea,
@@ -528,10 +507,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      RefreshButton(
-                        isRefreshing: isRefreshing,
-                        onPressed: _refresh,
-                      ),
+                      RefreshButton(isRefreshing: false, onPressed: _refresh),
                       const SizedBox(width: 8),
                       const DesktopDialogCloseButton(),
                     ],
@@ -564,7 +540,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
               title: Text(
-                model.ticketId ?? "Request",
+                ticketNumber,
                 style: STextStyles.navBarTitle(context),
               ),
             ),

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
@@ -31,15 +30,10 @@ import 'shopinbit_tickets_view.dart';
 enum _PaymentFlowState { idle, polling, finalizing, complete, error }
 
 class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
-  const ShopInBitCarResearchPaymentView({
-    super.key,
-    required this.model,
-    required this.invoice,
-  });
+  const ShopInBitCarResearchPaymentView({super.key, required this.invoice});
 
   static const String routeName = "/shopInBitCarResearchPayment";
 
-  final ShopInBitOrderModel model;
   final CarResearchInvoice invoice;
 
   @override
@@ -84,7 +78,8 @@ class _ShopInBitCarResearchPaymentViewState
       paymentUri: _currentAddress,
       address: target.address,
       amount: target.amount,
-      model: widget.model,
+      // The car research fee is paid before any ticket exists.
+      apiTicketId: 0,
       // After the wallet send, pop back here so polling can continue.
       routeOnSuccessName: ShopInBitCarResearchPaymentView.routeName,
     );
@@ -280,8 +275,8 @@ class _ShopInBitCarResearchPaymentViewState
     setState(() => _flowState = _PaymentFlowState.finalizing);
     _pollTimer?.cancel();
 
-    final db = ref.read(pSharedDrift);
-    final client = ref.read(pShopinBitService).client;
+    final service = ref.read(pShopinBitService);
+    final client = service.client;
 
     try {
       // Best-effort: the BTCPay webhook is the failsafe that finalizes the fee
@@ -293,8 +288,7 @@ class _ShopInBitCarResearchPaymentViewState
       if (logResp.hasError || logResp.value == null) {
         // Payment is confirmed but we could not log it. The webhook will
         // finalize it server side, so send the user to their requests where
-        // the finalized ticket will appear, and leave the pending record so
-        // they can resume if needed.
+        // the finalized ticket will appear.
         if (mounted) {
           await showDialog<void>(
             context: context,
@@ -314,47 +308,29 @@ class _ShopInBitCarResearchPaymentViewState
       }
 
       final result = logResp.value!;
-      widget.model.feeTicketNumber = result.ticketNumber;
 
       // log-payment returns the partner-scoped fee receipt, which the customer
-      // key cannot poll. Adopt the customer-facing car research ticket the
-      // backend created from the cached request so polling targets it instead.
+      // key cannot poll. Pull the customer-facing car research ticket the
+      // backend created from the cached request into the local DB, then open
+      // it. `refreshAll` inserts it so the order-created view can read it.
+      await service.refreshAll();
       final realTicket = await _resolveRealTicket(result.ticketId);
-
-      final prevTicketId = widget.model.ticketId;
-      if (realTicket != null) {
-        widget.model.apiTicketId = realTicket.id;
-        widget.model.ticketId = realTicket.number;
-      } else {
-        // Backend has not surfaced the ticket yet. Show the receipt number and
-        // leave polling disabled so we don't hammer the inaccessible receipt;
-        // the requests list refresh will pick up the real ticket later.
-        widget.model.apiTicketId = 0;
-        widget.model.ticketId = result.ticketNumber;
-      }
-      widget.model.status = ShopInBitOrderStatus.pending;
-      widget.model.isPendingPayment = false;
-      widget.model.needsCreateRequest = false;
-
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(widget.model.toCompanion());
-
-      // Drop the sentinel pending row now that we have a real ticket id.
-      if (prevTicketId != null && prevTicketId != widget.model.ticketId) {
-        await (db.delete(
-          db.shopInBitTickets,
-        )..where((t) => t.ticketId.equals(prevTicketId))).go();
-      }
 
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.complete);
 
-      unawaited(
-        Navigator.of(
-          context,
-        ).pushNamed(ShopInBitOrderCreated.routeName, arguments: widget.model),
-      );
+      if (realTicket != null) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            ShopInBitOrderCreated.routeName,
+            arguments: realTicket.id,
+          ),
+        );
+      } else {
+        // Backend has not surfaced the ticket yet; the requests list will pick
+        // it up on its next refresh.
+        _popToTickets();
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _flowState = _PaymentFlowState.error);
@@ -373,26 +349,17 @@ class _ShopInBitCarResearchPaymentViewState
   }
 
   /// Find the customer-facing car research ticket the backend created from the
-  /// cached request, excluding the partner-scoped fee receipt and any ticket we
-  /// already track. Returns the newest match, or null if none is visible yet.
+  /// cached request, excluding the partner-scoped fee receipt. Returns the
+  /// newest match, or null if none is visible yet.
   Future<TicketRef?> _resolveRealTicket(int receiptTicketId) async {
     final service = ref.read(pShopinBitService);
-    final db = ref.read(pSharedDrift);
     try {
       final customerKey = await service.ensureCustomerKey();
       final resp = await service.client.getTicketsByCustomer(customerKey);
       if (resp.hasError || resp.value == null) return null;
 
-      final knownApiIds = (await db.select(db.shopInBitTickets).get())
-          .map((t) => t.apiTicketId)
-          .toSet();
-
       final candidates =
-          resp.value!
-              .where(
-                (t) => t.id != receiptTicketId && !knownApiIds.contains(t.id),
-              )
-              .toList()
+          resp.value!.where((t) => t.id != receiptTicketId).toList()
             ..sort((a, b) => b.id.compareTo(a.id));
 
       return candidates.isEmpty ? null : candidates.first;

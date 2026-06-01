@@ -2,8 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
-import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../providers/db/drift_provider.dart";
+import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
@@ -59,9 +58,7 @@ const int _minArrangementDetailsLength = 10;
 /// dates (either exact or flexible), travelers and budget, then submits via
 /// the shared submit helper.
 class ShopInBitTravelForm extends ConsumerStatefulWidget {
-  const ShopInBitTravelForm({super.key, required this.model});
-
-  final ShopInBitOrderModel model;
+  const ShopInBitTravelForm({super.key});
 
   @override
   ConsumerState<ShopInBitTravelForm> createState() =>
@@ -234,19 +231,17 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
-    widget.model
-      ..requestDescription = _buildRequestDescription()
+    final draft = ShopinbitRequestDraft(
+      category: .travel,
+      requestDescription: _buildRequestDescription(),
       // Travel doesn't collect a delivery country: default to "DE" since the
       // API requires the field. Travel destinations are captured in the
       // structured comment field.
-      ..deliveryCountry = "DE";
+      deliveryCountry: "DE",
+      voucherCode: null,
+    );
     try {
-      await submitShopInBitRequest(
-        context,
-        widget.model,
-        ref.read(pShopinBitService),
-        ref.read(pSharedDrift),
-      );
+      await submitShopInBitRequest(context, draft, ref.read(pShopinBitService));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

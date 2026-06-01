@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
@@ -31,13 +30,13 @@ import 'shopinbit_payment_shared.dart';
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({
     super.key,
-    required this.model,
+    required this.apiTicketId,
     required this.paymentInfo,
   });
 
   static const String routeName = "/shopInBitPayment";
 
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
 
   // Caller loads this before pushing, so we always open with usable addresses.
   final PaymentInfo paymentInfo;
@@ -60,8 +59,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   String get _currentAddress =>
       _selectedMethod < _addresses.length ? _addresses[_selectedMethod] : "";
 
-  String get _totalPrice =>
-      _paymentInfo?.customerPrice ?? widget.model.offerPrice ?? "0";
+  String get _totalPrice => _paymentInfo?.customerPrice ?? "0";
 
   String get _status => _paymentInfo?.status ?? 'ready_to_pay';
 
@@ -80,7 +78,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   void initState() {
     super.initState();
     _applyPaymentInfo(widget.paymentInfo);
-    if (widget.model.apiTicketId != 0) {
+    if (widget.apiTicketId != 0) {
       _startPolling();
     }
   }
@@ -113,7 +111,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId);
+          .getPayment(widget.apiTicketId);
       if (!resp.hasError && resp.value != null && mounted) {
         setState(() => _applyPaymentInfo(resp.value!));
         if (_isTerminal) {
@@ -129,7 +127,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       whileFuture: ref
           .read(pShopinBitService)
           .client
-          .putPayment(widget.model.apiTicketId),
+          .putPayment(widget.apiTicketId),
       context: context,
       message: "Refreshing invoice",
     );
@@ -146,7 +144,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       whileFuture: ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId),
+          .getPayment(widget.apiTicketId),
       context: context,
       message: "Checking for payment",
     );
@@ -223,7 +221,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       paymentUri: _currentAddress,
       address: target.address,
       amount: target.amount,
-      model: widget.model,
+      apiTicketId: widget.apiTicketId,
       popDesktopBeforeShow: true,
     )) {
       return;

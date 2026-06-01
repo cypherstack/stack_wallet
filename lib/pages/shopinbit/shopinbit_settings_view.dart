@@ -37,31 +37,21 @@ class ShopInBitSettingsView extends ConsumerStatefulWidget {
 
 class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   final _manualKeyController = TextEditingController();
-  final _displayNameController = TextEditingController();
 
   String? _currentKey;
   bool _loading = false;
-  bool _savingName = false;
 
   @override
   void initState() {
     super.initState();
 
-    // not the greatest solution but its the least invasive with the current
-    // ui code impl
     () async {
       final settings = await ref
           .read(pSharedDrift)
-          .shopinBitSettingsDao
-          .getSettings();
+          .shopInBitSettingsDao
+          .getCurrentSettings();
       if (mounted) {
-        final key = await ref.read(pShopinBitService).loadCustomerKey();
-        if (mounted) {
-          setState(() {
-            _currentKey = key;
-            _displayNameController.text = settings.displayName ?? "";
-          });
-        }
+        setState(() => _currentKey = settings?.customerKey);
       }
     }();
   }
@@ -69,28 +59,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   @override
   void dispose() {
     _manualKeyController.dispose();
-    _displayNameController.dispose();
     super.dispose();
-  }
-
-  Future<void> _saveDisplayName() async {
-    final name = _displayNameController.text.trim();
-    if (name.isEmpty) return;
-    setState(() => _savingName = true);
-    try {
-      await ref.read(pSharedDrift).shopinBitSettingsDao.setDisplayName(name);
-      if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Display name updated",
-            context: context,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _savingName = false);
-    }
   }
 
   Future<void> _generate() async {
@@ -103,9 +72,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
     try {
       final String key;
       if (_currentKey != null) {
-        final resp = await ref.read(pShopinBitService).client.generateKey();
-        key = resp.valueOrThrow;
-        await ref.read(pShopinBitService).setCustomerKey(key);
+        key = await ref.read(pShopinBitService).generateCustomerKey();
       } else {
         key = await ref.read(pShopinBitService).ensureCustomerKey();
       }
@@ -150,7 +117,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(pShopinBitService).setCustomerKey(newKey);
+      await ref.read(pShopinBitService).recoverCustomerKey(newKey);
       setState(() {
         _currentKey = newKey;
         _manualKeyController.clear();
@@ -498,38 +465,6 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                             label: "Set key",
                             onPressed: _setManualKey,
                           ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "Display Name",
-                            style: STextStyles.desktopTextSmall(context),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "The name ShopinBit staff will see "
-                            "when communicating with you.",
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: 512,
-                            child: AdaptiveTextField(
-                              labelText: "Display name",
-                              controller: _displayNameController,
-                              onChangedComprehensive: (_) => setState(() {}),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          PrimaryButton(
-                            width: 210,
-                            buttonHeight: ButtonHeight.m,
-                            enabled:
-                                !_savingName &&
-                                _displayNameController.text.trim().isNotEmpty,
-                            label: "Save",
-                            onPressed: _saveDisplayName,
-                          ),
                         ],
                       ),
                     ),
@@ -687,43 +622,6 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                                               .trim()
                                               .isNotEmpty,
                                       onPressed: _setManualKey,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              RoundedWhiteContainer(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Display Name",
-                                      style: STextStyles.titleBold12(context),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "The name ShopinBit staff will see "
-                                      "when communicating with you.",
-                                      style: STextStyles.itemSubtitle12(
-                                        context,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    AdaptiveTextField(
-                                      labelText: "Display name",
-                                      controller: _displayNameController,
-                                      onChangedComprehensive: (_) =>
-                                          setState(() {}),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    PrimaryButton(
-                                      label: "Save",
-                                      enabled:
-                                          !_savingName &&
-                                          _displayNameController.text
-                                              .trim()
-                                              .isNotEmpty,
-                                      onPressed: _saveDisplayName,
                                     ),
                                   ],
                                 ),

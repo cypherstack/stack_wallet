@@ -19,6 +19,7 @@ import '../../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../../pages_desktop_specific/desktop_menu.dart';
 import '../../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
+import '../../../../../providers/global/shopin_bit_service_provider.dart';
 import '../../../../../providers/providers.dart';
 import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -69,34 +70,32 @@ class _StackRestoreProgressViewState
       showDialog<void>(
         barrierDismissible: false,
         context: context,
-        builder:
-            (_) => WillPopScope(
-              onWillPop: () async {
-                return shouldPop;
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Material(
-                    color: Colors.transparent,
-                    child: Center(
-                      child: Text(
-                        "Cancelling restore. Please wait.",
-                        style: STextStyles.pageTitleH2(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textWhite,
-                        ),
-                      ),
+        builder: (_) => WillPopScope(
+          onWillPop: () async {
+            return shouldPop;
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: Center(
+                  child: Text(
+                    "Cancelling restore. Please wait.",
+                    style: STextStyles.pageTitleH2(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textWhite,
                     ),
                   ),
-                  const SizedBox(height: 64),
-                  const Center(child: LoadingIndicator(width: 100)),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 64),
+              const Center(child: LoadingIndicator(width: 100)),
+            ],
+          ),
+        ),
       ),
     );
 
@@ -108,12 +107,12 @@ class _StackRestoreProgressViewState
     if (mounted) {
       !isDesktop
           ? Navigator.of(context).popUntil(
-            ModalRoute.withName(
-              widget.fromFile
-                  ? RestoreFromEncryptedStringView.routeName
-                  : StackBackupView.routeName,
-            ),
-          )
+              ModalRoute.withName(
+                widget.fromFile
+                    ? RestoreFromEncryptedStringView.routeName
+                    : StackBackupView.routeName,
+              ),
+            )
           : Navigator.of(context).popUntil((_) => count++ >= 2);
     }
   }
@@ -164,6 +163,7 @@ class _StackRestoreProgressViewState
         widget.jsonString,
         uiState,
         ref.read(secureStoreProvider),
+        ref.read(pShopinBitService),
       );
     } catch (e, s) {
       Logging.instance.w("$e\n$s", error: e, stackTrace: s);
@@ -199,8 +199,9 @@ class _StackRestoreProgressViewState
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color:
-              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          color: Theme.of(
+            context,
+          ).extension<StackColors>()!.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return SvgPicture.asset(
@@ -248,8 +249,9 @@ class _StackRestoreProgressViewState
         return WillPopScope(
           onWillPop: _onWillPop,
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -302,69 +304,22 @@ class _StackRestoreProgressViewState
                   );
                   return !isDesktop
                       ? RestoringItemCard(
-                        left: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            padding: const EdgeInsets.all(0),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
-                            child: Center(
-                              child: SvgPicture.asset(
-                                Assets.svg.gear,
-                                width: 16,
-                                height: 16,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                        right: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: _getIconForState(state),
-                        ),
-                        title: "Preferences",
-                        subTitle:
-                            state == StackRestoringStatus.failed
-                                ? Text(
-                                  "Something went wrong",
-                                  style: STextStyles.errorSmall(context),
-                                )
-                                : null,
-                      )
-                      : RoundedContainer(
-                        padding: EdgeInsets.zero,
-                        color:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        child: RestoringItemCard(
                           left: SizedBox(
                             width: 32,
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonBackSecondary,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonBackSecondary,
                               child: Center(
                                 child: SvgPicture.asset(
                                   Assets.svg.gear,
                                   width: 16,
                                   height: 16,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                               ),
                             ),
@@ -375,15 +330,56 @@ class _StackRestoreProgressViewState
                             child: _getIconForState(state),
                           ),
                           title: "Preferences",
-                          subTitle:
-                              state == StackRestoringStatus.failed
-                                  ? Text(
+                          subTitle: state == StackRestoringStatus.failed
+                              ? Text(
+                                  "Something went wrong",
+                                  style: STextStyles.errorSmall(context),
+                                )
+                              : null,
+                        )
+                      : RoundedContainer(
+                          padding: EdgeInsets.zero,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
+                          child: RestoringItemCard(
+                            left: SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: RoundedContainer(
+                                padding: const EdgeInsets.all(0),
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonBackSecondary,
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    Assets.svg.gear,
+                                    width: 16,
+                                    height: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            right: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: _getIconForState(state),
+                            ),
+                            title: "Preferences",
+                            subTitle: state == StackRestoringStatus.failed
+                                ? Text(
                                     "Something went wrong",
                                     style: STextStyles.errorSmall(context),
                                   )
-                                  : null,
-                        ),
-                      );
+                                : null,
+                          ),
+                        );
                 },
               ),
               const SizedBox(height: 12),
@@ -396,67 +392,21 @@ class _StackRestoreProgressViewState
                   );
                   return !isDesktop
                       ? RestoringItemCard(
-                        left: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            padding: const EdgeInsets.all(0),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
-                            child: Center(
-                              child: AddressBookIcon(
-                                width: 16,
-                                height: 16,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                        right: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: _getIconForState(state),
-                        ),
-                        title: "Address book",
-                        subTitle:
-                            state == StackRestoringStatus.failed
-                                ? Text(
-                                  "Something went wrong",
-                                  style: STextStyles.errorSmall(context),
-                                )
-                                : null,
-                      )
-                      : RoundedContainer(
-                        padding: EdgeInsets.zero,
-                        color:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        child: RestoringItemCard(
                           left: SizedBox(
                             width: 32,
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonBackSecondary,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonBackSecondary,
                               child: Center(
                                 child: AddressBookIcon(
                                   width: 16,
                                   height: 16,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                               ),
                             ),
@@ -467,15 +417,55 @@ class _StackRestoreProgressViewState
                             child: _getIconForState(state),
                           ),
                           title: "Address book",
-                          subTitle:
-                              state == StackRestoringStatus.failed
-                                  ? Text(
+                          subTitle: state == StackRestoringStatus.failed
+                              ? Text(
+                                  "Something went wrong",
+                                  style: STextStyles.errorSmall(context),
+                                )
+                              : null,
+                        )
+                      : RoundedContainer(
+                          padding: EdgeInsets.zero,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
+                          child: RestoringItemCard(
+                            left: SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: RoundedContainer(
+                                padding: const EdgeInsets.all(0),
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonBackSecondary,
+                                child: Center(
+                                  child: AddressBookIcon(
+                                    width: 16,
+                                    height: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            right: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: _getIconForState(state),
+                            ),
+                            title: "Address book",
+                            subTitle: state == StackRestoringStatus.failed
+                                ? Text(
                                     "Something went wrong",
                                     style: STextStyles.errorSmall(context),
                                   )
-                                  : null,
-                        ),
-                      );
+                                : null,
+                          ),
+                        );
                 },
               ),
               const SizedBox(height: 12),
@@ -488,69 +478,22 @@ class _StackRestoreProgressViewState
                   );
                   return !isDesktop
                       ? RestoringItemCard(
-                        left: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            padding: const EdgeInsets.all(0),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
-                            child: Center(
-                              child: SvgPicture.asset(
-                                Assets.svg.node,
-                                width: 16,
-                                height: 16,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                        right: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: _getIconForState(state),
-                        ),
-                        title: "Nodes",
-                        subTitle:
-                            state == StackRestoringStatus.failed
-                                ? Text(
-                                  "Something went wrong",
-                                  style: STextStyles.errorSmall(context),
-                                )
-                                : null,
-                      )
-                      : RoundedContainer(
-                        padding: EdgeInsets.zero,
-                        color:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        child: RestoringItemCard(
                           left: SizedBox(
                             width: 32,
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonBackSecondary,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonBackSecondary,
                               child: Center(
                                 child: SvgPicture.asset(
                                   Assets.svg.node,
                                   width: 16,
                                   height: 16,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                               ),
                             ),
@@ -561,15 +504,56 @@ class _StackRestoreProgressViewState
                             child: _getIconForState(state),
                           ),
                           title: "Nodes",
-                          subTitle:
-                              state == StackRestoringStatus.failed
-                                  ? Text(
+                          subTitle: state == StackRestoringStatus.failed
+                              ? Text(
+                                  "Something went wrong",
+                                  style: STextStyles.errorSmall(context),
+                                )
+                              : null,
+                        )
+                      : RoundedContainer(
+                          padding: EdgeInsets.zero,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
+                          child: RestoringItemCard(
+                            left: SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: RoundedContainer(
+                                padding: const EdgeInsets.all(0),
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonBackSecondary,
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    Assets.svg.node,
+                                    width: 16,
+                                    height: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            right: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: _getIconForState(state),
+                            ),
+                            title: "Nodes",
+                            subTitle: state == StackRestoringStatus.failed
+                                ? Text(
                                     "Something went wrong",
                                     style: STextStyles.errorSmall(context),
                                   )
-                                  : null,
-                        ),
-                      );
+                                : null,
+                          ),
+                        );
                 },
               ),
               const SizedBox(height: 12),
@@ -582,69 +566,22 @@ class _StackRestoreProgressViewState
                   );
                   return !isDesktop
                       ? RestoringItemCard(
-                        left: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            padding: const EdgeInsets.all(0),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
-                            child: Center(
-                              child: SvgPicture.asset(
-                                Assets.svg.arrowsTwoWay,
-                                width: 16,
-                                height: 16,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                        right: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: _getIconForState(state),
-                        ),
-                        title: "Exchange history",
-                        subTitle:
-                            state == StackRestoringStatus.failed
-                                ? Text(
-                                  "Something went wrong",
-                                  style: STextStyles.errorSmall(context),
-                                )
-                                : null,
-                      )
-                      : RoundedContainer(
-                        padding: EdgeInsets.zero,
-                        color:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        child: RestoringItemCard(
                           left: SizedBox(
                             width: 32,
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonBackSecondary,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonBackSecondary,
                               child: Center(
                                 child: SvgPicture.asset(
                                   Assets.svg.arrowsTwoWay,
                                   width: 16,
                                   height: 16,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                               ),
                             ),
@@ -655,15 +592,56 @@ class _StackRestoreProgressViewState
                             child: _getIconForState(state),
                           ),
                           title: "Exchange history",
-                          subTitle:
-                              state == StackRestoringStatus.failed
-                                  ? Text(
+                          subTitle: state == StackRestoringStatus.failed
+                              ? Text(
+                                  "Something went wrong",
+                                  style: STextStyles.errorSmall(context),
+                                )
+                              : null,
+                        )
+                      : RoundedContainer(
+                          padding: EdgeInsets.zero,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
+                          child: RestoringItemCard(
+                            left: SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: RoundedContainer(
+                                padding: const EdgeInsets.all(0),
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonBackSecondary,
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    Assets.svg.arrowsTwoWay,
+                                    width: 16,
+                                    height: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.accentColorDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            right: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: _getIconForState(state),
+                            ),
+                            title: "Exchange history",
+                            subTitle: state == StackRestoringStatus.failed
+                                ? Text(
                                     "Something went wrong",
                                     style: STextStyles.errorSmall(context),
                                   )
-                                  : null,
-                        ),
-                      );
+                                : null,
+                          ),
+                        );
                 },
               ),
               const SizedBox(height: 16),
@@ -685,55 +663,54 @@ class _StackRestoreProgressViewState
               const SizedBox(height: 30),
               SizedBox(
                 width: MediaQuery.of(context).size.width - 32,
-                child:
-                    !isDesktop
-                        ? TextButton(
-                          onPressed: () async {
-                            if (_success) {
-                              if (widget.shouldPushToHome) {
-                                Navigator.of(context).popUntil(
-                                  ModalRoute.withName(HomeView.routeName),
-                                );
-                              } else {
-                                Navigator.of(context).pop();
-                              }
+                child: !isDesktop
+                    ? TextButton(
+                        onPressed: () async {
+                          if (_success) {
+                            if (widget.shouldPushToHome) {
+                              Navigator.of(context).popUntil(
+                                ModalRoute.withName(HomeView.routeName),
+                              );
                             } else {
-                              if (await _requestCancel()) {
-                                await _cancel();
-                              }
+                              Navigator.of(context).pop();
                             }
-                          },
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getPrimaryEnabledButtonStyle(context),
-                          child: Text(
-                            _success ? "OK" : "Cancel restore process",
-                            style: STextStyles.button(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.buttonTextPrimary,
-                            ),
+                          } else {
+                            if (await _requestCancel()) {
+                              await _cancel();
+                            }
+                          }
+                        },
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context),
+                        child: Text(
+                          _success ? "OK" : "Cancel restore process",
+                          style: STextStyles.button(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.buttonTextPrimary,
                           ),
-                        )
-                        : Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            _success
-                                ? PrimaryButton(
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _success
+                              ? PrimaryButton(
                                   width: 248,
                                   buttonHeight: ButtonHeight.l,
                                   enabled: true,
                                   label: "Done",
                                   onPressed: () async {
-                                    final DesktopMenuItemId keyID =
-                                        DesktopMenuItemId.myStack;
+                                    const DesktopMenuItemId keyID = .myStack;
 
                                     ref
-                                        .read(
-                                          currentDesktopMenuItemProvider.state,
-                                        )
-                                        .state = keyID;
+                                            .read(
+                                              currentDesktopMenuItemProvider
+                                                  .state,
+                                            )
+                                            .state =
+                                        keyID;
 
                                     if (widget.shouldPushToHome) {
                                       unawaited(
@@ -756,7 +733,7 @@ class _StackRestoreProgressViewState
                                     }
                                   },
                                 )
-                                : SecondaryButton(
+                              : SecondaryButton(
                                   width: 248,
                                   buttonHeight: ButtonHeight.l,
                                   enabled: true,
@@ -767,8 +744,8 @@ class _StackRestoreProgressViewState
                                     }
                                   },
                                 ),
-                          ],
-                        ),
+                        ],
+                      ),
               ),
             ],
           ),

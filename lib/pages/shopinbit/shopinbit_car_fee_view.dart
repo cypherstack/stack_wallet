@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
-import '../../providers/db/drift_provider.dart';
+import '../../models/shopinbit/shopinbit_request_draft.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
@@ -31,11 +30,11 @@ import 'shopinbit_car_research_payment_view.dart';
 import 'shopinbit_step_2.dart';
 
 class ShopInBitCarFeeView extends ConsumerStatefulWidget {
-  const ShopInBitCarFeeView({super.key, required this.model});
+  const ShopInBitCarFeeView({super.key, required this.draft});
 
   static const String routeName = "/shopInBitCarFee";
 
-  final ShopInBitOrderModel model;
+  final ShopinbitRequestDraft draft;
 
   @override
   ConsumerState<ShopInBitCarFeeView> createState() =>
@@ -98,14 +97,10 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.model.shippingName);
-    _streetController = TextEditingController(
-      text: widget.model.shippingStreet,
-    );
-    _cityController = TextEditingController(text: widget.model.shippingCity);
-    _postalCodeController = TextEditingController(
-      text: widget.model.shippingPostalCode,
-    );
+    _nameController = TextEditingController();
+    _streetController = TextEditingController();
+    _cityController = TextEditingController();
+    _postalCodeController = TextEditingController();
     _nameFocusNode = FocusNode();
     _streetFocusNode = FocusNode();
     _cityFocusNode = FocusNode();
@@ -133,11 +128,6 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     }
 
     _fetchCountries();
-
-    // Pre-select country on resume if model already has a shipping country.
-    if (widget.model.shippingCountry.isNotEmpty) {
-      _selectedCountryIso = widget.model.shippingCountry;
-    }
   }
 
   @override
@@ -216,13 +206,6 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
 
       // Delivery address (always provided)
       final deliveryName = _splitFullName(_nameController.text);
-      widget.model.setShippingAddress(
-        name: _nameController.text.trim(),
-        street: _streetController.text.trim(),
-        city: _cityController.text.trim(),
-        postalCode: _postalCodeController.text.trim(),
-        country: _selectedCountryIso!,
-      );
 
       // Billing address: use separate billing fields if different,
       // else use delivery
@@ -251,9 +234,9 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       // Cache the car request alongside billing so the backend failsafe can
       // create the real car research ticket once the fee is paid.
       final request = CarResearchRequest(
-        customerPseudonym: widget.model.displayName,
-        comment: widget.model.requestDescription,
-        deliveryCountry: widget.model.deliveryCountry,
+        customerPseudonym: kShopInBitCustomerPseudonym,
+        comment: widget.draft.requestDescription,
+        deliveryCountry: widget.draft.deliveryCountry,
       );
 
       final resp = await ref
@@ -286,18 +269,8 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
 
       final invoice = resp.value!;
 
-      // Persist pending state so the user can resume if they close the dialog.
-      // Sentinel ticketId; unique-replace index ensures at most one pending
-      // record.
-      widget.model.ticketId = "pending-car-research";
-      widget.model.carResearchInvoiceId = invoice.btcpayInvoice;
-      widget.model.isPendingPayment = true;
-      widget.model.carResearchExpiresAt = invoice.expiresAt;
-      widget.model.carResearchPaymentLinks = jsonEncode(invoice.paymentLinks);
-      final db = ref.read(pSharedDrift);
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(widget.model.toCompanion());
+      // No local persistence: an unfinished fee is recovered server-side via
+      // `GET /car-research/invoices/current` (see the requests list).
 
       // Best-effort fee fetch; do not block navigation on fee parse failure.
       await _loadFee(invoice);
@@ -307,7 +280,7 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       unawaited(
         Navigator.of(context).pushNamed(
           ShopInBitCarResearchPaymentView.routeName,
-          arguments: (widget.model, invoice),
+          arguments: invoice,
         ),
       );
     } catch (e, s) {

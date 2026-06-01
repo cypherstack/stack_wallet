@@ -42,7 +42,7 @@ class TicketRef {
   TicketRef({required this.id, required this.number});
 
   factory TicketRef.fromJson(Map<String, dynamic> json) {
-    return TicketRef(id: _toInt(json['id']), number: json['number'].toString());
+    return TicketRef(id: _toInt(json['id']), number: json['number'] as String);
   }
 
   Map<String, dynamic> toMap() {
@@ -108,12 +108,13 @@ class TicketStatus {
 class TicketFull {
   final int id;
   final String number;
-  final String productName;
-  final String customerPrice;
-  final String partnerPrice;
-  final String partnerCommission;
-  final String netPurchasePrice;
-  final String netShippingCosts;
+  final String? productName;
+  final String? customerPrice;
+  final String? partnerPrice;
+  final String? partnerCommission;
+  final String? netPurchasePrice;
+  final String? netShippingCosts;
+  final String deliveryCountry;
   final int vatRate;
 
   TicketFull({
@@ -125,19 +126,23 @@ class TicketFull {
     required this.partnerCommission,
     required this.netPurchasePrice,
     required this.netShippingCosts,
+    required this.deliveryCountry,
     required this.vatRate,
   });
 
   factory TicketFull.fromJson(Map<String, dynamic> json) {
     return TicketFull(
       id: _toInt(json['id']),
-      number: json['number'].toString(),
-      productName: (json['product_name'] ?? '').toString(),
-      customerPrice: (json['customer_price'] ?? '').toString(),
-      partnerPrice: (json['partner_price'] ?? '').toString(),
-      partnerCommission: (json['partner_commission'] ?? '').toString(),
-      netPurchasePrice: (json['net_purchase_price'] ?? '').toString(),
-      netShippingCosts: (json['net_shipping_costs'] ?? '').toString(),
+      number: json['number'] as String,
+      productName: json['product_name'] as String?,
+      customerPrice: json['customer_price'] as String?,
+      partnerPrice: json['partner_price'] as String?,
+      partnerCommission: json['partner_commission'] as String?,
+      netPurchasePrice: json['net_purchase_price'] as String?,
+      netShippingCosts: json['net_shipping_costs'] as String?,
+      deliveryCountry:
+          json['delivery_country'] as String? ??
+          (json['deliverycountry'] as String),
       vatRate: _toInt(json['vat_rate']),
     );
   }
@@ -152,6 +157,7 @@ class TicketFull {
       "partner_commission": partnerCommission,
       "net_purchase_price": netPurchasePrice,
       "net_shipping_costs": netShippingCosts,
+      "delivery_country": deliveryCountry,
       "vat_rate": vatRate,
     };
   }
@@ -162,9 +168,5 @@ class TicketFull {
 
 int _toInt(dynamic value) {
   if (value is int) return value;
-  if (value is num) return value.toInt();
-  // Un-priced offers come back with empty/missing numeric fields; returning 0
-  // is safe as it's validated downstream and 0s result in an error dialog
-  // that pricing's unavailable.
-  return int.tryParse(value.toString()) ?? 0;
+  return int.parse(value.toString());
 }

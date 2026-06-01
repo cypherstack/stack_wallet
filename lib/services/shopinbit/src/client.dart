@@ -9,13 +9,13 @@ import '../../tor_service.dart';
 import 'api_exception.dart';
 import 'api_response.dart';
 import 'endpoints.dart';
-import 'token_manager.dart';
 import 'models/address.dart';
 import 'models/car_research.dart';
 import 'models/message.dart';
 import 'models/payment.dart';
 import 'models/ticket.dart';
 import 'models/voucher.dart';
+import 'token_manager.dart';
 
 const _kTag = "ShopInBitClient";
 
@@ -29,7 +29,6 @@ class ShopInBitClient {
 
   String? _externalCustomerKey;
 
-  String? get externalCustomerKey => _externalCustomerKey;
   set externalCustomerKey(String? key) => _externalCustomerKey = key;
 
   ShopInBitClient({
@@ -386,9 +385,8 @@ class ShopInBitClient {
                   const [];
         return list
             .map(
-              (e) => CarResearchCurrentInvoice.fromJson(
-                e as Map<String, dynamic>,
-              ),
+              (e) =>
+                  CarResearchCurrentInvoice.fromJson(e as Map<String, dynamic>),
             )
             .toList();
       },
@@ -493,7 +491,7 @@ class ShopInBitClient {
       'DELETE',
       '/partners/webhooks/$webhookId',
       needsCustomerKey: false,
-      parse: (_) => null,
+      parse: (_) {},
     );
   }
 

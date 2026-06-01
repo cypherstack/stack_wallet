@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/payment.dart';
@@ -28,13 +27,15 @@ import 'shopinbit_payment_view.dart';
 class ShopInBitShippingView extends ConsumerStatefulWidget {
   const ShopInBitShippingView({
     super.key,
-    required this.model,
+    required this.apiTicketId,
+    required this.deliveryCountry,
     required this.countries,
   });
 
   static const String routeName = "/shopInBitShipping";
 
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
+  final String deliveryCountry;
   final List<Map<String, dynamic>> countries;
 
   @override
@@ -113,7 +114,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     _billingCityFocusNode = FocusNode();
     _billingPostalCodeFocusNode = FocusNode();
 
-    _selectedCountryIso = widget.model.deliveryCountry;
+    _selectedCountryIso = widget.deliveryCountry;
 
     // firstWhere should never fail here as the caller of this widget must
     // check that countries contains the expected value. Failure here should be
@@ -168,24 +169,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     final postalCode = _postalCodeController.text.trim();
     final country = _selectedCountryIso;
 
-    widget.model.setShippingAddress(
-      name: name,
-      street: street,
-      city: city,
-      postalCode: postalCode,
-      country: country,
-    );
-
-    // The payment view needs a live invoice, so load it here and only navigate
-    // once we have usable payment links.
-    if (widget.model.apiTicketId == 0) {
-      // No ticket, nothing to invoice.
-      await _showPaymentLoadError(
-        "This request isn't ready for payment yet. Please try again.",
-      );
-      return;
-    }
-
     PaymentInfo? paymentInfo;
     setState(() => _submitting = true);
     try {
@@ -216,7 +199,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           .read(pShopinBitService)
           .client
           .submitAddress(
-            widget.model.apiTicketId,
+            widget.apiTicketId,
             shipping: Address(
               firstName: firstName,
               lastName: lastName,
@@ -233,10 +216,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         debugPrint("submitAddress failed: ${resp.exception?.message}");
       }
 
-      paymentInfo = await fetchShopInBitPaymentInfo(
-        ref,
-        widget.model.apiTicketId,
-      );
+      paymentInfo = await fetchShopInBitPaymentInfo(ref, widget.apiTicketId);
     } catch (e) {
       debugPrint("submitAddress threw: $e");
     } finally {
@@ -254,11 +234,9 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
       return;
     }
 
-    unawaited(
-      Navigator.of(context).pushNamed(
-        ShopInBitPaymentView.routeName,
-        arguments: (widget.model, paymentInfo),
-      ),
+    await Navigator.of(context).pushNamed(
+      ShopInBitPaymentView.routeName,
+      arguments: (apiTicketId: widget.apiTicketId, paymentInfo: paymentInfo),
     );
   }
 

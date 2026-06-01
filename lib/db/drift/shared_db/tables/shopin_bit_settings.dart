@@ -1,15 +1,30 @@
-import 'package:drift/drift.dart';
+import "package:drift/drift.dart";
 
-class ShopinBitSettings extends Table {
-  // Single row table - always row 0
-  IntColumn get id => integer().withDefault(const Constant(0))();
+/// One row per ShopinBit customer key the user has ever generated or
+/// recovered. Whichever row has the most recent `lastUsedAt` is the
+/// "current" key — see `ShopInBitSettingsDao.getCurrentSettings`.
+class ShopInBitSettings extends Table {
+  TextColumn get customerKey => text()();
 
-  BoolColumn get guidelinesAccepted =>
+  BoolColumn get privacyAccepted =>
       boolean().withDefault(const Constant(false))();
+
+  BoolColumn get conciergeGuidelinesAccepted =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get travelGuidelinesAccepted =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get carGuidelinesAccepted =>
+      boolean().withDefault(const Constant(false))();
+
   BoolColumn get setupComplete =>
       boolean().withDefault(const Constant(false))();
-  TextColumn get displayName => text().nullable()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get lastUsedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
-  Set<Column> get primaryKey => {id};
+  Set<Column<Object>> get primaryKey => {customerKey};
+
+  @override
+  bool get withoutRowId => true;
 }

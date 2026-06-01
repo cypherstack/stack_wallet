@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/show_loading.dart';
@@ -19,11 +18,11 @@ import '../../widgets/stack_dialog.dart';
 import 'shopinbit_shipping_view.dart';
 
 class ShopInBitOfferView extends ConsumerStatefulWidget {
-  const ShopInBitOfferView({super.key, required this.model});
+  const ShopInBitOfferView({super.key, required this.apiTicketId});
 
   static const String routeName = "/shopInBitOffer";
 
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
 
   @override
   ConsumerState<ShopInBitOfferView> createState() => _ShopInBitOfferViewState();
@@ -35,7 +34,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
   @override
   void initState() {
     super.initState();
-    if (widget.model.apiTicketId != 0) {
+    if (widget.apiTicketId != 0) {
       _loadOffer();
     }
   }
@@ -43,19 +42,11 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
   Future<void> _loadOffer() async {
     setState(() => _loading = true);
     try {
-      final resp = await ref
-          .read(pShopinBitService)
-          .client
-          .getTicketFull(widget.model.apiTicketId);
-      if (!resp.hasError && resp.value != null) {
-        final t = resp.value!;
-        widget.model.setOffer(
-          productName: t.productName,
-          price: t.customerPrice,
-        );
-      }
+      // Refresh pulls /full (offer product + price) into the ticket row, which
+      // we then read reactively from the DB stream.
+      await ref.read(pShopinBitService).refreshOne(widget.apiTicketId);
     } catch (_) {
-      // Fall back to local data
+      // Fall back to whatever the row already has.
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -64,7 +55,10 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final model = widget.model;
+    final ticket = ref
+        .watch(pShopInBitTicket(widget.apiTicketId))
+        .asData
+        ?.value;
 
     final content = Column(
       mainAxisSize: .min,
@@ -96,7 +90,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               ),
               const SizedBox(height: 4),
               Text(
-                model.offerProductName ?? (_loading ? "Loading..." : "N/A"),
+                ticket?.offerProductName ?? (_loading ? "Loading..." : "N/A"),
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),
@@ -117,9 +111,9 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               ),
               const SizedBox(height: 4),
               Text(
-                _loading && model.offerPrice == null
+                _loading && ticket?.offerPrice == null
                     ? "Loading..."
-                    : "${model.offerPrice ?? '0'} EUR",
+                    : "${ticket?.offerPrice ?? '0'} EUR",
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),
@@ -148,8 +142,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
               enabled: !_loading,
               onPressed: () async {
-                // TODO verify this is ok to stay set to accepted if the next route pops back and then decline is tapped
-                model.status = ShopInBitOrderStatus.accepted;
+                final deliveryCountry = ticket?.deliveryCountry ?? "";
 
                 final shopinBitApi = ref.read(pShopinBitService).client;
                 final response = await showLoading(
@@ -171,12 +164,12 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
                       response?.exception?.toString() ??
                       "Failed to fetch countries data";
                 } else if (response!.value!
-                        .where((c) => c['iso'] == model.deliveryCountry)
+                        .where((c) => c['iso'] == deliveryCountry)
                         .length !=
                     1) {
                   errorMessage =
                       "Delivery country code \""
-                      "${model.deliveryCountry}"
+                      "$deliveryCountry"
                       "\" is invalid";
                 }
 
@@ -197,7 +190,11 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
                 if (context.mounted) {
                   await Navigator.of(context).pushNamed(
                     ShopInBitShippingView.routeName,
-                    arguments: (model: model, countries: response!.value!),
+                    arguments: (
+                      apiTicketId: widget.apiTicketId,
+                      deliveryCountry: deliveryCountry,
+                      countries: response!.value!,
+                    ),
                   );
                 }
               },

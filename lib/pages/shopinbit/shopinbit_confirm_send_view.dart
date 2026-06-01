@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/isar/models/isar_models.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -40,7 +40,7 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
     required this.txData,
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
-    required this.model,
+    required this.apiTicketId,
     this.tokenContract,
   });
 
@@ -49,7 +49,7 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
   final TxData txData;
   final String walletId;
   final String routeOnSuccessName;
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
   final EthContract? tokenContract;
 
   @override
@@ -61,7 +61,7 @@ class _ShopInBitConfirmSendViewState
     extends ConsumerState<ShopInBitConfirmSendView> {
   late final String walletId;
   late final String routeOnSuccessName;
-  late final ShopInBitOrderModel model;
+  late final int apiTicketId;
 
   final isDesktop = Util.isDesktop;
 
@@ -118,16 +118,12 @@ class _ShopInBitConfirmSendViewState
             TransactionNote(walletId: walletId, txid: txid, value: note),
           );
 
-      // Update model status after successful broadcast
-      model.status = ShopInBitOrderStatus.paymentPending;
-      model.paymentMethod = widget.tokenContract != null
-          ? widget.tokenContract!.symbol.toUpperCase()
-          : coin.ticker.toUpperCase();
-
-      final db = ref.read(pSharedDrift);
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(model.toCompanion());
+      // The server (and the BTCPay webhook) own ticket + payment state from
+      // here, so there's nothing to persist locally; just nudge a refresh so
+      // the ticket row reflects the new payment status promptly.
+      if (apiTicketId != 0) {
+        unawaited(ref.read(pShopinBitService).refreshOne(apiTicketId));
+      }
 
       // pop back to wallet
       if (context.mounted) {
@@ -250,12 +246,15 @@ class _ShopInBitConfirmSendViewState
   void initState() {
     walletId = widget.walletId;
     routeOnSuccessName = widget.routeOnSuccessName;
-    model = widget.model;
+    apiTicketId = widget.apiTicketId;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final ticketNumber =
+        ref.watch(pShopInBitTicket(apiTicketId)).asData?.value?.ticketNumber ??
+        "";
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -674,7 +673,7 @@ class _ShopInBitConfirmSendViewState
                 children: [
                   Text("Request ID", style: STextStyles.smallMed12(context)),
                   Text(
-                    model.ticketId ?? "",
+                    ticketNumber,
                     style: STextStyles.itemSubtitle12(context),
                     textAlign: TextAlign.right,
                   ),

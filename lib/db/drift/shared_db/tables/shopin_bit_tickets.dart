@@ -2,112 +2,58 @@ import "dart:convert";
 
 import "package:drift/drift.dart";
 
-import '../../../../models/shopinbit/shopinbit_order_model.dart'
-    show ShopInBitCategory, ShopInBitOrderStatus;
+import "../../../../models/shopinbit/shopinbit_enums.dart";
+import "../../../../services/shopinbit/src/models/message.dart";
 
 class ShopInBitTickets extends Table {
-  TextColumn get ticketId => text()();
+  IntColumn get apiTicketId => integer()();
+  TextColumn get customerKey => text()();
+  TextColumn get ticketNumber => text()();
 
-  TextColumn get displayName => text()();
-
-  IntColumn get category => intEnum<ShopInBitCategory>()();
-  IntColumn get status => intEnum<ShopInBitOrderStatus>()();
-  TextColumn get statusRaw => text().nullable()();
-
+  TextColumn get category => textEnum<ShopInBitCategory>()();
   TextColumn get requestDescription => text()();
   TextColumn get deliveryCountry => text()();
+
+  TextColumn get status => textEnum<ShopInBitOrderStatus>()();
+  TextColumn get statusRaw => text()();
+
   TextColumn get offerProductName => text().nullable()();
   TextColumn get offerPrice => text().nullable()();
 
-  TextColumn get shippingName => text()();
-  TextColumn get shippingStreet => text()();
-  TextColumn get shippingCity => text()();
-  TextColumn get shippingPostalCode => text()();
-  TextColumn get shippingCountry => text()();
+  TextColumn get paymentInvoiceStatus => text().nullable()();
+  TextColumn get trackingLink => text().nullable()();
+  DateTimeColumn get lastAgentMessageAt => dateTime().nullable()();
 
-  TextColumn get paymentMethod => text().nullable()();
+  TextColumn get feeTicketNumber => text().nullable()();
 
   TextColumn get messages =>
-      text().map(const ShopInBitTicketMessagesConverter())();
+      text().map(const MessagesConverter()).withDefault(const Constant("[]"))();
 
-  DateTimeColumn get createdAt => dateTime()();
-  IntColumn get apiTicketId => integer()();
-
-  // Car research retry support
-  TextColumn get carResearchInvoiceId => text().nullable()();
-  TextColumn get feeTicketNumber => text().nullable()();
-  BoolColumn get needsCreateRequest => boolean()();
-
-  // Car research resumable payment state
-  BoolColumn get isPendingPayment => boolean()();
-  DateTimeColumn get carResearchExpiresAt => dateTime().nullable()();
-  TextColumn get carResearchPaymentLinks => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
-  Set<Column<Object>> get primaryKey => {ticketId};
+  Set<Column<Object>> get primaryKey => {apiTicketId};
+
+  @override
+  bool get withoutRowId => true;
 }
 
-class ShopInBitTicketMessage {
-  final String text;
-  final DateTime timestamp;
-  final bool isFromUser;
+/// Drift TypeConverter so `messages` round-trips between a JSON column and
+/// `List<TicketMessage>` on the generated data class.
+class MessagesConverter extends TypeConverter<List<TicketMessage>, String> {
+  const MessagesConverter();
 
-  const ShopInBitTicketMessage({
-    required this.text,
-    required this.timestamp,
-    required this.isFromUser,
-  });
-
-  factory ShopInBitTicketMessage.fromJson(Map<String, dynamic> json) {
-    return ShopInBitTicketMessage(
-      text: json["text"] as String,
-      timestamp: DateTime.parse(json["timestamp"] as String),
-      isFromUser: json["isFromUser"] as bool,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      "text": text,
-      "timestamp": timestamp.toIso8601String(),
-      "isFromUser": isFromUser,
-    };
+  @override
+  List<TicketMessage> fromSql(String fromDb) {
+    final List<dynamic> raw = jsonDecode(fromDb) as List<dynamic>;
+    return raw
+        .map((e) => TicketMessage.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
   }
 
   @override
-  String toString() => toMap().toString();
-}
-
-class ShopInBitTicketMessagesConverter
-    extends TypeConverter<List<ShopInBitTicketMessage>, String>
-    with
-        JsonTypeConverter2<
-          List<ShopInBitTicketMessage>,
-          String,
-          List<dynamic>
-        > {
-  const ShopInBitTicketMessagesConverter();
-
-  @override
-  List<ShopInBitTicketMessage> fromSql(String fromDb) {
-    final List<dynamic> decoded = jsonDecode(fromDb) as List<dynamic>;
-    return fromJson(decoded);
-  }
-
-  @override
-  String toSql(List<ShopInBitTicketMessage> value) {
-    return jsonEncode(toJson(value));
-  }
-
-  @override
-  List<ShopInBitTicketMessage> fromJson(List<dynamic> json) {
-    return json
-        .map((e) => ShopInBitTicketMessage.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  @override
-  List<dynamic> toJson(List<ShopInBitTicketMessage> value) {
-    return value.map((m) => m.toMap()).toList();
+  String toSql(List<TicketMessage> value) {
+    return jsonEncode(value.map((m) => m.toMap()).toList());
   }
 }

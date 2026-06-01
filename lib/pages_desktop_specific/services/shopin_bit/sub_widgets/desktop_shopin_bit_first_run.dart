@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../models/shopinbit/shopinbit_order_model.dart';
 import '../../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -8,11 +7,9 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/dialogs/s_dialog.dart';
 
 class DesktopShopinBitFirstRun extends StatelessWidget {
-  const DesktopShopinBitFirstRun({super.key, required this.model});
+  const DesktopShopinBitFirstRun({super.key});
 
   static const routeName = "/desktopShopinBitFirstRun";
-
-  final ShopInBitOrderModel model;
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +50,9 @@ class DesktopShopinBitFirstRun extends StatelessWidget {
                     width: 220,
                     buttonHeight: ButtonHeight.l,
                     label: "Continue",
-                    onPressed: () => Navigator.of(context).pushReplacementNamed(
-                      ShopInBitStep2.routeName,
-                      arguments: model,
-                    ),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(ShopInBitStep2.routeName),
                   ),
                 ],
               ),

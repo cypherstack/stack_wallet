@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -30,19 +30,19 @@ class ServicesView extends ConsumerStatefulWidget {
 }
 
 class _ServicesViewState extends ConsumerState<ServicesView> {
-  void _showShopDialog() {
-    showDialog<void>(
+  Future<void> _showShopDialog() async {
+    final result = await showDialog<(ShopInBitSetting?, bool)>(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => StackDialogBase(
+      builder: (context) => StackDialogBase(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("ShopinBit", style: STextStyles.pageTitleH2(dialogContext)),
+            Text("ShopinBit", style: STextStyles.pageTitleH2(context)),
             const SizedBox(height: 8),
             RichText(
               text: TextSpan(
-                style: STextStyles.smallMed14(dialogContext),
+                style: STextStyles.smallMed14(context),
                 children: [
                   const TextSpan(
                     text:
@@ -53,9 +53,7 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                   ),
                   TextSpan(
                     text: "Privacy Policy",
-                    style: STextStyles.richLink(
-                      dialogContext,
-                    ).copyWith(fontSize: 16),
+                    style: STextStyles.richLink(context).copyWith(fontSize: 16),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
                         const url =
@@ -75,59 +73,28 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
             Row(
               children: [
                 Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: Text(
-                      "Cancel",
-                      style: STextStyles.button(dialogContext).copyWith(
-                        color: Theme.of(
-                          dialogContext,
-                        ).extension<StackColors>()!.accentColorDark,
-                      ),
-                    ),
+                  child: SecondaryButton(
+                    label: "Cancel",
+                    onPressed: Navigator.of(context).pop,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextButton(
-                    style: Theme.of(dialogContext)
+                    style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(dialogContext),
+                        .getPrimaryEnabledButtonStyle(context),
                     onPressed: () async {
-                      Navigator.of(dialogContext).pop();
-                      final model = ShopInBitOrderModel();
                       final settings = await ref
                           .read(pSharedDrift)
-                          .shopinBitSettingsDao
-                          .getSettings();
+                          .shopInBitSettingsDao
+                          .getCurrentSettings();
 
-                      if (!mounted) return;
+                      if (!context.mounted) return;
 
-                      if (settings.setupComplete) {
-                        // Returning user: pre-load display name,
-                        // skip Step 1, go to Step 2
-                        final savedName = settings.displayName;
-                        if (savedName != null && savedName.isNotEmpty) {
-                          model.displayName = savedName;
-                        }
-                        await Navigator.of(
-                          context,
-                        ).pushNamed(ShopInBitStep2.routeName, arguments: model);
-                      } else {
-                        // First-time user: show setup flow
-                        await Navigator.of(context).pushNamed(
-                          ShopInBitSetupView.routeName,
-                          arguments: model,
-                        );
-                      }
-                      if (mounted) setState(() {});
+                      Navigator.of(context).pop((true, settings));
                     },
-                    child: Text(
-                      "Continue",
-                      style: STextStyles.button(dialogContext),
-                    ),
+                    child: Text("Continue", style: STextStyles.button(context)),
                   ),
                 ),
               ],
@@ -136,6 +103,17 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
         ),
       ),
     );
+
+    if (mounted && result != null && result.$2 == true) {
+      final settings = result.$1;
+      if (settings != null && settings.setupComplete) {
+        // Returning user: straight to category selection.
+        await Navigator.of(context).pushNamed(ShopInBitStep2.routeName);
+      } else {
+        // First-time (or incomplete) setup: show the key-backup screen.
+        await Navigator.of(context).pushNamed(ShopInBitSetupView.routeName);
+      }
+    }
   }
 
   @override
@@ -267,7 +245,6 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                         await Navigator.of(
                           context,
                         ).pushNamed(ShopInBitTicketsView.routeName);
-                        if (mounted) setState(() {});
                       },
                     ),
                   ],

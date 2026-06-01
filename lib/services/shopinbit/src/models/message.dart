@@ -16,4 +16,13 @@ class TicketMessage {
       content: json['content'] as String,
     );
   }
+
+  Map<String, dynamic> toMap() => {
+    "timestamp": timestamp.toIso8601String(),
+    "from_agent": fromAgent,
+    "content": content,
+  };
+
+  @override
+  String toString() => toMap().toString();
 }

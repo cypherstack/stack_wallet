@@ -2,8 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
-import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../providers/db/drift_provider.dart";
+import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
@@ -21,9 +20,7 @@ const int _minConciergeBudget = 1000;
 const int _maxConciergeBudget = 100000;
 
 class ShopInBitConciergeForm extends ConsumerStatefulWidget {
-  const ShopInBitConciergeForm({super.key, required this.model});
-
-  final ShopInBitOrderModel model;
+  const ShopInBitConciergeForm({super.key});
 
   @override
   ConsumerState<ShopInBitConciergeForm> createState() =>
@@ -60,9 +57,6 @@ class _ShopInBitConciergeFormState
       if (!_budgetFocusNode.hasFocus) _budgetTouched = true;
       setState(() {});
     });
-    if (widget.model.deliveryCountry.isNotEmpty) {
-      _selectedCountryIso = widget.model.deliveryCountry;
-    }
   }
 
   @override
@@ -93,27 +87,24 @@ class _ShopInBitConciergeFormState
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
-
-    final String countryIso = _selectedCountryIso!;
-    final String budgetText = _noLimit
-        ? "No limit"
-        : "${_budgetController.text.trim()} EUR";
-
-    widget.model
-      ..requestDescription =
-          "What to purchase: ${_whatToPurchaseController.text.trim()}\n"
-          "Condition: $_selectedCondition\n"
-          "Budget: $budgetText\n"
-          "Delivery country: $countryIso"
-      ..deliveryCountry = countryIso;
-
     try {
-      await submitShopInBitRequest(
-        context,
-        widget.model,
-        ref.read(pShopinBitService),
-        ref.read(pSharedDrift),
+      final String countryIso = _selectedCountryIso!;
+      final String budgetText = _noLimit
+          ? "No limit"
+          : "${_budgetController.text.trim()} EUR";
+
+      final draft = ShopinbitRequestDraft(
+        category: .concierge,
+        requestDescription:
+            "What to purchase: ${_whatToPurchaseController.text.trim()}\n"
+            "Condition: $_selectedCondition\n"
+            "Budget: $budgetText\n"
+            "Delivery country: $countryIso",
+        deliveryCountry: countryIso,
+        voucherCode: null,
       );
+
+      await submitShopInBitRequest(context, draft, ref.read(pShopinBitService));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -132,7 +131,7 @@ Future<void> _pushShopInBitSendFrom({
   required CryptoCurrency coin,
   required Amount? amount,
   required String address,
-  required ShopInBitOrderModel model,
+  required int apiTicketId,
   EthContract? tokenContract,
   bool popDesktopBeforeShow = false,
   String? routeOnSuccessName,
@@ -147,7 +146,7 @@ Future<void> _pushShopInBitSendFrom({
         coin: coin,
         amount: amount,
         address: address,
-        model: model,
+        apiTicketId: apiTicketId,
         shouldPopRoot: true,
         tokenContract: tokenContract,
       ),
@@ -160,7 +159,7 @@ Future<void> _pushShopInBitSendFrom({
           coin: coin,
           amount: amount,
           address: address,
-          model: model,
+          apiTicketId: apiTicketId,
           tokenContract: tokenContract,
           routeOnSuccessName: routeOnSuccessName,
         ),
@@ -178,7 +177,7 @@ Future<bool> tryNavigateToShopInBitWalletSend({
   required String paymentUri,
   required String address,
   required Amount? amount,
-  required ShopInBitOrderModel model,
+  required int apiTicketId,
   bool popDesktopBeforeShow = false,
   String? routeOnSuccessName,
 }) async {
@@ -191,7 +190,7 @@ Future<bool> tryNavigateToShopInBitWalletSend({
       coin: coin,
       amount: amount,
       address: address,
-      model: model,
+      apiTicketId: apiTicketId,
       popDesktopBeforeShow: popDesktopBeforeShow,
       routeOnSuccessName: routeOnSuccessName,
     );
@@ -211,7 +210,7 @@ Future<bool> tryNavigateToShopInBitWalletSend({
           coin: ethCoin,
           amount: amount,
           address: address,
-          model: model,
+          apiTicketId: apiTicketId,
           tokenContract: tokenContract,
           popDesktopBeforeShow: popDesktopBeforeShow,
           routeOnSuccessName: routeOnSuccessName,
