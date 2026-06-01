@@ -13,7 +13,7 @@ class CakePayOrdersService extends ChangeNotifier {
   static const Duration defaultPollInterval = Duration(seconds: 15);
 
   final Map<String, CakePayOrder> _orders = {};
-  final Set<String> _inflight = {};
+  final Map<String, Completer<void>> _inFlight = {};
   final Map<String, _Poll> _polls = {};
   bool _refreshingAll = false;
 
@@ -34,26 +34,34 @@ class CakePayOrdersService extends ChangeNotifier {
     return list;
   }
 
-  bool isRefreshing(String orderId) => _inflight.contains(orderId);
+  bool isRefreshing(String orderId) => _inFlight.containsKey(orderId);
   bool get isRefreshingAll => _refreshingAll;
 
-  /// Fetch a single order. No-ops if a fetch for [orderId] is already in
-  /// flight.
+  /// returns existing future if already in flight
   Future<void> refreshOne(String orderId) async {
-    if (_inflight.contains(orderId)) return;
-    _inflight.add(orderId);
+    final Completer<void>? pending = _inFlight[orderId];
+    if (pending != null) return pending.future;
+
+    final Completer<void> completer = Completer<void>();
+    _inFlight[orderId] = completer;
     notifyListeners();
-    try {
-      final resp = await CakePayService.instance.client.getOrder(orderId);
-      if (!resp.hasError && resp.value != null) {
-        _putIfChanged(resp.value!);
+
+    unawaited(() async {
+      try {
+        final resp = await CakePayService.instance.client.getOrder(orderId);
+        if (!resp.hasError && resp.value != null) {
+          _putIfChanged(resp.value!);
+        }
+        completer.complete();
+      } catch (e, s) {
+        completer.completeError(e, s);
+      } finally {
+        _inFlight.remove(orderId);
+        notifyListeners();
       }
-    } catch (_) {
-      // Silently leave the cached value in place.
-    } finally {
-      _inflight.remove(orderId);
-      notifyListeners();
-    }
+    }());
+
+    return completer.future;
   }
 
   /// Fetch every locally-tracked order in parallel.
