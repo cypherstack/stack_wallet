@@ -252,7 +252,12 @@ class _ShopInBitCarResearchPaymentViewState
         _pollTimer?.cancel();
         await _finalizePayment();
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "ticket status polling issue",
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
         unawaited(
           showFloatingFlushBar(
