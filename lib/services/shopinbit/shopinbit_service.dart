@@ -164,6 +164,18 @@ class ShopInBitService {
   ) async {
     final int id = ref.id;
     try {
+      final ShopInBitTicket? existing = await db.shopInBitTicketsDao.getByApiId(
+        id,
+      );
+
+      // Terminal-state short-circuit: nothing about a closed/merged ticket
+      // will change server-side, so skip the three API calls entirely.
+      if (existing != null &&
+          TicketState.fromString(existing.statusRaw).isTerminal) {
+        completer.complete();
+        return;
+      }
+
       // Ensure the client points at the right key for this ticket's calls.
       client.externalCustomerKey = customerKey;
 
@@ -175,10 +187,6 @@ class ShopInBitService {
         client.getTicketStatus(id),
         client.getMessages(id),
       ).wait;
-
-      final ShopInBitTicket? existing = await db.shopInBitTicketsDao.getByApiId(
-        id,
-      );
 
       if (existing == null) {
         await _insertHydrated(
