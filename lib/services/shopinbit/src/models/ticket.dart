@@ -115,7 +115,7 @@ class TicketFull {
   final String? netPurchasePrice;
   final String? netShippingCosts;
   final String deliveryCountry;
-  final int vatRate;
+  final int? vatRate;
 
   TicketFull({
     required this.id,
@@ -143,7 +143,7 @@ class TicketFull {
       deliveryCountry:
           json['delivery_country'] as String? ??
           (json['deliverycountry'] as String),
-      vatRate: _toInt(json['vat_rate']),
+      vatRate: int.tryParse(json['vat_rate'].toString()),
     );
   }
 

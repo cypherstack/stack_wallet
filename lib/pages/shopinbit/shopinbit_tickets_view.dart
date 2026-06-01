@@ -10,6 +10,7 @@ import "../../providers/global/shopin_bit_service_provider.dart";
 import "../../services/shopinbit/src/models/car_research.dart";
 import "../../themes/stack_colors.dart";
 import "../../utilities/assets.dart";
+import "../../utilities/logger.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
 import "../../widgets/background.dart";
@@ -88,7 +89,12 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
           }
         }
       }
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "_loadResumableInvoice failed",
+        error: e,
+        stackTrace: s,
+      );
       // Leave _resumableInvoice unchanged on failure.
       return;
     }
