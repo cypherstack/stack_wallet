@@ -120,6 +120,41 @@ class ShopInBitService {
     return ref;
   }
 
+  /// log-payment returns the fee *receipt* id, which the customer key can't
+  /// poll (403s). The real car ticket is a separate id that does show up in
+  /// by-customer. Grab the newest ticket we don't already track (not the
+  /// receipt), hydrate just that one, and return its id; null if not there yet.
+  Future<int?> adoptRealCarTicket(int receiptTicketId) async {
+    final String key = await ensureCustomerKey();
+    final ApiResponse<List<TicketRef>> resp = await client.getTicketsByCustomer(
+      key,
+    );
+    if (resp.hasError || resp.value == null) return null;
+
+    final Set<int> known = (await db.shopInBitTicketsDao.getByCustomerKey(
+      key,
+    )).map((t) => t.apiTicketId).toSet();
+
+    final List<TicketRef> candidates =
+        resp.value!
+            .where((t) => t.id != receiptTicketId && !known.contains(t.id))
+            .toList()
+          ..sort((a, b) => b.id.compareTo(a.id));
+
+    // Newest first; the receipt 403s (no row written) so it gets skipped.
+    for (final TicketRef ref in candidates) {
+      try {
+        await _refreshRef(ref, key);
+      } catch (_) {
+        // try the next candidate
+      }
+      if (await db.shopInBitTicketsDao.getByApiId(ref.id) != null) {
+        return ref.id;
+      }
+    }
+    return null;
+  }
+
   Future<bool> sendMessage(int apiTicketId, String message) async {
     final ApiResponse<Map<String, dynamic>> resp = await client.sendMessage(
       apiTicketId,

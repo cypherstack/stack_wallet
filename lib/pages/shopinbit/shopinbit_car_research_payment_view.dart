@@ -9,7 +9,6 @@ import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
-import '../../services/shopinbit/src/models/ticket.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
@@ -314,27 +313,42 @@ class _ShopInBitCarResearchPaymentViewState
 
       final result = logResp.value!;
 
-      // log-payment returns the partner-scoped fee receipt, which the customer
-      // key cannot poll. Pull the customer-facing car research ticket the
-      // backend created from the cached request into the local DB, then open
-      // it. `refreshAll` inserts it so the order-created view can read it.
-      await service.refreshAll();
-      final realTicket = await _resolveRealTicket(result.ticketId);
+      // log-payment gives us the fee receipt id, which the customer key can't
+      // poll; the real car ticket is a separate id. Find and open it, retrying
+      // since it can take a beat to show up in by-customer.
+      int? realId;
+      for (int attempt = 0; attempt < 5 && realId == null; attempt++) {
+        realId = await service.adoptRealCarTicket(result.ticketId);
+        if (realId == null && attempt < 4) {
+          await Future<void>.delayed(const Duration(milliseconds: 1500));
+        }
+      }
 
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.complete);
 
-      if (realTicket != null) {
+      if (realId != null) {
         unawaited(
-          Navigator.of(context).pushNamed(
-            ShopInBitOrderCreated.routeName,
-            arguments: realTicket.id,
-          ),
+          Navigator.of(
+            context,
+          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: realId),
         );
       } else {
-        // Backend has not surfaced the ticket yet; the requests list will pick
-        // it up on its next refresh.
-        _popToTickets();
+        // The real ticket hasn't surfaced yet; the requests list will pick it
+        // up on its next refresh.
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Payment received",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message:
+                "We're finalizing your car research request. It will appear "
+                "in My Requests shortly.",
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        );
+        if (mounted) _popToTickets();
       }
     } catch (e) {
       if (mounted) {
@@ -350,26 +364,6 @@ class _ShopInBitCarResearchPaymentViewState
           ),
         );
       }
-    }
-  }
-
-  /// Find the customer-facing car research ticket the backend created from the
-  /// cached request, excluding the partner-scoped fee receipt. Returns the
-  /// newest match, or null if none is visible yet.
-  Future<TicketRef?> _resolveRealTicket(int receiptTicketId) async {
-    final service = ref.read(pShopinBitService);
-    try {
-      final customerKey = await service.ensureCustomerKey();
-      final resp = await service.client.getTicketsByCustomer(customerKey);
-      if (resp.hasError || resp.value == null) return null;
-
-      final candidates =
-          resp.value!.where((t) => t.id != receiptTicketId).toList()
-            ..sort((a, b) => b.id.compareTo(a.id));
-
-      return candidates.isEmpty ? null : candidates.first;
-    } catch (_) {
-      return null;
     }
   }
 
