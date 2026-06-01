@@ -31,81 +31,89 @@ class ServicesView extends ConsumerStatefulWidget {
 
 class _ServicesViewState extends ConsumerState<ServicesView> {
   Future<void> _showShopDialog() async {
-    final result = await showDialog<(ShopInBitSetting?, bool)>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => StackDialogBase(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("ShopinBit", style: STextStyles.pageTitleH2(context)),
-            const SizedBox(height: 8),
-            RichText(
-              text: TextSpan(
-                style: STextStyles.smallMed14(context),
-                children: [
-                  const TextSpan(
-                    text:
-                        "Please note the following before proceeding:"
-                        "\n\n\u2022 Minimum order amount: 1,000 EUR"
-                        "\n\u2022 Service fee: 10% of the order total"
-                        "\n\nBy continuing, you agree to the ShopinBit ",
-                  ),
-                  TextSpan(
-                    text: "Privacy Policy",
-                    style: STextStyles.richLink(context).copyWith(fontSize: 16),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        const url =
-                            "https://api.shopinbit.com/static/policy/privacy.html";
-
-                        await showRequestExternalLinkAndMaybeLaunch(
-                          context,
-                          uri: Uri.parse(url),
-                        );
-                      },
-                  ),
-                  const TextSpan(text: "."),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
+    final result =
+        await showDialog<({ShopInBitSetting? settings, bool continuePressed})>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => StackDialogBase(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: SecondaryButton(
-                    label: "Cancel",
-                    onPressed: Navigator.of(context).pop,
+                Text("ShopinBit", style: STextStyles.pageTitleH2(context)),
+                const SizedBox(height: 8),
+                RichText(
+                  text: TextSpan(
+                    style: STextStyles.smallMed14(context),
+                    children: [
+                      const TextSpan(
+                        text:
+                            "Please note the following before proceeding:"
+                            "\n\n\u2022 Minimum order amount: 1,000 EUR"
+                            "\n\u2022 Service fee: 10% of the order total"
+                            "\n\nBy continuing, you agree to the ShopinBit ",
+                      ),
+                      TextSpan(
+                        text: "Privacy Policy",
+                        style: STextStyles.richLink(
+                          context,
+                        ).copyWith(fontSize: 16),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            const url =
+                                "https://api.shopinbit.com/static/policy/privacy.html";
+
+                            await showRequestExternalLinkAndMaybeLaunch(
+                              context,
+                              uri: Uri.parse(url),
+                            );
+                          },
+                      ),
+                      const TextSpan(text: "."),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context),
-                    onPressed: () async {
-                      final settings = await ref
-                          .read(pSharedDrift)
-                          .shopInBitSettingsDao
-                          .getCurrentSettings();
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        label: "Cancel",
+                        onPressed: Navigator.of(context).pop,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context),
+                        onPressed: () async {
+                          final settings = await ref
+                              .read(pSharedDrift)
+                              .shopInBitSettingsDao
+                              .getCurrentSettings();
 
-                      if (!context.mounted) return;
+                          if (!context.mounted) return;
 
-                      Navigator.of(context).pop((true, settings));
-                    },
-                    child: Text("Continue", style: STextStyles.button(context)),
-                  ),
+                          Navigator.of(
+                            context,
+                          ).pop((settings: settings, continuePressed: true));
+                        },
+                        child: Text(
+                          "Continue",
+                          style: STextStyles.button(context),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
 
-    if (mounted && result != null && result.$2 == true) {
-      final settings = result.$1;
+    if (mounted && result != null && result.continuePressed == true) {
+      final settings = result.settings;
       if (settings != null && settings.setupComplete) {
         // Returning user: straight to category selection.
         await Navigator.of(context).pushNamed(ShopInBitStep2.routeName);
