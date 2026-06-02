@@ -16,6 +16,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
@@ -215,6 +216,56 @@ class _ShopInBitCarResearchPaymentViewState
     });
   }
 
+  /// Pop the car payment flow and land the user directly on the requests list,
+  /// pushing it only if it isn't already in the stack (e.g. the resume flow
+  /// entered from there).
+  void _goToMyRequests() {
+    final navigator = Navigator.of(context);
+    bool landedOnTickets = false;
+    navigator.popUntil((route) {
+      final name = route.settings.name;
+      if (name == ShopInBitTicketsView.routeName) {
+        landedOnTickets = true;
+        return true;
+      }
+      return name == ServicesView.routeName || route.isFirst;
+    });
+    if (!landedOnTickets) {
+      unawaited(navigator.pushNamed(ShopInBitTicketsView.routeName));
+    }
+  }
+
+  /// Shown when the real car ticket hasn't surfaced in time. Keeps the user
+  /// informed but offers a one-tap shortcut straight to My Requests rather
+  /// than making them dismiss and navigate there by hand.
+  Future<void> _showFinalizingFallback() async {
+    if (!mounted) return;
+    final goToRequests = await showDialog<bool>(
+      context: context,
+      useRootNavigator: Util.isDesktop,
+      builder: (context) => StackDialog(
+        title: "Payment received",
+        message:
+            "We're finalizing your car research request. It will appear in "
+            "My Requests shortly.",
+        leftButton: SecondaryButton(
+          label: "Close",
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+        rightButton: PrimaryButton(
+          label: "My Requests",
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (goToRequests == true) {
+      _goToMyRequests();
+    } else {
+      _popToTickets();
+    }
+  }
+
   Future<void> _pollStatus() async {
     try {
       final resp = await ref
@@ -291,23 +342,9 @@ class _ShopInBitCarResearchPaymentViewState
 
       if (logResp.hasError || logResp.value == null) {
         // Payment is confirmed but we could not log it. The webhook will
-        // finalize it server side, so send the user to their requests where
-        // the finalized ticket will appear.
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            useRootNavigator: Util.isDesktop,
-            builder: (context) => StackOkDialog(
-              title: "Payment received",
-              maxWidth: Util.isDesktop ? 500 : null,
-              message:
-                  "We're finalizing your car research request. It will "
-                  "appear in My Requests shortly.",
-              desktopPopRootNavigator: Util.isDesktop,
-            ),
-          );
-        }
-        if (mounted) _popToTickets();
+        // finalize it server side, so offer the user a shortcut to their
+        // requests where the finalized ticket will appear.
+        await _showFinalizingFallback();
         return;
       }
 
@@ -315,12 +352,13 @@ class _ShopInBitCarResearchPaymentViewState
 
       // log-payment gives us the fee receipt id, which the customer key can't
       // poll; the real car ticket is a separate id. Find and open it, retrying
-      // since it can take a beat to show up in by-customer.
+      // every 3s for a while since it can take a beat to show up in
+      // by-customer.
       int? realId;
-      for (int attempt = 0; attempt < 5 && realId == null; attempt++) {
+      for (int attempt = 0; attempt < 12 && realId == null; attempt++) {
         realId = await service.adoptRealCarTicket(result.ticketId);
-        if (realId == null && attempt < 4) {
-          await Future<void>.delayed(const Duration(milliseconds: 1500));
+        if (realId == null && attempt < 11) {
+          await Future<void>.delayed(const Duration(seconds: 3));
         }
       }
 
@@ -334,23 +372,16 @@ class _ShopInBitCarResearchPaymentViewState
           ).pushNamed(ShopInBitOrderCreated.routeName, arguments: realId),
         );
       } else {
-        // The real ticket hasn't surfaced yet; the requests list will pick it
-        // up on its next refresh.
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: Util.isDesktop,
-          builder: (context) => StackOkDialog(
-            title: "Payment received",
-            maxWidth: Util.isDesktop ? 500 : null,
-            message:
-                "We're finalizing your car research request. It will appear "
-                "in My Requests shortly.",
-            desktopPopRootNavigator: Util.isDesktop,
-          ),
-        );
-        if (mounted) _popToTickets();
+        // The real ticket hasn't surfaced yet; offer a shortcut to the
+        // requests list, which will pick it up on its next refresh.
+        await _showFinalizingFallback();
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to process car research payment",
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
         setState(() => _flowState = _PaymentFlowState.error);
         await showDialog<void>(
