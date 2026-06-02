@@ -34,10 +34,14 @@ enum TicketState {
     return TicketState.unknown;
   }
 
-  bool get isTerminal => switch(this) {
-    .closed || .closedCancelled || .merged => true,
-  _ => false,
-  } ;
+  bool get isTerminal => switch (this) {
+    .closed ||
+    .closedCancelled ||
+    .merged ||
+    .pendingClose ||
+    .refunded => true,
+    _ => false,
+  };
 }
 
 class TicketRef {
