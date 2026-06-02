@@ -16,6 +16,7 @@ import '../../services/cakepay/src/models/order.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -224,7 +225,13 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         Decimal.parse(option.amountFrom.toString()),
         fractionDigits: coin.fractionDigits,
       );
-    } catch (_) {}
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to parse CakePay order amount '${option.amountFrom}'",
+        error: e,
+        stackTrace: s,
+      );
+    }
 
     _navigateToSendFrom(
       coin: coin,

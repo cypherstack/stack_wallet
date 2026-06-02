@@ -11,6 +11,7 @@ import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -213,12 +214,12 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
 
       if (resp.hasError) {
         // Sandbox may fail here; continue anyway.
-        debugPrint("submitAddress failed: ${resp.exception?.message}");
+        Logging.instance.w("submitAddress failed", error: resp.exception);
       }
 
       paymentInfo = await fetchShopInBitPaymentInfo(ref, widget.apiTicketId);
-    } catch (e) {
-      debugPrint("submitAddress threw: $e");
+    } catch (e, s) {
+      Logging.instance.e("submitAddress threw", error: e, stackTrace: s);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

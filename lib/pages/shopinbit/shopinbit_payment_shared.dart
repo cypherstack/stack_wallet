@@ -13,6 +13,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/default_eth_tokens.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -85,7 +86,13 @@ ShopInBitPaymentTarget parseShopInBitPaymentTarget({
         Decimal.parse(amountStr),
         fractionDigits: fractionDigits,
       );
-    } catch (_) {}
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to parse ShopInBit payment amount '$amountStr'",
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   return ShopInBitPaymentTarget(address: address, amount: amount);
@@ -244,8 +251,12 @@ Future<PaymentInfo?> fetchShopInBitPaymentInfo(
     if (!putResp.hasError && putResp.value != null) {
       return putResp.value;
     }
-  } catch (_) {
-    // Degrade to polling-only.
+  } catch (e, s) {
+    Logging.instance.w(
+      "fetchShopInBitPaymentInfo failed, degrading to polling-only",
+      error: e,
+      stackTrace: s,
+    );
   }
   return null;
 }

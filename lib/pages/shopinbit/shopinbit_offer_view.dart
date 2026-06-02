@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -45,8 +46,13 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
       // Refresh pulls /full (offer product + price) into the ticket row, which
       // we then read reactively from the DB stream.
       await ref.read(pShopinBitService).refreshOne(widget.apiTicketId);
-    } catch (_) {
-      // Fall back to whatever the row already has.
+    } catch (e, s) {
+      Logging.instance.w(
+        "Failed to refresh ShopInBit offer ${widget.apiTicketId}, "
+        "using cached data",
+        error: e,
+        stackTrace: s,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }

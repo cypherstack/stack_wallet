@@ -10,6 +10,7 @@ import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -86,7 +87,12 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to generate ShopInBit customer key",
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
         await showDialog<void>(
           context: context,
@@ -131,7 +137,12 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to set ShopInBit customer key",
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
         await showDialog<void>(
           context: context,

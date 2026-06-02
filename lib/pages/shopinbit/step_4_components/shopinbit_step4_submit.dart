@@ -5,6 +5,7 @@ import "package:flutter/material.dart";
 import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../services/shopinbit/shopinbit_service.dart";
 import "../../../services/shopinbit/src/models/ticket.dart";
+import "../../../utilities/logger.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/stack_dialog.dart";
 import "../shopinbit_order_created.dart";
@@ -54,7 +55,12 @@ Future<void> submitShopInBitRequest(
         context,
       ).pushNamed(ShopInBitOrderCreated.routeName, arguments: ref.id),
     );
-  } catch (e) {
+  } catch (e, s) {
+    Logging.instance.e(
+      "Failed to create ShopInBit request",
+      error: e,
+      stackTrace: s,
+    );
     if (context.mounted) {
       await showDialog<void>(
         context: context,

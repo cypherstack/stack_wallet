@@ -4,6 +4,7 @@ import "package:drift/drift.dart";
 
 import "../../db/drift/shared_db/shared_database.dart";
 import "../../models/shopinbit/shopinbit_enums.dart";
+import "../../utilities/logger.dart";
 import "src/api_response.dart";
 import "src/client.dart";
 import "src/models/message.dart";
@@ -61,7 +62,13 @@ class ShopInBitService {
     final ApiResponse<List<TicketRef>> resp = await client.getTicketsByCustomer(
       key,
     );
-    if (resp.hasError || resp.value == null) return;
+    if (resp.hasError || resp.value == null) {
+      Logging.instance.w(
+        "ShopInBitService.refreshAll: failed to fetch ticket list",
+        error: resp.exception,
+      );
+      return;
+    }
     await Future.wait(resp.value!.map((ref) => _refreshRef(ref, key)));
   }
 
@@ -145,8 +152,12 @@ class ShopInBitService {
     for (final TicketRef ref in candidates) {
       try {
         await _refreshRef(ref, key);
-      } catch (_) {
-        // try the next candidate
+      } catch (e, s) {
+        Logging.instance.w(
+          "Failed to refresh candidate ticket ${ref.id}, trying next",
+          error: e,
+          stackTrace: s,
+        );
       }
       if (await db.shopInBitTicketsDao.getByApiId(ref.id) != null) {
         return ref.id;
