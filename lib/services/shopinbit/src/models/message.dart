@@ -11,9 +11,11 @@ class TicketMessage {
 
   factory TicketMessage.fromJson(Map<String, dynamic> json) {
     return TicketMessage(
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      fromAgent: json['from_agent'] as bool,
-      content: json['content'] as String,
+      timestamp:
+          DateTime.tryParse(json['timestamp']?.toString() ?? '') ??
+          DateTime.now(),
+      fromAgent: json['from_agent'] as bool? ?? false,
+      content: json['content'] as String? ?? '',
     );
   }
 

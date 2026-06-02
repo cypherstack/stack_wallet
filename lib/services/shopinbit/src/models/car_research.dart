@@ -92,7 +92,9 @@ class CarResearchInvoice {
     final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
     return CarResearchInvoice(
       btcpayInvoice: json['btcpay_invoice'] as String,
-      expiresAt: DateTime.parse(json['expires_at'] as String),
+      expiresAt:
+          DateTime.tryParse(json['expires_at']?.toString() ?? '') ??
+          DateTime.now(),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
     );
   }
@@ -114,7 +116,7 @@ class CarResearchPaymentResult {
   factory CarResearchPaymentResult.fromJson(Map<String, dynamic> json) {
     return CarResearchPaymentResult(
       status: json['status'] as String,
-      ticketId: json['ticket_id'] as int,
+      ticketId: int.tryParse(json['ticket_id'].toString()) ?? 0,
       ticketNumber: json['ticket_number'] as String,
       externalCustomerKey: json['external_customer_key'] as String,
     );

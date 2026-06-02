@@ -51,7 +51,10 @@ class TicketRef {
   TicketRef({required this.id, required this.number});
 
   factory TicketRef.fromJson(Map<String, dynamic> json) {
-    return TicketRef(id: _toInt(json['id']), number: json['number'] as String);
+    return TicketRef(
+      id: _toInt(json['id']),
+      number: json['number']?.toString() ?? '',
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -85,15 +88,17 @@ class TicketStatus {
   });
 
   factory TicketStatus.fromJson(Map<String, dynamic> json) {
-    final rawState = json['state'] as String;
+    final rawState = (json['state'] ?? '') as String;
     return TicketStatus(
       ticketId: _toInt(json['ticket_id']),
       state: TicketState.fromString(rawState),
       stateRaw: rawState,
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      lastAgentMessageAt: json['last_agent_message_at'] != null
-          ? DateTime.parse(json['last_agent_message_at'] as String)
-          : null,
+      updatedAt:
+          DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+          DateTime.now(),
+      lastAgentMessageAt: DateTime.tryParse(
+        json['last_agent_message_at']?.toString() ?? '',
+      ),
       paymentInvoiceStatus: json['payment_invoice_status'] as String?,
       trackingLink: json['tracking_link'] as String?,
     );
@@ -142,7 +147,7 @@ class TicketFull {
   factory TicketFull.fromJson(Map<String, dynamic> json) {
     return TicketFull(
       id: _toInt(json['id']),
-      number: json['number'] as String,
+      number: json['number']?.toString() ?? '',
       productName: json['product_name'] as String?,
       customerPrice: json['customer_price'] as String?,
       partnerPrice: json['partner_price'] as String?,
@@ -151,7 +156,8 @@ class TicketFull {
       netShippingCosts: json['net_shipping_costs'] as String?,
       deliveryCountry:
           json['delivery_country'] as String? ??
-          (json['deliverycountry'] as String),
+          json['deliverycountry'] as String? ??
+          '',
       vatRate: int.tryParse(json['vat_rate'].toString()),
     );
   }
@@ -177,5 +183,5 @@ class TicketFull {
 
 int _toInt(dynamic value) {
   if (value is int) return value;
-  return int.parse(value.toString());
+  return int.tryParse(value.toString()) ?? 0;
 }
