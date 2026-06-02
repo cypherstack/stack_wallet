@@ -222,7 +222,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       address: target.address,
       amount: target.amount,
       apiTicketId: widget.apiTicketId,
-      popDesktopBeforeShow: true,
     )) {
       return;
     }

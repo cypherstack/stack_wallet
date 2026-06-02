@@ -140,13 +140,13 @@ Future<void> _pushShopInBitSendFrom({
   required String address,
   required int apiTicketId,
   EthContract? tokenContract,
-  bool popDesktopBeforeShow = false,
   String? routeOnSuccessName,
 }) async {
   if (Util.isDesktop) {
-    if (popDesktopBeforeShow) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
+    // Show the send-from dialog on top of the payment dialog. Do not pop the
+    // payment flow first: doing so tears down the whole nested-navigator
+    // dialog, so closing send-from would drop the user back to Services
+    // instead of returning to the payment view.
     await showDialog<void>(
       context: context,
       builder: (_) => ShopInBitSendFromView(
@@ -185,7 +185,6 @@ Future<bool> tryNavigateToShopInBitWalletSend({
   required String address,
   required Amount? amount,
   required int apiTicketId,
-  bool popDesktopBeforeShow = false,
   String? routeOnSuccessName,
 }) async {
   if (address.isEmpty) return false;
@@ -198,7 +197,6 @@ Future<bool> tryNavigateToShopInBitWalletSend({
       amount: amount,
       address: address,
       apiTicketId: apiTicketId,
-      popDesktopBeforeShow: popDesktopBeforeShow,
       routeOnSuccessName: routeOnSuccessName,
     );
     return true;
@@ -219,7 +217,6 @@ Future<bool> tryNavigateToShopInBitWalletSend({
           address: address,
           apiTicketId: apiTicketId,
           tokenContract: tokenContract,
-          popDesktopBeforeShow: popDesktopBeforeShow,
           routeOnSuccessName: routeOnSuccessName,
         );
         return true;
