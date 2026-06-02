@@ -10,6 +10,7 @@ import '../../db/drift/shared_db/shared_database.dart';
 import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/message.dart';
+import '../../services/shopinbit/src/models/ticket.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -70,6 +71,14 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
   Future<void> _poll() async {
     await _refresh();
     if (!mounted) return;
+
+    // Stop polling once the ticket reaches a terminal state; nothing about a
+    // closed/merged/refunded ticket will change server-side.
+    final ticket = ref.read(pShopInBitTicket(_id)).asData?.value;
+    if (ticket != null && TicketState.fromString(ticket.statusRaw).isTerminal) {
+      return;
+    }
+
     _pollingTimer = Timer(const Duration(seconds: 30), _poll);
   }
 
