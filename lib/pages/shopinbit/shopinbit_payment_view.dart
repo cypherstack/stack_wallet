@@ -23,6 +23,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
+import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import 'shopinbit_payment_shared.dart';
@@ -286,6 +287,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text("$ticker Payment", style: STextStyles.pageTitleH2(context)),
+            const SizedBox(height: 16),
+            Center(
+              child: QR(data: address, size: Util.isDesktop ? 200 : 180),
+            ),
             const SizedBox(height: 16),
             GestureDetector(
               onTap: () {
