@@ -31,7 +31,9 @@ class _CakePayOrdersViewState extends ConsumerState<CakePayOrdersView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(pCakePayOrdersService).refreshAll();
+      // Fire-and-forget: refreshAll logs and propagates its own errors, so
+      // ignore the returned future rather than leaving it unhandled.
+      ref.read(pCakePayOrdersService).refreshAll().ignore();
     });
   }
 

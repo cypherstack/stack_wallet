@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../utilities/logger.dart';
 import 'cakepay_service.dart';
 import 'src/models/order.dart';
 
@@ -15,7 +16,7 @@ class CakePayOrdersService extends ChangeNotifier {
   final Map<String, CakePayOrder> _orders = {};
   final Map<String, Completer<void>> _inFlight = {};
   final Map<String, _Poll> _polls = {};
-  bool _refreshingAll = false;
+  Completer<void>? _refreshAllCompleter;
 
   /// Current cached value for [orderId], or null if not yet fetched.
   CakePayOrder? get(String orderId) => _orders[orderId];
@@ -35,7 +36,7 @@ class CakePayOrdersService extends ChangeNotifier {
   }
 
   bool isRefreshing(String orderId) => _inFlight.containsKey(orderId);
-  bool get isRefreshingAll => _refreshingAll;
+  bool get isRefreshingAll => _refreshAllCompleter != null;
 
   /// returns existing future if already in flight
   Future<void> refreshOne(String orderId) async {
@@ -64,20 +65,36 @@ class CakePayOrdersService extends ChangeNotifier {
     return completer.future;
   }
 
-  /// Fetch every locally-tracked order in parallel.
+  /// Fetch every locally-tracked order in parallel. Returns the existing
+  /// future if a refresh-all is already in flight, so awaiters can be sure a
+  /// refresh has actually occurred rather than no-opping.
   Future<void> refreshAll() async {
-    if (_refreshingAll) return;
-    _refreshingAll = true;
+    final Completer<void>? pending = _refreshAllCompleter;
+    if (pending != null) return pending.future;
+
+    final Completer<void> completer = Completer<void>();
+    _refreshAllCompleter = completer;
     notifyListeners();
-    try {
-      final ids = await CakePayService.instance.getOrderIds();
-      await Future.wait(ids.map(refreshOne));
-    } catch (_) {
-      // Listeners still hold whatever was cached.
-    } finally {
-      _refreshingAll = false;
-      notifyListeners();
-    }
+
+    unawaited(() async {
+      try {
+        final ids = await CakePayService.instance.getOrderIds();
+        await Future.wait(ids.map(refreshOne));
+        completer.complete();
+      } catch (e, s) {
+        Logging.instance.e(
+          "CakePayOrdersService.refreshAll failed",
+          error: e,
+          stackTrace: s,
+        );
+        completer.completeError(e, s);
+      } finally {
+        _refreshAllCompleter = null;
+        notifyListeners();
+      }
+    }());
+
+    return completer.future;
   }
 
   /// Start (or join) a refcounted poll for [orderId]. The first call kicks off
