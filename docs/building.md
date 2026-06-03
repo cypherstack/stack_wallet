@@ -14,7 +14,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.38.1 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -43,15 +43,17 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
-pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson python3-pip python3-venv libgcrypt20-dev libglib2.0-dev libsecret-1-dev
+python3 -m venv ~/.build-tools
+~/.build-tools/bin/pip install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1 setuptools
+echo 'export PATH="$HOME/.build-tools/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 ```
 
 Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://rustup.rs), the required Rust toolchains, and `cargo-ndk` with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc
-rustup install 1.89.0 1.85.1 1.81.0
+rustup install 1.89.0 1.85.1 1.81.0 1.71.0
 rustup default 1.89.0
 cargo install cargo-ndk
 ```
@@ -64,12 +66,11 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 
 Linux desktop specific dependencies:
 ```
-sudo apt-get install clang cmake lld ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
-pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
+sudo apt-get install clang cmake lld ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl rsync
 ```
 
 ### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/install/manual).
+Install Flutter 3.38.1 by [following their guide](https://docs.flutter.dev/install/manual).
 
 Run `flutter doctor` in a terminal to confirm its installation.
 
@@ -210,7 +211,7 @@ Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.89.0 1.85.1 1.81.0
+rustup install 1.89.0 1.85.1 1.81.0 1.71.0
 rustup default 1.89.0
 cargo install cargo-ndk
 cargo install cbindgen cargo-lipo
@@ -220,7 +221,7 @@ rustup target add aarch64-apple-ios aarch64-apple-darwin
 Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
-Install 3.38.5 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.38.1 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Build plugins and configure
 #### Building plugins for iOS 
@@ -302,12 +303,12 @@ If the DLLs were built on the WSL filesystem instead of on Windows, copy the res
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.38.5 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.38.1 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
-rustup install 1.89.0 1.85.1 1.81.0
+rustup install 1.89.0 1.85.1 1.81.0 1.71.0
 rustup default 1.89.0
 cargo install cargo-ndk
 ```
