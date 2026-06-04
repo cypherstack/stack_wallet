@@ -352,13 +352,20 @@ class _ShopInBitCarResearchPaymentViewState
 
       // log-payment gives us the fee receipt id, which the customer key can't
       // poll; the real car ticket is a separate id. Find and open it, retrying
-      // every 3s for a while since it can take a beat to show up in
-      // by-customer.
+      // for a while since it can take a beat to show up in by-customer. Back
+      // off between tries (2s, 4s, 8s... capped at 15s) so we don't hammer the
+      // by-customer endpoint while we wait.
       int? realId;
-      for (int attempt = 0; attempt < 12 && realId == null; attempt++) {
+      const int maxAttempts = 8;
+      for (
+        int attempt = 0;
+        attempt < maxAttempts && realId == null;
+        attempt++
+      ) {
         realId = await service.adoptRealCarTicket(result.ticketId);
-        if (realId == null && attempt < 11) {
-          await Future<void>.delayed(const Duration(seconds: 3));
+        if (realId == null && attempt < maxAttempts - 1) {
+          final int seconds = (1 << (attempt + 1)).clamp(2, 15).toInt();
+          await Future<void>.delayed(Duration(seconds: seconds));
         }
       }
 
