@@ -26,7 +26,10 @@ import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../more_view/services_view.dart';
 import 'shopinbit_payment_shared.dart';
+import 'shopinbit_ticket_detail.dart';
+import 'shopinbit_tickets_view.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
   const ShopInBitPaymentView({
@@ -247,11 +250,43 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     Navigator.of(context).pop();
   }
 
-  void _navigateToTickets() {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-    } else {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+  bool get _canReturnToRequest => widget.apiTicketId != 0;
+  void _backToRequest() {
+    final navigator = Navigator.of(context);
+    bool landedOnRequest = false;
+    navigator.popUntil((route) {
+      final name = route.settings.name;
+      if (name == ShopInBitTicketDetail.routeName) {
+        landedOnRequest = true;
+        return true;
+      }
+      return name == ShopInBitTicketsView.routeName ||
+          name == ServicesView.routeName ||
+          route.isFirst;
+    });
+    if (!landedOnRequest) {
+      unawaited(
+        navigator.pushNamed(
+          ShopInBitTicketDetail.routeName,
+          arguments: widget.apiTicketId,
+        ),
+      );
+    }
+  }
+
+  void _goToMyRequests() {
+    final navigator = Navigator.of(context);
+    bool landedOnTickets = false;
+    navigator.popUntil((route) {
+      final name = route.settings.name;
+      if (name == ShopInBitTicketsView.routeName) {
+        landedOnTickets = true;
+        return true;
+      }
+      return name == ServicesView.routeName || route.isFirst;
+    });
+    if (!landedOnTickets) {
+      unawaited(navigator.pushNamed(ShopInBitTicketsView.routeName));
     }
   }
 
@@ -569,8 +604,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           ),
           SizedBox(height: isDesktop ? 16 : 12),
           PrimaryButton(
-            label: "View My Requests",
-            onPressed: _navigateToTickets,
+            label: _canReturnToRequest ? "Back to Request" : "View My Requests",
+            onPressed: _canReturnToRequest ? _backToRequest : _goToMyRequests,
           ),
         ],
         SizedBox(height: isDesktop ? 24 : 16),
