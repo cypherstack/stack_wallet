@@ -69,7 +69,6 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     try {
       final resp = await ref
           .read(pShopinBitService)
-          .client
           .getCurrentCarResearchInvoices();
       final invoices = resp.value;
       if (invoices != null) {

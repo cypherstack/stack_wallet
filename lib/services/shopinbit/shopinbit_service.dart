@@ -7,6 +7,7 @@ import "../../models/shopinbit/shopinbit_enums.dart";
 import "../../utilities/logger.dart";
 import "src/api_response.dart";
 import "src/client.dart";
+import "src/models/car_research.dart";
 import "src/models/message.dart";
 import "src/models/ticket.dart";
 
@@ -20,6 +21,61 @@ class ShopInBitService {
   final SharedDatabase db;
 
   final Map<int, Completer<void>> _inFlight = {};
+
+  // Combine concurrent list/invoice fetches the same way _refreshRef does, so
+  // overlapping refreshes (e.g. tickets view refresh racing a post-action one)
+  // share a single round-trip instead of each hitting the API.
+  Completer<ApiResponse<List<TicketRef>>>? _ticketsInFlight;
+  String? _ticketsInFlightKey;
+  Completer<ApiResponse<List<CarResearchCurrentInvoice>>>? _carInvoicesInFlight;
+
+  /// Combined by-customer ticket list fetch.  Concurrent calls for the same
+  /// key await the same in-flight request.
+  Future<ApiResponse<List<TicketRef>>> _ticketsByCustomer(String key) {
+    final Completer<ApiResponse<List<TicketRef>>>? pending = _ticketsInFlight;
+    if (pending != null && _ticketsInFlightKey == key) {
+      return pending.future;
+    }
+    final Completer<ApiResponse<List<TicketRef>>> completer = Completer();
+    _ticketsInFlight = completer;
+    _ticketsInFlightKey = key;
+    unawaited(
+      client
+          .getTicketsByCustomer(key)
+          .then(completer.complete, onError: completer.completeError)
+          .whenComplete(() {
+            if (_ticketsInFlight == completer) {
+              _ticketsInFlight = null;
+              _ticketsInFlightKey = null;
+            }
+          }),
+    );
+    return completer.future;
+  }
+
+  /// Combined wrapper around the current car research invoices fetch.  The
+  /// tickets view calls this on every refresh, so dedup keeps overlapping
+  /// refreshes from each firing their own request.
+  Future<ApiResponse<List<CarResearchCurrentInvoice>>>
+  getCurrentCarResearchInvoices() {
+    final Completer<ApiResponse<List<CarResearchCurrentInvoice>>>? pending =
+        _carInvoicesInFlight;
+    if (pending != null) return pending.future;
+    final Completer<ApiResponse<List<CarResearchCurrentInvoice>>> completer =
+        Completer();
+    _carInvoicesInFlight = completer;
+    unawaited(
+      client
+          .getCurrentCarResearchInvoices()
+          .then(completer.complete, onError: completer.completeError)
+          .whenComplete(() {
+            if (_carInvoicesInFlight == completer) {
+              _carInvoicesInFlight = null;
+            }
+          }),
+    );
+    return completer.future;
+  }
 
   // -- Customer key --
 
@@ -59,9 +115,7 @@ class ShopInBitService {
   /// New tickets are hydrated and inserted; existing tickets are patched.
   Future<void> refreshAll() async {
     final String key = await ensureCustomerKey();
-    final ApiResponse<List<TicketRef>> resp = await client.getTicketsByCustomer(
-      key,
-    );
+    final ApiResponse<List<TicketRef>> resp = await _ticketsByCustomer(key);
     if (resp.hasError || resp.value == null) {
       Logging.instance.w(
         "ShopInBitService.refreshAll: failed to fetch ticket list",
@@ -133,9 +187,7 @@ class ShopInBitService {
   /// receipt), hydrate just that one, and return its id; null if not there yet.
   Future<int?> adoptRealCarTicket(int receiptTicketId) async {
     final String key = await ensureCustomerKey();
-    final ApiResponse<List<TicketRef>> resp = await client.getTicketsByCustomer(
-      key,
-    );
+    final ApiResponse<List<TicketRef>> resp = await _ticketsByCustomer(key);
     if (resp.hasError || resp.value == null) return null;
 
     final Set<int> known = (await db.shopInBitTicketsDao.getByCustomerKey(
