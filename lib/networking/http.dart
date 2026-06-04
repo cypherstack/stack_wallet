@@ -14,9 +14,21 @@ class Response {
   final int code;
   final List<int> bodyBytes;
 
+  // Lower-cased response header names mapped to their (comma-joined) values.
+  // Empty by default so existing callers/tests don't need to supply them.
+  final Map<String, String> headers;
+
   String get body => utf8.decode(bodyBytes, allowMalformed: true);
 
-  Response(this.bodyBytes, this.code);
+  Response(this.bodyBytes, this.code, {this.headers = const {}});
+}
+
+Map<String, String> _headerMap(HttpClientResponse response) {
+  final map = <String, String>{};
+  response.headers.forEach((name, values) {
+    map[name.toLowerCase()] = values.join(', ');
+  });
+  return map;
 }
 
 class HTTP {
@@ -46,7 +58,11 @@ class HTTP {
 
       final response = await request.close();
 
-      return Response(await _bodyBytes(response), response.statusCode);
+      return Response(
+        await _bodyBytes(response),
+        response.statusCode,
+        headers: _headerMap(response),
+      );
     } catch (e, s) {
       Logging.instance.w("HTTP.get() rethrew: ", error: e, stackTrace: s);
       rethrow;
@@ -78,7 +94,11 @@ class HTTP {
       request.write(body);
 
       final response = await request.close();
-      return Response(await _bodyBytes(response), response.statusCode);
+      return Response(
+        await _bodyBytes(response),
+        response.statusCode,
+        headers: _headerMap(response),
+      );
     } catch (e, s) {
       Logging.instance.w("HTTP.post() rethrew: ", error: e, stackTrace: s);
       rethrow;
@@ -109,7 +129,11 @@ class HTTP {
       if (body != null) request.write(body);
 
       final response = await request.close();
-      return Response(await _bodyBytes(response), response.statusCode);
+      return Response(
+        await _bodyBytes(response),
+        response.statusCode,
+        headers: _headerMap(response),
+      );
     } catch (e, s) {
       Logging.instance.w("HTTP.put() rethrew: ", error: e, stackTrace: s);
       rethrow;
@@ -140,7 +164,11 @@ class HTTP {
       request.write(body);
 
       final response = await request.close();
-      return Response(await _bodyBytes(response), response.statusCode);
+      return Response(
+        await _bodyBytes(response),
+        response.statusCode,
+        headers: _headerMap(response),
+      );
     } catch (e, s) {
       Logging.instance.w("HTTP.patch() rethrew: ", error: e, stackTrace: s);
       rethrow;
@@ -168,7 +196,11 @@ class HTTP {
       }
 
       final response = await request.close();
-      return Response(await _bodyBytes(response), response.statusCode);
+      return Response(
+        await _bodyBytes(response),
+        response.statusCode,
+        headers: _headerMap(response),
+      );
     } catch (e, s) {
       Logging.instance.w("HTTP.delete() rethrew: ", error: e, stackTrace: s);
       rethrow;

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import '../../../app_config.dart';
 import '../../../networking/http.dart';
@@ -19,6 +20,10 @@ import 'token_manager.dart';
 
 const _kTag = "ShopInBitClient";
 
+// 429 retry policy: up to 3 retries, backoff capped at 30s.
+const int _kMaxRetries = 3;
+const Duration _kMaxBackoff = Duration(seconds: 30);
+
 class ShopInBitClient {
   final String accessKey;
   final String partnerSecret;
@@ -26,6 +31,7 @@ class ShopInBitClient {
   final bool sandbox;
   final HTTP _httpClient;
   final TokenManager _tokenManager;
+  final Random _rng = Random();
 
   String? _externalCustomerKey;
 
@@ -578,34 +584,90 @@ class ShopInBitClient {
 
     Logging.instance.t("$_kTag $method $uri");
 
-    switch (method) {
-      case 'GET':
-        return _httpClient.get(url: uri, headers: headers, proxyInfo: proxy);
-      case 'POST':
-        return _httpClient.post(
-          url: uri,
-          headers: headers,
-          body: body != null ? _asciiSafeJson(body) : null,
-          proxyInfo: proxy,
-        );
-      case 'PUT':
-        return _httpClient.put(
-          url: uri,
-          headers: headers,
-          body: body != null ? jsonEncode(body) : null,
-          proxyInfo: proxy,
-        );
-      case 'PATCH':
-        return _httpClient.patch(
-          url: uri,
-          headers: headers,
-          body: body != null ? _asciiSafeJson(body) : null,
-          proxyInfo: proxy,
-        );
-      case 'DELETE':
-        return _httpClient.delete(url: uri, headers: headers, proxyInfo: proxy);
-      default:
-        throw ApiException('Unsupported method: $method');
+    Future<Response> dispatch() {
+      switch (method) {
+        case 'GET':
+          return _httpClient.get(url: uri, headers: headers, proxyInfo: proxy);
+        case 'POST':
+          return _httpClient.post(
+            url: uri,
+            headers: headers,
+            body: body != null ? _asciiSafeJson(body) : null,
+            proxyInfo: proxy,
+          );
+        case 'PUT':
+          return _httpClient.put(
+            url: uri,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+            proxyInfo: proxy,
+          );
+        case 'PATCH':
+          return _httpClient.patch(
+            url: uri,
+            headers: headers,
+            body: body != null ? _asciiSafeJson(body) : null,
+            proxyInfo: proxy,
+          );
+        case 'DELETE':
+          return _httpClient.delete(
+            url: uri,
+            headers: headers,
+            proxyInfo: proxy,
+          );
+        default:
+          throw ApiException('Unsupported method: $method');
+      }
+    }
+
+    // Retry on 429 (Too Many Requests) with backoff so we stop hammering the
+    // API the moment it tells us to. Respects a server-sent Retry-After when
+    // present, otherwise exponential backoff with jitter. Everything funnels
+    // through here, so all endpoints get this for free.
+    int attempt = 0;
+    while (true) {
+      final response = await dispatch();
+      if (response.code != 429 || attempt >= _kMaxRetries) {
+        return response;
+      }
+      final Duration delay = _backoffDelay(attempt, response.headers);
+      Logging.instance.w(
+        "$_kTag $method $resolved HTTP:429, backing off "
+        "${delay.inMilliseconds}ms (retry ${attempt + 1}/$_kMaxRetries)",
+      );
+      await Future<void>.delayed(delay);
+      attempt++;
+    }
+  }
+
+  /// How long to wait before retrying a 429. Prefers a sane `Retry-After`
+  /// header; otherwise 1s, 2s, 4s... with jitter, capped at [_kMaxBackoff].
+  Duration _backoffDelay(int attempt, Map<String, String> headers) {
+    final Duration? retryAfter = _parseRetryAfter(headers['retry-after']);
+    if (retryAfter != null) {
+      return retryAfter > _kMaxBackoff ? _kMaxBackoff : retryAfter;
+    }
+    final int base = 1000 * (1 << attempt);
+    final int ms = base + _rng.nextInt(500);
+    return ms > _kMaxBackoff.inMilliseconds
+        ? _kMaxBackoff
+        : Duration(milliseconds: ms);
+  }
+
+  /// Parse a `Retry-After` value, which is either delay-seconds or an
+  /// HTTP-date. Returns null if absent or unparseable.
+  Duration? _parseRetryAfter(String? value) {
+    if (value == null) return null;
+    final String trimmed = value.trim();
+    final int? seconds = int.tryParse(trimmed);
+    if (seconds != null) {
+      return seconds < 0 ? Duration.zero : Duration(seconds: seconds);
+    }
+    try {
+      final Duration diff = HttpDate.parse(trimmed).difference(DateTime.now());
+      return diff.isNegative ? Duration.zero : diff;
+    } catch (_) {
+      return null;
     }
   }
 
