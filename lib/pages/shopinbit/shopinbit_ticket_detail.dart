@@ -13,6 +13,7 @@ import '../../services/shopinbit/src/models/message.dart';
 import '../../services/shopinbit/src/models/ticket.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -38,8 +39,13 @@ class ShopInBitTicketDetail extends ConsumerStatefulWidget {
       _ShopInBitTicketDetailState();
 }
 
-class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
+class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
+    with WidgetsBindingObserver {
   late final TextEditingController _messageController;
+
+  static const Duration _kBasePollInterval = Duration(seconds: 30);
+  static const Duration _kMaxPollInterval = Duration(seconds: 120);
+  Duration _pollInterval = _kBasePollInterval;
 
   // Optimistically-shown messages the user just sent, kept until the next
   // refresh folds them into the persisted ticket row.
@@ -54,6 +60,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
     super.initState();
 
     _messageController = TextEditingController();
+    WidgetsBinding.instance.addObserver(this);
 
     // start with a refresh right away and then start polling for updates
     unawaited(_refresh().then((_) => _startPolling()));
@@ -61,15 +68,39 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pollingTimer?.cancel();
     _pollingTimer = null;
     _messageController.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Don't poll while backgrounded; resume fresh when we come back.
+    if (state == AppLifecycleState.resumed) {
+      final ticket = ref.read(pShopInBitTicket(_id)).asData?.value;
+      final terminal =
+          ticket != null && TicketState.fromString(ticket.statusRaw).isTerminal;
+      if (!terminal) _startPolling();
+    } else {
+      _pollingTimer?.cancel();
+    }
+  }
+
   Timer? _pollingTimer;
   Future<void> _poll() async {
-    await _refresh();
+    bool ok = false;
+    try {
+      await _refresh();
+      ok = true;
+    } catch (e, s) {
+      Logging.instance.w(
+        "ShopInBit ticket poll failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
     if (!mounted) return;
 
     // Stop polling once the ticket reaches a terminal state; nothing about a
@@ -79,11 +110,19 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail> {
       return;
     }
 
-    _pollingTimer = Timer(const Duration(seconds: 30), _poll);
+    // Back off on failure (e.g. a 429), reset on success.
+    _pollInterval = ok ? _kBasePollInterval : _nextBackoff(_pollInterval);
+    _pollingTimer = Timer(_pollInterval, _poll);
+  }
+
+  Duration _nextBackoff(Duration current) {
+    final Duration next = current * 2;
+    return next > _kMaxPollInterval ? _kMaxPollInterval : next;
   }
 
   void _startPolling() {
     _pollingTimer?.cancel();
+    _pollInterval = _kBasePollInterval;
     unawaited(_poll());
   }
 

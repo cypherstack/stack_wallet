@@ -42,8 +42,14 @@ class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitCarResearchPaymentViewState
-    extends ConsumerState<ShopInBitCarResearchPaymentView> {
+    extends ConsumerState<ShopInBitCarResearchPaymentView>
+    with WidgetsBindingObserver {
   Timer? _pollTimer;
+
+  static const Duration _kBasePollInterval = Duration(seconds: 15);
+  static const Duration _kMaxPollInterval = Duration(seconds: 120);
+  Duration _pollInterval = _kBasePollInterval;
+
   Map<String, dynamic>? _status;
   _PaymentFlowState _flowState = _PaymentFlowState.idle;
   String _statusString = "ready_to_pay";
@@ -183,21 +189,57 @@ class _ShopInBitCarResearchPaymentViewState
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final links = widget.invoice.paymentLinks;
     _methods = links.keys.map((k) => k.toUpperCase()).toList();
     _addresses = links.values.toList();
     // Kick off an immediate poll then start periodic polling.
     unawaited(_pollStatus());
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => unawaited(_pollStatus()),
-    );
+    _scheduleNextPoll();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Don't poll while backgrounded; resume fresh when we come back.
+    if (state == AppLifecycleState.resumed) {
+      if (!_isTerminal && _flowState != _PaymentFlowState.finalizing) {
+        _pollInterval = _kBasePollInterval;
+        _scheduleNextPoll();
+      }
+    } else {
+      _pollTimer?.cancel();
+    }
+  }
+
+  void _scheduleNextPoll() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer(_pollInterval, _pollTick);
+  }
+
+  Duration _nextBackoff(Duration current) {
+    final Duration next = current * 2;
+    return next > _kMaxPollInterval ? _kMaxPollInterval : next;
+  }
+
+  /// Periodic driver: poll once, then reschedule with backoff on failure and
+  /// reset on success. Stops once the flow is terminal or finalizing.
+  Future<void> _pollTick() async {
+    final bool ok = await _pollStatus();
+    if (!mounted) return;
+    if (_isTerminal ||
+        _flowState == _PaymentFlowState.finalizing ||
+        _flowState == _PaymentFlowState.complete) {
+      return;
+    }
+    _pollInterval = ok ? _kBasePollInterval : _nextBackoff(_pollInterval);
+    _scheduleNextPoll();
   }
 
   void _popToTickets() {
@@ -266,7 +308,9 @@ class _ShopInBitCarResearchPaymentViewState
     }
   }
 
-  Future<void> _pollStatus() async {
+  /// Fetch invoice status once and apply it. Returns false on any failure so
+  /// the periodic driver can back off instead of polling at full rate.
+  Future<bool> _pollStatus() async {
     try {
       final resp = await ref
           .read(pShopinBitService)
@@ -283,9 +327,9 @@ class _ShopInBitCarResearchPaymentViewState
             ),
           );
         }
-        return;
+        return false;
       }
-      if (!mounted) return;
+      if (!mounted) return true;
       Logging.instance.i(
         "CarResearch status response (payment_view): ${resp.value}",
       );
@@ -302,6 +346,7 @@ class _ShopInBitCarResearchPaymentViewState
         _pollTimer?.cancel();
         await _finalizePayment();
       }
+      return true;
     } catch (e, s) {
       Logging.instance.e(
         "ticket status polling issue",
@@ -317,6 +362,7 @@ class _ShopInBitCarResearchPaymentViewState
           ),
         );
       }
+      return false;
     }
   }
 

@@ -15,6 +15,7 @@ import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -50,9 +51,14 @@ class ShopInBitPaymentView extends ConsumerStatefulWidget {
       _ShopInBitPaymentViewState();
 }
 
-class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
+class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
+    with WidgetsBindingObserver {
   int _selectedMethod = 0;
   Timer? _pollTimer;
+
+  static const Duration _kBasePollInterval = Duration(seconds: 15);
+  static const Duration _kMaxPollInterval = Duration(seconds: 120);
+  Duration _pollInterval = _kBasePollInterval;
 
   PaymentInfo? _paymentInfo;
 
@@ -81,6 +87,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _applyPaymentInfo(widget.paymentInfo);
     if (widget.apiTicketId != 0) {
       _startPolling();
@@ -89,8 +96,20 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (widget.apiTicketId == 0) return;
+    // Don't poll while backgrounded; resume fresh when we come back.
+    if (state == AppLifecycleState.resumed) {
+      if (!_isTerminal) _startPolling();
+    } else {
+      _pollTimer?.cancel();
+    }
   }
 
   void _applyPaymentInfo(PaymentInfo info) {
@@ -104,25 +123,49 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => _pollPayment(),
-    );
+    _pollInterval = _kBasePollInterval;
+    _scheduleNextPoll();
+  }
+
+  void _scheduleNextPoll() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer(_pollInterval, _pollPayment);
+  }
+
+  Duration _nextBackoff(Duration current) {
+    final Duration next = current * 2;
+    return next > _kMaxPollInterval ? _kMaxPollInterval : next;
   }
 
   Future<void> _pollPayment() async {
+    bool ok = false;
     try {
       final resp = await ref
           .read(pShopinBitService)
           .client
           .getPayment(widget.apiTicketId);
-      if (!resp.hasError && resp.value != null && mounted) {
-        setState(() => _applyPaymentInfo(resp.value!));
-        if (_isTerminal) {
-          _pollTimer?.cancel();
+      if (!resp.hasError && resp.value != null) {
+        ok = true;
+        if (mounted) {
+          setState(() => _applyPaymentInfo(resp.value!));
         }
       }
-    } catch (_) {}
+    } catch (e, s) {
+      Logging.instance.w(
+        "ShopInBit payment poll failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+    if (!mounted) return;
+    if (_isTerminal) {
+      _pollTimer?.cancel();
+      return;
+    }
+    // Back off on failure (e.g. a 429), reset to base on success, so a rate
+    // limit slows us down instead of getting hammered every 15s.
+    _pollInterval = ok ? _kBasePollInterval : _nextBackoff(_pollInterval);
+    _scheduleNextPoll();
   }
 
   Future<void> _refreshInvoice() async {
