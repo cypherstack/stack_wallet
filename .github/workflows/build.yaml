@@ -1417,8 +1417,8 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      # Flutter only publishes x64 Windows SDK binaries; use it via x64 emulation
-      # and cross-compile to ARM64 with --target-platform windows-arm64.
+      # Flutter only publishes x64 Windows SDK binaries; architecture: x64 forces
+      # the action to fetch the x64 SDK which runs via emulation on the ARM64 host.
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
@@ -1441,6 +1441,13 @@ jobs:
         run: flutter doctor -v
 
       - name: Configure app
+        env:
+          # configure_stack_wallet.sh calls build_standalone_mwebd_windows.dart
+          # without --fetch by default, which tries to build mwebd.exe from source
+          # via WSL + CGO. On ARM64 the WSL host is ARM64 but the x64 MinGW
+          # assembler can't compile Go's gcc_arm64.S. Fetch the pre-built x64
+          # binary instead — it runs fine as a subprocess under x64 emulation.
+          MWEBD_FETCH: '1'
         run: |
           cd scripts
           echo "yes" | ./build_app.sh \
@@ -1524,16 +1531,23 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
-      # during flutter build windows, targeting windows-arm64.
-      # dart run coinlib:build_windows is skipped because it hardcodes -A x64.
+      # during flutter build windows. dart run coinlib:build_windows is skipped
+      # because it hardcodes -A x64.
 
       - name: Build
-        run: flutter build windows --target-platform windows-arm64 --release
+        run: flutter build windows --release
 
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/arm64/runner/Release/*" `
+          # Flutter outputs to arm64/ when it detects native ARM64, x64/ otherwise
+          # (x64 SDK via emulation on ARM64 runner may report either arch).
+          $releaseDir = if (Test-Path "build/windows/arm64/runner/Release") {
+            "build/windows/arm64/runner/Release"
+          } else {
+            "build/windows/x64/runner/Release"
+          }
+          Compress-Archive -Path "$releaseDir/*" `
             -DestinationPath "stack_wallet-windows-arm64-${{ steps.ver.outputs.version }}.zip"
 
       - uses: actions/upload-artifact@v7
@@ -1569,8 +1583,8 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      # Flutter only publishes x64 Windows SDK binaries; use it via x64 emulation
-      # and cross-compile to ARM64 with --target-platform windows-arm64.
+      # Flutter only publishes x64 Windows SDK binaries; architecture: x64 forces
+      # the action to fetch the x64 SDK which runs via emulation on the ARM64 host.
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
@@ -1614,16 +1628,21 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
-      # during flutter build windows, targeting windows-arm64.
-      # dart run coinlib:build_windows is skipped because it hardcodes -A x64.
+      # during flutter build windows. dart run coinlib:build_windows is skipped
+      # because it hardcodes -A x64.
 
       - name: Build
-        run: flutter build windows --target-platform windows-arm64 --release
+        run: flutter build windows --release
 
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/arm64/runner/Release/*" `
+          $releaseDir = if (Test-Path "build/windows/arm64/runner/Release") {
+            "build/windows/arm64/runner/Release"
+          } else {
+            "build/windows/x64/runner/Release"
+          }
+          Compress-Archive -Path "$releaseDir/*" `
             -DestinationPath "campfire-windows-arm64-${{ steps.ver.outputs.version }}.zip"
 
       - uses: actions/upload-artifact@v7
@@ -1659,8 +1678,8 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      # Flutter only publishes x64 Windows SDK binaries; use it via x64 emulation
-      # and cross-compile to ARM64 with --target-platform windows-arm64.
+      # Flutter only publishes x64 Windows SDK binaries; architecture: x64 forces
+      # the action to fetch the x64 SDK which runs via emulation on the ARM64 host.
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
@@ -1719,16 +1738,21 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
-      # during flutter build windows, targeting windows-arm64.
-      # dart run coinlib:build_windows is skipped because it hardcodes -A x64.
+      # during flutter build windows. dart run coinlib:build_windows is skipped
+      # because it hardcodes -A x64.
 
       - name: Build
-        run: flutter build windows --target-platform windows-arm64 --release
+        run: flutter build windows --release
 
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/arm64/runner/Release/*" `
+          $releaseDir = if (Test-Path "build/windows/arm64/runner/Release") {
+            "build/windows/arm64/runner/Release"
+          } else {
+            "build/windows/x64/runner/Release"
+          }
+          Compress-Archive -Path "$releaseDir/*" `
             -DestinationPath "stack_duo-windows-arm64-${{ steps.ver.outputs.version }}.zip"
 
       - uses: actions/upload-artifact@v7
