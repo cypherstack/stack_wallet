@@ -1417,10 +1417,13 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # Flutter only publishes x64 Windows SDK binaries; use it via x64 emulation
+      # and cross-compile to ARM64 with --target-platform windows-arm64.
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+          architecture: x64
 
       - uses: actions/setup-go@v6
         with:
@@ -1521,11 +1524,11 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
-      # during flutter build windows, targeting the host architecture (ARM64).
+      # during flutter build windows, targeting windows-arm64.
       # dart run coinlib:build_windows is skipped because it hardcodes -A x64.
 
       - name: Build
-        run: flutter build windows --release
+        run: flutter build windows --target-platform windows-arm64 --release
 
       - name: Package
         shell: pwsh
@@ -1566,10 +1569,13 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # Flutter only publishes x64 Windows SDK binaries; use it via x64 emulation
+      # and cross-compile to ARM64 with --target-platform windows-arm64.
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+          architecture: x64
 
       - uses: actions/setup-go@v6
         with:
@@ -1608,11 +1614,11 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
-      # during flutter build windows, targeting the host architecture (ARM64).
+      # during flutter build windows, targeting windows-arm64.
       # dart run coinlib:build_windows is skipped because it hardcodes -A x64.
 
       - name: Build
-        run: flutter build windows --release
+        run: flutter build windows --target-platform windows-arm64 --release
 
       - name: Package
         shell: pwsh
@@ -1653,10 +1659,13 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # Flutter only publishes x64 Windows SDK binaries; use it via x64 emulation
+      # and cross-compile to ARM64 with --target-platform windows-arm64.
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
+          architecture: x64
 
       - uses: actions/setup-go@v6
         with:
@@ -1710,11 +1719,11 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
-      # during flutter build windows, targeting the host architecture (ARM64).
+      # during flutter build windows, targeting windows-arm64.
       # dart run coinlib:build_windows is skipped because it hardcodes -A x64.
 
       - name: Build
-        run: flutter build windows --release
+        run: flutter build windows --target-platform windows-arm64 --release
 
       - name: Package
         shell: pwsh
