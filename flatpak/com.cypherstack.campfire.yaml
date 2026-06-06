@@ -9,12 +9,39 @@ finish-args:
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
-  - --device=dri
+  - --device=all
   - --filesystem=~/.campfire
   - --talk-name=org.freedesktop.secrets
   - --talk-name=org.freedesktop.Notifications
 
 modules:
+  - name: opencv
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_LIST=core,imgcodecs,imgproc,videoio
+      - -DBUILD_EXAMPLES=OFF
+      - -DBUILD_TESTS=OFF
+      - -DBUILD_PERF_TESTS=OFF
+      - -DBUILD_DOCS=OFF
+      - -DBUILD_opencv_python3=OFF
+      - -DBUILD_opencv_python_bindings_generator=OFF
+      - -DWITH_GTK=OFF
+      - -DWITH_QT=OFF
+      - -DWITH_OPENGL=OFF
+      - -DWITH_OPENCL=OFF
+      - -DWITH_CUDA=OFF
+      - -DWITH_FFMPEG=OFF
+      - -DWITH_GSTREAMER=OFF
+      - -DWITH_V4L=ON
+      - -DWITH_LIBV4L=ON
+    sources:
+      - type: git
+        url: https://github.com/opencv/opencv
+        tag: '4.10.0'
+        commit: 71d3237a093b60a27601c20e9ee6c3e52154e8b1
+
   - name: campfire
     buildsystem: simple
     build-commands:
@@ -31,3 +58,21 @@ modules:
     sources:
       - type: dir
         path: .
+
+  - name: camera-linux
+    buildsystem: simple
+    build-commands:
+      - cmake -S src -B _build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH=/app
+          -DCMAKE_INSTALL_RPATH=/app/lib/campfire/lib:/app/lib
+          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+      - cmake --build _build --parallel
+      - install -Dm755 _build/libopencv_wrapper.so
+          /app/lib/campfire/lib/libopencv_wrapper.so
+      - install -Dm755 _build/libcamera_linux.so
+          /app/lib/campfire/lib/libcamera_linux.so
+    sources:
+      - type: git
+        url: https://github.com/cypherstack/camera-linux
+        commit: ecb412474c5d240347b04ac1eb9f019802ff7034
