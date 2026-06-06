@@ -252,6 +252,8 @@ jobs:
         run: flutter doctor -v
 
       - name: Configure app
+        env:
+          MWEBD_FETCH: '1'
         run: |
           cd scripts
           echo "yes" | ./build_app.sh \
@@ -1491,8 +1493,11 @@ jobs:
           cd crypto_plugins/flutter_libepiccash/rust
           cargo +1.89.0 build --target aarch64-pc-windows-msvc --release --lib
           mkdir -p ../scripts/windows/build
-          cp target/aarch64-pc-windows-msvc/release/epic_cash_wallet.dll \
-             ../scripts/windows/build/libepic_cash_wallet.dll
+          # Cargo may output to target/release/ instead of target/<triple>/release/
+          # when --target matches the native host. Search both locations.
+          DLL="$(find target -name 'epic_cash_wallet.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "epic_cash_wallet.dll not found"; exit 1; }
+          cp "$DLL" ../scripts/windows/build/libepic_cash_wallet.dll
 
       - name: Build flutter_libmwc for Windows ARM64
         run: |
@@ -1500,8 +1505,9 @@ jobs:
           cd crypto_plugins/flutter_libmwc/rust
           cargo +1.85.1 build --target aarch64-pc-windows-msvc --release --lib
           mkdir -p ../scripts/windows/build
-          cp target/aarch64-pc-windows-msvc/release/mwc_wallet.dll \
-             ../scripts/windows/build/libmwc_wallet.dll
+          DLL="$(find target -name 'mwc_wallet.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "mwc_wallet.dll not found"; exit 1; }
+          cp "$DLL" ../scripts/windows/build/libmwc_wallet.dll
 
       - name: Build frostdart for Windows ARM64
         run: |
@@ -1509,8 +1515,9 @@ jobs:
           cd crypto_plugins/frostdart/src/serai/hrf
           cargo +1.89.0 build --target aarch64-pc-windows-msvc --release --lib
           mkdir -p ../../../scripts/windows/build
-          cp target/aarch64-pc-windows-msvc/release/hrf_api.dll \
-             ../../../scripts/windows/build/frostdart.dll
+          DLL="$(find target -name 'hrf_api.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "hrf_api.dll not found"; exit 1; }
+          cp "$DLL" ../../../scripts/windows/build/frostdart.dll
 
       - name: Create git_versions.dart stubs
         run: |
@@ -1729,8 +1736,9 @@ jobs:
           cd crypto_plugins/frostdart/src/serai/hrf
           cargo +1.89.0 build --target aarch64-pc-windows-msvc --release --lib
           mkdir -p ../../../scripts/windows/build
-          cp target/aarch64-pc-windows-msvc/release/hrf_api.dll \
-             ../../../scripts/windows/build/frostdart.dll
+          DLL="$(find target -name 'hrf_api.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "hrf_api.dll not found"; exit 1; }
+          cp "$DLL" ../../../scripts/windows/build/frostdart.dll
 
       - name: Decode secrets
         env:
