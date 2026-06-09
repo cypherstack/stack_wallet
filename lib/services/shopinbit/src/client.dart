@@ -358,16 +358,20 @@ class ShopInBitClient {
 
   // -- Car Research Fee --
 
+  /// Create the car research fee invoice. Both [billing] and [request] are
+  /// required; without a request the server returns 422 and creates nothing.
+  /// The stored request lets the backend build the customer-facing car ticket
+  /// once the fee is paid.
   Future<ApiResponse<CarResearchInvoice>> createCarResearchInvoice({
     required Address billing,
-    CarResearchRequest? request,
+    required CarResearchRequest request,
   }) async {
     return _request(
       'POST',
       '/car-research/invoice',
       body: {
         'billing': billing.toJson(),
-        if (request != null) 'request': request.toJson(),
+        'request': request.toJson(),
         if (_externalCustomerKey != null)
           'external_customer_key': _externalCustomerKey,
       },
@@ -399,28 +403,16 @@ class ShopInBitClient {
     );
   }
 
-  Future<ApiResponse<Map<String, dynamic>>> getCarResearchInvoiceStatus(
+  /// Poll the car research invoice status. Read-only: it never confirms
+  /// payment. Once [CarResearchInvoiceStatus.finalized] is true the response
+  /// carries the receipt and real ticket references.
+  Future<ApiResponse<CarResearchInvoiceStatus>> getCarResearchInvoiceStatus(
     String invoiceId,
   ) async {
     return _request(
       'GET',
       '/car-research/invoice/$invoiceId/status',
-      parse: (json) => json,
-    );
-  }
-
-  Future<ApiResponse<CarResearchPaymentResult>> logCarResearchPayment(
-    String invoiceId,
-  ) async {
-    return _request(
-      'POST',
-      '/car-research/log-payment',
-      body: {
-        'invoice_id': invoiceId,
-        if (_externalCustomerKey != null)
-          'external_customer_key': _externalCustomerKey,
-      },
-      parse: CarResearchPaymentResult.fromJson,
+      parse: CarResearchInvoiceStatus.fromJson,
     );
   }
 

@@ -181,10 +181,14 @@ class ShopInBitService {
     return ref;
   }
 
-  /// log-payment returns the fee *receipt* id, which the customer key can't
-  /// poll (403s). The real car ticket is a separate id that does show up in
-  /// by-customer. Grab the newest ticket we don't already track (not the
-  /// receipt), hydrate just that one, and return its id; null if not there yet.
+  /// Fallback for finding the real car research ticket when the status endpoint
+  /// hasn't populated real_ticket_id yet (sandbox, or briefly while the ticket
+  /// is being created).
+  ///
+  /// The fee receipt id can't be polled by the customer key (403s); the real
+  /// ticket is a separate id that shows up in by-customer. Grab the newest
+  /// ticket we don't already track (not the receipt), hydrate it, and return
+  /// its id, or null if it's not there yet.
   Future<int?> adoptRealCarTicket(int receiptTicketId) async {
     final String key = await ensureCustomerKey();
     final ApiResponse<List<TicketRef>> resp = await _ticketsByCustomer(key);

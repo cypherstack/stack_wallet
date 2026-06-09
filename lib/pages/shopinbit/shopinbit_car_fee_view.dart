@@ -315,9 +315,8 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
   }
 
   Future<void> _loadFee(CarResearchInvoice invoice) async {
-    // Keep status call for visibility into any future API changes surfacing
-    // a fee field. Today the endpoint returns only {status, additional}, so
-    // we source the displayed amount from the BIP21 payment URIs instead.
+    // Still hit status for logging; it has no fee field, so the amount comes
+    // from the BIP21 payment URIs.
     try {
       final resp = await ref
           .read(pShopinBitService)

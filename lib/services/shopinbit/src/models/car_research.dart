@@ -57,9 +57,12 @@ class CarResearchCurrentInvoice {
   }
 }
 
-/// Whether a car research invoice status counts as paid/finalized per the
-/// ShopinBit 1.0.4 rules: Processing, Settled, or Expired with PaidLate. The
-/// extra lowercase values keep older concierge-style statuses working.
+/// Whether a car research invoice status counts as paid/finalized.
+///
+/// Prefer the `finalized` boolean from the status endpoint (see
+/// [CarResearchInvoiceStatus.finalized]). This is the fallback for the raw
+/// status/additional strings: Processing, Settled, or Expired with PaidLate,
+/// plus lowercase values for older concierge-style statuses.
 bool carResearchIsFinalized(String? status, String? additional) {
   final s = (status ?? '').toLowerCase().trim();
   final a = (additional ?? '').toLowerCase().trim();
@@ -100,25 +103,56 @@ class CarResearchInvoice {
   }
 }
 
-class CarResearchPaymentResult {
+/// Result of GET /car-research/invoice/{invoice_id}/status.
+///
+/// Read-only: it never confirms payment, so poll until [finalized] is true.
+/// Once finalized it carries the created ticket references:
+///
+/// * [realTicketId] / [realTicketNumber]: the customer-facing car research
+///   chat. Open this for the customer after payment.
+/// * [receiptTicketId] / [receiptTicketNumber]: the paid-fee receipt only;
+///   do NOT use it as the active customer chat.
+///
+/// The sandbox populates only the receipt references and leaves the real ticket
+/// fields null, so [realTicketId] is nullable.
+class CarResearchInvoiceStatus {
   final String status;
-  final int ticketId;
-  final String ticketNumber;
-  final String externalCustomerKey;
+  final String? additional;
+  final bool finalized;
+  final int? receiptTicketId;
+  final String? receiptTicketNumber;
+  final int? realTicketId;
+  final String? realTicketNumber;
+  final String? externalCustomerKey;
 
-  CarResearchPaymentResult({
+  CarResearchInvoiceStatus({
     required this.status,
-    required this.ticketId,
-    required this.ticketNumber,
-    required this.externalCustomerKey,
+    this.additional,
+    required this.finalized,
+    this.receiptTicketId,
+    this.receiptTicketNumber,
+    this.realTicketId,
+    this.realTicketNumber,
+    this.externalCustomerKey,
   });
 
-  factory CarResearchPaymentResult.fromJson(Map<String, dynamic> json) {
-    return CarResearchPaymentResult(
-      status: json['status'] as String,
-      ticketId: int.tryParse(json['ticket_id'].toString()) ?? 0,
-      ticketNumber: json['ticket_number'] as String,
-      externalCustomerKey: json['external_customer_key'] as String,
+  factory CarResearchInvoiceStatus.fromJson(Map<String, dynamic> json) {
+    int? toIntOrNull(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      return int.tryParse(v.toString());
+    }
+
+    return CarResearchInvoiceStatus(
+      status: json['status']?.toString() ?? '',
+      additional: json['additional']?.toString(),
+      finalized: json['finalized'] == true,
+      receiptTicketId: toIntOrNull(json['receipt_ticket_id']),
+      receiptTicketNumber: json['receipt_ticket_number']?.toString(),
+      realTicketId: toIntOrNull(json['real_ticket_id']),
+      realTicketNumber: json['real_ticket_number']?.toString(),
+      externalCustomerKey: json['external_customer_key']?.toString(),
     );
   }
 }

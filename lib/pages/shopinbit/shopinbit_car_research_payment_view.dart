@@ -50,10 +50,15 @@ class _ShopInBitCarResearchPaymentViewState
   static const Duration _kMaxPollInterval = Duration(seconds: 120);
   Duration _pollInterval = _kBasePollInterval;
 
-  Map<String, dynamic>? _status;
+  CarResearchInvoiceStatus? _status;
   _PaymentFlowState _flowState = _PaymentFlowState.idle;
   String _statusString = "ready_to_pay";
   String? _additional;
+  bool _finalized = false;
+  // From the finalized status: the real ticket is the customer chat, the
+  // receipt is just the paid-fee receipt.
+  int? _realTicketId;
+  int? _receiptTicketId;
   List<String> _methods = [];
   List<String> _addresses = [];
   int _selectedMethod = 0;
@@ -61,7 +66,9 @@ class _ShopInBitCarResearchPaymentViewState
   String get _currentAddress =>
       _selectedMethod < _addresses.length ? _addresses[_selectedMethod] : "";
 
-  bool get _isTerminal => carResearchIsFinalized(_statusString, _additional);
+  // Trust the `finalized` flag; fall back to the status/additional heuristic.
+  bool get _isTerminal =>
+      _finalized || carResearchIsFinalized(_statusString, _additional);
 
   bool get _payNowEnabled =>
       !_isTerminal && _flowState == _PaymentFlowState.idle;
@@ -145,10 +152,9 @@ class _ShopInBitCarResearchPaymentViewState
   }
 
   String get _displayedFee {
-    // API status endpoint does not expose a fee field (confirmed: returns
-    // only {status, additional}). Parse the amount from the BIP21 payment
-    // URI for the currently-selected method, fall back to the 223.00 EUR
-    // business-rule value if no parse succeeds.
+    // The status endpoint has no fee field, so parse the amount from the
+    // selected method's BIP21 URI, falling back to the 223.00 EUR business
+    // rule.
     final links = widget.invoice.paymentLinks;
     if (_selectedMethod < _methods.length) {
       final methodKey = _methods[_selectedMethod];
@@ -339,8 +345,13 @@ class _ShopInBitCarResearchPaymentViewState
       );
       setState(() {
         _status = resp.value!;
-        _statusString = _status!["status"]?.toString() ?? _statusString;
-        _additional = _status!["additional"]?.toString();
+        _statusString = _status!.status.isNotEmpty
+            ? _status!.status
+            : _statusString;
+        _additional = _status!.additional;
+        _finalized = _status!.finalized;
+        _realTicketId = _status!.realTicketId;
+        _receiptTicketId = _status!.receiptTicketId;
       });
       if (_isTerminal) {
         _pollTimer?.cancel();
@@ -377,38 +388,29 @@ class _ShopInBitCarResearchPaymentViewState
     _pollTimer?.cancel();
 
     final service = ref.read(pShopinBitService);
-    final client = service.client;
 
     try {
-      // Best-effort: the BTCPay webhook is the failsafe that finalizes the fee
-      // and creates the receipt and real car ticket even if this call fails.
-      final logResp = await client.logCarResearchPayment(
-        widget.invoice.btcpayInvoice,
-      );
-
-      if (logResp.hasError || logResp.value == null) {
-        // Payment is confirmed but we could not log it. The webhook will
-        // finalize it server side, so offer the user a shortcut to their
-        // requests where the finalized ticket will appear.
-        await _showFinalizingFallback();
-        return;
-      }
-
-      final result = logResp.value!;
-
-      // log-payment gives us the fee receipt id, which the customer key can't
-      // poll; the real car ticket is a separate id. Find and open it, retrying
-      // for a while since it can take a beat to show up in by-customer. Back
-      // off between tries (2s, 4s, 8s... capped at 15s) so we don't hammer the
-      // by-customer endpoint while we wait.
-      int? realId;
+      // The finalized status usually gives us the real car ticket id (the
+      // customer chat), so open that. It can be null for a bit (sandbox, or
+      // while the ticket is still being created), so fall back to by-customer,
+      // using the receipt id to skip the receipt ticket. The BTCPay webhook
+      // creates the ticket either way.
+      int? realId = _realTicketId;
       const int maxAttempts = 8;
       for (
         int attempt = 0;
         attempt < maxAttempts && realId == null;
         attempt++
       ) {
-        realId = await service.adoptRealCarTicket(result.ticketId);
+        // Re-poll the status first in case the real ticket id has appeared.
+        final statusResp = await service.client.getCarResearchInvoiceStatus(
+          widget.invoice.btcpayInvoice,
+        );
+        realId = statusResp.value?.realTicketId;
+        // Fall back to the by-customer heuristic, excluding the receipt id.
+        realId ??= await service.adoptRealCarTicket(
+          statusResp.value?.receiptTicketId ?? _receiptTicketId ?? 0,
+        );
         if (realId == null && attempt < maxAttempts - 1) {
           final int seconds = (1 << (attempt + 1)).clamp(2, 15).toInt();
           await Future<void>.delayed(Duration(seconds: seconds));
