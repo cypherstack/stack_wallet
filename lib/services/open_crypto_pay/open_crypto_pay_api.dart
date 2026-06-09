@@ -167,6 +167,7 @@ class OpenCryptoPayApi {
         ...base.queryParameters,
         'quote': commit.quoteId,
         'method': commit.method,
+        'asset': commit.asset,
         ...queryParameters,
       },
     );
@@ -185,6 +186,10 @@ class OpenCryptoPayApi {
     if (paymentId.isEmpty) {
       throw Exception('OpenCryptoPay: quote payment id is missing');
     }
+    if (callback.path.contains('/cb/')) {
+      return callback.replace(path: callback.path.replaceFirst('/cb/', '/tx/'));
+    }
+
     final segments = callback.pathSegments.toList();
     final cbIndex = segments.lastIndexOf('cb');
     if (cbIndex == -1) {

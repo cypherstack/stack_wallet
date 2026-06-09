@@ -13,6 +13,25 @@ void main() {
     expect(quote.paymentId, "payment-id");
   });
 
+  test("parses payment id from callback URL like Cake Wallet", () {
+    final quote = OpenCryptoPayQuote.fromJson({
+      "id": "quote-id",
+      "expiration": "2026-04-28T12:00:00Z",
+    }, callback: "https://example.com/lnurl/cb/payment-id");
+
+    expect(quote.paymentId, "payment-id");
+  });
+
+  test("prefers callback payment id over quote payment id", () {
+    final quote = OpenCryptoPayQuote.fromJson({
+      "id": "quote-id",
+      "payment": "quote-payment-id",
+      "expiration": "2026-04-28T12:00:00Z",
+    }, callback: "https://example.com/lnurl/cb/callback-payment-id");
+
+    expect(quote.paymentId, "callback-payment-id");
+  });
+
   test("rejects quotes without a payment id", () {
     expect(
       () => OpenCryptoPayQuote.fromJson({
@@ -21,5 +40,23 @@ void main() {
       }),
       throwsException,
     );
+  });
+
+  test("accepts Cake-compatible details without standard metadata", () {
+    final details = OpenCryptoPayPaymentDetails.fromJson({
+      "callback": "https://example.com/lnurl/cb/payment-id",
+      "quote": {"id": "quote-id", "expiration": "2026-04-28T12:00:00Z"},
+      "transferAmounts": [
+        {
+          "method": "Ethereum",
+          "assets": [
+            {"asset": "ETH", "amount": "0.1"},
+          ],
+        },
+      ],
+    });
+
+    expect(details.supportsOpenCryptoPay, true);
+    expect(details.availableMethods.single.available, true);
   });
 }

@@ -17,6 +17,16 @@ void main() {
     expect(result.isTokenTransfer, false);
   });
 
+  test("parses EIP-681 scientific notation atomic amounts", () {
+    final result = OpenCryptoPayEvmUri.tryParse(
+      "ethereum:0x9C2242a0B71FD84661Fd4bC56b75c90Fac6d10FC@1"
+      "?value=6.6072e14",
+    );
+
+    expect(result, isNotNull);
+    expect(result!.amountRaw, BigInt.parse("660720000000000"));
+  });
+
   test("parses ERC20 transfer URI", () {
     final result = OpenCryptoPayEvmUri.tryParse(
       "ethereum:0xdAC17F958D2ee523a2206206994597C13D831ec7@1/transfer"

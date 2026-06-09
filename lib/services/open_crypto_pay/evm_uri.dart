@@ -73,7 +73,28 @@ class OpenCryptoPayEvmUri {
       RegExp(r'^0x[0-9a-fA-F]{40}$').hasMatch(value);
 
   static BigInt? _parseRawInteger(String? value) {
-    if (value == null || !RegExp(r'^[0-9]+$').hasMatch(value)) return null;
-    return BigInt.tryParse(value);
+    if (value == null) return null;
+    if (RegExp(r'^[0-9]+$').hasMatch(value)) return BigInt.tryParse(value);
+
+    final match = RegExp(
+      r'^([0-9]+)(?:\.([0-9]+))?[eE]([+-]?[0-9]+)$',
+    ).firstMatch(value);
+    if (match == null) return null;
+
+    final whole = match.group(1)!;
+    final fraction = match.group(2) ?? '';
+    final exponent = int.tryParse(match.group(3)!);
+    if (exponent == null) return null;
+
+    final digits = whole + fraction;
+    final scale = exponent - fraction.length;
+    if (scale >= 0) {
+      return BigInt.parse(digits) * BigInt.from(10).pow(scale);
+    }
+
+    final divisor = BigInt.from(10).pow(-scale);
+    final parsed = BigInt.parse(digits);
+    if (parsed % divisor != BigInt.zero) return null;
+    return parsed ~/ divisor;
   }
 }
