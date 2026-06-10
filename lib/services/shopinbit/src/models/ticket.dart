@@ -14,10 +14,6 @@ enum TicketState {
   closed('CLOSED'),
   closedCancelled('CLOSED/CANCELLED'),
   merged('MERGED'),
-  // Sentinel for any state string the API returns that this client does not
-  // recognise (e.g. the API added a new state, or renamed an existing one).
-  // Callers must handle this explicitly: treat as "do not trust", do not
-  // overwrite previously known good state with it.
   unknown('UNKNOWN');
 
   final String value;
@@ -51,10 +47,7 @@ class TicketRef {
   TicketRef({required this.id, required this.number});
 
   factory TicketRef.fromJson(Map<String, dynamic> json) {
-    return TicketRef(
-      id: _toInt(json['id']),
-      number: json['number']?.toString() ?? '',
-    );
+    return TicketRef(id: _toInt(json['id']), number: json['number'] as String);
   }
 
   Map<String, dynamic> toMap() {
@@ -68,9 +61,6 @@ class TicketRef {
 class TicketStatus {
   final int ticketId;
   final TicketState state;
-  // The raw 'state' string returned by the API. Preserved verbatim so that
-  // unknown / renamed states can be re-derived later via a client update,
-  // rather than being lost to TicketState.unknown.
   final String stateRaw;
   final DateTime updatedAt;
   final DateTime? lastAgentMessageAt;
@@ -88,17 +78,15 @@ class TicketStatus {
   });
 
   factory TicketStatus.fromJson(Map<String, dynamic> json) {
-    final rawState = (json['state'] ?? '') as String;
+    final rawState = json['state'] as String;
     return TicketStatus(
       ticketId: _toInt(json['ticket_id']),
       state: TicketState.fromString(rawState),
       stateRaw: rawState,
-      updatedAt:
-          DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
-          DateTime.now(),
-      lastAgentMessageAt: DateTime.tryParse(
-        json['last_agent_message_at']?.toString() ?? '',
-      ),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      lastAgentMessageAt: json['last_agent_message_at'] != null
+          ? DateTime.parse(json['last_agent_message_at'] as String)
+          : null,
       paymentInvoiceStatus: json['payment_invoice_status'] as String?,
       trackingLink: json['tracking_link'] as String?,
     );
@@ -147,7 +135,7 @@ class TicketFull {
   factory TicketFull.fromJson(Map<String, dynamic> json) {
     return TicketFull(
       id: _toInt(json['id']),
-      number: json['number']?.toString() ?? '',
+      number: json['number'] as String,
       productName: json['product_name'] as String?,
       customerPrice: json['customer_price'] as String?,
       partnerPrice: json['partner_price'] as String?,
@@ -155,9 +143,7 @@ class TicketFull {
       netPurchasePrice: json['net_purchase_price'] as String?,
       netShippingCosts: json['net_shipping_costs'] as String?,
       deliveryCountry:
-          json['delivery_country'] as String? ??
-          json['deliverycountry'] as String? ??
-          '',
+          (json['delivery_country'] ?? json['deliverycountry']) as String,
       vatRate: int.tryParse(json['vat_rate'].toString()),
     );
   }
@@ -183,5 +169,9 @@ class TicketFull {
 
 int _toInt(dynamic value) {
   if (value is int) return value;
-  return int.tryParse(value.toString()) ?? 0;
+  final parsed = int.tryParse(value.toString());
+  if (parsed == null) {
+    throw FormatException("ShopInBit: expected an integer, got '$value'");
+  }
+  return parsed;
 }

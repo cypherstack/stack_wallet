@@ -62,7 +62,7 @@ class VipRedemptionResult {
     return VipRedemptionResult(
       ticketId: json['ticket_id'] is int
           ? json['ticket_id'] as int
-          : int.tryParse(json['ticket_id'].toString()) ?? 0,
+          : int.parse(json['ticket_id'].toString()),
       ticketNumber: json['ticket_number'] as String,
       externalCustomerKey: json['external_customer_key'] as String,
       voucherCode: json['voucher_code'] as String,
