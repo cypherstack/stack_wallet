@@ -114,6 +114,9 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
 
 class _ConfirmTransactionViewState
     extends ConsumerState<ConfirmTransactionView> {
+  // OCP raw-hex commits are GET query params; keep Firo near common header caps.
+  static const int _openCryptoPayMaxRawHexQueryLength = 8000;
+
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
@@ -469,10 +472,16 @@ class _ConfirmTransactionViewState
     Future<TxData> txDataFuture;
 
     final note = noteController.text;
+    final openCryptoPayTxIdFlow = _shouldCommitOpenCryptoPayTxId(
+      openCryptoPayCommit,
+      wallet,
+      widget.txData,
+    );
 
     try {
-      if (openCryptoPayCommit?.submissionFlow ==
-          OpenCryptoPaySubmissionFlow.rawHexToProvider) {
+      if (!openCryptoPayTxIdFlow &&
+          openCryptoPayCommit?.submissionFlow ==
+              OpenCryptoPaySubmissionFlow.rawHexToProvider) {
         final submitWallet = widget.isTokenTx
             ? ref.read(pCurrentTokenWallet)!
             : wallet;
@@ -578,8 +587,7 @@ class _ConfirmTransactionViewState
         txids.add(confirmedTx.txid!);
       }
 
-      if (openCryptoPayCommit?.submissionFlow ==
-          OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
+      if (openCryptoPayTxIdFlow) {
         final result = results.first as TxData;
         await _commitOpenCryptoPayTxId(openCryptoPayCommit!, result);
       }
@@ -930,6 +938,22 @@ class _ConfirmTransactionViewState
         }
         return null;
     }
+  }
+
+  bool _shouldCommitOpenCryptoPayTxId(
+    OpenCryptoPayCommit? commit,
+    Wallet wallet,
+    TxData txData,
+  ) {
+    if (commit == null) return false;
+    if (commit.submissionFlow ==
+        OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
+      return true;
+    }
+    return commit.method == 'Firo' &&
+        wallet is FiroWallet &&
+        (txData.usedSparkCoins?.isNotEmpty == true ||
+            (txData.raw?.length ?? 0) > _openCryptoPayMaxRawHexQueryLength);
   }
 
   String? _validateOpenCryptoPayTransaction(

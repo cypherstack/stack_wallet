@@ -20,6 +20,7 @@ class OpenCryptoPayApi {
   final HTTP _client = const HTTP();
 
   static const Duration _httpTimeout = Duration(seconds: 15);
+  static const Duration _commitTimeout = Duration(seconds: 30);
 
   ({InternetAddress host, int port})? get _proxyInfo =>
       AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor
@@ -132,7 +133,8 @@ class OpenCryptoPayApi {
     required String txId,
   }) async {
     if (commit.submissionFlow !=
-        OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
+            OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast &&
+        commit.method != 'Firo') {
       throw UnsupportedError(
         'OpenCryptoPay method ${commit.method} cannot be committed with txid',
       );
@@ -167,12 +169,13 @@ class OpenCryptoPayApi {
         ...base.queryParameters,
         'quote': commit.quoteId,
         'method': commit.method,
+        'asset': commit.asset,
         ...queryParameters,
       },
     );
 
     Logging.instance.d('OpenCryptoPay: GET ${_redactedUri(uri)}');
-    final response = await _get(uri);
+    final response = await _get(uri, timeout: _commitTimeout);
     if (response.code != 200) {
       throw Exception(
         'OpenCryptoPay commit ${response.code}: ${response.body}',
@@ -202,10 +205,10 @@ class OpenCryptoPayApi {
     );
   }
 
-  Future<Response> _get(Uri uri) {
+  Future<Response> _get(Uri uri, {Duration timeout = _httpTimeout}) {
     return _client
-        .get(url: uri, proxyInfo: _proxyInfo, connectionTimeout: _httpTimeout)
-        .timeout(_httpTimeout);
+        .get(url: uri, proxyInfo: _proxyInfo, connectionTimeout: timeout)
+        .timeout(timeout);
   }
 }
 

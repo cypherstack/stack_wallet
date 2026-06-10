@@ -11,9 +11,9 @@ class OpenCryptoPayMethodSupport {
       case 'Solana':
       case 'Cardano':
         return OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast;
-      // The OCP spec requires Monero callbacks to include both txid and raw
-      // transaction hex. Stack does not currently expose the raw hex here.
       case 'Monero':
+        // Monero can be revisited on the txid flow in a follow-up; this PR
+        // keeps support scoped to methods already validated here.
         return null;
       case 'Ethereum':
       case 'Bitcoin':

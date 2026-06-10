@@ -1334,6 +1334,7 @@ class _SendViewState extends ConsumerState<SendView> {
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address.trim();
+      noteController.text = _data.note;
       _addressToggleFlag = true;
 
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {

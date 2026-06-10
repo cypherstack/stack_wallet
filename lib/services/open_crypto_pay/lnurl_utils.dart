@@ -14,8 +14,7 @@ class LnurlUtils {
     return utf8.decode(_fromBase32(decoded.data));
   }
 
-  /// Returns true if [url] is an Open CryptoPay QR payload, i.e. has a
-  /// `lightning` query parameter containing a bech32 LNURL.
+  /// Returns true if [url] is an Open CryptoPay QR payload.
   static bool isOpenCryptoPayUrl(String url) {
     return extractLnurl(url)?.toUpperCase().startsWith('LNURL') ?? false;
   }
@@ -23,6 +22,14 @@ class LnurlUtils {
   /// Returns the encoded LNURL payload, if any.
   static String? extractLnurl(String url) {
     final trimmed = url.trim();
+    if (trimmed.toUpperCase().startsWith('LNURL')) return trimmed;
+
+    const lightningScheme = 'lightning:';
+    if (trimmed.toLowerCase().startsWith(lightningScheme)) {
+      final payload = trimmed.substring(lightningScheme.length);
+      if (payload.toUpperCase().startsWith('LNURL')) return payload;
+    }
+
     try {
       return Uri.parse(trimmed).queryParameters['lightning'];
     } catch (_) {

@@ -1247,6 +1247,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address;
+      _note = _data.note;
       _addressToggleFlag = true;
     }
 

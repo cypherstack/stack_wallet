@@ -105,8 +105,11 @@ class OpenCryptoPayQuote {
     required this.expiration,
   });
 
-  factory OpenCryptoPayQuote.fromJson(Map<String, dynamic> json) {
-    final paymentId = json['payment'] as String?;
+  factory OpenCryptoPayQuote.fromJson(
+    Map<String, dynamic> json, {
+    String? fallbackPaymentId,
+  }) {
+    final paymentId = json['payment'] as String? ?? fallbackPaymentId;
     if (paymentId == null || paymentId.isEmpty) {
       throw Exception('OpenCryptoPay: quote payment id is missing');
     }
@@ -159,6 +162,7 @@ class OpenCryptoPayPaymentDetails {
   });
 
   factory OpenCryptoPayPaymentDetails.fromJson(Map<String, dynamic> json) {
+    final callback = json['callback'] as String? ?? '';
     return OpenCryptoPayPaymentDetails(
       id: json['id'] as String,
       standard: json['standard'] as String?,
@@ -168,7 +172,7 @@ class OpenCryptoPayPaymentDetails {
               .toList() ??
           const [],
       displayName: json['displayName'] as String?,
-      callback: json['callback'] as String? ?? '',
+      callback: callback,
       recipient: json['recipient'] == null
           ? null
           : OpenCryptoPayRecipient.fromJson(
@@ -176,7 +180,10 @@ class OpenCryptoPayPaymentDetails {
             ),
       quote: json['quote'] == null
           ? null
-          : OpenCryptoPayQuote.fromJson(json['quote'] as Map<String, dynamic>),
+          : OpenCryptoPayQuote.fromJson(
+              json['quote'] as Map<String, dynamic>,
+              fallbackPaymentId: _paymentIdFromCallback(callback),
+            ),
       requestedAmount: json['requestedAmount'] == null
           ? null
           : OpenCryptoPayRequestedAmount.fromJson(
@@ -200,7 +207,17 @@ class OpenCryptoPayPaymentDetails {
 
   bool get supportsOpenCryptoPay =>
       standard == 'OpenCryptoPay' ||
-      possibleStandards.contains('OpenCryptoPay');
+      possibleStandards.contains('OpenCryptoPay') ||
+      (callback.isNotEmpty && quote != null && transferAmounts.isNotEmpty);
+
+  static String? _paymentIdFromCallback(String callback) {
+    final segments = Uri.tryParse(callback)?.pathSegments;
+    final cbIndex = segments?.lastIndexOf('cb') ?? -1;
+    if (segments == null || cbIndex == -1 || cbIndex + 1 >= segments.length) {
+      return null;
+    }
+    return segments[cbIndex + 1];
+  }
 }
 
 class OpenCryptoPayTransactionDetails {
