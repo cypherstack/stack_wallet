@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../db/drift/shared_db/shared_database.dart';
 import '../../models/shopinbit/shopinbit_enums.dart';
+import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/message.dart';
@@ -143,7 +144,13 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     _messageController.clear();
 
     try {
-      final ok = await ref.read(pShopinBitService).sendMessage(_id, text);
+      final thisTicket = await ref
+          .read(pSharedDrift)
+          .shopInBitTicketsDao
+          .getByApiId(_id);
+      final ok = await ref
+          .read(pShopinBitService)
+          .sendMessage(_id, text, thisTicket!.customerKey);
       if (ok) {
         // Pull the server's copy into the DB row, then drop our optimistic one.
         await _refresh();

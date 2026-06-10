@@ -31,11 +31,16 @@ import 'shopinbit_tickets_view.dart';
 enum _PaymentFlowState { idle, polling, finalizing, complete, error }
 
 class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
-  const ShopInBitCarResearchPaymentView({super.key, required this.invoice});
+  const ShopInBitCarResearchPaymentView({
+    super.key,
+    required this.invoice,
+    required this.customerKey,
+  });
 
   static const String routeName = "/shopInBitCarResearchPayment";
 
   final CarResearchInvoice invoice;
+  final String customerKey;
 
   @override
   ConsumerState<ShopInBitCarResearchPaymentView> createState() =>
@@ -317,7 +322,10 @@ class _ShopInBitCarResearchPaymentViewState
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getCarResearchInvoiceStatus(widget.invoice.btcpayInvoice);
+          .getCarResearchInvoiceStatus(
+            widget.invoice.btcpayInvoice,
+            customerKey: widget.customerKey,
+          );
       if (resp.hasError || resp.value == null) {
         if (mounted) {
           unawaited(

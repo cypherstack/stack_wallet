@@ -85,6 +85,18 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   bool get _payNowEnabled => !_isExpiredOrInvalid && !_isTerminal;
 
+  String? _customerKeyCache;
+
+  Future<String> get _customerKey async {
+    _customerKeyCache ??=
+        (await ref
+                .read(pSharedDrift)
+                .shopInBitTicketsDao
+                .getByApiId(widget.apiTicketId))!
+            .customerKey;
+    return _customerKeyCache!;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -139,7 +151,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.apiTicketId);
+          .getPayment(widget.apiTicketId, customerKey: await _customerKey);
       if (!resp.hasError && resp.value != null) {
         ok = true;
         if (mounted) {
@@ -168,11 +180,15 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   Future<void> _refreshInvoice() async {
     _pollTimer?.cancel();
+
+    final customerKey = await _customerKey;
+    if (!mounted) return;
+
     final resp = await showLoading(
       whileFuture: ref
           .read(pShopinBitService)
           .client
-          .putPayment(widget.apiTicketId),
+          .putPayment(widget.apiTicketId, customerKey: customerKey),
       context: context,
       message: "Refreshing invoice",
     );
@@ -185,11 +201,15 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   Future<void> _checkForPayment() async {
     _pollTimer?.cancel();
+
+    final customerKey = await _customerKey;
+    if (!mounted) return;
+
     final resp = await showLoading(
       whileFuture: ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.apiTicketId),
+          .getPayment(widget.apiTicketId, customerKey: customerKey),
       context: context,
       message: "Checking for payment",
     );

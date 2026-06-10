@@ -202,7 +202,7 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
-      await ref.read(pShopinBitService).ensureCustomerKey();
+      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
 
       // Delivery address (always provided)
       final deliveryName = _splitFullName(_nameController.text);
@@ -242,7 +242,11 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .createCarResearchInvoice(billing: billing, request: request);
+          .createCarResearchInvoice(
+            billing: billing,
+            request: request,
+            customerKey: customerKey,
+          );
 
       if (resp.hasError || resp.value == null) {
         Logging.instance.e(
@@ -273,14 +277,14 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       // `GET /car-research/invoices/current` (see the requests list).
 
       // Best-effort fee fetch; do not block navigation on fee parse failure.
-      await _loadFee(invoice);
+      await _loadFee(invoice, customerKey);
 
       if (!mounted) return;
 
       unawaited(
         Navigator.of(context).pushNamed(
           ShopInBitCarResearchPaymentView.routeName,
-          arguments: invoice,
+          arguments: (invoice: invoice, customerKey: customerKey),
         ),
       );
     } catch (e, s) {
@@ -314,14 +318,17 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     }
   }
 
-  Future<void> _loadFee(CarResearchInvoice invoice) async {
+  Future<void> _loadFee(CarResearchInvoice invoice, String customerKey) async {
     // Still hit status for logging; it has no fee field, so the amount comes
     // from the BIP21 payment URIs.
     try {
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getCarResearchInvoiceStatus(invoice.btcpayInvoice);
+          .getCarResearchInvoiceStatus(
+            invoice.btcpayInvoice,
+            customerKey: customerKey,
+          );
       if (resp.hasError || resp.value == null) {
         Logging.instance.i(
           "CarResearch status response (car_fee_view): error "

@@ -112,9 +112,12 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         );
 
       case ShopInBitCarResearchPaymentView.routeName:
-        if (args is CarResearchInvoice) {
+        if (args is ({CarResearchInvoice invoice, String customerKey})) {
           return getRoute(
-            builder: (_) => ShopInBitCarResearchPaymentView(invoice: args),
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              invoice: args.invoice,
+              customerKey: args.customerKey,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

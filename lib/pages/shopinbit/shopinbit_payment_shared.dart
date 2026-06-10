@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/payment.dart';
 import '../../services/wallets.dart';
 import '../../themes/stack_colors.dart';
@@ -233,18 +233,24 @@ Future<bool> tryNavigateToShopInBitWalletSend({
 // recovery" guidance; PUT (which regenerates) only when GET shows none.
 // Returns null on any failure so the view can fall back to polling.
 Future<PaymentInfo?> fetchShopInBitPaymentInfo(
-  WidgetRef ref,
+  ShopInBitClient client,
   int apiTicketId,
+  String customerKey,
 ) async {
   try {
-    final client = ref.read(pShopinBitService).client;
-    final getResp = await client.getPayment(apiTicketId);
+    final getResp = await client.getPayment(
+      apiTicketId,
+      customerKey: customerKey,
+    );
     if (!getResp.hasError &&
         getResp.value != null &&
         getResp.value!.paymentLinks.isNotEmpty) {
       return getResp.value;
     }
-    final putResp = await client.putPayment(apiTicketId);
+    final putResp = await client.putPayment(
+      apiTicketId,
+      customerKey: customerKey,
+    );
     if (!putResp.hasError && putResp.value != null) {
       return putResp.value;
     }

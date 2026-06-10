@@ -22,10 +22,6 @@ class ShopInBitService {
 
   final Map<int, Completer<void>> _inFlight = {};
 
-  /// Current still-payable car research invoices for the active customer key.
-  Future<ApiResponse<List<CarResearchCurrentInvoice>>>
-  getCurrentCarResearchInvoices() => client.getCurrentCarResearchInvoices();
-
   // -- Customer key --
 
   /// Returns the most-recently-used customer key. Generates a new one if
@@ -35,7 +31,6 @@ class ShopInBitService {
     final ShopInBitSetting? current = await db.shopInBitSettingsDao
         .getCurrentSettings();
     if (current != null) {
-      client.externalCustomerKey = current.customerKey;
       await db.shopInBitSettingsDao.touch(current.customerKey);
       return current.customerKey;
     }
@@ -54,7 +49,6 @@ class ShopInBitService {
   /// settings. The UI filters tickets by the active key.
   Future<String> useCustomerKey(String key) async {
     await db.shopInBitSettingsDao.upsert(key);
-    client.externalCustomerKey = key;
     return key;
   }
 
@@ -132,10 +126,15 @@ class ShopInBitService {
     return ref;
   }
 
-  Future<bool> sendMessage(int apiTicketId, String message) async {
+  Future<bool> sendMessage(
+    int apiTicketId,
+    String message,
+    String customerKey,
+  ) async {
     final ApiResponse<Map<String, dynamic>> resp = await client.sendMessage(
       apiTicketId,
       message,
+      customerKey: customerKey,
     );
     if (resp.hasError) return false;
     unawaited(refreshOne(apiTicketId));
@@ -188,16 +187,13 @@ class ShopInBitService {
         return;
       }
 
-      // Ensure the client points at the right key for this ticket's calls.
-      client.externalCustomerKey = customerKey;
-
       final ApiResponse<TicketFull> fullResp;
       final ApiResponse<TicketStatus> statusResp;
       final ApiResponse<List<TicketMessage>> messagesResp;
       (fullResp, statusResp, messagesResp) = await (
-        client.getTicketFull(id),
-        client.getTicketStatus(id),
-        client.getMessages(id),
+        client.getTicketFull(id, customerKey: customerKey),
+        client.getTicketStatus(id, customerKey: customerKey),
+        client.getMessages(id, customerKey: customerKey),
       ).wait;
 
       if (existing == null) {
