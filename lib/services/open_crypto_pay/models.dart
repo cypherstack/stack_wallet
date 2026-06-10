@@ -92,7 +92,7 @@ class OpenCryptoPayTransferMethod {
       assets: (json['assets'] as List<dynamic>)
           .map((e) => OpenCryptoPayAsset.fromJson(e as Map<String, dynamic>))
           .toList(),
-      available: json['available'] as bool? ?? true,
+      available: json['available'] as bool,
     );
   }
 }
@@ -108,39 +108,20 @@ class OpenCryptoPayQuote {
     required this.expiration,
   });
 
-  factory OpenCryptoPayQuote.fromJson(
-    Map<String, dynamic> json, {
-    String? callback,
-  }) {
-    final paymentId =
-        _paymentIdFromCallback(callback) ?? json['payment'] as String?;
+  factory OpenCryptoPayQuote.fromJson(Map<String, dynamic> json) {
+    final paymentId = json['payment'] as String?;
     if (paymentId == null || paymentId.isEmpty) {
       throw Exception('OpenCryptoPay: quote payment id is missing');
     }
 
     return OpenCryptoPayQuote(
-      id: json['id']?.toString() ?? '',
+      id: json['id'] as String,
       paymentId: paymentId,
       expiration: DateTime.parse(json['expiration'] as String),
     );
   }
 
   bool get isExpired => expiration.isBefore(DateTime.now());
-
-  static String? _paymentIdFromCallback(String? callback) {
-    if (callback == null) return null;
-
-    final uri = Uri.tryParse(callback);
-    if (uri == null) return null;
-
-    final segments = uri.pathSegments;
-    final cbIndex = segments.lastIndexOf('cb');
-    if (cbIndex == -1 || cbIndex + 1 >= segments.length) {
-      return null;
-    }
-
-    return segments[cbIndex + 1];
-  }
 }
 
 class OpenCryptoPayRequestedAmount {
@@ -198,10 +179,7 @@ class OpenCryptoPayPaymentDetails {
             ),
       quote: json['quote'] == null
           ? null
-          : OpenCryptoPayQuote.fromJson(
-              json['quote'] as Map<String, dynamic>,
-              callback: json['callback'] as String?,
-            ),
+          : OpenCryptoPayQuote.fromJson(json['quote'] as Map<String, dynamic>),
       requestedAmount: json['requestedAmount'] == null
           ? null
           : OpenCryptoPayRequestedAmount.fromJson(
@@ -225,8 +203,7 @@ class OpenCryptoPayPaymentDetails {
 
   bool get supportsOpenCryptoPay =>
       standard == 'OpenCryptoPay' ||
-      possibleStandards.contains('OpenCryptoPay') ||
-      (callback.isNotEmpty && quote != null && transferAmounts.isNotEmpty);
+      possibleStandards.contains('OpenCryptoPay');
 }
 
 class OpenCryptoPayTransactionDetails {
