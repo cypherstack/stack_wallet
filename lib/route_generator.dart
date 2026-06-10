@@ -1242,10 +1242,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ShopInBitCarResearchPaymentView.routeName:
-        if (args is CarResearchInvoice) {
+        if (args is ({CarResearchInvoice invoice, String customerKey})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ShopInBitCarResearchPaymentView(invoice: args),
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              invoice: args.invoice,
+              customerKey: args.customerKey,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

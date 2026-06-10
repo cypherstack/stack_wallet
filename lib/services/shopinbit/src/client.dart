@@ -27,10 +27,6 @@ class ShopInBitClient {
   final HTTP _httpClient;
   final TokenManager _tokenManager;
 
-  String? _externalCustomerKey;
-
-  set externalCustomerKey(String? key) => _externalCustomerKey = key;
-
   ShopInBitClient({
     required this.accessKey,
     required this.partnerSecret,
@@ -38,8 +34,7 @@ class ShopInBitClient {
     this.sandbox = false,
     String? externalCustomerKey,
     HTTP? httpClient,
-  }) : _externalCustomerKey = externalCustomerKey,
-       _httpClient = httpClient ?? const HTTP(),
+  }) : _httpClient = httpClient ?? const HTTP(),
        _tokenManager = TokenManager(
          accessKey: accessKey,
          partnerSecret: partnerSecret,
@@ -66,7 +61,7 @@ class ShopInBitClient {
     return _request(
       'GET',
       '/generate-key',
-      needsCustomerKey: false,
+      customerKey: null,
       parse: (json) {
         return json['external_customer_key'] as String;
       },
@@ -74,19 +69,14 @@ class ShopInBitClient {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> getHealth() async {
-    return _request(
-      'GET',
-      '/health',
-      needsCustomerKey: false,
-      parse: (json) => json,
-    );
+    return _request('GET', '/health', customerKey: null, parse: (json) => json);
   }
 
   Future<ApiResponse<List<Map<String, dynamic>>>> getCountries() async {
     return _requestRaw(
       'GET',
       '/meta/countries',
-      needsCustomerKey: false,
+      customerKey: null,
       needsAuth: false,
       parse: (body) {
         final decoded = jsonDecode(body);
@@ -127,22 +117,31 @@ class ShopInBitClient {
           number: json['ticket_number'].toString(),
         );
       },
+      customerKey: externalCustomerKey,
     );
   }
 
-  Future<ApiResponse<TicketStatus>> getTicketStatus(int ticketId) async {
+  Future<ApiResponse<TicketStatus>> getTicketStatus(
+    int ticketId, {
+    required String customerKey,
+  }) async {
     return _request(
       'GET',
       '/tickets/$ticketId/status',
       parse: TicketStatus.fromJson,
+      customerKey: customerKey,
     );
   }
 
-  Future<ApiResponse<TicketFull>> getTicketFull(int ticketId) async {
+  Future<ApiResponse<TicketFull>> getTicketFull(
+    int ticketId, {
+    required String customerKey,
+  }) async {
     return _request(
       'GET',
       '/tickets/$ticketId/full',
       parse: TicketFull.fromJson,
+      customerKey: customerKey,
     );
   }
 
@@ -158,6 +157,7 @@ class ShopInBitClient {
             .map((e) => TicketRef.fromJson(e as Map<String, dynamic>))
             .toList();
       },
+      customerKey: customerKey,
     );
   }
 
@@ -165,17 +165,22 @@ class ShopInBitClient {
 
   Future<ApiResponse<Map<String, dynamic>>> sendMessage(
     int ticketId,
-    String message,
-  ) async {
+    String message, {
+    required String customerKey,
+  }) async {
     return _request(
       'POST',
       '/tickets/$ticketId/messages',
       body: {'message': message},
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
-  Future<ApiResponse<List<TicketMessage>>> getMessages(int ticketId) async {
+  Future<ApiResponse<List<TicketMessage>>> getMessages(
+    int ticketId, {
+    required String customerKey,
+  }) async {
     return _request(
       'GET',
       '/tickets/$ticketId/messages',
@@ -185,6 +190,7 @@ class ShopInBitClient {
             .map((e) => TicketMessage.fromJson(e as Map<String, dynamic>))
             .toList();
       },
+      customerKey: customerKey,
     );
   }
 
@@ -194,12 +200,14 @@ class ShopInBitClient {
     int ticketId, {
     required String message,
     required List<Map<String, String>> attachments,
+    required String customerKey,
   }) async {
     return _request(
       'POST',
       '/tickets/$ticketId/attachments',
       body: {'message': message, 'attachments': attachments},
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
@@ -211,6 +219,7 @@ class ShopInBitClient {
   /// [useQueryAuth] = true to append token and customer_key as query params.
   Future<ApiResponse<Uri>> getAttachmentUrl(
     String attachmentPath, {
+    String? customerKey,
     bool useQueryAuth = false,
   }) async {
     try {
@@ -221,8 +230,7 @@ class ShopInBitClient {
         uri = uri.replace(
           queryParameters: {
             'token': token,
-            if (_externalCustomerKey != null)
-              'customer_key': _externalCustomerKey!,
+            if (customerKey != null) 'customer_key': customerKey,
           },
         );
       }
@@ -235,13 +243,16 @@ class ShopInBitClient {
   }
 
   /// Download an attachment from `/attachment-proxy/<path>`.
-  Future<ApiResponse<Response>> getAttachment(String attachmentPath) async {
+  Future<ApiResponse<Response>> getAttachment(
+    String attachmentPath, {
+    String? customerKey,
+  }) async {
     try {
       final token = await _tokenManager.getValidToken();
       final resolved = _resolvePath('/attachment-proxy/$attachmentPath');
       final uri = Uri.parse('$baseUrl$resolved');
       Logging.instance.t("$_kTag GET $uri");
-      final headers = _headers(token);
+      final headers = _headers(token, customerKey: customerKey);
       final response = await _httpClient.get(
         url: uri,
         headers: headers,
@@ -279,6 +290,7 @@ class ShopInBitClient {
   Future<ApiResponse<Map<String, dynamic>>> submitAddress(
     int ticketId, {
     required Address shipping,
+    required String customerKey,
     Address? billing,
   }) async {
     return _request(
@@ -286,6 +298,7 @@ class ShopInBitClient {
       '/tickets/$ticketId/address',
       body: {'shipping': shipping.toJson(), 'billing': billing?.toJson()},
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
@@ -295,11 +308,15 @@ class ShopInBitClient {
   /// and any view that just wants to show the current invoice; per ShopinBit
   /// 1.0.4 this endpoint is read-only and will not create or regenerate the
   /// invoice. Call [putPayment] for that.
-  Future<ApiResponse<PaymentInfo>> getPayment(int ticketId) async {
+  Future<ApiResponse<PaymentInfo>> getPayment(
+    int ticketId, {
+    required String customerKey,
+  }) async {
     return _request(
       'GET',
       '/tickets/$ticketId/payment',
       parse: PaymentInfo.fromJson,
+      customerKey: customerKey,
     );
   }
 
@@ -308,23 +325,31 @@ class ShopInBitClient {
   /// shipping/billing, seen the Terms & Conditions, and explicitly clicked
   /// PAY NOW.  Repeated calls regenerate the invoice and invalidate any in-
   /// flight payment.
-  Future<ApiResponse<PaymentInfo>> putPayment(int ticketId) async {
+  Future<ApiResponse<PaymentInfo>> putPayment(
+    int ticketId, {
+    required String customerKey,
+  }) async {
     return _request(
       'PUT',
       '/tickets/$ticketId/payment',
       parse: PaymentInfo.fromJson,
+      customerKey: customerKey,
     );
   }
 
   // -- Vouchers --
 
   /// Pre-check a voucher code (does not consume usage or create a ticket).
-  Future<ApiResponse<VoucherInfo>> checkVoucher(String code) async {
+  Future<ApiResponse<VoucherInfo>> checkVoucher(
+    String code, {
+    required String customerKey,
+  }) async {
     return _request(
       'GET',
       '/vouchers/validate',
       query: {'code': code},
       parse: VoucherInfo.fromJson,
+      customerKey: customerKey,
     );
   }
 
@@ -334,6 +359,7 @@ class ShopInBitClient {
     required String customerPseudonym,
     required String serviceType,
     required String comment,
+    required String customerKey,
     String? deliveryCountry,
   }) async {
     return _request(
@@ -347,6 +373,7 @@ class ShopInBitClient {
         if (deliveryCountry != null) 'delivery_country': deliveryCountry,
       },
       parse: VipRedemptionResult.fromJson,
+      customerKey: customerKey,
     );
   }
 
@@ -354,6 +381,7 @@ class ShopInBitClient {
 
   Future<ApiResponse<CarResearchInvoice>> createCarResearchInvoice({
     required Address billing,
+    required String customerKey,
     CarResearchRequest? request,
   }) async {
     return _request(
@@ -362,17 +390,17 @@ class ShopInBitClient {
       body: {
         'billing': billing.toJson(),
         if (request != null) 'request': request.toJson(),
-        if (_externalCustomerKey != null)
-          'external_customer_key': _externalCustomerKey,
+        'external_customer_key': customerKey,
       },
       parse: CarResearchInvoice.fromJson,
+      customerKey: customerKey,
     );
   }
 
   /// Unresolved car research invoices for the current partner/customer pair.
   /// Used to recover a fee payment the user started but did not finish.
   Future<ApiResponse<List<CarResearchCurrentInvoice>>>
-  getCurrentCarResearchInvoices() async {
+  getCurrentCarResearchInvoices({required String customerKey}) async {
     return _requestRaw(
       'GET',
       '/car-research/invoices/current',
@@ -390,31 +418,33 @@ class ShopInBitClient {
             )
             .toList();
       },
+      customerKey: customerKey,
     );
   }
 
   Future<ApiResponse<Map<String, dynamic>>> getCarResearchInvoiceStatus(
-    String invoiceId,
-  ) async {
+    String invoiceId, {
+    required String customerKey,
+  }) async {
     return _request(
       'GET',
       '/car-research/invoice/$invoiceId/status',
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
   Future<ApiResponse<CarResearchPaymentResult>> logCarResearchPayment(
-    String invoiceId,
-  ) async {
+    String invoiceId, {
+
+    required String customerKey,
+  }) async {
     return _request(
       'POST',
       '/car-research/log-payment',
-      body: {
-        'invoice_id': invoiceId,
-        if (_externalCustomerKey != null)
-          'external_customer_key': _externalCustomerKey,
-      },
+      body: {'invoice_id': invoiceId, 'external_customer_key': customerKey},
       parse: CarResearchPaymentResult.fromJson,
+      customerKey: customerKey,
     );
   }
 
@@ -428,6 +458,8 @@ class ShopInBitClient {
     String? environment,
     String? expirationTime,
     int? ticketId,
+
+    required String customerKey,
   }) async {
     return _request(
       'POST',
@@ -442,6 +474,7 @@ class ShopInBitClient {
         if (ticketId != null) 'ticketId': ticketId,
       },
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
@@ -451,7 +484,7 @@ class ShopInBitClient {
     return _request(
       'GET',
       '/partners/webhooks',
-      needsCustomerKey: false,
+      customerKey: null,
       parse: (json) {
         if (json.containsKey('webhooks')) {
           return (json['webhooks'] as List<dynamic>)
@@ -469,7 +502,7 @@ class ShopInBitClient {
     return _request(
       'POST',
       '/partners/webhooks',
-      needsCustomerKey: false,
+      customerKey: null,
       body: {'webhook_url': webhookUrl, 'event_types': eventTypes},
       parse: (json) => json,
     );
@@ -481,7 +514,7 @@ class ShopInBitClient {
     return _request(
       'POST',
       '/partners/webhooks/$webhookId/rotate',
-      needsCustomerKey: false,
+      customerKey: null,
       parse: (json) => json,
     );
   }
@@ -490,7 +523,7 @@ class ShopInBitClient {
     return _request(
       'DELETE',
       '/partners/webhooks/$webhookId',
-      needsCustomerKey: false,
+      customerKey: null,
       parse: (_) {},
     );
   }
@@ -499,23 +532,27 @@ class ShopInBitClient {
 
   Future<ApiResponse<Map<String, dynamic>>> sandboxSetState(
     int ticketId,
-    String state,
-  ) async {
+    String state, {
+    required String customerKey,
+  }) async {
     return _request(
       'POST',
       '/sandbox/state/$ticketId/$state',
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
   Future<ApiResponse<Map<String, dynamic>>> sandboxSetPayment(
     int ticketId,
-    String status,
-  ) async {
+    String status, {
+    required String customerKey,
+  }) async {
     return _request(
       'POST',
       '/sandbox/payment/$ticketId/$status',
       parse: (json) => json,
+      customerKey: customerKey,
     );
   }
 
@@ -542,14 +579,14 @@ class ShopInBitClient {
     return '/sandbox$path';
   }
 
-  Map<String, String> _headers(String token, {bool needsCustomerKey = true}) {
+  Map<String, String> _headers(String token, {String? customerKey}) {
     final h = <String, String>{
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    if (needsCustomerKey && _externalCustomerKey != null) {
-      h['External-Customer-Key'] = _externalCustomerKey!;
+    if (customerKey != null) {
+      h['External-Customer-Key'] = customerKey;
     }
     return h;
   }
@@ -559,7 +596,7 @@ class ShopInBitClient {
     String path, {
     Map<String, dynamic>? body,
     Map<String, String>? query,
-    bool needsCustomerKey = true,
+    required String? customerKey,
     bool needsAuth = true,
   }) async {
     final resolved = _resolvePath(path);
@@ -570,7 +607,7 @@ class ShopInBitClient {
     final Map<String, String> headers;
     if (needsAuth) {
       final token = await _tokenManager.getValidToken();
-      headers = _headers(token, needsCustomerKey: needsCustomerKey);
+      headers = _headers(token, customerKey: customerKey);
     } else {
       headers = {'Accept': 'application/json'};
     }
@@ -632,7 +669,7 @@ class ShopInBitClient {
     String path, {
     Map<String, dynamic>? body,
     Map<String, String>? query,
-    bool needsCustomerKey = true,
+    required String? customerKey,
     required T Function(Map<String, dynamic>) parse,
   }) async {
     try {
@@ -641,7 +678,7 @@ class ShopInBitClient {
         path,
         body: body,
         query: query,
-        needsCustomerKey: needsCustomerKey,
+        customerKey: customerKey,
       );
 
       final resolved = _resolvePath(path);
@@ -652,7 +689,7 @@ class ShopInBitClient {
           return ApiResponse(value: parse({}));
         }
         final json = jsonDecode(response.body) as Map<String, dynamic>;
-        return ApiResponse(value: parse(json));
+        return ApiResponse(value: parse(json), customerKey: customerKey);
       } else {
         Logging.instance.w(
           "$_kTag $method $resolved HTTP:${response.code} "
@@ -682,7 +719,7 @@ class ShopInBitClient {
     String path, {
     Map<String, dynamic>? body,
     Map<String, String>? query,
-    bool needsCustomerKey = true,
+    required String? customerKey,
     bool needsAuth = true,
     required T Function(String) parse,
   }) async {
@@ -692,7 +729,7 @@ class ShopInBitClient {
         path,
         body: body,
         query: query,
-        needsCustomerKey: needsCustomerKey,
+        customerKey: customerKey,
         needsAuth: needsAuth,
       );
 

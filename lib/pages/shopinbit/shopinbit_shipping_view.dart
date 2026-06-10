@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/payment.dart';
@@ -195,6 +196,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         );
       }
 
+      final thisTicket = await ref
+          .read(pSharedDrift)
+          .shopInBitTicketsDao
+          .getByApiId(widget.apiTicketId);
+
       final resp = await ref
           .read(pShopinBitService)
           .client
@@ -209,6 +215,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
               country: country,
             ),
             billing: billingAddress,
+            customerKey: thisTicket!.customerKey,
           );
 
       if (resp.hasError) {
@@ -216,7 +223,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         debugPrint("submitAddress failed: ${resp.exception?.message}");
       }
 
-      paymentInfo = await fetchShopInBitPaymentInfo(ref, widget.apiTicketId);
+      paymentInfo = await fetchShopInBitPaymentInfo(
+        ref.read(pShopinBitService).client,
+        widget.apiTicketId,
+        thisTicket.customerKey,
+      );
     } catch (e) {
       debugPrint("submitAddress threw: $e");
     } finally {

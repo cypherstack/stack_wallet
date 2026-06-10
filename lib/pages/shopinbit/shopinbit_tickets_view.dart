@@ -38,10 +38,10 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   bool _refreshing = false;
   bool _resuming = false;
 
-  // An unfinished car research fee invoice recovered from the server, if any.
+  // Some unfinished car research fee invoices recovered from the server, if any.
   // The fee is paid before any ticket exists, so this is the only way to let
   // the user resume it — there is no local "pending" row anymore.
-  CarResearchInvoice? _resumableInvoice;
+  List<CarResearchInvoice>? _resumableInvoices;
 
   @override
   void initState() {
@@ -65,12 +65,13 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   /// Pull the most recent still-payable car research invoice from
   /// `GET /car-research/invoices/current` so we can surface a "resume" entry.
   Future<void> _loadResumableInvoice() async {
-    CarResearchInvoice? resumable;
+    List<CarResearchInvoice>? resumable;
     try {
+      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getCurrentCarResearchInvoices();
+          .getCurrentCarResearchInvoices(customerKey: customerKey);
       final invoices = resp.value;
       if (invoices != null) {
         for (final inv in invoices) {
@@ -80,10 +81,13 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
               (inv.expiresAt!.isAfter(DateTime.now()) ||
                   carResearchIsFinalized(inv.status, inv.additional));
           if (payable) {
-            resumable = CarResearchInvoice(
-              btcpayInvoice: inv.invoiceId,
-              expiresAt: inv.expiresAt!,
-              paymentLinks: inv.paymentLinks,
+            resumable ??= [];
+            resumable.add(
+              CarResearchInvoice(
+                btcpayInvoice: inv.invoiceId,
+                expiresAt: inv.expiresAt!,
+                paymentLinks: inv.paymentLinks,
+              ),
             );
             break;
           }
@@ -98,17 +102,20 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
       // Leave _resumableInvoice unchanged on failure.
       return;
     }
-    if (mounted) setState(() => _resumableInvoice = resumable);
+    if (mounted) setState(() => _resumableInvoices = resumable);
   }
 
   Future<void> _resumeFlow(CarResearchInvoice invoice) async {
     if (_resuming) return;
     setState(() => _resuming = true);
     try {
-      await Navigator.of(context).pushNamed(
-        ShopInBitCarResearchPaymentView.routeName,
-        arguments: invoice,
-      );
+      final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
+      if (mounted) {
+        await Navigator.of(context).pushNamed(
+          ShopInBitCarResearchPaymentView.routeName,
+          arguments: (invoice: invoice, customerKey: customerKey),
+        );
+      }
     } finally {
       if (mounted) setState(() => _resuming = false);
     }
@@ -118,7 +125,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     required BuildContext context,
     required bool isDesktop,
     required List<ShopInBitTicket> tickets,
-    required CarResearchInvoice? resumable,
+    required List<CarResearchInvoice>? resumable,
   }) {
     if (resumable == null && tickets.isEmpty) {
       return [
@@ -136,20 +143,22 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
 
     final children = <Widget>[];
     if (resumable != null) {
-      children.add(
-        RoundedContainer(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          onPressed: _resuming ? null : () => unawaited(_resumeFlow(resumable)),
-          child: _RequestRow(
-            title: "Car Research (In Progress)",
-            subtitle: _resuming
-                ? "Opening your car research payment..."
-                : "Tap to continue your car research payment",
-            badgeText: "Resume",
-            badgeColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorYellow,
-            loading: _resuming,
+      children.addAll(
+        resumable.map(
+          (e) => RoundedContainer(
+            color: Theme.of(context).extension<StackColors>()!.popupBG,
+            onPressed: _resuming ? null : () => unawaited(_resumeFlow(e)),
+            child: _RequestRow(
+              title: "Car Research (In Progress)",
+              subtitle: _resuming
+                  ? "Opening your car research payment..."
+                  : "Tap to continue your car research payment",
+              badgeText: "Resume",
+              badgeColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.accentColorYellow,
+              loading: _resuming,
+            ),
           ),
         ),
       );
@@ -192,7 +201,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     final isDesktop = Util.isDesktop;
     final tickets =
         ref.watch(pShopInBitTickets).asData?.value ?? const <ShopInBitTicket>[];
-    final resumable = _resumableInvoice;
+    final resumables = _resumableInvoices;
 
     return ConditionalParent(
       condition: isDesktop,
@@ -272,7 +281,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
                 context: context,
                 isDesktop: isDesktop,
                 tickets: tickets,
-                resumable: resumable,
+                resumable: resumables,
               ),
             ],
           ),
