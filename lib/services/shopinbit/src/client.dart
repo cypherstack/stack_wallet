@@ -607,7 +607,7 @@ class ShopInBitClient {
     if (query != null && query.isNotEmpty) {
       uri = uri.replace(queryParameters: query);
     }
-    final Map<String, String> headers;
+    Map<String, String> headers;
     if (needsAuth) {
       final token = await _tokenManager.getValidToken();
       headers = _headers(token, customerKey: customerKey);
@@ -659,8 +659,21 @@ class ShopInBitClient {
     // present, otherwise exponential backoff with jitter. Everything funnels
     // through here, so all endpoints get this for free.
     int attempt = 0;
+    bool reauthed = false;
     while (true) {
       final response = await dispatch();
+      // A 401 means the bearer token is stale/expired: invalidate it,
+      // re-authenticate once, and retry before surfacing the error.
+      if (response.code == 401 && needsAuth && !reauthed) {
+        reauthed = true;
+        _tokenManager.invalidate();
+        final token = await _tokenManager.getValidToken();
+        headers = _headers(token, customerKey: customerKey);
+        Logging.instance.w(
+          "$_kTag $method $resolved HTTP:401, re-authenticating",
+        );
+        continue;
+      }
       if (response.code != 429 || attempt >= _kMaxRetries) {
         return response;
       }
