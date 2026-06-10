@@ -632,6 +632,12 @@ class ShopInBitClient {
     }
   }
 
+  /// Next poll interval after a failed poll: double [current], capped at [max].
+  static Duration nextPollBackoff(Duration current, Duration max) {
+    final Duration next = current * 2;
+    return next > max ? max : next;
+  }
+
   /// How long to wait before retrying a 429. Prefers a sane `Retry-After`
   /// header; otherwise 1s, 2s, 4s... with jitter, capped at [_kMaxBackoff].
   Duration _backoffDelay(int attempt, Map<String, String> headers) {

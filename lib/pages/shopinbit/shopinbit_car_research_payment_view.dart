@@ -8,6 +8,7 @@ import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
+import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -229,11 +230,6 @@ class _ShopInBitCarResearchPaymentViewState
     _pollTimer = Timer(_pollInterval, _pollTick);
   }
 
-  Duration _nextBackoff(Duration current) {
-    final Duration next = current * 2;
-    return next > _kMaxPollInterval ? _kMaxPollInterval : next;
-  }
-
   /// Periodic driver: poll once, then reschedule with backoff on failure and
   /// reset on success. Stops once the flow is terminal or finalizing.
   Future<void> _pollTick() async {
@@ -244,7 +240,9 @@ class _ShopInBitCarResearchPaymentViewState
         _flowState == _PaymentFlowState.complete) {
       return;
     }
-    _pollInterval = ok ? _kBasePollInterval : _nextBackoff(_pollInterval);
+    _pollInterval = ok
+        ? _kBasePollInterval
+        : ShopInBitClient.nextPollBackoff(_pollInterval, _kMaxPollInterval);
     _scheduleNextPoll();
   }
 

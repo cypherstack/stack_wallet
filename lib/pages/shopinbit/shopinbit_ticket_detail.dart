@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../db/drift/shared_db/shared_database.dart';
 import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
+import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/message.dart';
 import '../../services/shopinbit/src/models/ticket.dart';
 import '../../themes/stack_colors.dart';
@@ -111,13 +112,10 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     }
 
     // Back off on failure (e.g. a 429), reset on success.
-    _pollInterval = ok ? _kBasePollInterval : _nextBackoff(_pollInterval);
+    _pollInterval = ok
+        ? _kBasePollInterval
+        : ShopInBitClient.nextPollBackoff(_pollInterval, _kMaxPollInterval);
     _pollingTimer = Timer(_pollInterval, _poll);
-  }
-
-  Duration _nextBackoff(Duration current) {
-    final Duration next = current * 2;
-    return next > _kMaxPollInterval ? _kMaxPollInterval : next;
   }
 
   void _startPolling() {

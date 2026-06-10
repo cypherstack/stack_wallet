@@ -10,6 +10,7 @@ import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
+import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -132,11 +133,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     _pollTimer = Timer(_pollInterval, _pollPayment);
   }
 
-  Duration _nextBackoff(Duration current) {
-    final Duration next = current * 2;
-    return next > _kMaxPollInterval ? _kMaxPollInterval : next;
-  }
-
   Future<void> _pollPayment() async {
     bool ok = false;
     try {
@@ -164,7 +160,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     }
     // Back off on failure (e.g. a 429), reset to base on success, so a rate
     // limit slows us down instead of getting hammered every 15s.
-    _pollInterval = ok ? _kBasePollInterval : _nextBackoff(_pollInterval);
+    _pollInterval = ok
+        ? _kBasePollInterval
+        : ShopInBitClient.nextPollBackoff(_pollInterval, _kMaxPollInterval);
     _scheduleNextPoll();
   }
 
