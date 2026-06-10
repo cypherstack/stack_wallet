@@ -24,7 +24,7 @@ import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
-import '../../../../pages/open_crypto_pay/open_crypto_pay_view.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_dialog.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
@@ -947,19 +947,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<void> _showOpenCryptoPay(String qrUrl) async {
     if (!mounted) return;
 
-    await showDialog<void>(
+    await showOpenCryptoPayDesktopDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (_) => DesktopDialog(
-        maxHeight: MediaQuery.sizeOf(context).height - 64,
-        maxWidth: 580,
-        child: OpenCryptoPayView(
-          qrUrl: qrUrl,
-          walletId: walletId,
-          coin: coin,
-          isDesktop: true,
-        ),
-      ),
+      qrUrl: qrUrl,
+      walletId: walletId,
+      coin: coin,
     );
   }
 

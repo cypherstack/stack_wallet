@@ -10,9 +10,6 @@ enum OpenCryptoPaySubmissionFlow {
 
   /// The provider broadcasts after receiving raw signed transaction hex.
   rawHexToProvider,
-
-  /// Payment is completed outside Stack Wallet, such as Lightning/BinancePay.
-  external,
 }
 
 class OpenCryptoPayRecipient {

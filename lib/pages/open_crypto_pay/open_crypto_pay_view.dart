@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -10,6 +11,7 @@ import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
 import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -17,11 +19,11 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
-import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'open_crypto_pay_confirm_view.dart';
+import 'open_crypto_pay_desktop_frame.dart';
 
 typedef _OpenCryptoPayOptionSupported =
     bool Function(
@@ -183,7 +185,7 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
     );
 
     if (widget.isDesktop) {
-      return _OpenCryptoPayDesktopFrame(title: "Open CryptoPay", child: body);
+      return OpenCryptoPayDesktopFrame(title: "Open CryptoPay", child: body);
     }
 
     return Background(
@@ -200,39 +202,6 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
           ),
         ),
         body: SafeArea(child: body),
-      ),
-    );
-  }
-}
-
-class _OpenCryptoPayDesktopFrame extends StatelessWidget {
-  const _OpenCryptoPayDesktopFrame({required this.title, required this.child});
-
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height - 64,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: Text(title, style: STextStyles.desktopH3(context)),
-              ),
-              const DesktopDialogCloseButton(),
-            ],
-          ),
-          Flexible(child: child),
-        ],
       ),
     );
   }
@@ -446,11 +415,16 @@ class _OpenCryptoPayMethodCard extends StatelessWidget {
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right,
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
+          SvgPicture.asset(
+            Assets.svg.chevronRight,
+            width: 20,
+            height: 20,
+            colorFilter: ColorFilter.mode(
+              Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
+              BlendMode.srcIn,
+            ),
           ),
         ],
       ),

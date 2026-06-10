@@ -929,8 +929,6 @@ class _ConfirmTransactionViewState
           return "Could not build signed transaction";
         }
         return null;
-      case OpenCryptoPaySubmissionFlow.external:
-        return "This Open CryptoPay method is not supported yet";
     }
   }
 

@@ -23,7 +23,7 @@ import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/masternodes/masternodes_home_view.dart';
 import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
-import '../../../../pages/open_crypto_pay/open_crypto_pay_view.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_dialog.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
 import '../../../../pages/salvium_stake/salvium_create_stake_view.dart';
@@ -166,19 +166,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
       if (!mounted) return;
 
-      await showDialog<void>(
+      await showOpenCryptoPayDesktopDialog(
         context: context,
-        barrierDismissible: true,
-        builder: (_) => DesktopDialog(
-          maxHeight: MediaQuery.sizeOf(context).height - 64,
-          maxWidth: 580,
-          child: OpenCryptoPayView(
-            qrUrl: qrResult,
-            walletId: widget.walletId,
-            coin: wallet.info.coin,
-            isDesktop: true,
-          ),
-        ),
+        qrUrl: qrResult,
+        walletId: widget.walletId,
+        coin: wallet.info.coin,
       );
     } catch (e, s) {
       Logging.instance.e(

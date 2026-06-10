@@ -29,10 +29,10 @@ import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
-import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
+import 'open_crypto_pay_desktop_frame.dart';
 import '../send_view/send_view.dart';
 import '../send_view/token_send_view.dart';
 
@@ -213,8 +213,7 @@ class _OpenCryptoPayConfirmViewState
     final submissionFlow = OpenCryptoPayMethodSupport.submissionFlowFor(
       widget.selectedMethod.method,
     );
-    if (submissionFlow == null ||
-        submissionFlow == OpenCryptoPaySubmissionFlow.external) {
+    if (submissionFlow == null) {
       _warn("This Open CryptoPay method is not supported yet");
       return;
     }
@@ -438,10 +437,7 @@ class _OpenCryptoPayConfirmViewState
     );
 
     if (widget.isDesktop) {
-      return _OpenCryptoPayConfirmDesktopFrame(
-        title: "Confirm Payment",
-        child: body,
-      );
+      return OpenCryptoPayDesktopFrame(title: "Confirm Payment", child: body);
     }
 
     return Background(
@@ -458,42 +454,6 @@ class _OpenCryptoPayConfirmViewState
           ),
         ),
         body: SafeArea(child: body),
-      ),
-    );
-  }
-}
-
-class _OpenCryptoPayConfirmDesktopFrame extends StatelessWidget {
-  const _OpenCryptoPayConfirmDesktopFrame({
-    required this.title,
-    required this.child,
-  });
-
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height - 64,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: Text(title, style: STextStyles.desktopH3(context)),
-              ),
-              const DesktopDialogCloseButton(),
-            ],
-          ),
-          Flexible(child: child),
-        ],
       ),
     );
   }

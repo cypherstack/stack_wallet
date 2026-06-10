@@ -24,18 +24,13 @@ class OpenCryptoPayMethodSupport {
       case 'Monero':
         return null;
       case 'Ethereum':
-      case 'Polygon':
-      case 'Arbitrum':
-      case 'Optimism':
-      case 'Base':
-      case 'BinanceSmartChain':
       case 'Bitcoin':
       case 'Firo':
         return OpenCryptoPaySubmissionFlow.rawHexToProvider;
       case 'Lightning':
       case 'BinancePay':
       case 'InternetComputer':
-        return OpenCryptoPaySubmissionFlow.external;
+        return null;
       default:
         return null;
     }
