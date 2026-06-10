@@ -426,35 +426,33 @@ class _OpenCryptoPayMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: RoundedWhiteContainer(
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${asset.amount} ${asset.asset}",
-                    style: STextStyles.titleBold12(context),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "via ${method.method}",
-                    style: STextStyles.itemSubtitle(context),
-                  ),
-                ],
-              ),
+    return RoundedWhiteContainer(
+      onPressed: onTap,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${asset.amount} ${asset.asset}",
+                  style: STextStyles.titleBold12(context),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "via ${method.method}",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              ],
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
-            ),
-          ],
-        ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
+          ),
+        ],
       ),
     );
   }
