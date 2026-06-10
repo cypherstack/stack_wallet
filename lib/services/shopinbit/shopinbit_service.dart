@@ -181,47 +181,6 @@ class ShopInBitService {
     return ref;
   }
 
-  /// Fallback for finding the real car research ticket when the status endpoint
-  /// hasn't populated real_ticket_id yet (sandbox, or briefly while the ticket
-  /// is being created).
-  ///
-  /// The fee receipt id can't be polled by the customer key (403s); the real
-  /// ticket is a separate id that shows up in by-customer. Grab the newest
-  /// ticket we don't already track (not the receipt), hydrate it, and return
-  /// its id, or null if it's not there yet.
-  Future<int?> adoptRealCarTicket(int receiptTicketId) async {
-    final String key = await ensureCustomerKey();
-    final ApiResponse<List<TicketRef>> resp = await _ticketsByCustomer(key);
-    if (resp.hasError || resp.value == null) return null;
-
-    final Set<int> known = (await db.shopInBitTicketsDao.getByCustomerKey(
-      key,
-    )).map((t) => t.apiTicketId).toSet();
-
-    final List<TicketRef> candidates =
-        resp.value!
-            .where((t) => t.id != receiptTicketId && !known.contains(t.id))
-            .toList()
-          ..sort((a, b) => b.id.compareTo(a.id));
-
-    // Newest first; the receipt 403s (no row written) so it gets skipped.
-    for (final TicketRef ref in candidates) {
-      try {
-        await _refreshRef(ref, key);
-      } catch (e, s) {
-        Logging.instance.w(
-          "Failed to refresh candidate ticket ${ref.id}, trying next",
-          error: e,
-          stackTrace: s,
-        );
-      }
-      if (await db.shopInBitTicketsDao.getByApiId(ref.id) != null) {
-        return ref.id;
-      }
-    }
-    return null;
-  }
-
   Future<bool> sendMessage(int apiTicketId, String message) async {
     final ApiResponse<Map<String, dynamic>> resp = await client.sendMessage(
       apiTicketId,

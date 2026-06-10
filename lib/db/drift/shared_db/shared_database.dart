@@ -80,13 +80,6 @@ class ShopInBitTicketsDao extends DatabaseAccessor<SharedDatabase>
     )..where((t) => t.apiTicketId.equals(apiTicketId))).watchSingleOrNull();
   }
 
-  Future<List<ShopInBitTicket>> getByCustomerKey(String customerKey) {
-    return (select(shopInBitTickets)
-          ..where((t) => t.customerKey.equals(customerKey))
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-        .get();
-  }
-
   /// All tickets for the active customer key, newest first.
   Stream<List<ShopInBitTicket>> watchByCustomerKey(String customerKey) {
     return (select(shopInBitTickets)

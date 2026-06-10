@@ -56,10 +56,8 @@ class _ShopInBitCarResearchPaymentViewState
   String _statusString = "ready_to_pay";
   String? _additional;
   bool _finalized = false;
-  // From the finalized status: the real ticket is the customer chat, the
-  // receipt is just the paid-fee receipt.
+  // The real car ticket id (the customer chat) from the finalized status.
   int? _realTicketId;
-  int? _receiptTicketId;
   List<String> _methods = [];
   List<String> _addresses = [];
   int _selectedMethod = 0;
@@ -349,7 +347,6 @@ class _ShopInBitCarResearchPaymentViewState
         _additional = _status!.additional;
         _finalized = _status!.finalized;
         _realTicketId = _status!.realTicketId;
-        _receiptTicketId = _status!.receiptTicketId;
       });
       if (_isTerminal) {
         _pollTimer?.cancel();
@@ -385,35 +382,10 @@ class _ShopInBitCarResearchPaymentViewState
     setState(() => _flowState = _PaymentFlowState.finalizing);
     _pollTimer?.cancel();
 
-    final service = ref.read(pShopinBitService);
-
     try {
-      // The finalized status usually gives us the real car ticket id (the
-      // customer chat), so open that. It can be null for a bit (sandbox, or
-      // while the ticket is still being created), so fall back to by-customer,
-      // using the receipt id to skip the receipt ticket. The BTCPay webhook
-      // creates the ticket either way.
-      int? realId = _realTicketId;
-      const int maxAttempts = 8;
-      for (
-        int attempt = 0;
-        attempt < maxAttempts && realId == null;
-        attempt++
-      ) {
-        // Re-poll the status first in case the real ticket id has appeared.
-        final statusResp = await service.client.getCarResearchInvoiceStatus(
-          widget.invoice.btcpayInvoice,
-        );
-        realId = statusResp.value?.realTicketId;
-        // Fall back to the by-customer heuristic, excluding the receipt id.
-        realId ??= await service.adoptRealCarTicket(
-          statusResp.value?.receiptTicketId ?? _receiptTicketId ?? 0,
-        );
-        if (realId == null && attempt < maxAttempts - 1) {
-          final int seconds = (1 << (attempt + 1)).clamp(2, 15).toInt();
-          await Future<void>.delayed(Duration(seconds: seconds));
-        }
-      }
+      // The finalized status carries the real car ticket id (the customer
+      // chat), so open that. The BTCPay webhook creates the ticket regardless.
+      final int? realId = _realTicketId;
 
       if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.complete);
