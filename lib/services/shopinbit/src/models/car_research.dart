@@ -82,12 +82,12 @@ bool carResearchIsFinalized(String? status, String? additional) {
 
 class CarResearchInvoice {
   final String btcpayInvoice;
-  final DateTime expiresAt;
+  final DateTime? expiresAt;
   final Map<String, String> paymentLinks;
 
   CarResearchInvoice({
     required this.btcpayInvoice,
-    required this.expiresAt,
+    this.expiresAt,
     required this.paymentLinks,
   });
 
@@ -95,9 +95,9 @@ class CarResearchInvoice {
     final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
     return CarResearchInvoice(
       btcpayInvoice: json['btcpay_invoice'] as String,
-      expiresAt:
-          DateTime.tryParse(json['expires_at']?.toString() ?? '') ??
-          DateTime.now(),
+      // Null rather than defaulting to now(): a missing/garbled date should
+      // not make a fresh invoice look already-expired.
+      expiresAt: DateTime.tryParse(json['expires_at']?.toString() ?? ''),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
     );
   }
