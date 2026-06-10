@@ -7,7 +7,6 @@ import "../../models/shopinbit/shopinbit_enums.dart";
 import "../../utilities/logger.dart";
 import "src/api_response.dart";
 import "src/client.dart";
-import "src/models/car_research.dart";
 import "src/models/message.dart";
 import "src/models/ticket.dart";
 

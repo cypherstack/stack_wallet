@@ -227,7 +227,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
       paymentInfo = await fetchShopInBitPaymentInfo(
         ref.read(pShopinBitService).client,
         widget.apiTicketId,
-        thisTicket!.customerKey,
+        thisTicket.customerKey,
       );
     } catch (e, s) {
       Logging.instance.e("submitAddress threw", error: e, stackTrace: s);
