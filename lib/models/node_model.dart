@@ -47,6 +47,8 @@ class NodeModel {
   final bool forceNoTor;
   // @HiveField(14)
   final bool isPrimary;
+  // @HiveField(15)
+  final String? nodeApiSecret;
 
   NodeModel({
     required this.host,
@@ -64,6 +66,7 @@ class NodeModel {
     this.forceNoTor = false,
     this.loginName,
     this.trusted,
+    this.nodeApiSecret,
   });
 
   NodeModel copyWith({
@@ -81,6 +84,7 @@ class NodeModel {
     bool? forceNoTor,
     bool? clearnetEnabled,
     bool? isPrimary,
+    String? nodeApiSecret,
   }) {
     return NodeModel(
       host: host ?? this.host,
@@ -98,6 +102,7 @@ class NodeModel {
       clearnetEnabled: clearnetEnabled ?? this.clearnetEnabled,
       forceNoTor: forceNoTor ?? this.forceNoTor,
       isPrimary: isPrimary ?? this.isPrimary,
+      nodeApiSecret: nodeApiSecret ?? this.nodeApiSecret,
     );
   }
 
@@ -123,6 +128,7 @@ class NodeModel {
     map['clearEnabled'] = clearnetEnabled;
     map['forceNoTor'] = forceNoTor;
     map['isPrimary'] = isPrimary;
+    map['nodeApiSecret'] = nodeApiSecret;
     return map;
   }
 

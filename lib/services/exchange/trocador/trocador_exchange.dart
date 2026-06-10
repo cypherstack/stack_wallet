@@ -67,38 +67,37 @@ class TrocadorExchange extends Exchange {
     Estimate? estimate,
     required bool reversed,
   }) async {
-    final response =
-        reversed
-            ? await TrocadorAPI.createNewPaymentRateTrade(
-              isOnion: false,
-              rateId: estimate?.rateId,
-              fromTicker: from.toLowerCase(),
-              fromNetwork: onlySupportedNetwork,
-              toTicker: to.toLowerCase(),
-              toNetwork: onlySupportedNetwork,
-              toAmount: amount.toString(),
-              receivingAddress: addressTo,
-              receivingMemo: null,
-              refundAddress: addressRefund,
-              refundMemo: null,
-              exchangeProvider: estimate!.exchangeProvider!,
-              isFixedRate: fixedRate,
-            )
-            : await TrocadorAPI.createNewStandardRateTrade(
-              isOnion: false,
-              rateId: estimate?.rateId,
-              fromTicker: from.toLowerCase(),
-              fromNetwork: onlySupportedNetwork,
-              toTicker: to.toLowerCase(),
-              toNetwork: onlySupportedNetwork,
-              fromAmount: amount.toString(),
-              receivingAddress: addressTo,
-              receivingMemo: null,
-              refundAddress: addressRefund,
-              refundMemo: null,
-              exchangeProvider: estimate!.exchangeProvider!,
-              isFixedRate: fixedRate,
-            );
+    final response = reversed
+        ? await TrocadorAPI.createNewPaymentRateTrade(
+            isOnion: false,
+            rateId: estimate?.rateId,
+            fromTicker: from.toLowerCase(),
+            fromNetwork: onlySupportedNetwork,
+            toTicker: to.toLowerCase(),
+            toNetwork: onlySupportedNetwork,
+            toAmount: amount.toString(),
+            receivingAddress: addressTo,
+            receivingMemo: null,
+            refundAddress: addressRefund,
+            refundMemo: null,
+            exchangeProvider: estimate!.exchangeProvider!,
+            isFixedRate: fixedRate,
+          )
+        : await TrocadorAPI.createNewStandardRateTrade(
+            isOnion: false,
+            rateId: estimate?.rateId,
+            fromTicker: from.toLowerCase(),
+            fromNetwork: onlySupportedNetwork,
+            toTicker: to.toLowerCase(),
+            toNetwork: onlySupportedNetwork,
+            fromAmount: amount.toString(),
+            receivingAddress: addressTo,
+            receivingMemo: null,
+            refundAddress: addressRefund,
+            refundMemo: null,
+            exchangeProvider: estimate!.exchangeProvider!,
+            isFixedRate: fixedRate,
+          );
 
     if (response.value == null) {
       return ExchangeResponse(exception: response.exception);
@@ -144,23 +143,22 @@ class TrocadorExchange extends Exchange {
 
     _cachedCurrencies?.removeWhere((e) => e.network != onlySupportedNetwork);
 
-    final value =
-        _cachedCurrencies
-            ?.map(
-              (e) => Currency(
-                exchangeName: exchangeName,
-                ticker: e.ticker,
-                name: e.name,
-                network: e.network,
-                image: e.image,
-                isFiat: false,
-                rateType: SupportedRateType.both,
-                isStackCoin: AppConfig.isStackCoin(e.ticker),
-                tokenContract: null,
-                isAvailable: true,
-              ),
-            )
-            .toList();
+    final value = _cachedCurrencies
+        ?.map(
+          (e) => Currency(
+            exchangeName: exchangeName,
+            ticker: e.ticker,
+            name: e.name,
+            network: e.network,
+            image: e.image,
+            isFiat: false,
+            rateType: SupportedRateType.both,
+            isStackCoin: AppConfig.isStackCoin(e.ticker),
+            tokenContract: null,
+            isAvailable: true,
+          ),
+        )
+        .toList();
 
     if (value == null) {
       return ExchangeResponse(
@@ -222,24 +220,23 @@ class TrocadorExchange extends Exchange {
     bool fixedRate,
     bool reversed,
   ) async {
-    final response =
-        reversed
-            ? await TrocadorAPI.getNewPaymentRate(
-              isOnion: false,
-              fromTicker: from,
-              fromNetwork: onlySupportedNetwork,
-              toTicker: to,
-              toNetwork: onlySupportedNetwork,
-              toAmount: amount.toString(),
-            )
-            : await TrocadorAPI.getNewStandardRate(
-              isOnion: false,
-              fromTicker: from,
-              fromNetwork: onlySupportedNetwork,
-              toTicker: to,
-              toNetwork: onlySupportedNetwork,
-              fromAmount: amount.toString(),
-            );
+    final response = reversed
+        ? await TrocadorAPI.getNewPaymentRate(
+            isOnion: false,
+            fromTicker: from,
+            fromNetwork: onlySupportedNetwork,
+            toTicker: to,
+            toNetwork: onlySupportedNetwork,
+            toAmount: amount.toString(),
+          )
+        : await TrocadorAPI.getNewStandardRate(
+            isOnion: false,
+            fromTicker: from,
+            fromNetwork: onlySupportedNetwork,
+            toTicker: to,
+            toNetwork: onlySupportedNetwork,
+            fromAmount: amount.toString(),
+          );
 
     if (response.value == null) {
       return ExchangeResponse(exception: response.exception);
@@ -249,8 +246,10 @@ class TrocadorExchange extends Exchange {
     final List<TrocadorQuote> cOrLowerQuotes = [];
 
     for (final quote in response.value!.quotes) {
+      final provider = quote.provider.toLowerCase();
       if (quote.fixed == fixedRate &&
-          quote.provider.toLowerCase() != "changenow") {
+          provider != "changenow" &&
+          provider != "exolix") {
         final rating = quote.kycRating.toLowerCase();
         if (rating == "a" || rating == "b") {
           estimates.add(
@@ -288,9 +287,8 @@ class TrocadorExchange extends Exchange {
     }
 
     return ExchangeResponse(
-      value:
-          estimates
-            ..sort((a, b) => b.estimatedAmount.compareTo(a.estimatedAmount)),
+      value: estimates
+        ..sort((a, b) => b.estimatedAmount.compareTo(a.estimatedAmount)),
     );
   }
 

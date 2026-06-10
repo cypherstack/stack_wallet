@@ -1,3 +1,5 @@
+import "package:decimal/decimal.dart";
+
 class CakePayCard {
   final int id;
   final String name;
@@ -9,11 +11,11 @@ class CakePayCard {
   final String? cardImageUrl;
   final String? country;
   final String? currencyCode;
-  final List<double> denominations;
-  final double? minValue;
-  final double? maxValue;
-  final double? minValueUsd;
-  final double? maxValueUsd;
+  final List<Decimal> denominations;
+  final Decimal? minValue;
+  final Decimal? maxValue;
+  final Decimal? minValueUsd;
+  final Decimal? maxValueUsd;
   final bool available;
   final String? lastUpdated;
 
@@ -38,48 +40,59 @@ class CakePayCard {
   });
 
   factory CakePayCard.fromJson(Map<String, dynamic> json) {
-    final rawDenoms = json['denominations'] ?? json['denominations_list'];
-    final denominations = <double>[];
+    final dynamic rawDenoms =
+        json["denominations"] ?? json["denominations_list"];
+    final List<Decimal> denominations = <Decimal>[];
     if (rawDenoms is List) {
-      for (final d in rawDenoms) {
-        if (d is num) {
-          denominations.add(d.toDouble());
-        } else if (d is String) {
-          final parsed = double.tryParse(d);
-          if (parsed != null) denominations.add(parsed);
-        } else if (d is Map) {
-          final v = d['value'];
-          if (v is num) {
-            denominations.add(v.toDouble());
-          } else if (v is String) {
-            final parsed = double.tryParse(v);
-            if (parsed != null) denominations.add(parsed);
-          }
-        }
+      for (final dynamic d in rawDenoms) {
+        final Decimal? parsed = _toDecimal(d is Map ? d["value"] : d);
+        if (parsed != null) denominations.add(parsed);
       }
     }
 
     return CakePayCard(
-      id: json['id'] as int? ?? 0,
-      name: (json['name'] ?? '') as String,
-      type: json['type'] as String?,
-      description: json['description'] as String?,
-      termsAndConditions: json['terms_and_conditions'] as String?,
-      howToUse: json['how_to_use'] as String?,
-      expiryAndValidity: json['expiry_and_validity'] as String?,
-      cardImageUrl: json['card_image_url'] as String?,
-      country: json['country'] is Map
-          ? (json['country'] as Map<String, dynamic>)['name'] as String?
-          : json['country'] as String?,
-      currencyCode: json['currency_code'] as String?,
+      id: json["id"] as int? ?? 0,
+      name: (json["name"] ?? "") as String,
+      type: json["type"] as String?,
+      description: json["description"] as String?,
+      termsAndConditions: json["terms_and_conditions"] as String?,
+      howToUse: json["how_to_use"] as String?,
+      expiryAndValidity: json["expiry_and_validity"] as String?,
+      cardImageUrl: json["card_image_url"] as String?,
+      country: json["country"] is Map
+          ? (json["country"] as Map<String, dynamic>)["name"] as String?
+          : json["country"] as String?,
+      currencyCode: json["currency_code"] as String?,
       denominations: denominations,
-      minValue: _toDouble(json['min_value']),
-      maxValue: _toDouble(json['max_value']),
-      minValueUsd: _toDouble(json['min_value_usd']),
-      maxValueUsd: _toDouble(json['max_value_usd']),
-      available: json['available'] as bool? ?? true,
-      lastUpdated: json['last_updated'] as String?,
+      minValue: _toDecimal(json["min_value"]),
+      maxValue: _toDecimal(json["max_value"]),
+      minValueUsd: _toDecimal(json["min_value_usd"]),
+      maxValueUsd: _toDecimal(json["max_value_usd"]),
+      available: json["available"] as bool? ?? true,
+      lastUpdated: json["last_updated"] as String?,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      "id": id,
+      "name": name,
+      "type": type,
+      "description": description,
+      "terms_and_conditions": termsAndConditions,
+      "how_to_use": howToUse,
+      "expiry_and_validity": expiryAndValidity,
+      "card_image_url": cardImageUrl,
+      "country": country,
+      "currency_code": currencyCode,
+      "denominations": denominations.map((Decimal d) => d.toString()).toList(),
+      "min_value": minValue?.toString(),
+      "max_value": maxValue?.toString(),
+      "min_value_usd": minValueUsd?.toString(),
+      "max_value_usd": maxValueUsd?.toString(),
+      "available": available,
+      "last_updated": lastUpdated,
+    };
   }
 
   bool get isFixedDenomination => denominations.isNotEmpty;
@@ -88,22 +101,23 @@ class CakePayCard {
 
   String get denominationRange {
     if (isFixedDenomination) {
-      return denominations.map((d) => d.toStringAsFixed(0)).join(', ');
+      return denominations.map((Decimal d) => d.toStringAsFixed(0)).join(", ");
     }
     if (isRangeDenomination) {
-      return '${minValue!.toStringAsFixed(0)} - ${maxValue!.toStringAsFixed(0)}';
+      return "${minValue!.toStringAsFixed(0)} - ${maxValue!.toStringAsFixed(0)}";
     }
-    return '';
+    return "";
   }
 
   @override
-  String toString() => 'CakePayCard($id, $name)';
+  String toString() => toMap().toString();
 }
 
-double? _toDouble(dynamic v) {
+Decimal? _toDecimal(dynamic v) {
   if (v == null) return null;
-  if (v is double) return v;
-  if (v is int) return v.toDouble();
-  if (v is String) return double.tryParse(v);
+  if (v is Decimal) return v;
+  if (v is int) return Decimal.fromInt(v);
+  if (v is double) return Decimal.parse(v.toString());
+  if (v is String) return Decimal.tryParse(v);
   return null;
 }

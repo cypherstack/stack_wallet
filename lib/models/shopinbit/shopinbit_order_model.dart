@@ -1,10 +1,17 @@
+import 'dart:ui';
+
+import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../db/drift/shared_db/shared_database.dart';
+import '../../db/drift/shared_db/tables/shopin_bit_tickets.dart';
 import '../../services/shopinbit/src/models/ticket.dart';
-import '../isar/models/shopinbit_ticket.dart';
+import '../../themes/stack_colors.dart';
 
+// these enum indexes are stored in a db. Do not edit order
 enum ShopInBitCategory { concierge, travel, car }
 
+// these enum indexes are stored in a db. Do not edit order
 enum ShopInBitOrderStatus {
   pending,
   reviewing,
@@ -16,7 +23,29 @@ enum ShopInBitOrderStatus {
   delivered,
   closed,
   cancelled,
-  refunded,
+  refunded;
+
+  String get label => switch (this) {
+    .pending => "Pending",
+    .reviewing => "Under review",
+    .offerAvailable => "Offer available",
+    .accepted => "Accepted",
+    .paymentPending => "Awaiting payment",
+    .paid => "Paid",
+    .shipping => "Shipping",
+    .delivered => "Delivered",
+    .closed => "Closed",
+    .cancelled => "Cancelled",
+    .refunded => "Refunded",
+  };
+
+  Color getColor(StackColors colors) => switch (this) {
+    .delivered => colors.accentColorGreen,
+    .offerAvailable => colors.accentColorBlue,
+    .pending || .reviewing => colors.accentColorYellow,
+    .closed || .cancelled || .refunded => colors.textSubtitle1,
+    _ => colors.accentColorDark,
+  };
 }
 
 class ShopInBitMessage {
@@ -109,6 +138,19 @@ class ShopInBitOrderModel extends ChangeNotifier {
   set status(ShopInBitOrderStatus value) {
     if (_status != value) {
       _status = value;
+      notifyListeners();
+    }
+  }
+
+  // The most recent raw API state string, persisted alongside _status so that
+  // we can recover from contract drift (renames / new states) without losing
+  // history. _status is the parsed/mapped value; _statusRaw is the source of
+  // truth straight from the API.
+  String? _statusRaw;
+  String? get statusRaw => _statusRaw;
+  set statusRaw(String? value) {
+    if (_statusRaw != value) {
+      _statusRaw = value;
       notifyListeners();
     }
   }
@@ -230,47 +272,65 @@ class ShopInBitOrderModel extends ChangeNotifier {
     _messages.clear();
   }
 
-  ShopInBitTicket toIsarTicket() {
-    return ShopInBitTicket()
-      ..ticketId = _ticketId ?? ""
-      ..displayName = _displayName
-      ..category = _category ?? ShopInBitCategory.concierge
-      ..status = _status
-      ..requestDescription = _requestDescription
-      ..deliveryCountry = _deliveryCountry
-      ..offerProductName = _offerProductName
-      ..offerPrice = _offerPrice
-      ..shippingName = _shippingName
-      ..shippingStreet = _shippingStreet
-      ..shippingCity = _shippingCity
-      ..shippingPostalCode = _shippingPostalCode
-      ..shippingCountry = _shippingCountry
-      ..paymentMethod = _paymentMethod
-      ..apiTicketId = _apiTicketId
-      ..carResearchInvoiceId = _carResearchInvoiceId
-      ..feeTicketNumber = _feeTicketNumber
-      ..needsCreateRequest = _needsCreateRequest
-      ..isPendingPayment = _isPendingPayment
-      ..carResearchExpiresAt = _carResearchExpiresAt
-      ..carResearchPaymentLinks = _carResearchPaymentLinks
-      ..messages = _messages
-          .map(
-            (m) => ShopInBitTicketMessage()
-              ..text = m.text
-              ..timestamp = m.timestamp
-              ..isFromUser = m.isFromUser,
-          )
-          .toList()
-      ..createdAt = DateTime.now();
+  ShopInBitTicketsCompanion toCompanion() {
+    assert(_ticketId != null, "ticketId must be set before persisting");
+
+    final List<ShopInBitTicketMessage> messages = _messages
+        .map(
+          (m) => ShopInBitTicketMessage(
+            text: m.text,
+            timestamp: m.timestamp,
+            isFromUser: m.isFromUser,
+          ),
+        )
+        .toList();
+
+    return ShopInBitTicketsCompanion(
+      ticketId: Value(_ticketId!),
+      displayName: Value(_displayName),
+      category: Value(_category ?? ShopInBitCategory.concierge),
+      status: Value(_status),
+      statusRaw: Value(_statusRaw),
+      requestDescription: Value(_requestDescription),
+      deliveryCountry: Value(_deliveryCountry),
+      offerProductName: Value(_offerProductName),
+      offerPrice: Value(_offerPrice),
+      shippingName: Value(_shippingName),
+      shippingStreet: Value(_shippingStreet),
+      shippingCity: Value(_shippingCity),
+      shippingPostalCode: Value(_shippingPostalCode),
+      shippingCountry: Value(_shippingCountry),
+      paymentMethod: Value(_paymentMethod),
+      apiTicketId: Value(_apiTicketId),
+      carResearchInvoiceId: Value(_carResearchInvoiceId),
+      feeTicketNumber: Value(_feeTicketNumber),
+      needsCreateRequest: Value(_needsCreateRequest),
+      isPendingPayment: Value(_isPendingPayment),
+      carResearchExpiresAt: Value(_carResearchExpiresAt),
+      carResearchPaymentLinks: Value(_carResearchPaymentLinks),
+      messages: Value(messages),
+      createdAt: Value(DateTime.now()),
+    );
   }
 
-  static ShopInBitOrderModel fromIsarTicket(ShopInBitTicket ticket) {
+  static ShopInBitOrderModel fromDriftRow(ShopInBitTicket ticket) {
+    final List<ShopInBitMessage> messages = ticket.messages
+        .map(
+          (m) => ShopInBitMessage(
+            text: m.text,
+            timestamp: m.timestamp,
+            isFromUser: m.isFromUser,
+          ),
+        )
+        .toList();
+
     return ShopInBitOrderModel()
       .._displayName = ticket.displayName
       .._category = ticket.category
       .._apiTicketId = ticket.apiTicketId
       .._ticketId = ticket.ticketId
       .._status = ticket.status
+      .._statusRaw = ticket.statusRaw
       .._requestDescription = ticket.requestDescription
       .._deliveryCountry = ticket.deliveryCountry
       .._offerProductName = ticket.offerProductName
@@ -287,18 +347,10 @@ class ShopInBitOrderModel extends ChangeNotifier {
       .._isPendingPayment = ticket.isPendingPayment
       .._carResearchExpiresAt = ticket.carResearchExpiresAt
       .._carResearchPaymentLinks = ticket.carResearchPaymentLinks
-      .._messages = ticket.messages
-          .map(
-            (m) => ShopInBitMessage(
-              text: m.text,
-              timestamp: m.timestamp,
-              isFromUser: m.isFromUser,
-            ),
-          )
-          .toList();
+      .._messages = messages;
   }
 
-  static ShopInBitOrderStatus statusFromTicketState(TicketState state) {
+  static ShopInBitOrderStatus? statusFromTicketState(TicketState state) {
     switch (state) {
       case TicketState.newTicket:
         return ShopInBitOrderStatus.pending;
@@ -323,6 +375,8 @@ class ShopInBitOrderModel extends ChangeNotifier {
         return ShopInBitOrderStatus.cancelled;
       case TicketState.refunded:
         return ShopInBitOrderStatus.refunded;
+      case TicketState.unknown:
+        return null;
     }
   }
 }

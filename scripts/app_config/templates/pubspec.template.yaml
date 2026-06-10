@@ -76,7 +76,7 @@ dependencies:
 
 # %%ENABLE_SAL%%
 #  cs_salvium: ^2.0.0
-#  cs_salvium_flutter_libs: ^2.0.1
+#  cs_salvium_flutter_libs: ^3.0.1
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
@@ -105,7 +105,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
 
   fusiondart:
     git:
@@ -218,7 +218,7 @@ dependencies:
   meta: ^1.9.1
   coinlib_flutter:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib_flutter
       ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
   electrum_adapter:
@@ -316,14 +316,14 @@ dependency_overrides:
   # coinlib_flutter requires this
   coinlib:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib
       ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
 
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 3ef6b94375d7b4d972b0bc0bd9597532381a88ec
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
 
   # bip47 pins a different bitcoindart commit; override to ours
   bitcoindart:

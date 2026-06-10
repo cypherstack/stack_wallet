@@ -7,9 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/cakepay_orders_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
-import '../../services/cakepay/cakepay_service.dart';
+import '../../services/cakepay/cakepay_orders_service.dart';
 import '../../services/cakepay/src/models/order.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -20,72 +21,83 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
+import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart';
 import 'cakepay_send_from_view.dart';
 
 class CakePayOrderView extends ConsumerStatefulWidget {
-  const CakePayOrderView({super.key, required this.orderId});
+  const CakePayOrderView({super.key, required this.order});
 
   static const String routeName = "/cakePayOrder";
 
-  final String orderId;
+  final CakePayOrder order;
 
   @override
   ConsumerState<CakePayOrderView> createState() => _CakePayOrderViewState();
 }
 
 class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
-  CakePayOrder? _order;
-  bool _loading = true;
-  Timer? _pollTimer;
+  late final CakePayOrdersService _ordersService;
   Timer? _countdownTimer;
-  Duration _timeRemaining = Duration.zero;
+  int? _countdownExpiration;
   int _selectedPaymentMethod = 0;
+  bool _polling = false;
 
   @override
   void initState() {
     super.initState();
-    _loadOrder();
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => _loadOrder(),
-    );
+    _ordersService = ref.read(pCakePayOrdersService);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _polling = true;
+      _ordersService.startPolling(widget.order.orderId);
+    });
   }
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    if (_polling) {
+      _ordersService.stopPolling(widget.order.orderId);
+    }
     _countdownTimer?.cancel();
     super.dispose();
   }
 
-  void _startCountdown() {
+  void _ensureCountdown(int? expirationTime) {
+    if (expirationTime == null) {
+      if (_countdownTimer != null) {
+        _countdownTimer?.cancel();
+        _countdownTimer = null;
+        _countdownExpiration = null;
+      }
+      return;
+    }
+    if (_countdownExpiration == expirationTime && _countdownTimer != null) {
+      return;
+    }
+    _countdownExpiration = expirationTime;
     _countdownTimer?.cancel();
-    _updateTimeRemaining();
-    _countdownTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => _updateTimeRemaining(),
-    );
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final remaining = _computeRemaining(expirationTime);
+      if (remaining <= Duration.zero) {
+        _countdownTimer?.cancel();
+        _countdownTimer = null;
+        _countdownExpiration = null;
+      }
+      setState(() {});
+    });
   }
 
-  void _updateTimeRemaining() {
-    if (_order?.expirationTime == null) return;
-    final expiresAt = DateTime.fromMillisecondsSinceEpoch(
-      _order!.expirationTime!,
-    );
+  Duration _computeRemaining(int expirationTime) {
+    final expiresAt = DateTime.fromMillisecondsSinceEpoch(expirationTime);
     final remaining = expiresAt.difference(DateTime.now());
-    if (mounted) {
-      setState(() {
-        _timeRemaining = remaining.isNegative ? Duration.zero : remaining;
-      });
-    }
-    if (remaining.isNegative) {
-      _countdownTimer?.cancel();
-    }
+    return remaining.isNegative ? Duration.zero : remaining;
   }
 
   String _formatDuration(Duration d) {
@@ -106,7 +118,6 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
   }) {
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
       showDialog<void>(
         context: context,
         builder: (_) => CakePaySendFromView(
@@ -209,36 +220,6 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     );
   }
 
-  Future<void> _loadOrder() async {
-    final resp = await CakePayService.instance.client.getOrder(widget.orderId);
-    if (mounted) {
-      setState(() {
-        _loading = false;
-        if (!resp.hasError && resp.value != null) {
-          var order = resp.value!;
-          final override = CakePayService.devStatusOverrides[order.orderId];
-          if (override != null) {
-            order = order.copyWith(status: override);
-          }
-          _order = order;
-          if (_isTerminal(_order!.status)) {
-            _pollTimer?.cancel();
-            _countdownTimer?.cancel();
-          } else if (_order!.expirationTime != null) {
-            _startCountdown();
-          }
-        }
-      });
-    }
-  }
-
-  bool _isTerminal(CakePayOrderStatus status) {
-    return status == CakePayOrderStatus.complete ||
-        status == CakePayOrderStatus.expired ||
-        status == CakePayOrderStatus.failed ||
-        status == CakePayOrderStatus.refunded;
-  }
-
   /// Whether the order has received payment and is being processed or
   /// is already complete.  Payment UI should be hidden for these.
   bool _isPaidOrBeyond(CakePayOrderStatus status) {
@@ -270,42 +251,34 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     return [
       // Copyable order ID.
       RoundedWhiteContainer(
-        child: GestureDetector(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: order.orderId));
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Order ID copied",
-              iconAsset: Assets.svg.copy,
-              context: context,
-            );
-          },
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Order ID", style: subtitleStyle),
-                    const SizedBox(height: 4),
-                    Text(
-                      order.orderId,
-                      style: isDesktop
-                          ? STextStyles.desktopTextSmall(context)
-                          : STextStyles.titleBold12(context),
-                    ),
-                  ],
-                ),
+        onPressed: () {
+          Clipboard.setData(ClipboardData(text: order.orderId));
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "Order ID copied",
+            iconAsset: Assets.svg.copy,
+            context: context,
+          );
+        },
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Order ID", style: subtitleStyle),
+                  const SizedBox(height: 4),
+                  Text(
+                    order.orderId,
+                    style: isDesktop
+                        ? STextStyles.desktopTextSmall(context)
+                        : STextStyles.titleBold12(context),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.copy,
-                size: 14,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorBlue,
-              ),
-            ],
-          ),
+            ),
+            IconCopyButton(data: order.orderId),
+          ],
         ),
       ),
       // Created-at timestamp.
@@ -324,154 +297,86 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     ];
   }
 
-  String _statusLabel(CakePayOrderStatus status) {
-    switch (status) {
-      case CakePayOrderStatus.new_:
-        return "New";
-      case CakePayOrderStatus.expiredButStillPending:
-        return "Expired (pending)";
-      case CakePayOrderStatus.expired:
-        return "Expired";
-      case CakePayOrderStatus.failed:
-        return "Failed";
-      case CakePayOrderStatus.paid:
-        return "Paid";
-      case CakePayOrderStatus.paidPartial:
-        return "Partially paid";
-      case CakePayOrderStatus.pendingPurchase:
-        return "Pending purchase";
-      case CakePayOrderStatus.purchaseProcessing:
-        return "Processing";
-      case CakePayOrderStatus.purchased:
-        return "Purchased";
-      case CakePayOrderStatus.pendingEmail:
-        return "Pending email";
-      case CakePayOrderStatus.complete:
-        return "Complete";
-      case CakePayOrderStatus.pendingRefund:
-        return "Pending refund";
-      case CakePayOrderStatus.refunded:
-        return "Refunded";
-    }
-  }
-
-  Color _statusColor(BuildContext context, CakePayOrderStatus status) {
-    final colors = Theme.of(context).extension<StackColors>()!;
-    switch (status) {
-      case CakePayOrderStatus.complete:
-      case CakePayOrderStatus.purchased:
-        return colors.accentColorGreen;
-      case CakePayOrderStatus.new_:
-      case CakePayOrderStatus.paid:
-      case CakePayOrderStatus.paidPartial:
-        return colors.accentColorBlue;
-      case CakePayOrderStatus.pendingPurchase:
-      case CakePayOrderStatus.purchaseProcessing:
-      case CakePayOrderStatus.pendingEmail:
-      case CakePayOrderStatus.expiredButStillPending:
-        return colors.accentColorYellow;
-      case CakePayOrderStatus.expired:
-      case CakePayOrderStatus.failed:
-      case CakePayOrderStatus.pendingRefund:
-      case CakePayOrderStatus.refunded:
-        return colors.textSubtitle1;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    if (_loading) {
-      return _scaffold(
-        isDesktop: isDesktop,
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
-    if (_order == null) {
-      return _scaffold(
-        isDesktop: isDesktop,
-        child: Center(
-          child: Text(
-            "Failed to load order",
-            style: isDesktop
-                ? STextStyles.desktopTextSmall(context)
-                : STextStyles.itemSubtitle(context),
-          ),
-        ),
-      );
-    }
-
-    final order = _order!;
+    final service = ref.watch(pCakePayOrdersService);
+    final order = service.get(widget.order.orderId) ?? widget.order;
+    final isRefreshing = service.isRefreshing(widget.order.orderId);
+    _ensureCountdown(order.expirationTime);
+    final remaining = order.expirationTime == null
+        ? Duration.zero
+        : _computeRemaining(order.expirationTime!);
     final paymentOptions = order.paymentOptions;
 
-    final statusBadge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: _statusColor(context, order.status).withValues(alpha: 0.2),
-      ),
-      child: Text(
-        _statusLabel(order.status),
-        style:
-            (isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context))
-                .copyWith(color: _statusColor(context, order.status)),
-      ),
-    );
-
     final details = <Widget>[
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [statusBadge]),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: order.status
+                  .color(Theme.of(context).extension<StackColors>()!)
+                  .withValues(alpha: 0.2),
+            ),
+            child: Text(
+              order.status.label,
+              style:
+                  (isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.itemSubtitle12(context))
+                      .copyWith(
+                        color: order.status.color(
+                          Theme.of(context).extension<StackColors>()!,
+                        ),
+                      ),
+            ),
+          ),
+        ],
+      ),
       SizedBox(height: isDesktop ? 8 : 6),
       RoundedWhiteContainer(
-        child: GestureDetector(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: order.orderId));
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Order ID copied",
-              iconAsset: Assets.svg.copy,
-              context: context,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Order ID",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context),
-              ),
-              Row(
+        onPressed: () {
+          Clipboard.setData(ClipboardData(text: order.orderId));
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "Order ID copied",
+            iconAsset: Assets.svg.copy,
+            context: context,
+          );
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Order ID",
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.itemSubtitle12(context),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SelectableText(
-                    order.orderId,
-                    style: isDesktop
-                        ? STextStyles.desktopTextSmall(context)
-                        : STextStyles.titleBold12(context),
+                  Flexible(
+                    child: SelectableText(
+                      order.orderId,
+                      style: isDesktop
+                          ? STextStyles.desktopTextSmall(context)
+                          : STextStyles.titleBold12(context),
+                    ),
                   ),
                   const SizedBox(width: 6),
-                  Icon(
-                    Icons.copy,
-                    size: 14,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorBlue,
-                  ),
+                  IconCopyButton(data: order.orderId),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       SizedBox(height: isDesktop ? 16 : 12),
@@ -602,7 +507,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
 
     // Expiration countdown.
     if (order.expirationTime != null) {
-      final isExpired = _timeRemaining == Duration.zero;
+      final isExpired = remaining == Duration.zero;
       details.add(
         RoundedWhiteContainer(
           child: Row(
@@ -615,7 +520,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                     : STextStyles.itemSubtitle12(context),
               ),
               Text(
-                _formatDuration(_timeRemaining),
+                _formatDuration(remaining),
                 style:
                     (isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -625,7 +530,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               ? Theme.of(
                                   context,
                                 ).extension<StackColors>()!.accentColorRed
-                              : _timeRemaining.inMinutes < 5
+                              : remaining.inMinutes < 5
                               ? Theme.of(
                                   context,
                                 ).extension<StackColors>()!.accentColorOrange
@@ -727,7 +632,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _statusLabel(status),
+                  status.label,
                   style:
                       (isDesktop
                               ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -888,13 +793,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               : STextStyles.itemSubtitle12(context),
                         ),
                         const Spacer(),
-                        Icon(
-                          Icons.copy,
-                          size: 14,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue,
-                        ),
+                        IconCopyButton(data: order.orderId),
                         const SizedBox(width: 4),
                         Text("Copy", style: STextStyles.link2(context)),
                       ],
@@ -924,44 +823,72 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
       details.add(SizedBox(height: isDesktop ? 8 : 6));
     }
 
-    final content = SingleChildScrollView(
+    final scrollable = SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: details,
       ),
     );
 
-    return _scaffold(isDesktop: isDesktop, child: content);
+    final content = RefreshControl(
+      onRefresh: () => service.refreshOne(widget.order.orderId),
+      child: scrollable,
+    );
+
+    return _scaffold(
+      isDesktop: isDesktop,
+      isRefreshing: isRefreshing,
+      onRefresh: () => service.refreshOne(widget.order.orderId),
+      child: content,
+    );
   }
 
-  Widget _scaffold({required bool isDesktop, required Widget child}) {
+  Widget _scaffold({
+    required bool isDesktop,
+    required bool isRefreshing,
+    required Future<void> Function() onRefresh,
+    required Widget child,
+  }) {
     return ConditionalParent(
       condition: isDesktop,
-      builder: (child) => DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 650,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text("Order", style: STextStyles.desktopH3(context)),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 8,
-                ),
-                child: child,
+      builder: (child) => SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text("Order", style: STextStyles.desktopH3(context)),
+                  ),
+                  Row(
+                    mainAxisSize: .min,
+                    children: [
+                      RefreshButton(
+                        isRefreshing: isRefreshing,
+                        onPressed: () => onRefresh(),
+                      ),
+                      const SizedBox(width: 8),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 8,
+                  ),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       child: ConditionalParent(

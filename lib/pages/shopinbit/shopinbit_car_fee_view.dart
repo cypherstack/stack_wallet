@@ -3,12 +3,13 @@ import 'dart:convert';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../db/isar/main_db.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
+import '../../providers/db/drift_provider.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
@@ -17,18 +18,19 @@ import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../more_view/services_view.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfields/adaptive_text_field.dart';
+import '../more_view/services_view.dart';
 import 'shopinbit_car_research_payment_view.dart';
 import 'shopinbit_step_2.dart';
 
-class ShopInBitCarFeeView extends StatefulWidget {
+class ShopInBitCarFeeView extends ConsumerStatefulWidget {
   const ShopInBitCarFeeView({super.key, required this.model});
 
   static const String routeName = "/shopInBitCarFee";
@@ -36,10 +38,11 @@ class ShopInBitCarFeeView extends StatefulWidget {
   final ShopInBitOrderModel model;
 
   @override
-  State<ShopInBitCarFeeView> createState() => _ShopInBitCarFeeViewState();
+  ConsumerState<ShopInBitCarFeeView> createState() =>
+      _ShopInBitCarFeeViewState();
 }
 
-class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
+class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
   late final TextEditingController _nameController;
   late final TextEditingController _streetController;
   late final TextEditingController _cityController;
@@ -179,7 +182,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
   Future<void> _fetchCountries() async {
     setState(() => _loadingCountries = true);
     try {
-      final resp = await ShopInBitService.instance.client.getCountries();
+      final resp = await ref.read(pShopinBitService).client.getCountries();
       if (resp.hasError || resp.value == null) return;
       _countries = resp.value!;
       if (_selectedCountryIso != null &&
@@ -209,7 +212,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
-      await ShopInBitService.instance.ensureCustomerKey();
+      await ref.read(pShopinBitService).ensureCustomerKey();
 
       // Delivery address (always provided)
       final deliveryName = _splitFullName(_nameController.text);
@@ -221,7 +224,8 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         country: _selectedCountryIso!,
       );
 
-      // Billing address: use separate billing fields if different, else use delivery
+      // Billing address: use separate billing fields if different,
+      // else use delivery
       final Address billing;
       if (_differentBilling) {
         final billingName = _splitFullName(_billingNameController.text);
@@ -244,7 +248,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         );
       }
 
-      final resp = await ShopInBitService.instance.client
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
           .createCarResearchInvoice(billing: billing);
 
       if (resp.hasError || resp.value == null) {
@@ -264,38 +270,29 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
       final invoice = resp.value!;
 
       // Persist pending state so the user can resume if they close the dialog.
-      // Sentinel ticketId; unique-replace index ensures at most one pending record.
+      // Sentinel ticketId; unique-replace index ensures at most one pending
+      // record.
       widget.model.ticketId = "pending-car-research";
       widget.model.carResearchInvoiceId = invoice.btcpayInvoice;
       widget.model.isPendingPayment = true;
       widget.model.carResearchExpiresAt = invoice.expiresAt;
       widget.model.carResearchPaymentLinks = jsonEncode(invoice.paymentLinks);
-      await MainDB.instance.putShopInBitTicket(widget.model.toIsarTicket());
+      final db = ref.read(pSharedDrift);
+      await db
+          .into(db.shopInBitTickets)
+          .insertOnConflictUpdate(widget.model.toCompanion());
 
       // Best-effort fee fetch; do not block navigation on fee parse failure.
       await _loadFee(invoice);
 
       if (!mounted) return;
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitCarResearchPaymentView(
-              model: widget.model,
-              invoice: invoice,
-            ),
-          ),
-        );
-      } else {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            ShopInBitCarResearchPaymentView.routeName,
-            arguments: (widget.model, invoice),
-          ),
-        );
-      }
+      unawaited(
+        Navigator.of(context).pushNamed(
+          ShopInBitCarResearchPaymentView.routeName,
+          arguments: (widget.model, invoice),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         setState(() => _submitting = false);
@@ -328,7 +325,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     // a fee field. Today the endpoint returns only {status, additional}, so
     // we source the displayed amount from the BIP21 payment URIs instead.
     try {
-      final resp = await ShopInBitService.instance.client
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
           .getCarResearchInvoiceStatus(invoice.btcpayInvoice);
       if (resp.hasError || resp.value == null) {
         Logging.instance.i(
@@ -367,45 +366,6 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     }
     // No parse succeeded: leave the existing "223.00 EUR" business-rule
     // placeholder in place rather than showing "--".
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String label,
-    required bool isDesktop,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        autocorrect: false,
-        enableSuggestions: false,
-        onChanged: (_) => setState(() {}),
-        style: isDesktop
-            ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-                height: 1.8,
-              )
-            : STextStyles.field(context),
-        decoration:
-            standardInputDecoration(
-              label,
-              focusNode,
-              context,
-              desktopMed: isDesktop,
-            ).copyWith(
-              filled: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-      ),
-    );
   }
 
   Widget _buildCountryDropdown({
@@ -471,9 +431,12 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                 Assets.svg.chevronDown,
                 width: 12,
                 height: 6,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                  .srcIn,
+                ),
               ),
             ),
           ),
@@ -529,6 +492,7 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     final spacing = SizedBox(height: isDesktop ? 16 : 12);
 
     final content = Column(
+      mainAxisSize: .min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
@@ -539,6 +503,9 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
         ),
         SizedBox(height: isDesktop ? 16 : 8),
         RoundedWhiteContainer(
+          borderColor: isDesktop
+              ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+              : null,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -565,37 +532,45 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
               : STextStyles.titleBold12(context),
         ),
         SizedBox(height: isDesktop ? 16 : 12),
-        _buildField(
+        AdaptiveTextField(
           controller: _nameController,
           focusNode: _nameFocusNode,
-          label: "Full name",
-          isDesktop: isDesktop,
+          labelText: "Full name",
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
         ),
         spacing,
-        _buildField(
+        AdaptiveTextField(
           controller: _streetController,
           focusNode: _streetFocusNode,
-          label: "Street address",
-          isDesktop: isDesktop,
+          labelText: "Street address",
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
         ),
         spacing,
         Row(
           children: [
             Expanded(
-              child: _buildField(
+              child: AdaptiveTextField(
                 controller: _cityController,
                 focusNode: _cityFocusNode,
-                label: "City",
-                isDesktop: isDesktop,
+                labelText: "City",
+                autocorrect: false,
+                enableSuggestions: false,
+                onChanged: (_) => setState(() {}),
               ),
             ),
             SizedBox(width: isDesktop ? 16 : 12),
             Expanded(
-              child: _buildField(
+              child: AdaptiveTextField(
                 controller: _postalCodeController,
                 focusNode: _postalCodeFocusNode,
-                label: "Postal code",
-                isDesktop: isDesktop,
+                labelText: "Postal code",
+                autocorrect: false,
+                enableSuggestions: false,
+                onChanged: (_) => setState(() {}),
               ),
             ),
           ],
@@ -657,37 +632,45 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
                 : STextStyles.titleBold12(context),
           ),
           SizedBox(height: isDesktop ? 16 : 12),
-          _buildField(
+          AdaptiveTextField(
             controller: _billingNameController,
             focusNode: _billingNameFocusNode,
-            label: "Full name",
-            isDesktop: isDesktop,
+            labelText: "Full name",
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
           ),
           spacing,
-          _buildField(
+          AdaptiveTextField(
             controller: _billingStreetController,
             focusNode: _billingStreetFocusNode,
-            label: "Street address",
-            isDesktop: isDesktop,
+            labelText: "Street address",
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
           ),
           spacing,
           Row(
             children: [
               Expanded(
-                child: _buildField(
+                child: AdaptiveTextField(
                   controller: _billingCityController,
                   focusNode: _billingCityFocusNode,
-                  label: "City",
-                  isDesktop: isDesktop,
+                  labelText: "City",
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
               SizedBox(width: isDesktop ? 16 : 12),
               Expanded(
-                child: _buildField(
+                child: AdaptiveTextField(
                   controller: _billingPostalCodeController,
                   focusNode: _billingPostalCodeFocusNode,
-                  label: "Postal code",
-                  isDesktop: isDesktop,
+                  labelText: "Postal code",
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
             ],
@@ -714,34 +697,41 @@ class _ShopInBitCarFeeViewState extends State<ShopInBitCarFeeView> {
     );
 
     if (isDesktop) {
-      return DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 750,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "ShopinBit",
-                    style: STextStyles.desktopH3(context),
+      return SDialog(
+        child: SizedBox(
+          width: 580,
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "ShopinBit",
+                      style: STextStyles.desktopH3(context),
+                    ),
                   ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                child: SingleChildScrollView(child: content),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: () =>
+                        NestedNavigatorDialog.of(context).close(),
+                  ),
+                ],
               ),
-            ),
-          ],
+              Flexible(
+                child: Padding(
+                  padding: const .only(
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                    top: 16,
+                  ),
+                  child: content,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }

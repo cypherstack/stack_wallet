@@ -58,6 +58,7 @@ import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -460,7 +461,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         .read(prefsChangeNotifierProvider)
         .enableCoinControl;
 
-    if (!(wallet is CoinControlInterface && coinControlEnabled) ||
+    if (!(wallet is CoinControlInterface &&
+            wallet is! SalviumWallet &&
+            coinControlEnabled) ||
         (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
@@ -599,6 +602,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             feeRateType: feeRate,
             utxos:
                 (wallet is CoinControlInterface &&
+                    wallet is! SalviumWallet &&
                     coinControlEnabled &&
                     ref.read(pDesktopUseUTXOs).isNotEmpty)
                 ? ref.read(pDesktopUseUTXOs)
@@ -726,6 +730,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 : null,
             utxos:
                 (wallet is CoinControlInterface &&
+                    wallet is! SalviumWallet &&
                     coinControlEnabled &&
                     ref.read(pDesktopUseUTXOs).isNotEmpty)
                 ? ref.read(pDesktopUseUTXOs)
@@ -1375,6 +1380,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
+        ref.watch(pWallets).getWallet(walletId) is! SalviumWallet &&
         (showPrivateBalance ? balType == BalanceType.public : true);
 
     return Column(

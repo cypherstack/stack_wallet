@@ -11,9 +11,9 @@ import '../../app_config.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -29,6 +29,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'shopinbit_send_from_view.dart';
 
@@ -107,9 +108,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
 
   Future<void> _pollPayment() async {
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null && mounted) {
         setState(() => _applyPaymentInfo(resp.value!));
         if (_isTerminal) {
@@ -122,9 +124,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Future<void> _loadPayment() async {
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null) {
         _applyPaymentInfo(resp.value!);
       }
@@ -141,10 +144,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Future<void> _refreshInvoice() async {
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-        retry: true,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId, retry: true);
       if (!resp.hasError && resp.value != null) {
         _applyPaymentInfo(resp.value!);
       }
@@ -159,9 +162,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     _pollTimer?.cancel();
     setState(() => _loading = true);
     try {
-      final resp = await ShopInBitService.instance.client.getPayment(
-        widget.model.apiTicketId,
-      );
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .getPayment(widget.model.apiTicketId);
       if (!resp.hasError && resp.value != null && mounted) {
         setState(() => _applyPaymentInfo(resp.value!));
         final status = resp.value!.status;
@@ -471,14 +475,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    const loadingOverlay = Center(
-      child: SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-    );
-
     // Build coin rows from _methods/_addresses
     final coinRows = <Widget>[];
     for (int i = 0; i < _methods.length; i++) {
@@ -737,7 +733,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                 child: Stack(
                   children: [
                     SingleChildScrollView(child: content),
-                    if (_loading) loadingOverlay,
+                    if (_loading) const LoadingIndicator(width: 24, height: 24),
                   ],
                 ),
               ),
@@ -779,7 +775,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                         ),
                       ),
                     ),
-                    if (_loading) loadingOverlay,
+                    if (_loading) const LoadingIndicator(width: 24, height: 24),
                   ],
                 );
               },
