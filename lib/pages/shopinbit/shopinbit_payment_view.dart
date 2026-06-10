@@ -188,7 +188,11 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       whileFuture: ref
           .read(pShopinBitService)
           .client
-          .putPayment(widget.apiTicketId, customerKey: customerKey),
+          .putPayment(
+            widget.apiTicketId,
+            customerKey: customerKey,
+            retry: true,
+          ),
       context: context,
       message: "Refreshing invoice",
     );

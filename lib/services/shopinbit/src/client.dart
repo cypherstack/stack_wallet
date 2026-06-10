@@ -331,13 +331,17 @@ class ShopInBitClient {
   /// shipping/billing, seen the Terms & Conditions, and explicitly clicked
   /// PAY NOW.  Repeated calls regenerate the invoice and invalidate any in-
   /// flight payment.
+  /// Create a payment invoice, or regenerate an expired/invalid one with
+  /// [retry] = true (spec: PUT ...?retry=true).
   Future<ApiResponse<PaymentInfo>> putPayment(
     int ticketId, {
     required String customerKey,
+    bool retry = false,
   }) async {
     return _request(
       'PUT',
       '/tickets/$ticketId/payment',
+      query: retry ? const {'retry': 'true'} : null,
       parse: PaymentInfo.fromJson,
       customerKey: customerKey,
     );
