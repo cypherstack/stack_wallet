@@ -4,7 +4,7 @@ import 'package:bech32/bech32.dart';
 
 /// LNURL (LUD-01) helpers scoped to Open CryptoPay QR handling.
 ///
-/// Stack does not support Lightning in general — this lives under
+/// Stack does not support Lightning in general; this lives under
 /// `services/open_crypto_pay/` because OCP is currently the sole consumer.
 /// If broader LNURL support is ever added, promote this to `utilities/`.
 class LnurlUtils {

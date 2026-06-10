@@ -481,7 +481,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           _addressToggleFlag = sendToController.text.isNotEmpty;
         });
       } else if (LnurlUtils.isOpenCryptoPayUrl(qrResult)) {
-        await _showOpenCryptoPay(qrResult);
+        if (!mounted) return;
+        await showOpenCryptoPayDesktopDialog(
+          context: context,
+          qrUrl: qrResult,
+          walletId: walletId,
+          coin: coin,
+        );
       } else {
         // now check for non standard encoded basic address
         _address = qrResult.split("\n").first.trim();
@@ -501,17 +507,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         stackTrace: s,
       );
     }
-  }
-
-  Future<void> _showOpenCryptoPay(String qrUrl) async {
-    if (!mounted) return;
-
-    await showOpenCryptoPayDesktopDialog(
-      context: context,
-      qrUrl: qrUrl,
-      walletId: walletId,
-      coin: coin,
-    );
   }
 
   Future<void> pasteAddress() async {

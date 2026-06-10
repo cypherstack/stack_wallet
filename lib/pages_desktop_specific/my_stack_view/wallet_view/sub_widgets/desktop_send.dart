@@ -925,7 +925,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           paymentData.coin?.uriScheme == coin.uriScheme) {
         _applyUri(paymentData);
       } else if (LnurlUtils.isOpenCryptoPayUrl(qrCodeData)) {
-        await _showOpenCryptoPay(qrCodeData);
+        if (!mounted) return;
+        await showOpenCryptoPayDesktopDialog(
+          context: context,
+          qrUrl: qrCodeData,
+          walletId: walletId,
+          coin: coin,
+        );
       } else {
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
@@ -942,17 +948,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         stackTrace: s,
       );
     }
-  }
-
-  Future<void> _showOpenCryptoPay(String qrUrl) async {
-    if (!mounted) return;
-
-    await showOpenCryptoPayDesktopDialog(
-      context: context,
-      qrUrl: qrUrl,
-      walletId: walletId,
-      coin: coin,
-    );
   }
 
   void _setValidAddressProviders(String? address) {

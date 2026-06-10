@@ -32,7 +32,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
-import 'open_crypto_pay_desktop_frame.dart';
+import 'open_crypto_pay_widgets.dart';
 import '../send_view/send_view.dart';
 import '../send_view/token_send_view.dart';
 
@@ -113,11 +113,9 @@ class _OpenCryptoPayConfirmViewState
     }
   }
 
-  /// Parses address and amount from the transaction URI. For EVM URIs this
-  /// also extracts the EIP-681 `@chainId` suffix that [AddressUtils] leaves
-  /// attached to the address.
-  ({String? address, Decimal? amount, int? chainId, String? scheme})
-  _parseTransactionUri(String uri) {
+  ({String? address, Decimal? amount, String? scheme}) _parseTransactionUri(
+    String uri,
+  ) {
     final evmUri = OpenCryptoPayEvmUri.tryParse(uri);
     if (evmUri != null && !evmUri.isTokenTransfer) {
       return (
@@ -125,7 +123,6 @@ class _OpenCryptoPayConfirmViewState
         amount: evmUri.isNativeTransfer
             ? evmUri.amount(fractionDigits: widget.coin.fractionDigits)
             : Decimal.tryParse(widget.selectedAsset.amount),
-        chainId: evmUri.chainId,
         scheme: evmUri.scheme,
       );
     }
@@ -133,13 +130,7 @@ class _OpenCryptoPayConfirmViewState
     final parsedUri = Uri.tryParse(uri);
     final data = AddressUtils.parsePaymentUri(uri, logging: Logging.instance);
     var address = data?.address ?? parsedUri?.path;
-    int? chainId;
     if (address != null) {
-      final at = address.indexOf('@');
-      if (at != -1) {
-        chainId = int.tryParse(address.substring(at + 1));
-        address = address.substring(0, at);
-      }
       if (address.isEmpty) address = null;
     }
     final amount = data?.amount != null
@@ -148,7 +139,6 @@ class _OpenCryptoPayConfirmViewState
     return (
       address: address,
       amount: amount,
-      chainId: chainId,
       scheme: data?.scheme ?? parsedUri?.scheme,
     );
   }
@@ -171,6 +161,35 @@ class _OpenCryptoPayConfirmViewState
   bool _matchesQuotedAmount(Decimal amount) {
     final quotedAmount = Decimal.tryParse(widget.selectedAsset.amount);
     return quotedAmount != null && amount.compareTo(quotedAmount) == 0;
+  }
+
+  SendViewAutoFillData _autoFillData({
+    required String address,
+    required Decimal amount,
+    required DateTime expiresAt,
+    required String recipient,
+    required OpenCryptoPaySubmissionFlow submissionFlow,
+    String? tokenContractAddress,
+  }) {
+    return SendViewAutoFillData(
+      address: address,
+      contactLabel: recipient,
+      amount: amount,
+      note: "OpenCryptoPay: $recipient",
+      openCryptoPayCommit: OpenCryptoPayCommit(
+        callbackUrl: widget.paymentDetails.callback,
+        quoteId: widget.paymentDetails.quote!.id,
+        paymentId: widget.paymentDetails.quote!.paymentId,
+        method: widget.selectedMethod.method,
+        asset: widget.selectedAsset.asset,
+        expiresAt: expiresAt,
+        submissionFlow: submissionFlow,
+        minFee: widget.selectedMethod.minFee,
+        recipientAddress: address,
+        amount: amount,
+        tokenContractAddress: tokenContractAddress,
+      ),
+    );
   }
 
   Future<EthTokenWallet> _loadTokenWallet(EthContract contract) async {
@@ -290,38 +309,18 @@ class _OpenCryptoPayConfirmViewState
       return;
     }
 
-    final autoFillData = SendViewAutoFillData(
+    final autoFillData = _autoFillData(
       address: parsed.address!,
-      contactLabel: recipient,
-      amount: parsed.amount,
-      note: "OpenCryptoPay: $recipient",
-      openCryptoPayCommit: OpenCryptoPayCommit(
-        callbackUrl: widget.paymentDetails.callback,
-        quoteId: widget.paymentDetails.quote!.id,
-        paymentId: widget.paymentDetails.quote!.paymentId,
-        method: widget.selectedMethod.method,
-        asset: widget.selectedAsset.asset,
-        expiresAt: expiresAt,
-        submissionFlow: submissionFlow,
-        minFee: widget.selectedMethod.minFee,
-        recipientAddress: parsed.address!,
-        amount: parsed.amount!,
-      ),
+      amount: parsed.amount!,
+      expiresAt: expiresAt,
+      recipient: recipient,
+      submissionFlow: submissionFlow,
     );
 
     if (!mounted) return;
     if (widget.isDesktop) {
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => DesktopDialog(
-          maxHeight: MediaQuery.sizeOf(context).height - 64,
-          maxWidth: 580,
-          child: DesktopSend(
-            walletId: widget.walletId,
-            autoFillData: autoFillData,
-          ),
-        ),
+      await _showDesktopSendForm(
+        DesktopSend(walletId: widget.walletId, autoFillData: autoFillData),
       );
       return;
     }
@@ -367,39 +366,19 @@ class _OpenCryptoPayConfirmViewState
       return;
     }
 
-    final autoFillData = SendViewAutoFillData(
+    final autoFillData = _autoFillData(
       address: evmUri.recipientAddress!,
-      contactLabel: recipient,
       amount: amount,
-      note: "OpenCryptoPay: $recipient",
-      openCryptoPayCommit: OpenCryptoPayCommit(
-        callbackUrl: widget.paymentDetails.callback,
-        quoteId: widget.paymentDetails.quote!.id,
-        paymentId: widget.paymentDetails.quote!.paymentId,
-        method: widget.selectedMethod.method,
-        asset: widget.selectedAsset.asset,
-        expiresAt: expiresAt,
-        submissionFlow: submissionFlow,
-        minFee: widget.selectedMethod.minFee,
-        recipientAddress: evmUri.recipientAddress!,
-        amount: amount,
-        tokenContractAddress: contract.address,
-      ),
+      expiresAt: expiresAt,
+      recipient: recipient,
+      submissionFlow: submissionFlow,
+      tokenContractAddress: contract.address,
     );
 
     if (!mounted) return;
     if (widget.isDesktop) {
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => DesktopDialog(
-          maxHeight: MediaQuery.sizeOf(context).height - 64,
-          maxWidth: 580,
-          child: DesktopTokenSend(
-            walletId: widget.walletId,
-            autoFillData: autoFillData,
-          ),
-        ),
+      await _showDesktopSendForm(
+        DesktopTokenSend(walletId: widget.walletId, autoFillData: autoFillData),
       );
       return;
     }
@@ -407,6 +386,18 @@ class _OpenCryptoPayConfirmViewState
     await Navigator.of(context).pushNamed(
       TokenSendView.routeName,
       arguments: Tuple4(widget.walletId, widget.coin, contract, autoFillData),
+    );
+  }
+
+  Future<void> _showDesktopSendForm(Widget child) {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => DesktopDialog(
+        maxHeight: MediaQuery.sizeOf(context).height - 64,
+        maxWidth: 580,
+        child: child,
+      ),
     );
   }
 
@@ -486,7 +477,7 @@ class _OpenCryptoPayConfirmBody extends StatelessWidget {
 
     final error = errorMessage;
     if (error != null) {
-      return _OpenCryptoPayConfirmError(message: error, onRetry: onRetry);
+      return OpenCryptoPayErrorView(message: error, onRetry: onRetry);
     }
 
     return SingleChildScrollView(
@@ -506,34 +497,6 @@ class _OpenCryptoPayConfirmBody extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           PrimaryButton(label: "Proceed to Send", onPressed: onProceed),
-        ],
-      ),
-    );
-  }
-}
-
-class _OpenCryptoPayConfirmError extends StatelessWidget {
-  const _OpenCryptoPayConfirmError({
-    required this.message,
-    required this.onRetry,
-  });
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            message,
-            style: STextStyles.itemSubtitle(context),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(label: "Retry", onPressed: onRetry),
         ],
       ),
     );

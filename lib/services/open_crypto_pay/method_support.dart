@@ -6,14 +6,6 @@ import 'models.dart';
 class OpenCryptoPayMethodSupport {
   const OpenCryptoPayMethodSupport._();
 
-  static bool hasSupportedWalletCoin(CryptoCurrency coin) {
-    return coin is Bitcoin ||
-        coin is Ethereum ||
-        coin is Solana ||
-        coin is Cardano ||
-        coin is Firo;
-  }
-
   static OpenCryptoPaySubmissionFlow? submissionFlowFor(String method) {
     switch (method) {
       case 'Solana':

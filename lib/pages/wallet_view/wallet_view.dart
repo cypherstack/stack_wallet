@@ -34,8 +34,6 @@ import '../../services/event_bus/events/global/node_connection_status_changed_ev
 import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
-import '../../services/open_crypto_pay/lnurl_utils.dart';
-import '../../services/open_crypto_pay/method_support.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
@@ -75,7 +73,6 @@ import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/frost_scaffold.dart';
 import '../../widgets/icon_widgets/credit_card_icon.dart';
-import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
@@ -105,7 +102,6 @@ import '../more_view/gift_cards_view.dart';
 import '../more_view/services_view.dart';
 import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
-import '../open_crypto_pay/open_crypto_pay_view.dart';
 import '../ordinals/ordinals_view.dart';
 import '../paynym/paynym_claim_view.dart';
 import '../paynym/paynym_home_view.dart';
@@ -430,51 +426,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
           ),
         );
       }
-    }
-  }
-
-  Future<void> _onOpenCryptoPayPressed(BuildContext context) async {
-    try {
-      if (FocusScope.of(context).hasFocus) {
-        FocusScope.of(context).unfocus();
-        await Future<void>.delayed(const Duration(milliseconds: 75));
-      }
-
-      final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
-
-      if (qrResult.rawContent == null) return;
-
-      if (LnurlUtils.isOpenCryptoPayUrl(qrResult.rawContent!)) {
-        if (mounted) {
-          unawaited(
-            Navigator.of(context).pushNamed(
-              OpenCryptoPayView.routeName,
-              arguments: (
-                qrUrl: qrResult.rawContent!,
-                walletId: walletId,
-                coin: coin,
-              ),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message:
-                  "The scanned QR code is not an Open CryptoPay payment code.",
-              context: context,
-            ),
-          );
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "Failed to scan QR for OpenCryptoPay",
-        error: e,
-        stackTrace: s,
-      );
     }
   }
 
@@ -1429,13 +1380,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             context,
                           ).pushNamed(GiftCardsView.routeName);
                         },
-                      ),
-                    if (!viewOnly &&
-                        OpenCryptoPayMethodSupport.hasSupportedWalletCoin(coin))
-                      WalletNavigationBarItemData(
-                        label: "Pay",
-                        icon: const QrCodeIcon(),
-                        onTap: () => _onOpenCryptoPayPressed(context),
                       ),
                   ],
                 ),

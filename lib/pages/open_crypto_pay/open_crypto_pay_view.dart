@@ -19,11 +19,10 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
-import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'open_crypto_pay_confirm_view.dart';
-import 'open_crypto_pay_desktop_frame.dart';
+import 'open_crypto_pay_widgets.dart';
 
 typedef _OpenCryptoPayOptionSupported =
     bool Function(
@@ -234,7 +233,7 @@ class _OpenCryptoPayBody extends StatelessWidget {
 
     final error = errorMessage;
     if (error != null) {
-      return _OpenCryptoPayError(message: error, onRetry: onRetry);
+      return OpenCryptoPayErrorView(message: error, onRetry: onRetry);
     }
 
     final details = this.details;
@@ -292,31 +291,6 @@ class _OpenCryptoPayBody extends StatelessWidget {
               style: STextStyles.label(context),
             ),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _OpenCryptoPayError extends StatelessWidget {
-  const _OpenCryptoPayError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            message,
-            style: STextStyles.itemSubtitle(context),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(label: "Retry", onPressed: onRetry),
         ],
       ),
     );
