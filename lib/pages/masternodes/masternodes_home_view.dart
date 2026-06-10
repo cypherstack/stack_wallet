@@ -27,6 +27,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/stack_dialog.dart';
 import '../send_view/send_view.dart';
 import 'create_masternode_view.dart';
+import 'masternode_constants.dart';
 import 'sub_widgets/masternodes_list.dart';
 import 'sub_widgets/masternodes_table_desktop.dart';
 
@@ -472,8 +473,8 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
               ? (unshieldAmount ?? kMasterNodeValue)
               : kMasterNodeValue,
           note: fromPrivate
-              ? "Masternode collateral unshield (1000 FIRO to transparent)."
-              : "Masternode collateral prep (1000 FIRO self-send).",
+              ? MasternodeCollateralNotes.unshield
+              : MasternodeCollateralNotes.prep,
         ),
       ),
     );

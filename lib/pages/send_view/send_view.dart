@@ -68,6 +68,8 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../widgets/dialogs/s_dialog.dart';
+import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/epic_txs_method_toggle.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
@@ -82,7 +84,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
-import '../masternodes/masternodes_home_view.dart';
+import '../masternodes/masternode_constants.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -311,30 +313,52 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final selectedAddress = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Choose your address"),
-        content: SizedBox(
-          width: 520,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: addresses.length,
-            itemBuilder: (_, index) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                addresses[index],
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+      builder: (ctx) => SDialog(
+        contentCanScroll: false,
+        padding: EdgeInsets.all(Util.isDesktop ? 32 : 16),
+        child: SizedBox(
+          width: Util.isDesktop ? 520 : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Choose your address",
+                style: Util.isDesktop
+                    ? STextStyles.desktopH3(ctx)
+                    : STextStyles.pageTitleH2(ctx),
               ),
-              onTap: () => Navigator.of(ctx).pop(addresses[index]),
-            ),
+              const SizedBox(height: 16),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: addresses.length,
+                  itemBuilder: (_, index) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      addresses[index],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Util.isDesktop
+                          ? STextStyles.w500_16(ctx)
+                          : STextStyles.w500_14(ctx),
+                    ),
+                    onTap: () => Navigator.of(ctx).pop(addresses[index]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SecondaryButton(
+                buttonHeight: ButtonHeight.l,
+                label: "Cancel",
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text("Cancel"),
-          ),
-        ],
       ),
     );
 
@@ -947,14 +971,13 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     }
 
-    final shouldShowBuildingDialog = mounted && !Util.isDesktop;
-    bool wasCancelled = false;
     try {
-      if (shouldShowBuildingDialog) {
+      bool wasCancelled = false;
+
+      if (mounted) {
         unawaited(
           showDialog<void>(
             context: context,
-            useRootNavigator: false,
             useSafeArea: false,
             barrierDismissible: false,
             builder: (context) {
@@ -966,12 +989,16 @@ class _SendViewState extends ConsumerState<SendView> {
                         BalanceType.private,
                 onCancel: () {
                   wasCancelled = true;
+
+                  Navigator.of(context).pop();
                 },
               );
             },
           ),
         );
       }
+
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
 
@@ -1122,27 +1149,9 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       }
 
-      TxData txData;
-      if (Util.isDesktop && mounted) {
-        Exception? buildEx;
-        final desktopResult = await showLoading<TxData>(
-          whileFuture: txDataFuture,
-          context: context,
-          message: "Generating transaction...",
-          delay: const Duration(milliseconds: 2500),
-          rootNavigator: true,
-          onException: (e) => buildEx = e,
-        );
-        if (buildEx != null) throw buildEx!;
-        if (desktopResult == null || !mounted) return;
-        txData = desktopResult;
-      } else {
-        final time = Future<dynamic>.delayed(
-          const Duration(milliseconds: 2500),
-        );
-        final results = await Future.wait([txDataFuture, time]);
-        txData = results.first as TxData;
-      }
+      final results = await Future.wait([txDataFuture, time]);
+
+      TxData txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {
@@ -1157,10 +1166,8 @@ class _SendViewState extends ConsumerState<SendView> {
           txData = txData.copyWith(noteOnChain: onChainNoteController.text);
         }
 
-        if (shouldShowBuildingDialog) {
-          // pop building dialog
-          Navigator.of(context, rootNavigator: false).pop();
-        }
+        // pop building dialog
+        Navigator.of(context).pop();
 
         unawaited(
           Navigator.of(context).push(
@@ -1186,10 +1193,8 @@ class _SendViewState extends ConsumerState<SendView> {
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
-        if (shouldShowBuildingDialog && !wasCancelled) {
-          // pop building dialog
-          Navigator.of(context, rootNavigator: false).pop();
-        }
+        // pop building dialog
+        Navigator.of(context).pop();
 
         unawaited(
           showDialog<dynamic>(
@@ -1370,10 +1375,9 @@ class _SendViewState extends ConsumerState<SendView> {
     walletId = widget.walletId;
     clipboard = widget.clipboard;
     _isMasternodeCollateralUnshield =
-        (_data?.note.contains("Masternode collateral unshield") ?? false) &&
-        isFiro;
+        MasternodeCollateralNotes.isUnshield(_data?.note) && isFiro;
     _isMasternodeCollateralSelfSend =
-        ((_data?.note.contains("Masternode collateral prep") ?? false) ||
+        (MasternodeCollateralNotes.isPrep(_data?.note) ||
             _isMasternodeCollateralUnshield) &&
         isFiro;
 

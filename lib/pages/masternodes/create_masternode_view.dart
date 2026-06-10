@@ -54,11 +54,7 @@ class _CreateMasternodeDialogState extends ConsumerState<CreateMasternodeView> {
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
-                DesktopDialogCloseButton(
-                  onPressedOverride: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
-                ),
+                const DesktopDialogCloseButton(),
               ],
             ),
             Flexible(

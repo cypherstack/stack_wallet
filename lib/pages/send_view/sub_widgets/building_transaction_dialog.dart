@@ -72,7 +72,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
             buttonHeight: ButtonHeight.l,
             label: "Cancel",
             onPressed: () {
-              Navigator.of(context).pop();
               onCancel.call();
             },
           ),
