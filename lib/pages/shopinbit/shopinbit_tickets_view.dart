@@ -78,7 +78,11 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
           final payable =
               inv.expiresAt != null &&
               inv.paymentLinks.isNotEmpty &&
-              (inv.expiresAt!.isAfter(DateTime.now()) ||
+              // Spec: expired unresolved invoices stay recoverable until
+              // expires_at + 24h.
+              (inv.expiresAt!
+                      .add(const Duration(hours: 24))
+                      .isAfter(DateTime.now()) ||
                   carResearchIsFinalized(inv.status, inv.additional));
           if (payable) {
             resumable ??= [];
