@@ -764,7 +764,13 @@ class ShopInBitClient {
       if (response.code >= 200 && response.code < 300) {
         Logging.instance.t("$_kTag $method $resolved HTTP:${response.code}");
         if (response.body.isEmpty) {
-          return ApiResponse(value: parse({}));
+          // An empty 2xx body would make object parsers fabricate placeholder
+          // objects (e.g. a ticket with id 0); surface it as an error instead.
+          return ApiResponse(
+            exception: ApiException(
+              "Empty response body for $method $resolved",
+            ),
+          );
         }
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         return ApiResponse(value: parse(json), customerKey: customerKey);
