@@ -559,16 +559,16 @@ class _OpenCryptoPaySummaryRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(label, style: STextStyles.label(context)),
-          ),
+          Text(label, style: STextStyles.label(context)),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               value,
               style: STextStyles.itemSubtitle(context),
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
             ),
           ),
         ],
