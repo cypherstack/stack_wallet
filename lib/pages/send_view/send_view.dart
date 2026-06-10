@@ -58,6 +58,7 @@ import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
@@ -917,7 +918,9 @@ class _SendViewState extends ConsumerState<SendView> {
         .enableCoinControl;
 
     if (coin is! Ethereum &&
-            !(wallet is CoinControlInterface && coinControlEnabled) ||
+            !(wallet is CoinControlInterface &&
+                wallet is! SalviumWallet &&
+                coinControlEnabled) ||
         (wallet is CoinControlInterface &&
             coinControlEnabled &&
             selectedUTXOs.isEmpty)) {
@@ -1019,6 +1022,7 @@ class _SendViewState extends ConsumerState<SendView> {
             feeRateType: feeRate,
             utxos:
                 (wallet is CoinControlInterface &&
+                    wallet is! SalviumWallet &&
                     coinControlEnabled &&
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
@@ -1141,6 +1145,7 @@ class _SendViewState extends ConsumerState<SendView> {
             ethEIP1559Fee: ethFee,
             utxos:
                 (wallet is CoinControlInterface &&
+                    wallet is! SalviumWallet &&
                     coinControlEnabled &&
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
@@ -1526,6 +1531,7 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
+        ref.watch(pWallets).getWallet(walletId) is! SalviumWallet &&
         (showPrivateBalance ? balType == BalanceType.public : true);
 
     final isExchangeAddress = ref.watch(pIsExchangeAddress);

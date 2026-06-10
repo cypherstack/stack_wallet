@@ -117,27 +117,9 @@ fi
 
 if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
     if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
-        if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
-            ./download_all.sh
-        elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
-            ./build_all_duo.sh
-        elif [[ "$APP_NAMED_ID" = "campfire" ]]; then
-            ./build_all_campfire.sh
-        else
-            echo "Invalid app id: ${APP_NAMED_ID}"
-            exit 1
-        fi
+        ./download_all.sh "$APP_NAMED_ID"
     else
-        if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
-            ./build_all.sh
-        elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
-            ./build_all_duo.sh
-        elif [[ "$APP_NAMED_ID" = "campfire" ]]; then
-            ./build_all_campfire.sh
-        else
-            echo "Invalid app id: ${APP_NAMED_ID}"
-            exit 1
-        fi
+        ./build_all.sh "$APP_NAMED_ID"
     fi
 fi
 

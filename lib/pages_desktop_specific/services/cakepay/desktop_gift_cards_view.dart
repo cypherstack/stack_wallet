@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
 import '../../../pages/cakepay/cakepay_orders_view.dart';
@@ -8,10 +7,11 @@ import '../../../pages/cakepay/cakepay_vendors_view.dart';
 import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../services/tor_service.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
+import '../../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/tor_subscription.dart';
 
@@ -53,17 +53,9 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SvgPicture.asset(
-                      Assets.svg.creditCard,
-                      width: 48,
-                      height: 48,
-                      colorFilter: ColorFilter.mode(
-                        Theme.of(context).extension<StackColors>()!.textDark,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CreditCardIcon(width: 48, height: 48),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
@@ -106,31 +98,34 @@ class _DesktopGiftCardsViewState extends ConsumerState<DesktopGiftCardsView> {
                     ),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.m,
-                            label: "Browse Gift Cards",
-                            enabled: !_torEnabled,
-                            onPressed: () {
-                              showDialog<void>(
-                                context: context,
-                                builder: (_) => const CakePayVendorsView(),
-                              );
-                            },
-                          ),
+                        PrimaryButton(
+                          width: 220,
+                          buttonHeight: ButtonHeight.m,
+                          label: "Browse Gift Cards",
+                          enabled: !_torEnabled,
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const NestedNavigatorDialog(
+                                initialRoute: CakePayVendorsView.routeName,
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.m,
-                            label: "My Orders",
-                            onPressed: () {
-                              showDialog<void>(
-                                context: context,
-                                builder: (_) => const CakePayOrdersView(),
-                              );
-                            },
-                          ),
+                        SecondaryButton(
+                          width: 200,
+                          buttonHeight: ButtonHeight.m,
+                          label: "My Orders",
+                          enabled: !_torEnabled,
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const NestedNavigatorDialog(
+                                initialRoute: CakePayOrdersView.routeName,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

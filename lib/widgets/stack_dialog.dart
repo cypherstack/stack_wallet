@@ -20,11 +20,14 @@ class StackDialogBase extends StatelessWidget {
     this.child,
     this.padding = const EdgeInsets.all(24),
     this.keyboardPaddingAmount = 0,
+    this.width,
   });
 
   final EdgeInsets padding;
   final Widget? child;
   final double keyboardPaddingAmount;
+
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
@@ -42,17 +45,20 @@ class StackDialogBase extends StatelessWidget {
               : MainAxisAlignment.center,
           children: [
             Flexible(
-              child: SingleChildScrollView(
-                child: Material(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.popupBG,
-                      borderRadius: BorderRadius.circular(20),
+              child: SizedBox(
+                width: width,
+                child: SingleChildScrollView(
+                  child: Material(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.popupBG,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(padding: padding, child: child),
                     ),
-                    child: Padding(padding: padding, child: child),
                   ),
                 ),
               ),
@@ -72,6 +78,7 @@ class StackDialog extends StatelessWidget {
     this.icon,
     required this.title,
     this.message,
+    this.width,
   });
 
   final Widget? leftButton;
@@ -82,9 +89,12 @@ class StackDialog extends StatelessWidget {
   final String title;
   final String? message;
 
+  final double? width;
+
   @override
   Widget build(BuildContext context) {
     return StackDialogBase(
+      width: width,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -119,7 +129,9 @@ class StackDialog extends StatelessWidget {
                 leftButton == null
                     ? const Spacer()
                     : Expanded(child: leftButton!),
-                const SizedBox(width: 8),
+                Util.isDesktop
+                    ? const SizedBox(width: 16)
+                    : const SizedBox(width: 8),
                 rightButton == null
                     ? const Spacer()
                     : Expanded(child: rightButton!),

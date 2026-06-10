@@ -1,15 +1,13 @@
-import '../../db/hive/db.dart';
+import 'package:drift/drift.dart';
+import 'package:mutex/mutex.dart';
+
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../external_api_keys.dart';
 import 'src/client.dart';
-import 'src/models/order.dart';
 
 class CakePayService {
   static final instance = CakePayService._();
   CakePayService._();
-
-  /// Dev-only: override order statuses for local UI testing.
-  /// Keys are order IDs, values are the status to pretend the API returned.
-  static final Map<String, CakePayOrderStatus> devStatusOverrides = {};
 
   CakePayClient? _client;
 
@@ -17,35 +15,66 @@ class CakePayService {
     return _client ??= CakePayClient(apiToken: kCakePayApiToken);
   }
 
-  // Mirrors ShopInBit's local ticket storage pattern but uses lightweight
-  // Hive prefs instead of a full Isar collection, since CakePay orders can
-  // be fetched individually via getOrder() with the seller key.
+  // TODO clean this up some day
+  // simple in memory cache
+  DateTime? _countryNamesUpdated;
+  List<String> _countryNames = [];
+  final _countryNamesMutex = Mutex();
+  Future<List<String>> getCountryNames({bool refreshCache = false}) async {
+    return _countryNamesMutex.protect(() async {
+      final isFresh =
+          _countryNamesUpdated != null &&
+          _countryNamesUpdated!
+              .add(const Duration(hours: 12))
+              .isAfter(DateTime.now());
 
-  static const _kCakePayOrderIds = "cakePayOrderIds";
+      if (!refreshCache && isFresh && _countryNames.isNotEmpty) {
+        return _countryNames;
+      }
 
-  /// Persist a newly-created order ID so the orders list view can find it
-  /// later without requiring Knox user auth.
-  void addOrderId(String orderId) {
-    final ids = getOrderIds();
-    if (!ids.contains(orderId)) {
-      ids.insert(0, orderId);
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: _kCakePayOrderIds,
-        value: ids,
-      );
-    }
+      final response = await client.getAllCountries();
+
+      if (response.hasError || response.value == null) {
+        throw response.exception ?? Exception("Failed to fetch countries");
+      }
+
+      _countryNames =
+          response.value!
+              .where((e) => e.available)
+              .map((e) => e.name)
+              .toSet()
+              .toList()
+            ..sort();
+
+      _countryNamesUpdated = DateTime.now();
+
+      return _countryNames;
+    });
+  }
+
+  Future<void> addOrderId(String orderId) async {
+    final db = SharedDrift.get();
+
+    await db.transaction(() async {
+      await db
+          .into(db.cakepayOrders)
+          .insert(
+            CakepayOrdersCompanion.insert(orderId: orderId),
+            mode: .insertOrIgnore,
+          );
+    });
   }
 
   /// Return locally-tracked order IDs (most recent first).
-  List<String> getOrderIds() {
-    final raw = DB.instance.get<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: _kCakePayOrderIds,
-    );
-    if (raw is List) {
-      return raw.cast<String>().toList();
-    }
-    return [];
+  Future<List<String>> getOrderIds() async {
+    final db = SharedDrift.get();
+
+    final rows =
+        await (db.select(db.cakepayOrders)..orderBy([
+              (t) => OrderingTerm(expression: t.rowId, mode: OrderingMode.desc),
+            ]))
+            .get();
+
+    return rows.map((row) => row.orderId).toList();
   }
 }

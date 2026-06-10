@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
-import '../../services/cakepay/src/models/vendor.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
@@ -15,8 +14,11 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/credit_card_icon.dart';
+import '../../widgets/infinite_scroll_list_view.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../widgets/rounded_white_container.dart';
+import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_text_field.dart';
 import 'cakepay_card_detail_view.dart';
 
@@ -30,20 +32,27 @@ class CakePayVendorsView extends StatefulWidget {
 }
 
 class _CakePayVendorsViewState extends State<CakePayVendorsView> {
-  List<CakePayVendor> _vendors = [];
   List<String> _countryNames = [];
   String? _selectedCountry;
+  String? _searchQuery;
   bool _loading = true;
-  String? _error;
 
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   final _countrySearchController = TextEditingController();
 
+  final _listController = InfiniteScrollListController();
+
   @override
   void initState() {
     super.initState();
-    _loadVendors();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        _countryNames = await CakePayService.instance.getCountryNames();
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+    });
   }
 
   @override
@@ -54,66 +63,38 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
     super.dispose();
   }
 
-  List<CakePayCard> _availableCards() =>
-      _vendors.expand((v) => v.cards.where((c) => c.available)).toList();
-
-  /// Derive a country list from the loaded vendors so we don't need the
-  /// broken /marketplace/countries/ endpoint.
-  void _deriveCountries() {
-    final seen = <String>{};
-    _countryNames =
-        _vendors
-            .map((v) => v.country)
-            .whereType<String>()
-            .where((c) => c.isNotEmpty && seen.add(c))
-            .toList()
-          ..sort();
-  }
-
-  Future<void> _loadVendors() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    final resp = await CakePayService.instance.client.getVendors(
+  Future<({List<CakePayCard> cards, int? nextPage})> _fetchCards(
+    int page,
+  ) async {
+    final response = await CakePayService.instance.client.getVendors(
+      page: page,
+      pageSize: 50,
       country: _selectedCountry,
-      search: _searchController.text.trim().isNotEmpty
-          ? _searchController.text.trim()
-          : null,
+      search: _searchQuery,
     );
 
-    if (!mounted) return;
+    if (response.hasError || response.value == null) {
+      throw response.exception ??
+          Exception("Unknown exception with value is null????");
+    }
 
-    setState(() {
-      _loading = false;
-      if (!resp.hasError && resp.value != null) {
-        _vendors = resp.value!;
-        _deriveCountries();
-      } else {
-        _error = resp.exception?.message ?? "Failed to load gift cards";
-      }
-    });
+    return (
+      cards: response.value!.vendors
+          .expand((e) => e.cards.where((e) => e.available))
+          .toList(),
+      nextPage: response.value!.nextPage,
+    );
   }
 
-  void _onCardTapped(CakePayCard card) {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-      showDialog<void>(
-        context: context,
-        builder: (_) => CakePayCardDetailView(card: card),
-      );
-    } else {
-      Navigator.of(
-        context,
-      ).pushNamed(CakePayCardDetailView.routeName, arguments: card);
-    }
+  Future<void> _onCardTapped(CakePayCard card) async {
+    await Navigator.of(
+      context,
+    ).pushNamed(CakePayCardDetailView.routeName, arguments: card);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    final cards = _availableCards();
 
     return ConditionalParent(
       condition: isDesktop,
@@ -138,10 +119,7 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
             ),
             Flexible(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 8,
-                ),
+                padding: const .only(left: 32, right: 32, top: 8),
                 child: child,
               ),
             ),
@@ -165,7 +143,10 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
               ),
             ),
             body: SafeArea(
-              child: Padding(padding: const EdgeInsets.all(16), child: child),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                child: child,
+              ),
             ),
           ),
         ),
@@ -174,7 +155,10 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
             _SearchField(
               controller: _searchController,
               focusNode: _searchFocusNode,
-              onSubmitted: (_) => _loadVendors(),
+              onSubmitted: (value) {
+                setState(() => _searchQuery = value);
+                _listController.refresh();
+              },
             ),
             if (_countryNames.isNotEmpty) ...[
               SizedBox(height: isDesktop ? 12 : 12),
@@ -184,32 +168,79 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                 searchController: _countrySearchController,
                 onChanged: (value) {
                   setState(() => _selectedCountry = value);
-                  _loadVendors();
+                  _listController.refresh();
                 },
               ),
             ],
             SizedBox(height: isDesktop ? 16 : 12),
             Expanded(
               child: _loading
-                  ? const LoadingIndicator(width: 48, height: 48)
-                  : cards.isEmpty
-                  ? Center(
-                      child: Text(
-                        _error ?? "No gift cards found",
-                        style: isDesktop
-                            ? STextStyles.desktopTextSmall(context)
-                            : STextStyles.itemSubtitle(context),
-                      ),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: isDesktop,
-                      primary: isDesktop ? false : null,
-                      itemCount: cards.length,
-                      separatorBuilder: (_, __) =>
+                  ? const LoadingIndicator(width: 64, height: 64)
+                  : InfiniteScrollListView<CakePayCard, int>(
+                      controller: _listController,
+                      prefetchThreshold: 300,
+                      padding: .only(bottom: isDesktop ? 32 : 16),
+                      firstPageKey: 1,
+                      separatorBuilder: (_, _) =>
                           SizedBox(height: isDesktop ? 16 : 12),
-                      itemBuilder: (_, index) => _CardTile(
-                        card: cards[index],
-                        onTap: () => _onCardTapped(cards[index]),
+                      fetchPage: (pageKey) async {
+                        final result = await _fetchCards(pageKey);
+                        return InfiniteScrollPage(
+                          items: result.cards,
+                          nextPageKey: result.nextPage,
+                        );
+                      },
+                      itemBuilder: (context, item, index) {
+                        return _CardTile(
+                          card: item,
+                          onTap: () => _onCardTapped(item),
+                        );
+                      },
+                      firstPageProgressBuilder: (_) =>
+                          const LoadingIndicator(width: 64, height: 64),
+                      newPageProgressBuilder: (_) => const Center(
+                        child: Padding(
+                          padding: .all(16),
+                          child: LoadingIndicator(width: 48, height: 48),
+                        ),
+                      ),
+                      emptyBuilder: (_) => Center(
+                        child: Padding(
+                          padding: const .all(24),
+                          child: Text(
+                            "No items",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textSubtitle1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      newPageErrorBuilder: (context, error, retry) => Center(
+                        child: Padding(
+                          padding: const .all(16),
+                          child: Column(
+                            mainAxisSize: .min,
+                            children: [
+                              Text(
+                                error.toString(),
+                                style: STextStyles.w500_14(context).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SecondaryButton(
+                                label: "Retry",
+                                buttonHeight: isDesktop ? .s : .l,
+                                width: 100,
+                                onPressed: retry,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
             ),
@@ -256,9 +287,16 @@ class _SearchField extends StatelessWidget {
               focusNode,
               context,
             ).copyWith(
-              prefixIcon: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                child: Icon(Icons.search, size: 20),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 16,
+                ),
+                child: SvgPicture.asset(
+                  Assets.svg.search,
+                  width: 16,
+                  height: 16,
+                ),
               ),
             ),
         onSubmitted: onSubmitted,
@@ -398,56 +436,67 @@ class _CardTile extends StatelessWidget {
     final isDesktop = Util.isDesktop;
     final colors = Theme.of(context).extension<StackColors>()!;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: RoundedWhiteContainer(
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: card.cardImageUrl != null
-                  ? Image.network(
-                      card.cardImageUrl!,
-                      width: isDesktop ? 60 : 48,
+    return RoundedContainer(
+      color: colors.popupBG,
+      borderColor: isDesktop ? colors.textFieldDefaultBG : null,
+      onPressed: onTap,
+      padding: isDesktop ? const .all(16) : const .all(12),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: card.cardImageUrl != null
+                ? Image.network(
+                    card.cardImageUrl!,
+                    width: isDesktop ? 60 : 48,
+                    height: isDesktop ? 40 : 32,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => CreditCardIcon(
+                      width: isDesktop ? 40 : 32,
                       height: isDesktop ? 40 : 32,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          Icon(Icons.card_giftcard, size: isDesktop ? 40 : 32),
-                    )
-                  : Icon(Icons.card_giftcard, size: isDesktop ? 40 : 32),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    card.name,
-                    style: isDesktop
-                        ? STextStyles.desktopTextSmall(context)
-                        : STextStyles.titleBold12(context),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    ),
+                  )
+                : CreditCardIcon(
+                    width: isDesktop ? 40 : 32,
+                    height: isDesktop ? 40 : 32,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    [
-                      if (card.denominationRange.isNotEmpty)
-                        card.denominationRange,
-                      if (card.currencyCode != null) card.currencyCode!,
-                    ].join(' '),
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraExtraSmall(context)
-                        : STextStyles.itemSubtitle12(
-                            context,
-                          ).copyWith(color: colors.textSubtitle1),
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  card.name,
+                  style: isDesktop
+                      ? STextStyles.desktopTextSmall(context)
+                      : STextStyles.titleBold12(context),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  [
+                    if (card.denominationRange.isNotEmpty)
+                      card.denominationRange,
+                    if (card.currencyCode != null) card.currencyCode!,
+                  ].join(' '),
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.itemSubtitle12(
+                          context,
+                        ).copyWith(color: colors.textSubtitle1),
+                ),
+              ],
             ),
-            Icon(Icons.chevron_right, color: colors.textSubtitle1),
-          ],
-        ),
+          ),
+          SvgPicture.asset(
+            Assets.svg.chevronRight,
+            width: 20,
+            height: 20,
+            colorFilter: ColorFilter.mode(colors.textSubtitle1, .srcIn),
+          ),
+        ],
       ),
     );
   }

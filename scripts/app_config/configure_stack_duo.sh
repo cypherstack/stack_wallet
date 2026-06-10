@@ -14,14 +14,11 @@ NEW_PUBSPEC_NAME="stackduo"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
 # String replacements.
-if [[ "$(uname)" == 'Darwin' ]]; then
-  # macos specific sed
-  sed -i '' "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-else
-  sed -i "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-fi
+sed -i.bak \
+  -e "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" \
+  -e "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" \
+  "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \
@@ -65,6 +62,7 @@ const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
   AppFeature.tor,
+  AppFeature.cakePay,
   AppFeature.swap
 };
 

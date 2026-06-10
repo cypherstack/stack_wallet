@@ -44,144 +44,78 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = ref.watch(homeViewPageIndexStateProvider.state).state;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(
-          child: TextButton(
-            style: selectedIndex == 0
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    )
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    ),
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              if (selectedIndex != 0) {
-                ref.read(homeViewPageIndexStateProvider.state).state = 0;
-              }
-            },
-            child: Text(
-              "Wallets",
-              style: STextStyles.button(context).copyWith(
-                fontSize: 14,
-                color: selectedIndex == 0
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextSecondary,
-              ),
-            ),
+        const Expanded(
+          child: _HomeViewTopMenuButton(index: 0, label: "Wallets"),
+        ),
+
+        if (AppConfig.hasFeature(AppFeature.swap)) const SizedBox(width: 8),
+        if (AppConfig.hasFeature(AppFeature.swap))
+          const Expanded(
+            child: _HomeViewTopMenuButton(index: 1, label: "Swap"),
+          ),
+
+        if (AppConfig.hasFeature(AppFeature.buy)) const SizedBox(width: 8),
+        if (AppConfig.hasFeature(AppFeature.buy))
+          const Expanded(child: _HomeViewTopMenuButton(index: 2, label: "Buy")),
+      ],
+    );
+  }
+}
+
+class _HomeViewTopMenuButton extends ConsumerWidget {
+  const _HomeViewTopMenuButton({
+    super.key,
+    required this.index,
+    required this.label,
+  });
+
+  final int index;
+  final String label;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIndex = ref.watch(homeViewPageIndexStateProvider);
+    return TextButton(
+      style: selectedIndex == index
+          ? Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(context)!
+                .copyWith(
+                  minimumSize: MaterialStateProperty.all<Size>(
+                    const Size(46, 36),
+                  ),
+                )
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonStyle(context)!
+                .copyWith(
+                  minimumSize: MaterialStateProperty.all<Size>(
+                    const Size(46, 36),
+                  ),
+                ),
+      onPressed: () async {
+        FocusScope.of(context).unfocus();
+        if (selectedIndex != index) {
+          ref.read(homeViewPageIndexStateProvider.state).state = index;
+        }
+      },
+      child: Padding(
+        padding: const .symmetric(horizontal: 8),
+        child: Text(
+          label,
+          style: STextStyles.button(context).copyWith(
+            fontSize: 14,
+            color: selectedIndex == index
+                ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+                : Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
           ),
         ),
-        if (AppConfig.hasFeature(AppFeature.swap))
-          const SizedBox(
-            width: 8,
-          ),
-        if (AppConfig.hasFeature(AppFeature.swap))
-          Expanded(
-            child: TextButton(
-              style: selectedIndex == 1
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      )
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      ),
-              onPressed: () async {
-                FocusScope.of(context).unfocus();
-                if (selectedIndex != 1) {
-                  ref.read(homeViewPageIndexStateProvider.state).state = 1;
-                }
-                // DateTime now = DateTime.now();
-                // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-                //   print("loading?");
-                // await ExchangeDataLoadingService().loadAll(ref);
-                // }
-                // if (now.difference(_lastRefreshed) > _refreshInterval) {
-                //   await ExchangeDataLoadingService().loadAll(ref);
-                // }
-              },
-              child: Text(
-                "Swap",
-                style: STextStyles.button(context).copyWith(
-                  fontSize: 14,
-                  color: selectedIndex == 1
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextPrimary
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
-                ),
-              ),
-            ),
-          ),
-        if (AppConfig.hasFeature(AppFeature.buy))
-          const SizedBox(
-            width: 8,
-          ),
-        if (AppConfig.hasFeature(AppFeature.buy))
-          Expanded(
-            child: TextButton(
-              style: selectedIndex == 2
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      )
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      ),
-              onPressed: () async {
-                FocusScope.of(context).unfocus();
-                if (selectedIndex != 2) {
-                  ref.read(homeViewPageIndexStateProvider.state).state = 2;
-                }
-                // await BuyDataLoadingService().loadAll(ref);
-              },
-              child: Text(
-                "Buy",
-                style: STextStyles.button(context).copyWith(
-                  fontSize: 14,
-                  color: selectedIndex == 2
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextPrimary
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
-                ),
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

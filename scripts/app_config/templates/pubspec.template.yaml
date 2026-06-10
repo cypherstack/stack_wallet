@@ -76,7 +76,7 @@ dependencies:
 
 # %%ENABLE_SAL%%
 #  cs_salvium: ^2.0.0
-#  cs_salvium_flutter_libs: ^2.0.1
+#  cs_salvium_flutter_libs: ^3.0.1
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
@@ -218,7 +218,7 @@ dependencies:
   meta: ^1.9.1
   coinlib_flutter:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib_flutter
       ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
   electrum_adapter:
@@ -316,7 +316,7 @@ dependency_overrides:
   # coinlib_flutter requires this
   coinlib:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib
       ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
 
