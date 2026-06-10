@@ -35,6 +35,7 @@ import '../../services/event_bus/events/global/wallet_sync_status_changed_event.
 import '../../services/event_bus/global_event_bus.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../services/open_crypto_pay/lnurl_utils.dart';
+import '../../services/open_crypto_pay/method_support.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
@@ -1426,7 +1427,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         ).pushNamed(GiftCardsView.routeName);
                       },
                     ),
-                    if (!viewOnly)
+                    if (!viewOnly &&
+                        OpenCryptoPayMethodSupport.hasSupportedWalletCoin(coin))
                       WalletNavigationBarItemData(
                         label: "Pay",
                         icon: const QrCodeIcon(),

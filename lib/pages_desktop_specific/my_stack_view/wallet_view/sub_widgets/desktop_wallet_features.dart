@@ -34,6 +34,7 @@ import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/wallet/my_paynym_account_state_provider.dart';
 import '../../../../services/open_crypto_pay/lnurl_utils.dart';
+import '../../../../services/open_crypto_pay/method_support.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -550,7 +551,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (showExchange && AppConfig.hasFeature(AppFeature.buy))
         (WalletFeature.buy, Assets.svg.swap, _onBuyPressed),
 
-      if (!isViewOnly)
+      if (!isViewOnly &&
+          OpenCryptoPayMethodSupport.hasSupportedWalletCoin(coin))
         (
           WalletFeature.openCryptoPay,
           Assets.svg.qrcode,

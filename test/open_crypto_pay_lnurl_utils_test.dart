@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/services/open_crypto_pay/lnurl_utils.dart';
 
 void main() {
-  test("detects raw LNURL payloads", () {
-    expect(LnurlUtils.extractLnurl("LNURL1TEST"), "LNURL1TEST");
-    expect(LnurlUtils.isOpenCryptoPayUrl("lnurl1test"), true);
+  test("ignores raw LNURL payloads", () {
+    expect(LnurlUtils.extractLnurl("LNURL1TEST"), isNull);
+    expect(LnurlUtils.isOpenCryptoPayUrl("lnurl1test"), false);
   });
 
   test("detects LNURL in lightning query parameter", () {
