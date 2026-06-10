@@ -22,11 +22,11 @@ class PaymentInfo {
   factory PaymentInfo.fromJson(Map<String, dynamic> json) {
     final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
     return PaymentInfo(
-      status: (json['status'] ?? '') as String,
-      customerPrice: (json['customer_price'] ?? '') as String,
-      partnerPrice: (json['partner_price'] ?? '') as String,
+      status: json['status'] as String,
+      customerPrice: json['customer_price'] as String,
+      partnerPrice: json['partner_price'] as String,
       vatRate: int.tryParse(json['vat_rate'].toString()),
-      currency: (json['currency'] ?? 'EUR') as String,
+      currency: json['currency'] as String,
       rateLockedUntil: DateTime.tryParse(
         json['rate_locked_until']?.toString() ?? '',
       ),

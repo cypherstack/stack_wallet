@@ -120,7 +120,7 @@ class ShopInBitClient {
           id: json['ticket_id'] is int
               ? json['ticket_id'] as int
               : int.parse(json['ticket_id'].toString()),
-          number: json['ticket_number'].toString(),
+          number: json['ticket_number'] as String,
         );
       },
       customerKey: externalCustomerKey,

@@ -47,11 +47,11 @@ class CarResearchCurrentInvoice {
     final createdRaw = json['created_at'] as String?;
     return CarResearchCurrentInvoice(
       invoiceId: json['invoice_id'] as String,
-      status: json['status'] as String? ?? '',
+      status: json['status'] as String,
       additional: json['additional'] as String?,
       expiresAt: expiresRaw == null ? null : DateTime.tryParse(expiresRaw),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
-      hasRequestPayload: json['has_request_payload'] as bool? ?? false,
+      hasRequestPayload: json['has_request_payload'] as bool,
       createdAt: createdRaw == null ? null : DateTime.tryParse(createdRaw),
     );
   }
@@ -145,9 +145,9 @@ class CarResearchInvoiceStatus {
     }
 
     return CarResearchInvoiceStatus(
-      status: json['status']?.toString() ?? '',
+      status: json['status'] as String,
       additional: json['additional']?.toString(),
-      finalized: json['finalized'] == true,
+      finalized: json['finalized'] as bool,
       receiptTicketId: toIntOrNull(json['receipt_ticket_id']),
       receiptTicketNumber: json['receipt_ticket_number']?.toString(),
       realTicketId: toIntOrNull(json['real_ticket_id']),
