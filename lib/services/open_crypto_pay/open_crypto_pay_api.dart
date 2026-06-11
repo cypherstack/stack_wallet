@@ -44,7 +44,7 @@ class OpenCryptoPayApi {
   }) async {
     final lnurl = LnurlUtils.extractLnurl(qrUrl);
     if (lnurl == null) {
-      throw Exception('No lightning parameter found in URL');
+      throw Exception('No LNURL payload found');
     }
 
     final apiUrl = Uri.parse(LnurlUtils.decodeLnurl(lnurl));
@@ -132,9 +132,7 @@ class OpenCryptoPayApi {
     required OpenCryptoPayCommit commit,
     required String txId,
   }) async {
-    if (commit.submissionFlow !=
-            OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast &&
-        commit.method != 'Firo') {
+    if (!commit.canCommitTxId) {
       throw UnsupportedError(
         'OpenCryptoPay method ${commit.method} cannot be committed with txid',
       );
@@ -149,7 +147,7 @@ class OpenCryptoPayApi {
     required OpenCryptoPayCommit commit,
     required String hex,
   }) async {
-    if (commit.submissionFlow != OpenCryptoPaySubmissionFlow.rawHexToProvider) {
+    if (!commit.canCommitRawHex) {
       throw UnsupportedError(
         'OpenCryptoPay method ${commit.method} cannot be committed with hex',
       );

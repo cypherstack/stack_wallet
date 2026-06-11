@@ -18,6 +18,8 @@ class OpenCryptoPayMethodSupport {
       case 'Ethereum':
       case 'Bitcoin':
       case 'Firo':
+        // Firo starts here for transparent/provider-broadcast payments; Spark
+        // or oversized raw transactions fall back to txid at confirmation.
         return OpenCryptoPaySubmissionFlow.rawHexToProvider;
       case 'Lightning':
       case 'BinancePay':

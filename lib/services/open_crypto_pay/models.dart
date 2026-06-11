@@ -274,4 +274,11 @@ class OpenCryptoPayCommit {
   });
 
   bool get isExpired => expiresAt.isBefore(DateTime.now());
+
+  bool get canCommitRawHex =>
+      submissionFlow == OpenCryptoPaySubmissionFlow.rawHexToProvider;
+
+  bool get canCommitTxId =>
+      submissionFlow == OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast ||
+      method == 'Firo';
 }
