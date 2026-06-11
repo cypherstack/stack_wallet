@@ -1783,6 +1783,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
+                  _setOpReturnData(null);
                   await _checkSparkNameAndOrSetAddress(
                     newValue,
                     setController: false,
@@ -1896,6 +1897,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                       );
 
                                   if (entry != null) {
+                                    _setOpReturnData(null);
                                     sendToController.text =
                                         entry.other ?? entry.label;
 

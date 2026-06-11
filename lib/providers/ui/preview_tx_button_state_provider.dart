@@ -52,6 +52,11 @@ final pIsSlatepack = Provider.family<bool, String>((ref, walletId) {
 final pPreviewTxButtonEnabled = Provider.autoDispose.family<bool, CryptoCurrency>(
   (ref, coin) {
     final amount = ref.watch(pSendAmount) ?? Amount.zero;
+    final opReturnData = ref.watch(pOpReturnData);
+
+    if (coin is! Firo && opReturnData != null) {
+      return false;
+    }
 
     // For MWC slatepack transactions, address validation is not required.
     if (coin is Mimblewimblecoin) {
@@ -76,7 +81,7 @@ final pPreviewTxButtonEnabled = Provider.autoDispose.family<bool, CryptoCurrency
           return (ref.watch(pValidSendToAddress) ||
                   ref.watch(pValidSparkSendToAddress)) &&
               !ref.watch(pIsExchangeAddress) &&
-              ref.watch(pOpReturnData) == null &&
+              opReturnData == null &&
               amount > Amount.zero;
 
         case BalanceType.public:

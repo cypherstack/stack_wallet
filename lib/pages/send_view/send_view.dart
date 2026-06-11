@@ -257,6 +257,7 @@ class _SendViewState extends ConsumerState<SendView> {
             paymentData.coin?.uriScheme == coin.uriScheme) {
           _applyUri(paymentData);
         } else {
+          _setOpReturnData(null);
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
@@ -270,6 +271,7 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         }
       } catch (e) {
+        _setOpReturnData(null);
         // strip http:// and https:// if content contains @
         if (coin is Epiccash) {
           content = AddressUtils().formatEpicCashAddress(content);
@@ -323,6 +325,7 @@ class _SendViewState extends ConsumerState<SendView> {
           paymentData.coin?.uriScheme == coin.uriScheme) {
         _applyUri(paymentData);
       } else {
+        _setOpReturnData(null);
         _address = qrResult.rawContent!.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -1281,6 +1284,7 @@ class _SendViewState extends ConsumerState<SendView> {
       if (parsed != null) {
         _applyUri(parsed);
       } else {
+        _setOpReturnData(null);
         sendToController.text = content;
         _address = content;
 
@@ -1812,6 +1816,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         );
                                       }
                                     } else {
+                                      _setOpReturnData(null);
                                       await _checkSparkNameAndOrSetAddress(
                                         newValue,
                                         setController: false,
@@ -1861,6 +1866,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                   .text =
                                                               "";
                                                           _address = "";
+                                                          _setOpReturnData(
+                                                            null,
+                                                          );
                                                           _setValidAddressProviders(
                                                             _address,
                                                           );
