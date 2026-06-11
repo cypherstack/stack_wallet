@@ -3,9 +3,8 @@ import 'api_exception.dart';
 class ApiResponse<T> {
   final T? value;
   final ApiException? exception;
-  final String? customerKey;
 
-  ApiResponse({this.value, this.exception, this.customerKey});
+  ApiResponse({this.value, this.exception});
 
   bool get hasError => exception != null;
 

@@ -773,7 +773,7 @@ class ShopInBitClient {
           );
         }
         final json = jsonDecode(response.body) as Map<String, dynamic>;
-        return ApiResponse(value: parse(json), customerKey: customerKey);
+        return ApiResponse(value: parse(json));
       } else {
         Logging.instance.w(
           "$_kTag $method $resolved HTTP:${response.code} "
