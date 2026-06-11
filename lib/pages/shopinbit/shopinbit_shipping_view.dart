@@ -237,7 +237,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
 
     if (!mounted) return;
 
-    if (paymentInfo == null || paymentInfo.paymentLinks.isEmpty) {
+    // no_payment_required legitimately has empty payment_links (voucher/credit
+    // covers it): open the payment view, which shows a "covered" state.
+    if (paymentInfo == null ||
+        (paymentInfo.paymentLinks.isEmpty &&
+            paymentInfo.status != 'no_payment_required')) {
       // No live invoice; don't open a payment view with empty addresses.
       await _showPaymentLoadError(
         "We couldn't load the payment details for this order. "

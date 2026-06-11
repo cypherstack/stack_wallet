@@ -76,6 +76,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   bool get _isExpiredOrInvalid => _status == 'expired' || _status == 'invalid';
 
+  // Voucher/credit fully covers the amount: no wallet options, nothing to pay.
+  bool get _isNoPaymentRequired => _status == 'no_payment_required';
+
   bool get _isTerminal => const {
     'paid',
     'paid_over',
@@ -83,7 +86,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     'payment_processing',
   }.contains(_status);
 
-  bool get _payNowEnabled => !_isExpiredOrInvalid && !_isTerminal;
+  bool get _payNowEnabled =>
+      !_isExpiredOrInvalid && !_isTerminal && !_isNoPaymentRequired;
 
   String? _customerKeyCache;
 
@@ -673,9 +677,48 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
             onPressed: _canReturnToRequest ? _backToRequest : _goToMyRequests,
           ),
         ],
+        if (_isNoPaymentRequired) ...[
+          SizedBox(height: isDesktop ? 16 : 8),
+          RoundedWhiteContainer(
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.checkCircle,
+                  width: 20,
+                  height: 20,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.accentColorGreen,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "No payment required. Your order is fully covered.",
+                    style:
+                        (isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  )
+                                : STextStyles.itemSubtitle12(context))
+                            .copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorGreen,
+                            ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          PrimaryButton(
+            label: _canReturnToRequest ? "Back to Request" : "View My Requests",
+            onPressed: _canReturnToRequest ? _backToRequest : _goToMyRequests,
+          ),
+        ],
         SizedBox(height: isDesktop ? 24 : 16),
         // Coin list (replaces tab selector + QR + address + global button)
-        if (!_isExpiredOrInvalid) ...coinRows,
+        if (!_isExpiredOrInvalid && !_isNoPaymentRequired) ...coinRows,
       ],
     );
 
