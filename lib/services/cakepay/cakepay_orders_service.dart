@@ -87,7 +87,7 @@ class CakePayOrdersService extends ChangeNotifier {
           error: e,
           stackTrace: s,
         );
-        completer.completeError(e, s);
+        completer.complete();
       } finally {
         _refreshAllCompleter = null;
         notifyListeners();

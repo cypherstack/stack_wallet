@@ -31,7 +31,7 @@ class _CakePayOrdersViewState extends ConsumerState<CakePayOrdersView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(pCakePayOrdersService).refreshAll().ignore();
+      ref.read(pCakePayOrdersService).refreshAll();
     });
   }
 
