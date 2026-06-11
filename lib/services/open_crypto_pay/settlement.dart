@@ -34,15 +34,28 @@ class OpenCryptoPaySettlement {
   final bool isTokenTx;
   final EthTokenWallet? tokenWallet;
 
-  bool get shouldCommitTxId {
-    if (commit.submissionFlow ==
+  bool get shouldCommitTxId => shouldCommitTxIdFor(
+    method: commit.method,
+    submissionFlow: commit.submissionFlow,
+    cryptoCurrency: wallet.cryptoCurrency,
+    hasSparkInputs: txData.usedSparkCoins?.isNotEmpty == true,
+    rawHexLength: txData.raw?.length ?? 0,
+  );
+
+  static bool shouldCommitTxIdFor({
+    required String method,
+    required OpenCryptoPaySubmissionFlow submissionFlow,
+    required CryptoCurrency cryptoCurrency,
+    required bool hasSparkInputs,
+    required int rawHexLength,
+  }) {
+    if (submissionFlow ==
         OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
       return true;
     }
-    return commit.method == 'Firo' &&
-        wallet.cryptoCurrency is Firo &&
-        (txData.usedSparkCoins?.isNotEmpty == true ||
-            (txData.raw?.length ?? 0) > maxRawHexQueryLength);
+    return method == 'Firo' &&
+        cryptoCurrency is Firo &&
+        (hasSparkInputs || rawHexLength > maxRawHexQueryLength);
   }
 
   bool get shouldSubmitRawHex => !shouldCommitTxId && commit.canCommitRawHex;
@@ -149,18 +162,31 @@ class OpenCryptoPaySettlement {
   }
 
   String? _validateTransaction() {
-    final recipients = _recipients(txData);
+    return validateTransaction(
+      cryptoCurrency: wallet.cryptoCurrency,
+      recipients: _recipients(txData),
+      recipientAddress: commit.recipientAddress,
+      amount: commit.amount,
+    );
+  }
+
+  static String? validateTransaction({
+    required CryptoCurrency cryptoCurrency,
+    required List<({String address, Amount amount})> recipients,
+    required String recipientAddress,
+    required Decimal amount,
+  }) {
     if (recipients.length != 1) {
       return "Open CryptoPay requires exactly one recipient";
     }
 
     final actual = recipients.single;
-    if (_normalizeAddress(actual.address) !=
-        _normalizeAddress(commit.recipientAddress)) {
+    if (_normalizeAddress(cryptoCurrency, actual.address) !=
+        _normalizeAddress(cryptoCurrency, recipientAddress)) {
       return "Open CryptoPay recipient changed. Please scan again.";
     }
 
-    if (actual.amount.decimal != commit.amount) {
+    if (actual.amount.decimal != amount) {
       return "Open CryptoPay amount changed. Please scan again.";
     }
 
@@ -193,40 +219,51 @@ class OpenCryptoPaySettlement {
     return null;
   }
 
-  String? _validateMinFee() {
-    if (commit.minFee <= Decimal.zero) return null;
+  String? _validateMinFee() => validateMinFee(
+    cryptoCurrency: wallet.cryptoCurrency,
+    minFee: commit.minFee,
+    gasPrice: txData.web3dartTransaction?.maxFeePerGas?.getInWei,
+    fee: txData.fee,
+    vSize: txData.vSize,
+  );
 
-    if (wallet.cryptoCurrency is Ethereum) {
-      final gasPrice = txData.web3dartTransaction?.maxFeePerGas?.getInWei;
+  static String? validateMinFee({
+    required CryptoCurrency cryptoCurrency,
+    required Decimal minFee,
+    BigInt? gasPrice,
+    Amount? fee,
+    int? vSize,
+  }) {
+    if (minFee <= Decimal.zero) return null;
+
+    if (cryptoCurrency is Ethereum) {
       if (gasPrice == null) {
         return "Could not verify Open CryptoPay minimum gas price";
       }
-      if (gasPrice < _ceilDecimalToBigInt(commit.minFee)) {
+      if (gasPrice < _ceilDecimalToBigInt(minFee)) {
         return "Open CryptoPay requires at least "
-            "${commit.minFee} wei gas price";
+            "$minFee wei gas price";
       }
       return null;
     }
 
-    if (wallet.cryptoCurrency is Bitcoin || wallet.cryptoCurrency is Firo) {
-      final fee = txData.fee;
-      final vSize = txData.vSize;
+    if (cryptoCurrency is Bitcoin || cryptoCurrency is Firo) {
       if (fee == null || vSize == null || vSize <= 0) {
         return "Could not verify Open CryptoPay minimum fee";
       }
       final minTotalFee = _ceilDecimalToBigInt(
-        commit.minFee * Decimal.fromInt(vSize),
+        minFee * Decimal.fromInt(vSize),
       );
       if (fee.raw < minTotalFee) {
         return "Open CryptoPay requires at least "
-            "${commit.minFee} sat/vB fee";
+            "$minFee sat/vB fee";
       }
     }
 
     return null;
   }
 
-  BigInt _ceilDecimalToBigInt(Decimal value) {
+  static BigInt _ceilDecimalToBigInt(Decimal value) {
     return value.ceil().toBigInt();
   }
 
@@ -257,8 +294,11 @@ class OpenCryptoPaySettlement {
     return recipients;
   }
 
-  String _normalizeAddress(String address) {
-    if (wallet.cryptoCurrency is Ethereum) return address.toLowerCase();
+  static String _normalizeAddress(
+    CryptoCurrency cryptoCurrency,
+    String address,
+  ) {
+    if (cryptoCurrency is Ethereum) return address.toLowerCase();
     return address;
   }
 
