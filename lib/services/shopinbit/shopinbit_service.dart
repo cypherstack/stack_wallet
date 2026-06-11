@@ -67,7 +67,11 @@ class ShopInBitService {
       );
       return;
     }
-    await Future.wait(resp.value!.map((ref) => _refreshRef(ref, key)));
+    await Future.wait(
+      resp.value!
+          .where((e) => !e.isKnownReceipt)
+          .map((ref) => _refreshRef(ref, key)),
+    );
   }
 
   /// Refresh a single ticket. The row must already exist; use this for

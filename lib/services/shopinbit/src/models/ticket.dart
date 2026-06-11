@@ -44,14 +44,25 @@ class TicketRef {
   final int id;
   final String number;
 
-  TicketRef({required this.id, required this.number});
+  /// [kind] is nullable for backwards compat only
+  final String? kind;
+
+  /// True only when [kind] explicitly marks this as a receipt ticket.
+  /// False does not rule it out, since legacy tickets have a null [kind].
+  bool get isKnownReceipt => kind == "receipt";
+
+  TicketRef({required this.id, required this.number, this.kind});
 
   factory TicketRef.fromJson(Map<String, dynamic> json) {
-    return TicketRef(id: _toInt(json['id']), number: json['number'] as String);
+    return TicketRef(
+      id: _toInt(json['id']),
+      number: json['number'] as String,
+      kind: json['ticket_kind'] as String?,
+    );
   }
 
   Map<String, dynamic> toMap() {
-    return {"id": id, "number": number};
+    return {"id": id, "number": number, "kind": kind};
   }
 
   @override
