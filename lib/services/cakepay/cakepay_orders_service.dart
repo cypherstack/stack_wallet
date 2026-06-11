@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../../utilities/logger.dart';
 import 'cakepay_service.dart';
 import 'src/models/order.dart';
 
@@ -67,7 +66,7 @@ class CakePayOrdersService extends ChangeNotifier {
 
   /// Fetch every locally-tracked order in parallel. Returns the existing
   /// future if a refresh-all is already in flight, so awaiters can be sure a
-  /// refresh has actually occurred rather than no-opping.
+  /// refresh has actually occurred.
   Future<void> refreshAll() async {
     final Completer<void>? pending = _refreshAllCompleter;
     if (pending != null) return pending.future;
@@ -82,11 +81,6 @@ class CakePayOrdersService extends ChangeNotifier {
         await Future.wait(ids.map(refreshOne));
         completer.complete();
       } catch (e, s) {
-        Logging.instance.e(
-          "CakePayOrdersService.refreshAll failed",
-          error: e,
-          stackTrace: s,
-        );
         completer.completeError(e, s);
       } finally {
         _refreshAllCompleter = null;
