@@ -43,16 +43,16 @@ class CarResearchCurrentInvoice {
 
   factory CarResearchCurrentInvoice.fromJson(Map<String, dynamic> json) {
     final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
-    final expiresRaw = json['expires_at'] as String?;
-    final createdRaw = json['created_at'] as String?;
+    final expiresRaw = json['expires_at'] as String;
+    final createdRaw = json['created_at'] as String;
     return CarResearchCurrentInvoice(
       invoiceId: json['invoice_id'] as String,
       status: json['status'] as String,
       additional: json['additional'] as String?,
-      expiresAt: expiresRaw == null ? null : DateTime.tryParse(expiresRaw),
+      expiresAt: DateTime.parse(expiresRaw),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
       hasRequestPayload: json['has_request_payload'] as bool,
-      createdAt: createdRaw == null ? null : DateTime.tryParse(createdRaw),
+      createdAt: DateTime.parse(createdRaw),
     );
   }
 }
@@ -82,12 +82,12 @@ bool carResearchIsFinalized(String? status, String? additional) {
 
 class CarResearchInvoice {
   final String btcpayInvoice;
-  final DateTime? expiresAt;
+  final DateTime expiresAt;
   final Map<String, String> paymentLinks;
 
   CarResearchInvoice({
     required this.btcpayInvoice,
-    this.expiresAt,
+    required this.expiresAt,
     required this.paymentLinks,
   });
 
@@ -95,9 +95,7 @@ class CarResearchInvoice {
     final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
     return CarResearchInvoice(
       btcpayInvoice: json['btcpay_invoice'] as String,
-      // Null rather than defaulting to now(): a missing/garbled date should
-      // not make a fresh invoice look already-expired.
-      expiresAt: DateTime.tryParse(json['expires_at']?.toString() ?? ''),
+      expiresAt: DateTime.parse(json['expires_at'] as String),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
     );
   }
@@ -123,7 +121,7 @@ class CarResearchInvoiceStatus {
   final String? receiptTicketNumber;
   final int? realTicketId;
   final String? realTicketNumber;
-  final String? externalCustomerKey;
+  final String externalCustomerKey;
 
   CarResearchInvoiceStatus({
     required this.status,
@@ -133,26 +131,35 @@ class CarResearchInvoiceStatus {
     this.receiptTicketNumber,
     this.realTicketId,
     this.realTicketNumber,
-    this.externalCustomerKey,
+    required this.externalCustomerKey,
   });
 
   factory CarResearchInvoiceStatus.fromJson(Map<String, dynamic> json) {
-    int? toIntOrNull(dynamic v) {
-      if (v == null) return null;
-      if (v is int) return v;
-      if (v is double) return v.toInt();
-      return int.tryParse(v.toString());
-    }
-
     return CarResearchInvoiceStatus(
       status: json['status'] as String,
       additional: json['additional']?.toString(),
       finalized: json['finalized'] as bool,
-      receiptTicketId: toIntOrNull(json['receipt_ticket_id']),
-      receiptTicketNumber: json['receipt_ticket_number']?.toString(),
-      realTicketId: toIntOrNull(json['real_ticket_id']),
-      realTicketNumber: json['real_ticket_number']?.toString(),
-      externalCustomerKey: json['external_customer_key']?.toString(),
+      receiptTicketId: json['receipt_ticket_id'] as int?,
+      receiptTicketNumber: json['receipt_ticket_number'] as String?,
+      realTicketId: json['real_ticket_id'] as int?,
+      realTicketNumber: json['real_ticket_number'] as String?,
+      externalCustomerKey: json['external_customer_key'] as String,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "status": status,
+      "additional": additional,
+      "finalized": finalized,
+      "receipt_ticket_id": receiptTicketId,
+      "receipt_ticket_number": receiptTicketNumber,
+      "real_ticket_id": realTicketId,
+      "real_ticket_number": realTicketNumber,
+      "external_customer_key": externalCustomerKey,
+    };
+  }
+
+  @override
+  String toString() => toMap().toString();
 }
