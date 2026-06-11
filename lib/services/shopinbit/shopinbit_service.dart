@@ -190,31 +190,44 @@ class ShopInBitService {
         return;
       }
 
-      final ApiResponse<TicketFull> fullResp;
-      final ApiResponse<TicketStatus> statusResp;
-      final ApiResponse<List<TicketMessage>> messagesResp;
-      (fullResp, statusResp, messagesResp) = await (
-        client.getTicketFull(id, customerKey: customerKey),
-        client.getTicketStatus(id, customerKey: customerKey),
-        client.getMessages(id, customerKey: customerKey),
-      ).wait;
+      // get status first. If it fails there is no reason to make the remaining
+      // two API calls
+      final statusResp = await client.getTicketStatus(
+        id,
+        customerKey: customerKey,
+      );
 
-      if (existing == null) {
-        await _insertHydrated(
-          ref: ref,
-          customerKey: customerKey,
-          full: fullResp.value,
-          status: statusResp.value,
-          messages: messagesResp.value,
+      if (statusResp.exception?.statusCode == 403) {
+        Logging.instance.w(
+          "$runtimeType._refreshBody status call permission denied. "
+          "Ignoring ticket.",
         );
       } else {
-        await _patchExisting(
-          existing: existing,
-          full: fullResp.value,
-          status: statusResp.value,
-          messages: messagesResp.value,
-        );
+        final ApiResponse<TicketFull> fullResp;
+        final ApiResponse<List<TicketMessage>> messagesResp;
+        (fullResp, messagesResp) = await (
+          client.getTicketFull(id, customerKey: customerKey),
+          client.getMessages(id, customerKey: customerKey),
+        ).wait;
+
+        if (existing == null) {
+          await _insertHydrated(
+            ref: ref,
+            customerKey: customerKey,
+            full: fullResp.value,
+            status: statusResp.value,
+            messages: messagesResp.value,
+          );
+        } else {
+          await _patchExisting(
+            existing: existing,
+            full: fullResp.value,
+            status: statusResp.value,
+            messages: messagesResp.value,
+          );
+        }
       }
+
       completer.complete();
     } catch (e, s) {
       completer.completeError(e, s);
