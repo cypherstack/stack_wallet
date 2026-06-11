@@ -926,7 +926,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _applyUri(paymentData);
       } else if (LnurlUtils.isOpenCryptoPayUrl(qrCodeData)) {
         if (!mounted) return;
-        await showOpenCryptoPayDesktopDialog(
+        await showOpenCryptoPayPaymentDesktopDialog(
           context: context,
           qrUrl: qrCodeData,
           walletId: walletId,

@@ -1,0 +1,275 @@
+import 'package:decimal/decimal.dart';
+import 'package:isar_community/isar.dart';
+
+import '../../db/isar/main_db.dart';
+import '../../models/input.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/logger.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/models/spark_coin.dart';
+import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/ethereum_wallet.dart';
+import '../../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
+import 'models.dart';
+import 'open_crypto_pay_api.dart';
+
+class OpenCryptoPaySettlement {
+  OpenCryptoPaySettlement({
+    required this.wallet,
+    required this.txData,
+    required this.commit,
+    required this.mainDB,
+    required this.isTokenTx,
+    this.tokenWallet,
+  });
+
+  // OCP raw-hex commits are GET query params; keep Firo near common header caps.
+  static const int maxRawHexQueryLength = 8000;
+
+  final Wallet wallet;
+  final TxData txData;
+  final OpenCryptoPayCommit commit;
+  final MainDB mainDB;
+  final bool isTokenTx;
+  final EthTokenWallet? tokenWallet;
+
+  bool get shouldCommitTxId {
+    if (commit.submissionFlow ==
+        OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
+      return true;
+    }
+    return commit.method == 'Firo' &&
+        wallet.cryptoCurrency is Firo &&
+        (txData.usedSparkCoins?.isNotEmpty == true ||
+            (txData.raw?.length ?? 0) > maxRawHexQueryLength);
+  }
+
+  bool get shouldSubmitRawHex => !shouldCommitTxId && commit.canCommitRawHex;
+
+  String? validate() {
+    final minFeeError = _validateMinFee();
+    if (minFeeError != null) return minFeeError;
+
+    final transactionError = _validateTransaction();
+    if (transactionError != null) return transactionError;
+
+    final tokenError = _validateToken();
+    if (tokenError != null) return tokenError;
+
+    switch (commit.submissionFlow) {
+      case OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast:
+        return null;
+      case OpenCryptoPaySubmissionFlow.rawHexToProvider:
+        if (shouldCommitTxId) return null;
+        if (wallet.cryptoCurrency is! Firo &&
+            wallet.cryptoCurrency is! Ethereum &&
+            wallet.cryptoCurrency is! Bitcoin) {
+          return "This Open CryptoPay method is not supported yet";
+        }
+        if (wallet.cryptoCurrency is Ethereum) {
+          if (txData.web3dartTransaction == null || txData.chainId == null) {
+            return "Could not build signed Ethereum transaction";
+          }
+        } else if (txData.raw == null || txData.raw!.isEmpty) {
+          return "Could not build signed transaction";
+        }
+        return null;
+    }
+  }
+
+  Future<TxData> submitRawHex(Wallet submitWallet) async {
+    final signedTx = await _prepareRawHexTx(submitWallet, txData);
+    final raw = signedTx.raw;
+    if (raw == null || raw.isEmpty) {
+      throw Exception("Could not build signed transaction");
+    }
+
+    final txid = signedTx.tempTx?.txid ?? signedTx.txid ?? signedTx.txHash;
+    if (txid == null || txid.isEmpty) {
+      throw Exception("Could not determine signed transaction ID");
+    }
+    if (commit.isExpired) {
+      throw Exception("Open CryptoPay quote expired. Please scan again.");
+    }
+
+    await OpenCryptoPayApi.instance.commitRawHex(commit: commit, hex: raw);
+
+    final updatedInputs = signedTx.usedUTXOs?.map((e) {
+      if (e is StandardInput) {
+        return StandardInput(
+          e.utxo.copyWith(used: true),
+          derivePathType: e.derivePathType,
+        );
+      }
+      return e;
+    }).toList();
+
+    final updatedTxData = signedTx.copyWith(
+      usedUTXOs: updatedInputs,
+      txHash: txid,
+      txid: txid,
+    );
+
+    final updatedUtxos = updatedInputs
+        ?.whereType<StandardInput>()
+        .map((e) => e.utxo)
+        .toList();
+    if (updatedUtxos != null && updatedUtxos.isNotEmpty) {
+      await mainDB.putUTXOs(updatedUtxos);
+    }
+
+    if (updatedTxData.usedSparkCoins != null &&
+        updatedTxData.usedSparkCoins!.isNotEmpty) {
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.sparkCoins.putAll(updatedTxData.usedSparkCoins!);
+      });
+    }
+
+    return await submitWallet.updateSentCachedTxData(txData: updatedTxData);
+  }
+
+  Future<void> commitTxId(TxData txData) async {
+    try {
+      await OpenCryptoPayApi.instance.commitTxId(
+        commit: commit,
+        txId: txData.txid!,
+      );
+    } catch (e, s) {
+      Logging.instance.e(
+        "OpenCryptoPay commit failed after local broadcast",
+        error: e,
+        stackTrace: s,
+      );
+      throw Exception(
+        "Open CryptoPay commit failed after broadcasting "
+        "${txData.txid}: $e",
+      );
+    }
+  }
+
+  String? _validateTransaction() {
+    final recipients = _recipients(txData);
+    if (recipients.length != 1) {
+      return "Open CryptoPay requires exactly one recipient";
+    }
+
+    final actual = recipients.single;
+    if (_normalizeAddress(actual.address) !=
+        _normalizeAddress(commit.recipientAddress)) {
+      return "Open CryptoPay recipient changed. Please scan again.";
+    }
+
+    if (actual.amount.decimal != commit.amount) {
+      return "Open CryptoPay amount changed. Please scan again.";
+    }
+
+    return null;
+  }
+
+  String? _validateToken() {
+    final tokenContractAddress = commit.tokenContractAddress;
+    if (tokenContractAddress == null) return null;
+
+    if (!isTokenTx || commit.method != 'Ethereum') {
+      return "Open CryptoPay token payment is not supported here";
+    }
+
+    final wallet = tokenWallet;
+    if (wallet == null) {
+      return "Could not verify Open CryptoPay token wallet";
+    }
+
+    if (wallet.tokenContract.address.toLowerCase() !=
+        tokenContractAddress.toLowerCase()) {
+      return "Open CryptoPay token contract changed. Please scan again.";
+    }
+
+    if (wallet.tokenContract.symbol.toUpperCase() !=
+        commit.asset.toUpperCase()) {
+      return "Open CryptoPay token asset changed. Please scan again.";
+    }
+
+    return null;
+  }
+
+  String? _validateMinFee() {
+    if (commit.minFee <= Decimal.zero) return null;
+
+    if (wallet.cryptoCurrency is Ethereum) {
+      final gasPrice = txData.web3dartTransaction?.maxFeePerGas?.getInWei;
+      if (gasPrice == null) {
+        return "Could not verify Open CryptoPay minimum gas price";
+      }
+      if (gasPrice < _ceilDecimalToBigInt(commit.minFee)) {
+        return "Open CryptoPay requires at least "
+            "${commit.minFee} wei gas price";
+      }
+      return null;
+    }
+
+    if (wallet.cryptoCurrency is Bitcoin || wallet.cryptoCurrency is Firo) {
+      final fee = txData.fee;
+      final vSize = txData.vSize;
+      if (fee == null || vSize == null || vSize <= 0) {
+        return "Could not verify Open CryptoPay minimum fee";
+      }
+      final minTotalFee = _ceilDecimalToBigInt(
+        commit.minFee * Decimal.fromInt(vSize),
+      );
+      if (fee.raw < minTotalFee) {
+        return "Open CryptoPay requires at least "
+            "${commit.minFee} sat/vB fee";
+      }
+    }
+
+    return null;
+  }
+
+  BigInt _ceilDecimalToBigInt(Decimal value) {
+    return value.ceil().toBigInt();
+  }
+
+  List<({String address, Amount amount})> _recipients(TxData txData) {
+    final recipients = <({String address, Amount amount})>[];
+    final standardRecipients = txData.recipients;
+    if (standardRecipients != null) {
+      for (final recipient in standardRecipients) {
+        if (!recipient.isChange) {
+          recipients.add((
+            address: recipient.address,
+            amount: recipient.amount,
+          ));
+        }
+      }
+    }
+    final sparkRecipients = txData.sparkRecipients;
+    if (sparkRecipients != null) {
+      for (final recipient in sparkRecipients) {
+        if (!recipient.isChange) {
+          recipients.add((
+            address: recipient.address,
+            amount: recipient.amount,
+          ));
+        }
+      }
+    }
+    return recipients;
+  }
+
+  String _normalizeAddress(String address) {
+    if (wallet.cryptoCurrency is Ethereum) return address.toLowerCase();
+    return address;
+  }
+
+  Future<TxData> _prepareRawHexTx(Wallet wallet, TxData txData) async {
+    if (wallet is EthTokenWallet) {
+      return await wallet.signSendWithoutBroadcast(txData: txData);
+    }
+    if (wallet is EthereumWallet) {
+      return await wallet.signSendWithoutBroadcast(txData: txData);
+    }
+
+    return txData;
+  }
+}

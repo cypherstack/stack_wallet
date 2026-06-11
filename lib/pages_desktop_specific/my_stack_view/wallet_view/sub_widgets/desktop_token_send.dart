@@ -482,7 +482,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         });
       } else if (LnurlUtils.isOpenCryptoPayUrl(qrResult)) {
         if (!mounted) return;
-        await showOpenCryptoPayDesktopDialog(
+        await showOpenCryptoPayPaymentDesktopDialog(
           context: context,
           qrUrl: qrResult,
           walletId: walletId,

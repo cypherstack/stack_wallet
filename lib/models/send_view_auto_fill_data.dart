@@ -31,11 +31,21 @@ class SendViewAutoFillData {
   });
 
   Map<String, dynamic> toJson() {
+    final commit = openCryptoPayCommit;
     return {
       "address": address,
       "contactLabel": contactLabel,
       "amount": amount,
       "note": note,
+      if (commit != null)
+        "openCryptoPayCommit": {
+          "method": commit.method,
+          "asset": commit.asset,
+          "submissionFlow": commit.submissionFlow.name,
+          "quoteId": commit.quoteId,
+          "paymentId": commit.paymentId,
+          "expiresAt": commit.expiresAt.toIso8601String(),
+        },
     };
   }
 

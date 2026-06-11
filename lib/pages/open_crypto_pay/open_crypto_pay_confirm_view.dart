@@ -12,11 +12,11 @@ import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
+import '../../services/open_crypto_pay/erc20_token_lookup.dart';
 import '../../services/open_crypto_pay/evm_uri.dart';
 import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
 import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
-import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
@@ -26,9 +26,6 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/ethereum_wallet.dart';
 import '../../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -69,6 +66,7 @@ class _OpenCryptoPayConfirmViewState
   OpenCryptoPayTransactionDetails? _txDetails;
   bool _isLoading = true;
   String? _errorMessage;
+  late final Decimal? _quotedAmount;
 
   DateTime? get _expiresAt =>
       _txDetails?.expiryDate ?? widget.paymentDetails.quote?.expiration;
@@ -81,6 +79,7 @@ class _OpenCryptoPayConfirmViewState
   @override
   void initState() {
     super.initState();
+    _quotedAmount = Decimal.tryParse(widget.selectedAsset.amount);
     _fetch();
   }
 
@@ -122,7 +121,7 @@ class _OpenCryptoPayConfirmViewState
         address: evmUri.targetAddress,
         amount: evmUri.isNativeTransfer
             ? evmUri.amount(fractionDigits: widget.coin.fractionDigits)
-            : Decimal.tryParse(widget.selectedAsset.amount),
+            : _quotedAmount,
         scheme: evmUri.scheme,
       );
     }
@@ -135,7 +134,7 @@ class _OpenCryptoPayConfirmViewState
     }
     final amount = data?.amount != null
         ? Decimal.tryParse(data!.amount!)
-        : Decimal.tryParse(widget.selectedAsset.amount);
+        : _quotedAmount;
     return (
       address: address,
       amount: amount,
@@ -144,22 +143,15 @@ class _OpenCryptoPayConfirmViewState
   }
 
   EthContract? _enabledErc20Token(String contractAddress) {
-    final normalized = contractAddress.toLowerCase();
-    final mainDB = ref.read(mainDBProvider);
-    for (final address in ref.read(pWalletTokenAddresses(widget.walletId))) {
-      final contract = mainDB.getEthContractSync(address);
-      if (contract == null || contract.type != EthContractType.erc20) {
-        continue;
-      }
-      if (contract.address.toLowerCase() == normalized) {
-        return contract;
-      }
-    }
-    return null;
+    return OpenCryptoPayErc20TokenLookup.enabledToken(
+      ref.read(mainDBProvider),
+      ref.read(pWalletTokenAddresses(widget.walletId)),
+      contractAddress,
+    );
   }
 
   bool _matchesQuotedAmount(Decimal amount) {
-    final quotedAmount = Decimal.tryParse(widget.selectedAsset.amount);
+    final quotedAmount = _quotedAmount;
     return quotedAmount != null && amount.compareTo(quotedAmount) == 0;
   }
 
@@ -265,7 +257,8 @@ class _OpenCryptoPayConfirmViewState
         return;
       }
       if (evmUri.isTokenTransfer) {
-        if (evmUri.chainId != 1) {
+        // Native ETH may omit chainId, but token calls must be explicit mainnet.
+        if (evmUri.chainId == null) {
           _warn("Payment URI is for a different Ethereum network");
           return;
         }
@@ -390,15 +383,7 @@ class _OpenCryptoPayConfirmViewState
   }
 
   Future<void> _showDesktopSendForm(Widget child) {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => DesktopDialog(
-        maxHeight: MediaQuery.sizeOf(context).height - 64,
-        maxWidth: 580,
-        child: child,
-      ),
-    );
+    return showOpenCryptoPayDesktopDialog<void>(context: context, child: child);
   }
 
   void _warn(String message) {
@@ -427,25 +412,10 @@ class _OpenCryptoPayConfirmViewState
       ),
     );
 
-    if (widget.isDesktop) {
-      return OpenCryptoPayDesktopFrame(title: "Confirm Payment", child: body);
-    }
-
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.backgroundAppBar,
-          leading: const AppBarBackButton(),
-          title: Text(
-            "Confirm Payment",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: SafeArea(child: body),
-      ),
+    return OpenCryptoPayScaffold(
+      title: "Confirm Payment",
+      isDesktop: widget.isDesktop,
+      child: body,
     );
   }
 }

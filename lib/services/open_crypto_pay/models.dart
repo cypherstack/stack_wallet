@@ -139,7 +139,6 @@ class OpenCryptoPayRequestedAmount {
 }
 
 class OpenCryptoPayPaymentDetails {
-  final String id;
   final String? standard;
   final List<String> possibleStandards;
   final String? displayName;
@@ -150,7 +149,6 @@ class OpenCryptoPayPaymentDetails {
   final List<OpenCryptoPayTransferMethod> transferAmounts;
 
   OpenCryptoPayPaymentDetails({
-    required this.id,
     this.standard,
     required this.possibleStandards,
     this.displayName,
@@ -164,7 +162,6 @@ class OpenCryptoPayPaymentDetails {
   factory OpenCryptoPayPaymentDetails.fromJson(Map<String, dynamic> json) {
     final callback = json['callback'] as String? ?? '';
     return OpenCryptoPayPaymentDetails(
-      id: json['id'] as String,
       standard: json['standard'] as String?,
       possibleStandards:
           (json['possibleStandards'] as List<dynamic>?)

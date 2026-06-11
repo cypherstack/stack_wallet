@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/main_db_provider.dart';
+import '../../services/open_crypto_pay/erc20_token_lookup.dart';
 import '../../services/open_crypto_pay/method_support.dart';
 import '../../services/open_crypto_pay/models.dart';
 import '../../services/open_crypto_pay/open_crypto_pay_api.dart';
@@ -16,9 +17,6 @@ import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'open_crypto_pay_confirm_view.dart';
@@ -105,13 +103,10 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
 
   List<EthContract> _enabledErc20Tokens() {
     if (widget.coin is! Ethereum) return const [];
-    final mainDB = ref.watch(mainDBProvider);
-    return ref
-        .watch(pWalletTokenAddresses(widget.walletId))
-        .map(mainDB.getEthContractSync)
-        .whereType<EthContract>()
-        .where((e) => e.type == EthContractType.erc20)
-        .toList();
+    return OpenCryptoPayErc20TokenLookup.enabledTokens(
+      ref.watch(mainDBProvider),
+      ref.watch(pWalletTokenAddresses(widget.walletId)),
+    );
   }
 
   Future<void> _onSelected(
@@ -133,32 +128,22 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       return;
     }
 
+    final confirmView = OpenCryptoPayConfirmView(
+      paymentDetails: _details!,
+      selectedMethod: method,
+      selectedAsset: asset,
+      walletId: widget.walletId,
+      coin: widget.coin,
+      isDesktop: widget.isDesktop,
+    );
     final result = widget.isDesktop
-        ? await showDialog<OpenCryptoPayConfirmResult>(
+        ? await showOpenCryptoPayDesktopDialog<OpenCryptoPayConfirmResult>(
             context: context,
-            barrierDismissible: true,
-            builder: (_) => DesktopDialog(
-              maxHeight: MediaQuery.sizeOf(context).height - 64,
-              maxWidth: 580,
-              child: OpenCryptoPayConfirmView(
-                paymentDetails: _details!,
-                selectedMethod: method,
-                selectedAsset: asset,
-                walletId: widget.walletId,
-                coin: widget.coin,
-                isDesktop: true,
-              ),
-            ),
+            child: confirmView,
           )
         : await Navigator.of(context).push<OpenCryptoPayConfirmResult>(
             MaterialPageRoute<OpenCryptoPayConfirmResult>(
-              builder: (_) => OpenCryptoPayConfirmView(
-                paymentDetails: _details!,
-                selectedMethod: method,
-                selectedAsset: asset,
-                walletId: widget.walletId,
-                coin: widget.coin,
-              ),
+              builder: (_) => confirmView,
             ),
           );
 
@@ -183,25 +168,10 @@ class _OpenCryptoPayViewState extends ConsumerState<OpenCryptoPayView> {
       ),
     );
 
-    if (widget.isDesktop) {
-      return OpenCryptoPayDesktopFrame(title: "Open CryptoPay", child: body);
-    }
-
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.backgroundAppBar,
-          leading: const AppBarBackButton(),
-          title: Text(
-            "Open CryptoPay",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: SafeArea(child: body),
-      ),
+    return OpenCryptoPayScaffold(
+      title: "Open CryptoPay",
+      isDesktop: widget.isDesktop,
+      child: body,
     );
   }
 }

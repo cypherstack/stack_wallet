@@ -38,10 +38,7 @@ class OpenCryptoPayApi {
 
   /// Fetches the payment details (available methods, quote, recipient, etc)
   /// for the payment encoded in [qrUrl].
-  Future<OpenCryptoPayPaymentDetails> getPaymentDetails(
-    String qrUrl, {
-    int timeout = 10,
-  }) async {
+  Future<OpenCryptoPayPaymentDetails> getPaymentDetails(String qrUrl) async {
     final lnurl = LnurlUtils.extractLnurl(qrUrl);
     if (lnurl == null) {
       throw Exception('No LNURL payload found');
@@ -52,7 +49,7 @@ class OpenCryptoPayApi {
     final uri = apiUrl.replace(
       queryParameters: {
         ...apiUrl.queryParameters,
-        'timeout': timeout.toString(),
+        'timeout': '10',
       },
     );
 

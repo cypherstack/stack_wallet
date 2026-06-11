@@ -6,6 +6,13 @@ import 'models.dart';
 class OpenCryptoPayMethodSupport {
   const OpenCryptoPayMethodSupport._();
 
+  static const _methodsByCoinType = <Type, String>{
+    Bitcoin: 'Bitcoin',
+    Solana: 'Solana',
+    Cardano: 'Cardano',
+    Firo: 'Firo',
+  };
+
   static OpenCryptoPaySubmissionFlow? submissionFlowFor(String method) {
     switch (method) {
       case 'Solana':
@@ -21,11 +28,8 @@ class OpenCryptoPayMethodSupport {
         // Firo starts here for transparent/provider-broadcast payments; Spark
         // or oversized raw transactions fall back to txid at confirmation.
         return OpenCryptoPaySubmissionFlow.rawHexToProvider;
-      case 'Lightning':
-      case 'BinancePay':
-      case 'InternetComputer':
-        return null;
       default:
+        // Known unsupported methods include Lightning, BinancePay, and ICP.
         return null;
     }
   }
@@ -38,27 +42,20 @@ class OpenCryptoPayMethodSupport {
   }) {
     final ticker = coin.ticker.toUpperCase();
     final assetTicker = asset.asset.toUpperCase();
+    final methodName = _methodForCoin(coin);
 
-    if (coin is Bitcoin) {
-      return method.method == 'Bitcoin' && assetTicker == ticker;
-    }
+    if (methodName == null || method.method != methodName) return false;
+
     if (coin is Ethereum) {
-      if (method.method != 'Ethereum') return false;
       if (assetTicker == ticker) return true;
       return enabledErc20Symbols
           .map((e) => e.toUpperCase())
           .contains(assetTicker);
     }
-    if (coin is Solana) {
-      return method.method == 'Solana' && assetTicker == ticker;
-    }
-    if (coin is Cardano) {
-      return method.method == 'Cardano' && assetTicker == ticker;
-    }
-    if (coin is Firo) {
-      return method.method == 'Firo' && assetTicker == ticker;
-    }
 
-    return false;
+    return assetTicker == ticker;
   }
+
+  static String? _methodForCoin(CryptoCurrency coin) =>
+      coin is Ethereum ? 'Ethereum' : _methodsByCoinType[coin.runtimeType];
 }
