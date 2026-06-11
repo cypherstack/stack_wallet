@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/cakepay_orders_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -31,7 +34,7 @@ class _CakePayOrdersViewState extends ConsumerState<CakePayOrdersView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(pCakePayOrdersService).refreshAll();
+      ref.read(pCakePayOrdersService).refreshAll().ignore();
     });
   }
 
@@ -152,7 +155,20 @@ class _CakePayOrdersViewState extends ConsumerState<CakePayOrdersView> {
       }
     }
 
-    Future<void> onRefresh() => ref.read(pCakePayOrdersService).refreshAll();
+    Future<void> onRefresh() async {
+      try {
+        await ref.read(pCakePayOrdersService).refreshAll();
+      } catch (_) {
+        if (!context.mounted) return;
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Could not refresh orders",
+            context: context,
+          ),
+        );
+      }
+    }
 
     final body = RefreshControl(
       onRefresh: onRefresh,
