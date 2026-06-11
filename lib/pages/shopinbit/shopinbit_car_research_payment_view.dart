@@ -388,14 +388,13 @@ class _ShopInBitCarResearchPaymentViewState
     }
 
     setState(() => _flowState = _PaymentFlowState.finalizing);
-    _pollTimer?.cancel();
 
     try {
       // The finalized status carries the real car ticket id (the customer
       // chat), so open that. The BTCPay webhook creates the ticket regardless.
+      // The caller (_pollStatus) cancels the poll timer before calling this.
       final int? realId = _realTicketId;
 
-      if (!mounted) return;
       setState(() => _flowState = _PaymentFlowState.complete);
 
       if (realId != null) {

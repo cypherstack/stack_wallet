@@ -169,9 +169,5 @@ class TicketFull {
 
 int _toInt(dynamic value) {
   if (value is int) return value;
-  final parsed = int.tryParse(value.toString());
-  if (parsed == null) {
-    throw FormatException("ShopInBit: expected an integer, got '$value'");
-  }
-  return parsed;
+  return int.parse(value.toString());
 }
