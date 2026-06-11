@@ -265,9 +265,6 @@ class _ShopInBitCarResearchPaymentViewState
     });
   }
 
-  /// Pop the car payment flow and land the user directly on the requests list,
-  /// pushing it only if it isn't already in the stack (e.g. the resume flow
-  /// entered from there).
   void _goToMyRequests() {
     final navigator = Navigator.of(context);
     bool landedOnTickets = false;
@@ -284,11 +281,7 @@ class _ShopInBitCarResearchPaymentViewState
     }
   }
 
-  /// Shown when the real car ticket hasn't surfaced in time. Keeps the user
-  /// informed but offers a one-tap shortcut straight to My Requests rather
-  /// than making them dismiss and navigate there by hand.
   Future<void> _showFinalizingFallback() async {
-    if (!mounted) return;
     final goToRequests = await showDialog<bool>(
       context: context,
       useRootNavigator: Util.isDesktop,
