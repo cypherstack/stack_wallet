@@ -28,7 +28,7 @@ import 'shopinbit_order_created.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_tickets_view.dart';
 
-enum _PaymentFlowState { idle, polling, finalizing, complete, error }
+enum _PaymentFlowState { idle, polling, finalizing, complete }
 
 class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
   const ShopInBitCarResearchPaymentView({
@@ -382,52 +382,23 @@ class _ShopInBitCarResearchPaymentViewState
 
   Future<void> _finalizePayment() async {
     if (_flowState == _PaymentFlowState.finalizing ||
-        _flowState == _PaymentFlowState.complete ||
-        _flowState == _PaymentFlowState.error) {
+        _flowState == _PaymentFlowState.complete) {
       return;
     }
 
-    setState(() => _flowState = _PaymentFlowState.finalizing);
-
-    try {
-      // The finalized status carries the real car ticket id (the customer
-      // chat), so open that. The BTCPay webhook creates the ticket regardless.
-      // The caller (_pollStatus) cancels the poll timer before calling this.
-      final int? realId = _realTicketId;
-
-      setState(() => _flowState = _PaymentFlowState.complete);
-
-      if (realId != null) {
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitOrderCreated.routeName, arguments: realId),
-        );
-      } else {
-        // The real ticket hasn't surfaced yet; offer a shortcut to the
-        // requests list, which will pick it up on its next refresh.
-        await _showFinalizingFallback();
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        "Failed to process car research payment",
-        error: e,
-        stackTrace: s,
-      );
-      if (mounted) {
-        setState(() => _flowState = _PaymentFlowState.error);
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: Util.isDesktop,
-          builder: (context) => StackOkDialog(
-            title: "Failed to process car research payment",
-            maxWidth: Util.isDesktop ? 500 : null,
-            message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
-          ),
-        );
-      }
+    final int? realId = _realTicketId;
+    if (realId == null) {
+      setState(() => _flowState = _PaymentFlowState.finalizing);
+      await _showFinalizingFallback();
+      return;
     }
+
+    setState(() => _flowState = _PaymentFlowState.complete);
+    unawaited(
+      Navigator.of(
+        context,
+      ).pushNamed(ShopInBitOrderCreated.routeName, arguments: realId),
+    );
   }
 
   void _copyAddress(BuildContext context) {
