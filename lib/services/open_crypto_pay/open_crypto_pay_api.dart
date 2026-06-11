@@ -47,10 +47,7 @@ class OpenCryptoPayApi {
     final apiUrl = Uri.parse(LnurlUtils.decodeLnurl(lnurl));
     _requireHttps(apiUrl, 'decoded LNURL');
     final uri = apiUrl.replace(
-      queryParameters: {
-        ...apiUrl.queryParameters,
-        'timeout': '10',
-      },
+      queryParameters: {...apiUrl.queryParameters, 'timeout': '10'},
     );
 
     Logging.instance.d('OpenCryptoPay: GET $uri');

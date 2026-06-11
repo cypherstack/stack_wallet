@@ -49,8 +49,7 @@ class OpenCryptoPaySettlement {
     required bool hasSparkInputs,
     required int rawHexLength,
   }) {
-    if (submissionFlow ==
-        OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
+    if (submissionFlow == OpenCryptoPaySubmissionFlow.txIdAfterLocalBroadcast) {
       return true;
     }
     return method == 'Firo' &&
@@ -251,9 +250,7 @@ class OpenCryptoPaySettlement {
       if (fee == null || vSize == null || vSize <= 0) {
         return "Could not verify Open CryptoPay minimum fee";
       }
-      final minTotalFee = _ceilDecimalToBigInt(
-        minFee * Decimal.fromInt(vSize),
-      );
+      final minTotalFee = _ceilDecimalToBigInt(minFee * Decimal.fromInt(vSize));
       if (fee.raw < minTotalFee) {
         return "Open CryptoPay requires at least "
             "$minFee sat/vB fee";
