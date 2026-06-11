@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
@@ -312,13 +313,12 @@ class _ShopInBitCarResearchPaymentViewState
   /// the periodic driver can back off instead of polling at full rate.
   Future<bool> _pollStatus() async {
     try {
-      final resp = await ref
-          .read(pShopinBitService)
-          .client
-          .getCarResearchInvoiceStatus(
-            widget.invoice.btcpayInvoice,
-            customerKey: widget.customerKey,
-          );
+      final service = ref.read(pShopinBitService);
+
+      final resp = await service.client.getCarResearchInvoiceStatus(
+        widget.invoice.btcpayInvoice,
+        customerKey: widget.customerKey,
+      );
       if (resp.hasError || resp.value == null) {
         if (mounted) {
           unawaited(
@@ -332,6 +332,60 @@ class _ShopInBitCarResearchPaymentViewState
         }
         return false;
       }
+
+      final apiTicketId = resp.value!.realTicketId;
+      if (apiTicketId != null) {
+        // we may not have the ticket in the db yet. Lets check
+        final ticket = await service.db.shopInBitTicketsDao.getByApiId(
+          apiTicketId,
+        );
+
+        // not found, so lets fix that
+        if (ticket == null) {
+          final invoiceStatus = resp.value!;
+
+          final response = await service.client.getTicketFull(
+            apiTicketId,
+            customerKey: invoiceStatus.externalCustomerKey,
+          );
+
+          if (response.hasError || response.value == null) {
+            Logging.instance.e(
+              "$runtimeType get full ticket for car failed",
+              error: response.exception,
+              stackTrace: .current,
+            );
+          } else {
+            final fullTicket = response.value!;
+
+            // TODO: clean this up a bit some day but for now...
+            await service.db.transaction(() async {
+              // get ticket again to ensure this is an atomic insert operation
+              // in the db transaction
+              final ticket = await service.db.shopInBitTicketsDao.getByApiId(
+                apiTicketId,
+              );
+
+              if (ticket == null) {
+                // insert bare minimum - will be updated automatically later
+                await service.db.shopInBitTicketsDao.insertTicket(
+                  ShopInBitTicketsCompanion.insert(
+                    apiTicketId: apiTicketId,
+                    customerKey: invoiceStatus.externalCustomerKey,
+                    ticketNumber: invoiceStatus.realTicketNumber!,
+                    category: .car,
+                    requestDescription: fullTicket.productName ?? "",
+                    deliveryCountry: fullTicket.deliveryCountry,
+                    status: .pending,
+                    statusRaw: "NEW",
+                  ),
+                );
+              }
+            });
+          }
+        }
+      }
+
       if (!mounted) return true;
       Logging.instance.i(
         "CarResearch status response (payment_view): ${resp.value}",
