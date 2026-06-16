@@ -532,9 +532,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       csSalvium.startListeners(wallet!);
       csSalvium.startAutoSaving(wallet!);
 
-      // _setSyncStatus(ConnectedSyncStatus());
+      _setSyncStatus(ConnectedSyncStatus());
     } catch (e, s) {
-      // _setSyncStatus(FailedSyncStatus());
+      _setSyncStatus(FailedSyncStatus());
       Logging.instance.e(
         "Exception caught in $runtimeType.updateNode(): ",
         error: e,
