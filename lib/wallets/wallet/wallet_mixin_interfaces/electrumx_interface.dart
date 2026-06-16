@@ -223,6 +223,31 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     Logging.instance.d("spendableSatoshiValue: $spendableSatoshiValue");
     Logging.instance.d("satoshiAmountToSend: $satoshiAmountToSend");
 
+    // Use coinlib CoinSelection algorithms except for
+    // "coinControl", "SendAll", "MWEB", "overrideFeeAmount",
+    // because they do not need a selection or
+    // do not meet the requirements for the algorithms
+    final bool useOptimalSelection =
+        !coinControl &&
+        !isSendAll &&
+        !isSendAllCoinControlUtxos &&
+        overrideFeeAmount == null &&
+        txData.type != TxType.mweb &&
+        txData.type != TxType.mwebPegOut &&
+        txData.type != TxType.mwebPegIn;
+
+    if (useOptimalSelection) {
+      return await _optimalCoinSelection(
+        txData: txData,
+        spendableOutputs: spendableOutputs.whereType<StandardInput>().toList(),
+        recipientAddress: recipientAddress,
+        satoshiAmountToSend: satoshiAmountToSend,
+        satsPerVByte: satsPerVByte,
+        feeRatePerKB: selectedTxFeeRate,
+        changeAddress: await changeAddress(),
+      );
+    }
+
     BigInt satoshisBeingUsed = BigInt.zero;
     int inputsBeingConsumed = 0;
     final List<BaseInput> utxoObjectsToUse = [];
@@ -571,6 +596,195 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
+  coinlib.Input standardInputToCoinlibInput(
+    StandardInput input, {
+    int sequence = 0xffffffff,
+  }) {
+    final hash = Uint8List.fromList(
+      input.utxo.txid.toUint8ListFromHex.reversed.toList(),
+    );
+    final prevOut = coinlib.OutPoint(hash, input.utxo.vout);
+
+    switch (input.derivePathType) {
+      case DerivePathType.bip44:
+      case DerivePathType.bch44:
+        return coinlib.P2PKHInput(
+          prevOut: prevOut,
+          publicKey: input.key!.publicKey,
+          sequence: sequence,
+        );
+
+      // TODO: fix this as it is (probably) wrong!
+      case DerivePathType.bip49:
+        throw Exception("TODO p2sh");
+      // return coinlib.P2SHMultisigInput(
+      //   prevOut: prevOut,
+      //   program: coinlib.MultisigProgram.decompile(
+      //     input.redeemScript!,
+      //   ),
+      //   sequence: sequence,
+      // );
+
+      case DerivePathType.bip84:
+        return coinlib.P2WPKHInput(
+          prevOut: prevOut,
+          publicKey: input.key!.publicKey,
+          sequence: sequence,
+        );
+
+      case DerivePathType.bip86:
+        return coinlib.TaprootKeyInput(prevOut: prevOut);
+
+      default:
+        throw UnsupportedError(
+          "Unknown derivation path type found: ${input.derivePathType}",
+        );
+    }
+  }
+
+  /// Helper that will convert BaseInput into InputCandidates
+  /// and use [coinlib.CoinSelection.optimal] to select the good candidates.
+  Future<TxData> _optimalCoinSelection({
+    required TxData txData,
+    required List<StandardInput> spendableOutputs,
+    required String recipientAddress,
+    required BigInt satoshiAmountToSend,
+    required int? satsPerVByte,
+    required BigInt feeRatePerKB,
+    required Address changeAddress,
+  }) async {
+    final List<BaseInput> candidateInputs = await addSigningKeys(
+      spendableOutputs,
+    );
+
+    final BigInt feePerKb = satsPerVByte != null
+        ? BigInt.from(satsPerVByte * 1000)
+        : feeRatePerKB;
+
+    // minFee should be equal or above the Vsize of the tx, which should happen
+    // since coin selection algorithms will respect feeRatePerKB. So there is no
+    // need to define a minFee
+    final BigInt minFee = BigInt.zero;
+
+    final List<coinlib.InputCandidate> candidates = [];
+    final Map<int, BaseInput> candidateBaseInputs = {};
+
+    for (int i = 0; i < candidateInputs.length; i++) {
+      final baseInput = candidateInputs[i];
+
+      if (baseInput is! StandardInput) {
+        // This shouldn't be happening since only non MWEB inputs
+        // will be given to this helper
+        throw Exception('''
+          Unexpected input type ${baseInput.runtimeType}
+          only StandardInput are supported
+          ''');
+      }
+
+      final input = standardInputToCoinlibInput(baseInput);
+
+      candidates.add(
+        coinlib.InputCandidate(input: input, value: baseInput.value),
+      );
+      candidateBaseInputs[i] = baseInput;
+    }
+
+    final coinlib.Address clRecipientAddress = coinlib.Address.fromString(
+      normalizeAddress(recipientAddress),
+      cryptoCurrency.networkParams,
+    );
+    final coinlib.Output recipientOutput = coinlib.Output.fromAddress(
+      satoshiAmountToSend,
+      clRecipientAddress,
+    );
+
+    final coinlib.Address clChangeAddress = coinlib.Address.fromString(
+      normalizeAddress(changeAddress.value),
+      cryptoCurrency.networkParams,
+    );
+
+    final coinlib.Program changeProgram = clChangeAddress.program;
+
+    final coinlib.CoinSelection selection = coinlib.CoinSelection.optimal(
+      candidates: candidates,
+      recipients: [recipientOutput],
+      changeProgram: changeProgram,
+      feePerKb: feePerKb,
+      minFee: minFee,
+      minChange: cryptoCurrency.dustLimit.raw,
+    );
+
+    if (selection.tooLarge) {
+      throw Exception("Selected transaction would be too large");
+    }
+    if (!selection.ready) {
+      throw Exception("Selection of coins was not successful");
+    }
+
+    // Going back from InputCandidates to BaseInput
+    // This could be avoided since buildTransaction will do the exact opposite ?
+    final List<BaseInput> selectedBaseInputs = [];
+    for (final picked in selection.selected) {
+      final pickedTxid = Uint8List.fromList(
+        picked.input.prevOut.hash.reversed.toList(),
+      ).toHex;
+      final pickedVout = picked.input.prevOut.n;
+      bool matched = false;
+      for (final entry in candidateBaseInputs.entries) {
+        final base = entry.value;
+        if (base is StandardInput &&
+            base.utxo.txid == pickedTxid &&
+            base.utxo.vout == pickedVout) {
+          selectedBaseInputs.add(base);
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        throw Exception(
+          "Selected input not found among candidates (txid=$pickedTxid"
+          " vout=$pickedVout)",
+        );
+      }
+    }
+
+    Logging.instance.d(
+      "Optimal selection: picked ${selectedBaseInputs.length} input(s),"
+      " inputValue=${selection.inputValue}, fee=${selection.fee},"
+      " changeValue=${selection.changeValue},"
+      " signedSize=${selection.signedSize}",
+    );
+
+    /// Add the change if there is one
+    final List<String> recipientsArray = [recipientAddress];
+    final List<BigInt> recipientsAmtArray = [satoshiAmountToSend];
+    if (!selection.changeless) {
+      await checkChangeAddressForTransactions();
+      final freshChange = (await getCurrentChangeAddress())!;
+      recipientsArray.add(freshChange.value);
+      recipientsAmtArray.add(selection.changeValue);
+    }
+
+    final TxData txBuilt = await buildTransaction(
+      inputsWithKeys: selectedBaseInputs,
+      txData: txData.copyWith(
+        recipients: await helperRecipientsConvert(
+          recipientsArray,
+          recipientsAmtArray,
+        ),
+        usedUTXOs: selectedBaseInputs,
+      ),
+    );
+
+    return txBuilt.copyWith(
+      fee: Amount(
+        rawValue: selection.fee,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      ),
+      usedUTXOs: selectedBaseInputs,
+    );
+  }
+
   Future<List<BaseInput>> addSigningKeys(List<BaseInput> utxosToUse) async {
     // return data
     final List<BaseInput> inputsWithKeys = [];
@@ -715,14 +929,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           ),
         );
       } else if (data is StandardInput) {
-        final txid = data.utxo.txid;
-
-        final hash = Uint8List.fromList(
-          txid.toUint8ListFromHex.reversed.toList(),
-        );
-
-        final prevOutpoint = coinlib.OutPoint(hash, data.utxo.vout);
-
         final prevOutput = coinlib.Output.fromAddress(
           BigInt.from(data.utxo.value),
           coinlib.Address.fromString(
@@ -733,43 +939,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         prevOuts.add(prevOutput);
 
-        final coinlib.Input input;
-
-        switch (data.derivePathType) {
-          case DerivePathType.bip44:
-          case DerivePathType.bch44:
-            input = coinlib.P2PKHInput(
-              prevOut: prevOutpoint,
-              publicKey: data.key!.publicKey,
-              sequence: sequence,
-            );
-
-          // TODO: fix this as it is (probably) wrong!
-          case DerivePathType.bip49:
-            throw Exception("TODO p2sh");
-          // input = coinlib.P2SHMultisigInput(
-          //   prevOut: prevOutpoint,
-          //   program: coinlib.MultisigProgram.decompile(
-          //     data.redeemScript!,
-          //   ),
-          //   sequence: sequence,
-          // );
-
-          case DerivePathType.bip84:
-            input = coinlib.P2WPKHInput(
-              prevOut: prevOutpoint,
-              publicKey: data.key!.publicKey,
-              sequence: sequence,
-            );
-
-          case DerivePathType.bip86:
-            input = coinlib.TaprootKeyInput(prevOut: prevOutpoint);
-
-          default:
-            throw UnsupportedError(
-              "Unknown derivation path type found: ${data.derivePathType}",
-            );
-        }
+        final input = standardInputToCoinlibInput(data, sequence: sequence);
 
         if (input is! coinlib.WitnessInput) {
           hasNonWitnessInput = true;
