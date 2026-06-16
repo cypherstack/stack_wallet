@@ -27,7 +27,7 @@ class CakePayClient {
     HTTP? httpClient,
   }) : _httpClient = httpClient ?? const HTTP();
 
-  Map<String, String> _headers() => {
+  late final _authHeaders = {
     'Authorization': 'Bearer $apiToken',
     'Content-Type': 'application/json',
   };
@@ -41,7 +41,8 @@ class CakePayClient {
 
   // -- Marketplace --
 
-  Future<ApiResponse<List<CakePayVendor>>> getVendors({
+  Future<ApiResponse<({List<CakePayVendor> vendors, int? nextPage})>>
+  getVendors({
     String? country,
     String? countryCode,
     String? search,
@@ -70,23 +71,25 @@ class CakePayClient {
       '/marketplace/vendors/',
       query: query,
       parse: (body) {
-        final decoded = jsonDecode(body);
-        if (decoded is List) {
-          return decoded
-              .whereType<Map<String, dynamic>>()
-              .map(CakePayVendor.fromJson)
-              .toList();
-        }
-        if (decoded is Map<String, dynamic>) {
-          final results = decoded['results'];
-          if (results is List) {
-            return results
-                .whereType<Map<String, dynamic>>()
-                .map(CakePayVendor.fromJson)
-                .toList();
-          }
-        }
-        return [];
+        final dynamic decoded = jsonDecode(body);
+
+        final List<dynamic> rawList = switch (decoded) {
+          final List<dynamic> list => list,
+          {"results": final List<dynamic> results} => results,
+          _ => const <dynamic>[],
+        };
+
+        final List<CakePayVendor> vendors = rawList
+            .whereType<Map<String, dynamic>>()
+            .map(CakePayVendor.fromJson)
+            .toList();
+
+        final int? nextPage =
+            (page != null && pageSize != null && vendors.length >= pageSize)
+            ? page + 1
+            : null;
+
+        return (vendors: vendors, nextPage: nextPage);
       },
     );
   }
@@ -175,44 +178,8 @@ class CakePayClient {
     );
   }
 
-  Future<ApiResponse<List<CakePayCountry>>> getCountries({
-    int? page,
-    int? pageSize,
-  }) async {
-    final query = <String, String>{};
-    if (page != null) query['page'] = page.toString();
-    if (pageSize != null) query['page_size'] = pageSize.toString();
-
-    return _requestRaw(
-      'GET',
-      '/marketplace/countries/',
-      query: query,
-      parse: (body) {
-        final decoded = jsonDecode(body);
-        if (decoded is List) {
-          return decoded
-              .whereType<Map<String, dynamic>>()
-              .map(CakePayCountry.fromJson)
-              .toList();
-        }
-        if (decoded is Map<String, dynamic>) {
-          final results = decoded['results'];
-          if (results is List) {
-            return results
-                .whereType<Map<String, dynamic>>()
-                .map(CakePayCountry.fromJson)
-                .toList();
-          }
-        }
-        return [];
-      },
-    );
-  }
-
   /// Fetches all countries by following pagination til last page.
-  Future<ApiResponse<List<CakePayCountry>>> getAllCountries({
-    int pageSize = 250,
-  }) async {
+  Future<ApiResponse<List<CakePayCountry>>> getAllCountries() async {
     try {
       final allCountries = <CakePayCountry>[];
       int page = 1;
@@ -221,7 +188,8 @@ class CakePayClient {
         final response = await _send(
           'GET',
           '/marketplace/countries/',
-          query: {'page': page.toString(), 'page_size': pageSize.toString()},
+          query: {'page': page.toString()},
+          overrideHeaders: {}, // Auth here leads to 403. Why? Who knows?
         );
 
         if (response.code < 200 || response.code >= 300) {
@@ -236,15 +204,16 @@ class CakePayClient {
 
         final decoded = jsonDecode(response.body);
 
+        // This never gets hit according to docs
         // Handle non-paginated response (plain list).
-        if (decoded is List) {
-          return ApiResponse(
-            value: decoded
-                .whereType<Map<String, dynamic>>()
-                .map(CakePayCountry.fromJson)
-                .toList(),
-          );
-        }
+        // if (decoded is List) {
+        //   return ApiResponse(
+        //     value: decoded
+        //         .whereType<Map<String, dynamic>>()
+        //         .map(CakePayCountry.fromJson)
+        //         .toList(),
+        //   );
+        // }
 
         if (decoded is Map<String, dynamic>) {
           final results = decoded['results'];
@@ -466,12 +435,13 @@ class CakePayClient {
     String path, {
     Map<String, dynamic>? body,
     Map<String, String>? query,
+    Map<String, String>? overrideHeaders,
   }) async {
     var uri = Uri.parse('$baseUrl$path');
     if (query != null && query.isNotEmpty) {
       uri = uri.replace(queryParameters: query);
     }
-    final headers = _headers();
+    final headers = overrideHeaders ?? _authHeaders;
     final proxy = _proxyInfo;
 
     Logging.instance.t("$_kTag $method $uri");

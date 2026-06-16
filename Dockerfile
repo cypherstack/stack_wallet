@@ -63,8 +63,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "platforms;android-32" \
+      "platforms;android-33" \
+      "platforms;android-34" \
       "platforms;android-35" \
+      "platforms;android-36" \
+      "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
+      "cmake;3.22.1" \
  && chmod -R a+rwX "$ANDROID_SDK_ROOT"
 
 ENV PATH=/usr/local/go/bin:$PATH
@@ -142,8 +148,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "platforms;android-32" \
+      "platforms;android-33" \
+      "platforms;android-34" \
       "platforms;android-35" \
+      "platforms;android-36" \
+      "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
+      "cmake;3.22.1" \
  && chmod -R a+rwX "$ANDROID_SDK_ROOT"
 
 ENV PATH=/usr/local/go/bin:$PATH

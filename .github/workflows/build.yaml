@@ -19,6 +19,19 @@ on:
 
 jobs:
 
+  build-disclaimer:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Post tester disclaimer
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          > [!CAUTION]
+          > **These are unverified, unsupported development builds — not official releases.**
+          > They have not undergone QA testing and may contain bugs or incomplete features.
+          > Download and use entirely at your own risk. Do not use with real funds.
+          > Official releases are published on the [Releases page](https://github.com/cypherstack/stack_wallet/releases).
+          EOF
+
   build-linux:
     runs-on: ubuntu-24.04
     permissions:
@@ -91,9 +104,9 @@ jobs:
           tar -czf "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
             -C build/linux/x64/release bundle
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
   build-android:
@@ -190,12 +203,6 @@ jobs:
       - name: Build APKs
         run: flutter build apk --split-per-abi --release
 
-      - name: Clean intermediates before AAB
-        run: |
-          rm -rf build/app/intermediates
-          rm -rf build/app/tmp
-          find build -name '*.o' -delete 2>/dev/null || true
-
       - name: Build AAB
         run: flutter build appbundle --release
 
@@ -209,8 +216,10 @@ jobs:
              android-artifacts/stack_wallet-android-armeabi-v7a-${VERSION}.apk
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
              android-artifacts/stack_wallet-android-x86_64-${VERSION}.apk
+          cp build/app/outputs/bundle/release/app-release.aab \
+             android-artifacts/stack_wallet-android-${VERSION}.aab
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stack_wallet-android-${{ steps.ver.outputs.version }}
           path: android-artifacts/
@@ -248,7 +257,7 @@ jobs:
           flutter-version: '3.38.1'
           channel: 'stable'
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.24.13'
 
@@ -326,10 +335,16 @@ jobs:
       - name: Build
         run: flutter build windows --release
 
-      - uses: actions/upload-artifact@v4
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+            -DestinationPath "stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v7
         with:
-          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}
-          path: build/windows/x64/runner/Release/
+          name: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+          path: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
 
   build-macos:
     runs-on: macos-latest
@@ -361,7 +376,7 @@ jobs:
           flutter-version: '3.38.1'
           channel: 'stable'
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.24.13'
 
@@ -403,9 +418,9 @@ jobs:
           zip -r "$GITHUB_WORKSPACE/stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
             "Stack Wallet.app"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
           path: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-ios:
@@ -443,7 +458,7 @@ jobs:
           flutter-version: '3.38.1'
           channel: 'stable'
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.24.13'
 
@@ -485,9 +500,9 @@ jobs:
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r "stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa" Payload/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
           path: stack_wallet-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
   build-campfire-linux:
@@ -549,7 +564,7 @@ jobs:
           tar -czf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
             -C build/linux/x64/release bundle
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
@@ -613,11 +628,10 @@ jobs:
           tar -czf "stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
             -C build/linux/x64/release bundle
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
           path: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
-
 
   build-flatpak:
     runs-on: ubuntu-24.04
@@ -639,9 +653,9 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Download Linux bundle
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
 
       - name: Stage bundle and icon
         run: |
@@ -657,7 +671,7 @@ jobs:
         run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
       - name: Cache Flatpak SDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.local/share/flatpak
           key: flatpak-freedesktop-24.08-v1
@@ -678,37 +692,979 @@ jobs:
         run: |
           flatpak build-bundle flatpak-repo \
             --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
-            "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
+            "stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
             com.cypherstack.stackwallet
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}
-          path: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          name: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          path: stack_wallet-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
 
-  release:
-    if: github.ref_type == 'tag'
-    needs: [build-linux, build-android, build-windows, build-macos, build-ios, build-flatpak]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  build-appimage:
+    runs-on: ubuntu-24.04
+    needs: build-linux
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+      - uses: actions/checkout@v6
 
-      - name: Package artifacts
+      - name: Set version
+        id: ver
         run: |
-          mkdir -p release-files
-          for dir in artifacts/stack_wallet-windows-*/; do
-            [ -d "$dir" ] || continue
-            name=$(basename "$dir")
-            (cd "$dir" && zip -r "../../release-files/${name}.zip" .)
-          done
-          find artifacts/ \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.ipa" -o -name "*.flatpak" \) -mindepth 2 -exec mv {} release-files/ \;
-          find artifacts/ -name "*.apk" -mindepth 2 -exec mv {} release-files/ \;
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      - uses: softprops/action-gh-release@v2
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
         with:
-          generate_release_notes: true
-          files: release-files/*
+          name: stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+      - name: Install AppImage tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y squashfs-tools
+
+      - name: Build AppImage
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          tar -xzf "stack_wallet-linux-x86_64-${VERSION}.tar.gz"
+          mkdir -p AppDir
+          cp -r bundle/* AppDir/
+          cp appimage/stack_wallet/AppRun AppDir/AppRun
+          chmod +x AppDir/AppRun
+          cp appimage/stack_wallet/stack_wallet.desktop AppDir/
+          cp asset_sources/icon/stack_wallet/icon.png AppDir/stack_wallet.png
+          curl -fsSL -o appimagetool \
+            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+            "stack_wallet-appimage-x86_64-${VERSION}.AppImage"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_wallet-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
+          path: stack_wallet-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
+
+  build-campfire-android:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:android
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p android -a campfire -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Set up Android local.properties
+        run: |
+          cat > android/local.properties <<EOF
+          sdk.dir=${ANDROID_SDK_ROOT}
+          flutter.sdk=${FLUTTER_HOME}
+          EOF
+
+      - name: Set up signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
+          [ -s android/keystore-orig.jks ] || { echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is empty or not set"; exit 1; }
+          keytool -importkeystore \
+            -srckeystore android/keystore-orig.jks \
+            -destkeystore android/keystore.jks \
+            -deststoretype pkcs12 \
+            -srcstorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -deststorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -noprompt \
+            -J-Dkeystore.pkcs12.legacy
+          rm android/keystore-orig.jks
+          cat > android/key.properties <<EOF
+          storeFile=../keystore.jks
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          EOF
+
+      - name: Build APKs
+        run: flutter build apk --split-per-abi --release
+
+      - name: Build AAB
+        run: flutter build appbundle --release
+
+      - name: Collect artifacts
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          mkdir -p android-artifacts
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+             android-artifacts/campfire-android-arm64-v8a-${VERSION}.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+             android-artifacts/campfire-android-armeabi-v7a-${VERSION}.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+             android-artifacts/campfire-android-x86_64-${VERSION}.apk
+          cp build/app/outputs/bundle/release/app-release.aab \
+             android-artifacts/campfire-android-${VERSION}.aab
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-android-${{ steps.ver.outputs.version }}
+          path: android-artifacts/
+
+  build-campfire-windows:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p windows -a campfire -d -s
+
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/campfire"
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build secp256k1.dll for Windows
+        run: dart run coinlib:build_windows
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+            -DestinationPath "campfire-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+          path: campfire-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+
+  build-campfire-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p macos -a campfire -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build
+        run: flutter build macos --release
+
+      - name: Package
+        run: |
+          cd "build/macos/Build/Products/Release"
+          zip -r "$GITHUB_WORKSPACE/campfire-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
+            "Campfire.app"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-macos-aarch64-${{ steps.ver.outputs.version }}.zip
+          path: campfire-macos-aarch64-${{ steps.ver.outputs.version }}.zip
+
+  build-campfire-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Install additional Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add aarch64-apple-ios --toolchain 1.89.0
+          rustup target add x86_64-apple-ios --toolchain 1.89.0
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p ios -a campfire -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "campfire-ios-aarch64-${{ steps.ver.outputs.version }}.ipa" Payload/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
+          path: campfire-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
+
+  build-campfire-flatpak:
+    runs-on: ubuntu-24.04
+    needs: build-campfire-linux
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+      - name: Stage bundle and icon
+        run: |
+          tar -xzf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" -C flatpak/
+          cp asset_sources/icon/campfire/icon.png flatpak/com.cypherstack.campfire.png
+
+      - name: Install Flatpak tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Set up Flathub remote
+        run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Cache Flatpak SDK
+        uses: actions/cache@v5
+        with:
+          path: ~/.local/share/flatpak
+          key: flatpak-freedesktop-24.08-v1
+
+      - name: Install Flatpak SDK
+        run: |
+          flatpak install --user --noninteractive flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --force-clean \
+            --repo=flatpak-repo \
+            build-flatpak flatpak/com.cypherstack.campfire.yaml
+
+      - name: Bundle Flatpak
+        run: |
+          flatpak build-bundle flatpak-repo \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+            "campfire-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
+            com.cypherstack.campfire
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          path: campfire-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+
+  build-campfire-appimage:
+    runs-on: ubuntu-24.04
+    needs: build-campfire-linux
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+      - name: Install AppImage tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y squashfs-tools
+
+      - name: Build AppImage
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          tar -xzf "campfire-linux-x86_64-${VERSION}.tar.gz"
+          mkdir -p AppDir
+          cp -r bundle/* AppDir/
+          cp appimage/campfire/AppRun AppDir/AppRun
+          chmod +x AppDir/AppRun
+          cp appimage/campfire/campfire.desktop AppDir/
+          cp asset_sources/icon/campfire/icon.png AppDir/campfire.png
+          curl -fsSL -o appimagetool \
+            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+            "campfire-appimage-x86_64-${VERSION}.AppImage"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
+          path: campfire-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
+
+  build-stack-duo-android:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:android
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p android -a stack_duo -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Set up Android local.properties
+        run: |
+          cat > android/local.properties <<EOF
+          sdk.dir=${ANDROID_SDK_ROOT}
+          flutter.sdk=${FLUTTER_HOME}
+          EOF
+
+      - name: Set up signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
+          [ -s android/keystore-orig.jks ] || { echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is empty or not set"; exit 1; }
+          keytool -importkeystore \
+            -srckeystore android/keystore-orig.jks \
+            -destkeystore android/keystore.jks \
+            -deststoretype pkcs12 \
+            -srcstorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -deststorepass "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+            -noprompt \
+            -J-Dkeystore.pkcs12.legacy
+          rm android/keystore-orig.jks
+          cat > android/key.properties <<EOF
+          storeFile=../keystore.jks
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          EOF
+
+      - name: Build APKs
+        run: flutter build apk --split-per-abi --release
+
+      - name: Build AAB
+        run: flutter build appbundle --release
+
+      - name: Collect artifacts
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          mkdir -p android-artifacts
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+             android-artifacts/stack_duo-android-arm64-v8a-${VERSION}.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+             android-artifacts/stack_duo-android-armeabi-v7a-${VERSION}.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+             android-artifacts/stack_duo-android-x86_64-${VERSION}.apk
+          cp build/app/outputs/bundle/release/app-release.aab \
+             android-artifacts/stack_duo-android-${VERSION}.aab
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-android-${{ steps.ver.outputs.version }}
+          path: android-artifacts/
+
+  build-stack-duo-windows:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p windows -a stack_duo -d -s
+
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/stack_duo"
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build secp256k1.dll for Windows
+        run: dart run coinlib:build_windows
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+            -DestinationPath "stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+          path: stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+
+  build-stack-duo-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add aarch64-apple-darwin --toolchain 1.89.0
+          cargo install cargo-lipo
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p macos -a stack_duo -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build
+        run: flutter build macos --release
+
+      - name: Package
+        run: |
+          cd "build/macos/Build/Products/Release"
+          zip -r "$GITHUB_WORKSPACE/stack_duo-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
+            "Stack Duo.app"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-macos-aarch64-${{ steps.ver.outputs.version }}.zip
+          path: stack_duo-macos-aarch64-${{ steps.ver.outputs.version }}.zip
+
+  build-stack-duo-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Install additional Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add aarch64-apple-ios --toolchain 1.89.0
+          rustup target add x86_64-apple-ios --toolchain 1.89.0
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p ios -a stack_duo -d -s
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      - name: Build
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "stack_duo-ios-aarch64-${{ steps.ver.outputs.version }}.ipa" Payload/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
+          path: stack_duo-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
+
+  build-stack-duo-flatpak:
+    runs-on: ubuntu-24.04
+    needs: build-stack-duo-linux
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+      - name: Stage bundle and icon
+        run: |
+          tar -xzf "stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" -C flatpak/
+          cp asset_sources/icon/stack_duo/icon.png flatpak/com.cypherstack.stackduo.png
+
+      - name: Install Flatpak tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Set up Flathub remote
+        run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Cache Flatpak SDK
+        uses: actions/cache@v5
+        with:
+          path: ~/.local/share/flatpak
+          key: flatpak-freedesktop-24.08-v1
+
+      - name: Install Flatpak SDK
+        run: |
+          flatpak install --user --noninteractive flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --force-clean \
+            --repo=flatpak-repo \
+            build-flatpak flatpak/com.cypherstack.stackduo.yaml
+
+      - name: Bundle Flatpak
+        run: |
+          flatpak build-bundle flatpak-repo \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+            "stack_duo-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak" \
+            com.cypherstack.stackduo
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+          path: stack_duo-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
+
+  build-stack-duo-appimage:
+    runs-on: ubuntu-24.04
+    needs: build-stack-duo-linux
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz
+
+      - name: Install AppImage tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y squashfs-tools
+
+      - name: Build AppImage
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          tar -xzf "stack_duo-linux-x86_64-${VERSION}.tar.gz"
+          mkdir -p AppDir
+          cp -r bundle/* AppDir/
+          cp appimage/stack_duo/AppRun AppDir/AppRun
+          chmod +x AppDir/AppRun
+          cp appimage/stack_duo/stack_duo.desktop AppDir/
+          cp asset_sources/icon/stack_duo/icon.png AppDir/stack_duo.png
+          curl -fsSL -o appimagetool \
+            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+            "stack_duo-appimage-x86_64-${VERSION}.AppImage"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
+          path: stack_duo-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
+

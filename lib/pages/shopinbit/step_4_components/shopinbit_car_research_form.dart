@@ -3,13 +3,19 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_svg/flutter_svg.dart";
 
 import "../../../models/shopinbit/shopinbit_order_model.dart";
 import "../../../providers/db/drift_provider.dart";
 import "../../../themes/stack_colors.dart";
+import "../../../utilities/assets.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/desktop/primary_button.dart";
+import "../../../widgets/desktop/secondary_button.dart";
 import "../../../widgets/rounded_white_container.dart";
+import "../../../widgets/stack_dialog.dart";
+import "../../../widgets/textfields/adaptive_text_field.dart";
 import "../shopinbit_car_fee_view.dart";
 import "../shopinbit_tickets_view.dart";
 import "shopinbit_country_picker.dart";
@@ -18,7 +24,6 @@ import "shopinbit_privacy_checkbox.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit_button.dart";
-import "shopinbit_step4_text_field.dart";
 
 const List<String> _carConditions = ["NEW", "PREOWNED"];
 
@@ -134,22 +139,22 @@ class _ShopInBitCarResearchFormState
         final bool? resumePrevious = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text("In-Progress Car Research"),
-            content: const Text(
-              "You have an unfinished car research payment. "
-              "Would you like to resume it or start a new search?",
+          builder: (context) => StackDialog(
+            width: Util.isDesktop ? 500 : null,
+            title: "In-Progress Car Research",
+            message:
+                "You have an unfinished car research payment. "
+                "Would you like to resume it or start a new search?",
+            leftButton: SecondaryButton(
+              label: "New",
+              buttonHeight: Util.isDesktop ? .l : null,
+              onPressed: Navigator.of(context).pop,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text("Resume Previous"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text("Start New"),
-              ),
-            ],
+            rightButton: PrimaryButton(
+              label: "Resume",
+              buttonHeight: Util.isDesktop ? .l : null,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
           ),
         );
 
@@ -166,21 +171,11 @@ class _ShopInBitCarResearchFormState
 
       if (!mounted) return;
 
-      if (Util.isDesktop) {
-        Navigator.of(context, rootNavigator: true).pop();
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (_) => ShopInBitCarFeeView(model: widget.model),
-          ),
-        );
-      } else {
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(ShopInBitCarFeeView.routeName, arguments: widget.model),
-        );
-      }
+      unawaited(
+        Navigator.of(
+          context,
+        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: widget.model),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -231,18 +226,22 @@ class _ShopInBitCarResearchFormState
           onChanged: (iso) => setState(() => _selectedCountryIso = iso),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _brandController,
           focusNode: _brandFocusNode,
-          hintText: "Car brand (e.g., BMW, Mercedes, Toyota...)",
+          labelText: "Car brand (e.g., BMW, Mercedes, Toyota...)",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: brandError,
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _modelController,
           focusNode: _modelFocusNode,
-          hintText: "Car model (e.g., 3 Series, E-Class, Camry...)",
+          labelText: "Car model (e.g., 3 Series, E-Class, Camry...)",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: modelError,
           onChanged: (_) => setState(() {}),
         ),
@@ -254,25 +253,29 @@ class _ShopInBitCarResearchFormState
           onChanged: (value) => setState(() => _selectedCarCondition = value),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _carDescriptionController,
           focusNode: _carDescriptionFocusNode,
-          hintText:
+          labelText:
               "Describe your requirements "
               "(year, mileage, features...)",
           minLines: 3,
           maxLines: 6,
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: carDescriptionError,
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _carBudgetController,
           focusNode: _carBudgetFocusNode,
-          hintText: "Budget (\u20AC, minimum 20,000)",
+          labelText: "Budget (\u20AC, minimum 20,000)",
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           suffixText: "\u20AC",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: carBudgetError,
           onChanged: (_) => setState(() {}),
         ),
@@ -284,12 +287,12 @@ class _ShopInBitCarResearchFormState
           onChanged: (v) => setState(() => _feeAcknowledged = v),
           label: "I acknowledge the \u20AC223 research fee",
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        const SizedBox(height: 24),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        const SizedBox(height: 32),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,
@@ -313,15 +316,22 @@ class _CarResearchFeeInfo extends StatelessWidget {
         : STextStyles.w500_14(context);
 
     return RoundedWhiteContainer(
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 20,
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconLeft,
+          SvgPicture.asset(
+            Assets.svg.circleInfo,
+            width: 20,
+            height: 20,
+            colorFilter: ColorFilter.mode(
+              Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconLeft,
+              .srcIn,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

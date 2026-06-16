@@ -7,6 +7,8 @@ import "../../../providers/db/drift_provider.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/date_picker/date_picker.dart";
+import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
@@ -14,7 +16,6 @@ import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit.dart";
 import "shopinbit_step4_submit_button.dart";
-import "shopinbit_step4_text_field.dart";
 import "shopinbit_traveler_counter.dart";
 
 const String _exactDates = "Exact dates";
@@ -82,14 +83,8 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
   final FocusNode _destinationsFocusNode = FocusNode();
   bool _destinationsTouched = false;
 
-  final TextEditingController _departureDateController =
-      TextEditingController();
-  final FocusNode _departureDateFocusNode = FocusNode();
-  bool _departureDateTouched = false;
-
-  final TextEditingController _returnDateController = TextEditingController();
-  final FocusNode _returnDateFocusNode = FocusNode();
-  bool _returnDateTouched = false;
+  DateTime? _departureDate;
+  DateTime? _returnDate;
 
   final TextEditingController _tripLengthController = TextEditingController();
   final FocusNode _tripLengthFocusNode = FocusNode();
@@ -129,11 +124,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       () => _departureCityTouched = true,
     );
     _wireTouchOnBlur(_destinationsFocusNode, () => _destinationsTouched = true);
-    _wireTouchOnBlur(
-      _departureDateFocusNode,
-      () => _departureDateTouched = true,
-    );
-    _wireTouchOnBlur(_returnDateFocusNode, () => _returnDateTouched = true);
     _wireTouchOnBlur(_tripLengthFocusNode, () => _tripLengthTouched = true);
     _wireTouchOnBlur(_travelBudgetFocusNode, () => _travelBudgetTouched = true);
   }
@@ -153,10 +143,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
     _departureCityFocusNode.dispose();
     _destinationsController.dispose();
     _destinationsFocusNode.dispose();
-    _departureDateController.dispose();
-    _departureDateFocusNode.dispose();
-    _returnDateController.dispose();
-    _returnDateFocusNode.dispose();
     _tripLengthController.dispose();
     _tripLengthFocusNode.dispose();
     _travelBudgetController.dispose();
@@ -169,9 +155,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       _selectedYear != null &&
           _selectedMonthSeason != null &&
           _tripLengthController.text.trim().isNotEmpty,
-    _exactDates =>
-      _departureDateController.text.trim().isNotEmpty &&
-          _returnDateController.text.trim().isNotEmpty,
+    _exactDates => _departureDate != null && _returnDate != null,
     _ => false,
   };
 
@@ -193,24 +177,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         _adults >= 1 &&
         travelBudgetValue != null &&
         travelBudgetValue >= _minTravelBudget;
-  }
-
-  Future<void> _pickDate(
-    TextEditingController target,
-    VoidCallback onPicked,
-  ) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 3650)),
-    );
-    if (picked != null) {
-      setState(() {
-        target.text = _formatDate(picked);
-        onPicked();
-      });
-    }
   }
 
   String _formatDate(DateTime date) {
@@ -239,8 +205,8 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           ? " ($_selectedFlexibility)"
           : "";
       parts.add(
-        "Dates: ${_departureDateController.text.trim()} - "
-        "${_returnDateController.text.trim()}$flex",
+        "Dates: ${_formatDate(_departureDate!)} - "
+        "${_formatDate(_returnDate!)}$flex",
       );
     } else if (_selectedDateMode == _flexibleDates) {
       parts.add(
@@ -309,16 +275,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         ? "Required (or check 'I need recommendations')"
         : null;
 
-    final String? departureDateError =
-        _departureDateTouched && _departureDateController.text.trim().isEmpty
-        ? "Required"
-        : null;
-
-    final String? returnDateError =
-        _returnDateTouched && _returnDateController.text.trim().isEmpty
-        ? "Required"
-        : null;
-
     final String? tripLengthError =
         _tripLengthTouched && _tripLengthController.text.trim().isEmpty
         ? "Required"
@@ -353,15 +309,17 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           hintText: "Arrangement type",
           onChanged: (value) => setState(() => _selectedArrangement = value),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        ShopInBitStep4TextField(
+        SizedBox(height: isDesktop ? 24 : 16),
+        AdaptiveTextField(
           controller: _arrangementDetailsController,
           focusNode: _arrangementDetailsFocusNode,
-          hintText:
+          labelText:
               "Describe your specific requirements "
               "(luggage, cabin class, hotel stars, etc.)",
           minLines: 3,
           maxLines: 6,
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: arrangementDetailsError,
           onChanged: (_) => setState(() {}),
         ),
@@ -375,24 +333,28 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
               setState(() => _selectedDepartureCountryIso = iso),
           hintText: "Departure country",
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        ShopInBitStep4TextField(
+        SizedBox(height: isDesktop ? 24 : 16),
+        AdaptiveTextField(
           controller: _departureCityController,
           focusNode: _departureCityFocusNode,
-          hintText: "Departure city",
+          labelText: "Departure city",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: departureCityError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        ShopInBitStep4TextField(
+        SizedBox(height: isDesktop ? 24 : 16),
+        AdaptiveTextField(
           controller: _destinationsController,
           focusNode: _destinationsFocusNode,
-          hintText: "e.g. Paris, France; Rome, Italy",
+          labelText: "Destination city",
           enabled: !_needsRecommendations,
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: destinationsError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 12 : 8),
+        SizedBox(height: isDesktop ? 16 : 12),
         ShopInBitLabeledCheckbox(
           value: _needsRecommendations,
           onChanged: (v) => setState(() => _needsRecommendations = v),
@@ -408,37 +370,22 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           hintText: "Date mode",
           onChanged: (value) => setState(() => _selectedDateMode = value),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        SizedBox(height: isDesktop ? 24 : 16),
 
         if (_selectedDateMode == _exactDates) ...[
-          ShopInBitStep4TextField(
-            controller: _departureDateController,
-            focusNode: _departureDateFocusNode,
-            hintText: "DD/MM/YYYY",
-            labelText: "Departure date",
-            readOnly: true,
-            onTap: () => _pickDate(
-              _departureDateController,
-              () => _departureDateTouched = true,
-            ),
-            suffixIcon: const Icon(Icons.calendar_today, size: 18),
-            errorText: departureDateError,
+          StackDateRangePicker(
+            fromDate: _departureDate,
+            toDate: _returnDate,
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 3650)),
+            onChanged: (from, to) {
+              setState(() {
+                _departureDate = from;
+                _returnDate = to;
+              });
+            },
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
-          ShopInBitStep4TextField(
-            controller: _returnDateController,
-            focusNode: _returnDateFocusNode,
-            hintText: "DD/MM/YYYY",
-            labelText: "Return date",
-            readOnly: true,
-            onTap: () => _pickDate(
-              _returnDateController,
-              () => _returnDateTouched = true,
-            ),
-            suffixIcon: const Icon(Icons.calendar_today, size: 18),
-            errorText: returnDateError,
-          ),
-          SizedBox(height: isDesktop ? 16 : 12),
+          SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4Dropdown(
             value: _selectedFlexibility,
             items: _flexibilities,
@@ -454,20 +401,22 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             hintText: "Year",
             onChanged: (value) => setState(() => _selectedYear = value),
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
+          SizedBox(height: isDesktop ? 24 : 16),
           ShopInBitStep4Dropdown(
             value: _selectedMonthSeason,
             items: _months,
-            hintText: "Month or season",
+            hintText: "Month",
             onChanged: (value) => setState(() => _selectedMonthSeason = value),
           ),
-          SizedBox(height: isDesktop ? 16 : 12),
-          ShopInBitStep4TextField(
+          SizedBox(height: isDesktop ? 24 : 16),
+          AdaptiveTextField(
             controller: _tripLengthController,
             focusNode: _tripLengthFocusNode,
-            hintText: "Number of nights",
+            labelText: "Number of nights",
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            autocorrect: false,
+            enableSuggestions: false,
             errorText: tripLengthError,
             onChanged: (_) => setState(() {}),
           ),
@@ -504,25 +453,27 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         SizedBox(height: isDesktop ? 24 : 16),
         _TravelSectionLabel(text: "Budget", isDesktop: isDesktop),
         SizedBox(height: isDesktop ? 12 : 8),
-        ShopInBitStep4TextField(
+        AdaptiveTextField(
           controller: _travelBudgetController,
           focusNode: _travelBudgetFocusNode,
-          hintText: "Minimum 1000 EUR",
+          labelText: "Minimum 1000 EUR",
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           suffixText: "EUR",
+          autocorrect: false,
+          enableSuggestions: false,
           errorText: travelBudgetError,
           onChanged: (_) => setState(() {}),
         ),
 
         // Travel doesn't collect delivery country: destinations are in the
         // form and the API field is set to "DE" on submit.
-        SizedBox(height: isDesktop ? 16 : 12),
+        const SizedBox(height: 24),
         ShopInBitPrivacyCheckbox(
           value: _privacyAccepted,
           onChanged: (v) => setState(() => _privacyAccepted = v),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
+        const SizedBox(height: 32),
         ShopInBitStep4SubmitButton(
           submitting: _submitting,
           enabled: _canContinue,

@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show TableOrViewStatements;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -262,25 +261,13 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                       onPressed: _showShopDialog,
                     ),
                     const SizedBox(height: 12),
-                    StreamBuilder(
-                      stream: ref
-                          .watch(pSharedDrift)
-                          .shopInBitTickets
-                          .count()
-                          .watchSingleOrNull(),
-                      builder: (context, snapshot) {
-                        final count = snapshot.data ?? 0;
-                        return SecondaryButton(
-                          label: count > 0
-                              ? "My requests ($count)"
-                              : "My requests",
-                          onPressed: () async {
-                            await Navigator.of(
-                              context,
-                            ).pushNamed(ShopInBitTicketsView.routeName);
-                            if (mounted) setState(() {});
-                          },
-                        );
+                    SecondaryButton(
+                      label: "My requests",
+                      onPressed: () async {
+                        await Navigator.of(
+                          context,
+                        ).pushNamed(ShopInBitTicketsView.routeName);
+                        if (mounted) setState(() {});
                       },
                     ),
                   ],

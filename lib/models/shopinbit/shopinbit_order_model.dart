@@ -142,6 +142,19 @@ class ShopInBitOrderModel extends ChangeNotifier {
     }
   }
 
+  // The most recent raw API state string, persisted alongside _status so that
+  // we can recover from contract drift (renames / new states) without losing
+  // history. _status is the parsed/mapped value; _statusRaw is the source of
+  // truth straight from the API.
+  String? _statusRaw;
+  String? get statusRaw => _statusRaw;
+  set statusRaw(String? value) {
+    if (_statusRaw != value) {
+      _statusRaw = value;
+      notifyListeners();
+    }
+  }
+
   String? _offerProductName;
   String? get offerProductName => _offerProductName;
 
@@ -277,6 +290,7 @@ class ShopInBitOrderModel extends ChangeNotifier {
       displayName: Value(_displayName),
       category: Value(_category ?? ShopInBitCategory.concierge),
       status: Value(_status),
+      statusRaw: Value(_statusRaw),
       requestDescription: Value(_requestDescription),
       deliveryCountry: Value(_deliveryCountry),
       offerProductName: Value(_offerProductName),
@@ -316,6 +330,7 @@ class ShopInBitOrderModel extends ChangeNotifier {
       .._apiTicketId = ticket.apiTicketId
       .._ticketId = ticket.ticketId
       .._status = ticket.status
+      .._statusRaw = ticket.statusRaw
       .._requestDescription = ticket.requestDescription
       .._deliveryCountry = ticket.deliveryCountry
       .._offerProductName = ticket.offerProductName
@@ -335,7 +350,7 @@ class ShopInBitOrderModel extends ChangeNotifier {
       .._messages = messages;
   }
 
-  static ShopInBitOrderStatus statusFromTicketState(TicketState state) {
+  static ShopInBitOrderStatus? statusFromTicketState(TicketState state) {
     switch (state) {
       case TicketState.newTicket:
         return ShopInBitOrderStatus.pending;
@@ -360,6 +375,8 @@ class ShopInBitOrderModel extends ChangeNotifier {
         return ShopInBitOrderStatus.cancelled;
       case TicketState.refunded:
         return ShopInBitOrderStatus.refunded;
+      case TicketState.unknown:
+        return null;
     }
   }
 }
