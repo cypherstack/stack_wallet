@@ -225,8 +225,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        // "https://explorer.fact0rn.io/tx/$txid" doesn't show mempool transactions
-        return Uri.parse("https://factexplorer.io/tx/$txid");
+        return Uri.parse("https://explorer.fact0rn.io/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
