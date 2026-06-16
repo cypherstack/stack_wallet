@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../models/epic_slatepack_models.dart';
@@ -68,6 +69,8 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../widgets/dialogs/s_dialog.dart';
+import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/epic_txs_method_toggle.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
@@ -82,6 +85,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
+import '../masternodes/masternode_constants.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -143,6 +147,8 @@ class _SendViewState extends ConsumerState<SendView> {
   late final bool hasOptionalMemo;
   late final bool isFiro;
   late final bool isEth;
+  late final bool _isMasternodeCollateralSelfSend;
+  late final bool _isMasternodeCollateralUnshield;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -288,6 +294,104 @@ class _SendViewState extends ConsumerState<SendView> {
         });
       }
     }
+  }
+
+  Future<void> _pickMyAddressForMasternodeCollateral() async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! FiroWallet) {
+      return;
+    }
+
+    var currentAddress = await wallet.getCurrentReceivingAddress();
+    if (currentAddress == null) {
+      await wallet.generateNewReceivingAddress();
+      currentAddress = await wallet.getCurrentReceivingAddress();
+    }
+
+    final allWalletAddresses = await wallet.mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAll();
+
+    final transparentAddresses = allWalletAddresses
+        .where((e) => e.type != AddressType.spark)
+        .map((e) => e.value)
+        .where((String e) => e.isNotEmpty)
+        .toSet();
+
+    if (currentAddress != null &&
+        wallet.cryptoCurrency.getAddressType(currentAddress.value) !=
+            AddressType.spark) {
+      transparentAddresses.add(currentAddress.value);
+    }
+
+    final addresses = <String>{...transparentAddresses}.toList()..sort();
+
+    if (!mounted || addresses.isEmpty) {
+      return;
+    }
+
+    final selectedAddress = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SDialog(
+        contentCanScroll: false,
+        padding: EdgeInsets.all(Util.isDesktop ? 32 : 16),
+        child: SizedBox(
+          width: Util.isDesktop ? 520 : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Choose your address",
+                style: Util.isDesktop
+                    ? STextStyles.desktopH3(ctx)
+                    : STextStyles.pageTitleH2(ctx),
+              ),
+              const SizedBox(height: 16),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: addresses.length,
+                  itemBuilder: (_, index) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      addresses[index],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Util.isDesktop
+                          ? STextStyles.w500_16(ctx)
+                          : STextStyles.w500_14(ctx),
+                    ),
+                    onTap: () => Navigator.of(ctx).pop(addresses[index]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SecondaryButton(
+                buttonHeight: ButtonHeight.l,
+                label: "Cancel",
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (selectedAddress == null) {
+      return;
+    }
+
+    _address = selectedAddress;
+    sendToController.text = selectedAddress;
+    _setValidAddressProviders(_address);
+    setState(() {
+      _addressToggleFlag = true;
+    });
   }
 
   Future<void> _scanQr() async {
@@ -1147,7 +1251,11 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: txData,
                 walletId: walletId,
                 isPaynymTransaction: isPaynymSend,
-                onSuccess: clearSendForm,
+                onSuccess: () {
+                  if (mounted) {
+                    clearSendForm();
+                  }
+                },
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -1343,8 +1451,21 @@ class _SendViewState extends ConsumerState<SendView> {
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
+    _isMasternodeCollateralUnshield =
+        MasternodeCollateralNotes.isUnshield(_data?.note) && isFiro;
+    _isMasternodeCollateralSelfSend =
+        (MasternodeCollateralNotes.isPrep(_data?.note) ||
+            _isMasternodeCollateralUnshield) &&
+        isFiro;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isMasternodeCollateralUnshield) {
+        ref.read(publicPrivateBalanceStateProvider.state).state =
+            BalanceType.private;
+      } else if (_isMasternodeCollateralSelfSend) {
+        ref.read(publicPrivateBalanceStateProvider.state).state =
+            BalanceType.public;
+      }
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
@@ -1554,12 +1675,10 @@ class _SendViewState extends ConsumerState<SendView> {
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 50));
-              }
-              if (context.mounted) {
+            onPressed: () {
+              if (_isMasternodeCollateralSelfSend) {
+                Navigator.of(context).pop();
+              } else {
                 Navigator.of(context).pop();
               }
             },
@@ -1911,6 +2030,18 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         arguments: widget.coin,
                                                       );
                                                     },
+                                                    child:
+                                                        const AddressBookIcon(),
+                                                  ),
+                                                if (_isMasternodeCollateralSelfSend)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "My addresses button. Opens your wallet addresses for collateral self-send.",
+                                                    key: const Key(
+                                                      "sendViewMyAddressesButtonKey",
+                                                    ),
+                                                    onTap:
+                                                        _pickMyAddressForMasternodeCollateral,
                                                     child:
                                                         const AddressBookIcon(),
                                                   ),
