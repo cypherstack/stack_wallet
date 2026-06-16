@@ -852,6 +852,63 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
+    // Add OP_RETURN output if provided (for Rosen Bridge and other protocols)
+    // Currently only supported for Firo
+    if (cryptoCurrency is Firo &&
+        txData.opReturnData != null &&
+        txData.opReturnData!.isNotEmpty) {
+      try {
+        final opReturnBytes = txData.opReturnData!.toUint8ListFromHex;
+
+        // Validate OP_RETURN size (Bitcoin/Firo limit is 80 bytes)
+        if (opReturnBytes.length > 80) {
+          throw Exception(
+            "OP_RETURN data exceeds 80 byte limit: ${opReturnBytes.length} bytes",
+          );
+        }
+
+        // Encode push data: OP_PUSHDATA1 (0x4c) for 76-80 bytes, direct length otherwise
+        final pushData = opReturnBytes.length <= 75
+            ? Uint8List.fromList([opReturnBytes.length, ...opReturnBytes])
+            : Uint8List.fromList([
+                0x4c,
+                opReturnBytes.length,
+                ...opReturnBytes,
+              ]);
+
+        final opReturnScript = Uint8List.fromList([
+          0x6a, // OP_RETURN opcode
+          ...pushData,
+        ]);
+
+        final opReturnOutput = coinlib.Output.fromScriptBytes(
+          BigInt.zero, // OP_RETURN outputs have 0 value
+          opReturnScript,
+        );
+
+        clTx = clTx.addOutput(opReturnOutput);
+
+        Logging.instance.i(
+          "Added OP_RETURN output with ${opReturnBytes.length} bytes of data",
+        );
+
+        tempOutputs.add(
+          OutputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptPubKeyHex: opReturnScript.toHex,
+            valueStringSats: "0",
+            addresses: [],
+            walletOwns: false,
+          ),
+        );
+      } catch (e, s) {
+        Logging.instance.e(
+          "Failed to add OP_RETURN output",
+          error: e,
+          stackTrace: s,
+        );
+        throw Exception("Invalid OP_RETURN data: $e");
+      }
+    }
     if (isMweb) {
       if (hasNonWitnessInput) {
         throw Exception("Found non witness input in mweb tx");

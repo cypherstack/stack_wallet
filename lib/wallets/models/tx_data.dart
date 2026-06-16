@@ -112,6 +112,9 @@ class TxData {
 
   final bool salviumStakeTx;
 
+  // Generic OP_RETURN data (hex string) - for Rosen Bridge and other protocols
+  final String? opReturnData;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -149,6 +152,7 @@ class TxData {
     this.sparkNameInfo,
     this.vExtraData,
     this.overrideVersion,
+    this.opReturnData,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
   });
@@ -263,6 +267,7 @@ class TxData {
     String? noteOnChain,
     String? memo,
     String? otherData,
+    String? opReturnData,
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
@@ -341,6 +346,7 @@ class TxData {
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
       vExtraData: vExtraData ?? this.vExtraData,
       overrideVersion: overrideVersion ?? this.overrideVersion,
+      opReturnData: opReturnData ?? this.opReturnData,
       type: type ?? this.type,
     );
   }
@@ -383,6 +389,7 @@ class TxData {
       'sparkNameInfo: $sparkNameInfo, '
       'vExtraData: ${vExtraData?.toHex}, '
       'overrideVersion: $overrideVersion, '
+      'opReturnData: $opReturnData, '
       'type: $type, '
       '}';
 }
