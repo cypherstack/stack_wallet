@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../models/epic_slatepack_models.dart';
@@ -68,6 +69,8 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../widgets/dialogs/s_dialog.dart';
+import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/epic_txs_method_toggle.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
@@ -82,6 +85,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
+import '../masternodes/masternode_constants.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -143,6 +147,8 @@ class _SendViewState extends ConsumerState<SendView> {
   late final bool hasOptionalMemo;
   late final bool isFiro;
   late final bool isEth;
+  late final bool _isMasternodeCollateralSelfSend;
+  late final bool _isMasternodeCollateralUnshield;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -160,7 +166,6 @@ class _SendViewState extends ConsumerState<SendView> {
     try {
       // auto fill address
       _address = paymentData.address.trim();
-      sendToController.text = _address!;
 
       // autofill notes field
       if (paymentData.message != null) {
@@ -180,7 +185,25 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(pSendAmount.notifier).state = amount;
       }
 
+      // Extract OP_RETURN data if present (for Rosen Bridge and other protocols)
+      // Must be set BEFORE sendToController.text to avoid re-entrant
+      // onChanged handler reading stale null value.
+      if (paymentData.additionalParams.containsKey('op_return')) {
+        final data = paymentData.additionalParams['op_return'];
+        _setOpReturnData(data);
+        Logging.instance.i(
+          "Extracted OP_RETURN data from URI, length: ${data!.length ~/ 2} bytes",
+        );
+      } else {
+        _setOpReturnData(null);
+      }
+
       _setValidAddressProviders(_address);
+
+      // Assign controller.text last — it triggers onChanged which depends
+      // on pOpReturnData already being set above.
+      sendToController.text = _address!;
+
       setState(() {
         _addressToggleFlag = sendToController.text.isNotEmpty;
       });
@@ -240,6 +263,7 @@ class _SendViewState extends ConsumerState<SendView> {
             paymentData.coin?.uriScheme == coin.uriScheme) {
           _applyUri(paymentData);
         } else {
+          _setOpReturnData(null);
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
@@ -253,6 +277,7 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         }
       } catch (e) {
+        _setOpReturnData(null);
         // strip http:// and https:// if content contains @
         if (coin is Epiccash) {
           content = AddressUtils().formatEpicCashAddress(content);
@@ -269,6 +294,104 @@ class _SendViewState extends ConsumerState<SendView> {
         });
       }
     }
+  }
+
+  Future<void> _pickMyAddressForMasternodeCollateral() async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! FiroWallet) {
+      return;
+    }
+
+    var currentAddress = await wallet.getCurrentReceivingAddress();
+    if (currentAddress == null) {
+      await wallet.generateNewReceivingAddress();
+      currentAddress = await wallet.getCurrentReceivingAddress();
+    }
+
+    final allWalletAddresses = await wallet.mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAll();
+
+    final transparentAddresses = allWalletAddresses
+        .where((e) => e.type != AddressType.spark)
+        .map((e) => e.value)
+        .where((String e) => e.isNotEmpty)
+        .toSet();
+
+    if (currentAddress != null &&
+        wallet.cryptoCurrency.getAddressType(currentAddress.value) !=
+            AddressType.spark) {
+      transparentAddresses.add(currentAddress.value);
+    }
+
+    final addresses = <String>{...transparentAddresses}.toList()..sort();
+
+    if (!mounted || addresses.isEmpty) {
+      return;
+    }
+
+    final selectedAddress = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SDialog(
+        contentCanScroll: false,
+        padding: EdgeInsets.all(Util.isDesktop ? 32 : 16),
+        child: SizedBox(
+          width: Util.isDesktop ? 520 : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Choose your address",
+                style: Util.isDesktop
+                    ? STextStyles.desktopH3(ctx)
+                    : STextStyles.pageTitleH2(ctx),
+              ),
+              const SizedBox(height: 16),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: addresses.length,
+                  itemBuilder: (_, index) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      addresses[index],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Util.isDesktop
+                          ? STextStyles.w500_16(ctx)
+                          : STextStyles.w500_14(ctx),
+                    ),
+                    onTap: () => Navigator.of(ctx).pop(addresses[index]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SecondaryButton(
+                buttonHeight: ButtonHeight.l,
+                label: "Cancel",
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (selectedAddress == null) {
+      return;
+    }
+
+    _address = selectedAddress;
+    sendToController.text = selectedAddress;
+    _setValidAddressProviders(_address);
+    setState(() {
+      _addressToggleFlag = true;
+    });
   }
 
   Future<void> _scanQr() async {
@@ -306,6 +429,7 @@ class _SendViewState extends ConsumerState<SendView> {
           paymentData.coin?.uriScheme == coin.uriScheme) {
         _applyUri(paymentData);
       } else {
+        _setOpReturnData(null);
         _address = qrResult.rawContent!.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -524,11 +648,50 @@ class _SendViewState extends ConsumerState<SendView> {
   Map<Amount, String> cachedFiroSparkFees = {};
   Map<Amount, String> cachedFiroPublicFees = {};
 
+  void _setOpReturnData(String? data) {
+    if (!mounted) {
+      return;
+    }
+    ref.read(pOpReturnData.notifier).state = data;
+  }
+
+  Amount _addOpReturnFeeIfNeeded({
+    required Amount fee,
+    required BigInt feeRate,
+    required FiroWallet wallet,
+  }) {
+    final opReturnData = ref.read(pOpReturnData);
+    if (opReturnData == null ||
+        opReturnData.isEmpty ||
+        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
+      return fee;
+    }
+
+    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
+      opReturnData,
+    );
+    final extraFee = wallet.estimateTxFee(
+      vSize: extraOutputVSize,
+      feeRatePerKB: feeRate,
+    );
+
+    return fee +
+        Amount(
+          rawValue: BigInt.from(extraFee),
+          fractionDigits: coin.fractionDigits,
+        );
+  }
+
   Future<String> calculateFees(Amount amount) async {
+    final hasOpReturnData =
+        isFiro &&
+        ref.read(publicPrivateBalanceStateProvider) == BalanceType.public &&
+        (ref.read(pOpReturnData)?.isNotEmpty ?? false);
+
     if (isFiro) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
-          if (cachedFiroPublicFees[amount] != null) {
+          if (!hasOpReturnData && cachedFiroPublicFees[amount] != null) {
             return cachedFiroPublicFees[amount]!;
           }
           break;
@@ -590,10 +753,18 @@ class _SendViewState extends ConsumerState<SendView> {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           fee = await firoWallet.estimateFeeFor(amount, feeRate);
-          cachedFiroPublicFees[amount] = ref
+          fee = _addOpReturnFeeIfNeeded(
+            fee: fee,
+            feeRate: feeRate,
+            wallet: firoWallet,
+          );
+          final formatted = ref
               .read(pAmountFormatter(coin))
               .format(fee, withUnitName: true, indicatePrecisionLoss: false);
-          return cachedFiroPublicFees[amount]!;
+          if (!hasOpReturnData) {
+            cachedFiroPublicFees[amount] = formatted;
+          }
+          return formatted;
 
         case BalanceType.private:
           fee = await firoWallet.estimateFeeForSpark(amount);
@@ -923,6 +1094,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
+            opReturnData: ref.read(pOpReturnData),
           ),
         );
       } else if (wallet is FiroWallet) {
@@ -964,6 +1136,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
+                  opReturnData: ref.read(pOpReturnData),
                 ),
               );
             }
@@ -1078,7 +1251,11 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: txData,
                 walletId: walletId,
                 isPaynymTransaction: isPaynymSend,
-                onSuccess: clearSendForm,
+                onSuccess: () {
+                  if (mounted) {
+                    clearSendForm();
+                  }
+                },
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -1127,6 +1304,9 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void clearSendForm() {
+    if (!mounted) {
+      return;
+    }
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -1136,9 +1316,8 @@ class _SendViewState extends ConsumerState<SendView> {
     memoController.text = "";
     _address = "";
     _addressToggleFlag = false;
-    if (mounted) {
-      setState(() {});
-    }
+    _setOpReturnData(null);
+    setState(() {});
   }
 
   String _getSendAllTitle(
@@ -1213,6 +1392,7 @@ class _SendViewState extends ConsumerState<SendView> {
       if (parsed != null) {
         _applyUri(parsed);
       } else {
+        _setOpReturnData(null);
         sendToController.text = content;
         _address = content;
 
@@ -1271,8 +1451,21 @@ class _SendViewState extends ConsumerState<SendView> {
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
+    _isMasternodeCollateralUnshield =
+        MasternodeCollateralNotes.isUnshield(_data?.note) && isFiro;
+    _isMasternodeCollateralSelfSend =
+        (MasternodeCollateralNotes.isPrep(_data?.note) ||
+            _isMasternodeCollateralUnshield) &&
+        isFiro;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isMasternodeCollateralUnshield) {
+        ref.read(publicPrivateBalanceStateProvider.state).state =
+            BalanceType.private;
+      } else if (_isMasternodeCollateralSelfSend) {
+        ref.read(publicPrivateBalanceStateProvider.state).state =
+            BalanceType.public;
+      }
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
@@ -1482,12 +1675,10 @@ class _SendViewState extends ConsumerState<SendView> {
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 50));
-              }
-              if (context.mounted) {
+            onPressed: () {
+              if (_isMasternodeCollateralSelfSend) {
+                Navigator.of(context).pop();
+              } else {
                 Navigator.of(context).pop();
               }
             },
@@ -1726,9 +1917,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     final trimmed = newValue.trim();
 
                                     if ((trimmed.length -
-                                                (_address?.length ?? 0))
-                                            .abs() >
-                                        1) {
+                                                    (_address?.length ?? 0))
+                                                .abs() >
+                                            1 ||
+                                        trimmed.contains(':')) {
                                       final parsed =
                                           AddressUtils.parsePaymentUri(
                                             trimmed,
@@ -1737,11 +1929,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                       if (parsed != null) {
                                         _applyUri(parsed);
                                       } else {
+                                        _setOpReturnData(null);
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
                                         );
                                       }
                                     } else {
+                                      _setOpReturnData(null);
                                       await _checkSparkNameAndOrSetAddress(
                                         newValue,
                                         setController: false,
@@ -1791,6 +1985,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                   .text =
                                                               "";
                                                           _address = "";
+                                                          _setOpReturnData(
+                                                            null,
+                                                          );
                                                           _setValidAddressProviders(
                                                             _address,
                                                           );
@@ -1833,6 +2030,18 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         arguments: widget.coin,
                                                       );
                                                     },
+                                                    child:
+                                                        const AddressBookIcon(),
+                                                  ),
+                                                if (_isMasternodeCollateralSelfSend)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel:
+                                                        "My addresses button. Opens your wallet addresses for collateral self-send.",
+                                                    key: const Key(
+                                                      "sendViewMyAddressesButtonKey",
+                                                    ),
+                                                    onTap:
+                                                        _pickMyAddressForMasternodeCollateral,
                                                     child:
                                                         const AddressBookIcon(),
                                                   ),
@@ -1947,6 +2156,38 @@ class _SendViewState extends ConsumerState<SendView> {
                                           ),
                                         ),
                                       ),
+                                ),
+                              ),
+                            if (ref.watch(pOpReturnData) != null &&
+                                _address != null &&
+                                _address!.isNotEmpty &&
+                                (ref.watch(pValidSendToAddress) ||
+                                    ref.watch(pValidSparkSendToAddress)) &&
+                                balType == BalanceType.public)
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 12.0,
+                                    top: 4.0,
+                                  ),
+                                  child: Tooltip(
+                                    message: AddressUtils.formatOpReturnTooltip(
+                                      ref.watch(pOpReturnData)!,
+                                    ),
+                                    child: Text(
+                                      "Transaction includes metadata "
+                                      "(${ref.watch(pOpReturnData)!.length ~/ 2} bytes) "
+                                      "\u2014 tap for details",
+                                      textAlign: TextAlign.left,
+                                      style: STextStyles.label(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorGreen,
+                                          ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             Builder(
@@ -2666,16 +2907,42 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             const Spacer(),
                             const SizedBox(height: 12),
+                            if (ref.watch(pOpReturnData) != null &&
+                                balType == BalanceType.private)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 12.0,
+                                  right: 12.0,
+                                  bottom: 12.0,
+                                ),
+                                child: Text(
+                                  "Bridge data detected but Spark (private) "
+                                  "transactions cannot carry OP_RETURN data. "
+                                  "Switch to public balance to complete the "
+                                  "bridge transaction.",
+                                  textAlign: TextAlign.left,
+                                  style: STextStyles.label(context).copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textError,
+                                  ),
+                                ),
+                              ),
                             TextButton(
                               onPressed:
-                                  ref.watch(pPreviewTxButtonEnabled(coin))
+                                  ref.watch(pPreviewTxButtonEnabled(coin)) &&
+                                      (ref.watch(pOpReturnData) == null ||
+                                          balType != BalanceType.private)
                                   ? isMwcSlatepack
                                         ? _createSlatepack
                                         : isEpicSlatepack
                                         ? _createEpicSlatepack
                                         : _previewTransaction
                                   : null,
-                              style: ref.watch(pPreviewTxButtonEnabled(coin))
+                              style:
+                                  ref.watch(pPreviewTxButtonEnabled(coin)) &&
+                                      (ref.watch(pOpReturnData) == null ||
+                                          balType != BalanceType.private)
                                   ? Theme.of(context)
                                         .extension<StackColors>()!
                                         .getPrimaryEnabledButtonStyle(context)

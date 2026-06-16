@@ -650,6 +650,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
                       ? ref.read(pDesktopUseUTXOs)
                       : null,
+                  opReturnData: ref.read(pOpReturnData),
                 ),
               );
             }
@@ -846,6 +847,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void clearSendForm() {
+    if (!mounted) {
+      return;
+    }
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -853,9 +857,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
-    if (mounted) {
-      setState(() {});
+    _setOpReturnData(null);
+    setState(() {});
+  }
+
+  void _setOpReturnData(String? data) {
+    if (!mounted) {
+      return;
     }
+    ref.read(pOpReturnData.notifier).state = data;
   }
 
   void _cryptoAmountChanged() async {
@@ -920,8 +930,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
+        _setOpReturnData(paymentData.additionalParams['op_return']);
         _applyUri(paymentData);
       } else {
+        _setOpReturnData(null);
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -1050,8 +1062,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
+          _setOpReturnData(paymentData.additionalParams['op_return']);
           _applyUri(paymentData);
         } else {
+          _setOpReturnData(null);
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
@@ -1068,6 +1082,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           });
         }
       } catch (e) {
+        _setOpReturnData(null);
         // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
@@ -1754,17 +1769,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               onChanged: (newValue) async {
                 final trimmed = newValue;
 
-                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1 ||
+                    trimmed.contains(':')) {
                   final parsed = AddressUtils.parsePaymentUri(
                     trimmed,
                     logging: Logging.instance,
                   );
                   if (parsed != null) {
+                    _setOpReturnData(parsed.additionalParams['op_return']);
                     _applyUri(parsed);
                   } else {
+                    _setOpReturnData(null);
                     await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
+                  _setOpReturnData(null);
                   await _checkSparkNameAndOrSetAddress(
                     newValue,
                     setController: false,
@@ -1815,6 +1834,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     onTap: () {
                                       sendToController.text = "";
                                       _address = "";
+                                      _setOpReturnData(null);
                                       _setValidAddressProviders(_address);
                                       setState(() {
                                         _addressToggleFlag = false;
@@ -1877,6 +1897,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                       );
 
                                   if (entry != null) {
+                                    _setOpReturnData(null);
                                     sendToController.text =
                                         entry.other ?? entry.label;
 
@@ -1960,6 +1981,66 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
+        // OP_RETURN metadata info (green, public mode only, with tooltip)
+        Builder(
+          builder: (context) {
+            final opData = ref.watch(pOpReturnData);
+            final balType = ref.watch(publicPrivateBalanceStateProvider);
+            if (opData == null ||
+                opData.isEmpty ||
+                balType != BalanceType.public) {
+              return Container();
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Tooltip(
+                  message: AddressUtils.formatOpReturnTooltip(opData),
+                  child: Text(
+                    "Transaction includes metadata "
+                    "(${opData.length ~/ 2} bytes)",
+                    textAlign: TextAlign.left,
+                    style: STextStyles.label(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorGreen,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        // OP_RETURN bridge warning (red, private mode only)
+        Builder(
+          builder: (context) {
+            final opData = ref.watch(pOpReturnData);
+            final balType = ref.watch(publicPrivateBalanceStateProvider);
+            if (opData == null ||
+                opData.isEmpty ||
+                balType != BalanceType.private) {
+              return Container();
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Text(
+                  "Bridge data detected but Spark (private) transactions "
+                  "cannot carry OP_RETURN data. Switch to public balance "
+                  "to complete the bridge transaction.",
+                  textAlign: TextAlign.left,
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textError,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
         if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
           const SizedBox(height: 10),
         if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))

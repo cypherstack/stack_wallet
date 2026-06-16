@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
+import 'package:tuple/tuple.dart';
 
+import '../../models/send_view_auto_fill_data.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -22,7 +25,9 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/stack_dialog.dart';
+import '../send_view/send_view.dart';
 import 'create_masternode_view.dart';
+import 'masternode_constants.dart';
 import 'sub_widgets/masternodes_list.dart';
 import 'sub_widgets/masternodes_table_desktop.dart';
 
@@ -39,6 +44,11 @@ class MasternodesHomeView extends ConsumerStatefulWidget {
 }
 
 class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
+  static final BigInt _masternodeCollateralRaw = Amount.fromDecimal(
+    kMasterNodeValue,
+    fractionDigits: 8,
+  ).raw;
+
   late Future<List<MasternodeInfo>> _masternodesFuture;
   bool _hasPromptedForCollateral = false;
   bool _isCheckingForCollateral = false;
@@ -95,27 +105,317 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
     return null;
   }
 
+  Future<
+    ({String txid, int vout, String address, int confirmations, int required})?
+  >
+  _findPendingCollateralUtxo() async {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
+    final List<UTXO> utxos = await wallet.mainDB
+        .getUTXOs(widget.walletId)
+        .findAll();
+    final currentChainHeight = await wallet.chainHeight;
+    final requiredConfirms = wallet.cryptoCurrency.minConfirms;
+    final masternodeRaw = Amount.fromDecimal(
+      kMasterNodeValue,
+      fractionDigits: wallet.cryptoCurrency.fractionDigits,
+    ).raw.toInt();
+
+    ({String txid, int vout, String address, int confirmations, int required})?
+    bestPending;
+
+    for (final utxo in utxos) {
+      if (utxo.value != masternodeRaw ||
+          utxo.isBlocked ||
+          utxo.used == true ||
+          utxo.address == null) {
+        continue;
+      }
+
+      final confirmations = utxo.getConfirmations(currentChainHeight);
+      final isConfirmed = utxo.isConfirmed(
+        currentChainHeight,
+        wallet.cryptoCurrency.minConfirms,
+        wallet.cryptoCurrency.minCoinbaseConfirms,
+      );
+
+      if (isConfirmed) {
+        continue;
+      }
+
+      final candidate = (
+        txid: utxo.txid,
+        vout: utxo.vout,
+        address: utxo.address!,
+        confirmations: confirmations,
+        required: requiredConfirms,
+      );
+
+      if (bestPending == null ||
+          candidate.confirmations > bestPending.confirmations) {
+        bestPending = candidate;
+      }
+    }
+
+    return bestPending;
+  }
+
   Future<void> _createMasternode() async {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
     final collateral = await _findCollateralUtxo();
     if (!mounted) {
       return;
     }
 
     if (collateral == null) {
-      await showDialog<void>(
+      final pendingCollateral = await _findPendingCollateralUtxo();
+      if (!mounted) {
+        return;
+      }
+      if (pendingCollateral != null) {
+        final message =
+            "Your 1000 FIRO collateral is on its way.\n\n"
+            "Waiting for confirmations...\n"
+            "Once confirmed, click Create Masternode again to continue.";
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => StackOkDialog(
+            title: "Waiting for collateral confirmation",
+            message: message,
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 420 : null,
+          ),
+        );
+        return;
+      }
+
+      final spendableBalance = wallet.info.cachedBalance.spendable.raw;
+      final sparkBalance = wallet.info.cachedBalanceTertiary.spendable.raw;
+
+      Amount estimatedConsolidationFee;
+      try {
+        final feeObject = await wallet.fees;
+        final collateralAmount = Amount(
+          rawValue: _masternodeCollateralRaw,
+          fractionDigits: wallet.cryptoCurrency.fractionDigits,
+        );
+        estimatedConsolidationFee = await wallet.estimateFeeFor(
+          collateralAmount,
+          feeObject.medium,
+        );
+      } catch (_) {
+        estimatedConsolidationFee = wallet.roughFeeEstimate(
+          10,
+          2,
+          BigInt.from(100000),
+        );
+      }
+      if (!mounted) return;
+
+      if (spendableBalance >= _masternodeCollateralRaw &&
+          spendableBalance <
+              _masternodeCollateralRaw + estimatedConsolidationFee.raw) {
+        final feeDecimal = estimatedConsolidationFee.decimal;
+
+        final feeBuffer = Amount.fromDecimal(
+          Decimal.parse("0.00001"),
+          fractionDigits: wallet.cryptoCurrency.fractionDigits,
+        );
+        final desiredOnTransparent = estimatedConsolidationFee + feeBuffer;
+
+        Amount sparkFeeEstimate;
+        try {
+          sparkFeeEstimate = await wallet.estimateFeeForSpark(
+            desiredOnTransparent,
+          );
+        } catch (_) {
+          sparkFeeEstimate = estimatedConsolidationFee;
+        }
+        if (!mounted) return;
+
+        final requiredFromSpark = desiredOnTransparent + sparkFeeEstimate;
+        final canUnshieldFromSpark = sparkBalance >= requiredFromSpark.raw;
+
+        if (canUnshieldFromSpark) {
+          final unshieldDecimal = requiredFromSpark.decimal;
+          final shouldOpenSend = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => StackDialog(
+              title: "Unshield FIRO to cover consolidation fee?",
+              message:
+                  "You have exactly 1000 FIRO on your transparent balance, "
+                  "but a network fee of $feeDecimal FIRO is needed to "
+                  "consolidate it into a single 1000 FIRO collateral UTXO.\n\n"
+                  "Your private Spark balance has enough to cover this fee. "
+                  "Do you want to unshield $unshieldDecimal FIRO from your "
+                  "private Spark balance to your transparent balance? Once "
+                  "this transaction is confirmed, click \"Create Masternode\" "
+                  "again to continue to the next step.",
+              leftButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.button(ctx).copyWith(
+                    color: Theme.of(
+                      ctx,
+                    ).extension<StackColors>()!.accentColorDark,
+                  ),
+                ),
+              ),
+              rightButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text("Open Send", style: STextStyles.button(ctx)),
+              ),
+            ),
+          );
+          if (shouldOpenSend == true && mounted) {
+            await _openCreateCollateralSendFlow(
+              wallet,
+              fromPrivate: true,
+              unshieldAmount: unshieldDecimal,
+            );
+          }
+          return;
+        }
+
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => StackOkDialog(
+            title: "Insufficient balance for consolidation fee",
+            message:
+                "You have exactly 1000 FIRO, but a network fee of "
+                "$feeDecimal FIRO is needed to consolidate your balance "
+                "into a single 1000 FIRO collateral UTXO.\n\n"
+                "Please add at least $feeDecimal FIRO to your wallet, "
+                "then click Create Masternode again.",
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 420 : null,
+          ),
+        );
+        return;
+      }
+
+      if (spendableBalance < _masternodeCollateralRaw) {
+        final totalBalance = spendableBalance + sparkBalance;
+        if (totalBalance >= _masternodeCollateralRaw) {
+          // User has enough combined (public + Spark) — offer to unshield
+          // only the deficit needed to reach 1000 on transparent.
+          final deficitRaw = _masternodeCollateralRaw - spendableBalance;
+          final deficitDecimal = Amount(
+            rawValue: deficitRaw,
+            fractionDigits: wallet.cryptoCurrency.fractionDigits,
+          ).decimal;
+
+          final shouldOpenSend = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => StackDialog(
+              title: "Unshield FIRO for masternode collateral?",
+              message:
+                  "Masternode collateral must be a single 1000 FIRO UTXO "
+                  "in your transparent balance. You will need to unshield "
+                  "part of your Spark private balance into your transparent "
+                  "balance to create this collateral along with the "
+                  "transaction fee required to register it.\n\n"
+                  "Do you want to unshield $deficitDecimal FIRO from your "
+                  "private Spark balance to your transparent balance? Once "
+                  "this transaction is confirmed, click \"Create Masternode\" "
+                  "again to continue to the next step.\n\n"
+                  "Note: there may be an additional step to consolidate your "
+                  "transparent balance into a single UTXO before allowing "
+                  "you to register your masternode.",
+              leftButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.button(ctx).copyWith(
+                    color: Theme.of(
+                      ctx,
+                    ).extension<StackColors>()!.accentColorDark,
+                  ),
+                ),
+              ),
+              rightButton: TextButton(
+                style: Theme.of(
+                  ctx,
+                ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text("Open Send", style: STextStyles.button(ctx)),
+              ),
+            ),
+          );
+          if (shouldOpenSend == true && mounted) {
+            await _openCreateCollateralSendFlow(
+              wallet,
+              fromPrivate: true,
+              unshieldAmount: deficitDecimal,
+            );
+          }
+        } else {
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => StackOkDialog(
+              title: "Not enough FIRO to create the collateral",
+              message:
+                  "A masternode collateral is exactly 1000 FIRO on your transparent balance, plus a "
+                  "small network fee to send it. Your total balance is "
+                  "below this amount.\n\n"
+                  "Add more FIRO to your wallet, then click Create "
+                  "Masternode again to continue.",
+              desktopPopRootNavigator: Util.isDesktop,
+              maxWidth: Util.isDesktop ? 420 : null,
+            ),
+          );
+        }
+        return;
+      }
+
+      final shouldOpenSend = await showDialog<bool>(
         context: context,
-        builder: (_) => StackOkDialog(
-          title: "No collateral found",
+        builder: (ctx) => StackDialog(
+          title: "Set up your 1000 FIRO masternode collateral?",
           message:
-              "A masternode needs one confirmed, unblocked transparent "
-              "UTXO of exactly 1000 FIRO.\n\n"
-              "Total balance above 1000 FIRO is not enough if no single "
-              "1000 output exists. Also ensure fee is not subtracted from "
-              "the recipient amount when sending to yourself.",
-          desktopPopRootNavigator: Util.isDesktop,
-          maxWidth: Util.isDesktop ? 400 : null,
+              "Registering a masternode requires a 1000 FIRO collateral: "
+              "a single confirmed amount sitting in your wallet. We didn't "
+              "find one, but you have enough FIRO to create it.\n\n"
+              "We can help by opening the Send window with a new address "
+              "you own pre-filled, ready for you to send 1000 FIRO to it. "
+              "This consolidates your smaller amounts into the single 1000 "
+              "FIRO collateral you need. The network fee is paid from your "
+              "remaining balance.\n\n"
+              "Once you have sent it, wait for the transaction to confirm, "
+              "then click Create Masternode again to continue.",
+          leftButton: TextButton(
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              "Cancel",
+              style: STextStyles.button(ctx).copyWith(
+                color: Theme.of(ctx).extension<StackColors>()!.accentColorDark,
+              ),
+            ),
+          ),
+          rightButton: TextButton(
+            style: Theme.of(
+              ctx,
+            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text("Open Send", style: STextStyles.button(ctx)),
+          ),
         ),
       );
+      if (shouldOpenSend == true && mounted) {
+        await _openCreateCollateralSendFlow(wallet);
+      }
       return;
     }
 
@@ -145,6 +445,39 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
       );
       _handleSuccessTxid(txid);
     }
+  }
+
+  Future<void> _openCreateCollateralSendFlow(
+    FiroWallet wallet, {
+    bool fromPrivate = false,
+    Decimal? unshieldAmount,
+  }) async {
+    var selfAddress = await wallet.getCurrentReceivingAddress();
+    if (selfAddress == null) {
+      await wallet.generateNewReceivingAddress();
+      selfAddress = await wallet.getCurrentReceivingAddress();
+    }
+    if (!mounted || selfAddress == null) {
+      return;
+    }
+
+    await Navigator.of(context).pushNamed(
+      SendView.routeName,
+      arguments: Tuple3(
+        widget.walletId,
+        wallet.cryptoCurrency,
+        SendViewAutoFillData(
+          address: selfAddress.value,
+          contactLabel: "My FIRO address",
+          amount: fromPrivate
+              ? (unshieldAmount ?? kMasterNodeValue)
+              : kMasterNodeValue,
+          note: fromPrivate
+              ? MasternodeCollateralNotes.unshield
+              : MasternodeCollateralNotes.prep,
+        ),
+      ),
+    );
   }
 
   Future<void> _maybePromptForExistingCollateral() async {
