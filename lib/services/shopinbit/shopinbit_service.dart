@@ -182,14 +182,6 @@ class ShopInBitService {
         id,
       );
 
-      // Terminal-state short-circuit: nothing about a closed/merged ticket
-      // will change server-side, so skip the three API calls entirely.
-      if (existing != null &&
-          TicketState.fromString(existing.statusRaw).isTerminal) {
-        completer.complete();
-        return;
-      }
-
       // get status first. If it fails there is no reason to make the remaining
       // two API calls
       final statusResp = await client.getTicketStatus(

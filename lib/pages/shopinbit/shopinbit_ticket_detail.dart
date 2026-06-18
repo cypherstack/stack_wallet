@@ -12,7 +12,6 @@ import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/message.dart';
-import '../../services/shopinbit/src/models/ticket.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
@@ -81,10 +80,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Don't poll while backgrounded; resume fresh when we come back.
     if (state == AppLifecycleState.resumed) {
-      final ticket = ref.read(pShopInBitTicket(_id)).asData?.value;
-      final terminal =
-          ticket != null && TicketState.fromString(ticket.statusRaw).isTerminal;
-      if (!terminal) _startPolling();
+      _startPolling();
     } else {
       _pollingTimer?.cancel();
     }
@@ -104,13 +100,6 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       );
     }
     if (!mounted) return;
-
-    // Stop polling once the ticket reaches a terminal state; nothing about a
-    // closed/merged/refunded ticket will change server-side.
-    final ticket = ref.read(pShopInBitTicket(_id)).asData?.value;
-    if (ticket != null && TicketState.fromString(ticket.statusRaw).isTerminal) {
-      return;
-    }
 
     // Back off on failure (e.g. a 429), reset on success.
     _pollInterval = ok
