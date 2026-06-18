@@ -199,6 +199,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
           ),
       context: context,
       message: "Refreshing invoice",
+      rootNavigator: true,
     );
     if (!mounted) return;
     if (resp != null && !resp.hasError && resp.value != null) {
@@ -220,6 +221,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
           .getPayment(widget.apiTicketId, customerKey: customerKey),
       context: context,
       message: "Checking for payment",
+      rootNavigator: true,
     );
     if (!mounted) return;
 
