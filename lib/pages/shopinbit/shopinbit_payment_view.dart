@@ -24,6 +24,8 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
+import '../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -381,64 +383,21 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
   }
 
   void _onUnownedCoinTap(int methodIndex) {
-    if (_isExpiredOrInvalid || _isTerminal) return;
+    if (!_payNowEnabled) return;
     final ticker = _methods[methodIndex].toUpperCase();
     final address = _addresses[methodIndex];
+    if (address.isEmpty) return;
 
-    showModalBottomSheet(
+    showDialog<void>(
       context: context,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("$ticker Payment", style: STextStyles.pageTitleH2(context)),
-            const SizedBox(height: 16),
-            Center(
-              child: QR(data: address, size: Util.isDesktop ? 200 : 180),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: address));
-                showFloatingFlushBar(
-                  type: FlushBarType.info,
-                  message: "Copied to clipboard",
-                  iconAsset: Assets.svg.copy,
-                  context: context,
-                );
-              },
-              child: RoundedWhiteContainer(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        address,
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    CopyIcon(
-                      width: 14,
-                      height: 14,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorBlue,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            PrimaryButton(
-              label: "CHECK FOR PAYMENT",
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                _checkForPayment();
-              },
-            ),
-          ],
-        ),
+      useRootNavigator: true,
+      builder: (ctx) => _UnownedCoinPaymentDialog(
+        ticker: ticker,
+        address: address,
+        onCheckForPayment: () {
+          Navigator.of(ctx).pop();
+          _checkForPayment();
+        },
       ),
     );
   }
@@ -760,6 +719,133 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     return ShopInBitPaymentMobileScaffold(
       onBack: _popToTickets,
       child: content,
+    );
+  }
+}
+
+class _UnownedCoinPaymentDialog extends StatelessWidget {
+  const _UnownedCoinPaymentDialog({
+    required this.ticker,
+    required this.address,
+    required this.onCheckForPayment,
+  });
+
+  final String ticker;
+  final String address;
+  final VoidCallback onCheckForPayment;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Center(
+          child: QR(data: address, size: isDesktop ? 200 : 180),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () async {
+            await Clipboard.setData(ClipboardData(text: address));
+            if (!context.mounted) return;
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.info,
+                message: "Copied to clipboard",
+                iconAsset: Assets.svg.copy,
+                context: context,
+              ),
+            );
+          },
+          child: RoundedWhiteContainer(
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      "$ticker address",
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.itemSubtitle12(context),
+                    ),
+                    const Spacer(),
+                    CopyIcon(
+                      width: isDesktop ? 15 : 10,
+                      height: isDesktop ? 15 : 10,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.infoItemIcons,
+                    ),
+                    const SizedBox(width: 4),
+                    Text("Copy", style: STextStyles.link2(context)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        address,
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                            : STextStyles.itemSubtitle12(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        PrimaryButton(label: "CHECK FOR PAYMENT", onPressed: onCheckForPayment),
+      ],
+    );
+
+    if (!isDesktop) {
+      return SimpleMobileDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("$ticker Payment", style: STextStyles.pageTitleH2(context)),
+            const SizedBox(height: 16),
+            content,
+          ],
+        ),
+      );
+    }
+
+    return SDialog(
+      child: SizedBox(
+        width: 480,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "$ticker Payment",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
+                  child: content,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
