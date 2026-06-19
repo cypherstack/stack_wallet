@@ -626,11 +626,11 @@ class _ShopInBitCarResearchPaymentViewState
                       ),
                       const Spacer(),
                       CopyIcon(
-                        width: 14,
-                        height: 14,
+                        width: isDesktop ? 15 : 10,
+                        height: isDesktop ? 15 : 10,
                         color: Theme.of(
                           context,
-                        ).extension<StackColors>()!.accentColorBlue,
+                        ).extension<StackColors>()!.infoItemIcons,
                       ),
                       const SizedBox(width: 4),
                       Text("Copy", style: STextStyles.link2(context)),
