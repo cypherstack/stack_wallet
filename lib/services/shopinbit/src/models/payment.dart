@@ -7,6 +7,7 @@ class PaymentInfo {
   final DateTime? rateLockedUntil;
   final Map<String, String> paymentLinks;
   final String? due;
+  final String? message;
 
   PaymentInfo({
     required this.status,
@@ -17,6 +18,7 @@ class PaymentInfo {
     this.rateLockedUntil,
     required this.paymentLinks,
     this.due,
+    this.message,
   });
 
   factory PaymentInfo.fromJson(Map<String, dynamic> json) {
@@ -25,13 +27,23 @@ class PaymentInfo {
       status: json['status'] as String,
       customerPrice: json['customer_price'] as String,
       partnerPrice: json['partner_price'] as String,
-      vatRate: int.tryParse(json['vat_rate'].toString()),
+      vatRate: _toIntOrNull(json['vat_rate']),
       currency: json['currency'] as String,
       rateLockedUntil: DateTime.tryParse(
         json['rate_locked_until']?.toString() ?? '',
       ),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
       due: json['due'] as String?,
+      message: json['message']?.toString(),
     );
   }
+}
+
+int? _toIntOrNull(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is double) return v.toInt();
+  final s = v.toString().trim();
+  if (s.isEmpty) return null;
+  return int.tryParse(s) ?? double.tryParse(s)?.toInt();
 }

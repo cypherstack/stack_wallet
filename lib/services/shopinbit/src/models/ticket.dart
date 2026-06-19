@@ -155,7 +155,7 @@ class TicketFull {
       netShippingCosts: json['net_shipping_costs'] as String?,
       deliveryCountry:
           (json['delivery_country'] ?? json['deliverycountry']) as String,
-      vatRate: int.tryParse(json['vat_rate'].toString()),
+      vatRate: _toIntOrNull(json['vat_rate']),
     );
   }
 
@@ -181,4 +181,15 @@ class TicketFull {
 int _toInt(dynamic value) {
   if (value is int) return value;
   return int.parse(value.toString());
+}
+
+/// Tolerant int parse: accepts int, double, and numeric/empty strings.
+/// Maps `0.0` -> 0, `"0"` -> 0, `""`/null -> null.
+int? _toIntOrNull(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is double) return v.toInt();
+  final s = v.toString().trim();
+  if (s.isEmpty) return null;
+  return int.tryParse(s) ?? double.tryParse(s)?.toInt();
 }
