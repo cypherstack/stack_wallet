@@ -9,7 +9,6 @@ import "../../../utilities/util.dart";
 import "../../../widgets/date_picker/date_picker.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
-import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
@@ -99,7 +98,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
   String? _selectedFlexibility;
   String? _selectedYear;
   String? _selectedMonthSeason;
-  bool _needsRecommendations = false;
 
   int _adults = 1;
   int _children = 0;
@@ -167,8 +165,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             _minArrangementDetailsLength &&
         _selectedDepartureCountryIso != null &&
         _departureCityController.text.trim().isNotEmpty &&
-        (_needsRecommendations ||
-            _destinationsController.text.trim().isNotEmpty) &&
+        _destinationsController.text.trim().isNotEmpty &&
         _selectedDateMode != null &&
         _hasValidDates &&
         _adults >= 1 &&
@@ -190,11 +187,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           "${_selectedDepartureCountryIso!}",
     ];
 
-    if (_needsRecommendations) {
-      parts.add("Destinations: Recommendations requested");
-    } else {
-      parts.add("Destinations: ${_destinationsController.text.trim()}");
-    }
+    parts.add("Destinations: ${_destinationsController.text.trim()}");
 
     if (_selectedDateMode == _exactDates) {
       final String flex =
@@ -266,10 +259,8 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         : null;
 
     final String? destinationsError =
-        _destinationsTouched &&
-            !_needsRecommendations &&
-            _destinationsController.text.trim().isEmpty
-        ? "Required (or check 'I need recommendations')"
+        _destinationsTouched && _destinationsController.text.trim().isEmpty
+        ? "Required"
         : null;
 
     final String? tripLengthError =
@@ -346,19 +337,11 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           controller: _destinationsController,
           focusNode: _destinationsFocusNode,
           labelText: "Destination city",
-          enabled: !_needsRecommendations,
           autocorrect: false,
           enableSuggestions: false,
           errorText: destinationsError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        ShopInBitLabeledCheckbox(
-          value: _needsRecommendations,
-          onChanged: (v) => setState(() => _needsRecommendations = v),
-          label: "I need recommendations",
-        ),
-
         SizedBox(height: isDesktop ? 24 : 16),
         _TravelSectionLabel(text: "When", isDesktop: isDesktop),
         SizedBox(height: isDesktop ? 12 : 8),
