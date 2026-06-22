@@ -1364,7 +1364,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           ).pushNamed(ServicesView.routeName);
                         },
                       ),
-                    if (AppConfig.hasFeature(.shopinBit))
+                    if (AppConfig.hasFeature(.cakePay))
                       WalletNavigationBarItemData(
                         label: "Gift cards",
                         icon: CreditCardIcon(
