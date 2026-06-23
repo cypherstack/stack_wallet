@@ -79,12 +79,24 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     if (_submitting) return false;
     final shippingValid =
         _nameController.text.trim().isNotEmpty &&
+        _nameController.text
+                .split(" ")
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .length >
+            1 &&
         _streetController.text.trim().isNotEmpty &&
         _cityController.text.trim().isNotEmpty &&
         _postalCodeController.text.trim().isNotEmpty;
     if (!shippingValid) return false;
     if (_differentBilling) {
       return _billingNameController.text.trim().isNotEmpty &&
+          _billingNameController.text
+                  .split(" ")
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .length >
+              1 &&
           _billingStreetController.text.trim().isNotEmpty &&
           _billingCityController.text.trim().isNotEmpty &&
           _billingPostalCodeController.text.trim().isNotEmpty &&
