@@ -10,12 +10,14 @@ import "../../../themes/stack_colors.dart";
 import "../../../utilities/assets.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/conditional_parent.dart";
 import "../../../widgets/rounded_white_container.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "../shopinbit_car_fee_view.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
+import "shopinbit_state_picker.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit_button.dart";
@@ -56,6 +58,8 @@ class _ShopInBitCarResearchFormState
   bool _feeAcknowledged = false;
   String? _selectedCountryIsoCode;
   String? _selectedCountryName;
+  String? _selectedState;
+  bool? _requiresState;
   bool _privacyAccepted = false;
   bool _submitting = false;
 
@@ -111,17 +115,23 @@ class _ShopInBitCarResearchFormState
     try {
       final countryIso = _selectedCountryIsoCode!;
 
+      final sb = StringBuffer();
+      sb.writeln("Brand: ${_brandController.text.trim()}");
+      sb.writeln("Model: ${_modelController.text.trim()}");
+      sb.writeln("Condition: $_selectedCarCondition");
+      sb.writeln("Description: ${_carDescriptionController.text.trim()}");
+      sb.writeln("Budget: ${_carBudgetController.text.trim()} EUR");
+      if (_requiresState == true) {
+        sb.writeln("Delivery state: ${_selectedState!}");
+      }
+      sb.writeln("Delivery country: $countryIso");
+
       final draft = ShopinbitRequestDraft(
         category: .car,
-        requestDescription:
-            "Brand: ${_brandController.text.trim()}\n"
-            "Model: ${_modelController.text.trim()}\n"
-            "Condition: $_selectedCarCondition\n"
-            "Description: ${_carDescriptionController.text.trim()}\n"
-            "Budget: ${_carBudgetController.text.trim()} EUR\n"
-            "Delivery country: $countryIso",
+        requestDescription: sb.toString(),
         deliveryCountryCode: countryIso,
         deliveryCountryName: _selectedCountryName!,
+        deliveryState: _requiresState == true ? _selectedState! : null,
         voucherCode: null,
       );
 
@@ -180,12 +190,34 @@ class _ShopInBitCarResearchFormState
           subtitle: "Tell us about the car you're looking for.",
         ),
         SizedBox(height: isDesktop ? 32 : 24),
-        ShopInBitCountryPicker(
-          selectedIso: _selectedCountryIsoCode,
-          onChanged: (data) => setState(() {
-            _selectedCountryIsoCode = data?.code;
-            _selectedCountryName = data?.name;
-          }),
+        ConditionalParent(
+          condition: _requiresState == true,
+          builder: (child) => Column(
+            mainAxisSize: .min,
+            children: [
+              child,
+              SizedBox(height: isDesktop ? 24 : 16),
+              ShopInBitStatePicker(
+                countryIso: _selectedCountryIsoCode!,
+                selectedState: _selectedState,
+                onChanged: (state) {
+                  if (state != _selectedState && mounted) {
+                    setState(() {
+                      _selectedState = state;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          child: ShopInBitCountryPicker(
+            selectedIso: _selectedCountryIsoCode,
+            onChanged: (data) => setState(() {
+              _selectedCountryIsoCode = data?.code;
+              _selectedCountryName = data?.name;
+              _requiresState = data?.requiresState;
+            }),
+          ),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
         AdaptiveTextField(

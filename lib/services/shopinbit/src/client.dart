@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+
 import '../../../app_config.dart';
 import '../../../networking/http.dart';
 import '../../../utilities/logger.dart';
@@ -758,6 +760,13 @@ class ShopInBitClient {
         query: query,
         customerKey: customerKey,
       );
+
+      if (kDebugMode) {
+        Logging.instance.i(
+          "$_kTag $method   HTTP:${response.code} "
+          "body: ${response.body}",
+        );
+      }
 
       final resolved = _resolvePath(path);
 

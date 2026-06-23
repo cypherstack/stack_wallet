@@ -5,10 +5,12 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/conditional_parent.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
+import "shopinbit_state_picker.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit.dart";
@@ -44,6 +46,8 @@ class _ShopInBitConciergeFormState
   bool _noLimit = false;
   String? _selectedCountryIsoCode;
   String? _selectedCountryName;
+  String? _selectedState;
+  bool? _requiresState;
   bool _privacyAccepted = false;
   bool _submitting = false;
 
@@ -94,15 +98,19 @@ class _ShopInBitConciergeFormState
           ? "No limit"
           : "${_budgetController.text.trim()} EUR";
 
+      final sb = StringBuffer();
+      sb.writeln("What to purchase: ${_whatToPurchaseController.text.trim()}");
+      sb.writeln("Condition: $_selectedCondition");
+      sb.writeln("Budget: $budgetText");
+      if (_requiresState == true) sb.writeln("State: ${_selectedState!}");
+      sb.writeln("Delivery country: $countryIso");
+
       final draft = ShopinbitRequestDraft(
         category: .concierge,
-        requestDescription:
-            "What to purchase: ${_whatToPurchaseController.text.trim()}\n"
-            "Condition: $_selectedCondition\n"
-            "Budget: $budgetText\n"
-            "Delivery country: $countryIso",
+        requestDescription: sb.toString(),
         deliveryCountryCode: countryIso,
         deliveryCountryName: _selectedCountryName!,
+        deliveryState: _requiresState == true ? _selectedState! : null,
         voucherCode: null,
       );
 
@@ -177,12 +185,34 @@ class _ShopInBitConciergeFormState
           label: "No budget limit",
         ),
         SizedBox(height: isDesktop ? 24 : 20),
-        ShopInBitCountryPicker(
-          selectedIso: _selectedCountryIsoCode,
-          onChanged: (data) => setState(() {
-            _selectedCountryIsoCode = data?.code;
-            _selectedCountryName = data?.name;
-          }),
+        ConditionalParent(
+          condition: _requiresState == true,
+          builder: (child) => Column(
+            mainAxisSize: .min,
+            children: [
+              child,
+              SizedBox(height: isDesktop ? 24 : 16),
+              ShopInBitStatePicker(
+                countryIso: _selectedCountryIsoCode!,
+                selectedState: _selectedState,
+                onChanged: (state) {
+                  if (state != _selectedState && mounted) {
+                    setState(() {
+                      _selectedState = state;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          child: ShopInBitCountryPicker(
+            selectedIso: _selectedCountryIsoCode,
+            onChanged: (data) => setState(() {
+              _selectedCountryIsoCode = data?.code;
+              _selectedCountryName = data?.name;
+              _requiresState = data?.requiresState;
+            }),
+          ),
         ),
         SizedBox(height: isDesktop ? 16 : 24),
         ShopInBitPrivacyCheckbox(

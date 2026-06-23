@@ -15,6 +15,7 @@ import 'package:tuple/tuple.dart';
 
 import 'app_config.dart';
 import 'db/drift/database.dart';
+import 'db/drift/shared_db/shared_database.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
@@ -1215,15 +1216,13 @@ class RouteGenerator {
       case ShopInBitShippingView.routeName:
         if (args
             is ({
-              int apiTicketId,
-              String deliveryCountry,
+              ShopInBitTicket ticket,
               List<Map<String, dynamic>> countries,
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ShopInBitShippingView(
-              apiTicketId: args.apiTicketId,
-              deliveryCountry: args.deliveryCountry,
+              ticket: args.ticket,
               countries: args.countries,
             ),
             settings: RouteSettings(name: settings.name),

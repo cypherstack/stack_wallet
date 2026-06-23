@@ -196,11 +196,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
                 if (context.mounted) {
                   await Navigator.of(context).pushNamed(
                     ShopInBitShippingView.routeName,
-                    arguments: (
-                      apiTicketId: widget.apiTicketId,
-                      deliveryCountry: deliveryCountry,
-                      countries: response!.value!,
-                    ),
+                    arguments: (ticket: ticket!, countries: response!.value!),
                   );
                 }
               },

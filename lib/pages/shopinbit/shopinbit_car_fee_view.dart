@@ -134,6 +134,7 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
         zip: _billingPostalCodeController.text.trim(),
         city: _billingCityController.text.trim(),
         country: widget.draft.deliveryCountryCode,
+        state: widget.draft.requiresState ? widget.draft.deliveryState! : null,
       );
 
       // Cache the car request alongside billing so the backend failsafe can
@@ -361,12 +362,15 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
 
         spacing,
         DetailItem(
-          title: "Billing country",
+          title: "Country",
           detail:
               "${widget.draft.deliveryCountryName} "
               "(${widget.draft.deliveryCountryCode})",
           disableSelectableText: true,
         ),
+        if (widget.draft.requiresState) spacing,
+        if (widget.draft.requiresState)
+          DetailItem(title: "State", detail: widget.draft.deliveryState!),
         if (!isDesktop) const Spacer(),
         if (isDesktop) const SizedBox(height: 24),
         PrimaryButton(

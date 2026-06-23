@@ -16,11 +16,15 @@ class ShopInBitCountryPicker extends ConsumerStatefulWidget {
     required this.selectedIso,
     required this.onChanged,
     this.hintText = "Delivery country",
+    this.preLoadedCountries,
   });
 
   final String? selectedIso;
-  final ValueChanged<({String name, String code})?> onChanged;
+  final ValueChanged<({String name, String code, bool requiresState})?>
+  onChanged;
   final String hintText;
+
+  final List<Map<String, dynamic>>? preLoadedCountries;
 
   @override
   ConsumerState<ShopInBitCountryPicker> createState() =>
@@ -36,7 +40,11 @@ class _ShopInBitCountryPickerState
   @override
   void initState() {
     super.initState();
-    _fetchCountries();
+    if (widget.preLoadedCountries != null) {
+      _countries = widget.preLoadedCountries!;
+    } else {
+      _fetchCountries();
+    }
   }
 
   @override
@@ -104,6 +112,7 @@ class _ShopInBitCountryPickerState
                       _countries.firstWhere((e) => e["iso"] == iso)["label"]
                           as String,
                   code: iso!,
+                  requiresState: iso == "CA" || iso == "US",
                 ));
               },
         hint: Text(

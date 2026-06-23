@@ -1,17 +1,13 @@
 import 'dart:async';
 
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
-import '../../providers/db/drift_provider.dart';
+import '../../db/drift/shared_db/shared_database.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/payment.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/assets.dart';
-import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -25,19 +21,19 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_payment_view.dart';
+import 'step_4_components/shopinbit_country_picker.dart';
+import 'step_4_components/shopinbit_state_picker.dart';
 
 class ShopInBitShippingView extends ConsumerStatefulWidget {
   const ShopInBitShippingView({
     super.key,
-    required this.apiTicketId,
-    required this.deliveryCountry,
+    required this.ticket,
     required this.countries,
   });
 
   static const String routeName = "/shopInBitShipping";
 
-  final int apiTicketId;
-  final String deliveryCountry;
+  final ShopInBitTicket ticket;
   final List<Map<String, dynamic>> countries;
 
   @override
@@ -50,8 +46,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   late final TextEditingController _streetController;
   late final TextEditingController _cityController;
   late final TextEditingController _postalCodeController;
-  final TextEditingController _countrySearchController =
-      TextEditingController();
   late final FocusNode _nameFocusNode;
   late final FocusNode _streetFocusNode;
   late final FocusNode _cityFocusNode;
@@ -62,8 +56,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   late final TextEditingController _billingStreetController;
   late final TextEditingController _billingCityController;
   late final TextEditingController _billingPostalCodeController;
-  final TextEditingController _billingCountrySearchController =
-      TextEditingController();
   late final FocusNode _billingNameFocusNode;
   late final FocusNode _billingStreetFocusNode;
   late final FocusNode _billingCityFocusNode;
@@ -74,6 +66,12 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
 
   late final String _selectedCountryIso;
   late final String _deliveryCountryLabel;
+
+  late final String? _selectedState;
+
+  String? _selectedBillingState;
+
+  late bool _requiresState;
 
   bool _submitting = false;
 
@@ -116,7 +114,32 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     _billingCityFocusNode = FocusNode();
     _billingPostalCodeFocusNode = FocusNode();
 
-    _selectedCountryIso = widget.deliveryCountry;
+    _selectedCountryIso = widget.ticket.deliveryCountry;
+
+    _requiresState = switch (_selectedCountryIso) {
+      "US" || "CA" => widget.ticket.category != .travel,
+      _ => false,
+    };
+
+    if (_requiresState) {
+      final parts = widget.ticket.messages.firstOrNull?.content.split("\n");
+      if (parts == null) {
+        Logging.instance.f("Missing state/province where required!");
+        throw ArgumentError("Missing first ticket message");
+      }
+
+      final line = parts
+          .where((e) => e.startsWith("Delivery state:"))
+          .firstOrNull;
+      if (line == null) {
+        Logging.instance.f("Missing delivery state/province in first message!");
+        throw ArgumentError("Missing state/province in first ticket message");
+      }
+
+      _selectedState = line.replaceFirst("Delivery state:", "").trim();
+    } else {
+      _selectedState = null;
+    }
 
     // firstWhere should never fail here as the caller of this widget must
     // check that countries contains the expected value. Failure here should be
@@ -147,7 +170,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     _streetController.dispose();
     _cityController.dispose();
     _postalCodeController.dispose();
-    _countrySearchController.dispose();
     _nameFocusNode.dispose();
     _streetFocusNode.dispose();
     _cityFocusNode.dispose();
@@ -156,7 +178,6 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     _billingStreetController.dispose();
     _billingCityController.dispose();
     _billingPostalCodeController.dispose();
-    _billingCountrySearchController.dispose();
     _billingNameFocusNode.dispose();
     _billingStreetFocusNode.dispose();
     _billingCityFocusNode.dispose();
@@ -193,20 +214,16 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           street: _billingStreetController.text.trim(),
           zip: _billingPostalCodeController.text.trim(),
           city: _billingCityController.text.trim(),
-          country: _billingSelectedCountryIso!,
+          country: _requiresState ? country : _billingSelectedCountryIso!,
+          state: _requiresState ? _selectedState : _selectedBillingState,
         );
       }
-
-      final thisTicket = await ref
-          .read(pSharedDrift)
-          .shopInBitTicketsDao
-          .getByApiId(widget.apiTicketId);
 
       final resp = await ref
           .read(pShopinBitService)
           .client
           .submitAddress(
-            widget.apiTicketId,
+            widget.ticket.apiTicketId,
             shipping: Address(
               firstName: firstName,
               lastName: lastName,
@@ -214,9 +231,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
               zip: postalCode,
               city: city,
               country: country,
+              state: _requiresState ? _selectedState! : null,
             ),
             billing: billingAddress,
-            customerKey: thisTicket!.customerKey,
+            customerKey: widget.ticket.customerKey,
           );
 
       if (resp.hasError) {
@@ -226,8 +244,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
 
       paymentInfo = await fetchShopInBitPaymentInfo(
         ref.read(pShopinBitService).client,
-        widget.apiTicketId,
-        thisTicket.customerKey,
+        widget.ticket.apiTicketId,
+        widget.ticket.customerKey,
       );
     } catch (e, s) {
       Logging.instance.e("submitAddress threw", error: e, stackTrace: s);
@@ -252,7 +270,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
 
     await Navigator.of(context).pushNamed(
       ShopInBitPaymentView.routeName,
-      arguments: (apiTicketId: widget.apiTicketId, paymentInfo: paymentInfo),
+      arguments: (
+        apiTicketId: widget.ticket.apiTicketId,
+        paymentInfo: paymentInfo,
+      ),
     );
   }
 
@@ -336,11 +357,9 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           ],
         ),
         spacing,
-        DetailItem(
-          title: "Country",
-          detail: _deliveryCountryLabel,
-          disableSelectableText: true,
-        ),
+        DetailItem(title: "State", detail: _selectedState!),
+        spacing,
+        DetailItem(title: "Country", detail: _deliveryCountryLabel),
         spacing,
         // Billing address toggle.
         GestureDetector(
@@ -354,6 +373,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                 _billingCityController.clear();
                 _billingPostalCodeController.clear();
                 _billingSelectedCountryIso = null;
+                _selectedBillingState = null;
               }
             });
           },
@@ -373,6 +393,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                         _billingCityController.clear();
                         _billingPostalCodeController.clear();
                         _billingSelectedCountryIso = null;
+                        _selectedBillingState = null;
                       }
                     });
                   },
@@ -447,123 +468,35 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
             ],
           ),
           spacing,
-          // Billing country dropdown.
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton2<String>(
-                value: _billingSelectedCountryIso,
-                items: widget.countries
-                    .map(
-                      (c) => DropdownMenuItem<String>(
-                        value: c['iso'] as String,
-                        child: Text(
-                          c['label'] as String,
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveText,
-                                )
-                              : STextStyles.w500_14(context),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onMenuStateChange: (isOpen) {
-                  if (!isOpen) {
-                    _billingCountrySearchController.clear();
-                  }
-                },
-                onChanged: (value) {
+
+          if (_requiresState) ...[
+            DetailItem(title: "Billing state", detail: _selectedState),
+            spacing,
+            DetailItem(title: "Billing country", detail: _deliveryCountryLabel),
+          ],
+
+          if (!_requiresState) ...[
+            ShopInBitStatePicker(
+              countryIso: _billingSelectedCountryIso!,
+              selectedState: _selectedBillingState,
+              onChanged: (state) {
+                if (state != _selectedBillingState && mounted) {
                   setState(() {
-                    _billingSelectedCountryIso = value;
+                    _selectedBillingState = state;
                   });
-                },
-                hint: Text(
-                  "Country",
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldDefaultSearchIconLeft,
-                        )
-                      : STextStyles.fieldLabel(context),
-                ),
-                isExpanded: true,
-                buttonStyleData: ButtonStyleData(
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                ),
-                iconStyleData: IconStyleData(
-                  icon: Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: SvgPicture.asset(
-                      Assets.svg.chevronDown,
-                      width: 12,
-                      height: 6,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveSearchIconRight,
-                    ),
-                  ),
-                ),
-                dropdownStyleData: DropdownStyleData(
-                  offset: const Offset(0, 0),
-                  elevation: 0,
-                  maxHeight: 300,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                ),
-                dropdownSearchData: DropdownSearchData<String>(
-                  searchController: _billingCountrySearchController,
-                  searchInnerWidgetHeight: 48,
-                  searchInnerWidget: TextFormField(
-                    controller: _billingCountrySearchController,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      hintText: "Search...",
-                      hintStyle: STextStyles.fieldLabel(context),
-                      border: InputBorder.none,
-                    ),
-                  ),
-                  searchMatchFn: (item, searchValue) {
-                    final label = widget.countries
-                        .where((c) => c['iso'] == item.value)
-                        .map((c) => c['label'] as String)
-                        .firstOrNull;
-                    return label?.toLowerCase().contains(
-                          searchValue.toLowerCase(),
-                        ) ??
-                        false;
-                  },
-                ),
-                menuItemStyleData: const MenuItemStyleData(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                ),
-              ),
+                }
+              },
             ),
-          ),
+            spacing,
+            ShopInBitCountryPicker(
+              hintText: "Billing country",
+              selectedIso: _billingSelectedCountryIso,
+              onChanged: (data) => setState(() {
+                _billingSelectedCountryIso = data?.code;
+                _requiresState = data?.requiresState ?? false;
+              }),
+            ),
+          ],
         ],
         const SizedBox(height: 24),
         PrimaryButton(

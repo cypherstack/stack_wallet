@@ -95,7 +95,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
   String? _selectedArrangement;
   String? _selectedDepartureCountryIso;
-  String? _selectedDepartureCountryName;
   String? _selectedDateMode;
   String? _selectedFlexibility;
   String? _selectedYear;
@@ -241,6 +240,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       deliveryCountryCode: "DE",
       voucherCode: null,
       deliveryCountryName: "Germany",
+      deliveryState: null,
     );
     try {
       await submitShopInBitRequest(context, draft, ref.read(pShopinBitService));
@@ -328,7 +328,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           selectedIso: _selectedDepartureCountryIso,
           onChanged: (data) => setState(() {
             _selectedDepartureCountryIso = data?.code;
-            _selectedDepartureCountryName = data?.name;
           }),
           hintText: "Departure country",
         ),

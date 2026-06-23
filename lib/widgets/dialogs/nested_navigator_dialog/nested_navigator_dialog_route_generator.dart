@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../db/drift/shared_db/shared_database.dart';
 import '../../../models/shopinbit/shopinbit_enums.dart';
 import '../../../models/shopinbit/shopinbit_request_draft.dart';
 import '../../../pages/cakepay/cakepay_card_detail_view.dart';
@@ -156,14 +157,12 @@ abstract final class NestedNavigatorDialogRouteGenerator {
       case ShopInBitShippingView.routeName:
         if (args
             is ({
-              int apiTicketId,
-              String deliveryCountry,
+              ShopInBitTicket ticket,
               List<Map<String, dynamic>> countries,
             })) {
           return getRoute(
             builder: (_) => ShopInBitShippingView(
-              apiTicketId: args.apiTicketId,
-              deliveryCountry: args.deliveryCountry,
+              ticket: args.ticket,
               countries: args.countries,
             ),
             settings: RouteSettings(name: settings.name),
