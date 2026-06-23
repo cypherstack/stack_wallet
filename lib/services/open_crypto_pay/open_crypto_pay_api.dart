@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,6 +22,8 @@ class OpenCryptoPayApi {
 
   static const Duration _httpTimeout = Duration(seconds: 15);
   static const Duration _commitTimeout = Duration(seconds: 30);
+  static const int _maxRetries = 3;
+  static const Duration _retryBaseDelay = Duration(milliseconds: 500);
 
   ({InternetAddress host, int port})? get _proxyInfo =>
       AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor
@@ -51,7 +54,7 @@ class OpenCryptoPayApi {
     );
 
     Logging.instance.d('OpenCryptoPay: GET $uri');
-    final response = await _get(uri);
+    final response = await _getWithRetry(uri);
 
     if (response.code == 404) {
       String message = 'No pending payment found';
@@ -109,7 +112,7 @@ class OpenCryptoPayApi {
     );
 
     Logging.instance.d('OpenCryptoPay: GET $uri');
-    final response = await _get(uri);
+    final response = await _getWithRetry(uri);
 
     if (response.code != 200) {
       throw Exception('OpenCryptoPay ${response.code}: ${response.body}');
@@ -167,7 +170,7 @@ class OpenCryptoPayApi {
     );
 
     Logging.instance.d('OpenCryptoPay: GET ${_redactedUri(uri)}');
-    final response = await _get(uri, timeout: _commitTimeout);
+    final response = await _getWithRetry(uri, timeout: _commitTimeout);
     if (response.code != 200) {
       throw Exception(
         'OpenCryptoPay commit ${response.code}: ${response.body}',
@@ -201,6 +204,44 @@ class OpenCryptoPayApi {
     return _client
         .get(url: uri, proxyInfo: _proxyInfo, connectionTimeout: timeout)
         .timeout(timeout);
+  }
+
+  Future<Response> _getWithRetry(
+    Uri uri, {
+    Duration timeout = _httpTimeout,
+  }) async {
+    for (var attempt = 0; attempt < _maxRetries; attempt++) {
+      try {
+        return await _get(uri, timeout: timeout);
+      } catch (e, s) {
+        if (!_isRetryableNetworkError(e) || attempt == _maxRetries - 1) {
+          if (attempt > 0) {
+            Logging.instance.w(
+              'OpenCryptoPay: request failed after ${attempt + 1} attempts',
+              error: e,
+              stackTrace: s,
+            );
+          }
+          rethrow;
+        }
+
+        final delay = _retryBaseDelay * (1 << attempt);
+        Logging.instance.d(
+          'OpenCryptoPay: retrying in ${delay.inMilliseconds}ms '
+          '(attempt ${attempt + 2}/$_maxRetries)',
+        );
+        await Future<void>.delayed(delay);
+      }
+    }
+
+    throw StateError('OpenCryptoPay: retry loop exited unexpectedly');
+  }
+
+  bool _isRetryableNetworkError(Object error) {
+    return error is TimeoutException ||
+        error is SocketException ||
+        error is HandshakeException ||
+        error is HttpException;
   }
 }
 

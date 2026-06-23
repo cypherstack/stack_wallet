@@ -203,6 +203,55 @@ void main() {
       );
     });
   });
+
+  group("validateToken", () {
+    OpenCryptoPayCommit commit({
+      String asset = "USDT",
+      String contract = "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      int? tokenDecimals = 6,
+    }) {
+      return OpenCryptoPayCommit(
+        callbackUrl: "https://merchant.example/cb/payment-1",
+        quoteId: "quote-1",
+        paymentId: "payment-1",
+        method: "Ethereum",
+        asset: asset,
+        expiresAt: DateTime.now().add(const Duration(minutes: 5)),
+        submissionFlow: OpenCryptoPaySubmissionFlow.rawHexToProvider,
+        minFee: Decimal.zero,
+        recipientAddress: "0x9C2242a0B71FD84661Fd4bC56b75c90Fac6d10FC",
+        amount: Decimal.fromInt(1),
+        tokenContractAddress: contract,
+        tokenDecimals: tokenDecimals,
+      );
+    }
+
+    test("accepts matching enabled token metadata", () {
+      expect(
+        OpenCryptoPaySettlement.validateToken(
+          commit: commit(),
+          isTokenTx: true,
+          tokenContractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          tokenSymbol: "USDT",
+          tokenDecimals: 6,
+        ),
+        isNull,
+      );
+    });
+
+    test("rejects token decimals mismatch", () {
+      expect(
+        OpenCryptoPaySettlement.validateToken(
+          commit: commit(tokenDecimals: 6),
+          isTokenTx: true,
+          tokenContractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          tokenSymbol: "USDT",
+          tokenDecimals: 18,
+        ),
+        "Open CryptoPay token decimals changed. Please scan again.",
+      );
+    });
+  });
 }
 
 Amount _amount(String value, {int fractionDigits = 8}) {

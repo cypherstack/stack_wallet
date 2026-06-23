@@ -104,4 +104,13 @@ void main() {
     expect(result, isNotNull);
     expect(result!.isTokenTransfer, false);
   });
+
+  test("rejects scientific notation with excessive exponent", () {
+    final result = OpenCryptoPayEvmUri.tryParse(
+      "ethereum:0x9C2242a0B71FD84661Fd4bC56b75c90Fac6d10FC@1"
+      "?value=1e999",
+    );
+
+    expect(result, isNull);
+  });
 }

@@ -45,6 +45,8 @@ class SendViewAutoFillData {
           "quoteId": commit.quoteId,
           "paymentId": commit.paymentId,
           "expiresAt": commit.expiresAt.toIso8601String(),
+          if (commit.tokenDecimals != null)
+            "tokenDecimals": commit.tokenDecimals,
         },
     };
   }

@@ -255,6 +255,7 @@ class OpenCryptoPayCommit {
   final String recipientAddress;
   final Decimal amount;
   final String? tokenContractAddress;
+  final int? tokenDecimals;
 
   const OpenCryptoPayCommit({
     required this.callbackUrl,
@@ -268,6 +269,7 @@ class OpenCryptoPayCommit {
     required this.recipientAddress,
     required this.amount,
     this.tokenContractAddress,
+    this.tokenDecimals,
   });
 
   bool get isExpired => expiresAt.isBefore(DateTime.now());

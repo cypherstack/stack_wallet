@@ -162,6 +162,7 @@ class _OpenCryptoPayConfirmViewState
     required String recipient,
     required OpenCryptoPaySubmissionFlow submissionFlow,
     String? tokenContractAddress,
+    int? tokenDecimals,
   }) {
     return SendViewAutoFillData(
       address: address,
@@ -180,6 +181,7 @@ class _OpenCryptoPayConfirmViewState
         recipientAddress: address,
         amount: amount,
         tokenContractAddress: tokenContractAddress,
+        tokenDecimals: tokenDecimals,
       ),
     );
   }
@@ -359,13 +361,20 @@ class _OpenCryptoPayConfirmViewState
       return;
     }
 
+    final recipientAddress = evmUri.recipientAddress;
+    if (recipientAddress == null) {
+      _warn("Could not parse token recipient address");
+      return;
+    }
+
     final autoFillData = _autoFillData(
-      address: evmUri.recipientAddress!,
+      address: recipientAddress,
       amount: amount,
       expiresAt: expiresAt,
       recipient: recipient,
       submissionFlow: submissionFlow,
       tokenContractAddress: contract.address,
+      tokenDecimals: contract.decimals,
     );
 
     if (!mounted) return;

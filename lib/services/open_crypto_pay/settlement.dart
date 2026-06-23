@@ -1,5 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/input.dart';
@@ -91,6 +90,8 @@ class OpenCryptoPaySettlement {
   }
 
   Future<TxData> submitRawHex(Wallet submitWallet) async {
+    _ensureQuoteNotExpired();
+
     final signedTx = await _prepareRawHexTx(submitWallet, txData);
     final raw = signedTx.raw;
     if (raw == null || raw.isEmpty) {
@@ -101,10 +102,8 @@ class OpenCryptoPaySettlement {
     if (txid == null || txid.isEmpty) {
       throw Exception("Could not determine signed transaction ID");
     }
-    if (commit.isExpired) {
-      throw Exception("Open CryptoPay quote expired. Please scan again.");
-    }
 
+    _ensureQuoteNotExpired();
     await OpenCryptoPayApi.instance.commitRawHex(commit: commit, hex: raw);
 
     final updatedInputs = signedTx.usedUTXOs?.map((e) {
@@ -142,6 +141,8 @@ class OpenCryptoPaySettlement {
   }
 
   Future<void> commitTxId(TxData txData) async {
+    _ensureQuoteNotExpired();
+
     try {
       await OpenCryptoPayApi.instance.commitTxId(
         commit: commit,
@@ -192,30 +193,53 @@ class OpenCryptoPaySettlement {
     return null;
   }
 
-  String? _validateToken() {
-    final tokenContractAddress = commit.tokenContractAddress;
-    if (tokenContractAddress == null) return null;
+  String? _validateToken() => validateToken(
+    commit: commit,
+    isTokenTx: isTokenTx,
+    tokenContractAddress: tokenWallet?.tokenContract.address,
+    tokenSymbol: tokenWallet?.tokenContract.symbol,
+    tokenDecimals: tokenWallet?.tokenContract.decimals,
+  );
+
+  static String? validateToken({
+    required OpenCryptoPayCommit commit,
+    required bool isTokenTx,
+    String? tokenContractAddress,
+    String? tokenSymbol,
+    int? tokenDecimals,
+  }) {
+    final commitTokenAddress = commit.tokenContractAddress;
+    if (commitTokenAddress == null) return null;
 
     if (!isTokenTx || commit.method != 'Ethereum') {
       return "Open CryptoPay token payment is not supported here";
     }
 
-    final wallet = tokenWallet;
-    if (wallet == null) {
+    if (tokenContractAddress == null || tokenSymbol == null) {
       return "Could not verify Open CryptoPay token wallet";
     }
 
-    if (wallet.tokenContract.address.toLowerCase() !=
-        tokenContractAddress.toLowerCase()) {
+    if (tokenContractAddress.toLowerCase() !=
+        commitTokenAddress.toLowerCase()) {
       return "Open CryptoPay token contract changed. Please scan again.";
     }
 
-    if (wallet.tokenContract.symbol.toUpperCase() !=
-        commit.asset.toUpperCase()) {
+    if (tokenSymbol.toUpperCase() != commit.asset.toUpperCase()) {
       return "Open CryptoPay token asset changed. Please scan again.";
     }
 
+    final expectedDecimals = commit.tokenDecimals;
+    if (expectedDecimals != null && tokenDecimals != expectedDecimals) {
+      return "Open CryptoPay token decimals changed. Please scan again.";
+    }
+
     return null;
+  }
+
+  void _ensureQuoteNotExpired() {
+    if (commit.isExpired) {
+      throw Exception("Open CryptoPay quote expired. Please scan again.");
+    }
   }
 
   String? _validateMinFee() => validateMinFee(

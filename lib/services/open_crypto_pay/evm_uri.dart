@@ -52,9 +52,11 @@ class OpenCryptoPayEvmUri {
         : null;
 
     final recipientAddress = parsed.queryParameters['address'];
-    final amountRaw = functionName == 'transfer'
-        ? _parseRawInteger(parsed.queryParameters['uint256'])
-        : _parseRawInteger(parsed.queryParameters['value']);
+    final amountParam = functionName == 'transfer'
+        ? parsed.queryParameters['uint256']
+        : parsed.queryParameters['value'];
+    final amountRaw = _parseRawInteger(amountParam);
+    if (amountParam != null && amountRaw == null) return null;
 
     return OpenCryptoPayEvmUri(
       scheme: parsed.scheme,
@@ -85,6 +87,7 @@ class OpenCryptoPayEvmUri {
     final fraction = match.group(2) ?? '';
     final exponent = int.tryParse(match.group(3)!);
     if (exponent == null) return null;
+    if (exponent.abs() > 100) return null;
 
     final digits = whole + fraction;
     final scale = exponent - fraction.length;
