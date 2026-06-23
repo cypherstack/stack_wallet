@@ -1,4 +1,3 @@
-// ignore: unused_import
 import 'dart:io';
 
 import 'wallets/crypto_currency/crypto_currency.dart';
@@ -23,6 +22,12 @@ abstract class AppConfig {
   static String get commitHash => _commitHash;
 
   static bool hasFeature(AppFeature feature) => _features.contains(feature);
+
+  /// Whether the ShopinBit settings (customer key management) menu entry
+  /// should be shown.
+  static bool showShopinBitSettings(int familiarity) =>
+      hasFeature(AppFeature.shopinBit) &&
+      (familiarity >= 6 || !(Platform.isMacOS || Platform.isIOS));
 
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 

@@ -10,6 +10,7 @@ import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_tickets_view.dart';
 import '../../../providers/db/drift_provider.dart';
 import '../../../providers/desktop/current_desktop_menu_item.dart';
+import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/global/shopin_bit_service_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -89,6 +90,9 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
 
   @override
   Widget build(BuildContext context) {
+    final familiarity = ref.watch(
+      prefsChangeNotifierProvider.select((v) => v.familiarity),
+    );
     return Column(
       children: [
         Padding(
@@ -191,27 +195,37 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                           if (mounted) setState(() {});
                         },
                       ),
-                      const SizedBox(width: 16),
-                      SecondaryButton(
-                        width: 118,
-                        buttonHeight: ButtonHeight.m,
-                        label: "Settings",
-                        onPressed: () {
-                          // ShopInBit is the last settings menu item.
-                          var idx = 8;
-                          if (AppConfig.hasFeature(AppFeature.themeSelection)) {
-                            idx++;
-                          }
-                          ref
-                                  .read(
-                                    selectedSettingsMenuItemStateProvider.state,
-                                  )
-                                  .state =
-                              idx;
-                          ref.read(currentDesktopMenuItemProvider.state).state =
-                              DesktopMenuItemId.settings;
-                        },
-                      ),
+                      // Only offer the Settings shortcut when the ShopinBit
+                      // settings entry is actually present in the menu;
+                      // otherwise its index does not exist.
+                      if (AppConfig.showShopinBitSettings(familiarity)) ...[
+                        const SizedBox(width: 16),
+                        SecondaryButton(
+                          width: 118,
+                          buttonHeight: ButtonHeight.m,
+                          label: "Settings",
+                          onPressed: () {
+                            // ShopInBit is the last settings menu item.
+                            var idx = 8;
+                            if (AppConfig.hasFeature(
+                              AppFeature.themeSelection,
+                            )) {
+                              idx++;
+                            }
+                            ref
+                                    .read(
+                                      selectedSettingsMenuItemStateProvider
+                                          .state,
+                                    )
+                                    .state =
+                                idx;
+                            ref
+                                    .read(currentDesktopMenuItemProvider.state)
+                                    .state =
+                                DesktopMenuItemId.settings;
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),

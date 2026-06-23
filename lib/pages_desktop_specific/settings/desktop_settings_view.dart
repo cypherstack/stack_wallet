@@ -94,7 +94,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: AdvancedSettings.routeName,
       ), //advanced
-      if (AppConfig.hasFeature(.shopinBit) && familiarity >= 6)
+      if (AppConfig.showShopinBitSettings(familiarity))
         const Navigator(
           key: Key("settingsShopInBitDesktopKey"),
           onGenerateRoute: RouteGenerator.generateRoute,
@@ -119,10 +119,13 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
             ),
           ),
           Expanded(
+            // Clamp so a stale/out-of-range selection (e.g. the ShopinBit
+            // entry being hidden) can never throw a RangeError.
             child:
                 contentViews[ref
                     .watch(selectedSettingsMenuItemStateProvider.state)
-                    .state],
+                    .state
+                    .clamp(0, contentViews.length - 1)],
           ),
         ],
       ),

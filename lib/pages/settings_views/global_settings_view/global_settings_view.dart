@@ -257,7 +257,9 @@ class GlobalSettingsView extends StatelessWidget {
                                             (v) => v.familiarity,
                                           ),
                                         );
-                                        if (familiarity < 6) {
+                                        if (!AppConfig.showShopinBitSettings(
+                                          familiarity,
+                                        )) {
                                           return const SizedBox.shrink();
                                         }
                                         return Column(
