@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../models/shopinbit/shopinbit_request_draft.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
@@ -11,8 +9,6 @@ import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/models/address.dart';
 import '../../services/shopinbit/src/models/car_research.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/assets.dart';
-import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -20,6 +16,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/detail_item.dart';
 import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -42,114 +39,55 @@ class ShopInBitCarFeeView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _streetController;
-  late final TextEditingController _cityController;
-  late final TextEditingController _postalCodeController;
-  late final FocusNode _nameFocusNode;
-  late final FocusNode _streetFocusNode;
-  late final FocusNode _cityFocusNode;
-  late final FocusNode _postalCodeFocusNode;
-
-  List<Map<String, dynamic>> _countries = [];
-  String? _selectedCountryIso;
-  bool _loadingCountries = false;
-  final TextEditingController _countrySearchController =
-      TextEditingController();
-
-  // Billing address (optional, separate from delivery)
-  bool _differentBilling = false;
   late final TextEditingController _billingNameController;
   late final TextEditingController _billingStreetController;
   late final TextEditingController _billingCityController;
   late final TextEditingController _billingPostalCodeController;
-  late final FocusNode _billingNameFocusNode;
-  late final FocusNode _billingStreetFocusNode;
-  late final FocusNode _billingCityFocusNode;
-  late final FocusNode _billingPostalCodeFocusNode;
-  String? _selectedBillingCountryIso;
-  final TextEditingController _billingCountrySearchController =
-      TextEditingController();
 
   String _displayedFee = "223.00 EUR";
   bool _submitting = false;
 
-  bool get _canContinue {
-    if (_nameController.text.trim().isEmpty ||
-        _streetController.text.trim().isEmpty ||
-        _cityController.text.trim().isEmpty ||
-        _postalCodeController.text.trim().isEmpty ||
-        _selectedCountryIso == null) {
-      return false;
+  bool _canContinue = false;
+
+  void _validate() {
+    bool valid =
+        _billingNameController.text.trim().isNotEmpty &&
+        _billingStreetController.text.trim().isNotEmpty &&
+        _billingCityController.text.trim().isNotEmpty &&
+        _billingPostalCodeController.text.trim().isNotEmpty &&
+        widget.draft.deliveryCountryCode.isNotEmpty;
+
+    if (valid) {
+      // check full name
+      final parts = _billingNameController.text
+          .split(" ")
+          .where((e) => e.isNotEmpty);
+      valid = parts.length > 1;
     }
-    if (_differentBilling) {
-      if (_billingNameController.text.trim().isEmpty ||
-          _billingStreetController.text.trim().isEmpty ||
-          _billingCityController.text.trim().isEmpty ||
-          _billingPostalCodeController.text.trim().isEmpty ||
-          _selectedBillingCountryIso == null) {
-        return false;
-      }
+
+    if (_canContinue != valid && mounted) {
+      setState(() {
+        _canContinue = valid;
+      });
     }
-    return true;
   }
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _streetController = TextEditingController();
-    _cityController = TextEditingController();
-    _postalCodeController = TextEditingController();
-    _nameFocusNode = FocusNode();
-    _streetFocusNode = FocusNode();
-    _cityFocusNode = FocusNode();
-    _postalCodeFocusNode = FocusNode();
+
     _billingNameController = TextEditingController();
     _billingStreetController = TextEditingController();
     _billingCityController = TextEditingController();
     _billingPostalCodeController = TextEditingController();
-    _billingNameFocusNode = FocusNode();
-    _billingStreetFocusNode = FocusNode();
-    _billingCityFocusNode = FocusNode();
-    _billingPostalCodeFocusNode = FocusNode();
-
-    for (final node in [
-      _nameFocusNode,
-      _streetFocusNode,
-      _cityFocusNode,
-      _postalCodeFocusNode,
-      _billingNameFocusNode,
-      _billingStreetFocusNode,
-      _billingCityFocusNode,
-      _billingPostalCodeFocusNode,
-    ]) {
-      node.addListener(() => setState(() {}));
-    }
-
-    _fetchCountries();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _streetController.dispose();
-    _cityController.dispose();
-    _postalCodeController.dispose();
-    _nameFocusNode.dispose();
-    _streetFocusNode.dispose();
-    _cityFocusNode.dispose();
-    _postalCodeFocusNode.dispose();
     _billingNameController.dispose();
     _billingStreetController.dispose();
     _billingCityController.dispose();
     _billingPostalCodeController.dispose();
-    _billingNameFocusNode.dispose();
-    _billingStreetFocusNode.dispose();
-    _billingCityFocusNode.dispose();
-    _billingPostalCodeFocusNode.dispose();
-    _billingCountrySearchController.dispose();
-    _countrySearchController.dispose();
     super.dispose();
   }
 
@@ -167,23 +105,6 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       }
       return false;
     });
-  }
-
-  Future<void> _fetchCountries() async {
-    setState(() => _loadingCountries = true);
-    try {
-      final resp = await ref.read(pShopinBitService).client.getCountries();
-      if (resp.hasError || resp.value == null) return;
-      _countries = resp.value!;
-      if (_selectedCountryIso != null &&
-          !_countries.any((c) => c['iso'] == _selectedCountryIso)) {
-        _selectedCountryIso = null;
-      }
-    } catch (_) {
-      // leave list empty; user will see no items
-    } finally {
-      if (mounted) setState(() => _loadingCountries = false);
-    }
   }
 
   ({String first, String last}) _splitFullName(String raw) {
@@ -204,39 +125,23 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     try {
       final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
 
-      // Delivery address (always provided)
-      final deliveryName = _splitFullName(_nameController.text);
-
-      // Billing address: use separate billing fields if different,
-      // else use delivery
       final Address billing;
-      if (_differentBilling) {
-        final billingName = _splitFullName(_billingNameController.text);
-        billing = Address(
-          firstName: billingName.first,
-          lastName: billingName.last,
-          street: _billingStreetController.text.trim(),
-          zip: _billingPostalCodeController.text.trim(),
-          city: _billingCityController.text.trim(),
-          country: _selectedBillingCountryIso!,
-        );
-      } else {
-        billing = Address(
-          firstName: deliveryName.first,
-          lastName: deliveryName.last,
-          street: _streetController.text.trim(),
-          zip: _postalCodeController.text.trim(),
-          city: _cityController.text.trim(),
-          country: _selectedCountryIso!,
-        );
-      }
+      final billingName = _splitFullName(_billingNameController.text);
+      billing = Address(
+        firstName: billingName.first,
+        lastName: billingName.last,
+        street: _billingStreetController.text.trim(),
+        zip: _billingPostalCodeController.text.trim(),
+        city: _billingCityController.text.trim(),
+        country: widget.draft.deliveryCountryCode,
+      );
 
       // Cache the car request alongside billing so the backend failsafe can
       // create the real car research ticket once the fee is paid.
       final request = CarResearchRequest(
         customerPseudonym: kShopInBitCustomerPseudonym,
         comment: widget.draft.requestDescription,
-        deliveryCountry: widget.draft.deliveryCountry,
+        deliveryCountry: widget.draft.deliveryCountryCode,
       );
 
       final resp = await ref
@@ -368,124 +273,6 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     // placeholder in place rather than showing "--".
   }
 
-  Widget _buildCountryDropdown({
-    required String? value,
-    required ValueChanged<String?> onChanged,
-    required String hint,
-    required TextEditingController searchController,
-    required bool isDesktop,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton2<String>(
-          value: value,
-          items: _countries
-              .map(
-                (c) => DropdownMenuItem<String>(
-                  value: c['iso'] as String,
-                  child: Text(
-                    c['label'] as String,
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
-                          )
-                        : STextStyles.w500_14(context),
-                  ),
-                ),
-              )
-              .toList(),
-          onMenuStateChange: (isOpen) {
-            if (!isOpen) {
-              searchController.clear();
-            }
-          },
-          onChanged: _loadingCountries ? null : onChanged,
-          hint: Text(
-            _loadingCountries ? "Loading countries..." : hint,
-            style: isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
-                  )
-                : STextStyles.fieldLabel(context),
-          ),
-          isExpanded: true,
-          buttonStyleData: ButtonStyleData(
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          iconStyleData: IconStyleData(
-            icon: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                colorFilter: ColorFilter.mode(
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-                  .srcIn,
-                ),
-              ),
-            ),
-          ),
-          dropdownStyleData: DropdownStyleData(
-            offset: const Offset(0, 0),
-            elevation: 0,
-            maxHeight: 300,
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          dropdownSearchData: DropdownSearchData<String>(
-            searchController: searchController,
-            searchInnerWidgetHeight: 48,
-            searchInnerWidget: TextFormField(
-              controller: searchController,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                hintText: "Search...",
-                hintStyle: STextStyles.fieldLabel(context),
-                border: InputBorder.none,
-              ),
-            ),
-            searchMatchFn: (item, searchValue) {
-              final label = _countries
-                  .where((c) => c['iso'] == item.value)
-                  .map((c) => c['label'] as String)
-                  .firstOrNull;
-              return label?.toLowerCase().contains(searchValue.toLowerCase()) ??
-                  false;
-            },
-          ),
-          menuItemStyleData: const MenuItemStyleData(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -526,164 +313,60 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
         ),
         SizedBox(height: isDesktop ? 24 : 16),
         Text(
-          "Delivery address",
+          "Billing address",
           style: isDesktop
               ? STextStyles.desktopTextSmall(context)
               : STextStyles.titleBold12(context),
         ),
         SizedBox(height: isDesktop ? 16 : 12),
         AdaptiveTextField(
-          controller: _nameController,
-          focusNode: _nameFocusNode,
+          controller: _billingNameController,
           labelText: "Full name",
           autocorrect: false,
           enableSuggestions: false,
-          onChanged: (_) => setState(() {}),
+          onChangedComprehensive: (_) => _validate(),
         ),
         spacing,
         AdaptiveTextField(
-          controller: _streetController,
-          focusNode: _streetFocusNode,
+          controller: _billingStreetController,
           labelText: "Street address",
           autocorrect: false,
           enableSuggestions: false,
-          onChanged: (_) => setState(() {}),
+          onChangedComprehensive: (_) => _validate(),
         ),
         spacing,
         Row(
           children: [
             Expanded(
               child: AdaptiveTextField(
-                controller: _cityController,
-                focusNode: _cityFocusNode,
+                controller: _billingCityController,
                 labelText: "City",
                 autocorrect: false,
                 enableSuggestions: false,
-                onChanged: (_) => setState(() {}),
+                onChangedComprehensive: (_) => _validate(),
               ),
             ),
             SizedBox(width: isDesktop ? 16 : 12),
             Expanded(
               child: AdaptiveTextField(
-                controller: _postalCodeController,
-                focusNode: _postalCodeFocusNode,
+                controller: _billingPostalCodeController,
                 labelText: "Postal code",
                 autocorrect: false,
                 enableSuggestions: false,
-                onChanged: (_) => setState(() {}),
+                onChangedComprehensive: (_) => _validate(),
               ),
             ),
           ],
         ),
+
         spacing,
-        _buildCountryDropdown(
-          value: _selectedCountryIso,
-          onChanged: (v) => setState(() => _selectedCountryIso = v),
-          hint: "Country",
-          searchController: _countrySearchController,
-          isDesktop: isDesktop,
+        DetailItem(
+          title: "Billing country",
+          detail:
+              "${widget.draft.deliveryCountryName} "
+              "(${widget.draft.deliveryCountryCode})",
+          disableSelectableText: true,
         ),
-        spacing,
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _differentBilling = !_differentBilling;
-              if (!_differentBilling) {
-                _billingNameController.clear();
-                _billingStreetController.clear();
-                _billingCityController.clear();
-                _billingPostalCodeController.clear();
-                _selectedBillingCountryIso = null;
-              }
-            });
-          },
-          child: Container(
-            color: Colors.transparent,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: IgnorePointer(
-                    child: Checkbox(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _differentBilling,
-                      onChanged: (_) {},
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  "Different billing address?",
-                  style: isDesktop
-                      ? STextStyles.desktopTextSmall(context)
-                      : STextStyles.w500_14(context),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (_differentBilling) ...[
-          spacing,
-          Text(
-            "Billing address",
-            style: isDesktop
-                ? STextStyles.desktopTextSmall(context)
-                : STextStyles.titleBold12(context),
-          ),
-          SizedBox(height: isDesktop ? 16 : 12),
-          AdaptiveTextField(
-            controller: _billingNameController,
-            focusNode: _billingNameFocusNode,
-            labelText: "Full name",
-            autocorrect: false,
-            enableSuggestions: false,
-            onChanged: (_) => setState(() {}),
-          ),
-          spacing,
-          AdaptiveTextField(
-            controller: _billingStreetController,
-            focusNode: _billingStreetFocusNode,
-            labelText: "Street address",
-            autocorrect: false,
-            enableSuggestions: false,
-            onChanged: (_) => setState(() {}),
-          ),
-          spacing,
-          Row(
-            children: [
-              Expanded(
-                child: AdaptiveTextField(
-                  controller: _billingCityController,
-                  focusNode: _billingCityFocusNode,
-                  labelText: "City",
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              SizedBox(width: isDesktop ? 16 : 12),
-              Expanded(
-                child: AdaptiveTextField(
-                  controller: _billingPostalCodeController,
-                  focusNode: _billingPostalCodeFocusNode,
-                  labelText: "Postal code",
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-            ],
-          ),
-          spacing,
-          _buildCountryDropdown(
-            value: _selectedBillingCountryIso,
-            onChanged: (v) => setState(() => _selectedBillingCountryIso = v),
-            hint: "Billing country",
-            searchController: _billingCountrySearchController,
-            isDesktop: isDesktop,
-          ),
-        ],
         if (!isDesktop) const Spacer(),
         if (isDesktop) const SizedBox(height: 24),
         PrimaryButton(

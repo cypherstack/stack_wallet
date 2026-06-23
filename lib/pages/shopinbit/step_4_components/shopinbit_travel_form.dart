@@ -95,6 +95,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
   String? _selectedArrangement;
   String? _selectedDepartureCountryIso;
+  String? _selectedDepartureCountryName;
   String? _selectedDateMode;
   String? _selectedFlexibility;
   String? _selectedYear;
@@ -187,7 +188,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       "Arrangement: $_selectedArrangement",
       "Details: ${_arrangementDetailsController.text.trim()}",
       "Departure: ${_departureCityController.text.trim()}, "
-          "${_selectedDepartureCountryIso ?? ''}",
+          "${_selectedDepartureCountryIso!}",
     ];
 
     if (_needsRecommendations) {
@@ -237,8 +238,9 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       // Travel doesn't collect a delivery country: default to "DE" since the
       // API requires the field. Travel destinations are captured in the
       // structured comment field.
-      deliveryCountry: "DE",
+      deliveryCountryCode: "DE",
       voucherCode: null,
+      deliveryCountryName: "Germany",
     );
     try {
       await submitShopInBitRequest(context, draft, ref.read(pShopinBitService));
@@ -324,8 +326,10 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         SizedBox(height: isDesktop ? 12 : 8),
         ShopInBitCountryPicker(
           selectedIso: _selectedDepartureCountryIso,
-          onChanged: (iso) =>
-              setState(() => _selectedDepartureCountryIso = iso),
+          onChanged: (data) => setState(() {
+            _selectedDepartureCountryIso = data?.code;
+            _selectedDepartureCountryName = data?.name;
+          }),
           hintText: "Departure country",
         ),
         SizedBox(height: isDesktop ? 24 : 16),
