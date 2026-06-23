@@ -79,6 +79,7 @@ class StackDialog extends StatelessWidget {
     required this.title,
     this.message,
     this.width,
+    this.padding = const EdgeInsets.all(24),
   });
 
   final Widget? leftButton;
@@ -90,11 +91,13 @@ class StackDialog extends StatelessWidget {
   final String? message;
 
   final double? width;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     return StackDialogBase(
       width: width,
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,7 +233,7 @@ class StackOkDialog extends StatelessWidget {
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    child: Text("Ok", style: STextStyles.button(context)),
+                    child: Text("OK", style: STextStyles.button(context)),
                   ),
                 ),
               ],
