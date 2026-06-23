@@ -19,7 +19,7 @@ class ShopInBitCountryPicker extends ConsumerStatefulWidget {
   });
 
   final String? selectedIso;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<({String name, String code})?> onChanged;
   final String hintText;
 
   @override
@@ -94,7 +94,18 @@ class _ShopInBitCountryPickerState
             _searchController.clear();
           }
         },
-        onChanged: _loading ? null : widget.onChanged,
+        onChanged: _loading
+            ? null
+            : (iso) {
+                if (iso == null) widget.onChanged(null);
+
+                widget.onChanged((
+                  name:
+                      _countries.firstWhere((e) => e["iso"] == iso)["label"]
+                          as String,
+                  code: iso!,
+                ));
+              },
         hint: Text(
           _loading ? "Loading countries..." : widget.hintText,
           style: hintStyle,

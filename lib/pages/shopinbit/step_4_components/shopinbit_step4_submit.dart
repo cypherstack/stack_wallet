@@ -28,7 +28,7 @@ Future<void> submitShopInBitRequest(
     final TicketRef? ref = await service.createRequest(
       category: draft.category,
       comment: draft.requestDescription,
-      deliveryCountry: draft.deliveryCountry,
+      deliveryCountry: draft.deliveryCountryCode,
       voucherCode: draft.voucherCode,
     );
 

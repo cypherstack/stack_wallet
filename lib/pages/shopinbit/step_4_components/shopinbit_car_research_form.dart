@@ -54,7 +54,8 @@ class _ShopInBitCarResearchFormState
 
   String? _selectedCarCondition;
   bool _feeAcknowledged = false;
-  String? _selectedCountryIso;
+  String? _selectedCountryIsoCode;
+  String? _selectedCountryName;
   bool _privacyAccepted = false;
   bool _submitting = false;
 
@@ -101,14 +102,14 @@ class _ShopInBitCarResearchFormState
         _selectedCarCondition != null &&
         carBudgetValue != null &&
         carBudgetValue >= _minCarBudget &&
-        _selectedCountryIso != null &&
-        _selectedCountryIso!.isNotEmpty;
+        _selectedCountryIsoCode != null &&
+        _selectedCountryIsoCode!.isNotEmpty;
   }
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
     try {
-      final String countryIso = _selectedCountryIso!;
+      final countryIso = _selectedCountryIsoCode!;
 
       final draft = ShopinbitRequestDraft(
         category: .car,
@@ -119,7 +120,8 @@ class _ShopInBitCarResearchFormState
             "Description: ${_carDescriptionController.text.trim()}\n"
             "Budget: ${_carBudgetController.text.trim()} EUR\n"
             "Delivery country: $countryIso",
-        deliveryCountry: countryIso,
+        deliveryCountryCode: countryIso,
+        deliveryCountryName: _selectedCountryName!,
         voucherCode: null,
       );
 
@@ -179,8 +181,11 @@ class _ShopInBitCarResearchFormState
         ),
         SizedBox(height: isDesktop ? 32 : 24),
         ShopInBitCountryPicker(
-          selectedIso: _selectedCountryIso,
-          onChanged: (iso) => setState(() => _selectedCountryIso = iso),
+          selectedIso: _selectedCountryIsoCode,
+          onChanged: (data) => setState(() {
+            _selectedCountryIsoCode = data?.code;
+            _selectedCountryName = data?.name;
+          }),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
         AdaptiveTextField(

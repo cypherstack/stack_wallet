@@ -42,7 +42,8 @@ class _ShopInBitConciergeFormState
 
   String? _selectedCondition;
   bool _noLimit = false;
-  String? _selectedCountryIso;
+  String? _selectedCountryIsoCode;
+  String? _selectedCountryName;
   bool _privacyAccepted = false;
   bool _submitting = false;
 
@@ -83,12 +84,12 @@ class _ShopInBitConciergeFormState
       _whatToPurchaseController.text.trim().length >= 10 &&
       _selectedCondition != null &&
       (_noLimit || _budgetIsValid) &&
-      _selectedCountryIso != null;
+      _selectedCountryIsoCode != null;
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
     try {
-      final String countryIso = _selectedCountryIso!;
+      final String countryIso = _selectedCountryIsoCode!;
       final String budgetText = _noLimit
           ? "No limit"
           : "${_budgetController.text.trim()} EUR";
@@ -100,7 +101,8 @@ class _ShopInBitConciergeFormState
             "Condition: $_selectedCondition\n"
             "Budget: $budgetText\n"
             "Delivery country: $countryIso",
-        deliveryCountry: countryIso,
+        deliveryCountryCode: countryIso,
+        deliveryCountryName: _selectedCountryName!,
         voucherCode: null,
       );
 
@@ -176,8 +178,11 @@ class _ShopInBitConciergeFormState
         ),
         SizedBox(height: isDesktop ? 24 : 20),
         ShopInBitCountryPicker(
-          selectedIso: _selectedCountryIso,
-          onChanged: (iso) => setState(() => _selectedCountryIso = iso),
+          selectedIso: _selectedCountryIsoCode,
+          onChanged: (data) => setState(() {
+            _selectedCountryIsoCode = data?.code;
+            _selectedCountryName = data?.name;
+          }),
         ),
         SizedBox(height: isDesktop ? 16 : 24),
         ShopInBitPrivacyCheckbox(
