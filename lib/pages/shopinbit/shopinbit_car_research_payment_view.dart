@@ -448,10 +448,11 @@ class _ShopInBitCarResearchPaymentViewState
     );
   }
 
-  void _copyAddress(BuildContext context) {
+  Future<void> _copyAddress(BuildContext context) async {
     final addr = _currentAddress;
     if (addr.isEmpty) return;
-    Clipboard.setData(ClipboardData(text: addr));
+    await Clipboard.setData(ClipboardData(text: addr));
+    if (!context.mounted) return;
     unawaited(
       showFloatingFlushBar(
         type: FlushBarType.info,
