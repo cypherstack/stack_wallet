@@ -4,6 +4,7 @@ import "package:drift/drift.dart";
 
 import "../../../../models/shopinbit/shopinbit_enums.dart";
 import "../../../../services/shopinbit/src/models/message.dart";
+import "../../../../utilities/logger.dart";
 
 class ShopInBitTickets extends Table {
   IntColumn get apiTicketId => integer()();
@@ -47,9 +48,21 @@ class MessagesConverter extends TypeConverter<List<TicketMessage>, String> {
   @override
   List<TicketMessage> fromSql(String fromDb) {
     final List<dynamic> raw = jsonDecode(fromDb) as List<dynamic>;
-    return raw
-        .map((e) => TicketMessage.fromJson(e as Map<String, dynamic>))
-        .toList(growable: false);
+    // Skip any message that fails to parse rather than dropping the whole
+    // conversation; mirrors the tolerant parse on the network side.
+    final messages = <TicketMessage>[];
+    for (final e in raw) {
+      try {
+        messages.add(TicketMessage.fromJson(e as Map<String, dynamic>));
+      } catch (err, s) {
+        Logging.instance.w(
+          "MessagesConverter skipping malformed message",
+          error: err,
+          stackTrace: s,
+        );
+      }
+    }
+    return List<TicketMessage>.unmodifiable(messages);
   }
 
   @override
