@@ -26,6 +26,11 @@ const _kTag = "ShopInBitClient";
 const int _kMaxRetries = 3;
 const Duration _kMaxBackoff = Duration(seconds: 30);
 
+// Per-request ceiling so a stalled socket (common on a sleeping/backgrounded
+// device) can't hang a request forever. A hung poll would otherwise latch the
+// caller's in-flight guard and silently stop all further polling.
+const Duration _kRequestTimeout = Duration(seconds: 30);
+
 class ShopInBitClient {
   final String accessKey;
   final String partnerSecret;
@@ -194,9 +199,22 @@ class ShopInBitClient {
       '/tickets/$ticketId/messages',
       parse: (json) {
         final list = json['messages'] as List<dynamic>;
-        return list
-            .map((e) => TicketMessage.fromJson(e as Map<String, dynamic>))
-            .toList();
+        // Tolerate a single malformed message: skip it rather than throwing,
+        // which would discard the entire conversation for this (and every
+        // subsequent) poll and silently stall the chat.
+        final messages = <TicketMessage>[];
+        for (final raw in list) {
+          try {
+            messages.add(TicketMessage.fromJson(raw as Map<String, dynamic>));
+          } catch (e, s) {
+            Logging.instance.w(
+              "$_kTag skipping malformed ticket message",
+              error: e,
+              stackTrace: s,
+            );
+          }
+        }
+        return messages;
       },
       customerKey: customerKey,
     );
@@ -261,11 +279,9 @@ class ShopInBitClient {
       final uri = Uri.parse('$baseUrl$resolved');
       Logging.instance.t("$_kTag GET $uri");
       final headers = _headers(token, customerKey: customerKey);
-      final response = await _httpClient.get(
-        url: uri,
-        headers: headers,
-        proxyInfo: _proxyInfo,
-      );
+      final response = await _httpClient
+          .get(url: uri, headers: headers, proxyInfo: _proxyInfo)
+          .timeout(_kRequestTimeout);
       if (response.code >= 200 && response.code < 300) {
         return ApiResponse(value: response);
       } else {
@@ -663,7 +679,7 @@ class ShopInBitClient {
     int attempt = 0;
     bool reauthed = false;
     while (true) {
-      final response = await dispatch();
+      final response = await dispatch().timeout(_kRequestTimeout);
       // A 401 means the bearer token is stale/expired: invalidate it,
       // re-authenticate once, and retry before surfacing the error.
       if (response.code == 401 && needsAuth && !reauthed) {
