@@ -1,5 +1,19 @@
 import '../../../../utilities/logger.dart';
 
+/// Splits a raw `tracking_link` value into individual tracking URLs.
+///
+/// Multiple links may be joined with any of `,`, `|`, or `;` (and a single
+/// value may mix them). Returns an empty list for null/empty input. Each URL is
+/// trimmed and empty segments are discarded.
+List<String> splitTrackingLinks(String? raw) {
+  if (raw == null) return const [];
+  return raw
+      .split(RegExp(r'[,|;]'))
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toList();
+}
+
 enum TicketState {
   newTicket('NEW'),
   checking('CHECKING'),
@@ -88,6 +102,14 @@ class TicketStatus {
     this.trackingLink,
   });
 
+  /// The tracking link(s) split into individual URLs.
+  ///
+  /// A ticket may carry zero, one, or several tracking URLs. When there are
+  /// several the API joins them into [trackingLink] using any of `,`, `|`, or
+  /// `;` as the separator (mixed separators occur in practice), so we split on
+  /// all three.
+  List<String> get trackingLinks => splitTrackingLinks(trackingLink);
+
   factory TicketStatus.fromJson(Map<String, dynamic> json) {
     final rawState = json['state'] as String;
     return TicketStatus(
@@ -99,7 +121,9 @@ class TicketStatus {
           ? DateTime.parse(json['last_agent_message_at'] as String)
           : null,
       paymentInvoiceStatus: json['payment_invoice_status'] as String?,
-      trackingLink: json['tracking_link'] as String?,
+      // Production returns "" (not null) when there is no tracking link yet;
+      // normalize so callers can treat it like any other absent value.
+      trackingLink: _emptyToNull(json['tracking_link']),
     );
   }
 
@@ -181,4 +205,10 @@ class TicketFull {
 int _toInt(dynamic value) {
   if (value is int) return value;
   return int.parse(value.toString());
+}
+
+String? _emptyToNull(dynamic value) {
+  final s = value?.toString().trim();
+  if (s == null || s.isEmpty) return null;
+  return s;
 }
