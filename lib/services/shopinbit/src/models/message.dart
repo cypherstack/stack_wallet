@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart' show parseFragment;
+
 class TicketMessage {
   final DateTime timestamp;
   final bool fromAgent;
@@ -71,53 +74,35 @@ class MessageFileLinkSegment extends MessageContentSegment {
 
 /// Parse a ticket message's HTML [content] into ordered renderable segments.
 ///
-/// A single linear scan rather than regexes: it keeps document order (text,
-/// inline images, proxy images and file links interleaved as they appear),
-/// tolerates `>` inside quoted attribute values, accepts either quote style,
-/// and runs in O(content length) with no catastrophic backtracking. Attachment
-/// `<img>`/`<a>` become media segments and their markup never leaks into text.
+/// Walks the parsed DOM in document order so text, inline images, proxy images
+/// and file links render where they appear. Attachment `<img>`/`<a>` become
+/// media segments and their markup is never shown as text; other markup is
+/// flattened to its text. The parser handles malformed/adversarial HTML and
+/// entity decoding, so there's no hand-rolled tokeniser to keep correct.
 List<MessageContentSegment> _parseSegments(String content) {
   final segments = <MessageContentSegment>[];
   final text = StringBuffer();
 
   void flushText() {
-    final decoded = (unescapeHtml(text.toString()) ?? '').trim();
-    if (decoded.isNotEmpty) segments.add(MessageTextSegment(decoded));
+    final trimmed = text.toString().trim();
+    if (trimmed.isNotEmpty) segments.add(MessageTextSegment(trimmed));
     text.clear();
   }
 
-  final n = content.length;
-  var i = 0;
-  while (i < n) {
-    final lt = content.indexOf('<', i);
-    if (lt < 0) {
-      text.write(content.substring(i));
-      break;
+  void visit(dom.Node node) {
+    if (node is dom.Text) {
+      text.write(node.data);
+      return;
     }
-    if (lt > i) text.write(content.substring(i, lt));
+    if (node is! dom.Element) return;
 
-    // HTML comment: skip past the closing `-->` (drop its contents entirely).
-    if (content.startsWith('<!--', lt)) {
-      final end = content.indexOf('-->', lt + 4);
-      i = end < 0 ? n : end + 3;
-      continue;
-    }
-
-    final gt = _tagEnd(content, lt);
-    if (gt < 0) {
-      // No closing `>`; the remainder can't be a tag, render it as text.
-      text.write(content.substring(lt));
-      break;
-    }
-    final tag = content.substring(lt, gt + 1);
-    i = gt + 1;
-
-    switch (_tagName(tag)) {
+    switch (node.localName) {
       case 'br':
         text.write('\n');
+        return;
       case 'img':
-        final src = unescapeHtml(_attr(tag, 'src'));
-        if (src == null) break;
+        final src = node.attributes['src'];
+        if (src == null) return;
         final bytes = _decodeInlineImage(src);
         if (bytes != null) {
           flushText();
@@ -129,96 +114,40 @@ List<MessageContentSegment> _parseSegments(String content) {
             segments.add(
               MessageProxyImageSegment(
                 proxyPath: proxyPath,
-                filename: _emptyOrNull(unescapeHtml(_attr(tag, 'alt'))),
+                filename: _emptyOrNull(node.attributes['alt']),
               ),
             );
           }
         }
+        return;
       case 'a':
-        final href = unescapeHtml(_attr(tag, 'href'));
+        final href = node.attributes['href'];
         if (href != null && _isAttachmentProxy(href)) {
-          // Consume through the matching </a>; its inner text is the link label
-          // and must not also be emitted as body text.
-          final close = _findClose(content, i, 'a');
-          final inner = content.substring(i, close?.start ?? n);
-          i = close?.end ?? n;
           final proxyPath = _proxyPathOf(href);
           if (proxyPath != null) {
             flushText();
             segments.add(
               MessageFileLinkSegment(
                 proxyPath: proxyPath,
-                filename: _emptyOrNull(_stripHtml(inner)),
+                filename: _emptyOrNull(node.text),
               ),
             );
           }
+          // The link text is its label, not body text; don't recurse.
+          return;
         }
-      // Any other tag (div, span, closing tags, ...) contributes no markup;
-      // surrounding text flows through the buffer.
     }
+
+    for (final child in node.nodes) {
+      visit(child);
+    }
+  }
+
+  for (final node in parseFragment(content).nodes) {
+    visit(node);
   }
   flushText();
   return segments;
-}
-
-/// Index of the `>` that closes the tag starting at [lt], skipping any `>` that
-/// sits inside a quoted attribute value. Returns -1 if the tag is unterminated.
-int _tagEnd(String s, int lt) {
-  var i = lt + 1;
-  String? quote;
-  while (i < s.length) {
-    final c = s[i];
-    if (quote != null) {
-      if (c == quote) quote = null;
-    } else if (c == '"' || c == "'") {
-      quote = c;
-    } else if (c == '>') {
-      return i;
-    }
-    i++;
-  }
-  return -1;
-}
-
-/// The lowercased tag name from a raw tag string like `<img ...>` or `</a>`.
-String _tagName(String tag) {
-  var i = 1; // skip '<'
-  if (i < tag.length && tag[i] == '/') i++; // closing tag
-  final start = i;
-  while (i < tag.length) {
-    final c = tag[i];
-    if (c == ' ' ||
-        c == '\t' ||
-        c == '\n' ||
-        c == '\r' ||
-        c == '>' ||
-        c == '/') {
-      break;
-    }
-    i++;
-  }
-  return tag.substring(start, i).toLowerCase();
-}
-
-/// Find the closing `</name>` at or after [from], validating that `</name` is
-/// followed only by optional whitespace then `>` (so `</article>` doesn't match
-/// `</a>`). Returns the `<` index and the index just past `>`.
-({int start, int end})? _findClose(String s, int from, String name) {
-  final lower = s.toLowerCase();
-  final needle = '</$name';
-  var idx = lower.indexOf(needle, from);
-  while (idx >= 0) {
-    var j = idx + needle.length;
-    while (j < s.length &&
-        (s[j] == ' ' || s[j] == '\t' || s[j] == '\n' || s[j] == '\r')) {
-      j++;
-    }
-    if (j < s.length && s[j] == '>') {
-      return (start: idx, end: j + 1);
-    }
-    idx = lower.indexOf(needle, idx + needle.length);
-  }
-  return null;
 }
 
 final _whitespaceRe = RegExp(r'\s');
@@ -267,16 +196,6 @@ Uint8List? _decodeInlineImage(String src) {
   return bytes;
 }
 
-String? _attr(String tag, String name) {
-  final re = RegExp(
-    '\\b$name\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\')',
-    caseSensitive: false,
-  );
-  final m = re.firstMatch(tag);
-  if (m == null) return null;
-  return m.group(1) ?? m.group(2);
-}
-
 bool _isAttachmentProxy(String url) => url.contains('/attachment-proxy/');
 
 String? _proxyPathOf(String url) {
@@ -313,59 +232,4 @@ String? _emptyOrNull(String? s) {
   if (s == null) return null;
   final t = s.trim();
   return t.isEmpty ? null : t;
-}
-
-String _stripHtml(String html) {
-  final noTags = html.replaceAll(RegExp(r'<[^>]*>'), ' ');
-  return unescapeHtml(noTags)!.replaceAll(RegExp(r'\s+'), ' ').trim();
-}
-
-final _entityRe = RegExp(r'&(#[xX]?[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);');
-
-const _namedEntities = <String, String>{
-  'amp': '&',
-  'lt': '<',
-  'gt': '>',
-  'quot': '"',
-  'apos': "'",
-  'nbsp': ' ',
-  'mdash': '—',
-  'ndash': '–',
-  'hellip': '…',
-  'copy': '©',
-  'reg': '®',
-  'trade': '™',
-  'euro': '€',
-  'pound': '£',
-  'lsquo': '‘',
-  'rsquo': '’',
-  'ldquo': '“',
-  'rdquo': '”',
-};
-
-/// Decode the HTML entities the ticket API emits, in a single pass so a decoded
-/// `&` can't be re-read as the start of another entity (e.g. `&amp;lt;` decodes
-/// to the literal `&lt;`, not `<`). Covers the named entities plus numeric
-/// (`&#NN;`) and hex (`&#xNN;`) references; unknown entities are left as-is.
-/// Returns null for null input so it can be threaded through nullable attribute
-/// lookups.
-String? unescapeHtml(String? s) {
-  if (s == null) return null;
-  return s.replaceAllMapped(_entityRe, (m) {
-    final body = m.group(1)!;
-    if (body.startsWith('#')) {
-      final isHex = body.length > 1 && (body[1] == 'x' || body[1] == 'X');
-      final code = int.tryParse(
-        isHex ? body.substring(2) : body.substring(1),
-        radix: isHex ? 16 : 10,
-      );
-      if (code == null || code < 0 || code > 0x10FFFF) return m.group(0)!;
-      try {
-        return String.fromCharCode(code);
-      } catch (_) {
-        return m.group(0)!;
-      }
-    }
-    return _namedEntities[body] ?? m.group(0)!;
-  });
 }

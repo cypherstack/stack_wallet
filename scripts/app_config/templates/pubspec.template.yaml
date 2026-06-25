@@ -169,6 +169,7 @@ dependencies:
   image: ^4.3.0
   wakelock_plus: ^1.2.8
   intl: ^0.19.0
+  html: ^0.15.6
   devicelocale:
     git:
       url: https://github.com/cypherstack/flutter-devicelocale
