@@ -24,8 +24,10 @@ import '../../utilities/util.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/detail_item.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/refresh_control.dart';
@@ -219,6 +221,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     final status = ticket?.status ?? ShopInBitOrderStatus.pending;
     final isCarResearch = ticket?.category == ShopInBitCategory.car;
     final messages = <TicketMessage>[...?ticket?.messages, ..._pending];
+
+    final trackingLinks = splitTrackingLinks(ticket?.trackingLink).toList();
 
     final statusBar = Padding(
       padding: .only(bottom: isDesktop ? 12 : 8),
@@ -452,6 +456,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         statusBar,
         offerBanner,
         requestDetailsSection,
+        if (trackingLinks.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
+            child: _TrackingLinks(trackingLinks: trackingLinks),
+          ),
         chatArea,
         SizedBox(height: isDesktop ? 12 : 8),
         inputBar,
@@ -924,6 +933,56 @@ class _AttachmentImageFallback extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TrackingLinks extends StatelessWidget {
+  const _TrackingLinks({super.key, required this.trackingLinks});
+
+  final List<String> trackingLinks;
+
+  @override
+  Widget build(BuildContext context) {
+    return DetailItemBase(
+      horizontal: true,
+      expandDetail: true,
+      crossAxisAlignment: .start,
+      title: Text(
+        "Tracking link(s)",
+        style: Util.isDesktop
+            ? STextStyles.desktopTextSmall(context)
+            : STextStyles.titleBold12(context),
+      ),
+      detail: Column(
+        mainAxisSize: .min,
+        crossAxisAlignment: .start,
+        children: [
+          ...trackingLinks.map(
+            (e) => CustomTextButton(
+              text: e,
+              overflow: .ellipsis,
+              onTap: () async {
+                try {
+                  await launchUrl(
+                    Uri.parse(e),
+                    mode: LaunchMode.externalApplication,
+                  );
+                } catch (e, s) {
+                  Logging.instance.e(
+                    "Failed to open shipping tracking link",
+                    error: e,
+                    stackTrace: s,
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+      borderColor: Util.isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+          : null,
     );
   }
 }
