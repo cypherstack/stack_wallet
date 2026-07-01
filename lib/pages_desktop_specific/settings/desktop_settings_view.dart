@@ -13,9 +13,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
 import '../../pages/shopinbit/shopinbit_settings_view.dart';
-import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
@@ -43,10 +43,6 @@ class DesktopSettingsView extends ConsumerStatefulWidget {
 class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
   @override
   Widget build(BuildContext context) {
-    final familiarity = ref.watch(
-      prefsChangeNotifierProvider.select((v) => v.familiarity),
-    );
-
     final List<Widget> contentViews = [
       const Navigator(
         key: Key("settingsBackupRestoreDesktopKey"),
@@ -94,7 +90,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: AdvancedSettings.routeName,
       ), //advanced
-      if (AppConfig.hasFeature(.shopinBit) && familiarity >= 6)
+      if (Constants.enableExchange && AppConfig.hasFeature(.shopinBit))
         const Navigator(
           key: Key("settingsShopInBitDesktopKey"),
           onGenerateRoute: RouteGenerator.generateRoute,
