@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
@@ -50,6 +51,8 @@ const SPARK_OUT_LIMIT_PER_TX = 16;
 const OP_SPARKMINT = 0xd1;
 const OP_SPARKSMINT = 0xd2;
 const OP_SPARKSPEND = 0xd3;
+const OP_SPARKNAMEID = 0xe1;
+const OP_DROP = 0x75;
 
 /// top level function for use with [compute]
 String _hashTag(String tag) {
@@ -60,6 +63,21 @@ String _hashTag(String tag) {
   final hash = libSpark.hashTag(x, y);
   return hash;
 }
+
+Uint8List _sparkNameFeeScript({
+  required Uint8List baseScript,
+  required String name,
+  required String sparkAddress,
+}) => Uint8List.fromList([
+  ...baseScript,
+  ...bscript.compile([
+    OP_SPARKNAMEID,
+    Uint8List.fromList(utf8.encode(name)),
+    OP_DROP,
+    Uint8List.fromList(utf8.encode(sparkAddress)),
+    OP_DROP,
+  ]),
+]);
 
 void initSparkLogging(Level level) => libSpark.initSparkLogging(level);
 
@@ -708,10 +726,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         ),
       );
 
-      final scriptPubKey = btc.Address.addressToOutputScript(
+      var scriptPubKey = btc.Address.addressToOutputScript(
         txData.recipients![i].address,
         _bitcoinDartNetwork,
       );
+      if (txData.sparkNameInfo != null) {
+        scriptPubKey = _sparkNameFeeScript(
+          baseScript: scriptPubKey,
+          name: txData.sparkNameInfo!.name,
+          sparkAddress: txData.sparkNameInfo!.sparkAddress.value,
+        );
+      }
       txb.addOutput(
         scriptPubKey,
         recipientsWithFeeSubtracted[i].amount.raw.toInt(),
