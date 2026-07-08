@@ -147,9 +147,7 @@ class _ShopInBitConciergeFormState
         AdaptiveTextField(
           controller: _whatToPurchaseController,
           focusNode: _whatToPurchaseFocusNode,
-          labelText:
-              "Describe what you'd like to purchase "
-              "(e.g., electronics, luxury goods, services...)",
+          labelText: "Describe what you need or paste a LINK here",
           minLines: 3,
           maxLines: 6,
           autocorrect: false,
