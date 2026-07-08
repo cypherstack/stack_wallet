@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -18,7 +17,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import 'shopinbit_shipping_view.dart';
 
-class ShopInBitOfferView extends ConsumerStatefulWidget {
+class ShopInBitOfferView extends ConsumerWidget {
   const ShopInBitOfferView({super.key, required this.apiTicketId});
 
   static const String routeName = "/shopInBitOffer";
@@ -26,45 +25,9 @@ class ShopInBitOfferView extends ConsumerStatefulWidget {
   final int apiTicketId;
 
   @override
-  ConsumerState<ShopInBitOfferView> createState() => _ShopInBitOfferViewState();
-}
-
-class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
-  bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.apiTicketId != 0) {
-      _loadOffer();
-    }
-  }
-
-  Future<void> _loadOffer() async {
-    setState(() => _loading = true);
-    try {
-      // Refresh pulls /full (offer product + price) into the ticket row, which
-      // we then read reactively from the DB stream.
-      await ref.read(pShopinBitService).refreshOne(widget.apiTicketId);
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to refresh ShopInBit offer ${widget.apiTicketId}, "
-        "using cached data",
-        error: e,
-        stackTrace: s,
-      );
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = Util.isDesktop;
-    final ticket = ref
-        .watch(pShopInBitTicket(widget.apiTicketId))
-        .asData
-        ?.value;
+    final ticket = ref.watch(pShopInBitTicket(apiTicketId)).asData?.value;
 
     final content = Column(
       mainAxisSize: .min,
@@ -96,7 +59,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               ),
               const SizedBox(height: 4),
               Text(
-                ticket?.offerProductName ?? (_loading ? "Loading..." : "N/A"),
+                ticket?.offerProductName ?? "N/A",
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),
@@ -117,9 +80,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               ),
               const SizedBox(height: 4),
               Text(
-                _loading && ticket?.offerPrice == null
-                    ? "Loading..."
-                    : "${ticket?.offerPrice ?? '0'} EUR",
+                "${ticket?.offerPrice ?? '0'} EUR",
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),
@@ -146,7 +107,6 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
             PrimaryButton(
               label: "Accept offer",
               buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-              enabled: !_loading,
               onPressed: () async {
                 final deliveryCountry = ticket?.deliveryCountry ?? "";
 

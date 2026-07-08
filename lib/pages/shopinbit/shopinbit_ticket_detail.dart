@@ -269,6 +269,31 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       ),
     );
 
+    Future<void> _pushOfferView() async {
+      if (_id != 0) {
+        await showLoading(
+          whileFutureAlt: () =>
+              ref.read(pShopinBitService).refreshOne(widget.apiTicketId),
+          context: context,
+          message: "Checking offer...",
+          rootNavigator: Util.isDesktop,
+          delay: const Duration(seconds: 1),
+          onException: (e) {
+            Logging.instance.w(
+              "Failed to refresh ShopInBit offer ${widget.apiTicketId}, "
+              "using cached data",
+              error: e,
+            );
+          },
+        );
+      }
+      if (context.mounted) {
+        await Navigator.of(
+          context,
+        ).pushNamed(ShopInBitOfferView.routeName, arguments: _id);
+      }
+    }
+
     final offerBanner = status == ShopInBitOrderStatus.offerAvailable
         ? Padding(
             padding: .only(bottom: isDesktop ? 12 : 8),
@@ -287,12 +312,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                       label: "Review offer",
                       width: 220,
                       buttonHeight: ButtonHeight.l,
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          ShopInBitOfferView.routeName,
-                          arguments: _id,
-                        );
-                      },
+                      onPressed: _pushOfferView,
                     ),
                   ],
                 ),
@@ -319,12 +339,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                       PrimaryButton(
                         label: "Review offer",
                         buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            ShopInBitOfferView.routeName,
-                            arguments: _id,
-                          );
-                        },
+                        onPressed: _pushOfferView,
                       ),
                   ],
                 ),
