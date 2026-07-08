@@ -291,12 +291,15 @@ class _ShopInBitCarResearchPaymentViewState
         message:
             "We're finalizing your car research request. It will appear in "
             "My Requests shortly.",
+        width: Util.isDesktop ? 580 : null,
         leftButton: SecondaryButton(
           label: "Close",
+          buttonHeight: Util.isDesktop ? .l : null,
           onPressed: () => Navigator.of(context).pop(false),
         ),
         rightButton: PrimaryButton(
           label: "My Requests",
+          buttonHeight: Util.isDesktop ? .l : null,
           onPressed: () => Navigator.of(context).pop(true),
         ),
       ),
