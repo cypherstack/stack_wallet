@@ -119,7 +119,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               Text(
                 _loading && ticket?.offerPrice == null
                     ? "Loading..."
-                    : "${ticket?.offerPrice ?? '0'} EUR",
+                    : "${ticket?.offerPrice ?? '0'} EUR (incl. VAT)",
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),

@@ -305,7 +305,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                     const SizedBox(height: 4),
                     Text(
                       "${ticket?.offerProductName ?? 'Item'} — "
-                      "${ticket?.offerPrice ?? '0'} EUR",
+                      "${ticket?.offerPrice ?? '0'} EUR (incl. VAT)",
                       style: isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)
                           : STextStyles.itemSubtitle12(context),
