@@ -39,7 +39,8 @@ class ShopInBitCarFeeView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
-  late final TextEditingController _billingNameController;
+  late final TextEditingController _billingFirstNameController;
+  late final TextEditingController _billingLastNameController;
   late final TextEditingController _billingStreetController;
   late final TextEditingController _billingCityController;
   late final TextEditingController _billingPostalCodeController;
@@ -50,20 +51,13 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
   bool _canContinue = false;
 
   void _validate() {
-    bool valid =
-        _billingNameController.text.trim().isNotEmpty &&
+    final valid =
+        _billingFirstNameController.text.trim().isNotEmpty &&
+        _billingLastNameController.text.trim().isNotEmpty &&
         _billingStreetController.text.trim().isNotEmpty &&
         _billingCityController.text.trim().isNotEmpty &&
         _billingPostalCodeController.text.trim().isNotEmpty &&
         widget.draft.deliveryCountryCode.isNotEmpty;
-
-    if (valid) {
-      // check full name
-      final parts = _billingNameController.text
-          .split(" ")
-          .where((e) => e.isNotEmpty);
-      valid = parts.length > 1;
-    }
 
     if (_canContinue != valid && mounted) {
       setState(() {
@@ -76,7 +70,8 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
   void initState() {
     super.initState();
 
-    _billingNameController = TextEditingController();
+    _billingFirstNameController = TextEditingController();
+    _billingLastNameController = TextEditingController();
     _billingStreetController = TextEditingController();
     _billingCityController = TextEditingController();
     _billingPostalCodeController = TextEditingController();
@@ -84,7 +79,8 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
 
   @override
   void dispose() {
-    _billingNameController.dispose();
+    _billingFirstNameController.dispose();
+    _billingLastNameController.dispose();
     _billingStreetController.dispose();
     _billingCityController.dispose();
     _billingPostalCodeController.dispose();
@@ -107,29 +103,15 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
     });
   }
 
-  ({String first, String last}) _splitFullName(String raw) {
-    final trimmed = raw.trim();
-    final idx = trimmed.lastIndexOf(' ');
-    if (idx >= 0) {
-      return (
-        first: trimmed.substring(0, idx).trim(),
-        last: trimmed.substring(idx + 1).trim(),
-      );
-    }
-    return (first: trimmed, last: "");
-  }
-
   Future<void> _createInvoice() async {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
       final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
 
-      final Address billing;
-      final billingName = _splitFullName(_billingNameController.text);
-      billing = Address(
-        firstName: billingName.first,
-        lastName: billingName.last,
+      final billing = Address(
+        firstName: _billingFirstNameController.text.trim(),
+        lastName: _billingLastNameController.text.trim(),
         street: _billingStreetController.text.trim(),
         zip: _billingPostalCodeController.text.trim(),
         city: _billingCityController.text.trim(),
@@ -321,8 +303,16 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
         ),
         SizedBox(height: isDesktop ? 16 : 12),
         AdaptiveTextField(
-          controller: _billingNameController,
-          labelText: "Full name",
+          controller: _billingFirstNameController,
+          labelText: "First name",
+          autocorrect: false,
+          enableSuggestions: false,
+          onChangedComprehensive: (_) => _validate(),
+        ),
+        spacing,
+        AdaptiveTextField(
+          controller: _billingLastNameController,
+          labelText: "Last name",
           autocorrect: false,
           enableSuggestions: false,
           onChangedComprehensive: (_) => _validate(),

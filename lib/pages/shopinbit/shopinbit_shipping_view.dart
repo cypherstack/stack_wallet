@@ -42,21 +42,25 @@ class ShopInBitShippingView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
-  late final TextEditingController _nameController;
+  late final TextEditingController _nameFirstController;
+  late final TextEditingController _nameLastController;
   late final TextEditingController _streetController;
   late final TextEditingController _cityController;
   late final TextEditingController _postalCodeController;
-  late final FocusNode _nameFocusNode;
+  late final FocusNode _nameFirstFocusNode;
+  late final FocusNode _nameLastFocusNode;
   late final FocusNode _streetFocusNode;
   late final FocusNode _cityFocusNode;
   late final FocusNode _postalCodeFocusNode;
 
   // Billing address controllers
-  late final TextEditingController _billingNameController;
+  late final TextEditingController _billingFirstNameController;
+  late final TextEditingController _billingLastNameController;
   late final TextEditingController _billingStreetController;
   late final TextEditingController _billingCityController;
   late final TextEditingController _billingPostalCodeController;
-  late final FocusNode _billingNameFocusNode;
+  late final FocusNode _billingFirstNameFocusNode;
+  late final FocusNode _billingLastNameFocusNode;
   late final FocusNode _billingStreetFocusNode;
   late final FocusNode _billingCityFocusNode;
   late final FocusNode _billingPostalCodeFocusNode;
@@ -78,25 +82,15 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   bool get _canContinue {
     if (_submitting) return false;
     final shippingValid =
-        _nameController.text.trim().isNotEmpty &&
-        _nameController.text
-                .split(" ")
-                .map((e) => e.trim())
-                .where((e) => e.isNotEmpty)
-                .length >
-            1 &&
+        _nameFirstController.text.trim().isNotEmpty &&
+        _nameLastController.text.trim().isNotEmpty &&
         _streetController.text.trim().isNotEmpty &&
         _cityController.text.trim().isNotEmpty &&
         _postalCodeController.text.trim().isNotEmpty;
     if (!shippingValid) return false;
     if (_differentBilling) {
-      return _billingNameController.text.trim().isNotEmpty &&
-          _billingNameController.text
-                  .split(" ")
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .length >
-              1 &&
+      return _billingFirstNameController.text.trim().isNotEmpty &&
+          _billingLastNameController.text.trim().isNotEmpty &&
           _billingStreetController.text.trim().isNotEmpty &&
           _billingCityController.text.trim().isNotEmpty &&
           _billingPostalCodeController.text.trim().isNotEmpty &&
@@ -108,20 +102,24 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
+    _nameFirstController = TextEditingController();
+    _nameLastController = TextEditingController();
     _streetController = TextEditingController();
     _cityController = TextEditingController();
     _postalCodeController = TextEditingController();
-    _nameFocusNode = FocusNode();
+    _nameFirstFocusNode = FocusNode();
+    _nameLastFocusNode = FocusNode();
     _streetFocusNode = FocusNode();
     _cityFocusNode = FocusNode();
     _postalCodeFocusNode = FocusNode();
 
-    _billingNameController = TextEditingController();
+    _billingFirstNameController = TextEditingController();
+    _billingLastNameController = TextEditingController();
     _billingStreetController = TextEditingController();
     _billingCityController = TextEditingController();
     _billingPostalCodeController = TextEditingController();
-    _billingNameFocusNode = FocusNode();
+    _billingFirstNameFocusNode = FocusNode();
+    _billingLastNameFocusNode = FocusNode();
     _billingStreetFocusNode = FocusNode();
     _billingCityFocusNode = FocusNode();
     _billingPostalCodeFocusNode = FocusNode();
@@ -163,11 +161,13 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
             as String;
 
     for (final node in [
-      _nameFocusNode,
+      _nameFirstFocusNode,
+      _nameLastFocusNode,
       _streetFocusNode,
       _cityFocusNode,
       _postalCodeFocusNode,
-      _billingNameFocusNode,
+      _billingFirstNameFocusNode,
+      _billingLastNameFocusNode,
       _billingStreetFocusNode,
       _billingCityFocusNode,
       _billingPostalCodeFocusNode,
@@ -178,19 +178,23 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _nameFirstController.dispose();
+    _nameLastController.dispose();
     _streetController.dispose();
     _cityController.dispose();
     _postalCodeController.dispose();
-    _nameFocusNode.dispose();
+    _nameFirstFocusNode.dispose();
+    _nameLastFocusNode.dispose();
     _streetFocusNode.dispose();
     _cityFocusNode.dispose();
     _postalCodeFocusNode.dispose();
-    _billingNameController.dispose();
+    _billingFirstNameController.dispose();
+    _billingLastNameController.dispose();
     _billingStreetController.dispose();
     _billingCityController.dispose();
     _billingPostalCodeController.dispose();
-    _billingNameFocusNode.dispose();
+    _billingFirstNameFocusNode.dispose();
+    _billingLastNameFocusNode.dispose();
     _billingStreetFocusNode.dispose();
     _billingCityFocusNode.dispose();
     _billingPostalCodeFocusNode.dispose();
@@ -198,7 +202,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
   }
 
   Future<void> _continue() async {
-    final name = _nameController.text.trim();
+    final nameFirst = _nameFirstController.text.trim();
+    final nameLast = _nameLastController.text.trim();
     final street = _streetController.text.trim();
     final city = _cityController.text.trim();
     final postalCode = _postalCodeController.text.trim();
@@ -207,22 +212,11 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
     PaymentInfo? paymentInfo;
     setState(() => _submitting = true);
     try {
-      // Split name into first/last
-      final parts = name.split(' ');
-      final firstName = parts.first;
-      final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-
       Address? billingAddress;
       if (_differentBilling) {
-        final billingName = _billingNameController.text.trim();
-        final billingParts = billingName.split(' ');
-        final billingFirst = billingParts.first;
-        final billingLast = billingParts.length > 1
-            ? billingParts.sublist(1).join(' ')
-            : '';
         billingAddress = Address(
-          firstName: billingFirst,
-          lastName: billingLast,
+          firstName: _billingFirstNameController.text.trim(),
+          lastName: _billingLastNameController.text.trim(),
           street: _billingStreetController.text.trim(),
           zip: _billingPostalCodeController.text.trim(),
           city: _billingCityController.text.trim(),
@@ -237,8 +231,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           .submitAddress(
             widget.ticket.apiTicketId,
             shipping: Address(
-              firstName: firstName,
-              lastName: lastName,
+              firstName: nameFirst,
+              lastName: nameLast,
               street: street,
               zip: postalCode,
               city: city,
@@ -326,9 +320,18 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         ),
         SizedBox(height: isDesktop ? 32 : 24),
         AdaptiveTextField(
-          controller: _nameController,
-          focusNode: _nameFocusNode,
-          labelText: "Full name",
+          controller: _nameFirstController,
+          focusNode: _nameFirstFocusNode,
+          labelText: "First name",
+          autocorrect: false,
+          enableSuggestions: false,
+          onChanged: (_) => setState(() {}),
+        ),
+        spacing,
+        AdaptiveTextField(
+          controller: _nameLastController,
+          focusNode: _nameLastFocusNode,
+          labelText: "Last name",
           autocorrect: false,
           enableSuggestions: false,
           onChanged: (_) => setState(() {}),
@@ -380,7 +383,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
               _differentBilling = !_differentBilling;
               if (!_differentBilling) {
                 // Clear billing fields.
-                _billingNameController.clear();
+                _billingFirstNameController.clear();
+                _billingLastNameController.clear();
                 _billingStreetController.clear();
                 _billingCityController.clear();
                 _billingPostalCodeController.clear();
@@ -400,7 +404,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
                     setState(() {
                       _differentBilling = v ?? false;
                       if (!_differentBilling) {
-                        _billingNameController.clear();
+                        _billingFirstNameController.clear();
+                        _billingLastNameController.clear();
                         _billingStreetController.clear();
                         _billingCityController.clear();
                         _billingPostalCodeController.clear();
@@ -437,9 +442,17 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           ),
           spacing,
           AdaptiveTextField(
-            controller: _billingNameController,
-            focusNode: _billingNameFocusNode,
-            labelText: "Full name",
+            controller: _billingFirstNameController,
+            labelText: "First name",
+            focusNode: _billingFirstNameFocusNode,
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
+          ),
+          AdaptiveTextField(
+            controller: _billingLastNameController,
+            labelText: "Last name",
+            focusNode: _billingLastNameFocusNode,
             autocorrect: false,
             enableSuggestions: false,
             onChanged: (_) => setState(() {}),
