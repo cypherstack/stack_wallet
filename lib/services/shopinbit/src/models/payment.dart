@@ -1,8 +1,10 @@
+import 'package:decimal/decimal.dart';
+
 class PaymentInfo {
   final String status;
   final String customerPrice;
   final String partnerPrice;
-  final int? vatRate;
+  final Decimal? vatRate;
   final String currency;
   final DateTime? rateLockedUntil;
   final Map<String, String> paymentLinks;
@@ -25,7 +27,7 @@ class PaymentInfo {
       status: json['status'] as String,
       customerPrice: json['customer_price'] as String,
       partnerPrice: json['partner_price'] as String,
-      vatRate: int.tryParse(json['vat_rate'].toString()),
+      vatRate: Decimal.tryParse(json['vat_rate'].toString()),
       currency: json['currency'] as String,
       rateLockedUntil: DateTime.tryParse(
         json['rate_locked_until']?.toString() ?? '',

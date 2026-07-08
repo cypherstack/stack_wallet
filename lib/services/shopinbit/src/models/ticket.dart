@@ -1,3 +1,5 @@
+import 'package:decimal/decimal.dart';
+
 import '../../../../utilities/logger.dart';
 
 /// Splits a raw `tracking_link` value into individual tracking URLs.
@@ -159,7 +161,7 @@ class TicketFull {
   final String? netPurchasePrice;
   final String? netShippingCosts;
   final String deliveryCountry;
-  final int? vatRate;
+  final Decimal? vatRate;
 
   TicketFull({
     required this.id,
@@ -186,7 +188,7 @@ class TicketFull {
       netShippingCosts: json['net_shipping_costs'] as String?,
       deliveryCountry:
           (json['delivery_country'] ?? json['deliverycountry']) as String,
-      vatRate: int.tryParse(json['vat_rate'].toString()),
+      vatRate: Decimal.tryParse(json['vat_rate'].toString()),
     );
   }
 
