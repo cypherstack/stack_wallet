@@ -15,7 +15,7 @@ class ShopInBitCountryPicker extends ConsumerStatefulWidget {
     super.key,
     required this.selectedIso,
     required this.onChanged,
-    this.hintText = "Delivery country",
+    this.hintText = "Delivery country (Required)",
     this.preLoadedCountries,
   });
 
