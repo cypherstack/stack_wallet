@@ -826,12 +826,12 @@ class _AttachmentFileLink extends ConsumerWidget {
   final String? filename;
   final TextStyle textStyle;
 
-  Future<void> _open(BuildContext context, WidgetRef ref) async {
+  Future<void> _open(BuildContext context, ShopInBitService service) async {
     // Resolving the signed URL hits the token manager (and possibly the
     // network), so show the loading overlay and surface any failure rather than
     // doing nothing.
     await showLoading<void>(
-      whileFuture: _resolveAndLaunch(ref),
+      whileFuture: _resolveAndLaunch(service),
       context: context,
       message: "Opening attachment",
       rootNavigator: Util.isDesktop,
@@ -846,15 +846,12 @@ class _AttachmentFileLink extends ConsumerWidget {
     );
   }
 
-  Future<void> _resolveAndLaunch(WidgetRef ref) async {
-    final resp = await ref
-        .read(pShopinBitService)
-        .client
-        .getAttachmentUrl(
-          proxyPath,
-          useQueryAuth: true,
-          customerKey: customerKey,
-        );
+  Future<void> _resolveAndLaunch(ShopInBitService service) async {
+    final resp = await service.client.getAttachmentUrl(
+      proxyPath,
+      useQueryAuth: true,
+      customerKey: customerKey,
+    );
     if (resp.hasError || resp.value == null) {
       throw resp.exception ?? Exception("Could not resolve attachment URL");
     }
@@ -881,7 +878,7 @@ class _AttachmentFileLink extends ConsumerWidget {
           label: filename ?? 'attachment',
           excludeSemantics: true,
           child: GestureDetector(
-            onTap: () => _open(context, ref),
+            onTap: () => _open(context, ref.read(pShopinBitService)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
