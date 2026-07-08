@@ -11,6 +11,7 @@ import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../../services/shopinbit/src/api_response.dart';
 import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/message.dart';
@@ -50,6 +51,7 @@ class ShopInBitTicketDetail extends ConsumerStatefulWidget {
 class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     with WidgetsBindingObserver {
   late final TextEditingController _messageController;
+  late final ShopInBitService _shopinBitService;
 
   static const Duration _kBasePollInterval = Duration(seconds: 30);
   static const Duration _kMaxPollInterval = Duration(seconds: 120);
@@ -76,6 +78,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
   @override
   void initState() {
     super.initState();
+
+    _shopinBitService = ref.read(pShopinBitService);
 
     _messageController = TextEditingController();
     WidgetsBinding.instance.addObserver(this);
@@ -148,7 +152,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     unawaited(_poll());
   }
 
-  Future<void> _refresh() => ref.read(pShopinBitService).refreshOne(_id);
+  Future<void> _refresh() => _shopinBitService.refreshOne(_id);
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
