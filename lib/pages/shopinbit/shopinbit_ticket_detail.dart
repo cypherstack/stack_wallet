@@ -830,6 +830,7 @@ class _AttachmentFileLink extends ConsumerWidget {
       whileFuture: _resolveAndLaunch(ref),
       context: context,
       message: "Opening attachment",
+      rootNavigator: Util.isDesktop,
       onException: (e) {
         Logging.instance.w("ShopInBit open attachment failed", error: e);
         showFloatingFlushBar(
