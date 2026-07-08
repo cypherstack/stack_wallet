@@ -11,7 +11,7 @@ final pShopinBitService = Provider(
     client: ShopInBitClient(
       accessKey: kShopInBitAccessKey,
       partnerSecret: kShopInBitPartnerSecret,
-      sandbox: true, // TODO set to false in prod
+      sandbox: false,
     ),
     db: ref.watch(pSharedDrift),
   ),
