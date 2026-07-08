@@ -9,7 +9,14 @@ List<String> splitTrackingLinks(String? raw) {
   if (raw == null) return const [];
   return raw
       .split(RegExp(r'[,|;]'))
-      .map((s) => s.trim())
+      .map((s) {
+        final url = s.trim();
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          return url;
+        } else {
+          return "https://$url";
+        }
+      })
       .where((s) => s.isNotEmpty)
       .toList();
 }
