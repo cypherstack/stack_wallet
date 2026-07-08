@@ -202,7 +202,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               },
             ),
             SecondaryButton(
-              label: "Decline",
+              label: "Cancel",
               buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
               onPressed: () {
                 Navigator.of(context).pop();
