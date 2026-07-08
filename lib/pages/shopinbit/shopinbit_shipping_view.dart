@@ -368,8 +368,8 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
             ),
           ],
         ),
-        spacing,
-        DetailItem(title: "State", detail: _selectedState!),
+        if (_requiresState) spacing,
+        if (_requiresState) DetailItem(title: "State", detail: _selectedState!),
         spacing,
         DetailItem(title: "Country", detail: _deliveryCountryLabel),
         spacing,
@@ -482,7 +482,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
           spacing,
 
           if (_requiresState) ...[
-            DetailItem(title: "Billing state", detail: _selectedState),
+            DetailItem(title: "Billing state", detail: _selectedState!),
             spacing,
             DetailItem(title: "Billing country", detail: _deliveryCountryLabel),
           ],
