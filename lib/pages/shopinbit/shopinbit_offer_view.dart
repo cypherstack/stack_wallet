@@ -110,7 +110,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Price (incl. service fee)",
+                "Price (incl. service fee and VAT)",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.itemSubtitle12(context),
@@ -119,7 +119,7 @@ class _ShopInBitOfferViewState extends ConsumerState<ShopInBitOfferView> {
               Text(
                 _loading && ticket?.offerPrice == null
                     ? "Loading..."
-                    : "${ticket?.offerPrice ?? '0'} EUR (incl. VAT)",
+                    : "${ticket?.offerPrice ?? '0'} EUR",
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.titleBold12(context),
