@@ -195,10 +195,12 @@ class ShopInBitService {
           "Ignoring ticket.",
         );
       } else {
-        final ApiResponse<TicketFull> fullResp;
+        final ApiResponse<TicketFull>? fullResp;
         final ApiResponse<List<TicketMessage>> messagesResp;
         (fullResp, messagesResp) = await (
-          client.getTicketFull(id, customerKey: customerKey),
+          existing == null
+              ? client.getTicketFull(id, customerKey: customerKey)
+              : (() async => null)(),
           client.getMessages(id, customerKey: customerKey),
         ).wait;
 
@@ -206,14 +208,14 @@ class ShopInBitService {
           await _insertHydrated(
             ref: ref,
             customerKey: customerKey,
-            full: fullResp.value,
+            full: fullResp?.value,
             status: statusResp.value,
             messages: messagesResp.value,
           );
         } else {
           await _patchExisting(
             existing: existing,
-            full: fullResp.value,
+            full: fullResp?.value,
             status: statusResp.value,
             messages: messagesResp.value,
           );

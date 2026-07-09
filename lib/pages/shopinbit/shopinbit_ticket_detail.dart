@@ -53,7 +53,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
   late final TextEditingController _messageController;
   late final ShopInBitService _shopinBitService;
 
-  static const Duration _kBasePollInterval = Duration(seconds: 30);
+  static const Duration _kBasePollInterval = Duration(seconds: 5);
   static const Duration _kMaxPollInterval = Duration(seconds: 120);
   Duration _pollInterval = _kBasePollInterval;
 
@@ -272,15 +272,14 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     Future<void> _pushOfferView() async {
       if (_id != 0) {
         await showLoading(
-          whileFutureAlt: () =>
-              ref.read(pShopinBitService).refreshOne(widget.apiTicketId),
+          whileFutureAlt: _refresh,
           context: context,
           message: "Checking offer...",
           rootNavigator: Util.isDesktop,
           delay: const Duration(seconds: 1),
           onException: (e) {
             Logging.instance.w(
-              "Failed to refresh ShopInBit offer ${widget.apiTicketId}, "
+              "Failed to refresh ShopInBit offer $_id, "
               "using cached data",
               error: e,
             );
