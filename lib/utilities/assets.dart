@@ -243,6 +243,8 @@ class _SVG {
   String get trocadorRatingD => "assets/svg/trocador_rating_d.svg";
 
   String get spark => "assets/svg/spark.svg";
+
+  String get sib => "assets/svg/sib.svg";
 }
 
 class _PNG {

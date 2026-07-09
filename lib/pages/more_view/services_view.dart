@@ -13,7 +13,6 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/request_external_link_navigation_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import '../shopinbit/shopinbit_settings_view.dart';
 import '../shopinbit/shopinbit_setup_view.dart';
 import '../shopinbit/shopinbit_step_2.dart';
 import '../shopinbit/shopinbit_tickets_view.dart';
@@ -132,10 +131,23 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
               children: [
                 Row(
                   children: [
-                    SvgPicture.asset(
-                      Assets.svg.circleSliders,
-                      width: 32,
-                      height: 32,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0E3E3),
+                        borderRadius: .circular(20),
+                      ),
+                      width: 40,
+                      height: 40,
+                      child: Center(
+                        child: SizedBox(
+                          width: 27,
+                          height: 27,
+                          child: SvgPicture.asset(
+                            Assets.svg.sib,
+                            colorFilter: const .mode(Colors.black, .srcIn),
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -144,24 +156,9 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                         style: STextStyles.titleBold12(context),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(ShopInBitSettingsView.routeName);
-                      },
-                      child: SvgPicture.asset(
-                        Assets.svg.gear,
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 Text(
                   "Turn your crypto into Electronics, Flights, Hotel, "
                   "Cars or any other legal product or service... "
@@ -225,7 +222,7 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 PrimaryButton(
                   label: "Shop with ShopinBit",
                   enabled: true,

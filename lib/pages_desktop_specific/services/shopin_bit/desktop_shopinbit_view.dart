@@ -100,10 +100,23 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: SvgPicture.asset(
-                    Assets.svg.circleSliders,
-                    width: 48,
-                    height: 48,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E3E3),
+                      borderRadius: .circular(54),
+                    ),
+                    width: 54,
+                    height: 54,
+                    child: Center(
+                      child: SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: SvgPicture.asset(
+                          Assets.svg.sib,
+                          colorFilter: const .mode(Colors.black, .srcIn),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 Padding(
