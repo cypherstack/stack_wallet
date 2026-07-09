@@ -28,6 +28,7 @@ import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
+import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../more_view/services_view.dart';
@@ -744,6 +745,25 @@ class _UnownedCoinPaymentDialog extends StatelessWidget {
         Center(
           child: QR(data: address, size: isDesktop ? 200 : 180),
         ),
+        if (ticker == "USDT") SizedBox(height: isDesktop ? 24 : 16),
+        if (ticker == "USDT")
+          RoundedContainer(
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.warningBackground,
+            child: Center(
+              child: Text(
+                "IMPORTANT: Only send USDT (TRX20) to this address, not TRX",
+                style: (isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.itemSubtitle12(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
+                      )),
+              ),
+            ),
+          ),
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () async {

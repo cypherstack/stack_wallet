@@ -22,6 +22,7 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/qr.dart';
+import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../more_view/services_view.dart';
@@ -610,6 +611,26 @@ class _ShopInBitCarResearchPaymentViewState
                 style: isDesktop
                     ? STextStyles.desktopTextSmall(context)
                     : STextStyles.itemSubtitle(context),
+              ),
+            ),
+          ),
+        if (_currentAddress.isNotEmpty && _methods[_selectedMethod] == "USDT")
+          SizedBox(height: isDesktop ? 24 : 16),
+        if (_currentAddress.isNotEmpty && _methods[_selectedMethod] == "USDT")
+          RoundedContainer(
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.warningBackground,
+            child: Center(
+              child: Text(
+                "IMPORTANT: Only send USDT (TRX20) to this address, not TRX",
+                style: (isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.itemSubtitle12(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
+                      )),
               ),
             ),
           ),
