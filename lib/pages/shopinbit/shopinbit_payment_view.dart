@@ -31,7 +31,7 @@ import '../../widgets/qr.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import '../more_view/services_view.dart';
+import '../home_view/home_view.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_ticket_detail.dart';
 import 'shopinbit_tickets_view.dart';
@@ -334,9 +334,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
         landedOnRequest = true;
         return true;
       }
-      return name == ShopInBitTicketsView.routeName ||
-          name == ServicesView.routeName ||
-          route.isFirst;
+      return route.isFirst ||
+          name == ShopInBitTicketsView.routeName ||
+          name == HomeView.routeName;
     });
     if (!landedOnRequest) {
       unawaited(
@@ -357,7 +357,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
         landedOnTickets = true;
         return true;
       }
-      return name == ServicesView.routeName || route.isFirst;
+      return route.isFirst || name == HomeView.routeName;
     });
     if (!landedOnTickets) {
       unawaited(navigator.pushNamed(ShopInBitTicketsView.routeName));

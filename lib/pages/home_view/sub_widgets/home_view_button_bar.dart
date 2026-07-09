@@ -17,9 +17,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app_config.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 
-const double _fadeWidth = 32;
+const double _fadeWidth = 64;
+const double _fadeRampDistance = _fadeWidth;
+const Duration _fadeDuration = Duration(milliseconds: 200);
+
+enum _FadeEdge { left, right }
 
 class HomeViewButtonBar extends StatefulWidget {
   const HomeViewButtonBar({super.key});
@@ -29,46 +34,27 @@ class HomeViewButtonBar extends StatefulWidget {
 }
 
 class _HomeViewButtonBarState extends State<HomeViewButtonBar> {
-  static const Duration _fadeDuration = Duration(milliseconds: 200);
-
-  bool _canScrollLeft = false;
-  bool _canScrollRight = false;
-  static const int _rampSamples = 8;
+  double _leftProximity = 0;
+  double _rightProximity = 0;
 
   void _updateEdges(ScrollMetrics metrics) {
-    final bool canScrollLeft = metrics.extentBefore > 0;
-    final bool canScrollRight = metrics.extentAfter > 0;
-    if (canScrollLeft == _canScrollLeft && canScrollRight == _canScrollRight) {
+    final double leftProximity = clampDouble(
+      metrics.extentBefore / _fadeRampDistance,
+      0,
+      1,
+    );
+    final double rightProximity = clampDouble(
+      metrics.extentAfter / _fadeRampDistance,
+      0,
+      1,
+    );
+    if (leftProximity == _leftProximity && rightProximity == _rightProximity) {
       return;
     }
     setState(() {
-      _canScrollLeft = canScrollLeft;
-      _canScrollRight = canScrollRight;
+      _leftProximity = leftProximity;
+      _rightProximity = rightProximity;
     });
-  }
-
-  Shader _fadeShader(Rect bounds, double leftFade, double rightFade) {
-    final double fade = clampDouble(_fadeWidth / bounds.width, 0, 0.5);
-    final List<Color> colors = [];
-    final List<double> stops = [];
-
-    for (int i = 0; i <= _rampSamples; i++) {
-      final double t = i / _rampSamples;
-      stops.add(fade * t);
-      colors.add(_rampColor(edgeAlpha: 1 - leftFade, t: t));
-    }
-    for (int i = 0; i <= _rampSamples; i++) {
-      final double t = i / _rampSamples;
-      stops.add(1 - fade * (1 - t));
-      colors.add(_rampColor(edgeAlpha: 1 - rightFade, t: 1 - t));
-    }
-
-    return LinearGradient(colors: colors, stops: stops).createShader(bounds);
-  }
-
-  Color _rampColor({required double edgeAlpha, required double t}) {
-    final double eased = Curves.easeInOutSine.transform(t);
-    return Colors.white.withValues(alpha: edgeAlpha + (1 - edgeAlpha) * eased);
   }
 
   @override
@@ -83,23 +69,78 @@ class _HomeViewButtonBarState extends State<HomeViewButtonBar> {
           _updateEdges(notification.metrics);
           return false;
         },
+        child: Stack(
+          children: [
+            const RepaintBoundary(child: _HomeViewButtonBarContent()),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: _EdgeFadeStrip(edge: .left, proximity: _leftProximity),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: _EdgeFadeStrip(edge: .right, proximity: _rightProximity),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EdgeFadeStrip extends StatelessWidget {
+  const _EdgeFadeStrip({required this.edge, required this.proximity});
+
+  static const int _rampSamples = 8;
+
+  static final List<double> _ramp = [
+    for (int i = 0; i <= _rampSamples; i++)
+      1 - Curves.easeInOutSine.transform(i / _rampSamples),
+  ];
+
+  final _FadeEdge edge;
+  final double proximity;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color background = Theme.of(
+      context,
+    ).extension<StackColors>()!.background;
+    final (Alignment begin, Alignment end) = switch (edge) {
+      .left => (.centerLeft, .centerRight),
+      .right => (.centerRight, .centerLeft),
+    };
+
+    return RepaintBoundary(
+      child: IgnorePointer(
         child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(end: _canScrollLeft ? 1 : 0),
+          tween: Tween<double>(end: proximity > 0 ? 1 : 0),
           duration: _fadeDuration,
           curve: Curves.easeOut,
-          builder: (context, leftFade, child) => TweenAnimationBuilder<double>(
-            tween: Tween<double>(end: _canScrollRight ? 1 : 0),
-            duration: _fadeDuration,
-            curve: Curves.easeOut,
-            builder: (context, rightFade, child) => ShaderMask(
-              shaderCallback: (bounds) =>
-                  _fadeShader(bounds, leftFade, rightFade),
-              blendMode: .dstIn,
-              child: child,
-            ),
-            child: child,
-          ),
-          child: const _HomeViewButtonBarContent(),
+          builder: (context, timeStrength, _) {
+            final double strength = timeStrength * proximity;
+            if (strength == 0) {
+              return const SizedBox(width: _fadeWidth);
+            }
+            return SizedBox(
+              width: _fadeWidth,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: begin,
+                    end: end,
+                    colors: [
+                      for (final double factor in _ramp)
+                        background.withValues(alpha: strength * factor),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -123,13 +164,26 @@ class _HomeViewButtonBarContent extends StatelessWidget {
                 const Expanded(
                   child: _HomeViewTopMenuButton(index: 0, label: "Wallets"),
                 ),
-                if (AppConfig.hasFeature(.swap))
+                if (AppConfig.hasFeature(.swap) && Constants.enableExchange)
                   const Expanded(
                     child: _HomeViewTopMenuButton(index: 1, label: "Swap"),
                   ),
-                if (AppConfig.hasFeature(.buy))
+                if (AppConfig.hasFeature(AppFeature.buy) &&
+                    Constants.enableExchange)
                   const Expanded(
                     child: _HomeViewTopMenuButton(index: 2, label: "Buy"),
+                  ),
+                if (AppConfig.hasFeature(.cakePay) && Constants.enableExchange)
+                  const Expanded(
+                    child: _HomeViewTopMenuButton(
+                      index: 3,
+                      label: "Gift cards",
+                    ),
+                  ),
+                if (AppConfig.hasFeature(.shopinBit) &&
+                    Constants.enableExchange)
+                  const Expanded(
+                    child: _HomeViewTopMenuButton(index: 4, label: "Services"),
                   ),
               ],
             ),
@@ -225,34 +279,33 @@ class _HomeViewTopMenuButtonState
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(homeViewPageIndexStateProvider, (previous, next) {
-      if (next == widget.index) {
-        _scheduleReveal(animate: true);
-      }
-    });
+    final bool isSelected = ref.watch(
+      homeViewPageIndexStateProvider.select((index) => index == widget.index),
+    );
 
-    final selectedIndex = ref.watch(homeViewPageIndexStateProvider);
+    ref.listen(
+      homeViewPageIndexStateProvider.select((index) => index == widget.index),
+      (previous, next) {
+        if (next) {
+          _scheduleReveal(animate: true);
+        }
+      },
+    );
+
+    final StackColors colors = Theme.of(context).extension<StackColors>()!;
     return TextButton(
-      style: selectedIndex == widget.index
-          ? Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context)!
-                .copyWith(
-                  minimumSize: MaterialStateProperty.all<Size>(
-                    const Size(46, 36),
-                  ),
-                )
-          : Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context)!
-                .copyWith(
-                  minimumSize: MaterialStateProperty.all<Size>(
-                    const Size(46, 36),
-                  ),
+      style:
+          (isSelected
+                  ? colors.getPrimaryEnabledButtonStyle(context)!
+                  : colors.getSecondaryEnabledButtonStyle(context)!)
+              .copyWith(
+                minimumSize: MaterialStateProperty.all<Size>(
+                  const Size(46, 36),
                 ),
-      onPressed: () async {
+              ),
+      onPressed: () {
         FocusScope.of(context).unfocus();
-        if (selectedIndex != widget.index) {
+        if (!isSelected) {
           ref.read(homeViewPageIndexStateProvider.state).state = widget.index;
         }
       },
@@ -262,11 +315,9 @@ class _HomeViewTopMenuButtonState
           widget.label,
           style: STextStyles.button(context).copyWith(
             fontSize: 14,
-            color: selectedIndex == widget.index
-                ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
-                : Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+            color: isSelected
+                ? colors.buttonTextPrimary
+                : colors.buttonTextSecondary,
           ),
         ),
       ),

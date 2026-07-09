@@ -8,8 +8,6 @@ import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/request_external_link_navigation_dialog.dart';
@@ -22,8 +20,6 @@ import '../shopinbit/shopinbit_tickets_view.dart';
 
 class ServicesView extends ConsumerStatefulWidget {
   const ServicesView({super.key});
-
-  static const String routeName = "/servicesView";
 
   @override
   ConsumerState<ServicesView> createState() => _ServicesViewState();
@@ -126,138 +122,125 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
 
   @override
   Widget build(BuildContext context) {
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: Text("Services", style: STextStyles.navBarTitle(context)),
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: RoundedWhiteContainer(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: RoundedWhiteContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          Assets.svg.circleSliders,
-                          width: 32,
-                          height: 32,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            "ShopinBit",
-                            style: STextStyles.titleBold12(context),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(
-                              context,
-                            ).pushNamed(ShopInBitSettingsView.routeName);
-                          },
-                          child: SvgPicture.asset(
-                            Assets.svg.gear,
-                            width: 20,
-                            height: 20,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
-                          ),
-                        ),
-                      ],
+                    SvgPicture.asset(
+                      Assets.svg.circleSliders,
+                      width: 32,
+                      height: 32,
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      "Turn your crypto into Electronics, Flights, Hotel, "
-                      "Cars or any other legal product or service... "
-                      "ShopinBit is a concierge shopping service that helps "
-                      "you 'live the good life with crypto'...",
-                      style: STextStyles.itemSubtitle12(context).copyWith(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "ShopinBit",
+                        style: STextStyles.titleBold12(context),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(
+                          context,
+                        ).pushNamed(ShopInBitSettingsView.routeName);
+                      },
+                      child: SvgPicture.asset(
+                        Assets.svg.gear,
+                        width: 20,
+                        height: 20,
                         color: Theme.of(
                           context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                        ).extension<StackColors>()!.textDark3,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    RichText(
-                      text: TextSpan(
-                        style: STextStyles.itemSubtitle12(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle1,
-                        ),
-                        children: [
-                          const TextSpan(
-                            text:
-                                "Minimum order value of 1,000 EUR. "
-                                "A 10% service fee applies to all orders.\n\n"
-                                "By using ShopinBit, you agree to their ",
-                          ),
-                          TextSpan(
-                            text: "Terms & Conditions",
-                            style: STextStyles.richLink(
-                              context,
-                            ).copyWith(fontSize: 14),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () async {
-                                const url =
-                                    "https://api.shopinbit.com/static/policy/terms.html";
-
-                                await showRequestExternalLinkAndMaybeLaunch(
-                                  context,
-                                  uri: Uri.parse(url),
-                                );
-                              },
-                          ),
-                          const TextSpan(text: " and "),
-                          TextSpan(
-                            text: "Privacy Policy",
-                            style: STextStyles.richLink(
-                              context,
-                            ).copyWith(fontSize: 14),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () async {
-                                const url =
-                                    "https://api.shopinbit.com/static/policy/privacy.html";
-
-                                await showRequestExternalLinkAndMaybeLaunch(
-                                  context,
-                                  uri: Uri.parse(url),
-                                );
-                              },
-                          ),
-                          const TextSpan(text: "."),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    PrimaryButton(
-                      label: "Shop with ShopinBit",
-                      enabled: true,
-                      onPressed: _showShopDialog,
-                    ),
-                    const SizedBox(height: 12),
-                    SecondaryButton(
-                      label: "My requests",
-                      onPressed: () async {
-                        await Navigator.of(
-                          context,
-                        ).pushNamed(ShopInBitTicketsView.routeName);
-                      },
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 12),
+                Text(
+                  "Turn your crypto into Electronics, Flights, Hotel, "
+                  "Cars or any other legal product or service... "
+                  "ShopinBit is a concierge shopping service that helps "
+                  "you 'live the good life with crypto'...",
+                  style: STextStyles.itemSubtitle12(context).copyWith(
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle1,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: STextStyles.itemSubtitle12(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle1,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text:
+                            "Minimum order value of 1,000 EUR. "
+                            "A 10% service fee applies to all orders.\n\n"
+                            "By using ShopinBit, you agree to their ",
+                      ),
+                      TextSpan(
+                        text: "Terms & Conditions",
+                        style: STextStyles.richLink(
+                          context,
+                        ).copyWith(fontSize: 14),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            const url =
+                                "https://api.shopinbit.com/static/policy/terms.html";
+
+                            await showRequestExternalLinkAndMaybeLaunch(
+                              context,
+                              uri: Uri.parse(url),
+                            );
+                          },
+                      ),
+                      const TextSpan(text: " and "),
+                      TextSpan(
+                        text: "Privacy Policy",
+                        style: STextStyles.richLink(
+                          context,
+                        ).copyWith(fontSize: 14),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            const url =
+                                "https://api.shopinbit.com/static/policy/privacy.html";
+
+                            await showRequestExternalLinkAndMaybeLaunch(
+                              context,
+                              uri: Uri.parse(url),
+                            );
+                          },
+                      ),
+                      const TextSpan(text: "."),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  label: "Shop with ShopinBit",
+                  enabled: true,
+                  onPressed: _showShopDialog,
+                ),
+                const SizedBox(height: 12),
+                SecondaryButton(
+                  label: "My requests",
+                  onPressed: () async {
+                    await Navigator.of(
+                      context,
+                    ).pushNamed(ShopInBitTicketsView.routeName);
+                  },
+                ),
+              ],
             ),
           ),
         ),

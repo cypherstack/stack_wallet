@@ -91,8 +91,6 @@ import 'pages/masternodes/create_masternode_view.dart';
 import 'pages/masternodes/masternode_details_view.dart';
 import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
-import 'pages/more_view/gift_cards_view.dart';
-import 'pages/more_view/services_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/manage_domain_view.dart';
@@ -1065,20 +1063,6 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ServicesView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const ServicesView(),
-          settings: RouteSettings(name: settings.name),
-        );
-
-      case GiftCardsView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const GiftCardsView(),
-          settings: RouteSettings(name: settings.name),
-        );
 
       case ShopInBitSetupView.routeName:
         return getRoute(

@@ -22,7 +22,7 @@ import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
-import '../more_view/services_view.dart';
+import '../home_view/home_view.dart';
 import 'shopinbit_car_research_payment_view.dart';
 import 'shopinbit_step_2.dart';
 
@@ -93,10 +93,7 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
       if (name == ShopInBitStep2.routeName) {
         return true;
       }
-      if (name == ServicesView.routeName) {
-        return true;
-      }
-      if (route.isFirst) {
+      if (route.isFirst || name == HomeView.routeName) {
         return true;
       }
       return false;

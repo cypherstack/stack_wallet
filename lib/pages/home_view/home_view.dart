@@ -38,6 +38,8 @@ import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../buy_view/buy_view.dart';
 import '../exchange_view/exchange_view.dart';
+import '../more_view/gift_cards_view.dart';
+import '../more_view/services_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
@@ -227,6 +229,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
         const ExchangeView(),
       if (AppConfig.hasFeature(AppFeature.buy) && Constants.enableExchange)
         const BuyView(),
+      if (AppConfig.hasFeature(AppFeature.cakePay) && Constants.enableExchange)
+        const GiftCardsView(),
+      if (AppConfig.hasFeature(AppFeature.shopinBit) &&
+          Constants.enableExchange)
+        const ServicesView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();

@@ -16,7 +16,7 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../more_view/services_view.dart';
+import '../home_view/home_view.dart';
 import 'shopinbit_ticket_detail.dart';
 
 class ShopInBitOrderCreated extends ConsumerWidget {
@@ -28,7 +28,7 @@ class ShopInBitOrderCreated extends ConsumerWidget {
 
   static void _popToServices(BuildContext context) {
     Navigator.of(context).popUntil((route) {
-      if (route.settings.name == ServicesView.routeName) {
+      if (route.settings.name == HomeView.routeName) {
         return true;
       }
       if (route.isFirst) {
