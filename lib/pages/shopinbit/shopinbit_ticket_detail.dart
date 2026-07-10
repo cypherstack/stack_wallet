@@ -99,6 +99,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Always continue polling on desktop
+    if (Util.isDesktop) return;
+
     // Don't poll while backgrounded; resume fresh when we come back.
     if (state == AppLifecycleState.resumed) {
       _paused = false;
