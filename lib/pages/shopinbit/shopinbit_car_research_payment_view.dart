@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
 import '../../db/drift/shared_db/shared_database.dart';
+import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
-import '../../services/shopinbit/src/client.dart';
-import '../../services/shopinbit/src/models/car_research.dart';
+import '../../services/shopinbit/shopinbit_api.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
@@ -368,6 +368,7 @@ class _ShopInBitCarResearchPaymentViewState
               );
 
               if (ticket == null) {
+                const ticketState = TicketState.newTicket;
                 // insert bare minimum - will be updated automatically later
                 await service.db.shopInBitTicketsDao.insertTicket(
                   ShopInBitTicketsCompanion.insert(
@@ -377,8 +378,8 @@ class _ShopInBitCarResearchPaymentViewState
                     category: .car,
                     requestDescription: fullTicket.productName ?? "",
                     deliveryCountry: fullTicket.deliveryCountry,
-                    status: .pending,
-                    statusRaw: "NEW",
+                    status: ShopInBitOrderStatus.fromTicketState(ticketState)!,
+                    statusRaw: ticketState.value,
                   ),
                 );
               }

@@ -112,6 +112,7 @@ class ShopInBitService {
     if (resp.hasError || resp.value == null) return null;
     final TicketRef ref = resp.value!;
 
+    const ticketState = TicketState.newTicket;
     await db.shopInBitTicketsDao.insertTicket(
       ShopInBitTicketsCompanion.insert(
         apiTicketId: ref.id,
@@ -120,8 +121,8 @@ class ShopInBitService {
         category: category,
         requestDescription: comment,
         deliveryCountry: deliveryCountry,
-        status: ShopInBitOrderStatus.pending,
-        statusRaw: "NEW",
+        status: ShopInBitOrderStatus.fromTicketState(ticketState)!,
+        statusRaw: ticketState.value,
       ),
     );
 
