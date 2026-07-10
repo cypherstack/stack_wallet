@@ -107,6 +107,43 @@ class HTTP {
     }
   }
 
+  /// POST a raw byte body (e.g. an encoded multipart/form-data payload).
+  Future<Response> postBytes({
+    required Uri url,
+    Map<String, String>? headers,
+    required List<int> bodyBytes,
+    required ({InternetAddress host, int port})? proxyInfo,
+  }) async {
+    final httpClient = HttpClient();
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(proxyInfo.host, proxyInfo.port),
+        ]);
+      }
+      final HttpClientRequest request = await httpClient.postUrl(url);
+
+      if (headers != null) {
+        headers.forEach((key, value) => request.headers.add(key, value));
+      }
+
+      request.contentLength = bodyBytes.length;
+      request.add(bodyBytes);
+
+      final response = await request.close();
+      return Response(
+        await _bodyBytes(response),
+        response.statusCode,
+        headers: _headerMap(response),
+      );
+    } catch (e, s) {
+      Logging.instance.w("HTTP.postBytes() rethrew: ", error: e, stackTrace: s);
+      rethrow;
+    } finally {
+      httpClient.close(force: true);
+    }
+  }
+
   Future<Response> put({
     required Uri url,
     Map<String, String>? headers,
@@ -217,11 +254,17 @@ class HTTP {
         bytes.addAll(data);
       },
       onDone: () => completer.complete(Uint8List.fromList(bytes)),
-      onError: (Object err, StackTrace s) => Logging.instance.e(
-        "Http wrapper layer listen",
-        error: err,
-        stackTrace: s,
-      ),
+      onError: (Object err, StackTrace s) {
+        Logging.instance.e(
+          "Http wrapper layer listen",
+          error: err,
+          stackTrace: s,
+        );
+        if (!completer.isCompleted) {
+          completer.completeError(err, s);
+        }
+      },
+      cancelOnError: true,
     );
     return completer.future;
   }
