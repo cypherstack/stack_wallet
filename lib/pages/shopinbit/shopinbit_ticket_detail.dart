@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -157,18 +159,110 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
 
   Future<void> _refresh() => _shopinBitService.refreshOne(_id);
 
+  List<File>? _currentSelectedAttachments;
+
+  /// Pick files and validate them with the same rules the client enforces at
+  /// send time (type whitelist, per-category size caps, 50 MB combined), so
+  /// a doomed selection is rejected here with a specific reason instead of
+  /// failing later behind a generic "Message failed to send".
+  Future<void> _pickAttachments() async {
+    if (_sending) return;
+
+    // TODO verify this works on android and ios
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: .custom,
+      allowedExtensions: kAllowedAttachmentExtensions,
+      lockParentWindow: true,
+    );
+    if (result == null || !mounted) return;
+
+    final accepted = [...?_currentSelectedAttachments];
+    int combinedBytes = 0;
+    for (final file in accepted) {
+      combinedBytes += await file.length();
+    }
+
+    String? rejection;
+    for (final picked in result.files) {
+      final path = picked.path;
+      if (path == null || accepted.any((f) => f.path == path)) continue;
+
+      final file = File(path);
+      final fileName = file.uri.pathSegments.last;
+      final resolved = resolveAttachmentType(fileName);
+      if (resolved == null) {
+        rejection = "$fileName is not a supported file type";
+        continue;
+      }
+
+      final sizeBytes = await file.length();
+      if (sizeBytes > resolved.category.maxBytes) {
+        rejection =
+            "$fileName is larger than the "
+            "${resolved.category.maxBytes ~/ 1000000} MB "
+            "${resolved.category.name} limit";
+        continue;
+      }
+      if (combinedBytes + sizeBytes > kCombinedAttachmentMaxBytes) {
+        rejection =
+            "Combined attachment size exceeds the "
+            "${kCombinedAttachmentMaxBytes ~/ 1000000} MB limit";
+        continue;
+      }
+
+      combinedBytes += sizeBytes;
+      accepted.add(file);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _currentSelectedAttachments = accepted.isEmpty ? null : accepted;
+    });
+    if (rejection != null) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: rejection,
+          context: context,
+        ),
+      );
+    }
+  }
+
+  void _removeAttachment(File file) {
+    final current = _currentSelectedAttachments;
+    if (current == null) return;
+    setState(() {
+      current.remove(file);
+      if (current.isEmpty) _currentSelectedAttachments = null;
+    });
+  }
+
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty || _sending) return;
+    // Capture the selection now: the field is cleared optimistically below,
+    // so a re-pick while this send is in flight can't be lost or orphaned.
+    final attachmentsToSend = _currentSelectedAttachments;
+    if ((text.isEmpty && attachmentsToSend == null) || _sending) return;
+
+    // The server's copy will carry real attachment links after processing;
+    // until then the optimistic bubble just notes the count.
+    final optimisticContent = switch ((text, attachmentsToSend?.length)) {
+      (final t, null) => t,
+      ("", final int n) => "$n attachment(s)",
+      (final t, final int n) => "$t ($n attachment(s))",
+    };
 
     final optimistic = TicketMessage(
       timestamp: DateTime.now(),
       fromAgent: false,
-      content: text,
+      content: optimisticContent,
     );
     setState(() {
       _sending = true;
       _pending.add(optimistic);
+      _currentSelectedAttachments = null;
     });
     _messageController.clear();
 
@@ -182,7 +276,12 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       if (customerKey != null) {
         sent = await ref
             .read(pShopinBitService)
-            .sendMessage(_id, text, customerKey);
+            .sendMessage(
+              _id,
+              text,
+              customerKey,
+              attachments: attachmentsToSend,
+            );
       }
     } catch (_) {
       sent = false;
@@ -199,10 +298,13 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       if (mounted) setState(() => _pending.remove(optimistic));
     } else {
       // The send didn't go through: roll the optimistic message back, restore
-      // the text so it isn't lost, and let the user know.
+      // the text and attachments so nothing is lost, and let the user know.
       _pending.remove(optimistic);
       if (mounted) {
         if (_messageController.text.isEmpty) _messageController.text = text;
+        // Don't clear a selection the user made while this send was
+        // in flight; only restore into an empty slot.
+        _currentSelectedAttachments ??= attachmentsToSend;
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -395,6 +497,20 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: Row(
         children: [
+          IconButton(
+            onPressed: _sending ? null : _pickAttachments,
+            tooltip: "Attach files",
+            icon: SvgPicture.asset(
+              Assets.svg.file,
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                .srcIn,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _messageController,
@@ -483,6 +599,14 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             child: _TrackingLinks(trackingLinks: trackingLinks),
           ),
         chatArea,
+        if (_currentSelectedAttachments != null) ...[
+          SizedBox(height: isDesktop ? 8 : 6),
+          _SelectedAttachmentChips(
+            files: _currentSelectedAttachments!,
+            enabled: !_sending,
+            onRemove: _removeAttachment,
+          ),
+        ],
         SizedBox(height: isDesktop ? 12 : 8),
         inputBar,
       ],
@@ -565,6 +689,101 @@ const double _kAttachmentMaxHeight = 220;
 const int _kAttachmentDecodeHeight = 440;
 const double _kAttachmentLoaderHeight = 80;
 const double _kAttachmentLoaderWidth = 40;
+// Selected-attachment chip layout.
+const double _kChipIconSize = 12;
+const double _kChipMaxNameWidth = 140;
+
+/// Chips for attachments that are selected but not yet sent, each removable
+/// until the send starts.
+class _SelectedAttachmentChips extends StatelessWidget {
+  const _SelectedAttachmentChips({
+    required this.files,
+    required this.enabled,
+    required this.onRemove,
+  });
+
+  final List<File> files;
+  final bool enabled;
+  final void Function(File) onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final File file in files)
+            _AttachmentChip(
+              file: file,
+              enabled: enabled,
+              onRemove: () => onRemove(file),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttachmentChip extends StatelessWidget {
+  const _AttachmentChip({
+    required this.file,
+    required this.enabled,
+    required this.onRemove,
+  });
+
+  final File file;
+  final bool enabled;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final String fileName = file.uri.pathSegments.last;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.textFieldDefaultBG,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: .min,
+        children: [
+          SvgPicture.asset(
+            Assets.svg.file,
+            width: _kChipIconSize,
+            height: _kChipIconSize,
+            colorFilter: ColorFilter.mode(colors.textSubtitle1, .srcIn),
+          ),
+          const SizedBox(width: 4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _kChipMaxNameWidth),
+            child: Text(
+              fileName,
+              style: STextStyles.itemSubtitle12(context),
+              maxLines: 1,
+              overflow: .ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: enabled ? onRemove : null,
+              child: SvgPicture.asset(
+                Assets.svg.x,
+                width: _kChipIconSize,
+                height: _kChipIconSize,
+                colorFilter: ColorFilter.mode(colors.textSubtitle1, .srcIn),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /// Renders an authenticated `/attachment-proxy/` image.
 ///

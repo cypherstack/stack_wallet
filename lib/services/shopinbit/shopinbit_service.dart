@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:io";
 
 import "package:drift/drift.dart";
 import "package:flutter/foundation.dart";
@@ -71,14 +72,17 @@ class ShopInBitService {
     await Future.wait(
       resp.value!
           .where((e) => !e.isKnownReceipt)
-          .map((ref) => _refreshRef(ref, key)),
+          .map((ref) => _refreshRef(ref, key, false)),
     );
   }
 
   /// Refresh a single ticket. The row must already exist; use this for
   /// polling and post-action refreshes. For an unknown ticket id, call
   /// [refreshAll] (which has the customer-key context needed to insert).
-  Future<void> refreshOne(int apiTicketId) async {
+  Future<void> refreshOne(
+    int apiTicketId, {
+    bool forceUpdateMessages = false,
+  }) async {
     final ShopInBitTicket? existing = await db.shopInBitTicketsDao.getByApiId(
       apiTicketId,
     );
@@ -86,6 +90,7 @@ class ShopInBitService {
     await _refreshRef(
       TicketRef(id: existing.apiTicketId, number: existing.ticketNumber),
       existing.customerKey,
+      forceUpdateMessages,
     );
   }
 
@@ -134,15 +139,24 @@ class ShopInBitService {
   Future<bool> sendMessage(
     int apiTicketId,
     String message,
-    String customerKey,
-  ) async {
-    final ApiResponse<Map<String, dynamic>> resp = await client.sendMessage(
-      apiTicketId,
-      message,
-      customerKey: customerKey,
-    );
+    String customerKey, {
+    List<File>? attachments,
+  }) async {
+    final ApiResponse<Map<String, dynamic>> resp =
+        attachments != null && attachments.isNotEmpty
+        ? await client.sendAttachments(
+            apiTicketId,
+            message: message,
+            customerKey: customerKey,
+            attachments: attachments,
+          )
+        : await client.sendMessage(
+            apiTicketId,
+            message,
+            customerKey: customerKey,
+          );
     if (resp.hasError) return false;
-    unawaited(refreshOne(apiTicketId));
+    unawaited(refreshOne(apiTicketId, forceUpdateMessages: true));
     return true;
   }
 
@@ -156,7 +170,11 @@ class ShopInBitService {
   /// Concurrent calls for the same ticket id are coalesced onto the
   /// in-flight refresh — later callers await the same completer rather
   /// than kicking off a second round-trip.
-  Future<void> _refreshRef(TicketRef ref, String customerKey) {
+  Future<void> _refreshRef(
+    TicketRef ref,
+    String customerKey,
+    bool forceUpdateMessages,
+  ) {
     final int id = ref.id;
 
     final Completer<void>? pending = _inFlight[id];
@@ -169,13 +187,16 @@ class ShopInBitService {
     // the completer), so the unawaited future is safe. Every caller —
     // including the first — awaits the completer, guaranteeing there's a
     // listener for any error.
-    unawaited(_refreshRefBody(ref, customerKey, completer));
+    unawaited(
+      _refreshRefBody(ref, customerKey, forceUpdateMessages, completer),
+    );
     return completer.future;
   }
 
   Future<void> _refreshRefBody(
     TicketRef ref,
     String customerKey,
+    bool forceUpdateMessages,
     Completer<void> completer,
   ) async {
     final int id = ref.id;
@@ -244,7 +265,8 @@ class ShopInBitService {
         } else {
           final List<TicketMessage>? messages;
 
-          if ((existing.lastAgentMessageAt != null &&
+          if (forceUpdateMessages ||
+              (existing.lastAgentMessageAt != null &&
                   status.lastAgentMessageAt != null &&
                   status.lastAgentMessageAt!.toUtc().isAfter(
                     existing.lastAgentMessageAt!.toUtc(),

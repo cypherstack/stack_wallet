@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../app_config.dart';
 import '../../../networking/http.dart';
@@ -30,6 +31,10 @@ const Duration _kMaxBackoff = Duration(seconds: 30);
 // device) can't hang a request forever. A hung poll would otherwise latch the
 // caller's in-flight guard and silently stop all further polling.
 const Duration _kRequestTimeout = Duration(seconds: 30);
+
+// Uploads can carry up to 50 MB; the 30s request ceiling would kill them on
+// slow links, so multipart sends get their own generous ceiling.
+const _kUploadTimeout = Duration(minutes: 5);
 
 class ShopInBitClient {
   final String accessKey;
@@ -225,13 +230,47 @@ class ShopInBitClient {
   Future<ApiResponse<Map<String, dynamic>>> sendAttachments(
     int ticketId, {
     required String message,
-    required List<Map<String, String>> attachments,
+    required List<File> attachments,
     required String customerKey,
   }) async {
-    return _request(
-      'POST',
-      '/tickets/$ticketId/attachments',
-      body: {'message': message, 'attachments': attachments},
+    if (attachments.isEmpty) {
+      return _validationError(
+        "No files to upload. Use POST /tickets/{id}/messages for text-only messages.",
+      );
+    }
+
+    int combinedBytes = 0;
+    final List<_AttachmentUpload> uploads = [];
+
+    for (final file in attachments) {
+      final fileName = file.uri.pathSegments.last;
+      final resolved = resolveAttachmentType(fileName);
+
+      if (resolved == null) {
+        return _validationError("Unsupported file type: $fileName");
+      }
+
+      final sizeBytes = await file.length();
+      if (sizeBytes > resolved.category.maxBytes) {
+        return _validationError(
+          "$fileName is larger than the "
+          "${resolved.category.maxBytes ~/ 1000000} MB "
+          "${resolved.category.name} limit",
+        );
+      }
+
+      combinedBytes += sizeBytes;
+      if (combinedBytes > kCombinedAttachmentMaxBytes) {
+        return _validationError("Combined upload size exceeds the 50 MB limit");
+      }
+
+      uploads.add((path: file.path, contentType: resolved.mimeType));
+    }
+
+    return _multipartRequest(
+      "/tickets/$ticketId/attachments",
+      fields: {"message": message},
+      uploads: uploads,
       parse: (json) => json,
       customerKey: customerKey,
     );
@@ -868,4 +907,174 @@ class ShopInBitClient {
       return ApiResponse(exception: ApiException.network(e));
     }
   }
+
+  /// Client-side rejection: the request never left the device. Uses the same
+  /// ApiException channel as server failures so call sites handle one format.
+  ApiResponse<T> _validationError<T>(String message) =>
+      ApiResponse(exception: ApiException(message));
+
+  /// Multipart sibling of [_request]. package:http is used only to *encode*
+  /// the multipart/form-data body.
+  /// Transport goes through [_httpClient] so uploads ride the same
+  /// Tor-capable pipe as every other request.
+  ///
+  /// The encoded body is held in memory once (bounded to 50 MB by the
+  /// validation in [sendAttachments]) so the 401 re-auth can resend it
+  /// without re-reading files from disk. Deliberately no 429 auto-retry:
+  /// unlike [_send], a retry here would re-send the full upload body, which
+  /// the user should trigger explicitly.
+  Future<ApiResponse<T>> _multipartRequest<T>(
+    String path, {
+    required Map<String, String> fields,
+    required List<_AttachmentUpload> uploads,
+    required T Function(Map<String, dynamic>) parse,
+    required String customerKey,
+  }) async {
+    final resolved = _resolvePath(path);
+    final uri = Uri.parse("$baseUrl$resolved");
+
+    try {
+      // Encode once. finalize() fixes the boundary and yields the body
+      // stream; the content-type header carrying that boundary is only
+      // valid after finalize() has run, so it is read afterwards.
+      final encoder = http.MultipartRequest("POST", uri)..fields.addAll(fields);
+      for (final upload in uploads) {
+        encoder.files.add(
+          await http.MultipartFile.fromPath(
+            "attachments", // repeated field name, as the doc specifies
+            upload.path,
+            contentType: http.MediaType.parse(upload.contentType),
+          ),
+        );
+      }
+      final bodyBytes = await encoder.finalize().toBytes();
+      final contentType = encoder.headers["content-type"]!;
+
+      Future<Response> sendOnce(String token) {
+        Logging.instance.t("$_kTag POST $uri");
+        return _httpClient
+            .postBytes(
+              url: uri,
+              headers: {
+                "Authorization": "Bearer $token",
+                "External-Customer-Key": customerKey,
+                "Content-Type": contentType,
+                "Accept": "application/json",
+              },
+              bodyBytes: bodyBytes,
+              proxyInfo: _proxyInfo,
+            )
+            .timeout(_kUploadTimeout);
+      }
+
+      Response response = await sendOnce(await _tokenManager.getValidToken());
+
+      // Mirror [_send]'s single re-auth on a stale bearer token; the encoded
+      // bytes are immutable, so resending needs no rebuild.
+      if (response.code == 401) {
+        _tokenManager.invalidate();
+        Logging.instance.w("$_kTag POST $resolved HTTP:401, re-authenticating");
+        response = await sendOnce(await _tokenManager.getValidToken());
+      }
+
+      if (response.code >= 200 && response.code < 300) {
+        Logging.instance.t("$_kTag POST $resolved HTTP:${response.code}");
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return ApiResponse(value: parse(json));
+      } else {
+        Logging.instance.w(
+          "$_kTag POST $resolved HTTP:${response.code} "
+          "body: ${response.body}",
+        );
+        return ApiResponse(
+          exception: ApiException.fromResponse(response.code, response.body),
+        );
+      }
+    } on ApiException catch (e) {
+      Logging.instance.e(
+        "$_kTag _multipartRequest(POST $path) threw: ",
+        error: e,
+      );
+      return ApiResponse(exception: e);
+    } catch (e, s) {
+      Logging.instance.e(
+        "$_kTag _multipartRequest(POST $path) threw: ",
+        error: e,
+        stackTrace: s,
+      );
+      return ApiResponse(exception: ApiException.network(e));
+    }
+  }
+}
+
+/// Per-category limits from POST /tickets/{ticket_id}/attachments.
+///
+/// The doc says "MB" without defining it, so the stricter 1000-based reading
+/// is enforced: a client-side pass then implies a server-side pass under
+/// either interpretation. Confirm with it@shopinbit.com and pin the answer
+/// here.
+enum AttachmentCategory {
+  image(5 * 1000 * 1000),
+  document(10 * 1000 * 1000),
+  video(50 * 1000 * 1000);
+
+  const AttachmentCategory(this.maxBytes);
+
+  final int maxBytes;
+}
+
+/// Combined upload cap for a single attachments message.
+const kCombinedAttachmentMaxBytes = 50 * 1000 * 1000;
+
+/// Extensions accepted by [resolveAttachmentType], in file-picker
+/// allowedExtensions form (no dots). Keep in sync with the switch in
+/// [resolveAttachmentType]; drift fails safe because every picked file is
+/// re-validated through the resolver anyway.
+const kAllowedAttachmentExtensions = [
+  "jpg", "jpeg", "png", "webp", "heic", "heif", "gif", // images
+  "pdf", "docx", "xlsx", "odt", // documents
+  "mp4", "mov", "webm", "3gp", "3gpp", // videos
+];
+
+typedef ResolvedAttachment = ({String mimeType, AttachmentCategory category});
+
+/// Path + content type, materialized into multipart bytes inside
+/// [_multipartRequest]: validation stays separate from encoding, and the
+/// encoded bytes can be resent on 401 without re-reading files from disk.
+typedef _AttachmentUpload = ({String path, String contentType});
+
+/// Maps a filename to its API-supported MIME type and size category.
+/// Returns null for unsupported types. Public so the UI can validate at
+/// pick time with the same rules [ShopInBitClient.sendAttachments] enforces
+/// at send time.
+ResolvedAttachment? resolveAttachmentType(String fileName) {
+  final extension = fileName.split(".").last.toLowerCase();
+  return switch (extension) {
+    "jpg" || "jpeg" => (mimeType: "image/jpeg", category: .image),
+    "png" => (mimeType: "image/png", category: .image),
+    "webp" => (mimeType: "image/webp", category: .image),
+    "heic" => (mimeType: "image/heic", category: .image),
+    "heif" => (mimeType: "image/heif", category: .image),
+    "gif" => (mimeType: "image/gif", category: .image),
+    "pdf" => (mimeType: "application/pdf", category: .document),
+    "docx" => (
+      mimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      category: .document,
+    ),
+    "xlsx" => (
+      mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      category: .document,
+    ),
+    "odt" => (
+      mimeType: "application/vnd.oasis.opendocument.text",
+      category: .document,
+    ),
+    "mp4" => (mimeType: "video/mp4", category: .video),
+    "mov" => (mimeType: "video/quicktime", category: .video),
+    "webm" => (mimeType: "video/webm", category: .video),
+    "3gp" || "3gpp" => (mimeType: "video/3gpp", category: .video),
+    _ => null,
+  };
 }

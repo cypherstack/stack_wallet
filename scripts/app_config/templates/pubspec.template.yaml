@@ -113,7 +113,7 @@ dependencies:
       ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
 
   # Utility plugins
-  http: ^1.5.0
+  http: ^1.6.0
   local_auth: ^2.3.0
   permission_handler: ^12.0.0+1
   flutter_local_notifications: ^17.2.2
