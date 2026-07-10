@@ -7,6 +7,8 @@ import "../../../../services/shopinbit/src/models/message.dart";
 import "../../../../utilities/logger.dart";
 
 class ShopInBitTickets extends Table {
+  static const dateConverter = Iso8601UtcConverter();
+
   IntColumn get apiTicketId => integer()();
   TextColumn get customerKey => text()();
   TextColumn get ticketNumber => text()();
@@ -23,21 +25,43 @@ class ShopInBitTickets extends Table {
 
   TextColumn get paymentInvoiceStatus => text().nullable()();
   TextColumn get trackingLink => text().nullable()();
-  DateTimeColumn get lastAgentMessageAt => dateTime().nullable()();
+  TextColumn get lastAgentMessageAt =>
+      text().nullable().map(ShopInBitTickets.dateConverter)();
 
   TextColumn get feeTicketNumber => text().nullable()();
 
   TextColumn get messages =>
       text().map(const MessagesConverter()).withDefault(const Constant("[]"))();
 
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get createdAt => text()
+      .map(ShopInBitTickets.dateConverter)
+      .clientDefault(
+        () => ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      )();
+  TextColumn get updatedAt => text()
+      .map(ShopInBitTickets.dateConverter)
+      .clientDefault(
+        () => ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      )();
 
   @override
   Set<Column<Object>> get primaryKey => {apiTicketId};
 
   @override
   bool get withoutRowId => true;
+}
+
+class Iso8601UtcConverter extends TypeConverter<DateTime, String> {
+  const Iso8601UtcConverter();
+
+  @override
+  DateTime fromSql(String fromDb) => DateTime.parse(fromDb).toUtc();
+
+  @override
+  String toSql(DateTime value) => DateTime.fromMillisecondsSinceEpoch(
+    value.toUtc().millisecondsSinceEpoch,
+    isUtc: true,
+  ).toIso8601String();
 }
 
 /// Drift TypeConverter so `messages` round-trips between a JSON column and

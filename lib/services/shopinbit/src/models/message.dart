@@ -24,7 +24,7 @@ class TicketMessage {
 
   factory TicketMessage.fromJson(Map<String, dynamic> json) {
     return TicketMessage(
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp: DateTime.parse(json['timestamp'] as String).toUtc(),
       fromAgent: json['from_agent'] as bool,
       content: json['content'] as String,
     );

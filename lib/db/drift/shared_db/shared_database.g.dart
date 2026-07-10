@@ -877,16 +877,17 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _lastAgentMessageAtMeta =
-      const VerificationMeta('lastAgentMessageAt');
   @override
-  late final GeneratedColumn<DateTime> lastAgentMessageAt =
-      GeneratedColumn<DateTime>(
+  late final GeneratedColumnWithTypeConverter<DateTime?, String>
+  lastAgentMessageAt =
+      GeneratedColumn<String>(
         'last_agent_message_at',
         aliasedName,
         true,
-        type: DriftSqlType.dateTime,
+        type: DriftSqlType.string,
         requiredDuringInsert: false,
+      ).withConverter<DateTime?>(
+        $ShopInBitTicketsTable.$converterlastAgentMessageAtn,
       );
   static const VerificationMeta _feeTicketNumberMeta = const VerificationMeta(
     'feeTicketNumber',
@@ -912,30 +913,28 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
       ).withConverter<List<TicketMessage>>(
         $ShopInBitTicketsTable.$convertermessages,
       );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
   @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> createdAt =
+      GeneratedColumn<String>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () =>
+            ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      ).withConverter<DateTime>($ShopInBitTicketsTable.$convertercreatedAt);
   @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
+  late final GeneratedColumnWithTypeConverter<DateTime, String> updatedAt =
+      GeneratedColumn<String>(
+        'updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () =>
+            ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      ).withConverter<DateTime>($ShopInBitTicketsTable.$converterupdatedAt);
   @override
   List<GeneratedColumn> get $columns => [
     apiTicketId,
@@ -1064,15 +1063,6 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
         ),
       );
     }
-    if (data.containsKey('last_agent_message_at')) {
-      context.handle(
-        _lastAgentMessageAtMeta,
-        lastAgentMessageAt.isAcceptableOrUnknown(
-          data['last_agent_message_at']!,
-          _lastAgentMessageAtMeta,
-        ),
-      );
-    }
     if (data.containsKey('fee_ticket_number')) {
       context.handle(
         _feeTicketNumberMeta,
@@ -1080,18 +1070,6 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
           data['fee_ticket_number']!,
           _feeTicketNumberMeta,
         ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
     return context;
@@ -1155,10 +1133,13 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
         DriftSqlType.string,
         data['${effectivePrefix}tracking_link'],
       ),
-      lastAgentMessageAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_agent_message_at'],
-      ),
+      lastAgentMessageAt: $ShopInBitTicketsTable.$converterlastAgentMessageAtn
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}last_agent_message_at'],
+            ),
+          ),
       feeTicketNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}fee_ticket_number'],
@@ -1169,14 +1150,18 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
           data['${effectivePrefix}messages'],
         )!,
       ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
+      createdAt: $ShopInBitTicketsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      updatedAt: $ShopInBitTicketsTable.$converterupdatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}updated_at'],
+        )!,
+      ),
     );
   }
 
@@ -1193,8 +1178,16 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
   $converterstatus = const EnumNameConverter<ShopInBitOrderStatus>(
     ShopInBitOrderStatus.values,
   );
+  static TypeConverter<DateTime, String> $converterlastAgentMessageAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime?, String?> $converterlastAgentMessageAtn =
+      NullAwareTypeConverter.wrap($converterlastAgentMessageAt);
   static TypeConverter<List<TicketMessage>, String> $convertermessages =
       const MessagesConverter();
+  static TypeConverter<DateTime, String> $convertercreatedAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime, String> $converterupdatedAt =
+      ShopInBitTickets.dateConverter;
   @override
   bool get withoutRowId => true;
 }
@@ -1268,7 +1261,11 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       map['tracking_link'] = Variable<String>(trackingLink);
     }
     if (!nullToAbsent || lastAgentMessageAt != null) {
-      map['last_agent_message_at'] = Variable<DateTime>(lastAgentMessageAt);
+      map['last_agent_message_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastAgentMessageAtn.toSql(
+          lastAgentMessageAt,
+        ),
+      );
     }
     if (!nullToAbsent || feeTicketNumber != null) {
       map['fee_ticket_number'] = Variable<String>(feeTicketNumber);
@@ -1278,8 +1275,16 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
         $ShopInBitTicketsTable.$convertermessages.toSql(messages),
       );
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    {
+      map['created_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    {
+      map['updated_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterupdatedAt.toSql(updatedAt),
+      );
+    }
     return map;
   }
 
@@ -1612,11 +1617,11 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     Expression<String>? offerPrice,
     Expression<String>? paymentInvoiceStatus,
     Expression<String>? trackingLink,
-    Expression<DateTime>? lastAgentMessageAt,
+    Expression<String>? lastAgentMessageAt,
     Expression<String>? feeTicketNumber,
     Expression<String>? messages,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (apiTicketId != null) 'api_ticket_id': apiTicketId,
@@ -1727,8 +1732,10 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       map['tracking_link'] = Variable<String>(trackingLink.value);
     }
     if (lastAgentMessageAt.present) {
-      map['last_agent_message_at'] = Variable<DateTime>(
-        lastAgentMessageAt.value,
+      map['last_agent_message_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastAgentMessageAtn.toSql(
+          lastAgentMessageAt.value,
+        ),
       );
     }
     if (feeTicketNumber.present) {
@@ -1740,10 +1747,14 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       );
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
+      map['created_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$convertercreatedAt.toSql(createdAt.value),
+      );
     }
     if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+      map['updated_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterupdatedAt.toSql(updatedAt.value),
+      );
     }
     return map;
   }
@@ -2311,9 +2322,10 @@ class $$ShopInBitTicketsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get lastAgentMessageAt => $composableBuilder(
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, String>
+  get lastAgentMessageAt => $composableBuilder(
     column: $table.lastAgentMessageAt,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<String> get feeTicketNumber => $composableBuilder(
@@ -2331,15 +2343,17 @@ class $$ShopInBitTicketsTableFilterComposer
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get updatedAt =>
+      $composableBuilder(
+        column: $table.updatedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$ShopInBitTicketsTableOrderingComposer
@@ -2411,7 +2425,7 @@ class $$ShopInBitTicketsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get lastAgentMessageAt => $composableBuilder(
+  ColumnOrderings<String> get lastAgentMessageAt => $composableBuilder(
     column: $table.lastAgentMessageAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -2426,12 +2440,12 @@ class $$ShopInBitTicketsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+  ColumnOrderings<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -2500,10 +2514,11 @@ class $$ShopInBitTicketsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get lastAgentMessageAt => $composableBuilder(
-    column: $table.lastAgentMessageAt,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<DateTime?, String> get lastAgentMessageAt =>
+      $composableBuilder(
+        column: $table.lastAgentMessageAt,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<String> get feeTicketNumber => $composableBuilder(
     column: $table.feeTicketNumber,
@@ -2513,10 +2528,10 @@ class $$ShopInBitTicketsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<List<TicketMessage>, String> get messages =>
       $composableBuilder(column: $table.messages, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get createdAt =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get updatedAt =>
+  GeneratedColumnWithTypeConverter<DateTime, String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
