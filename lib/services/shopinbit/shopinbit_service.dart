@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:drift/drift.dart";
+import "package:flutter/foundation.dart";
 
 import "../../db/drift/shared_db/shared_database.dart";
 import "../../models/shopinbit/shopinbit_enums.dart";
@@ -179,10 +180,6 @@ class ShopInBitService {
   ) async {
     final int id = ref.id;
     try {
-      final ShopInBitTicket? existing = await db.shopInBitTicketsDao.getByApiId(
-        id,
-      );
-
       // get status first. If it fails there is no reason to make the remaining
       // two API calls
       final statusResp = await client.getTicketStatus(
@@ -196,29 +193,80 @@ class ShopInBitService {
           "Ignoring ticket.",
         );
       } else {
+        final status = statusResp.valueOrThrow;
+
+        final ShopInBitTicket? existing = await db.shopInBitTicketsDao
+            .getByApiId(id);
+
         final ApiResponse<TicketFull>? fullResp;
-        final ApiResponse<List<TicketMessage>> messagesResp;
-        (fullResp, messagesResp) = await (
-          existing == null
-              ? client.getTicketFull(id, customerKey: customerKey)
-              : (() async => null)(),
-          client.getMessages(id, customerKey: customerKey),
-        ).wait;
+        if (existing == null ||
+            // status.state.value != existing.statusRaw ||
+            status.updatedAt.isAfter(existing.updatedAt)) {
+          fullResp = await client.getTicketFull(id, customerKey: customerKey);
+
+          if (kDebugMode) {
+            final detail = existing == null
+                ? "existing == null"
+                : status.state.value != existing.statusRaw
+                ? "status.state.value != existing.statusRaw"
+                : "status.updatedAt.isAfter(existing.updatedAt)";
+
+            Logging.instance.w(
+              "Called getTicketFull($id, customerKey: $customerKey) because: "
+              "$detail\n\n"
+              "Response: ${fullResp.value ?? fullResp.exception}",
+            );
+          }
+        } else {
+          fullResp = null;
+        }
+
+        Future<List<TicketMessage>> fetchMessages() async {
+          final messagesResp = await client.getMessages(
+            id,
+            customerKey: customerKey,
+          );
+          return messagesResp.valueOrThrow;
+        }
 
         if (existing == null) {
+          if (fullResp == null) {
+            throw Exception("Expected actual ticket full response (not null)");
+          }
+
           await _insertHydrated(
             ref: ref,
             customerKey: customerKey,
-            full: fullResp?.value,
-            status: statusResp.value,
-            messages: messagesResp.value,
+            full: fullResp.valueOrThrow,
+            status: status,
+            messages: await fetchMessages(),
           );
         } else {
+          final List<TicketMessage>? messages;
+
+          if ((existing.lastAgentMessageAt != null &&
+                  status.lastAgentMessageAt != null &&
+                  status.lastAgentMessageAt!.toUtc().isAfter(
+                    existing.lastAgentMessageAt!.toUtc(),
+                  )) ||
+              existing.messages.isEmpty) {
+            messages = await fetchMessages();
+            if (kDebugMode) {
+              Logging.instance.w(
+                "Called fetchMessages for id=${ref.id} "
+                "AND number=${ref.number}\n\n"
+                "Response: $messages",
+              );
+            }
+          } else {
+            messages = null;
+          }
+
           await _patchExisting(
             existing: existing,
             full: fullResp?.value,
-            status: statusResp.value,
-            messages: messagesResp.value,
+            status: status,
+            messages: messages,
           );
         }
       }
@@ -231,18 +279,13 @@ class ShopInBitService {
     }
   }
 
-  /// Insert path: every required field must resolve to a real value. If
-  /// any of /full, /status, or /messages failed we bail rather than write
-  /// a half-populated row.
   Future<void> _insertHydrated({
     required TicketRef ref,
     required String customerKey,
-    required TicketFull? full,
-    required TicketStatus? status,
-    required List<TicketMessage>? messages,
+    required TicketFull full,
+    required TicketStatus status,
+    required List<TicketMessage> messages,
   }) async {
-    if (full == null || status == null || messages == null) return;
-
     final ShopInBitOrderStatus? mappedStatus =
         ShopInBitOrderStatus.fromTicketState(status.state);
     if (mappedStatus == null) return;
