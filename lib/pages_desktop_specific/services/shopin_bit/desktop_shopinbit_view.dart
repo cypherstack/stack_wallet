@@ -132,10 +132,12 @@ class _DesktopServicesViewState extends ConsumerState<DesktopShopInBitView> {
                         ),
                         const TextSpan(
                           text:
-                              "\n\nTurn your crypto into Electronics, Flights, Hotel, "
-                              "Cars or any other legal product or service... "
-                              "ShopinBit is a concierge shopping service that helps "
-                              "you 'live the good life with crypto'..."
+                              "\n\n"
+                              "Spend crypto privately in the real world.\n"
+                              "A global concierge service, handled by real "
+                              "humans, built around your privacy. Turn crypto"
+                              " into flights, cars, electronics or almost "
+                              "anything else, legally."
                               "\n\n"
                               "Minimum order value of 1,000 EUR. "
                               "A 10% service fee applies to all orders.\n\n"

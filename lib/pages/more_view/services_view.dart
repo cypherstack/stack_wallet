@@ -160,10 +160,10 @@ class _ServicesViewState extends ConsumerState<ServicesView> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  "Turn your crypto into Electronics, Flights, Hotel, "
-                  "Cars or any other legal product or service... "
-                  "ShopinBit is a concierge shopping service that helps "
-                  "you 'live the good life with crypto'...",
+                  "Spend crypto privately in the real world.\n"
+                  "A global concierge service, handled by real humans, built "
+                  "around your privacy. Turn crypto into flights, cars, "
+                  "electronics or almost anything else, legally.",
                   style: STextStyles.itemSubtitle12(context).copyWith(
                     color: Theme.of(
                       context,
