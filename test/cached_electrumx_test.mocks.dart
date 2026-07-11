@@ -1149,13 +1149,12 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<void> incrementCurrentNotificationIndex() =>
+  _i9.Future<int> incrementCurrentNotificationIndex() =>
       (super.noSuchMethod(
             Invocation.method(#incrementCurrentNotificationIndex, []),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i9.Future<int>.value(0),
           )
-          as _i9.Future<void>);
+          as _i9.Future<int>);
 
   @override
   _i9.Future<bool> isExternalCallsSet() =>
