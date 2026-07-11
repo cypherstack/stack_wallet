@@ -333,7 +333,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       // so an ungated refresh would skip the fetch and the bubble's removal
       // below would make the just-sent message vanish from the conversation.
       try {
-        await _shopinBitService.refreshOne(_id, forceMessages: true);
+        await _shopinBitService.refreshOne(_id, forceUpdateMessages: true);
       } catch (_) {}
       if (mounted) setState(() => _pending.remove(optimistic));
     } else {
