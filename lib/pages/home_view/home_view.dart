@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../app_config.dart';
 import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
 import '../../route_generator.dart';
@@ -346,11 +347,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       context,
                     ).extension<StackColors>()!.backgroundAppBar,
                     icon:
-                        ref.watch(
-                          notificationsProvider.select(
-                            (value) => value.hasUnreadNotifications,
-                          ),
-                        )
+                        ref.watch(pAnyGlobalUnreadNotifications)
                         ? SvgPicture.file(
                             File(
                               ref.watch(
@@ -362,11 +359,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             width: 20,
                             height: 20,
                             color:
-                                ref.watch(
-                                  notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications,
-                                  ),
-                                )
+                                ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
                                 : Theme.of(
                                     context,
@@ -377,11 +370,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             width: 20,
                             height: 20,
                             color:
-                                ref.watch(
-                                  notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications,
-                                  ),
-                                )
+                                ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
                                 : Theme.of(
                                     context,

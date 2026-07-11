@@ -936,6 +936,15 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
             ShopInBitTickets.dateConverter.toSql(DateTime.now()),
       ).withConverter<DateTime>($ShopInBitTicketsTable.$converterupdatedAt);
   @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, String> lastReadAt =
+      GeneratedColumn<String>(
+        'last_read_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>($ShopInBitTicketsTable.$converterlastReadAtn);
+  @override
   List<GeneratedColumn> get $columns => [
     apiTicketId,
     customerKey,
@@ -954,6 +963,7 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     messages,
     createdAt,
     updatedAt,
+    lastReadAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1162,6 +1172,12 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
           data['${effectivePrefix}updated_at'],
         )!,
       ),
+      lastReadAt: $ShopInBitTicketsTable.$converterlastReadAtn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}last_read_at'],
+        ),
+      ),
     );
   }
 
@@ -1188,6 +1204,10 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
       ShopInBitTickets.dateConverter;
   static TypeConverter<DateTime, String> $converterupdatedAt =
       ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime, String> $converterlastReadAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime?, String?> $converterlastReadAtn =
+      NullAwareTypeConverter.wrap($converterlastReadAt);
   @override
   bool get withoutRowId => true;
 }
@@ -1210,6 +1230,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
   final List<TicketMessage> messages;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastReadAt;
   const ShopInBitTicket({
     required this.apiTicketId,
     required this.customerKey,
@@ -1228,6 +1249,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     required this.messages,
     required this.createdAt,
     required this.updatedAt,
+    this.lastReadAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1285,6 +1307,11 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
         $ShopInBitTicketsTable.$converterupdatedAt.toSql(updatedAt),
       );
     }
+    if (!nullToAbsent || lastReadAt != null) {
+      map['last_read_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastReadAtn.toSql(lastReadAt),
+      );
+    }
     return map;
   }
 
@@ -1319,6 +1346,9 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       messages: Value(messages),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      lastReadAt: lastReadAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReadAt),
     );
   }
 
@@ -1355,6 +1385,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       messages: serializer.fromJson<List<TicketMessage>>(json['messages']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      lastReadAt: serializer.fromJson<DateTime?>(json['lastReadAt']),
     );
   }
   @override
@@ -1382,6 +1413,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       'messages': serializer.toJson<List<TicketMessage>>(messages),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'lastReadAt': serializer.toJson<DateTime?>(lastReadAt),
     };
   }
 
@@ -1403,6 +1435,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     List<TicketMessage>? messages,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> lastReadAt = const Value.absent(),
   }) => ShopInBitTicket(
     apiTicketId: apiTicketId ?? this.apiTicketId,
     customerKey: customerKey ?? this.customerKey,
@@ -1429,6 +1462,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     messages: messages ?? this.messages,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    lastReadAt: lastReadAt.present ? lastReadAt.value : this.lastReadAt,
   );
   ShopInBitTicket copyWithCompanion(ShopInBitTicketsCompanion data) {
     return ShopInBitTicket(
@@ -1471,6 +1505,9 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
       messages: data.messages.present ? data.messages.value : this.messages,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      lastReadAt: data.lastReadAt.present
+          ? data.lastReadAt.value
+          : this.lastReadAt,
     );
   }
 
@@ -1493,7 +1530,8 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
           ..write('feeTicketNumber: $feeTicketNumber, ')
           ..write('messages: $messages, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastReadAt: $lastReadAt')
           ..write(')'))
         .toString();
   }
@@ -1517,6 +1555,7 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
     messages,
     createdAt,
     updatedAt,
+    lastReadAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -1538,7 +1577,8 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
           other.feeTicketNumber == this.feeTicketNumber &&
           other.messages == this.messages &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.lastReadAt == this.lastReadAt);
 }
 
 class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
@@ -1559,6 +1599,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
   final Value<List<TicketMessage>> messages;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> lastReadAt;
   const ShopInBitTicketsCompanion({
     this.apiTicketId = const Value.absent(),
     this.customerKey = const Value.absent(),
@@ -1577,6 +1618,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     this.messages = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.lastReadAt = const Value.absent(),
   });
   ShopInBitTicketsCompanion.insert({
     required int apiTicketId,
@@ -1596,6 +1638,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     this.messages = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.lastReadAt = const Value.absent(),
   }) : apiTicketId = Value(apiTicketId),
        customerKey = Value(customerKey),
        ticketNumber = Value(ticketNumber),
@@ -1622,6 +1665,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     Expression<String>? messages,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
+    Expression<String>? lastReadAt,
   }) {
     return RawValuesInsertable({
       if (apiTicketId != null) 'api_ticket_id': apiTicketId,
@@ -1643,6 +1687,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       if (messages != null) 'messages': messages,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (lastReadAt != null) 'last_read_at': lastReadAt,
     });
   }
 
@@ -1664,6 +1709,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     Value<List<TicketMessage>>? messages,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? lastReadAt,
   }) {
     return ShopInBitTicketsCompanion(
       apiTicketId: apiTicketId ?? this.apiTicketId,
@@ -1683,6 +1729,7 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       messages: messages ?? this.messages,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      lastReadAt: lastReadAt ?? this.lastReadAt,
     );
   }
 
@@ -1756,6 +1803,11 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
         $ShopInBitTicketsTable.$converterupdatedAt.toSql(updatedAt.value),
       );
     }
+    if (lastReadAt.present) {
+      map['last_read_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastReadAtn.toSql(lastReadAt.value),
+      );
+    }
     return map;
   }
 
@@ -1778,7 +1830,562 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
           ..write('feeTicketNumber: $feeTicketNumber, ')
           ..write('messages: $messages, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastReadAt: $lastReadAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AppNotificationsTable extends AppNotifications
+    with TableInfo<$AppNotificationsTable, AppNotification> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppNotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<AppNotificationType, String>
+  type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<AppNotificationType>($AppNotificationsTable.$convertertype);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(""),
+  );
+  static const VerificationMeta _iconAssetMeta = const VerificationMeta(
+    'iconAsset',
+  );
+  @override
+  late final GeneratedColumn<String> iconAsset = GeneratedColumn<String>(
+    'icon_asset',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> createdAt =
+      GeneratedColumn<String>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () =>
+            ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      ).withConverter<DateTime>($AppNotificationsTable.$convertercreatedAt);
+  static const VerificationMeta _readMeta = const VerificationMeta('read');
+  @override
+  late final GeneratedColumn<bool> read = GeneratedColumn<bool>(
+    'read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("read" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _scopeIdMeta = const VerificationMeta(
+    'scopeId',
+  );
+  @override
+  late final GeneratedColumn<String> scopeId = GeneratedColumn<String>(
+    'scope_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    title,
+    body,
+    iconAsset,
+    createdAt,
+    read,
+    scopeId,
+    targetId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_notifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppNotification> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    }
+    if (data.containsKey('icon_asset')) {
+      context.handle(
+        _iconAssetMeta,
+        iconAsset.isAcceptableOrUnknown(data['icon_asset']!, _iconAssetMeta),
+      );
+    }
+    if (data.containsKey('read')) {
+      context.handle(
+        _readMeta,
+        read.isAcceptableOrUnknown(data['read']!, _readMeta),
+      );
+    }
+    if (data.containsKey('scope_id')) {
+      context.handle(
+        _scopeIdMeta,
+        scopeId.isAcceptableOrUnknown(data['scope_id']!, _scopeIdMeta),
+      );
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppNotification map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppNotification(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      type: $AppNotificationsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      iconAsset: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_asset'],
+      ),
+      createdAt: $AppNotificationsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      read: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}read'],
+      )!,
+      scopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_id'],
+      ),
+      targetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_id'],
+      ),
+    );
+  }
+
+  @override
+  $AppNotificationsTable createAlias(String alias) {
+    return $AppNotificationsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<AppNotificationType, String, String>
+  $convertertype = const EnumNameConverter<AppNotificationType>(
+    AppNotificationType.values,
+  );
+  static TypeConverter<DateTime, String> $convertercreatedAt =
+      ShopInBitTickets.dateConverter;
+}
+
+class AppNotification extends DataClass implements Insertable<AppNotification> {
+  final int id;
+  final AppNotificationType type;
+  final String title;
+  final String body;
+  final String? iconAsset;
+  final DateTime createdAt;
+  final bool read;
+  final String? scopeId;
+  final String? targetId;
+  const AppNotification({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.body,
+    this.iconAsset,
+    required this.createdAt,
+    required this.read,
+    this.scopeId,
+    this.targetId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    {
+      map['type'] = Variable<String>(
+        $AppNotificationsTable.$convertertype.toSql(type),
+      );
+    }
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || iconAsset != null) {
+      map['icon_asset'] = Variable<String>(iconAsset);
+    }
+    {
+      map['created_at'] = Variable<String>(
+        $AppNotificationsTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    map['read'] = Variable<bool>(read);
+    if (!nullToAbsent || scopeId != null) {
+      map['scope_id'] = Variable<String>(scopeId);
+    }
+    if (!nullToAbsent || targetId != null) {
+      map['target_id'] = Variable<String>(targetId);
+    }
+    return map;
+  }
+
+  AppNotificationsCompanion toCompanion(bool nullToAbsent) {
+    return AppNotificationsCompanion(
+      id: Value(id),
+      type: Value(type),
+      title: Value(title),
+      body: Value(body),
+      iconAsset: iconAsset == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconAsset),
+      createdAt: Value(createdAt),
+      read: Value(read),
+      scopeId: scopeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeId),
+      targetId: targetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetId),
+    );
+  }
+
+  factory AppNotification.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppNotification(
+      id: serializer.fromJson<int>(json['id']),
+      type: $AppNotificationsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      iconAsset: serializer.fromJson<String?>(json['iconAsset']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      read: serializer.fromJson<bool>(json['read']),
+      scopeId: serializer.fromJson<String?>(json['scopeId']),
+      targetId: serializer.fromJson<String?>(json['targetId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'type': serializer.toJson<String>(
+        $AppNotificationsTable.$convertertype.toJson(type),
+      ),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'iconAsset': serializer.toJson<String?>(iconAsset),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'read': serializer.toJson<bool>(read),
+      'scopeId': serializer.toJson<String?>(scopeId),
+      'targetId': serializer.toJson<String?>(targetId),
+    };
+  }
+
+  AppNotification copyWith({
+    int? id,
+    AppNotificationType? type,
+    String? title,
+    String? body,
+    Value<String?> iconAsset = const Value.absent(),
+    DateTime? createdAt,
+    bool? read,
+    Value<String?> scopeId = const Value.absent(),
+    Value<String?> targetId = const Value.absent(),
+  }) => AppNotification(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    iconAsset: iconAsset.present ? iconAsset.value : this.iconAsset,
+    createdAt: createdAt ?? this.createdAt,
+    read: read ?? this.read,
+    scopeId: scopeId.present ? scopeId.value : this.scopeId,
+    targetId: targetId.present ? targetId.value : this.targetId,
+  );
+  AppNotification copyWithCompanion(AppNotificationsCompanion data) {
+    return AppNotification(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      iconAsset: data.iconAsset.present ? data.iconAsset.value : this.iconAsset,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      read: data.read.present ? data.read.value : this.read,
+      scopeId: data.scopeId.present ? data.scopeId.value : this.scopeId,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppNotification(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('iconAsset: $iconAsset, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('read: $read, ')
+          ..write('scopeId: $scopeId, ')
+          ..write('targetId: $targetId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    title,
+    body,
+    iconAsset,
+    createdAt,
+    read,
+    scopeId,
+    targetId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppNotification &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.iconAsset == this.iconAsset &&
+          other.createdAt == this.createdAt &&
+          other.read == this.read &&
+          other.scopeId == this.scopeId &&
+          other.targetId == this.targetId);
+}
+
+class AppNotificationsCompanion extends UpdateCompanion<AppNotification> {
+  final Value<int> id;
+  final Value<AppNotificationType> type;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String?> iconAsset;
+  final Value<DateTime> createdAt;
+  final Value<bool> read;
+  final Value<String?> scopeId;
+  final Value<String?> targetId;
+  const AppNotificationsCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.iconAsset = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.read = const Value.absent(),
+    this.scopeId = const Value.absent(),
+    this.targetId = const Value.absent(),
+  });
+  AppNotificationsCompanion.insert({
+    this.id = const Value.absent(),
+    required AppNotificationType type,
+    required String title,
+    this.body = const Value.absent(),
+    this.iconAsset = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.read = const Value.absent(),
+    this.scopeId = const Value.absent(),
+    this.targetId = const Value.absent(),
+  }) : type = Value(type),
+       title = Value(title);
+  static Insertable<AppNotification> custom({
+    Expression<int>? id,
+    Expression<String>? type,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? iconAsset,
+    Expression<String>? createdAt,
+    Expression<bool>? read,
+    Expression<String>? scopeId,
+    Expression<String>? targetId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (iconAsset != null) 'icon_asset': iconAsset,
+      if (createdAt != null) 'created_at': createdAt,
+      if (read != null) 'read': read,
+      if (scopeId != null) 'scope_id': scopeId,
+      if (targetId != null) 'target_id': targetId,
+    });
+  }
+
+  AppNotificationsCompanion copyWith({
+    Value<int>? id,
+    Value<AppNotificationType>? type,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String?>? iconAsset,
+    Value<DateTime>? createdAt,
+    Value<bool>? read,
+    Value<String?>? scopeId,
+    Value<String?>? targetId,
+  }) {
+    return AppNotificationsCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      iconAsset: iconAsset ?? this.iconAsset,
+      createdAt: createdAt ?? this.createdAt,
+      read: read ?? this.read,
+      scopeId: scopeId ?? this.scopeId,
+      targetId: targetId ?? this.targetId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $AppNotificationsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (iconAsset.present) {
+      map['icon_asset'] = Variable<String>(iconAsset.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(
+        $AppNotificationsTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (read.present) {
+      map['read'] = Variable<bool>(read.value);
+    }
+    if (scopeId.present) {
+      map['scope_id'] = Variable<String>(scopeId.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppNotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('iconAsset: $iconAsset, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('read: $read, ')
+          ..write('scopeId: $scopeId, ')
+          ..write('targetId: $targetId')
           ..write(')'))
         .toString();
   }
@@ -1793,10 +2400,24 @@ abstract class _$SharedDatabase extends GeneratedDatabase {
   late final $ShopInBitTicketsTable shopInBitTickets = $ShopInBitTicketsTable(
     this,
   );
+  late final $AppNotificationsTable appNotifications = $AppNotificationsTable(
+    this,
+  );
+  late final Index appNotificationsScope = Index(
+    'app_notifications_scope',
+    'CREATE INDEX app_notifications_scope ON app_notifications (type, scope_id, read)',
+  );
+  late final Index appNotificationsTarget = Index(
+    'app_notifications_target',
+    'CREATE INDEX app_notifications_target ON app_notifications (type, target_id)',
+  );
   late final ShopInBitSettingsDao shopInBitSettingsDao = ShopInBitSettingsDao(
     this as SharedDatabase,
   );
   late final ShopInBitTicketsDao shopInBitTicketsDao = ShopInBitTicketsDao(
+    this as SharedDatabase,
+  );
+  late final AppNotificationsDao appNotificationsDao = AppNotificationsDao(
     this as SharedDatabase,
   );
   @override
@@ -1807,6 +2428,9 @@ abstract class _$SharedDatabase extends GeneratedDatabase {
     cakepayOrders,
     shopInBitSettings,
     shopInBitTickets,
+    appNotifications,
+    appNotificationsScope,
+    appNotificationsTarget,
   ];
 }
 
@@ -2225,6 +2849,7 @@ typedef $$ShopInBitTicketsTableCreateCompanionBuilder =
       Value<List<TicketMessage>> messages,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> lastReadAt,
     });
 typedef $$ShopInBitTicketsTableUpdateCompanionBuilder =
     ShopInBitTicketsCompanion Function({
@@ -2245,6 +2870,7 @@ typedef $$ShopInBitTicketsTableUpdateCompanionBuilder =
       Value<List<TicketMessage>> messages,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> lastReadAt,
     });
 
 class $$ShopInBitTicketsTableFilterComposer
@@ -2354,6 +2980,12 @@ class $$ShopInBitTicketsTableFilterComposer
         column: $table.updatedAt,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
+
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, String> get lastReadAt =>
+      $composableBuilder(
+        column: $table.lastReadAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$ShopInBitTicketsTableOrderingComposer
@@ -2449,6 +3081,11 @@ class $$ShopInBitTicketsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get lastReadAt => $composableBuilder(
+    column: $table.lastReadAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ShopInBitTicketsTableAnnotationComposer
@@ -2533,6 +3170,12 @@ class $$ShopInBitTicketsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<DateTime, String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime?, String> get lastReadAt =>
+      $composableBuilder(
+        column: $table.lastReadAt,
+        builder: (column) => column,
+      );
 }
 
 class $$ShopInBitTicketsTableTableManager
@@ -2589,6 +3232,7 @@ class $$ShopInBitTicketsTableTableManager
                 Value<List<TicketMessage>> messages = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> lastReadAt = const Value.absent(),
               }) => ShopInBitTicketsCompanion(
                 apiTicketId: apiTicketId,
                 customerKey: customerKey,
@@ -2607,6 +3251,7 @@ class $$ShopInBitTicketsTableTableManager
                 messages: messages,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                lastReadAt: lastReadAt,
               ),
           createCompanionCallback:
               ({
@@ -2627,6 +3272,7 @@ class $$ShopInBitTicketsTableTableManager
                 Value<List<TicketMessage>> messages = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> lastReadAt = const Value.absent(),
               }) => ShopInBitTicketsCompanion.insert(
                 apiTicketId: apiTicketId,
                 customerKey: customerKey,
@@ -2645,6 +3291,7 @@ class $$ShopInBitTicketsTableTableManager
                 messages: messages,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                lastReadAt: lastReadAt,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -2675,6 +3322,292 @@ typedef $$ShopInBitTicketsTableProcessedTableManager =
       ShopInBitTicket,
       PrefetchHooks Function()
     >;
+typedef $$AppNotificationsTableCreateCompanionBuilder =
+    AppNotificationsCompanion Function({
+      Value<int> id,
+      required AppNotificationType type,
+      required String title,
+      Value<String> body,
+      Value<String?> iconAsset,
+      Value<DateTime> createdAt,
+      Value<bool> read,
+      Value<String?> scopeId,
+      Value<String?> targetId,
+    });
+typedef $$AppNotificationsTableUpdateCompanionBuilder =
+    AppNotificationsCompanion Function({
+      Value<int> id,
+      Value<AppNotificationType> type,
+      Value<String> title,
+      Value<String> body,
+      Value<String?> iconAsset,
+      Value<DateTime> createdAt,
+      Value<bool> read,
+      Value<String?> scopeId,
+      Value<String?> targetId,
+    });
+
+class $$AppNotificationsTableFilterComposer
+    extends Composer<_$SharedDatabase, $AppNotificationsTable> {
+  $$AppNotificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    AppNotificationType,
+    AppNotificationType,
+    String
+  >
+  get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get iconAsset => $composableBuilder(
+    column: $table.iconAsset,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get read => $composableBuilder(
+    column: $table.read,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeId => $composableBuilder(
+    column: $table.scopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppNotificationsTableOrderingComposer
+    extends Composer<_$SharedDatabase, $AppNotificationsTable> {
+  $$AppNotificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get iconAsset => $composableBuilder(
+    column: $table.iconAsset,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get read => $composableBuilder(
+    column: $table.read,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scopeId => $composableBuilder(
+    column: $table.scopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppNotificationsTableAnnotationComposer
+    extends Composer<_$SharedDatabase, $AppNotificationsTable> {
+  $$AppNotificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AppNotificationType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get iconAsset =>
+      $composableBuilder(column: $table.iconAsset, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get read =>
+      $composableBuilder(column: $table.read, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeId =>
+      $composableBuilder(column: $table.scopeId, builder: (column) => column);
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+}
+
+class $$AppNotificationsTableTableManager
+    extends
+        RootTableManager<
+          _$SharedDatabase,
+          $AppNotificationsTable,
+          AppNotification,
+          $$AppNotificationsTableFilterComposer,
+          $$AppNotificationsTableOrderingComposer,
+          $$AppNotificationsTableAnnotationComposer,
+          $$AppNotificationsTableCreateCompanionBuilder,
+          $$AppNotificationsTableUpdateCompanionBuilder,
+          (
+            AppNotification,
+            BaseReferences<
+              _$SharedDatabase,
+              $AppNotificationsTable,
+              AppNotification
+            >,
+          ),
+          AppNotification,
+          PrefetchHooks Function()
+        > {
+  $$AppNotificationsTableTableManager(
+    _$SharedDatabase db,
+    $AppNotificationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppNotificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppNotificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppNotificationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<AppNotificationType> type = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String?> iconAsset = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> read = const Value.absent(),
+                Value<String?> scopeId = const Value.absent(),
+                Value<String?> targetId = const Value.absent(),
+              }) => AppNotificationsCompanion(
+                id: id,
+                type: type,
+                title: title,
+                body: body,
+                iconAsset: iconAsset,
+                createdAt: createdAt,
+                read: read,
+                scopeId: scopeId,
+                targetId: targetId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required AppNotificationType type,
+                required String title,
+                Value<String> body = const Value.absent(),
+                Value<String?> iconAsset = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> read = const Value.absent(),
+                Value<String?> scopeId = const Value.absent(),
+                Value<String?> targetId = const Value.absent(),
+              }) => AppNotificationsCompanion.insert(
+                id: id,
+                type: type,
+                title: title,
+                body: body,
+                iconAsset: iconAsset,
+                createdAt: createdAt,
+                read: read,
+                scopeId: scopeId,
+                targetId: targetId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppNotificationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$SharedDatabase,
+      $AppNotificationsTable,
+      AppNotification,
+      $$AppNotificationsTableFilterComposer,
+      $$AppNotificationsTableOrderingComposer,
+      $$AppNotificationsTableAnnotationComposer,
+      $$AppNotificationsTableCreateCompanionBuilder,
+      $$AppNotificationsTableUpdateCompanionBuilder,
+      (
+        AppNotification,
+        BaseReferences<
+          _$SharedDatabase,
+          $AppNotificationsTable,
+          AppNotification
+        >,
+      ),
+      AppNotification,
+      PrefetchHooks Function()
+    >;
 
 class $SharedDatabaseManager {
   final _$SharedDatabase _db;
@@ -2685,6 +3618,8 @@ class $SharedDatabaseManager {
       $$ShopInBitSettingsTableTableManager(_db, _db.shopInBitSettings);
   $$ShopInBitTicketsTableTableManager get shopInBitTickets =>
       $$ShopInBitTicketsTableTableManager(_db, _db.shopInBitTickets);
+  $$AppNotificationsTableTableManager get appNotifications =>
+      $$AppNotificationsTableTableManager(_db, _db.appNotifications);
 }
 
 mixin _$ShopInBitSettingsDaoMixin on DatabaseAccessor<SharedDatabase> {
@@ -2716,5 +3651,21 @@ class ShopInBitTicketsDaoManager {
       $$ShopInBitTicketsTableTableManager(
         _db.attachedDatabase,
         _db.shopInBitTickets,
+      );
+}
+
+mixin _$AppNotificationsDaoMixin on DatabaseAccessor<SharedDatabase> {
+  $AppNotificationsTable get appNotifications =>
+      attachedDatabase.appNotifications;
+  AppNotificationsDaoManager get managers => AppNotificationsDaoManager(this);
+}
+
+class AppNotificationsDaoManager {
+  final _$AppNotificationsDaoMixin _db;
+  AppNotificationsDaoManager(this._db);
+  $$AppNotificationsTableTableManager get appNotifications =>
+      $$AppNotificationsTableTableManager(
+        _db.attachedDatabase,
+        _db.appNotifications,
       );
 }

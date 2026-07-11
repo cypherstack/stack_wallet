@@ -44,6 +44,9 @@ class ShopInBitTickets extends Table {
         () => ShopInBitTickets.dateConverter.toSql(DateTime.now()),
       )();
 
+  TextColumn get lastReadAt =>
+      text().nullable().map(ShopInBitTickets.dateConverter)();
+
   @override
   Set<Column<Object>> get primaryKey => {apiTicketId};
 

@@ -5,8 +5,10 @@ import "package:drift/drift.dart";
 import "package:flutter/foundation.dart";
 
 import "../../db/drift/shared_db/shared_database.dart";
+import "../../db/drift/shared_db/tables/notifications.dart";
 import "../../models/shopinbit/shopinbit_enums.dart";
 import "../../utilities/logger.dart";
+import "../notifications_api.dart";
 import "src/api_response.dart";
 import "src/client.dart";
 import "src/models/message.dart";
@@ -15,13 +17,28 @@ import "src/models/ticket.dart";
 /// Display name sent to ShopinBit as `customer_pseudonym`.
 const String kShopInBitCustomerPseudonym = "Satoshi";
 
+/// A refresh currently in flight for one ticket. [forced] records whether it
+/// will (re)fetch the message list, so a later forced caller knows whether it
+/// can safely piggy-back on this one or must run its own forced refresh.
+class _InFlightRefresh {
+  const _InFlightRefresh(this.completer, this.forced);
+  final Completer<void> completer;
+  final bool forced;
+}
+
 class ShopInBitService {
   ShopInBitService({required this.client, required this.db});
 
   final ShopInBitClient client;
   final SharedDatabase db;
 
-  final Map<int, Completer<void>> _inFlight = {};
+  final Map<int, _InFlightRefresh> _inFlight = {};
+
+  /// The ticket whose conversation is currently on screen, if any. Kept in
+  /// sync by the ticket-detail view with its actual visibility (topmost route,
+  /// app foregrounded). A new reply for it skips the system notification and
+  /// is recorded already-read — the user is looking right at it.
+  int? viewingTicketId;
 
   // -- Customer key --
 
@@ -160,6 +177,63 @@ class ShopInBitService {
     return true;
   }
 
+  /// Mark a ticket read, so it stops surfacing as unread. Read state is
+  /// local-only and never round-trips to the API. Also clears the ticket's
+  /// notification rows so the bell/feed drop it in step with the dot.
+  ///
+  /// The recorded read time is clamped up to the ticket's own
+  /// `lastAgentMessageAt`: unread is derived by comparing that (server-set)
+  /// timestamp against lastReadAt, so a client clock lagging real time would
+  /// otherwise write a read time earlier than the reply and leave the dot lit
+  /// after the user has plainly read it. All times are UTC.
+  ///
+  /// Best-effort: callers fire-and-forget (poll loop, view dispose), so a DB
+  /// failure is logged, not thrown.
+  Future<void> markTicketRead(int apiTicketId) async {
+    try {
+      final ticket = await db.shopInBitTicketsDao.getByApiId(apiTicketId);
+      final DateTime now = DateTime.now().toUtc();
+      final DateTime? lastAgent = ticket?.lastAgentMessageAt?.toUtc();
+      final DateTime readAt = (lastAgent != null && lastAgent.isAfter(now))
+          ? lastAgent
+          : now;
+      await db.shopInBitTicketsDao.markRead(apiTicketId, readAt);
+      await db.appNotificationsDao.markReadByTarget(
+        AppNotificationType.shopinbit,
+        "$apiTicketId",
+      );
+    } catch (e, s) {
+      Logging.instance.w(
+        "ShopInBitService.markTicketRead failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  /// Mark the active customer key's ShopinBit notifications read — called when
+  /// the user views the notifications list, so the bell/feed clear like the
+  /// wallet notifications do. Per-ticket dots (lastReadAt) are untouched.
+  ///
+  /// Best-effort: callers fire-and-forget from view dispose, so a DB failure
+  /// is logged, not thrown as an unhandled async error.
+  Future<void> markAllNotificationsRead() async {
+    try {
+      final settings = await db.shopInBitSettingsDao.getCurrentSettings();
+      if (settings == null) return;
+      await db.appNotificationsDao.markAllRead(
+        type: AppNotificationType.shopinbit,
+        scopeId: settings.customerKey,
+      );
+    } catch (e, s) {
+      Logging.instance.w(
+        "ShopInBitService.markAllNotificationsRead failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
   // -- Internals --
 
   /// Hydrate-or-update one ticket. Branches on whether the row already
@@ -177,11 +251,26 @@ class ShopInBitService {
   ) {
     final int id = ref.id;
 
-    final Completer<void>? pending = _inFlight[id];
-    if (pending != null) return pending.future;
+    final _InFlightRefresh? pending = _inFlight[id];
+    if (pending != null) {
+      // Join the in-flight refresh only if it will do what we need. An unforced
+      // caller is always satisfied; a forced caller is satisfied only if the
+      // in-flight refresh is itself forced (it will fetch messages too).
+      // Otherwise joining would silently drop our force, so wait for the
+      // in-flight one to settle and then run our own forced refresh — a
+      // just-sent message MUST actually be fetched, or the view removes its
+      // optimistic bubble and the message vanishes until the next refresh.
+      if (pending.forced || !forceUpdateMessages) {
+        return pending.completer.future;
+      }
+      return pending.completer.future.then(
+        (_) => _refreshRef(ref, customerKey, true),
+        onError: (_, _) => _refreshRef(ref, customerKey, true),
+      );
+    }
 
     final Completer<void> completer = Completer<void>();
-    _inFlight[id] = completer;
+    _inFlight[id] = _InFlightRefresh(completer, forceUpdateMessages);
 
     // Fire-and-forget: _runRefresh should never throw (it routes errors through
     // the completer), so the unawaited future is safe. Every caller —
@@ -265,12 +354,12 @@ class ShopInBitService {
         } else {
           final List<TicketMessage>? messages;
 
+          // Use the same predicate as the notify path (its documented single
+          // source of truth): a null stored timestamp with an incoming reply
+          // counts as new, so a ticket's FIRST agent reply is fetched — not
+          // just bannered — instead of being skipped and never pulled in.
           if (forceUpdateMessages ||
-              (existing.lastAgentMessageAt != null &&
-                  status.lastAgentMessageAt != null &&
-                  status.lastAgentMessageAt!.toUtc().isAfter(
-                    existing.lastAgentMessageAt!.toUtc(),
-                  )) ||
+              _hasNewerAgentMessage(existing, status) ||
               existing.messages.isEmpty) {
             messages = await fetchMessages();
             if (kDebugMode) {
@@ -369,9 +458,9 @@ class ShopInBitService {
         trackingLink: status == null
             ? const Value.absent()
             : Value(status.trackingLink),
-        lastAgentMessageAt: status == null
+        lastAgentMessageAt: status?.lastAgentMessageAt == null
             ? const Value.absent()
-            : Value(status.lastAgentMessageAt),
+            : Value(status!.lastAgentMessageAt),
         deliveryCountry: full == null
             ? const Value.absent()
             : Value(full.deliveryCountry),
@@ -394,6 +483,64 @@ class ShopInBitService {
 
         updatedAt: Value(DateTime.now()),
       ),
+    );
+
+    await _maybeNotifyNewReply(existing, status);
+  }
+
+  static bool _hasNewerAgentMessage(
+    ShopInBitTicket existing,
+    TicketStatus status,
+  ) {
+    final DateTime? incoming = status.lastAgentMessageAt;
+    if (incoming == null) return false;
+    final DateTime? stored = existing.lastAgentMessageAt;
+    return stored == null || incoming.isAfter(stored);
+  }
+
+  Future<void> _maybeNotifyNewReply(
+    ShopInBitTicket existing,
+    TicketStatus? status,
+  ) async {
+    if (status == null || !_hasNewerAgentMessage(existing, status)) return;
+    final DateTime newAgentAt = status.lastAgentMessageAt!;
+    // A message the user has already read is not news, even when the stored
+    // agent timestamp is missing (bare-insert rows, or an API response that
+    // omitted the field on an earlier poll).
+    final DateTime? lastReadAt = existing.lastReadAt;
+    if (lastReadAt != null && !newAgentAt.isAfter(lastReadAt)) return;
+
+    const String title = "ShopinBit";
+    final String body = "New reply to request ${existing.ticketNumber}";
+
+    final bool viewing = existing.apiTicketId == viewingTicketId;
+
+    // iconAsset stays null: the card falls back to the ShopinBit brand icon,
+    // and not persisting the path means an asset move can't strand old rows.
+    await db.appNotificationsDao.add(
+      AppNotificationsCompanion.insert(
+        type: AppNotificationType.shopinbit,
+        title: title,
+        body: Value(body),
+        scopeId: Value(existing.customerKey),
+        targetId: Value("${existing.apiTicketId}"),
+        read: Value(viewing),
+      ),
+    );
+
+    if (viewing) {
+      // Mark read here rather than waiting for the detail view's next poll:
+      // that poll reads a not-yet-requeried snapshot and would leave the
+      // bell/dot lit for a full interval while the user reads the reply.
+      await markTicketRead(existing.apiTicketId);
+    } else {
+      unawaited(NotificationApi.showLocalOnly(title: title, body: body));
+    }
+
+    // Keep this scope's notification history bounded now that a row was added.
+    await db.appNotificationsDao.pruneScope(
+      AppNotificationType.shopinbit,
+      existing.customerKey,
     );
   }
 }

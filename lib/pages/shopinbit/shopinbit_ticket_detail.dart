@@ -92,6 +92,10 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
 
   @override
   void dispose() {
+    if (_shopinBitService.viewingTicketId == _id) {
+      unawaited(_shopinBitService.markTicketRead(_id));
+      _shopinBitService.viewingTicketId = null;
+    }
     WidgetsBinding.instance.removeObserver(this);
     _pollingTimer?.cancel();
     _pollingTimer = null;
@@ -99,8 +103,34 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     super.dispose();
   }
 
+  bool get _isChatVisible {
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    final foregrounded =
+        lifecycle == null || lifecycle == AppLifecycleState.resumed;
+    return mounted &&
+        foregrounded &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
+  }
+
+  void _syncViewingFlag() {
+    if (_isChatVisible) {
+      _shopinBitService.viewingTicketId = _id;
+    } else if (_shopinBitService.viewingTicketId == _id) {
+      _shopinBitService.viewingTicketId = null;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _syncViewingFlag();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _syncViewingFlag();
+
     // Always continue polling on desktop
     if (Util.isDesktop) return;
 
@@ -117,6 +147,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
   Timer? _pollingTimer;
   Future<void> _poll() async {
     _pollInFlight = true;
+    _syncViewingFlag();
     bool ok = false;
     try {
       await _refresh();
@@ -136,6 +167,12 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     if (_paused) return;
 
     final ticket = ref.read(pShopInBitTicket(_id)).asData?.value;
+
+    // The user is viewing this ticket, so treat the conversation as read.
+    if (_isChatVisible && ticket != null && ticket.hasUnreadAgentMessage) {
+      unawaited(_shopinBitService.markTicketRead(_id));
+    }
+
     final isTerminal =
         ticket != null && TicketState.fromString(ticket.statusRaw).isTerminal;
     // Just check terminal tickets less often.  Was hitting limits in testing.
@@ -292,8 +329,11 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
       // loop reconciles regardless, so a failure pulling the server's copy in
       // here must not roll the (already sent) message back. Fold it in if we
       // can; otherwise leave the optimistic bubble for the next refresh.
+      // forceMessages: the user's own message doesn't move lastAgentMessageAt,
+      // so an ungated refresh would skip the fetch and the bubble's removal
+      // below would make the just-sent message vanish from the conversation.
       try {
-        await _refresh();
+        await _shopinBitService.refreshOne(_id, forceMessages: true);
       } catch (_) {}
       if (mounted) setState(() => _pending.remove(optimistic));
     } else {

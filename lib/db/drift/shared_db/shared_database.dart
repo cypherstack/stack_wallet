@@ -6,6 +6,7 @@ import "../../../models/shopinbit/shopinbit_enums.dart";
 import "../../../services/shopinbit/src/models/message.dart";
 import '../../../utilities/stack_file_system.dart';
 import 'tables/cakepay_orders.dart';
+import 'tables/notifications.dart';
 import 'tables/shopin_bit_settings.dart';
 import 'tables/shopin_bit_tickets.dart';
 
@@ -27,22 +28,30 @@ abstract final class SharedDrift {
 }
 
 @DriftDatabase(
-  tables: [CakepayOrders, ShopInBitSettings, ShopInBitTickets],
-  daos: [ShopInBitSettingsDao, ShopInBitTicketsDao],
+  tables: [
+    CakepayOrders,
+    ShopInBitSettings,
+    ShopInBitTickets,
+    AppNotifications,
+  ],
+  daos: [ShopInBitSettingsDao, ShopInBitTicketsDao, AppNotificationsDao],
 )
 final class SharedDatabase extends _$SharedDatabase {
   SharedDatabase._([QueryExecutor? executor])
     : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onUpgrade: (m, from, to) async {
-      if (from == 1 && to == 2) {
+      if (from < 2) {
         await m.createTable(shopInBitSettings);
         await m.createTable(shopInBitTickets);
+        await m.createTable(appNotifications);
+        await m.createIndex(appNotificationsScope);
+        await m.createIndex(appNotificationsTarget);
       }
     },
   );
@@ -108,6 +117,23 @@ class ShopInBitTicketsDao extends DatabaseAccessor<SharedDatabase>
     return rows > 0;
   }
 
+  Future<bool> markRead(int apiTicketId, [DateTime? readAt]) async {
+    final int rows =
+        await (update(shopInBitTickets)..where(
+              (t) =>
+                  t.apiTicketId.equals(apiTicketId) &
+                  t.lastAgentMessageAt.isNotNull() &
+                  (t.lastReadAt.isNull() |
+                      t.lastAgentMessageAt.isBiggerThan(t.lastReadAt)),
+            ))
+            .write(
+              ShopInBitTicketsCompanion(
+                lastReadAt: Value(readAt ?? DateTime.now().toUtc()),
+              ),
+            );
+    return rows > 0;
+  }
+
   Future<int> deleteByApiId(int apiTicketId) {
     return (delete(
       shopInBitTickets,
@@ -118,6 +144,87 @@ class ShopInBitTicketsDao extends DatabaseAccessor<SharedDatabase>
     return (delete(
       shopInBitTickets,
     )..where((t) => t.customerKey.equals(customerKey))).go();
+  }
+}
+
+@DriftAccessor(tables: [AppNotifications])
+class AppNotificationsDao extends DatabaseAccessor<SharedDatabase>
+    with _$AppNotificationsDaoMixin {
+  AppNotificationsDao(super.db);
+
+  Stream<List<AppNotification>> watchByScope(
+    AppNotificationType type,
+    String scopeId,
+  ) {
+    return (select(appNotifications)
+          ..where((t) => t.type.equalsValue(type) & t.scopeId.equals(scopeId))
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.createdAt),
+            (t) => OrderingTerm.desc(t.id),
+          ]))
+        .watch();
+  }
+
+  Expression<bool> _unreadScope({AppNotificationType? type, String? scopeId}) {
+    Expression<bool> pred = appNotifications.read.equals(false);
+    if (type != null) {
+      pred = pred & appNotifications.type.equalsValue(type);
+    }
+    if (scopeId != null) {
+      pred = pred & appNotifications.scopeId.equals(scopeId);
+    }
+    return pred;
+  }
+
+  Stream<int> watchUnreadCount({AppNotificationType? type, String? scopeId}) {
+    final count = countAll();
+    final query = selectOnly(appNotifications)
+      ..addColumns([count])
+      ..where(_unreadScope(type: type, scopeId: scopeId));
+    return query.watchSingle().map((row) => row.read(count) ?? 0);
+  }
+
+  Future<void> add(AppNotificationsCompanion row) async {
+    await into(appNotifications).insert(row);
+  }
+
+  Future<int> markReadByTarget(AppNotificationType type, String targetId) {
+    return (update(appNotifications)..where(
+          (t) =>
+              t.type.equalsValue(type) &
+              t.targetId.equals(targetId) &
+              t.read.equals(false),
+        ))
+        .write(const AppNotificationsCompanion(read: Value(true)));
+  }
+
+  /// Mark all unread notifications read, optionally scoped to [type]/[scopeId].
+  Future<int> markAllRead({AppNotificationType? type, String? scopeId}) {
+    return (update(appNotifications)
+          ..where((_) => _unreadScope(type: type, scopeId: scopeId)))
+        .write(const AppNotificationsCompanion(read: Value(true)));
+  }
+
+  Future<void> pruneScope(
+    AppNotificationType type,
+    String scopeId, {
+    int keep = 200,
+  }) async {
+    final rows =
+        await (select(appNotifications)
+              ..where(
+                (t) => t.type.equalsValue(type) & t.scopeId.equals(scopeId),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.id)]))
+            .get();
+    if (rows.length <= keep) return;
+    final prunable = rows
+        .skip(keep)
+        .where((r) => r.read)
+        .map((r) => r.id)
+        .toList();
+    if (prunable.isEmpty) return;
+    await (delete(appNotifications)..where((t) => t.id.isIn(prunable))).go();
   }
 }
 
@@ -233,4 +340,13 @@ extension ShopInBitSettingGuidelines on ShopInBitSetting {
     .travel => travelGuidelinesAccepted,
     .car => carGuidelinesAccepted,
   };
+}
+
+extension ShopInBitTicketUnread on ShopInBitTicket {
+  bool get hasUnreadAgentMessage {
+    final DateTime? lastAgent = lastAgentMessageAt;
+    if (lastAgent == null) return false;
+    final DateTime? read = lastReadAt;
+    return read == null || lastAgent.isAfter(read);
+  }
 }
