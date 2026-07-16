@@ -1,9 +1,16 @@
 import 'dart:typed_data';
 
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 void main() {
+  test('Spark Name validation rejects underscores before construction', () {
+    final pattern = RegExp(kNameRegexString);
+    expect(pattern.hasMatch('NAME-FOR.TESTING'), isTrue);
+    expect(pattern.hasMatch('NAME_FOR_TESTING'), isFalse);
+  });
+
   test('Spark Name fee output includes the name and address tag', () {
     final baseScript = Uint8List(25);
     final feeScript = sparkNameFeeScript(
