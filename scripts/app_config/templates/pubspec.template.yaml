@@ -44,7 +44,7 @@ dependencies:
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/firoorg/flutter_libsparkmobile.git
-#      ref: 171bc186663e3c7a573a6240f28f430e8d6b7d50
+#      ref: 53db5a06a7b7f3df68fe6263f1453f77513bec06
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%

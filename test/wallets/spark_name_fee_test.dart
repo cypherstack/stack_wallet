@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 void main() {
-  test('Spark Name fee size includes the tagged output bytes', () {
+  test('Spark Name fee output includes the name and address tag', () {
     final baseScript = Uint8List(25);
     final feeScript = sparkNameFeeScript(
       baseScript: baseScript,
@@ -12,8 +12,10 @@ void main() {
       sparkAddress: List.filled(144, 'a').join(),
     );
 
-    expect(feeScript.length - baseScript.length, 155);
     expect(feeScript.length, 180);
+    expect(feeScript[25], OP_SPARKNAMEID);
+    expect(feeScript[32], OP_DROP);
+    expect(feeScript.last, OP_DROP);
   });
 
   test('Spark Name payments never have the miner fee subtracted', () {
