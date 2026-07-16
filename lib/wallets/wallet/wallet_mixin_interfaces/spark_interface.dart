@@ -721,6 +721,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];
 
+    var sparkNameFeeScriptSizeDelta = 0;
     for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
@@ -741,11 +742,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         _bitcoinDartNetwork,
       );
       if (txData.sparkNameInfo != null) {
+        final baseScript = scriptPubKey;
         scriptPubKey = sparkNameFeeScript(
           baseScript: scriptPubKey,
           name: txData.sparkNameInfo!.name,
           sparkAddress: txData.sparkNameInfo!.sparkAddress.value,
         );
+        sparkNameFeeScriptSizeDelta += scriptPubKey.length - baseScript.length;
       }
       txb.addOutput(
         scriptPubKey,
@@ -851,7 +854,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       txHash: extractedTx.getHash(),
       additionalTxSize: txData.sparkNameInfo == null
           ? 0
-          : noProofNameTxData!.size,
+          : noProofNameTxData!.size + sparkNameFeeScriptSizeDelta,
     ));
 
     for (final outputScript in spend.outputScripts) {

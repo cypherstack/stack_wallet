@@ -19,6 +19,7 @@ void main() {
       sparkAddress: List.filled(144, 'a').join(),
     );
 
+    expect(feeScript.length - baseScript.length, 155);
     expect(feeScript.length, 180);
     expect(feeScript[25], OP_SPARKNAMEID);
     expect(feeScript[32], OP_DROP);
