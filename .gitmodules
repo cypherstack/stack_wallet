@@ -1,9 +1,10 @@
-[submodule "crypto_plugins/flutter_libepiccash"]
-	path = crypto_plugins/flutter_libepiccash
-	url = https://github.com/cypherstack/flutter_libepiccash.git
 [submodule "crypto_plugins/frostdart"]
 	path = crypto_plugins/frostdart
 	url = https://github.com/cypherstack/frostdart
 [submodule "crypto_plugins/flutter_libmwc"]
 	path = crypto_plugins/flutter_libmwc
 	url = https://github.com/cypherstack/flutter_libmwc
+[submodule "crypto_plugins/flutter_libepiccash"]
+	path = crypto_plugins/flutter_libepiccash
+	url = https://github.com/who-biz/flutter_libepiccash.git
+	branch = ebox-cancel-tx
