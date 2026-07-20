@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 
@@ -34,11 +35,14 @@ import '../impl/firo_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
+import 'electrumx_fee_utils.dart';
 import 'mweb_interface.dart';
 import 'paynym_interface.dart';
 import 'rbf_interface.dart';
 import 'sign_verify_interface.dart';
 import 'view_only_option_interface.dart';
+
+export 'electrumx_fee_utils.dart';
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>
@@ -1611,6 +1615,32 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   FeeObject? _cachedFees;
 
+  Future<BigInt> _minimumRelayFeeRatePerKB() async {
+    try {
+      final relayFee = await electrumXClient.relayFee();
+      final relayFeeRate = feeRatePerKBFromCoinUnits(
+        relayFee,
+        fractionDigits: info.coin.fractionDigits,
+      );
+
+      if (relayFeeRate > BigInt.zero) {
+        return relayFeeRate;
+      }
+
+      Logging.instance.w(
+        "Invalid relay fee rate returned for ${info.coin}: $relayFee",
+      );
+    } catch (e, s) {
+      Logging.instance.w(
+        "Failed to fetch relay fee rate for ${info.coin}; using fallback",
+        error: e,
+        stackTrace: s,
+      );
+    }
+
+    return cryptoCurrency.defaultFeeRate;
+  }
+
   @override
   Future<FeeObject> get fees async {
     try {
@@ -1619,23 +1649,23 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       final fast = await electrumXClient.estimateFee(blocks: f);
       final medium = await electrumXClient.estimateFee(blocks: m);
       final slow = await electrumXClient.estimateFee(blocks: s);
+      final minimumFeeRate = await _minimumRelayFeeRatePerKB();
+
+      BigInt effectiveFeeRate(Decimal feeRate) => clampFeeRatePerKB(
+        feeRatePerKB: feeRatePerKBFromCoinUnits(
+          feeRate,
+          fractionDigits: info.coin.fractionDigits,
+        ),
+        minimumFeeRatePerKB: minimumFeeRate,
+      );
 
       final feeObject = FeeObject(
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Amount.fromDecimal(
-          fast,
-          fractionDigits: info.coin.fractionDigits,
-        ).raw,
-        medium: Amount.fromDecimal(
-          medium,
-          fractionDigits: info.coin.fractionDigits,
-        ).raw,
-        slow: Amount.fromDecimal(
-          slow,
-          fractionDigits: info.coin.fractionDigits,
-        ).raw,
+        fast: effectiveFeeRate(fast),
+        medium: effectiveFeeRate(medium),
+        slow: effectiveFeeRate(slow),
       );
 
       Logging.instance.d("fetched fees: $feeObject");

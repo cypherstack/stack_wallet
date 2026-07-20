@@ -356,7 +356,7 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
+    return feeForVSize(vSize: vSize, feeRatePerKB: feeRatePerKB);
   }
 
   @override
