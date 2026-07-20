@@ -117,7 +117,7 @@ void main() {
       );
     });
 
-    test('converts a custom sat/vB rate for every downstream consumer', () {
+    test('uses custom sat/vB rate without replacing the sentinel', () {
       expect(
         effectiveMwebFeeRatePerKB(
           feeRatePerKB: BigInt.from(-1),

@@ -2112,10 +2112,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           isSendAll = true;
         }
 
+        // Preserve the custom-fee sentinel. satsPerVByte is authoritative.
         result = await coinSelection(
-          txData: txData.copyWith(
-            feeRateAmount: feeRatePerKBFromSatsPerVByte(customSatsPerVByte),
-          ),
+          txData: txData.copyWith(feeRateAmount: BigInt.from(-1)),
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
           coinControl: coinControl,
