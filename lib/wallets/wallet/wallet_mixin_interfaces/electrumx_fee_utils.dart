@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 
 const _kilobyte = 1000;
+final _kilobyteBigInt = BigInt.from(_kilobyte);
 
 BigInt feeRatePerKBFromCoinUnits(
   Decimal feeRate, {
@@ -20,8 +21,25 @@ BigInt clampFeeRatePerKB({
 
 int feeForVSize({required int vSize, required BigInt feeRatePerKB}) {
   final unroundedFee = feeRatePerKB * BigInt.from(vSize);
-  return ((unroundedFee + BigInt.from(_kilobyte - 1)) ~/ BigInt.from(_kilobyte))
+  return ((unroundedFee + _kilobyteBigInt - BigInt.one) ~/ _kilobyteBigInt)
       .toInt();
+}
+
+BigInt feeRatePerKBFromSatsPerVByte(int satsPerVByte) {
+  return BigInt.from(satsPerVByte) * _kilobyteBigInt;
+}
+
+BigInt effectiveMwebFeeRatePerKB({
+  required BigInt feeRatePerKB,
+  required int? satsPerVByte,
+}) {
+  if (satsPerVByte != null) {
+    return feeRatePerKBFromSatsPerVByte(satsPerVByte);
+  }
+
+  final roundedSatsPerVByte =
+      (feeRatePerKB + _kilobyteBigInt - BigInt.one) ~/ _kilobyteBigInt;
+  return roundedSatsPerVByte * _kilobyteBigInt;
 }
 
 Future<({T result, BigInt fee})> buildWithReconciledFee<T>({

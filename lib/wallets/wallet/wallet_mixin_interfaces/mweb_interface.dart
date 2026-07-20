@@ -442,21 +442,24 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   Future<TxData> processMwebTransaction(TxData txData) async {
     final client = await _client;
+    final feeRatePerKB = effectiveMwebFeeRatePerKB(
+      feeRatePerKB: txData.feeRateAmount!,
+      satsPerVByte: txData.satsPerVByte,
+    );
     final response = await client.create(
       CreateRequest(
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(txData.feeRateAmount!.toInt()),
+        feeRatePerKb: Int64(feeRatePerKB.toInt()),
         dryRun: false,
       ),
     );
 
-    if (txData.type == TxType.mwebPegIn) {
-      cl.Transaction clTx = cl.Transaction.fromBytes(
-        Uint8List.fromList(response.rawTx),
-      );
+    final responseRaw = Uint8List.fromList(response.rawTx);
+    cl.Transaction clTx = cl.Transaction.fromBytes(responseRaw);
 
+    if (txData.type == TxType.mwebPegIn) {
       assert(response.rawTx.toString() == clTx.toBytes().toList().toString());
       final List<cl.Output> prevOuts = [];
 
@@ -510,10 +513,12 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           throw Exception("Unknown input type: ${data.runtimeType}");
         }
       }
-      return txData.copyWith(raw: clTx.toHex());
-    } else {
-      return txData.copyWith(raw: Uint8List.fromList(response.rawTx).toHex);
     }
+
+    return txData.copyWith(
+      raw: txData.type == TxType.mwebPegIn ? clTx.toHex() : responseRaw.toHex,
+      vSize: clTx.vSize(),
+    );
   }
 
   Future<TxData> _confirmSendMweb({required TxData txData}) async {
@@ -968,8 +973,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     final preOutputSum = outputs.fold(BigInt.zero, (p, e) => p + e.amount.raw);
     final fee = sumOfUtxosValue - preOutputSum;
 
-    final feeRate =
-        txData.satsPerVByte ?? (txData.feeRateAmount!.toInt() / 1000).ceil();
+    final feeRatePerKB = effectiveMwebFeeRatePerKB(
+      feeRatePerKB: txData.feeRateAmount!,
+      satsPerVByte: txData.satsPerVByte,
+    );
 
     final client = await _client;
 
@@ -978,7 +985,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(feeRate * 1000),
+        feeRatePerKb: Int64(feeRatePerKB.toInt()),
         dryRun: true,
       ),
     );
@@ -1010,7 +1017,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     BigInt feeIncrease = posOutputSum - expectedPegin;
 
     if (expectedPegin > BigInt.zero) {
-      feeIncrease += BigInt.from(feeRate * 41);
+      feeIncrease += BigInt.from(
+        feeForVSize(vSize: 41, feeRatePerKB: feeRatePerKB),
+      );
     }
 
     return Amount(

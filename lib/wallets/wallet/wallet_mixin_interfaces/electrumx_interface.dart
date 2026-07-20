@@ -2142,7 +2142,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         result = await coinSelection(
-          txData: txData.copyWith(feeRateAmount: BigInt.from(-1)),
+          txData: txData.copyWith(
+            feeRateAmount: feeRatePerKBFromSatsPerVByte(customSatsPerVByte),
+          ),
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
           coinControl: coinControl,
@@ -2188,11 +2190,18 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         throw ArgumentError("Invalid fee rate argument provided!");
       }
 
-      if (result.fee!.raw.toInt() < result.vSize!) {
-        throw Exception(
-          "Error in fee calculation: Transaction fee (${result.fee!.raw.toInt()}) cannot "
-          "be less than vSize (${result.vSize})",
-        );
+      void validateFee(TxData data) {
+        if (data.fee!.raw < BigInt.from(data.vSize!)) {
+          throw Exception(
+            "Error in fee calculation: Transaction fee "
+            "(${data.fee!.raw}) cannot "
+            "be less than vSize (${data.vSize})",
+          );
+        }
+      }
+
+      if (!result.type.isMweb()) {
+        validateFee(result);
       }
 
       // mweb
@@ -2216,11 +2225,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             inputsWithKeys: mwebData.usedUTXOs!,
           );
         }
-        final data = await (this as MwebInterface).processMwebTransaction(
+        final data = (await (this as MwebInterface).processMwebTransaction(
           mwebData,
-        );
+        )).copyWith(fee: fee);
+        validateFee(data);
         Logging.instance.d("prepare MWEB send: $data");
-        return data.copyWith(fee: fee);
+        return data;
       }
 
       Logging.instance.d("prepare send: $result");

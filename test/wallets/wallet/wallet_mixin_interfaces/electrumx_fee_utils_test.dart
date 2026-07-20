@@ -68,6 +68,42 @@ void main() {
     });
   });
 
+  group('effectiveMwebFeeRatePerKB', () {
+    test('rounds the per-kB rate up to whole sats per vB', () {
+      expect(
+        effectiveMwebFeeRatePerKB(
+          feeRatePerKB: BigInt.from(1001),
+          satsPerVByte: null,
+        ),
+        BigInt.from(2000),
+      );
+      expect(
+        effectiveMwebFeeRatePerKB(
+          feeRatePerKB: BigInt.from(993),
+          satsPerVByte: null,
+        ),
+        BigInt.from(1000),
+      );
+      expect(
+        effectiveMwebFeeRatePerKB(
+          feeRatePerKB: BigInt.from(1000),
+          satsPerVByte: null,
+        ),
+        BigInt.from(1000),
+      );
+    });
+
+    test('converts a custom sat/vB rate for every downstream consumer', () {
+      expect(
+        effectiveMwebFeeRatePerKB(
+          feeRatePerKB: BigInt.from(-1),
+          satsPerVByte: 3,
+        ),
+        BigInt.from(3000),
+      );
+    });
+  });
+
   group('buildWithReconciledFee', () {
     test('rebuilds when the final signed size requires a larger fee', () async {
       final feesUsedToBuild = <BigInt>[];
