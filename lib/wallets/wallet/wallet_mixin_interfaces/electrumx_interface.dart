@@ -573,23 +573,40 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       feeForOneOutput = overrideFeeAmount;
     }
 
-    final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
+    Future<TxData> buildForFee(BigInt fee) async {
+      final satoshiAmountToSend = satoshisBeingUsed - fee;
 
-    if (satoshiAmountToSend.isNegative) {
-      throw Exception(
-        "Estimated fee ($feeForOneOutput sats) is greater than balance!",
+      if (satoshiAmountToSend.isNegative) {
+        throw Exception("Estimated fee ($fee sats) is greater than balance!");
+      }
+
+      return await buildTransaction(
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress],
+            [satoshiAmountToSend],
+          ),
+        ),
+        inputsWithKeys: inputsWithKeys,
       );
     }
 
-    final data = await buildTransaction(
-      txData: txData.copyWith(
-        recipients: await helperRecipientsConvert(
-          [recipientAddress],
-          [satoshiAmountToSend],
+    late final TxData data;
+    if (overrideFeeAmount == null) {
+      final reconciled = await buildWithReconciledFee(
+        initialFee: feeForOneOutput,
+        build: buildForFee,
+        requiredFee: (data) => BigInt.from(
+          satsPerVByte != null
+              ? satsPerVByte * data.vSize!
+              : estimateTxFee(vSize: data.vSize!, feeRatePerKB: feeRatePerKB),
         ),
-      ),
-      inputsWithKeys: inputsWithKeys,
-    );
+      );
+      data = reconciled.result;
+      feeForOneOutput = reconciled.fee;
+    } else {
+      data = await buildForFee(feeForOneOutput);
+    }
 
     return data.copyWith(
       fee: Amount(

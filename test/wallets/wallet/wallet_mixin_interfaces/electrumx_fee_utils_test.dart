@@ -67,4 +67,48 @@ void main() {
       expect(feeForVSize(vSize: 276, feeRatePerKB: BigInt.from(993)), 275);
     });
   });
+
+  group('buildWithReconciledFee', () {
+    test('rebuilds when the final signed size requires a larger fee', () async {
+      final feesUsedToBuild = <BigInt>[];
+
+      final reconciled = await buildWithReconciledFee(
+        initialFee: BigInt.from(276),
+        build: (fee) async {
+          feesUsedToBuild.add(fee);
+          return fee == BigInt.from(276) ? 277 : 276;
+        },
+        requiredFee: BigInt.from,
+      );
+
+      expect(reconciled.fee, BigInt.from(277));
+      expect(reconciled.result, 276);
+      expect(feesUsedToBuild, [BigInt.from(276), BigInt.from(277)]);
+    });
+
+    test('never lowers a fee when a rebuilt signature is shorter', () async {
+      final reconciled = await buildWithReconciledFee(
+        initialFee: BigInt.from(277),
+        build: (_) async => 276,
+        requiredFee: BigInt.from,
+      );
+
+      expect(reconciled.fee, BigInt.from(277));
+    });
+
+    test(
+      'fails instead of returning a transaction that still underpays',
+      () async {
+        await expectLater(
+          buildWithReconciledFee(
+            initialFee: BigInt.one,
+            build: (fee) async => fee + BigInt.one,
+            requiredFee: (fee) => fee,
+            maxAttempts: 2,
+          ),
+          throwsStateError,
+        );
+      },
+    );
+  });
 }
