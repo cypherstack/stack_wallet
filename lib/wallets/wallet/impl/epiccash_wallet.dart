@@ -138,9 +138,12 @@ class EpiccashWallet extends Bip39Wallet {
         throw Exception('Wallet not initialized');
       }
 
-      final result = await libEpic.cancelTransaction(
+      final epicboxConfig = await getEpicBoxConfig();
+      final result = await libEpic.cancelEpicboxTransaction(
         wallet: _wallet!,
-        transactionId: txSlateId,
+        methodIsEpicbox: true,
+        epicboxConfig: epicboxConfig.toString(),
+        txSlateId: txSlateId,
       );
       Logging.instance.d("cancel $txSlateId result: $result");
       return result;
