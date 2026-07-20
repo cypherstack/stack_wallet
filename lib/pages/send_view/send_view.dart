@@ -1198,6 +1198,10 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       } else {
         final memo = coin is Stellar ? memoController.text : null;
+        // XRP reuses the optional field as a numeric destination tag.
+        final int? xrpTag = coin is Xrp
+            ? int.tryParse(memoController.text.trim())
+            : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -1209,6 +1213,7 @@ class _SendViewState extends ConsumerState<SendView> {
               ),
             ],
             memo: memo,
+            xrpDestinationTag: xrpTag,
             feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
             ethEIP1559Fee: ethFee,
@@ -1446,7 +1451,7 @@ class _SendViewState extends ConsumerState<SendView> {
     coin = widget.coin;
     isFiro = coin is Firo;
     isEth = coin is Ethereum;
-    hasOptionalMemo = coin is Stellar || coin is Solana;
+    hasOptionalMemo = coin is Stellar || coin is Solana || coin is Xrp;
 
     _data = widget.autoFillData;
     walletId = widget.walletId;
@@ -2073,7 +2078,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                                 child: TextField(
                                   key: const Key("sendViewMemoFieldKey"),
-                                  maxLength: (coin is Firo) ? 31 : null,
+                                  maxLength: (coin is Firo)
+                                      ? 31
+                                      : (coin is Xrp ? 10 : null),
+                                  // XRP destination tags are numeric (uint32).
+                                  inputFormatters: coin is Xrp
+                                      ? [FilteringTextInputFormatter.digitsOnly]
+                                      : null,
                                   controller: memoController,
                                   readOnly: false,
                                   autocorrect: false,
@@ -2085,7 +2096,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                   },
                                   decoration:
                                       standardInputDecoration(
-                                        "Enter memo (optional)",
+                                        coin is Xrp
+                                            ? "Enter destination tag (optional)"
+                                            : "Enter memo (optional)",
                                         _memoFocus,
                                         context,
                                       ).copyWith(

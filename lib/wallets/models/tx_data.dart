@@ -52,6 +52,10 @@ class TxData {
 
   final String? memo;
 
+  /// XRP destination tag (uint32). Identifies a beneficiary at a shared
+  /// (e.g. exchange) address. Dropping it can lose funds off-ledger.
+  final int? xrpDestinationTag;
+
   final List<TxRecipient>? recipients;
   final Set<BaseInput>? utxos;
   final List<BaseInput>? usedUTXOs;
@@ -127,6 +131,7 @@ class TxData {
     this.note,
     this.noteOnChain,
     this.memo,
+    this.xrpDestinationTag,
     this.recipients,
     this.utxos,
     this.usedUTXOs,
@@ -266,6 +271,7 @@ class TxData {
     String? note,
     String? noteOnChain,
     String? memo,
+    int? xrpDestinationTag,
     String? otherData,
     String? opReturnData,
     Set<BaseInput>? utxos,
@@ -319,6 +325,7 @@ class TxData {
       note: note ?? this.note,
       noteOnChain: noteOnChain ?? this.noteOnChain,
       memo: memo ?? this.memo,
+      xrpDestinationTag: xrpDestinationTag ?? this.xrpDestinationTag,
       otherData: otherData ?? this.otherData,
       utxos: utxos ?? this.utxos,
       usedUTXOs: usedUTXOs ?? this.usedUTXOs,
@@ -365,6 +372,7 @@ class TxData {
       'note: $note, '
       'noteOnChain: $noteOnChain, '
       'memo: $memo, '
+      'xrpDestinationTag: $xrpDestinationTag, '
       'recipients: $recipients, '
       'utxos: $utxos, '
       'usedUTXOs: $usedUTXOs, '

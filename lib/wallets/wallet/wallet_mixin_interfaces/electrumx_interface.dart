@@ -1304,9 +1304,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     int gapCounter = 0;
     int highestIndexWithHistory = -1;
 
+    // A per-wallet override may only RAISE the gap above the coin's default; a
+    // smaller value could stop scanning before a funded address and hide funds.
+    final maxUnusedAddressGap = cryptoCurrency.effectiveGapLimit(
+      info.customAddressGapLimit,
+    );
+
     for (
       int index = 0;
-      gapCounter < cryptoCurrency.maxUnusedAddressGap;
+      gapCounter < maxUnusedAddressGap;
       index += txCountBatchSize
     ) {
       Logging.instance.d(
@@ -1395,7 +1401,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     int index = 0;
     int highestIndexWithHistory = -1;
 
-    for (; gapCounter < cryptoCurrency.maxUnusedAddressGap; index++) {
+    // See checkGapsBatched: a per-wallet override only ever raises the gap.
+    final maxUnusedAddressGap = cryptoCurrency.effectiveGapLimit(
+      info.customAddressGapLimit,
+    );
+
+    for (; gapCounter < maxUnusedAddressGap; index++) {
       Logging.instance.d(
         "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
       );

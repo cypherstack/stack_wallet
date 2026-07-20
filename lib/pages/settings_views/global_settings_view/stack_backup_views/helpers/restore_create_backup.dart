@@ -305,9 +305,21 @@ abstract class SWB {
           backupWallet['viewOnlyWalletDataKey'] =
               (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
         } else if (wallet is MnemonicInterface) {
-          backupWallet['mnemonic'] = await wallet.getMnemonic();
-          backupWallet['mnemonicPassphrase'] = await wallet
-              .getMnemonicPassphrase();
+          try {
+            backupWallet['mnemonic'] = await wallet.getMnemonic();
+            backupWallet['mnemonicPassphrase'] = await wallet
+                .getMnemonicPassphrase();
+          } catch (_) {
+            // Imported from a raw secret (e.g. an XRP family seed): there is no
+            // mnemonic, so back up the stored private key/secret instead. The
+            // restore path below already reconstructs from privateKey.
+            if (wallet is PrivateKeyInterface) {
+              backupWallet['privateKey'] = await (wallet as PrivateKeyInterface)
+                  .getPrivateKey();
+            } else {
+              rethrow;
+            }
+          }
         } else if (wallet is PrivateKeyInterface) {
           backupWallet['privateKey'] = await wallet.getPrivateKey();
         } else if (wallet is BitcoinFrostWallet) {

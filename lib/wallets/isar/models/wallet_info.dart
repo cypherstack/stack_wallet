@@ -168,6 +168,15 @@ class WalletInfo implements IsarId {
   bool get isLegacyAddressesEnabled =>
       otherData[WalletInfoKeys.enableLegacyAddresses] as bool? ?? false;
 
+  /// Per-wallet override for the address-scanning gap limit — how many
+  /// consecutive unused addresses recovery scans before stopping. `null` means
+  /// use the coin default ([Bip39HDCurrency.maxUnusedAddressGap]). The scan
+  /// loops only ever RAISE the effective gap above the coin default, so a stale
+  /// or too-small value can never cause funded addresses to be missed.
+  @ignore
+  int? get customAddressGapLimit =>
+      otherData[WalletInfoKeys.addressGapLimit] as int?;
+
   //============================================================================
   //=============    Updaters   ================================================
 
@@ -459,6 +468,16 @@ class WalletInfo implements IsarId {
     );
   }
 
+  Future<void> setAddressGapLimit({
+    required int newValue,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {WalletInfoKeys.addressGapLimit: newValue},
+      isar: isar,
+    );
+  }
+
   //============================================================================
 
   WalletInfo({
@@ -584,4 +603,5 @@ abstract class WalletInfoKeys {
       "solanaCustomTokenMintAddressesKey";
   static const String firoMasternodeCollateralDismissed =
       "firoMasternodeCollateralDismissedKey";
+  static const String addressGapLimit = "addressGapLimitKey";
 }

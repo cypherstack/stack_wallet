@@ -206,6 +206,11 @@ dependencies:
       ref: 1d3f30c8abd36d352a8b3147426308b77c77484e
   basic_utils: ^5.5.4
   stellar_flutter_sdk: ^2.1.7
+  # XRP Ledger. Pinned to 4.9.0: newer 7.x requires blockchain_utils ^7.1.0
+  # which hard-conflicts with the on_chain ^4.0.1 / blockchain_utils ^3.3.0
+  # pins used by Cardano/Solana. 4.9.0 supports classic+X-addresses, ed25519 +
+  # secp256k1, and TrustSet (IOU tokens); it does NOT support MPTs (XLS-33).
+  xrpl_dart: 4.9.0
 #  bip340: ^0.2.0
 #  tezart: ^2.0.5
   tezart:

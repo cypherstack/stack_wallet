@@ -17,6 +17,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/extended_keys/slip132.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
@@ -75,6 +76,76 @@ class _RestoreViewOnlyWalletViewState
   bool _buttonLock = false;
   late String _currentDropDownValue;
 
+  /// The initial (unlocked) dropdown selection. Used to restore a sane default
+  /// when a previously auto-detected SLIP-0132 prefix is cleared, so a stale
+  /// detected script type is never silently reused for a later plain xpub.
+  late String _defaultDropDownValue;
+
+  /// When a pasted extended key carries an unambiguous SLIP-0132 prefix
+  /// (e.g. `zpub`/`ypub`/`vpub`), the derivation path is determined by that
+  /// prefix, not the dropdown. Non-null here means the dropdown is locked to
+  /// the detected path so a `zpub` can't be imported as the wrong script type
+  /// (which would derive empty addresses and hide the user's funds).
+  String? _detectedPathFromKey;
+
+  /// The derivation path implied by [extendedKey]'s SLIP-0132 prefix, matched
+  /// to one of the coin's supported hardened paths, or `null` for a plain
+  /// `xpub`/`tpub` (ambiguous) or unparseable input — leaving the user's
+  /// dropdown selection in place.
+  String? _autoPathForExtendedKey(String extendedKey) {
+    final coin = widget.coin;
+    if (coin is! Bip39HDCurrency) return null;
+
+    final version = Bip39HDCurrency.extendedKeyVersion(extendedKey);
+    if (version == null) return null;
+
+    final detected = coin.derivePathTypeForExtendedKeyVersion(version);
+    if (detected == null) return null;
+
+    final types = coin.supportedDerivationPathTypes;
+    final paths = coin.supportedHardenedDerivationPaths;
+    final index = types.indexOf(detected);
+    if (index < 0 || index >= paths.length) return null;
+    return paths[index];
+  }
+
+  /// A human-readable dropdown label for a hardened derivation [path], e.g.
+  /// `"zpub — m/84'/0'/0'"`.
+  String _labelForPath(String path) {
+    final coin = widget.coin;
+    if (coin is! Bip39HDCurrency) return path;
+
+    final paths = coin.supportedHardenedDerivationPaths;
+    final types = coin.supportedDerivationPathTypes;
+    final index = paths.indexOf(path);
+    if (index < 0 || index >= types.length) return path;
+
+    final prefix = Slip132.humanPubPrefix(coin.slip132PubVersion(types[index]));
+    // Coins with their own HD prefix (e.g. Dogecoin dgub, Particl PPAR) have no
+    // known SLIP-0132 human prefix; show the bare path rather than a wrong one.
+    return prefix == null ? path : "$prefix — $path";
+  }
+
+  /// Handles edits to the pasted extended key: auto-detects the SLIP-0132
+  /// script type and keeps [_currentDropDownValue]/[_detectedPathFromKey] in
+  /// sync, reverting to [_defaultDropDownValue] when a previously detected
+  /// prefix is cleared so a stale script type is never reused on restore.
+  void _onExtendedKeyChanged(String value) {
+    addressController.text = "";
+    final autoPath = _autoPathForExtendedKey(value);
+    setState(() {
+      _enableRestoreButton = value.isNotEmpty;
+      if (autoPath != null) {
+        // Unambiguous SLIP-0132 prefix: lock the dropdown to it.
+        _currentDropDownValue = autoPath;
+      } else if (_detectedPathFromKey != null) {
+        // Was locked to a detected prefix; key is now ambiguous/cleared.
+        _currentDropDownValue = _defaultDropDownValue;
+      }
+      _detectedPathFromKey = autoPath;
+    });
+  }
+
   Future<void> _requestRestore() async {
     if (_buttonLock) return;
     _buttonLock = true;
@@ -111,6 +182,9 @@ class _RestoreViewOnlyWalletViewState
       // already set above
     } else if (widget.coin is CryptonoteCurrency) {
       viewOnlyWalletType = ViewOnlyWalletType.cryptonote;
+    } else if (widget.coin is Xrp) {
+      // Account-based watch-only: a single r-address, no view key.
+      viewOnlyWalletType = ViewOnlyWalletType.addressOnly;
     } else {
       throw Exception(
         "Unsupported view only wallet currency type found: ${widget.coin.runtimeType}",
@@ -178,14 +252,16 @@ class _RestoreViewOnlyWalletViewState
           break;
 
         case ViewOnlyWalletType.xPub:
+          final pastedKey = viewKeyController.text.trim();
+          // The SLIP-0132 prefix, when unambiguous, is authoritative for the
+          // script type — override the dropdown so a pasted zpub/ypub/vpub is
+          // always stored under the matching path. A plain xpub/tpub is
+          // ambiguous, so fall back to the user's dropdown selection.
+          final path =
+              _autoPathForExtendedKey(pastedKey) ?? _currentDropDownValue;
           viewOnlyData = ExtendedKeysViewOnlyWalletData(
             walletId: info.walletId,
-            xPubs: [
-              XPub(
-                path: _currentDropDownValue,
-                encoded: viewKeyController.text,
-              ),
-            ],
+            xPubs: [XPub(path: path, encoded: pastedKey)],
           );
           break;
 
@@ -322,9 +398,13 @@ class _RestoreViewOnlyWalletViewState
       _currentDropDownValue = (widget.coin as Bip39HDCurrency)
           .supportedHardenedDerivationPaths
           .last;
+      _defaultDropDownValue = _currentDropDownValue;
       _walletType = ViewOnlyWalletType.xPub;
     } else if (widget.coin is CryptonoteCurrency) {
       _walletType = ViewOnlyWalletType.cryptonote;
+    } else if (widget.coin is Xrp) {
+      // Account-based: watch a single r-address (no view key).
+      _walletType = ViewOnlyWalletType.addressOnly;
     }
   }
 
@@ -439,12 +519,24 @@ class _RestoreViewOnlyWalletViewState
                                 viewKeyController.text = "";
                                 setState(() {
                                   _enableRestoreButton = newValue.isNotEmpty;
+                                  // Key field cleared: drop detection, unlock.
+                                  _detectedPathFromKey = null;
+                                  _currentDropDownValue = _defaultDropDownValue;
                                 });
                               } else {
                                 setState(() {
+                                  // addressOnly (e.g. XRP): only a valid
+                                  // address is required. cryptonote also needs
+                                  // a view key.
                                   _enableRestoreButton =
-                                      newValue.isNotEmpty &&
-                                      viewKeyController.text.isNotEmpty;
+                                      _walletType ==
+                                          ViewOnlyWalletType.addressOnly
+                                      ? (newValue.isNotEmpty &&
+                                            widget.coin.validateAddress(
+                                              newValue,
+                                            ))
+                                      : (newValue.isNotEmpty &&
+                                            viewKeyController.text.isNotEmpty);
                                 });
                               }
                             },
@@ -462,19 +554,23 @@ class _RestoreViewOnlyWalletViewState
                                       (e) => DropdownMenuItem(
                                         value: e,
                                         child: Text(
-                                          e,
+                                          _labelForPath(e),
                                           style: STextStyles.w500_14(context),
                                         ),
                                       ),
                                     ),
                               ],
-                              onChanged: (value) {
-                                if (value is String) {
-                                  setState(() {
-                                    _currentDropDownValue = value;
-                                  });
-                                }
-                              },
+                              // Locked when the pasted key's SLIP-0132 prefix
+                              // already determines the script type.
+                              onChanged: _detectedPathFromKey != null
+                                  ? null
+                                  : (value) {
+                                      if (value is String) {
+                                        setState(() {
+                                          _currentDropDownValue = value;
+                                        });
+                                      }
+                                    },
                               isExpanded: true,
                               buttonStyleData: ButtonStyleData(
                                 decoration: BoxDecoration(
@@ -522,8 +618,11 @@ class _RestoreViewOnlyWalletViewState
                         if (isElectrumX &&
                             _walletType == ViewOnlyWalletType.xPub)
                           SizedBox(height: isDesktop ? 16 : 12),
-                        if (!isElectrumX ||
-                            _walletType == ViewOnlyWalletType.xPub)
+                        // View key: cryptonote (private view key) or the
+                        // ElectrumX xpub. Not shown for address-only (XRP).
+                        if (_walletType == ViewOnlyWalletType.cryptonote ||
+                            (isElectrumX &&
+                                _walletType == ViewOnlyWalletType.xPub))
                           FullTextField(
                             key: const Key("viewOnlyKeyRestoreFieldKey"),
                             label:
@@ -531,10 +630,7 @@ class _RestoreViewOnlyWalletViewState
                             controller: viewKeyController,
                             onChanged: (value) {
                               if (isElectrumX) {
-                                addressController.text = "";
-                                setState(() {
-                                  _enableRestoreButton = value.isNotEmpty;
-                                });
+                                _onExtendedKeyChanged(value);
                               } else {
                                 setState(() {
                                   _enableRestoreButton =

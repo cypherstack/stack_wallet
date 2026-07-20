@@ -27,6 +27,7 @@ export 'coins/stellar.dart';
 export 'coins/tezos.dart';
 export 'coins/wownero.dart';
 export 'coins/xelis.dart';
+export 'coins/xrp.dart';
 
 enum CryptoCurrencyNetwork {
   main,

@@ -25,6 +25,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -39,6 +40,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
 import 'delete_wallet_warning_view.dart';
+import 'address_gap_limit_view.dart';
 import 'edit_refresh_height_view.dart';
 import 'rbf_settings_view.dart';
 import 'rename_wallet_view.dart';
@@ -619,6 +621,39 @@ class _WalletSettingsWalletSettingsViewState
                             children: [
                               Text(
                                 "Restore height",
+                                style: STextStyles.titleBold12(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (wallet is ElectrumXInterface) const SizedBox(height: 8),
+                  if (wallet is ElectrumXInterface)
+                    RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      child: RawMaterialButton(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            AddressGapLimitView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 20,
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Address gap limit",
                                 style: STextStyles.titleBold12(context),
                               ),
                             ],

@@ -274,6 +274,7 @@ const _WalletInfomainAddressTypeEnumValueMap = {
   'xelis': 17,
   'fact0rn': 18,
   'mweb': 19,
+  'xrp': 20,
 };
 const _WalletInfomainAddressTypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -296,6 +297,7 @@ const _WalletInfomainAddressTypeValueEnumMap = {
   17: AddressType.xelis,
   18: AddressType.fact0rn,
   19: AddressType.mweb,
+  20: AddressType.xrp,
 };
 
 Id _walletInfoGetId(WalletInfo object) {

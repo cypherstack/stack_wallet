@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../../../pages/pinpad_views/pinpad_dialog.dart';
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/address_gap_limit_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/edit_refresh_height_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
@@ -33,6 +34,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -49,7 +51,8 @@ enum _WalletOptions {
   frostOptions,
   refreshFromHeight,
   showSparkKey,
-  epicBoxSettings;
+  epicBoxSettings,
+  addressGapLimit;
 
   String get prettyName {
     switch (this) {
@@ -69,6 +72,8 @@ enum _WalletOptions {
         return "Show Spark View Key";
       case _WalletOptions.epicBoxSettings:
         return "Epic Box settings";
+      case _WalletOptions.addressGapLimit:
+        return "Address gap limit";
     }
   }
 }
@@ -131,6 +136,9 @@ class WalletOptionsButton extends ConsumerWidget {
               },
               onEpicBoxSettingsPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.epicBoxSettings);
+              },
+              onAddressGapLimitPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.addressGapLimit);
               },
               walletId: walletId,
             );
@@ -313,6 +321,15 @@ class WalletOptionsButton extends ConsumerWidget {
                 ),
               );
               break;
+
+            case _WalletOptions.addressGapLimit:
+              unawaited(
+                showDialog(
+                  context: context,
+                  builder: (context) => AddressGapLimitView(walletId: walletId),
+                ),
+              );
+              break;
           }
         }
       },
@@ -345,6 +362,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onFrostMSWalletOptionsPressed,
     required this.onRefreshHeightPressed,
     required this.onEpicBoxSettingsPressed,
+    required this.onAddressGapLimitPressed,
     required this.walletId,
   });
 
@@ -355,6 +373,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onFrostMSWalletOptionsPressed;
   final VoidCallback onRefreshHeightPressed;
   final VoidCallback onEpicBoxSettingsPressed;
+  final VoidCallback onAddressGapLimitPressed;
   final String walletId;
 
   @override
@@ -369,6 +388,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     final bool isFrost = coin is FrostCurrency;
     final bool isCN = wallet is CryptonoteWallet;
     bool isSpark = wallet is SparkInterface;
+    final bool isUtxo = wallet is ElectrumXInterface;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       xpubEnabled = false;
@@ -627,6 +647,41 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.showSparkKey.prettyName,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (isUtxo) const SizedBox(height: 8),
+                  if (isUtxo)
+                    TransparentButton(
+                      onPressed: onAddressGapLimitPressed,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.list,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.addressGapLimit.prettyName,
                                 style:
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,

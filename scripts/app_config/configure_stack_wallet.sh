@@ -120,6 +120,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Solana(CryptoCurrencyNetwork.main),
   Stellar(CryptoCurrencyNetwork.main),
   Tezos(CryptoCurrencyNetwork.main),
+  Xrp(CryptoCurrencyNetwork.main),
   Wownero(CryptoCurrencyNetwork.main),
   Xelis(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
@@ -134,6 +135,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Salvium(CryptoCurrencyNetwork.test),
   Stellar(CryptoCurrencyNetwork.test),
   Xelis(CryptoCurrencyNetwork.test),
+  Xrp(CryptoCurrencyNetwork.test),
 ]);
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})

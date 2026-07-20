@@ -46,6 +46,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../wallets/wallet/impl/xrp_wallet.dart';
 import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
@@ -133,7 +134,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
     if (words.length == 1) {
       _controllers.first.text = words.first;
-      if (_isValidMnemonicWord(words.first.toLowerCase())) {
+      if (_isValidInput(words.first)) {
         setState(() {
           _inputStatuses.first = FormInputStatus.valid;
         });
@@ -202,6 +203,16 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     return _wordListHashSet.contains(word);
   }
 
+  /// Whether [rawWord] is valid field input: a valid mnemonic word, or — for
+  /// XRP — a whole case-sensitive family seed (`s…`). Family seeds and mnemonic
+  /// words are disjoint formats, so this is safe to apply per field.
+  bool _isValidInput(String rawWord) {
+    if (widget.coin is Xrp && XrpWallet.isValidFamilySeed(rawWord.trim())) {
+      return true;
+    }
+    return _isValidMnemonicWord(rawWord.trim().toLowerCase());
+  }
+
   OutlineInputBorder _buildOutlineInputBorder(Color color) {
     return OutlineInputBorder(
       borderSide: BorderSide(width: 1, color: color),
@@ -210,14 +221,28 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> attemptRestore() async {
-    if (_formKey.currentState!.validate()) {
+    // XRP family-seed import: a single case-sensitive base58 secret pasted into
+    // the first field. Detect it (from the raw, un-lowercased text) before the
+    // BIP39 word-grid path, which would corrupt/reject it. Guarded to XRP so no
+    // other coin's mnemonic restore is affected.
+    String? xrpFamilySeed;
+    if (widget.coin is Xrp) {
+      final candidate = _controllers.first.text.trim();
+      if (XrpWallet.isValidFamilySeed(candidate)) {
+        xrpFamilySeed = candidate;
+      }
+    }
+
+    if (xrpFamilySeed != null || _formKey.currentState!.validate()) {
       if (mounted) setState(() => _hideSeedWords = true);
 
       String mnemonic = "";
-      for (final element in _controllers) {
-        mnemonic += " ${element.text.trim().toLowerCase()}";
+      if (xrpFamilySeed == null) {
+        for (final element in _controllers) {
+          mnemonic += " ${element.text.trim().toLowerCase()}";
+        }
+        mnemonic = mnemonic.trim();
       }
-      mnemonic = mnemonic.trim();
 
       int height = widget.restoreBlockHeight;
       String? otherDataJsonString;
@@ -268,7 +293,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
-      if (bip39.validateMnemonic(mnemonic) == false &&
+      if (xrpFamilySeed == null &&
+          bip39.validateMnemonic(mnemonic) == false &&
           !(widget.coin is Monero ||
               widget.coin is Wownero ||
               widget.coin is Salvium ||
@@ -338,8 +364,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             secureStorageInterface: ref.read(secureStoreProvider),
             nodeService: ref.read(nodeServiceChangeNotifierProvider),
             prefs: ref.read(prefsChangeNotifierProvider),
-            mnemonicPassphrase: widget.mnemonicPassphrase,
-            mnemonic: mnemonic,
+            mnemonicPassphrase: xrpFamilySeed != null
+                ? null
+                : widget.mnemonicPassphrase,
+            mnemonic: xrpFamilySeed != null ? null : mnemonic,
+            privateKey: xrpFamilySeed,
           );
 
           // TODO: extract interface with isRestore param
@@ -581,7 +610,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     for (int i = 0; i < count; i++) {
       final word = words[i].trim();
       _controllers[i].text = words[i];
-      if (_isValidMnemonicWord(word.toLowerCase())) {
+      if (_isValidInput(word)) {
         setState(() {
           _inputStatuses[i] = FormInputStatus.valid;
         });
@@ -896,10 +925,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     if (value.isEmpty) {
                                                       formInputStatus =
                                                           FormInputStatus.empty;
-                                                    } else if (_isValidMnemonicWord(
-                                                      value
-                                                          .trim()
-                                                          .toLowerCase(),
+                                                    } else if (_isValidInput(
+                                                      value,
                                                     )) {
                                                       formInputStatus =
                                                           FormInputStatus.valid;
@@ -1039,10 +1066,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     if (value.isEmpty) {
                                                       formInputStatus =
                                                           FormInputStatus.empty;
-                                                    } else if (_isValidMnemonicWord(
-                                                      value
-                                                          .trim()
-                                                          .toLowerCase(),
+                                                    } else if (_isValidInput(
+                                                      value,
                                                     )) {
                                                       formInputStatus =
                                                           FormInputStatus.valid;
@@ -1175,9 +1200,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
                                       if (value.isEmpty) {
                                         formInputStatus = FormInputStatus.empty;
-                                      } else if (_isValidMnemonicWord(
-                                        value.trim().toLowerCase(),
-                                      )) {
+                                      } else if (_isValidInput(value)) {
                                         formInputStatus = FormInputStatus.valid;
                                       } else {
                                         formInputStatus =

@@ -45,6 +45,7 @@ class PriceAPI {
     Solana: "solana",
     Stellar: "stellar",
     Tezos: "tezos",
+    Xrp: "ripple",
     Wownero: "wownero",
     Namecoin: "namecoin",
     Nano: "nano",

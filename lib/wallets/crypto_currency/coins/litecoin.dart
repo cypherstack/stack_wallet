@@ -5,6 +5,7 @@ import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/extended_keys/slip132.dart';
 import '../crypto_currency.dart';
 import '../interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_currency.dart';
@@ -117,6 +118,33 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
+  int slip132PubVersion(DerivePathType derivePathType) {
+    return Slip132.pubVersion(
+      isTestnet: network.isTestNet,
+      derivePathType: derivePathType,
+    );
+  }
+
+  @override
+  int slip132PrivVersion(DerivePathType derivePathType) {
+    return Slip132.privVersion(
+      isTestnet: network.isTestNet,
+      derivePathType: derivePathType,
+    );
+  }
+
+  @override
+  DerivePathType? derivePathTypeForExtendedKeyVersion(int pubVersion) {
+    return Slip132.derivePathTypeForPubVersion(
+      pubVersion,
+      isTestnet: network.isTestNet,
+      // Also accept Litecoin's legacy Ltub/Mtub/ttub on import for interop
+      // with Trezor/Blockbook, even though we emit Bitcoin-style bytes.
+      includeLitecoinLegacy: true,
+    );
+  }
+
+  @override
   String constructDerivePath({
     required DerivePathType derivePathType,
     int account = 0,
@@ -169,11 +197,10 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript =
-            coinlib.P2WPKHAddress.fromPublicKey(
-              publicKey,
-              hrp: networkParams.bech32Hrp,
-            ).program.script;
+        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
+          publicKey,
+          hrp: networkParams.bech32Hrp,
+        ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,

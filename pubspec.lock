@@ -96,8 +96,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3ef6b94375d7b4d972b0bc0bd9597532381a88ec"
-      resolved-ref: "3ef6b94375d7b4d972b0bc0bd9597532381a88ec"
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
+      resolved-ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "2.1.0"
@@ -285,10 +285,10 @@ packages:
     dependency: transitive
     description:
       name: characters
-      sha256: faf38497bda5ead2a8c7615f4f7939df04333478bf32e4173fcb06d428b5716b
+      sha256: f71061c654a3380576a52b451dd5532377954cf9dbd272a78fc8479606670803
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.1"
+    version: "1.4.0"
   charcode:
     dependency: transitive
     description:
@@ -349,8 +349,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
-      resolved-ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
+      ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
+      resolved-ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
       url: "https://github.com/cypherstack/coinlib"
     source: git
     version: "4.1.0"
@@ -358,8 +358,8 @@ packages:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
-      resolved-ref: "5c59c7e7d120d9c981f23008fa03421d39fe8631"
+      ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
+      resolved-ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
       url: "https://github.com/cypherstack/coinlib"
     source: git
     version: "4.0.0"
@@ -536,66 +536,66 @@ packages:
     dependency: "direct main"
     description:
       name: cs_salvium_flutter_libs
-      sha256: "05a9f9e3f8cb539a310419d49270492e84d0f89bccb4c31512c854b1fe1f1c5f"
+      sha256: ac02985a3b9791979d82126f9c7a3a0f239f0cbfed5346be5a2c30b36e53c737
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "3.0.1"
   cs_salvium_flutter_libs_android:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_android
-      sha256: ad9537942f7c1416fbb3432cb154d641262bd18c56471c4f62dd1d2e7e23f125
+      sha256: "879706067b32450fe299fb558ad08d6b33cc2ea25a5ffe05ec38346b21e7d60a"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.1"
   cs_salvium_flutter_libs_android_arm64_v8a:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_android_arm64_v8a
-      sha256: "4c307cd3276c7aa2a461ebcfc726adf9b4d9427dbdbad120dbe50f54d3690b4e"
+      sha256: "2b0d8047fd777a4a40b60f23310be20dafccbda0f5577465300f3128d90ad5d3"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.0"
   cs_salvium_flutter_libs_android_armeabi_v7a:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_android_armeabi_v7a
-      sha256: "9491e0cdd4452c9c907e137acd2d08f76d33efc7a9d4b86fbfab69224bc9f473"
+      sha256: fb48829fdc52c4cbc71390dcb45a09fdd4e5dddb377bbd3a6b723225be6ea596
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.0"
   cs_salvium_flutter_libs_android_x86_64:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_android_x86_64
-      sha256: "0b87ccd86bd9b0eeb659dade948d076cddf908d535fe803b769030da8ff406dc"
+      sha256: "3956342b7fc1e2edf9759d2eaf084909dc0a22e5545bc6b962bbdf59c14e23cf"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.0"
   cs_salvium_flutter_libs_ios:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_ios
-      sha256: aa474e7da65ba36e23afc4936ffbe39328808619fbdac44dacad9aa3aafb1b08
+      sha256: "5917178148b04f642e604ad8acba041a96f752689a75d7074690a46b6207d3d8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "3.0.0"
   cs_salvium_flutter_libs_linux:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_linux
-      sha256: "8adc16e9d0fb8dc439475ddb2eaa4fcde8433fa2cb6e14ce814b1a40965eda5c"
+      sha256: "5722e9024cb269cb59b6cc4b1df605ddddb432afff04cf3c9bd513c5fbe91be7"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.0"
   cs_salvium_flutter_libs_macos:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_macos
-      sha256: "988077e7affc6443a1b665bac6df3b39269cc1352375cb805bd6d26aac82b46f"
+      sha256: "4413f1f6dfec97574326fc004ea4849c855163d95763a1109cfe9edfc59e2951"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "3.0.0"
   cs_salvium_flutter_libs_platform_interface:
     dependency: transitive
     description:
@@ -608,10 +608,10 @@ packages:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_windows
-      sha256: "934a1eeb95619df9e23eff13a6a6a356322297abfa6ab871283cdf665cc32c7f"
+      sha256: "87f354e0103919022d2376b4305c424eb48289ffe90995553d708bbcce819a79"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.0"
   cs_wownero:
     dependency: "direct main"
     description:
@@ -1201,7 +1201,7 @@ packages:
       path: "crypto_plugins/frostdart"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.2.0"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
@@ -1578,18 +1578,18 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: dc0b7dc7651697ea4ff3e69ef44b0407ea32c487a39fff6a4004fa585e901861
+      sha256: dc58c723c3c24bf8d3e2d3ad3f2f9d7bd9cf43ec6feaa64181775e60190153f2
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.19"
+    version: "0.12.17"
   material_color_utilities:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: "9c337007e82b1889149c82ed242ed1cb24a66044e30979c44912381e9be4c48b"
+      sha256: f7142bb1154231d7ea5f96bc7bde4bda2a0945d2806bb11670e30b850d56bdec
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.0"
+    version: "0.11.1"
   memoize:
     dependency: transitive
     description:
@@ -2276,26 +2276,26 @@ packages:
     dependency: transitive
     description:
       name: test
-      sha256: "280d6d890011ca966ad08df7e8a4ddfab0fb3aa49f96ed6de56e3521347a9ae7"
+      sha256: "75906bf273541b676716d1ca7627a17e4c4070a3a16272b7a3dc7da3b9f3f6b7"
       url: "https://pub.dev"
     source: hosted
-    version: "1.30.0"
+    version: "1.26.3"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "8161c84903fd860b26bfdefb7963b3f0b68fee7adea0f59ef805ecca346f0c7a"
+      sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.10"
+    version: "0.7.7"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "0381bd1585d1a924763c308100f2138205252fb90c9d4eeaf28489ee65ccde51"
+      sha256: "0cc24b5ff94b38d2ae73e1eb43cc302b77964fbf67abad1e296025b78deb53d0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.16"
+    version: "0.6.12"
   tezart:
     dependency: "direct main"
     description:
@@ -2669,6 +2669,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.6.1"
+  xrpl_dart:
+    dependency: "direct main"
+    description:
+      name: xrpl_dart
+      sha256: "5cf68e129bf771d979237fb8392fd1463b6d8a6e3ac110d9fe31aeac4992c83d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.9.0"
   xxh3:
     dependency: transitive
     description:

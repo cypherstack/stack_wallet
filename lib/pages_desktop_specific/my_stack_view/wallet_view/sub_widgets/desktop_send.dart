@@ -711,6 +711,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       } else {
         final memo = hasOptionalMemo ? memoController.text : null;
+        // XRP reuses the optional field as a numeric destination tag, not a
+        // memo. Parse it here so desktop sends can target exchange accounts.
+        final int? xrpTag = coin is Xrp
+            ? int.tryParse(memoController.text.trim())
+            : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -721,7 +726,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
-            memo: memo,
+            memo: coin is Xrp ? null : memo,
+            xrpDestinationTag: xrpTag,
             feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
             nonce: wallet.cryptoCurrency is Ethereum
@@ -1232,7 +1238,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
 
-    hasOptionalMemo = coin is Stellar || coin is Solana;
+    hasOptionalMemo = coin is Stellar || coin is Solana || coin is Xrp;
     isMimblewimblecoin = coin is Mimblewimblecoin;
     isEpiccash = coin is Epiccash;
 
@@ -2049,7 +2055,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
-              maxLength: (coin is Firo) ? 31 : null,
+              maxLength: (coin is Firo) ? 31 : (coin is Xrp ? 10 : null),
+              // XRP destination tags are numeric (uint32).
+              inputFormatters: coin is Xrp
+                  ? [FilteringTextInputFormatter.digitsOnly]
+                  : null,
               minLines: 1,
               maxLines: 5,
               key: const Key("sendViewMemoFieldKey"),
@@ -2069,7 +2079,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               decoration:
                   standardInputDecoration(
-                    "Enter memo (optional)",
+                    coin is Xrp
+                        ? "Enter destination tag (optional)"
+                        : "Enter memo (optional)",
                     _memoFocus,
                     context,
                     desktopMed: true,

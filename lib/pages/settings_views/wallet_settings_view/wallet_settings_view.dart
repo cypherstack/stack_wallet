@@ -43,6 +43,7 @@ import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/background.dart';
@@ -200,7 +201,19 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             (wallet as ViewOnlyOptionInterface).isViewOnly) {
           // TODO: is something needed here?
         } else {
-          mnemonic = await wallet.getMnemonicAsWords();
+          try {
+            mnemonic = await wallet.getMnemonicAsWords();
+          } catch (_) {
+            // No mnemonic (e.g. a wallet imported from a raw secret such as an
+            // XRP family seed): show the stored secret as the recovery data.
+            if (wallet is PrivateKeyInterface) {
+              mnemonic = [
+                await (wallet as PrivateKeyInterface).getPrivateKey(),
+              ];
+            } else {
+              rethrow;
+            }
+          }
         }
       }
     }
@@ -417,10 +430,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 iconSize: 16,
                 title: "Epicbox Servers",
                 onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    ManageEpicboxView.routeName,
-                    arguments: walletId,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ManageEpicboxView.routeName, arguments: walletId);
                 },
               ),
             if (canBackup) const SizedBox(height: 8),

@@ -48,6 +48,7 @@ import 'impl/peercoin_wallet.dart';
 import 'impl/salvium_wallet.dart';
 import 'impl/solana_wallet.dart';
 import 'impl/stellar_wallet.dart';
+import 'impl/xrp_wallet.dart';
 import 'impl/sub_wallets/eth_token_wallet.dart';
 import 'impl/sub_wallets/solana_token_wallet.dart';
 import 'impl/tezos_wallet.dart';
@@ -201,14 +202,17 @@ abstract class Wallet<T extends CryptoCurrency> {
             }
           }
         }
-      } else {
+      } else if (mnemonic != null) {
+        // A wallet may instead be restored from a raw private key/secret
+        // (e.g. an XRP family seed), in which case there is no mnemonic to
+        // store — the key is written in the PrivateKeyInterface block below.
         await secureStorageInterface.write(
           key: mnemonicKey(walletId: walletInfo.walletId),
-          value: mnemonic!,
+          value: mnemonic,
         );
         await secureStorageInterface.write(
           key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-          value: mnemonicPassphrase!,
+          value: mnemonicPassphrase ?? "",
         );
       }
     }
@@ -216,10 +220,12 @@ abstract class Wallet<T extends CryptoCurrency> {
     // TODO [prio=low] handle eth differently?
     // This would need to be changed if we actually end up allowing eth wallets
     // to be created with a private key instead of mnemonic only
-    if (wallet is PrivateKeyInterface && wallet is! EthereumWallet) {
+    if (wallet is PrivateKeyInterface &&
+        wallet is! EthereumWallet &&
+        privateKey != null) {
       await secureStorageInterface.write(
         key: privateKeyKey(walletId: walletInfo.walletId),
-        value: privateKey!,
+        value: privateKey,
       );
     }
 
@@ -425,6 +431,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Xelis):
         return XelisWallet(net);
+
+      case const (Xrp):
+        return XrpWallet(net);
 
       default:
         // should never hit in reality

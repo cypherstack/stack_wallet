@@ -27,6 +27,7 @@ import 'test_eth_node_connection.dart';
 import 'test_monero_node_connection.dart';
 import 'test_mwcmqs_connection.dart';
 import 'test_stellar_node_connection.dart';
+import 'test_xrp_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
 typedef TestNodeConnectionCallback =
@@ -245,6 +246,15 @@ Future<bool> testNodeConnection({
     case Stellar():
       try {
         testPassed = await testStellarNodeConnection(
+          formData.host!,
+          formData.port!,
+        );
+      } catch (_) {}
+      break;
+
+    case Xrp():
+      try {
+        testPassed = await testXrpNodeConnection(
           formData.host!,
           formData.port!,
         );
