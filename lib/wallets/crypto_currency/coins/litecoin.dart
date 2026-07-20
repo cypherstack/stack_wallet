@@ -291,4 +291,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   BigInt get defaultFeeRate => BigInt.from(1000);
+
+  @override
+  BigInt get minimumFeeRatePerKB => BigInt.from(1000);
 }

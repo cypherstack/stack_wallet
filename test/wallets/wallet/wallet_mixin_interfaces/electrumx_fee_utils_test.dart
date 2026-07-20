@@ -54,6 +54,30 @@ void main() {
     });
   });
 
+  group('normalizeFeeRatePerKB', () {
+    test('applies the Litecoin floor to a sub-floor server estimate', () {
+      expect(
+        normalizeFeeRatePerKB(
+          feeRateInCoinUnits: Decimal.parse('0.00000993'),
+          fractionDigits: 8,
+          minimumFeeRatePerKB: BigInt.from(1000),
+        ),
+        BigInt.from(1000),
+      );
+    });
+
+    test('does not impose a floor for currencies without one', () {
+      expect(
+        normalizeFeeRatePerKB(
+          feeRateInCoinUnits: Decimal.parse('0.00000993'),
+          fractionDigits: 8,
+          minimumFeeRatePerKB: BigInt.zero,
+        ),
+        BigInt.from(993),
+      );
+    });
+  });
+
   group('feeForVSize', () {
     test('does not underpay a relay-floor transaction', () {
       expect(feeForVSize(vSize: 276, feeRatePerKB: BigInt.from(1000)), 276);

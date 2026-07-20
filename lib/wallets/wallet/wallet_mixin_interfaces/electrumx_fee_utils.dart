@@ -19,6 +19,20 @@ BigInt clampFeeRatePerKB({
       : feeRatePerKB;
 }
 
+BigInt normalizeFeeRatePerKB({
+  required Decimal feeRateInCoinUnits,
+  required int fractionDigits,
+  required BigInt minimumFeeRatePerKB,
+}) {
+  return clampFeeRatePerKB(
+    feeRatePerKB: feeRatePerKBFromCoinUnits(
+      feeRateInCoinUnits,
+      fractionDigits: fractionDigits,
+    ),
+    minimumFeeRatePerKB: minimumFeeRatePerKB,
+  );
+}
+
 int feeForVSize({required int vSize, required BigInt feeRatePerKB}) {
   final unroundedFee = feeRatePerKB * BigInt.from(vSize);
   return ((unroundedFee + _kilobyteBigInt - BigInt.one) ~/ _kilobyteBigInt)

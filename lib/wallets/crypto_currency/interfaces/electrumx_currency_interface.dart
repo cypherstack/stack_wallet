@@ -11,6 +11,12 @@ mixin ElectrumXCurrencyInterface on Bip39HDCurrency {
   /// The default fee rate in satoshis per kilobyte.
   BigInt get defaultFeeRate;
 
+  /// A wallet-enforced fee-rate floor in atomic units per kilobyte.
+  ///
+  /// This is a currency policy value, not a fee fetched from an Electrum
+  /// server. Most currencies do not currently define an additional floor.
+  BigInt get minimumFeeRatePerKB => BigInt.zero;
+
   @override
   AddressType? getAddressType(String address) {
     try {

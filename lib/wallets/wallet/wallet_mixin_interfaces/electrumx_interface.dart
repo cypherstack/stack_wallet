@@ -1632,32 +1632,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   FeeObject? _cachedFees;
 
-  Future<BigInt> _minimumRelayFeeRatePerKB() async {
-    try {
-      final relayFee = await electrumXClient.relayFee();
-      final relayFeeRate = feeRatePerKBFromCoinUnits(
-        relayFee,
-        fractionDigits: info.coin.fractionDigits,
-      );
-
-      if (relayFeeRate > BigInt.zero) {
-        return relayFeeRate;
-      }
-
-      Logging.instance.w(
-        "Invalid relay fee rate returned for ${info.coin}: $relayFee",
-      );
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to fetch relay fee rate for ${info.coin}; using fallback",
-        error: e,
-        stackTrace: s,
-      );
-    }
-
-    return cryptoCurrency.defaultFeeRate;
-  }
-
   @override
   Future<FeeObject> get fees async {
     try {
@@ -1666,14 +1640,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       final fast = await electrumXClient.estimateFee(blocks: f);
       final medium = await electrumXClient.estimateFee(blocks: m);
       final slow = await electrumXClient.estimateFee(blocks: s);
-      final minimumFeeRate = await _minimumRelayFeeRatePerKB();
 
-      BigInt effectiveFeeRate(Decimal feeRate) => clampFeeRatePerKB(
-        feeRatePerKB: feeRatePerKBFromCoinUnits(
-          feeRate,
-          fractionDigits: info.coin.fractionDigits,
-        ),
-        minimumFeeRatePerKB: minimumFeeRate,
+      BigInt effectiveFeeRate(Decimal feeRate) => normalizeFeeRatePerKB(
+        feeRateInCoinUnits: feeRate,
+        fractionDigits: info.coin.fractionDigits,
+        minimumFeeRatePerKB: cryptoCurrency.minimumFeeRatePerKB,
       );
 
       final feeObject = FeeObject(
