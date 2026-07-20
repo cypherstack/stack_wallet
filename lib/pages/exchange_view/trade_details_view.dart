@@ -30,6 +30,7 @@ import '../../route_generator.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exolix/exolix_exchange.dart';
+import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
@@ -1173,6 +1174,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           case ExolixExchange.exchangeName:
                             url =
                                 "https://exolix.com/transaction/${trade.tradeId}";
+                            break;
+                          case LetsExchangeExchange.exchangeName:
+                            url = "https://letsexchange.io/transaction-status";
                             break;
 
                           default:

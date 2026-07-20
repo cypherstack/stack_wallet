@@ -85,7 +85,7 @@ abstract final class LetsExchangeApi {
       proxyInfo: _resolveProxyInfo(),
     );
 
-    Logging.instance.t("GET $uri: ${response.code}: ${response.body}");
+    Logging.instance.t("LetsExchangeApi GET $uri: ${response.code}");
 
     return _decode(response.code, response.body, parse);
   }
@@ -102,7 +102,7 @@ abstract final class LetsExchangeApi {
       proxyInfo: _resolveProxyInfo(),
     );
 
-    Logging.instance.t("POST $uri: ${response.code}: ${response.body}");
+    Logging.instance.t("LetsExchangeApi POST $uri: ${response.code}");
 
     return _decode(response.code, response.body, parse);
   }
