@@ -63,9 +63,13 @@ abstract class LibEpicCashInterface {
     required String slateJson,
   });
 
-  Future<String> cancelTransaction({
+  Future<String> cancelEpicboxTransaction({
     required DynamicObject wallet,
-    required String transactionId,
+    required bool methodIsEpicbox,
+    String? epicboxConfig,
+    int? txId,
+    String? txSlateId,
+    String? epicboxMsgId,
   });
 
   Future<List<EpicTransaction>> getTransactions({
