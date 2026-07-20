@@ -26,8 +26,8 @@ class CoinInfo {
   final DateTime? rateIdExpiredAt;
 
   factory CoinInfo.fromJson(Map<String, dynamic> json) {
-    final String? rawProfit = json["profit"] as String?;
-    final String? rawExpiredAt = json["rate_id_expired_at"] as String?;
+    final rawProfit = json["profit"] as String?;
+    final rawExpiredAt = json["rate_id_expired_at"] as int?;
     return CoinInfo(
       minAmount: Decimal.parse(json["min_amount"] as String),
       maxAmount: Decimal.parse(json["max_amount"] as String),
@@ -38,7 +38,7 @@ class CoinInfo {
       rateId: json["rate_id"] as String?,
       rateIdExpiredAt: rawExpiredAt == null
           ? null
-          : DateTime.fromMillisecondsSinceEpoch(int.parse(rawExpiredAt)),
+          : DateTime.fromMillisecondsSinceEpoch(rawExpiredAt),
     );
   }
 

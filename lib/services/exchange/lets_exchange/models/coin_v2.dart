@@ -16,21 +16,21 @@ class CoinV2 {
 
   final bool isActive;
   final String icon;
-  final String additionalInfoGet;
-  final String additionalInfoSend;
-  final String defaultNetworkCode;
-  final String defaultNetworkName;
+  final String? additionalInfoGet;
+  final String? additionalInfoSend;
+  final String? defaultNetworkCode;
+  final String? defaultNetworkName;
   final List<CoinNetwork> networks;
 
   factory CoinV2.fromJson(Map<String, dynamic> json) => CoinV2(
     code: json["code"] as String,
     name: json["name"] as String,
     isActive: int.parse(json["is_active"].toString()) == 1,
-    icon: json["icon"] as String,
-    additionalInfoGet: json["additional_info_get"] as String,
-    additionalInfoSend: json["additional_info_send"] as String,
-    defaultNetworkCode: json["default_network_code"] as String,
-    defaultNetworkName: json["default_network_name"] as String,
+    icon: json["icon"] as String? ?? "",
+    additionalInfoGet: json["additional_info_get"] as String?,
+    additionalInfoSend: json["additional_info_send"] as String?,
+    defaultNetworkCode: json["default_network_code"] as String?,
+    defaultNetworkName: json["default_network_name"] as String?,
     networks: (json["networks"] as List<dynamic>)
         .map((dynamic e) => CoinNetwork.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -70,9 +70,9 @@ class CoinNetwork {
   final bool isActive;
   final bool hasExtra;
   final String? extraName;
-  final String explorer;
-  final String contractAddress;
-  final String validationAddressRegex;
+  final String? explorer;
+  final String? contractAddress;
+  final String? validationAddressRegex;
   final String? validationAddressExtraRegex;
 
   factory CoinNetwork.fromJson(Map<String, dynamic> json) => CoinNetwork(
@@ -81,9 +81,9 @@ class CoinNetwork {
     isActive: int.parse(json["is_active"].toString()) == 1,
     hasExtra: int.parse(json["has_extra"].toString()) == 1,
     extraName: json["extra_name"] as String?,
-    explorer: json["explorer"] as String,
-    contractAddress: json["contract_address"] as String,
-    validationAddressRegex: json["validation_address_regex"] as String,
+    explorer: json["explorer"] as String?,
+    contractAddress: json["contract_address"] as String?,
+    validationAddressRegex: json["validation_address_regex"] as String?,
     validationAddressExtraRegex:
         json["validation_address_extra_regex"] as String?,
   );
