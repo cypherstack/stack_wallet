@@ -26,6 +26,7 @@ import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
 import 'change_now/change_now_exchange.dart';
 import 'exolix/exolix_exchange.dart';
+import 'lets_exchange/lets_exchange_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 import 'wizard_swap/wizard_swap_exchange.dart';
@@ -211,6 +212,7 @@ class ExchangeDataLoadingService {
           loadNanswapCurrencies(),
           loadWizardSwapCurrencies(),
           loadExolixCurrencies(),
+          loadLetsExchangeCurrencies(),
         ];
 
         // If using Tor, don't load data for exchanges which don't support Tor.
@@ -482,6 +484,28 @@ class ExchangeDataLoadingService {
       });
     } else {
       Logging.instance.w("loadExolixCurrencies: $responseCurrencies");
+    }
+  }
+
+  Future<void> loadLetsExchangeCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
+    final responseCurrencies = await LetsExchangeExchange.instance
+        .getAllCurrencies(false);
+
+    if (responseCurrencies.value != null) {
+      await (await isar).writeTxn(() async {
+        final idsToDelete = await (await isar).currencies
+            .where()
+            .exchangeNameEqualTo(LetsExchangeExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
+      });
+    } else {
+      Logging.instance.w("loadLetsExchangeCurrencies: $responseCurrencies");
     }
   }
 
