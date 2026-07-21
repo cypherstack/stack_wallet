@@ -21,12 +21,25 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   const _LibEpicCashInterfaceImpl();
 
   @override
-  Future<String> cancelTransaction({
+  Future<String> cancelEpicboxTransaction({
     required DynamicObject wallet,
-    required String transactionId,
-  }) {
-    return wallet.get<EpicWallet>().cancelTransaction(
-      transactionId: transactionId,
+    required bool methodIsEpicbox,
+    String? epicboxConfig,
+    int? txId,
+    String? txSlateId,
+    String? epicboxMsgId,
+  }) async {
+    final epicWallet = wallet.get<EpicWallet>();
+
+    if (epicboxConfig != null) {
+      epicWallet.updateEpicboxConfig(epicboxConfig);
+    }
+
+    return epicWallet.cancelEpicboxTransaction(
+      methodIsEpicbox: methodIsEpicbox,
+      txId: txId,
+      txSlateId: txSlateId,
+      epicboxMsgId: epicboxMsgId,
     );
   }
 
