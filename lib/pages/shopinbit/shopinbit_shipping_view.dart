@@ -148,7 +148,10 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
         throw ArgumentError("Missing state/province in first ticket message");
       }
 
-      _selectedState = line.replaceFirst("Delivery state:", "").trim();
+      _selectedState = line
+          .replaceFirst("Delivery state:", "")
+          .replaceFirst("State:", "")
+          .trim();
     } else {
       _selectedState = null;
     }
@@ -451,6 +454,7 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
             enableSuggestions: false,
             onChanged: (_) => setState(() {}),
           ),
+          spacing,
           AdaptiveTextField(
             controller: _billingLastNameController,
             labelText: "Last name",

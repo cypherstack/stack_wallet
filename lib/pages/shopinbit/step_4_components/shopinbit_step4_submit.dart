@@ -29,6 +29,7 @@ Future<void> submitShopInBitRequest(
       category: draft.category,
       comment: draft.requestDescription,
       deliveryCountry: draft.deliveryCountryCode,
+      deliveryState: draft.deliveryState,
       voucherCode: draft.voucherCode,
     );
 

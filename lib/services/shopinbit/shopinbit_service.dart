@@ -121,6 +121,7 @@ class ShopInBitService {
     required ShopInBitCategory category,
     required String comment,
     required String deliveryCountry,
+    required String? deliveryState,
     String? voucherCode,
   }) async {
     final String key = await ensureCustomerKey();
@@ -130,6 +131,7 @@ class ShopInBitService {
       serviceType: category.apiValue,
       comment: comment,
       deliveryCountry: deliveryCountry,
+      deliveryState: deliveryState,
       voucherCode: voucherCode,
     );
     if (resp.hasError || resp.value == null) return null;

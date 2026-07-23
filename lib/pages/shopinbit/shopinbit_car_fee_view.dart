@@ -122,6 +122,7 @@ class _ShopInBitCarFeeViewState extends ConsumerState<ShopInBitCarFeeView> {
         customerPseudonym: kShopInBitCustomerPseudonym,
         comment: widget.draft.requestDescription,
         deliveryCountry: widget.draft.deliveryCountryCode,
+        deliveryState: billing.state,
       );
 
       final resp = await ref

@@ -114,6 +114,7 @@ class ShopInBitClient {
     required String serviceType,
     required String comment,
     required String deliveryCountry,
+    required String? deliveryState,
     String? voucherCode,
   }) async {
     return _request(
@@ -125,6 +126,7 @@ class ShopInBitClient {
         'service_type': serviceType,
         'comment': comment,
         'delivery_country': deliveryCountry,
+        if (deliveryState != null) 'delivery_state': deliveryState,
         if (voucherCode != null) 'voucher_code': voucherCode,
       },
       parse: (json) {

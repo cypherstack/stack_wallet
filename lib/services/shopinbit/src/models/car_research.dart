@@ -5,17 +5,20 @@ class CarResearchRequest {
   final String customerPseudonym;
   final String comment;
   final String deliveryCountry;
+  final String? deliveryState;
 
   CarResearchRequest({
     required this.customerPseudonym,
     required this.comment,
     required this.deliveryCountry,
+    required this.deliveryState,
   });
 
   Map<String, dynamic> toJson() => {
     'customer_pseudonym': customerPseudonym,
     'comment': comment,
     'delivery_country': deliveryCountry,
+    if (deliveryState != null) 'delivery_state': deliveryState,
   };
 }
 
