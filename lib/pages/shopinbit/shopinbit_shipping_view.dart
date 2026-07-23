@@ -139,10 +139,12 @@ class _ShopInBitShippingViewState extends ConsumerState<ShopInBitShippingView> {
       }
 
       final line = parts
-          .where((e) => e.startsWith("Delivery state:"))
+          .where(
+            (e) => e.startsWith("Delivery state:") || e.startsWith("State:"),
+          )
           .firstOrNull;
       if (line == null) {
-        Logging.instance.f("Missing delivery state/province in first message!");
+        Logging.instance.f("Missing state/province in first message!");
         throw ArgumentError("Missing state/province in first ticket message");
       }
 

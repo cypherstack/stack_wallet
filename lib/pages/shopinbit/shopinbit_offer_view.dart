@@ -114,7 +114,7 @@ class ShopInBitOfferView extends ConsumerWidget {
                 final response = await showLoading(
                   context: context,
                   rootNavigator: true,
-                  message: "Updating available countries",
+                  message: "Checking available countries",
                   whileFuture: shopinBitApi.getCountries(),
                   delay: const Duration(
                     seconds: 1,
