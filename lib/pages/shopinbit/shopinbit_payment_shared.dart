@@ -34,14 +34,11 @@ class ShopInBitPaymentTarget {
 }
 
 // Parses a BIP21-style payment URI (or a bare address) into a destination
-// address and optional Amount. `amountFallback` covers the concierge case
-// where the URI itself has no amount but the API response carries one
-// (PaymentInfo.due).
+// address and optional Amount.
 ShopInBitPaymentTarget parseShopInBitPaymentTarget({
   required String paymentUri,
   required String ticker,
   CryptoCurrency? coin,
-  String? amountFallback,
 }) {
   String address = "";
   final parsed = AddressUtils.parsePaymentUri(paymentUri);
@@ -66,10 +63,6 @@ ShopInBitPaymentTarget parseShopInBitPaymentTarget({
       amountStr = uri.queryParameters['amount'];
     }
   }
-  if (amountStr == null || amountStr.isEmpty) {
-    amountStr = amountFallback;
-  }
-
   final int fractionDigits;
   if (coin != null) {
     fractionDigits = coin.fractionDigits;
@@ -105,9 +98,12 @@ ShopInBitPaymentTarget parseShopInBitPaymentTarget({
 // in-app and the user has to pay externally.
 final RegExp _kEthAddressRegExp = RegExp(r'^0x[0-9a-fA-F]{40}$');
 
-bool _isEthereumUsdtUri(String paymentUri) {
+bool isShopInBitEthereumUsdtUri(String paymentUri) {
   final trimmed = paymentUri.trim();
-  if (trimmed.toLowerCase().startsWith('ethereum:')) return true;
+  final uri = Uri.tryParse(trimmed);
+  if (uri != null && uri.scheme.toLowerCase() == 'ethereum') {
+    return _kEthAddressRegExp.hasMatch(uri.path);
+  }
   return _kEthAddressRegExp.hasMatch(trimmed);
 }
 
@@ -120,7 +116,7 @@ bool hasShopInBitWalletForTicker({
   required String paymentUri,
 }) {
   if (ticker == "USDT") {
-    if (!_isEthereumUsdtUri(paymentUri)) return false;
+    if (!isShopInBitEthereumUsdtUri(paymentUri)) return false;
     return wallets.wallets.any(
       (w) =>
           w.info.coin is Ethereum &&
@@ -149,6 +145,7 @@ Future<void> _pushShopInBitSendFrom({
     // instead of returning to the payment view.
     await showDialog<void>(
       context: context,
+      routeSettings: const RouteSettings(name: ShopInBitSendFromView.routeName),
       builder: (_) => ShopInBitSendFromView(
         coin: coin,
         amount: amount,
@@ -156,6 +153,7 @@ Future<void> _pushShopInBitSendFrom({
         apiTicketId: apiTicketId,
         shouldPopRoot: true,
         tokenContract: tokenContract,
+        routeOnSuccessName: routeOnSuccessName,
       ),
     );
   } else {
@@ -203,7 +201,7 @@ Future<bool> tryNavigateToShopInBitWalletSend({
   }
 
   if (ticker == "USDT") {
-    if (!_isEthereumUsdtUri(paymentUri)) return false;
+    if (!isShopInBitEthereumUsdtUri(paymentUri)) return false;
     final tokenContract = ref
         .read(mainDBProvider)
         .getEthContractSync(kShopInBitUsdtContractAddress);

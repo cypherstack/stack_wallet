@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -12,9 +10,7 @@ import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/payment.dart';
-import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/address_utils.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
@@ -24,14 +20,10 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/dialogs/s_dialog.dart';
-import '../../widgets/dialogs/simple_mobile_dialog.dart';
-import '../../widgets/icon_widgets/copy_icon.dart';
-import '../../widgets/qr.dart';
-import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
+import 'shopinbit_payment_method_list.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_ticket_detail.dart';
 import 'shopinbit_tickets_view.dart';
@@ -59,6 +51,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     with WidgetsBindingObserver {
   int _selectedMethod = 0;
   Timer? _pollTimer;
+  int _paymentRequestId = 0;
 
   static const Duration _kBasePollInterval = Duration(seconds: 15);
   static const Duration _kMaxPollInterval = Duration(seconds: 120);
@@ -129,6 +122,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       if (!_isTerminal) _startPolling();
     } else {
       _pollTimer?.cancel();
+      _paymentRequestId++;
     }
   }
 
@@ -143,6 +137,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   void _startPolling() {
     _pollTimer?.cancel();
+    _paymentRequestId++;
     _pollInterval = _kBasePollInterval;
     _scheduleNextPoll();
   }
@@ -153,17 +148,21 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
   }
 
   Future<void> _pollPayment() async {
+    final requestId = ++_paymentRequestId;
     bool ok = false;
     try {
+      final customerKey = await _customerKey;
+      if (!mounted || requestId != _paymentRequestId) return;
+
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.apiTicketId, customerKey: await _customerKey);
+          .getPayment(widget.apiTicketId, customerKey: customerKey);
+      if (!mounted || requestId != _paymentRequestId) return;
+
       if (!resp.hasError && resp.value != null) {
         ok = true;
-        if (mounted) {
-          setState(() => _applyPaymentInfo(resp.value!));
-        }
+        setState(() => _applyPaymentInfo(resp.value!));
       }
     } catch (e, s) {
       Logging.instance.w(
@@ -172,7 +171,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
         stackTrace: s,
       );
     }
-    if (!mounted) return;
+    if (!mounted || requestId != _paymentRequestId) return;
     if (_isTerminal) {
       _pollTimer?.cancel();
       return;
@@ -187,9 +186,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   Future<void> _refreshInvoice() async {
     _pollTimer?.cancel();
+    final requestId = ++_paymentRequestId;
 
     final customerKey = await _customerKey;
-    if (!mounted) return;
+    if (!mounted || requestId != _paymentRequestId) return;
 
     final resp = await showLoading(
       whileFuture: ref
@@ -204,7 +204,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       message: "Refreshing invoice",
       rootNavigator: true,
     );
-    if (!mounted) return;
+    if (!mounted || requestId != _paymentRequestId) return;
     if (resp != null && !resp.hasError && resp.value != null) {
       setState(() => _applyPaymentInfo(resp.value!));
     }
@@ -213,9 +213,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   Future<void> _checkForPayment() async {
     _pollTimer?.cancel();
+    final requestId = ++_paymentRequestId;
 
     final customerKey = await _customerKey;
-    if (!mounted) return;
+    if (!mounted || requestId != _paymentRequestId) return;
 
     final resp = await showLoading(
       whileFuture: ref
@@ -226,7 +227,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       message: "Checking for payment",
       rootNavigator: true,
     );
-    if (!mounted) return;
+    if (!mounted || requestId != _paymentRequestId) return;
 
     if (resp != null && !resp.hasError && resp.value != null) {
       setState(() => _applyPaymentInfo(resp.value!));
@@ -272,7 +273,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
           desktopPopRootNavigator: Util.isDesktop,
         ),
       );
-      if (!mounted) return;
+      if (!mounted || requestId != _paymentRequestId) return;
     }
 
     if (!_isTerminal) {
@@ -282,6 +283,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   Future<void> _confirmPayment() async {
     _pollTimer?.cancel();
+    _paymentRequestId++;
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
 
@@ -289,10 +291,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       paymentUri: _currentAddress,
       ticker: ticker,
       coin: AppConfig.getCryptoCurrencyForTicker(ticker),
-      amountFallback: _paymentInfo?.due,
     );
 
-    if (await tryNavigateToShopInBitWalletSend(
+    final navigated = await tryNavigateToShopInBitWalletSend(
       ref: ref,
       context: context,
       ticker: ticker,
@@ -300,10 +301,10 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       address: target.address,
       amount: target.amount,
       apiTicketId: widget.apiTicketId,
-    )) {
-      return;
-    }
+    );
     if (!mounted) return;
+    if (!_isTerminal) _startPolling();
+    if (navigated) return;
 
     // Couldn't launch the in-wallet send.
     unawaited(
@@ -315,9 +316,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
         context: context,
       ),
     );
-    if (!_isTerminal) {
-      _startPolling();
-    }
   }
 
   void _popToTickets() {
@@ -364,18 +362,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     }
   }
 
-  String? _parseBip21Amount(String bip21Uri) {
-    final parsed = AddressUtils.parsePaymentUri(bip21Uri);
-    String? amountStr = parsed?.amount;
-    if (amountStr == null || amountStr.isEmpty) {
-      final uri = Uri.tryParse(bip21Uri);
-      if (uri != null) {
-        amountStr = uri.queryParameters['amount'];
-      }
-    }
-    return (amountStr != null && amountStr.isNotEmpty) ? amountStr : null;
-  }
-
   void _onOwnedCoinTap(int methodIndex) {
     if (!_payNowEnabled) return;
     if (_addresses[methodIndex].isEmpty) return;
@@ -383,113 +369,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     unawaited(_confirmPayment());
   }
 
-  void _onUnownedCoinTap(int methodIndex) {
-    if (!_payNowEnabled) return;
-    final ticker = _methods[methodIndex].toUpperCase();
-    final address = _addresses[methodIndex];
-    if (address.isEmpty) return;
-
-    showDialog<void>(
-      context: context,
-      useRootNavigator: true,
-      builder: (ctx) => _UnownedCoinPaymentDialog(
-        ticker: ticker,
-        address: address,
-        onCheckForPayment: () {
-          Navigator.of(ctx).pop();
-          _checkForPayment();
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-
-    final wallets = ref.watch(pWallets);
-    // Build coin rows from _methods/_addresses
-    final coinRows = <Widget>[];
-    for (int i = 0; i < _methods.length; i++) {
-      final ticker = _methods[i].toUpperCase();
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      final hasAddress = _addresses[i].isNotEmpty;
-      final hasWallet = hasShopInBitWalletForTicker(
-        wallets: wallets,
-        ticker: ticker,
-        paymentUri: _addresses[i],
-      );
-      final canPayNow = hasWallet && hasAddress;
-      final amountStr = hasAddress ? _parseBip21Amount(_addresses[i]) : null;
-
-      if (i > 0) {
-        coinRows.add(const SizedBox(height: 8));
-      }
-
-      coinRows.add(
-        RoundedWhiteContainer(
-          child: Opacity(
-            opacity: canPayNow ? 1.0 : 0.5,
-            child: InkWell(
-              onTap: !hasAddress
-                  ? null
-                  : (hasWallet
-                        ? () => _onOwnedCoinTap(i)
-                        : () => _onUnownedCoinTap(i)),
-              child: Row(
-                children: [
-                  if (coin != null)
-                    SvgPicture.file(
-                      File(ref.watch(coinIconProvider(coin))),
-                      width: 24,
-                      height: 24,
-                    )
-                  else
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Center(
-                        child: Text(
-                          ticker.substring(
-                            0,
-                            ticker.length > 2 ? 2 : ticker.length,
-                          ),
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(ticker, style: STextStyles.titleBold12(context)),
-                        if (amountStr != null)
-                          Text(
-                            "$amountStr $ticker",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (canPayNow)
-                    Text("PAY NOW", style: STextStyles.link2(context))
-                  else
-                    SvgPicture.asset(
-                      Assets.svg.circleInfo,
-                      width: 18,
-                      height: 18,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle2,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -679,8 +561,14 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
           ),
         ],
         SizedBox(height: isDesktop ? 24 : 16),
-        // Coin list (replaces tab selector + QR + address + global button)
-        if (!_isExpiredOrInvalid && !_isNoPaymentRequired) ...coinRows,
+        if (!_isExpiredOrInvalid && !_isNoPaymentRequired)
+          ShopInBitPaymentMethodList(
+            methods: _methods,
+            addresses: _addresses,
+            enabled: _payNowEnabled,
+            onPayFromWallet: _onOwnedCoinTap,
+            onCheckForPayment: (_) => unawaited(_checkForPayment()),
+          ),
       ],
     );
 
@@ -720,152 +608,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     return ShopInBitPaymentMobileScaffold(
       onBack: _popToTickets,
       child: content,
-    );
-  }
-}
-
-class _UnownedCoinPaymentDialog extends StatelessWidget {
-  const _UnownedCoinPaymentDialog({
-    required this.ticker,
-    required this.address,
-    required this.onCheckForPayment,
-  });
-
-  final String ticker;
-  final String address;
-  final VoidCallback onCheckForPayment;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDesktop = Util.isDesktop;
-
-    final content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Center(
-          child: QR(data: address, size: isDesktop ? 200 : 180),
-        ),
-        if (ticker == "USDT") SizedBox(height: isDesktop ? 24 : 16),
-        if (ticker == "USDT")
-          RoundedContainer(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.warningBackground,
-            child: Center(
-              child: Text(
-                "IMPORTANT: Only send USDT (TRX20) to this address, not TRX",
-                style: (isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningForeground,
-                      )),
-              ),
-            ),
-          ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () async {
-            await Clipboard.setData(ClipboardData(text: address));
-            if (!context.mounted) return;
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.info,
-                message: "Copied to clipboard",
-                iconAsset: Assets.svg.copy,
-                context: context,
-              ),
-            );
-          },
-          child: RoundedWhiteContainer(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      "$ticker address",
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                          : STextStyles.itemSubtitle12(context),
-                    ),
-                    const Spacer(),
-                    CopyIcon(
-                      width: isDesktop ? 15 : 10,
-                      height: isDesktop ? 15 : 10,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.infoItemIcons,
-                    ),
-                    const SizedBox(width: 4),
-                    Text("Copy", style: STextStyles.link2(context)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        address,
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                            : STextStyles.itemSubtitle12(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        PrimaryButton(label: "CHECK FOR PAYMENT", onPressed: onCheckForPayment),
-      ],
-    );
-
-    if (!isDesktop) {
-      return SimpleMobileDialog(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("$ticker Payment", style: STextStyles.pageTitleH2(context)),
-            const SizedBox(height: 16),
-            content,
-          ],
-        ),
-      );
-    }
-
-    return SDialog(
-      child: SizedBox(
-        width: 480,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "$ticker Payment",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
-                  child: content,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

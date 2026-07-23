@@ -42,6 +42,7 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
     this.routeOnSuccessName = WalletView.routeName,
     required this.apiTicketId,
     this.tokenContract,
+    this.popThroughRouteName,
   });
 
   static const String routeName = "/shopInBitConfirmSend";
@@ -51,6 +52,7 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
   final String routeOnSuccessName;
   final int apiTicketId;
   final EthContract? tokenContract;
+  final String? popThroughRouteName;
 
   @override
   ConsumerState<ShopInBitConfirmSendView> createState() =>
@@ -127,15 +129,26 @@ class _ShopInBitConfirmSendViewState
 
       // pop back to wallet
       if (context.mounted) {
-        // pop sending dialog (pushed via showDialog which uses root navigator)
-        Navigator.of(context, rootNavigator: true).pop();
-
-        if (Util.isDesktop) {
-          // pop the confirm send desktop dialog
+        final popThroughRouteName = widget.popThroughRouteName;
+        if (popThroughRouteName != null) {
+          final navigator = Navigator.of(context, rootNavigator: true);
+          navigator.popUntil(
+            ModalRoute.withName(popThroughRouteName),
+          );
+          navigator.pop();
+        } else {
+          // pop sending dialog (pushed via showDialog which uses root navigator)
           Navigator.of(context, rootNavigator: true).pop();
-        }
 
-        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+          if (Util.isDesktop) {
+            // pop the confirm send desktop dialog
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(routeOnSuccessName));
+        }
       }
     } catch (e, s) {
       Logging.instance.e(

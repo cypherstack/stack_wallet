@@ -381,6 +381,10 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                         : HomeView.routeName),
                 apiTicketId: apiTicketId,
                 tokenContract: tokenContract,
+                popThroughRouteName:
+                    Util.isDesktop && widget.routeOnSuccessName != null
+                    ? ShopInBitSendFromView.routeName
+                    : null,
               ),
               settings: const RouteSettings(
                 name: ShopInBitConfirmSendView.routeName,

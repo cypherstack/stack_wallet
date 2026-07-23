@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
@@ -9,10 +8,8 @@ import '../../db/drift/shared_db/shared_database.dart';
 import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
-import '../../providers/providers.dart';
 import '../../services/shopinbit/shopinbit_api.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -20,13 +17,11 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
-import '../../widgets/icon_widgets/copy_icon.dart';
-import '../../widgets/qr.dart';
-import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
 import 'shopinbit_order_created.dart';
+import 'shopinbit_payment_method_list.dart';
 import 'shopinbit_payment_shared.dart';
 import 'shopinbit_tickets_view.dart';
 
@@ -450,89 +445,15 @@ class _ShopInBitCarResearchPaymentViewState
     );
   }
 
-  Future<void> _copyAddress(BuildContext context) async {
-    final addr = _currentAddress;
-    if (addr.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: addr));
-    if (!context.mounted) return;
-    unawaited(
-      showFloatingFlushBar(
-        type: FlushBarType.info,
-        message: "Copied to clipboard",
-        iconAsset: Assets.svg.copy,
-        context: context,
-      ),
-    );
+  void _onOwnedCoinTap(int methodIndex) {
+    if (!_payNowEnabled) return;
+    setState(() => _selectedMethod = methodIndex);
+    unawaited(_confirmPayment());
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-
-    final ticker = _selectedMethod < _methods.length
-        ? _methods[_selectedMethod].toUpperCase()
-        : "";
-
-    final hasWallets = hasShopInBitWalletForTicker(
-      wallets: ref.watch(pWallets),
-      ticker: ticker,
-      paymentUri: _currentAddress,
-    );
-
-    final methodSelector = _methods.length <= 1
-        ? Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Text(
-              _methods.isEmpty ? "" : _methods.first,
-              textAlign: TextAlign.center,
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraExtraSmall(context)
-                  : STextStyles.itemSubtitle12(context),
-            ),
-          )
-        : Row(
-            children: List.generate(_methods.length, (index) {
-              final isSelected = _selectedMethod == index;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedMethod = index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: isSelected
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorBlue
-                              : Colors.transparent,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      _methods[index],
-                      textAlign: TextAlign.center,
-                      style:
-                          (isDesktop
-                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    )
-                                  : STextStyles.itemSubtitle12(context))
-                              .copyWith(
-                                color: isSelected
-                                    ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorBlue
-                                    : null,
-                                fontWeight: isSelected ? FontWeight.w600 : null,
-                              ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          );
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -594,103 +515,27 @@ class _ShopInBitCarResearchPaymentViewState
           ),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        methodSelector,
-        SizedBox(height: isDesktop ? 24 : 16),
-        if (_currentAddress.isNotEmpty)
-          Center(
-            child: QR(data: _currentAddress, size: isDesktop ? 200 : 180),
-          )
-        else
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Text(
-                "No payment address available",
-                style: isDesktop
-                    ? STextStyles.desktopTextSmall(context)
-                    : STextStyles.itemSubtitle(context),
-              ),
-            ),
-          ),
-        if (_currentAddress.isNotEmpty && _methods[_selectedMethod] == "USDT")
-          SizedBox(height: isDesktop ? 24 : 16),
-        if (_currentAddress.isNotEmpty && _methods[_selectedMethod] == "USDT")
-          RoundedContainer(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.warningBackground,
-            child: Center(
-              child: Text(
-                "IMPORTANT: Only send USDT (TRX20) to this address, not TRX",
-                style: (isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context)
-                    : STextStyles.itemSubtitle12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningForeground,
-                      )),
-              ),
-            ),
-          ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        if (_currentAddress.isNotEmpty)
-          GestureDetector(
-            onTap: () => _copyAddress(context),
-            child: RoundedWhiteContainer(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "${_methods[_selectedMethod]} address",
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                            : STextStyles.itemSubtitle12(context),
-                      ),
-                      const Spacer(),
-                      CopyIcon(
-                        width: isDesktop ? 15 : 10,
-                        height: isDesktop ? 15 : 10,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.infoItemIcons,
-                      ),
-                      const SizedBox(width: 4),
-                      Text("Copy", style: STextStyles.link2(context)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _currentAddress,
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                              : STextStyles.itemSubtitle12(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        if (!isDesktop) const Spacer(),
-        if (isDesktop) const SizedBox(height: 24),
-        PrimaryButton(
-          label: _flowState == _PaymentFlowState.polling
-              ? "Checking..."
-              : _flowState == _PaymentFlowState.finalizing
-              ? "Processing..."
-              : (hasWallets ? "PAY NOW" : "CHECK FOR PAYMENT"),
+        ShopInBitPaymentMethodList(
+          methods: _methods,
+          addresses: _addresses,
           enabled: _payNowEnabled,
-          onPressed: _payNowEnabled
-              ? (hasWallets
-                    ? () => unawaited(_confirmPayment())
-                    : () => unawaited(_checkForPayment()))
-              : null,
+          onPayFromWallet: _onOwnedCoinTap,
+          onCheckForPayment: (methodIndex) {
+            _selectedMethod = methodIndex;
+            unawaited(_checkForPayment());
+          },
         ),
+        if (_flowState == _PaymentFlowState.polling ||
+            _flowState == _PaymentFlowState.finalizing) ...[
+          SizedBox(height: isDesktop ? 24 : 16),
+          PrimaryButton(
+            label: _flowState == _PaymentFlowState.polling
+                ? "Checking..."
+                : "Processing...",
+            enabled: false,
+            onPressed: null,
+          ),
+        ],
       ],
     );
 
