@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
@@ -50,6 +51,8 @@ const SPARK_OUT_LIMIT_PER_TX = 16;
 const OP_SPARKMINT = 0xd1;
 const OP_SPARKSMINT = 0xd2;
 const OP_SPARKSPEND = 0xd3;
+const OP_SPARKNAMEID = 0xe1;
+const OP_DROP = 0x75;
 
 /// top level function for use with [compute]
 String _hashTag(String tag) {
@@ -60,6 +63,28 @@ String _hashTag(String tag) {
   final hash = libSpark.hashTag(x, y);
   return hash;
 }
+
+@visibleForTesting
+Uint8List sparkNameFeeScript({
+  required Uint8List baseScript,
+  required String name,
+  required String sparkAddress,
+}) => Uint8List.fromList([
+  ...baseScript,
+  ...bscript.compile([
+    OP_SPARKNAMEID,
+    Uint8List.fromList(utf8.encode(name)),
+    OP_DROP,
+    Uint8List.fromList(utf8.encode(sparkAddress)),
+    OP_DROP,
+  ]),
+]);
+
+@visibleForTesting
+bool shouldSubtractSparkFeeFromAmount({
+  required bool isSparkNameRegistration,
+  required bool spendsAll,
+}) => !isSparkNameRegistration && spendsAll;
 
 void initSparkLogging(Level level) => libSpark.initSparkLogging(level);
 
@@ -568,7 +593,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       throw Exception("Insufficient Spark balance");
     }
 
-    final bool isSendAll = available == txAmount;
+    final bool isSendAll = shouldSubtractSparkFeeFromAmount(
+      isSparkNameRegistration: txData.sparkNameInfo != null,
+      spendsAll: available == txAmount,
+    );
 
     // prepare coin data for ffi
     final serializedCoins = coins
@@ -693,6 +721,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];
 
+    var sparkNameFeeScriptSizeDelta = 0;
     for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
@@ -708,10 +737,19 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         ),
       );
 
-      final scriptPubKey = btc.Address.addressToOutputScript(
+      var scriptPubKey = btc.Address.addressToOutputScript(
         txData.recipients![i].address,
         _bitcoinDartNetwork,
       );
+      if (txData.sparkNameInfo != null) {
+        final baseScript = scriptPubKey;
+        scriptPubKey = sparkNameFeeScript(
+          baseScript: scriptPubKey,
+          name: txData.sparkNameInfo!.name,
+          sparkAddress: txData.sparkNameInfo!.sparkAddress.value,
+        );
+        sparkNameFeeScriptSizeDelta += scriptPubKey.length - baseScript.length;
+      }
       txb.addOutput(
         scriptPubKey,
         recipientsWithFeeSubtracted[i].amount.raw.toInt(),
@@ -816,7 +854,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       txHash: extractedTx.getHash(),
       additionalTxSize: txData.sparkNameInfo == null
           ? 0
-          : noProofNameTxData!.size,
+          : noProofNameTxData!.size + sparkNameFeeScriptSizeDelta,
     ));
 
     for (final outputScript in spend.outputScripts) {
