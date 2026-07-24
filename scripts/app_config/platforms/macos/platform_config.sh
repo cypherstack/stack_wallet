@@ -12,6 +12,9 @@ for (( i=0; i<=2; i++ )); do
   fi
 done
 
+# ==========================================
+# FIX: Cross-Platform sed (macOS, Linux, Nix)
+# ==========================================
 # Configure macOS for Duo.
 sed -i.bak \
   -e "s/${APP_ID_PLACEHOLDER_CAMEL}/${NEW_APP_ID_CAMEL}/g" \

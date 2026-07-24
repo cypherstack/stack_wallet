@@ -13,3 +13,4 @@ cmake --build .
 mkdir -p ../../../../../build
 cp bin/libsecp256k1-2.dll "../../../../../build/secp256k1.dll"
 cd ../../../
+#!/usr/bin/env bash

@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 set -x -e
 
 APP="${1:-stack_wallet}"

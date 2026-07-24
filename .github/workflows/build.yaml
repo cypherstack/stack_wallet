@@ -371,7 +371,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: cachix/install-nix-action@v27
         with:
           flutter-version: '3.38.1'
           channel: 'stable'
@@ -410,7 +410,7 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build macos --release
+        run: nix develop --command make build-macos VERSION="${{ steps.ver.outputs.version }}" BUILD_NUM="${{ steps.ver.outputs.build_number }}"
 
       - name: Package
         run: |

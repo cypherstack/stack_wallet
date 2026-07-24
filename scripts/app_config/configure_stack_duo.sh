@@ -4,14 +4,27 @@ set -x -e
 
 # Configure files for Duo.
 
+# Derive project root from script location when APP_PROJECT_ROOT_DIR is unset/stale.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_FROM_SCRIPT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+if [[ -z "${APP_PROJECT_ROOT_DIR:-}" || ! -f "${APP_PROJECT_ROOT_DIR}/pubspec.yaml" ]]; then
+  export APP_PROJECT_ROOT_DIR="${ROOT_FROM_SCRIPT}"
+fi
+
 export NEW_NAME="Stack Duo"
 export NEW_APP_ID="com.cypherstack.stackduo"
 export NEW_APP_ID_CAMEL="com.cypherstack.stackDuo"
-export NEW_APP_ID_SNAKE="com.cypherstack.stack_duo"
+export NEW_APP_ID_SNAKE="com.cypherstack.stackduo"
 export NEW_BASIC_NAME="stack_duo"
 
 NEW_PUBSPEC_NAME="stackduo"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
+
+if [[ ! -f "${PUBSPEC_FILE}" ]]; then
+  echo "Error: pubspec.yaml not found at ${PUBSPEC_FILE}" >&2
+  echo "Run from repo root and restore it with: git checkout -- pubspec.yaml" >&2
+  exit 1
+fi
 
 # String replacements.
 sed -i.bak \
@@ -19,6 +32,9 @@ sed -i.bak \
   -e "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" \
   "${PUBSPEC_FILE}"
 rm -f "${PUBSPEC_FILE}.bak"
+
+# Ensure app assets are linked for this flavor/platform.
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${NEW_BASIC_NAME}" "$1"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \

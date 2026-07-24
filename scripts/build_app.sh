@@ -72,6 +72,11 @@ if [ -z "$APP_NAMED_ID" ]; then
   usage
 fi
 
+# Keep macOS stack_wallet builds on the Makefile path so setup steps stay in one place.
+if [ "$APP_BUILD_PLATFORM" = "macos" ] && [ "$APP_NAMED_ID" = "stack_wallet" ]; then
+  exec make -C "${APP_PROJECT_ROOT_DIR}" build-macos VERSION="${APP_VERSION_STRING}" BUILD_NUM="${APP_BUILD_NUMBER}"
+fi
+
 confirmDisclaimer
 set -x
 

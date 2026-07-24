@@ -95,3 +95,22 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
+
+  macos-fresh-build:
+    runs-on: macos-14
+    steps:
+      - name: Prepare repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Fresh clone smoke build (macOS)
+        run: nix develop --command make build-macos VERSION=0.0.1 BUILD_NUM=1
+
+      - name: MWC FFI integration test
+        run: nix develop --command make test-mwc

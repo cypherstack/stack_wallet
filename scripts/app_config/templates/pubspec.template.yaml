@@ -31,9 +31,6 @@ dependencies:
 
 # %%ENABLE_XEL%%
 #  xelis_dart_sdk: 0.30.9
-##   git:
-##     url: https://github.com/xelis-project/xelis-dart-sdk.git
-##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
 #  xelis_flutter:
 #    git:
 #      url: https://github.com/xelis-project/xelis-flutter-ffi.git

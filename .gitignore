@@ -34,8 +34,20 @@ Microsoft.Windows*
 /build/
 android/app/.cxx
 
+# Nix / direnv / project-local toolchain state
+.direnv/
+.build-home/
+.cargo-home/
+.rustup-home/
+.nix-bin/
+.tmp/
+.cache/
+
 # Web related
 lib/generated_plugin_registrant.dart
+
+# Flutter create boilerplate that gets regenerated on `flutter create --platforms=macos .`
+test/widget_test.dart
 
 # testing data
 test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart
@@ -91,6 +103,7 @@ pubspec.yaml
 /linux/my_application.cc
 
 /macos/Runner/Configs/AppInfo.xcconfig
+/macos/Runner/Configs/CodexOverrides.xcconfig
 /macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
 /macos/Runner.xcodeproj/project.pbxproj
 /macos/Runner/Assets.xcassets/AppIcon.appiconset/*.png

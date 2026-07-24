@@ -4,10 +4,17 @@ set -x -e
 
 # Configure files for Stack Wallet.
 
+# Derive project root from script location when APP_PROJECT_ROOT_DIR is unset/stale.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_FROM_SCRIPT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+if [[ -z "${APP_PROJECT_ROOT_DIR:-}" || ! -f "${APP_PROJECT_ROOT_DIR}/pubspec.yaml" ]]; then
+  export APP_PROJECT_ROOT_DIR="${ROOT_FROM_SCRIPT}"
+fi
+
 export NEW_NAME="Stack Wallet"
 export NEW_APP_ID="com.cypherstack.stackwallet"
 export NEW_APP_ID_CAMEL="com.cypherstack.stackWallet"
-export NEW_APP_ID_SNAKE="com.cypherstack.stack_wallet"
+export NEW_APP_ID_SNAKE="com.cypherstack.stackwallet"
 export NEW_BASIC_NAME="stack_wallet"
 
 NEW_PUBSPEC_NAME="stackwallet"
@@ -19,6 +26,16 @@ sed -i.bak \
   -e "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" \
   "${PUBSPEC_FILE}"
 rm -f "${PUBSPEC_FILE}.bak"
+
+# ==========================================
+# FIX: Cross-Platform sed (macOS, Linux, Nix)
+# ==========================================
+sed -i.bak "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
+sed -i.bak "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
+
+# Ensure app assets are linked for this flavor/platform.
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${NEW_BASIC_NAME}" "$1"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \

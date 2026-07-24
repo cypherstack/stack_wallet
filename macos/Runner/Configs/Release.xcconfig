@@ -1,2 +1,5 @@
 #include "../../Flutter/Flutter-Release.xcconfig"
+#include "AppInfo.xcconfig"
 #include "Warnings.xcconfig"
+
+#include "CodexOverrides.xcconfig"
