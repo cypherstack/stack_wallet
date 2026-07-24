@@ -351,10 +351,24 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: SvgPicture.asset(
-                        Assets.svg.key,
+
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E3E3),
+                          borderRadius: .circular(54),
+                        ),
                         width: 48,
                         height: 48,
+                        child: Center(
+                          child: SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: SvgPicture.asset(
+                              Assets.svg.key,
+                              colorFilter: const .mode(Colors.black, .srcIn),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     Padding(
