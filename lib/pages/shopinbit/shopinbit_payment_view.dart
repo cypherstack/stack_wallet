@@ -47,8 +47,7 @@ class ShopInBitPaymentView extends ConsumerStatefulWidget {
       _ShopInBitPaymentViewState();
 }
 
-class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
-    with WidgetsBindingObserver {
+class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   int _selectedMethod = 0;
   Timer? _pollTimer;
   int _paymentRequestId = 0;
@@ -70,7 +69,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   String get _status => _paymentInfo?.status ?? 'ready_to_pay';
 
-  bool get _isExpiredOrInvalid => _status == 'expired' || _status == 'invalid';
+  bool get _isExpiredOrInvalid =>
+      const {'expired', 'invalid', 'underpaid_expired'}.contains(_status);
 
   // Voucher/credit fully covers the amount: no wallet options, nothing to pay.
   bool get _isNoPaymentRequired => _status == 'no_payment_required';
@@ -100,7 +100,6 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _applyPaymentInfo(widget.paymentInfo);
     if (widget.apiTicketId != 0) {
       _startPolling();
@@ -109,29 +108,23 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.apiTicketId == 0) return;
-    // Don't poll while backgrounded; resume fresh when we come back.
-    if (state == AppLifecycleState.resumed) {
-      if (!_isTerminal) _startPolling();
-    } else {
-      _pollTimer?.cancel();
-      _paymentRequestId++;
-    }
   }
 
   void _applyPaymentInfo(PaymentInfo info) {
     _paymentInfo = info;
     final links = info.paymentLinks;
-    if (links.isNotEmpty) {
+    if (!_isExpiredOrInvalid && links.isNotEmpty) {
       _methods = links.keys.map((k) => k.toUpperCase()).toList();
       _addresses = links.values.toList();
+      if (_selectedMethod >= _methods.length) {
+        _selectedMethod = 0;
+      }
+    } else {
+      _methods = [];
+      _addresses = [];
+      _selectedMethod = 0;
     }
   }
 
@@ -172,7 +165,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       );
     }
     if (!mounted || requestId != _paymentRequestId) return;
-    if (_isTerminal) {
+    if (_isTerminal || _isExpiredOrInvalid) {
       _pollTimer?.cancel();
       return;
     }
@@ -208,7 +201,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
     if (resp != null && !resp.hasError && resp.value != null) {
       setState(() => _applyPaymentInfo(resp.value!));
     }
-    _startPolling();
+    if (!_isExpiredOrInvalid) {
+      _startPolling();
+    }
   }
 
   Future<void> _checkForPayment() async {
@@ -249,7 +244,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Underpaid. Remaining: ${resp.value!.due ?? '?'} EUR.",
+            message:
+                "Additional payment is required. "
+                "Use one of the updated payment options.",
             context: context,
           ),
         );
@@ -276,7 +273,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
       if (!mounted || requestId != _paymentRequestId) return;
     }
 
-    if (!_isTerminal) {
+    if (!_isTerminal && !_isExpiredOrInvalid) {
       _startPolling();
     }
   }
@@ -419,9 +416,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Payment underpaid. Remaining: "
-                    "${_paymentInfo?.due ?? '?'} EUR. "
-                    "Please send the remaining amount.",
+                    "Additional payment is required. "
+                    "Please use one of the updated payment options.",
                     style:
                         (isDesktop
                                 ? STextStyles.desktopTextExtraExtraSmall(
@@ -457,7 +453,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView>
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Invoice expired.",
+                        "Invoice expired. Refresh it to continue payment.",
                         style:
                             (isDesktop
                                     ? STextStyles.desktopTextExtraExtraSmall(

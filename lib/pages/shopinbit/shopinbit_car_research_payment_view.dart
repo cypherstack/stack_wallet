@@ -45,9 +45,9 @@ class ShopInBitCarResearchPaymentView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitCarResearchPaymentViewState
-    extends ConsumerState<ShopInBitCarResearchPaymentView>
-    with WidgetsBindingObserver {
+    extends ConsumerState<ShopInBitCarResearchPaymentView> {
   Timer? _pollTimer;
+  int _statusRequestId = 0;
 
   static const Duration _kBasePollInterval = Duration(seconds: 15);
   static const Duration _kMaxPollInterval = Duration(seconds: 120);
@@ -60,6 +60,8 @@ class _ShopInBitCarResearchPaymentViewState
   bool _finalized = false;
   // The real car ticket id (the customer chat) from the finalized status.
   int? _realTicketId;
+  late String _invoiceId;
+  Map<String, String> _paymentLinks = {};
   List<String> _methods = [];
   List<String> _addresses = [];
   int _selectedMethod = 0;
@@ -71,8 +73,26 @@ class _ShopInBitCarResearchPaymentViewState
   bool get _isTerminal =>
       _finalized || carResearchIsFinalized(_statusString, _additional);
 
+  String get _normalizedStatus => _statusString.toLowerCase().trim();
+
+  bool get _needsReplacement =>
+      !_isTerminal &&
+      const {'expired', 'underpaid_expired'}.contains(_normalizedStatus);
+
   bool get _payNowEnabled =>
-      !_isTerminal && _flowState == _PaymentFlowState.idle;
+      !_isTerminal &&
+      !_needsReplacement &&
+      _methods.isNotEmpty &&
+      _flowState == _PaymentFlowState.idle;
+
+  void _setPaymentLinks(Map<String, String> links) {
+    _paymentLinks = Map<String, String>.from(links);
+    _methods = links.keys.map((k) => k.toUpperCase()).toList();
+    _addresses = links.values.toList();
+    if (_selectedMethod >= _methods.length) {
+      _selectedMethod = 0;
+    }
+  }
 
   Future<void> _confirmPayment() async {
     // Keep polling while the user is in the send flow.
@@ -121,7 +141,9 @@ class _ShopInBitCarResearchPaymentViewState
     try {
       await _pollStatus();
       if (!mounted) return;
-      if (!_isTerminal && _flowState != _PaymentFlowState.finalizing) {
+      if (!_isTerminal &&
+          !_needsReplacement &&
+          _flowState != _PaymentFlowState.finalizing) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -153,10 +175,13 @@ class _ShopInBitCarResearchPaymentViewState
   }
 
   String get _displayedFee {
+    if (_needsReplacement) {
+      return "Invoice expired";
+    }
     // The status endpoint has no fee field, so parse the amount from the
     // selected method's BIP21 URI, falling back to the 223.00 EUR business
     // rule.
-    final links = widget.invoice.paymentLinks;
+    final links = _paymentLinks;
     if (_selectedMethod < _methods.length) {
       final methodKey = _methods[_selectedMethod];
       // _methods holds upper-cased keys; links map may be case-sensitive.
@@ -176,13 +201,20 @@ class _ShopInBitCarResearchPaymentViewState
         }
       }
     }
-    return "223.00 EUR";
+    return _normalizedStatus == "underpaid"
+        ? "See payment option"
+        : "223.00 EUR";
   }
 
   String get _statusLabel {
-    switch (_statusString) {
+    switch (_normalizedStatus) {
       case "payment_processing":
         return "Confirming...";
+      case "underpaid":
+        return "Additional payment required";
+      case "expired":
+      case "underpaid_expired":
+        return "Invoice expired";
       case "paid":
       case "paid_over":
       case "paid_late":
@@ -196,10 +228,8 @@ class _ShopInBitCarResearchPaymentViewState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    final links = widget.invoice.paymentLinks;
-    _methods = links.keys.map((k) => k.toUpperCase()).toList();
-    _addresses = links.values.toList();
+    _invoiceId = widget.invoice.btcpayInvoice;
+    _setPaymentLinks(widget.invoice.paymentLinks);
     // Kick off an immediate poll then start periodic polling.
     unawaited(_pollStatus());
     _scheduleNextPoll();
@@ -207,22 +237,8 @@ class _ShopInBitCarResearchPaymentViewState
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Don't poll while backgrounded; resume fresh when we come back.
-    if (state == AppLifecycleState.resumed) {
-      if (!_isTerminal && _flowState != _PaymentFlowState.finalizing) {
-        _pollInterval = _kBasePollInterval;
-        _scheduleNextPoll();
-      }
-    } else {
-      _pollTimer?.cancel();
-    }
   }
 
   void _scheduleNextPoll() {
@@ -236,6 +252,7 @@ class _ShopInBitCarResearchPaymentViewState
     final bool ok = await _pollStatus();
     if (!mounted) return;
     if (_isTerminal ||
+        _needsReplacement ||
         _flowState == _PaymentFlowState.finalizing ||
         _flowState == _PaymentFlowState.complete) {
       return;
@@ -305,27 +322,91 @@ class _ShopInBitCarResearchPaymentViewState
     }
   }
 
+  Future<void> _refreshInvoice() async {
+    if (_flowState != _PaymentFlowState.idle || !_needsReplacement) return;
+    _pollTimer?.cancel();
+    final oldInvoiceId = _invoiceId;
+    final requestId = ++_statusRequestId;
+    setState(() => _flowState = _PaymentFlowState.polling);
+    try {
+      final resp = await ref
+          .read(pShopinBitService)
+          .client
+          .retryCarResearchInvoice(
+            invoiceId: oldInvoiceId,
+            customerKey: widget.customerKey,
+          );
+      if (!mounted ||
+          requestId != _statusRequestId ||
+          oldInvoiceId != _invoiceId) {
+        return;
+      }
+      final invoice = resp.valueOrThrow;
+      setState(() {
+        _invoiceId = invoice.btcpayInvoice;
+        _status = null;
+        _statusString = "ready_to_pay";
+        _additional = null;
+        _finalized = false;
+        _realTicketId = null;
+        _setPaymentLinks(invoice.paymentLinks);
+        _flowState = _PaymentFlowState.idle;
+      });
+      _pollInterval = _kBasePollInterval;
+      _scheduleNextPoll();
+    } catch (e, s) {
+      if (!mounted ||
+          requestId != _statusRequestId ||
+          oldInvoiceId != _invoiceId) {
+        return;
+      }
+      Logging.instance.e(
+        "Car research invoice refresh failed",
+        error: e,
+        stackTrace: s,
+      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e.toString(),
+            context: context,
+          ),
+        );
+      }
+    } finally {
+      if (mounted && _flowState == _PaymentFlowState.polling) {
+        setState(() => _flowState = _PaymentFlowState.idle);
+      }
+    }
+  }
+
   /// Fetch invoice status once and apply it. Returns false on any failure so
   /// the periodic driver can back off instead of polling at full rate.
   Future<bool> _pollStatus() async {
+    final requestedInvoiceId = _invoiceId;
+    final requestId = ++_statusRequestId;
     try {
       final service = ref.read(pShopinBitService);
 
       final resp = await service.client.getCarResearchInvoiceStatus(
-        widget.invoice.btcpayInvoice,
+        requestedInvoiceId,
         customerKey: widget.customerKey,
       );
+      if (!mounted ||
+          requestId != _statusRequestId ||
+          requestedInvoiceId != _invoiceId) {
+        return true;
+      }
       if (resp.hasError || resp.value == null) {
-        if (mounted) {
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message:
-                  resp.exception?.message ?? "Failed to fetch invoice status",
-              context: context,
-            ),
-          );
-        }
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message:
+                resp.exception?.message ?? "Failed to fetch invoice status",
+            context: context,
+          ),
+        );
         return false;
       }
 
@@ -383,13 +464,17 @@ class _ShopInBitCarResearchPaymentViewState
         }
       }
 
-      if (!mounted) return true;
+      if (!mounted ||
+          requestId != _statusRequestId ||
+          requestedInvoiceId != _invoiceId) {
+        return true;
+      }
       Logging.instance.i(
         "CarResearch status response (payment_view): ${resp.value}",
       );
       Logging.instance.i(
         "CarResearch paymentLinks (payment_view): "
-        "${widget.invoice.paymentLinks}",
+        "${resp.value!.paymentLinks}",
       );
       setState(() {
         _status = resp.value!;
@@ -399,13 +484,27 @@ class _ShopInBitCarResearchPaymentViewState
         _additional = _status!.additional;
         _finalized = _status!.finalized;
         _realTicketId = _status!.realTicketId;
+        if (_needsReplacement) {
+          _setPaymentLinks(const {});
+        } else if (_normalizedStatus == 'underpaid') {
+          _setPaymentLinks(_status!.paymentLinks);
+        } else if (_status!.paymentLinks.isNotEmpty) {
+          _setPaymentLinks(_status!.paymentLinks);
+        }
       });
       if (_isTerminal) {
         _pollTimer?.cancel();
         await _finalizePayment();
+      } else if (_needsReplacement) {
+        _pollTimer?.cancel();
       }
       return true;
     } catch (e, s) {
+      if (!mounted ||
+          requestId != _statusRequestId ||
+          requestedInvoiceId != _invoiceId) {
+        return true;
+      }
       Logging.instance.e(
         "ticket status polling issue",
         error: e,
@@ -447,6 +546,7 @@ class _ShopInBitCarResearchPaymentViewState
 
   void _onOwnedCoinTap(int methodIndex) {
     if (!_payNowEnabled) return;
+    if (methodIndex >= _methods.length) return;
     setState(() => _selectedMethod = methodIndex);
     unawaited(_confirmPayment());
   }
@@ -515,22 +615,44 @@ class _ShopInBitCarResearchPaymentViewState
           ),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
-        ShopInBitPaymentMethodList(
-          methods: _methods,
-          addresses: _addresses,
-          enabled: _payNowEnabled,
-          onPayFromWallet: _onOwnedCoinTap,
-          onCheckForPayment: (methodIndex) {
-            _selectedMethod = methodIndex;
-            unawaited(_checkForPayment());
-          },
-        ),
+        if (_needsReplacement)
+          RoundedWhiteContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "This invoice expired. Refresh it to continue payment.",
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.itemSubtitle12(context),
+                ),
+                const SizedBox(height: 8),
+                SecondaryButton(
+                  label: "Refresh Invoice",
+                  onPressed: _flowState == _PaymentFlowState.idle
+                      ? _refreshInvoice
+                      : null,
+                ),
+              ],
+            ),
+          )
+        else
+          ShopInBitPaymentMethodList(
+            methods: _methods,
+            addresses: _addresses,
+            enabled: _payNowEnabled,
+            onPayFromWallet: _onOwnedCoinTap,
+            onCheckForPayment: (methodIndex) {
+              _selectedMethod = methodIndex;
+              unawaited(_checkForPayment());
+            },
+          ),
         if (_flowState == _PaymentFlowState.polling ||
             _flowState == _PaymentFlowState.finalizing) ...[
           SizedBox(height: isDesktop ? 24 : 16),
           PrimaryButton(
             label: _flowState == _PaymentFlowState.polling
-                ? "Checking..."
+                ? (_needsReplacement ? "Refreshing..." : "Checking...")
                 : "Processing...",
             enabled: false,
             onPressed: null,

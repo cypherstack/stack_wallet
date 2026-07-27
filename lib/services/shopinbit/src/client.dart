@@ -470,6 +470,21 @@ class ShopInBitClient {
     );
   }
 
+  /// Replace [invoiceId] using the billing/request payload already stored by
+  /// the server.
+  Future<ApiResponse<CarResearchInvoice>> retryCarResearchInvoice({
+    required String invoiceId,
+    required String customerKey,
+  }) async {
+    return _request(
+      'POST',
+      '/car-research/invoice',
+      body: {'invoice_id': invoiceId, 'retry': true},
+      parse: CarResearchInvoice.fromJson,
+      customerKey: customerKey,
+    );
+  }
+
   /// Unresolved car research invoices for the current partner/customer pair.
   /// Used to recover a fee payment the user started but did not finish.
   Future<ApiResponse<List<CarResearchCurrentInvoice>>>

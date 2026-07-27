@@ -21,6 +21,7 @@ import "../../widgets/dialogs/s_dialog.dart";
 import "../../widgets/loading_indicator.dart";
 import "../../widgets/refresh_control.dart";
 import "../../widgets/rounded_container.dart";
+import "../../widgets/stack_dialog.dart";
 import "shopinbit_car_research_payment_view.dart";
 import "shopinbit_ticket_detail.dart";
 
@@ -41,7 +42,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
   // Some unfinished car research fee invoices recovered from the server, if any.
   // The fee is paid before any ticket exists, so this is the only way to let
   // the user resume it — there is no local "pending" row anymore.
-  List<CarResearchInvoice>? _resumableInvoices;
+  List<CarResearchCurrentInvoice>? _resumableInvoices;
 
   @override
   void initState() {
@@ -62,10 +63,18 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     }
   }
 
-  /// Pull the most recent still-payable car research invoice from
-  /// `GET /car-research/invoices/current` so we can surface a "resume" entry.
+  bool _needsReplacement(CarResearchCurrentInvoice invoice) {
+    return !carResearchIsFinalized(invoice.status, invoice.additional) &&
+        const {
+          'expired',
+          'underpaid_expired',
+        }.contains(invoice.status.toLowerCase().trim());
+  }
+
+  /// Pull still-payable car research invoices from
+  /// `GET /car-research/invoices/current` so they can be resumed.
   Future<void> _loadResumableInvoice() async {
-    List<CarResearchInvoice>? resumable;
+    final resumable = <CarResearchCurrentInvoice>[];
     try {
       final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
       final resp = await ref
@@ -75,28 +84,30 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
       final invoices = resp.value;
       if (invoices != null) {
         for (final inv in invoices) {
+          final finalized = carResearchIsFinalized(inv.status, inv.additional);
           final payable =
               inv.expiresAt != null &&
-              inv.paymentLinks.isNotEmpty &&
-              // Spec: expired unresolved invoices stay recoverable until
-              // expires_at + 24h.
-              (inv.expiresAt!
-                      .add(const Duration(hours: 24))
-                      .isAfter(DateTime.now()) ||
-                  carResearchIsFinalized(inv.status, inv.additional));
+              (finalized ||
+                  (inv.expiresAt!
+                          .add(const Duration(hours: 24))
+                          .isAfter(DateTime.now()) &&
+                      (_needsReplacement(inv)
+                          ? inv.hasRequestPayload
+                          : inv.paymentLinks.isNotEmpty)));
           if (payable) {
-            resumable ??= [];
-            resumable.add(
-              CarResearchInvoice(
-                btcpayInvoice: inv.invoiceId,
-                expiresAt: inv.expiresAt!,
-                paymentLinks: inv.paymentLinks,
-              ),
-            );
-            break;
+            resumable.add(inv);
           }
         }
       }
+      resumable.sort((a, b) {
+        final aNeedsReplacement = _needsReplacement(a);
+        final bNeedsReplacement = _needsReplacement(b);
+        if (aNeedsReplacement != bNeedsReplacement) {
+          return aNeedsReplacement ? 1 : -1;
+        }
+        final oldest = DateTime.fromMillisecondsSinceEpoch(0);
+        return (b.createdAt ?? oldest).compareTo(a.createdAt ?? oldest);
+      });
     } catch (e, s) {
       Logging.instance.e(
         "_loadResumableInvoice failed",
@@ -106,18 +117,55 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
       // Leave _resumableInvoice unchanged on failure.
       return;
     }
-    if (mounted) setState(() => _resumableInvoices = resumable);
+    if (mounted) {
+      setState(() => _resumableInvoices = resumable.isEmpty ? null : resumable);
+    }
   }
 
-  Future<void> _resumeFlow(CarResearchInvoice invoice) async {
+  Future<void> _resumeFlow(CarResearchCurrentInvoice currentInvoice) async {
     if (_resuming) return;
     setState(() => _resuming = true);
     try {
       final customerKey = await ref.read(pShopinBitService).ensureCustomerKey();
+      CarResearchInvoice invoice;
+      if (_needsReplacement(currentInvoice)) {
+        final resp = await ref
+            .read(pShopinBitService)
+            .client
+            .retryCarResearchInvoice(
+              invoiceId: currentInvoice.invoiceId,
+              customerKey: customerKey,
+            );
+        invoice = resp.valueOrThrow;
+      } else {
+        invoice = CarResearchInvoice(
+          btcpayInvoice: currentInvoice.invoiceId,
+          expiresAt: currentInvoice.expiresAt!,
+          paymentLinks: currentInvoice.paymentLinks,
+        );
+      }
+
       if (mounted) {
         await Navigator.of(context).pushNamed(
           ShopInBitCarResearchPaymentView.routeName,
           arguments: (invoice: invoice, customerKey: customerKey),
+        );
+        if (mounted) {
+          await _loadResumableInvoice();
+        }
+      }
+    } catch (e, s) {
+      Logging.instance.e("_resumeFlow failed", error: e, stackTrace: s);
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to resume payment",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
         );
       }
     } finally {
@@ -129,7 +177,7 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
     required BuildContext context,
     required bool isDesktop,
     required List<ShopInBitTicket> tickets,
-    required List<CarResearchInvoice>? resumable,
+    required List<CarResearchCurrentInvoice>? resumable,
   }) {
     if (resumable == null && tickets.isEmpty) {
       return [
@@ -147,16 +195,18 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
 
     final children = <Widget>[];
     if (resumable != null) {
-      children.addAll(
-        resumable.map(
-          (e) => RoundedContainer(
+      for (var i = 0; i < resumable.length; i++) {
+        if (i > 0) children.add(SizedBox(height: isDesktop ? 16 : 12));
+        final invoice = resumable[i];
+        children.add(
+          RoundedContainer(
             color: Theme.of(context).extension<StackColors>()!.popupBG,
-            onPressed: _resuming ? null : () => unawaited(_resumeFlow(e)),
+            onPressed: _resuming ? null : () => unawaited(_resumeFlow(invoice)),
             child: _RequestRow(
               title: "Car Research (In Progress)",
               subtitle: _resuming
                   ? "Opening your car research payment..."
-                  : "Tap to continue your car research payment",
+                  : "${invoice.status} • Invoice ${invoice.invoiceId}",
               badgeText: "Resume",
               badgeColor: Theme.of(
                 context,
@@ -164,8 +214,8 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
               loading: _resuming,
             ),
           ),
-        ),
-      );
+        );
+      }
       if (tickets.isNotEmpty) {
         children.add(SizedBox(height: isDesktop ? 16 : 12));
       }

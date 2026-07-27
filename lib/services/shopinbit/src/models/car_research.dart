@@ -119,6 +119,7 @@ class CarResearchInvoice {
 class CarResearchInvoiceStatus {
   final String status;
   final String? additional;
+  final Map<String, String> paymentLinks;
   final bool finalized;
   final int? receiptTicketId;
   final String? receiptTicketNumber;
@@ -129,6 +130,7 @@ class CarResearchInvoiceStatus {
   CarResearchInvoiceStatus({
     required this.status,
     this.additional,
+    required this.paymentLinks,
     required this.finalized,
     this.receiptTicketId,
     this.receiptTicketNumber,
@@ -138,9 +140,11 @@ class CarResearchInvoiceStatus {
   });
 
   factory CarResearchInvoiceStatus.fromJson(Map<String, dynamic> json) {
+    final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
     return CarResearchInvoiceStatus(
       status: json['status'] as String,
       additional: json['additional']?.toString(),
+      paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
       finalized: json['finalized'] as bool,
       receiptTicketId: json['receipt_ticket_id'] as int?,
       receiptTicketNumber: json['receipt_ticket_number'] as String?,
@@ -154,6 +158,7 @@ class CarResearchInvoiceStatus {
     return {
       "status": status,
       "additional": additional,
+      "payment_links": paymentLinks,
       "finalized": finalized,
       "receipt_ticket_id": receiptTicketId,
       "receipt_ticket_number": receiptTicketNumber,

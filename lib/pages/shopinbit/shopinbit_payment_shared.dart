@@ -228,7 +228,7 @@ Future<bool> tryNavigateToShopInBitWalletSend({
 // Fetches the live payment info for a ticket so the caller can pass it into
 // the payment view as an arg (rather than loading it after the view is up).
 // GET first to reuse an existing invoice per the spec's "page reload
-// recovery" guidance; PUT (which regenerates) only when GET shows none.
+// recovery" guidance. Retry stale invoices and create only when not started.
 // Returns null on any failure so the view can fall back to polling.
 Future<PaymentInfo?> fetchShopInBitPaymentInfo(
   ShopInBitClient client,
@@ -240,14 +240,24 @@ Future<PaymentInfo?> fetchShopInBitPaymentInfo(
       apiTicketId,
       customerKey: customerKey,
     );
-    if (!getResp.hasError &&
-        getResp.value != null &&
-        getResp.value!.paymentLinks.isNotEmpty) {
-      return getResp.value;
+    if (getResp.hasError || getResp.value == null) {
+      return null;
     }
+
+    final paymentInfo = getResp.value!;
+    final retry = const {
+      'expired',
+      'invalid',
+      'underpaid_expired',
+    }.contains(paymentInfo.status);
+    if (!retry && paymentInfo.status != 'not_started') {
+      return paymentInfo;
+    }
+
     final putResp = await client.putPayment(
       apiTicketId,
       customerKey: customerKey,
+      retry: retry,
     );
     if (!putResp.hasError && putResp.value != null) {
       return putResp.value;
