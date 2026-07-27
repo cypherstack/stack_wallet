@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
+
 import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../external_api_keys.dart';
@@ -68,7 +70,7 @@ abstract class CypherGoatAPI {
 
   /// GET /estimate
   /// Returns all exchange provider estimates for the given pair and amount.
-  static Future<ExchangeResponse<({CgEstimatesResponse rates, double min})>>
+  static Future<ExchangeResponse<({CgEstimatesResponse rates, Decimal min})>>
   getEstimate({
     required String coin1,
     required String network1,
@@ -103,7 +105,9 @@ abstract class CypherGoatAPI {
       final rates = CgEstimatesResponse.fromMap(
         Map<String, dynamic>.from(ratesMap),
       );
-      final min = (map["min"] as num?)?.toDouble() ?? rates.min;
+      final min = map["min"] != null
+          ? Decimal.parse(map["min"].toString())
+          : rates.min;
 
       return ExchangeResponse(value: (rates: rates, min: min));
     } catch (e, s) {

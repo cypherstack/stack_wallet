@@ -208,8 +208,8 @@ class CypherGoatExchange extends Exchange {
 
       if (response.value != null) {
         final liveMin = response.value!.min;
-        if (liveMin > 0) {
-          min = Decimal.parse(liveMin.toString());
+        if (liveMin > Decimal.zero) {
+          min = liveMin;
         }
       }
 
@@ -268,10 +268,10 @@ class CypherGoatExchange extends Exchange {
       final estimateIdStr = data.rates.estimateId.toString();
 
       final estimates = data.rates.results
-          .where((r) => r.amount > 0)
+          .where((r) => r.amount > Decimal.zero)
           .map(
             (r) => Estimate(
-              estimatedAmount: Decimal.parse(r.amount.toString()),
+              estimatedAmount: r.amount,
               fixedRate: false,
               reversed: false,
               exchangeProvider: r.exchange,
@@ -361,7 +361,7 @@ class CypherGoatExchange extends Exchange {
       return ExchangeResponse(
         value: Trade(
           uuid: const Uuid().v1(),
-          tradeId: tx.cgid.isNotEmpty ? tx.cgid : tx.id,
+          tradeId: tx.cgid ?? tx.id,
           rateType: "estimated",
           direction: "direct",
           timestamp: tx.createdAt,
@@ -370,7 +370,7 @@ class CypherGoatExchange extends Exchange {
           payInAmount: tx.sendAmount.toString(),
           payInAddress: tx.address,
           payInNetwork: tx.network1,
-          payInExtraId: tx.memo,
+          payInExtraId: tx.memo ?? "",
           payInTxid: "",
           payOutCurrency: tx.coin2.toUpperCase(),
           payOutAmount: tx.estimateAmount.toString(),
@@ -410,7 +410,7 @@ class CypherGoatExchange extends Exchange {
       return ExchangeResponse(
         value: Trade(
           uuid: const Uuid().v1(),
-          tradeId: tx.cgid.isNotEmpty ? tx.cgid : tradeId,
+          tradeId: tx.cgid ?? tradeId,
           rateType: "estimated",
           direction: "direct",
           timestamp: tx.createdAt,
@@ -419,7 +419,7 @@ class CypherGoatExchange extends Exchange {
           payInAmount: tx.sendAmount.toString(),
           payInAddress: tx.address,
           payInNetwork: tx.network1,
-          payInExtraId: tx.memo,
+          payInExtraId: tx.memo ?? "",
           payInTxid: "",
           payOutCurrency: tx.coin2.toUpperCase(),
           payOutAmount: tx.estimateAmount.toString(),
@@ -471,32 +471,21 @@ class CypherGoatExchange extends Exchange {
           direction: trade.direction,
           timestamp: trade.timestamp,
           updatedAt: DateTime.now(),
-          payInCurrency: tx.coin1.isNotEmpty
-              ? tx.coin1.toUpperCase()
-              : trade.payInCurrency,
-          payInAmount: tx.sendAmount > 0
-              ? tx.sendAmount.toString()
-              : trade.payInAmount,
-          payInAddress:
-              tx.address.isNotEmpty ? tx.address : trade.payInAddress,
+          payInCurrency: tx.coin1.toUpperCase(),
+          payInAmount: tx.sendAmount.toString(),
+          payInAddress: tx.address,
           payInNetwork: trade.payInNetwork,
-          payInExtraId: tx.memo.isNotEmpty ? tx.memo : trade.payInExtraId,
+          payInExtraId: tx.memo ?? trade.payInExtraId,
           payInTxid: trade.payInTxid,
-          payOutCurrency: tx.coin2.isNotEmpty
-              ? tx.coin2.toUpperCase()
-              : trade.payOutCurrency,
-          payOutAmount: tx.estimateAmount > 0
-              ? tx.estimateAmount.toString()
-              : trade.payOutAmount,
-          payOutAddress: tx.destinationAddress.isNotEmpty
-              ? tx.destinationAddress
-              : trade.payOutAddress,
+          payOutCurrency: tx.coin2.toUpperCase(),
+          payOutAmount: tx.estimateAmount.toString(),
+          payOutAddress: tx.destinationAddress,
           payOutNetwork: trade.payOutNetwork,
           payOutExtraId: trade.payOutExtraId,
           payOutTxid: trade.payOutTxid,
           refundAddress: trade.refundAddress,
           refundExtraId: trade.refundExtraId,
-          status: tx.status.isNotEmpty ? tx.status : trade.status,
+          status: tx.status,
           exchangeName: exchangeName,
         ),
       );

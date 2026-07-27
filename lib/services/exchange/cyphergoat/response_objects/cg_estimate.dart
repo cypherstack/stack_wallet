@@ -1,9 +1,13 @@
+import 'package:decimal/decimal.dart';
+
+import 'cg_parse_utils.dart';
+
 class CgEstimateResult {
   final String exchange;
-  final double amount;
+  final Decimal amount;
   final int kycScore;
   final bool safeRouteOk;
-  final double safeRouteScore;
+  final Decimal safeRouteScore;
 
   CgEstimateResult({
     required this.exchange,
@@ -15,20 +19,20 @@ class CgEstimateResult {
 
   factory CgEstimateResult.fromMap(Map<String, dynamic> map) {
     return CgEstimateResult(
-      exchange: map["Exchange"] as String? ?? "",
-      amount: (map["Amount"] as num?)?.toDouble() ?? 0.0,
-      kycScore: (map["KYCScore"] as num?)?.toInt() ?? 0,
-      safeRouteOk: map["SafeRouteOK"] as bool? ?? false,
-      safeRouteScore: (map["SafeRouteScore"] as num?)?.toDouble() ?? 0.0,
+      exchange: requireCgString(map, "Exchange"),
+      amount: requireCgDecimal(map, "Amount"),
+      kycScore: requireCgInt(map, "KYCScore"),
+      safeRouteOk: requireCgBool(map, "SafeRouteOK"),
+      safeRouteScore: requireCgDecimal(map, "SafeRouteScore"),
     );
   }
 }
 
 class CgEstimatesResponse {
   final List<CgEstimateResult> results;
-  final double min;
-  final double tradeValueFiat;
-  final double tradeValueBtc;
+  final Decimal min;
+  final Decimal tradeValueFiat;
+  final Decimal tradeValueBtc;
   final int estimateId;
 
   CgEstimatesResponse({
@@ -40,15 +44,21 @@ class CgEstimatesResponse {
   });
 
   factory CgEstimatesResponse.fromMap(Map<String, dynamic> map) {
-    final resultsRaw = map["Results"] as List<dynamic>? ?? [];
+    final resultsRaw = map["Results"];
+    if (resultsRaw is! List) {
+      throw CgResponseFormatException("Missing required field 'Results'");
+    }
     return CgEstimatesResponse(
       results: resultsRaw
-          .map((e) => CgEstimateResult.fromMap(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (e) =>
+                CgEstimateResult.fromMap(Map<String, dynamic>.from(e as Map)),
+          )
           .toList(),
-      min: (map["Min"] as num?)?.toDouble() ?? 0.0,
-      tradeValueFiat: (map["TradeValue_fiat"] as num?)?.toDouble() ?? 0.0,
-      tradeValueBtc: (map["TradeValue_btc"] as num?)?.toDouble() ?? 0.0,
-      estimateId: (map["EstimateId"] as num?)?.toInt() ?? 0,
+      min: requireCgDecimal(map, "Min"),
+      tradeValueFiat: requireCgDecimal(map, "TradeValue_fiat"),
+      tradeValueBtc: requireCgDecimal(map, "TradeValue_btc"),
+      estimateId: requireCgInt(map, "EstimateId"),
     );
   }
 }

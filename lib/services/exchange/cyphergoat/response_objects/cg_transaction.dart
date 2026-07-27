@@ -1,23 +1,27 @@
+import 'package:decimal/decimal.dart';
+
+import 'cg_parse_utils.dart';
+
 class CgTransaction {
   final String coin1;
   final String coin2;
   final String network1;
   final String network2;
   final String address;
-  final double estimateAmount;
+  final Decimal estimateAmount;
   final String provider;
   final String id;
-  final double sendAmount;
-  final String track;
+  final Decimal sendAmount;
+  final String? track;
   final String status;
-  final String kyc;
-  final String token;
+  final String? kyc;
+  final String? token;
   final bool done;
-  final String cgid;
+  final String? cgid;
   final DateTime createdAt;
-  final String affiliate;
-  final String memo;
-  final String source;
+  final String? affiliate;
+  final String? memo;
+  final String? source;
   final String destinationAddress;
   final bool payment;
   final DateTime? completedAt;
@@ -51,8 +55,7 @@ class CgTransaction {
 
   // Go's zero time ("0001-01-01T00:00:00Z") is returned when the field isn't
   // set yet; treat it as now rather than storing year 1.
-  static DateTime _parseDate(String? s) {
-    if (s == null) return DateTime.now();
+  static DateTime _parseDate(String s) {
     final dt = DateTime.tryParse(s);
     if (dt == null || dt.year <= 1) return DateTime.now();
     return dt;
@@ -60,31 +63,31 @@ class CgTransaction {
 
   factory CgTransaction.fromMap(Map<String, dynamic> map) {
     return CgTransaction(
-      coin1: map["Coin1"] as String? ?? "",
-      coin2: map["Coin2"] as String? ?? "",
-      network1: map["Network1"] as String? ?? "",
-      network2: map["Network2"] as String? ?? "",
-      address: map["Address"] as String? ?? "",
-      estimateAmount: (map["EstimateAmount"] as num?)?.toDouble() ?? 0.0,
-      provider: map["Provider"] as String? ?? "",
-      id: map["Id"] as String? ?? "",
-      sendAmount: (map["SendAmount"] as num?)?.toDouble() ?? 0.0,
-      track: map["Track"] as String? ?? "",
-      status: map["Status"] as String? ?? "waiting",
-      kyc: map["KYC"] as String? ?? "",
-      token: map["Token"] as String? ?? "",
-      done: map["Done"] as bool? ?? false,
-      cgid: map["CGID"] as String? ?? "",
-      createdAt: _parseDate(map["CreatedAt"] as String?),
-      affiliate: map["Affiliate"] as String? ?? "",
-      memo: map["Memo"] as String? ?? "",
-      source: map["Source"] as String? ?? "",
-      destinationAddress: map["DestinationAddress"] as String? ?? "",
-      payment: map["Payment"] as bool? ?? false,
+      coin1: requireCgString(map, "Coin1"),
+      coin2: requireCgString(map, "Coin2"),
+      network1: requireCgString(map, "Network1"),
+      network2: requireCgString(map, "Network2"),
+      address: requireCgString(map, "Address"),
+      estimateAmount: requireCgDecimal(map, "EstimateAmount"),
+      provider: requireCgString(map, "Provider"),
+      id: requireCgString(map, "Id"),
+      sendAmount: requireCgDecimal(map, "SendAmount"),
+      track: optionalCgString(map, "Track"),
+      status: requireCgString(map, "Status"),
+      kyc: optionalCgString(map, "KYC"),
+      token: optionalCgString(map, "Token"),
+      done: requireCgBool(map, "Done"),
+      cgid: optionalCgString(map, "CGID"),
+      createdAt: _parseDate(requireCgString(map, "CreatedAt")),
+      affiliate: optionalCgString(map, "Affiliate"),
+      memo: optionalCgString(map, "Memo"),
+      source: optionalCgString(map, "Source"),
+      destinationAddress: requireCgString(map, "DestinationAddress"),
+      payment: requireCgBool(map, "Payment"),
       completedAt: map["CompletedAt"] != null
           ? DateTime.tryParse(map["CompletedAt"] as String)
           : null,
-      estimateId: (map["EstimateId"] as num?)?.toInt() ?? 0,
+      estimateId: requireCgInt(map, "EstimateId"),
     );
   }
 }
