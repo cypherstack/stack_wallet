@@ -24,6 +24,7 @@ import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_dialog.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
@@ -34,6 +35,7 @@ import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../services/open_crypto_pay/lnurl_utils.dart';
 import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -154,7 +156,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         Logging.instance.w("Qr scanning cancelled");
       } else {
         try {
-          _processQrCodeData(qrResult);
+          await _processQrCodeData(qrResult);
         } catch (e, s) {
           Logging.instance.e(
             "Error processing QR code data",
@@ -773,6 +775,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 onSuccess: clearSendForm,
                 isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
+                openCryptoPayCommit: _data?.openCryptoPayCommit,
               ),
             ),
           ),
@@ -921,7 +924,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   //   return null;
   // }
 
-  void _processQrCodeData(String qrCodeData) {
+  Future<void> _processQrCodeData(String qrCodeData) async {
     try {
       final paymentData = AddressUtils.parsePaymentUri(
         qrCodeData,
@@ -932,6 +935,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           paymentData.coin?.uriScheme == coin.uriScheme) {
         _setOpReturnData(paymentData.additionalParams['op_return']);
         _applyUri(paymentData);
+      } else if (LnurlUtils.isOpenCryptoPayUrl(qrCodeData)) {
+        if (!mounted) return;
+        await showOpenCryptoPayPaymentDesktopDialog(
+          context: context,
+          qrUrl: qrCodeData,
+          walletId: walletId,
+          coin: coin,
+        );
       } else {
         _setOpReturnData(null);
         _address = qrCodeData.split("\n").first.trim();
@@ -1251,6 +1262,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address;
+      _note = _data.note;
       _addressToggleFlag = true;
     }
 

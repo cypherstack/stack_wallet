@@ -18,8 +18,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
-import '../../models/isar/models/isar_models.dart';
 import '../../models/input.dart';
+import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -29,6 +29,8 @@ import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/deskt
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/open_crypto_pay/models.dart';
+import '../../services/open_crypto_pay/settlement.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
@@ -51,6 +53,7 @@ import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -82,6 +85,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.isPaynymNotificationTransaction = false,
     this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
+    this.openCryptoPayCommit,
   });
 
   static const String routeName = "/confirmTransactionView";
@@ -95,6 +99,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
+  final OpenCryptoPayCommit? openCryptoPayCommit;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -313,6 +318,45 @@ class _ConfirmTransactionViewState
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
+    final openCryptoPayCommit = widget.openCryptoPayCommit;
+
+    if (openCryptoPayCommit?.isExpired ?? false) {
+      if (context.mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Open CryptoPay quote expired. Please scan again.",
+            context: context,
+          ),
+        );
+      }
+      return;
+    }
+
+    final openCryptoPaySettlement = openCryptoPayCommit == null
+        ? null
+        : OpenCryptoPaySettlement(
+            wallet: wallet,
+            txData: widget.txData,
+            commit: openCryptoPayCommit,
+            mainDB: ref.read(mainDBProvider),
+            isTokenTx: widget.isTokenTx,
+            tokenWallet: ref.read(pCurrentTokenWallet),
+          );
+
+    final openCryptoPayError = openCryptoPaySettlement?.validate();
+    if (openCryptoPayError != null) {
+      if (context.mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: openCryptoPayError,
+            context: context,
+          ),
+        );
+      }
+      return;
+    }
 
     final sendProgressController = ProgressAndSuccessController();
     var isSendingDialogOpen = true;
@@ -349,9 +393,16 @@ class _ConfirmTransactionViewState
     Future<TxData> txDataFuture;
 
     final note = noteController.text;
+    final openCryptoPayTxIdFlow =
+        openCryptoPaySettlement?.shouldCommitTxId ?? false;
 
     try {
-      if (widget.isTokenTx) {
+      if (openCryptoPaySettlement?.shouldSubmitRawHex ?? false) {
+        final submitWallet = widget.isTokenTx
+            ? ref.read(pCurrentTokenWallet)!
+            : wallet;
+        txDataFuture = openCryptoPaySettlement!.submitRawHex(submitWallet);
+      } else if (widget.isTokenTx) {
         if (wallet is SolanaWallet) {
           // For Solana tokens, use the Solana token wallet.
           txDataFuture = ref
@@ -444,14 +495,19 @@ class _ConfirmTransactionViewState
       final results = await Future.wait([txDataFuture, time]);
       final confirmedTx = results.first as TxData;
 
-      sendProgressController.triggerSuccess?.call();
-      await Future<void>.delayed(const Duration(seconds: 5));
-
       if (wallet is FiroWallet && confirmedTx.sparkMints != null) {
         txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
       } else {
         txids.add(confirmedTx.txid!);
       }
+
+      if (openCryptoPayTxIdFlow) {
+        final result = results.first as TxData;
+        await openCryptoPaySettlement!.commitTxId(result);
+      }
+
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);
       }
@@ -614,7 +670,9 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
-      const message = "Broadcast transaction failed";
+      final message = widget.openCryptoPayCommit == null
+          ? "Broadcast transaction failed"
+          : "Open CryptoPay payment failed";
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {

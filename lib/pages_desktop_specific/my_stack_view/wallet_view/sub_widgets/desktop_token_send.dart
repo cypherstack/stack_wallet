@@ -18,12 +18,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_dialog.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
+import '../../../../services/open_crypto_pay/lnurl_utils.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -269,6 +271,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 onSuccess: clearSendForm,
                 isTokenTx: true,
                 routeOnSuccessName: DesktopHomeView.routeName,
+                openCryptoPayCommit: _data?.openCryptoPayCommit,
               ),
             ),
           ),
@@ -477,9 +480,16 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         setState(() {
           _addressToggleFlag = sendToController.text.isNotEmpty;
         });
-
-        // now check for non standard encoded basic address
+      } else if (LnurlUtils.isOpenCryptoPayUrl(qrResult)) {
+        if (!mounted) return;
+        await showOpenCryptoPayPaymentDesktopDialog(
+          context: context,
+          qrUrl: qrResult,
+          walletId: walletId,
+          coin: coin,
+        );
       } else {
+        // now check for non standard encoded basic address
         _address = qrResult.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -616,6 +626,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       }
       sendToController.text = _data!.contactLabel;
       _address = _data!.address;
+      _note = _data!.note;
       _addressToggleFlag = true;
     }
 

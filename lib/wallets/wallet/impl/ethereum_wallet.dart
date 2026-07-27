@@ -218,7 +218,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
       final address = eth_wallet.EthereumAddress.fromHex(addressHex);
-      final eth_wallet.EtherAmount ethBalance = await client.getBalance(address);
+      final eth_wallet.EtherAmount ethBalance = await client.getBalance(
+        address,
+      );
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,
@@ -582,6 +584,29 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           "${e.toString()}${e.data == null ? "" : e.data.toString()}";
       throw Exception(message);
     }
+  }
+
+  Future<TxData> signSendWithoutBroadcast({
+    required TxData txData,
+    TxData Function(TxData txData, String myAddress)? prepareTempTx,
+  }) async {
+    final client = getEthClient();
+    if (_credentials == null) {
+      await _initCredentials();
+    }
+
+    final signedTx = await client.signTransaction(
+      _credentials!,
+      txData.web3dartTransaction!,
+      chainId: txData.chainId!.toInt(),
+    );
+    final txid = web3.bytesToHex(web3.keccak256(signedTx), include0x: true);
+    final raw = web3.bytesToHex(signedTx, include0x: true);
+
+    return (prepareTempTx ?? _prepareTempTx)(
+      txData.copyWith(raw: raw, txid: txid, txHash: txid),
+      (await getCurrentReceivingAddress())!.value,
+    );
   }
 
   @override

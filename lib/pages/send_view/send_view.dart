@@ -30,6 +30,7 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/open_crypto_pay/lnurl_utils.dart';
 import '../../services/spark_names_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -86,6 +87,7 @@ import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
 import '../masternodes/masternode_constants.dart';
+import '../open_crypto_pay/open_crypto_pay_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -428,16 +430,33 @@ class _SendViewState extends ConsumerState<SendView> {
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
         _applyUri(paymentData);
-      } else {
-        _setOpReturnData(null);
-        _address = qrResult.rawContent!.split("\n").first.trim();
-        sendToController.text = _address ?? "";
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
+        return;
       }
+
+      // Check for OpenCryptoPay QR code after standard payment URIs so a
+      // normal coin URI with a Lightning fallback still follows the usual flow.
+      if (LnurlUtils.isOpenCryptoPayUrl(qrResult.rawContent!)) {
+        if (mounted) {
+          await Navigator.of(context).pushNamed(
+            OpenCryptoPayView.routeName,
+            arguments: (
+              qrUrl: qrResult.rawContent!,
+              walletId: walletId,
+              coin: coin,
+            ),
+          );
+        }
+        return;
+      }
+
+      _setOpReturnData(null);
+      _address = qrResult.rawContent!.split("\n").first.trim();
+      sendToController.text = _address ?? "";
+
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
     } on PlatformException catch (e, s) {
       // ref
       //     .read(
@@ -1251,11 +1270,8 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: txData,
                 walletId: walletId,
                 isPaynymTransaction: isPaynymSend,
-                onSuccess: () {
-                  if (mounted) {
-                    clearSendForm();
-                  }
-                },
+                onSuccess: clearSendForm,
+                openCryptoPayCommit: _data?.openCryptoPayCommit,
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -1507,6 +1523,7 @@ class _SendViewState extends ConsumerState<SendView> {
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address.trim();
+      noteController.text = _data.note;
       _addressToggleFlag = true;
 
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {

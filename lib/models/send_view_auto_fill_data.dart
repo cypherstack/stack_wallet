@@ -10,25 +10,44 @@
 
 import 'package:decimal/decimal.dart';
 
+import '../services/open_crypto_pay/models.dart';
+
 class SendViewAutoFillData {
   final String address;
   final String contactLabel;
   final Decimal? amount;
   final String note;
 
+  /// When set, ConfirmTransactionView completes the OpenCryptoPay submission
+  /// flow for the prepared transaction.
+  final OpenCryptoPayCommit? openCryptoPayCommit;
+
   SendViewAutoFillData({
     required this.address,
     required this.contactLabel,
     this.amount,
     this.note = "",
+    this.openCryptoPayCommit,
   });
 
   Map<String, dynamic> toJson() {
+    final commit = openCryptoPayCommit;
     return {
       "address": address,
       "contactLabel": contactLabel,
       "amount": amount,
       "note": note,
+      if (commit != null)
+        "openCryptoPayCommit": {
+          "method": commit.method,
+          "asset": commit.asset,
+          "submissionFlow": commit.submissionFlow.name,
+          "quoteId": commit.quoteId,
+          "paymentId": commit.paymentId,
+          "expiresAt": commit.expiresAt.toIso8601String(),
+          if (commit.tokenDecimals != null)
+            "tokenDecimals": commit.tokenDecimals,
+        },
     };
   }
 
