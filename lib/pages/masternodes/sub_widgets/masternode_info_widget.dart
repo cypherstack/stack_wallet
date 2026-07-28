@@ -25,8 +25,6 @@ class MasternodeInfoWidget extends StatelessWidget {
         crossAxisAlignment: .stretch,
         mainAxisSize: .min,
         children: [
-          // not really the place for this in terms of structure but running
-          // out of time...
           Row(
             mainAxisAlignment: .spaceBetween,
             children: [
@@ -45,8 +43,6 @@ class MasternodeInfoWidget extends StatelessWidget {
               padding: const EdgeInsets.only(left: 32, bottom: 32, right: 32),
               child: RoundedWhiteContainer(
                 padding: .zero,
-
-                // using listview kind of breaks
                 borderColor: Theme.of(
                   context,
                 ).extension<StackColors>()!.backgroundAppBar,
