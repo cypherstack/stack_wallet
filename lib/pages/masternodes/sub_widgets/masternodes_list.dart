@@ -4,6 +4,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../masternode_details_view.dart';
@@ -35,8 +36,35 @@ class _MasternodeCard extends StatelessWidget {
       await showDialog<void>(
         context: context,
         barrierDismissible: true,
-        builder: (_) => SDialog(
-          child: SizedBox(width: 600, child: MasternodeInfoWidget(info: node)),
+        builder: (context) => SDialog(
+          contentCanScroll: false,
+          child: SizedBox(
+            width: 600,
+            child: Column(
+              crossAxisAlignment: .stretch,
+              mainAxisSize: .min,
+              children: [
+                Row(
+                  mainAxisAlignment: .spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Masternode details",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ),
+                    const DesktopDialogCloseButton(),
+                  ],
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: MasternodeInfoWidget(info: node),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     } else {
