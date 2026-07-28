@@ -8,4 +8,4 @@
  *
  */
 
-enum AddWalletType { New, Restore }
+enum AddWalletType { New, Restore, Hardware }

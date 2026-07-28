@@ -27,6 +27,7 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/paynym_is_api.dart';
 import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../hardware/psbt_builder.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
@@ -808,6 +809,33 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
       }
 
+      if (info.isHardwareWallet) {
+        final xpub =
+            info.otherData[WalletInfoKeys.hardwareXpubKey] as String?;
+        if (xpub == null || xpub.isEmpty) {
+          throw Exception('Hardware wallet missing xpub in otherData');
+        }
+        final xpubNode = coinlib.HDPublicKey.decode(xpub);
+
+        for (final sd in inputsWithKeys.whereType<StandardInput>()) {
+          final address =
+              await mainDB.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final derivPath = address!.derivationPath!.value;
+            final idx = derivPath.lastIndexOf("'/");
+            if (idx >= 0) {
+              sd.key = xpubNode.derivePath(derivPath.substring(idx + 2));
+            }
+          }
+          if (sd.key == null) {
+            throw Exception(
+              'Failed to derive public key for hardware wallet input',
+            );
+          }
+        }
+        return inputsWithKeys;
+      }
+
       final root = await getRootHDNode();
 
       for (final sd in inputsWithKeys.whereType<StandardInput>()) {
@@ -1083,6 +1111,150 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       if (hasNonWitnessInput) {
         throw Exception("Found non witness input in mweb tx");
       }
+    }
+
+    // Hardware wallet branch: construct PSBT instead of signing locally.
+    if (info.isHardwareWallet) {
+      final masterFpHex = info
+          .otherData[WalletInfoKeys.hardwareMasterFingerprintKey] as String?;
+      if (masterFpHex == null || masterFpHex.isEmpty) {
+        throw Exception('Hardware wallet missing master fingerprint');
+      }
+      final masterFingerprint = Uint8List.fromList(
+        List.generate(
+          masterFpHex.length ~/ 2,
+          (i) => int.parse(
+            masterFpHex.substring(i * 2, i * 2 + 2),
+            radix: 16,
+          ),
+        ),
+      );
+
+      final psbtInputs = <PsbtInput>[];
+      for (var i = 0; i < inputsWithKeys.length; i++) {
+        if (inputsWithKeys[i] is! StandardInput) {
+          throw Exception(
+            'Hardware wallet PSBT only supports standard inputs',
+          );
+        }
+        final data = inputsWithKeys[i] as StandardInput;
+        final txid = Uint8List.fromList(
+          data.utxo.txid.toUint8ListFromHex.reversed.toList(),
+        );
+        final pubKey =
+            Uint8List.fromList(data.key!.publicKey.data.toList());
+        final pubKeyHash = coinlib.hash160(pubKey);
+        final scriptPubKey =
+            Uint8List.fromList([0x00, 0x14, ...pubKeyHash]);
+
+        final address =
+            await mainDB.getAddress(walletId, data.utxo.address!);
+        final derivPath =
+            _parseBip32Path(address!.derivationPath!.value);
+
+        psbtInputs.add(
+          PsbtInput(
+            txid: txid,
+            vout: data.utxo.vout,
+            value: data.utxo.value,
+            scriptPubKey: scriptPubKey,
+            derivationPath: derivPath,
+            publicKey: pubKey,
+          ),
+        );
+      }
+
+      final xpub =
+          info.otherData[WalletInfoKeys.hardwareXpubKey] as String;
+      final xpubNode = coinlib.HDPublicKey.decode(xpub);
+
+      final psbtOutputs = <PsbtOutput>[];
+      for (var i = 0; i < txData.recipients!.length; i++) {
+        final addr = coinlib.Address.fromString(
+          normalizeAddress(txData.recipients![i].address),
+          cryptoCurrency.networkParams,
+        );
+        final outputScript =
+            Uint8List.fromList(addr.program.script.compiled);
+        final isChange = tempOutputs[i].walletOwns;
+
+        List<int>? outputDerivPath;
+        Uint8List? outputPubKey;
+        if (isChange) {
+          final changeAddr = await mainDB.getAddress(
+            walletId,
+            txData.recipients![i].address,
+          );
+          if (changeAddr?.derivationPath != null) {
+            outputDerivPath =
+                _parseBip32Path(changeAddr!.derivationPath!.value);
+            final idx =
+                changeAddr.derivationPath!.value.lastIndexOf("'/");
+            if (idx >= 0) {
+              outputPubKey = Uint8List.fromList(
+                xpubNode
+                    .derivePath(
+                      changeAddr.derivationPath!.value
+                          .substring(idx + 2),
+                    )
+                    .publicKey
+                    .data
+                    .toList(),
+              );
+            }
+          }
+        }
+
+        psbtOutputs.add(
+          PsbtOutput(
+            value: txData.recipients![i].amount.raw.toInt(),
+            scriptPubKey: outputScript,
+            isChange: isChange,
+            derivationPath: outputDerivPath,
+            publicKey: outputPubKey,
+          ),
+        );
+      }
+
+      final builder = PsbtBuilder(
+        masterFingerprint: masterFingerprint,
+        inputs: psbtInputs,
+        outputs: psbtOutputs,
+        txVersion: txData.overrideVersion ??
+            cryptoCurrency.transactionVersion,
+      );
+      final psbtBase64 = builder.build();
+
+      Logging.instance.d(
+        'Hardware wallet PSBT constructed '
+        '(${psbtInputs.length} inputs, '
+        '${psbtOutputs.length} outputs)',
+      );
+
+      return txData.copyWith(
+        otherData: jsonEncode({'psbt': psbtBase64}),
+        vSize: clTx.vSize(),
+        tempTx: TransactionV2(
+          walletId: walletId,
+          blockHash: null,
+          hash: '',
+          txid: '',
+          height: null,
+          timestamp:
+              DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+          inputs: List.unmodifiable(tempInputs),
+          outputs: List.unmodifiable(tempOutputs),
+          version: clTx.version,
+          type: tempOutputs
+                      .map((e) => e.walletOwns)
+                      .fold(true, (p, e) => p &= e) &&
+                  txData.paynymAccountLite == null
+              ? TransactionType.sentToSelf
+              : TransactionType.outgoing,
+          subType: TransactionSubType.none,
+          otherData: null,
+        ),
+      );
     }
 
     try {
@@ -2004,6 +2176,19 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
       return false;
     }
+  }
+
+  static List<int> _parseBip32Path(String path) {
+    return path
+        .replaceAll('m/', '')
+        .split('/')
+        .map((c) {
+          if (c.endsWith("'")) {
+            return int.parse(c.substring(0, c.length - 1)) + 0x80000000;
+          }
+          return int.parse(c);
+        })
+        .toList();
   }
 
   @override

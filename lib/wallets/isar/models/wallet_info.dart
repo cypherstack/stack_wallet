@@ -145,6 +145,10 @@ class WalletInfo implements IsarId {
       otherData[WalletInfoKeys.isViewOnlyKey] as bool? ?? false;
 
   @ignore
+  bool get isHardwareWallet =>
+      otherData[WalletInfoKeys.isHardwareWalletKey] as bool? ?? false;
+
+  @ignore
   ViewOnlyWalletType? get viewOnlyWalletType {
     final index = otherData[WalletInfoKeys.viewOnlyTypeIndexKey] as int?;
     if (index == null) return null;
@@ -584,4 +588,11 @@ abstract class WalletInfoKeys {
       "solanaCustomTokenMintAddressesKey";
   static const String firoMasternodeCollateralDismissed =
       "firoMasternodeCollateralDismissedKey";
+  static const String isHardwareWalletKey = "isHardwareWalletKey";
+  static const String hardwareDeviceFamilyKey = "hardwareDeviceFamilyKey";
+  static const String hardwareDeviceModelKey = "hardwareDeviceModelKey";
+  static const String hardwareDerivationPathKey = "hardwareDerivationPathKey";
+  static const String hardwareXpubKey = "hardwareXpubKey";
+  static const String hardwareMasterFingerprintKey =
+      "hardwareMasterFingerprintKey";
 }

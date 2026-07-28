@@ -78,6 +78,8 @@ class Prefs extends ChangeNotifier {
       _autoPin = await _getAutoPin();
       _enableExchange = await _getEnableExchange();
       _advancedFiroFeatures = await _getAdvancedFiroFeatures();
+      _enableMockHardwareAutoSigner =
+          await _getEnableMockHardwareAutoSigner();
       _logsPath = await _getLogsPath();
       _logLevel = await _getLogLevel();
       _autoLockInfo = await _getAutoLockInfo();
@@ -1294,6 +1296,29 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "advancedFiroFeatures",
+            )
+            as bool? ??
+        false;
+  }
+
+  bool _enableMockHardwareAutoSigner = false;
+  bool get enableMockHardwareAutoSigner => _enableMockHardwareAutoSigner;
+  set enableMockHardwareAutoSigner(bool enableMockHardwareAutoSigner) {
+    if (_enableMockHardwareAutoSigner != enableMockHardwareAutoSigner) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "enableMockHardwareAutoSigner",
+        value: enableMockHardwareAutoSigner,
+      );
+      _enableMockHardwareAutoSigner = enableMockHardwareAutoSigner;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableMockHardwareAutoSigner() async {
+    return await DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "enableMockHardwareAutoSigner",
             )
             as bool? ??
         false;

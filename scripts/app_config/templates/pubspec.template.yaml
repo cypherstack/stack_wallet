@@ -274,6 +274,15 @@ dependencies:
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
 
+  # Hardware wallet support
+  ledger_flutter_plus:
+    git:
+      url: https://github.com/cake-tech/ledger-flutter-plus.git
+  ledger_bitcoin:
+    git:
+      url: https://github.com/cake-tech/ledger-flutter-plus-plugins.git
+      path: packages/ledger-bitcoin
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -354,6 +363,15 @@ dependency_overrides:
   json_rpc_2: ^4.0.0
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
+
+  # ledger_bitcoin requires ^3.7.4; project requires ^4.0.0
+  pointycastle: ^4.0.0
+
+  # ledger_bitcoin depends on ledger_flutter_plus from pub.dev;
+  # project uses the git fork
+  ledger_flutter_plus:
+    git:
+      url: https://github.com/cake-tech/ledger-flutter-plus.git
 
 # %%ENABLE_ISAR%%
 #  isar_community:

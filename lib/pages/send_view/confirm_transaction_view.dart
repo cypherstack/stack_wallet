@@ -63,10 +63,21 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../../providers/hardware/hardware_wallet_provider.dart';
+import '../../wallets/hardware/hardware_session_state.dart';
+import '../../wallets/hardware/hardware_wallet_device.dart';
+import '../../wallets/hardware/hardware_wallet_device_family.dart';
+import '../../wallets/hardware/ledger/ledger_bitcoin_service.dart';
+import '../../wallets/hardware/ledger/ledger_usb_adapter.dart';
+import '../../wallets/hardware/mock_hardware_wallet_service.dart';
+import '../hardware_wallet/hardware_reconnect_dialog.dart';
+import '../../wallets/hardware/psbt_builder.dart';
+import '../../wallets/isar/models/wallet_info.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
+import 'sub_widgets/hardware_confirm_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
@@ -106,6 +117,8 @@ class _ConfirmTransactionViewState
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
+
+  String? _signedRawTxHex;
 
   late final FocusNode _noteFocusNode;
   late final TextEditingController noteController;
@@ -436,7 +449,10 @@ class _ConfirmTransactionViewState
               );
             }
           } else {
-            txDataFuture = wallet.confirmSend(txData: widget.txData);
+            final effectiveTxData = _signedRawTxHex != null
+                ? widget.txData.copyWith(raw: _signedRawTxHex)
+                : widget.txData;
+            txDataFuture = wallet.confirmSend(txData: effectiveTxData);
           }
         }
       }
@@ -479,7 +495,7 @@ class _ConfirmTransactionViewState
 
       widget.onSuccess.call();
 
-      // Check for 1000 FIRO transparent self-send → prompt MN registration
+      // Check for 1000 FIRO transparent self-send -> prompt MN registration
       bool navigatedToMN = false;
       if (wallet is FiroWallet &&
           confirmedTx.recipients != null &&
@@ -1634,44 +1650,161 @@ class _ConfirmTransactionViewState
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (isDesktop) {
-                    final unlocked = await showDialog<bool?>(
-                      context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 580,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [DesktopDialogCloseButton()],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 32,
-                                right: 32,
-                                bottom: 32,
-                              ),
-                              child: DesktopAuthSend(
-                                coin: coin,
-                                tokenTicker: widget.isTokenTx ? unit : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                    if (context.mounted && unlocked is bool) {
-                      if (unlocked) {
-                        unawaited(_attemptSend(context));
-                      } else {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: "Invalid passphrase",
-                            context: context,
+                    if (wallet.info.isHardwareWallet) {
+                      final useMock = ref
+                          .read(prefsChangeNotifierProvider)
+                          .enableMockHardwareAutoSigner;
+                      final deviceFamily = wallet.info
+                          .otherData[WalletInfoKeys.hardwareDeviceFamilyKey]
+                          as String?;
+
+                      ref.read(hardwareSigningStateProvider.notifier).state =
+                          HardwareSessionState.idle;
+                      ref.read(hardwareSigningResultProvider.notifier).state =
+                          null;
+                      _signedRawTxHex = null;
+
+                      final otherDataMap =
+                          widget.txData.otherData != null
+                              ? jsonDecode(widget.txData.otherData!)
+                                  as Map<String, dynamic>
+                              : <String, dynamic>{};
+                      final psbt = otherDataMap['psbt'] as String?;
+
+                      bool? approved;
+                      if (!useMock &&
+                          deviceFamily == HardwareWalletDeviceFamily
+                              .ledger.name &&
+                          psbt != null) {
+                        final adapter = ref.read(
+                          hardwareAdapterProvider(
+                            HardwareWalletDeviceFamily.ledger,
+                          ),
+                        )! as LedgerUsbAdapter;
+                        var device = adapter.connectedDevice;
+                        if (device == null) {
+                          final reconnected =
+                              await HardwareReconnectDialog.show(
+                            context,
+                            HardwareWalletDeviceFamily.ledger,
+                          );
+                          if (reconnected != true) {
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            return;
+                          }
+                          device = adapter.connectedDevice;
+                        }
+
+                        if (device == null) {
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                          return;
+                        }
+
+                        final connection = adapter.ledgerConnection;
+                        if (connection == null) {
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                          return;
+                        }
+                        final ledgerService = LedgerBitcoinService(
+                          connection: connection,
+                        );
+
+                        approved = await showDialog<bool?>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => HardwareConfirmDialog(
+                            walletId: walletId,
+                            service: ledgerService,
+                            device: device!,
+                            payload: {'psbt': psbt},
                           ),
                         );
+
+                        if (approved == true && context.mounted) {
+                          final signingResult =
+                              ref.read(hardwareSigningResultProvider);
+                          if (signingResult != null &&
+                              signingResult
+                                  .containsKey('signedPsbt')) {
+                            final signedPsbt =
+                                signingResult['signedPsbt'] as String;
+                            _signedRawTxHex =
+                                PsbtFinalizer().finalize(signedPsbt);
+                          }
+                        }
+                      } else {
+                        final autoApprove = ref
+                            .read(prefsChangeNotifierProvider)
+                            .enableMockHardwareAutoSigner;
+                        final mockService = MockHardwareWalletService(
+                          signingStateController: ref
+                              .read(
+                                hardwareSigningStateProvider.notifier,
+                              ),
+                          autoApprove: autoApprove,
+                        );
+
+                        approved = await showDialog<bool?>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => HardwareConfirmDialog(
+                            walletId: walletId,
+                            service: mockService,
+                            device: MockHardwareWalletDevice(),
+                            payload: {},
+                          ),
+                        );
+                      }
+
+                      if (approved == true && context.mounted) {
+                        unawaited(_attemptSend(context));
+                      }
+                    } else {
+                      final unlocked = await showDialog<bool?>(
+                        context: context,
+                        builder: (context) => DesktopDialog(
+                          maxWidth: 580,
+                          maxHeight: double.infinity,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [DesktopDialogCloseButton()],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 32,
+                                  right: 32,
+                                  bottom: 32,
+                                ),
+                                child: DesktopAuthSend(
+                                  coin: coin,
+                                  tokenTicker: widget.isTokenTx ? unit : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      if (context.mounted && unlocked is bool) {
+                        if (unlocked) {
+                          unawaited(_attemptSend(context));
+                        } else {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: "Invalid passphrase",
+                              context: context,
+                            ),
+                          );
+                        }
                       }
                     }
                   } else {

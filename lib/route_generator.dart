@@ -48,6 +48,7 @@ import 'pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'pages/add_wallet_views/select_wallet_for_sol_token_view.dart';
 import 'pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
+import 'pages/hardware_wallet/hardware_wallet_connect_view.dart';
 import 'pages/address_book_views/address_book_view.dart';
 import 'pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'pages/address_book_views/subviews/add_new_contact_address_view.dart';
@@ -1878,6 +1879,19 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) =>
                 RestoreOptionsView(walletName: args.item1, coin: args.item2),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case HardwareWalletConnectView.routeName:
+        if (args is Tuple2<String, CryptoCurrency>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => HardwareWalletConnectView(
+              walletName: args.item1,
+              coin: args.item2,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }

@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../models/balance.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/isar/models/solana/sol_contract.dart';
@@ -167,7 +170,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
+    if (walletInfo.isHardwareWallet) {
+      // Hardware wallets don't store mnemonics or private keys locally
+    } else if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
       await secureStorageInterface.write(
         key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
         value: viewOnlyData!.toJsonEncodedString(),
@@ -216,7 +221,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     // TODO [prio=low] handle eth differently?
     // This would need to be changed if we actually end up allowing eth wallets
     // to be created with a private key instead of mnemonic only
-    if (wallet is PrivateKeyInterface && wallet is! EthereumWallet) {
+    if (wallet is PrivateKeyInterface &&
+        wallet is! EthereumWallet &&
+        !walletInfo.isHardwareWallet) {
       await secureStorageInterface.write(
         key: privateKeyKey(walletId: walletInfo.walletId),
         value: privateKey!,
@@ -648,7 +655,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
-      if (this is PaynymInterface && !viewOnly) {
+      if (this is PaynymInterface && !viewOnly && !info.isHardwareWallet) {
         // isSegwit does not matter here at all
         final myCode = await (this as PaynymInterface).getPaymentCode(
           isSegwit: false,
@@ -697,7 +704,15 @@ abstract class Wallet<T extends CryptoCurrency> {
         await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
 
-      if (this is NamecoinWallet) {
+      // The mock auto-signer injects fake balances/UTXOs and must never run in
+      // a release build, so it is gated behind kDebugMode.
+      final skipNetworkFetch = kDebugMode &&
+          info.isHardwareWallet &&
+          prefs.enableMockHardwareAutoSigner;
+
+      if (skipNetworkFetch) {
+        _fireRefreshPercentChange(0.70);
+      } else if (this is NamecoinWallet) {
         await updateUTXOs();
         _fireRefreshPercentChange(0.6);
         await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
@@ -714,7 +729,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
+      if (!viewOnly && !info.isHardwareWallet && this is PaynymInterface && codesToCheck.isNotEmpty) {
         await (this as PaynymInterface).checkForNotificationTransactionsTo(
           codesToCheck,
         );
@@ -727,7 +742,13 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       _fireRefreshPercentChange(0.90);
 
-      await updateBalance();
+      if (kDebugMode &&
+          info.isHardwareWallet &&
+          prefs.enableMockHardwareAutoSigner) {
+        // Preserve injected mock balance during refresh
+      } else {
+        await updateBalance();
+      }
 
       _fireRefreshPercentChange(1.0);
 
@@ -804,6 +825,46 @@ abstract class Wallet<T extends CryptoCurrency> {
         newAddress: address.value,
         isar: mainDB.isar,
       );
+    }
+
+    // Inject mock balance and UTXO for hardware wallets when mock signer is on.
+    // Gated behind kDebugMode so release builds can never inject fake balances.
+    if (kDebugMode &&
+        info.isHardwareWallet &&
+        prefs.enableMockHardwareAutoSigner) {
+      final fd = cryptoCurrency.fractionDigits;
+      final mockSats = BigInt.from(10) * BigInt.from(10).pow(fd);
+      final mockBalance = Balance(
+        total: Amount(rawValue: mockSats, fractionDigits: fd),
+        spendable: Amount(rawValue: mockSats, fractionDigits: fd),
+        blockedTotal: Amount.zeroWith(fractionDigits: fd),
+        pendingSpendable: Amount.zeroWith(fractionDigits: fd),
+      );
+      await info.updateBalance(
+        newBalance: mockBalance,
+        isar: mainDB.isar,
+      );
+
+      if (address != null) {
+        final mockUtxo = UTXO(
+          walletId: walletId,
+          txid: 'aa' * 32,
+          vout: 0,
+          value: mockSats.toInt(),
+          name: '',
+          isBlocked: false,
+          blockedReason: null,
+          isCoinbase: false,
+          blockHash:
+              '0000000000000000000000000000000000000000000000000000000000000000',
+          blockHeight: 800000,
+          blockTime: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          address: address.value,
+        );
+        await mainDB.isar.writeTxn(() async {
+          await mainDB.isar.utxos.put(mockUtxo);
+        });
+      }
     }
   }
 

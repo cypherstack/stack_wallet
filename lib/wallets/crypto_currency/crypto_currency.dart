@@ -63,6 +63,12 @@ abstract class CryptoCurrency {
   // Override in subclass if the currency has Tor support:
   bool get torSupport => false;
 
+  // Override in subclass to true only for currencies whose hardware wallet
+  // adapter and xpub derivation are actually implemented and verified. The
+  // default is false so the create flow does not offer hardware wallets for
+  // coins where selecting one would derive a mismatched xpub.
+  bool get supportsHardwareWallet => false;
+
   int get minConfirms;
   int get minCoinbaseConfirms => minConfirms;
 

@@ -12,6 +12,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../../isar/models/wallet_info.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
 import '../wallet_mixin_interfaces/view_only_option_interface.dart';
 import 'bip39_wallet.dart';
@@ -256,7 +257,17 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     );
 
     final coinlib.HDKey keys;
-    if (isViewOnly) {
+    if (info.isHardwareWallet) {
+      final xpub =
+          info.otherData[WalletInfoKeys.hardwareXpubKey] as String?;
+      if (xpub == null || xpub.isEmpty) {
+        throw Exception('Hardware wallet missing xpub in otherData');
+      }
+      final idx = derivationPath.lastIndexOf("'/");
+      final path = derivationPath.substring(idx + 2);
+      final node = coinlib.HDPublicKey.decode(xpub);
+      keys = node.derivePath(path);
+    } else if (isViewOnly) {
       final idx = derivationPath.lastIndexOf("'/");
       final path = derivationPath.substring(idx + 2);
       final data =

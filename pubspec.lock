@@ -135,6 +135,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.6.0"
+  bluez:
+    dependency: transitive
+    description:
+      name: bluez
+      sha256: "61a7204381925896a374301498f2f5399e59827c6498ae1e924aaa598751b545"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -749,6 +757,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
+  dart_varuint_bitcoin:
+    dependency: transitive
+    description:
+      name: dart_varuint_bitcoin
+      sha256: "4f0ccc9733fb54148b9d3688eea822b7aaabf5cc00025998f8c09a1d45b31b4b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   dartx:
     dependency: transitive
     description:
@@ -1166,6 +1182,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_web_bluetooth:
+    dependency: transitive
+    description:
+      name: flutter_web_bluetooth
+      sha256: fcd03e2e5f82edcedcbc940f1b6a0635a50757374183254f447640886c53208e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.4"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -1501,6 +1525,32 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  ledger_bitcoin:
+    dependency: "direct main"
+    description:
+      path: "packages/ledger-bitcoin"
+      ref: HEAD
+      resolved-ref: "75bba8632c529debf30ee2b1858530009fa6440b"
+      url: "https://github.com/cake-tech/ledger-flutter-plus-plugins.git"
+    source: git
+    version: "0.0.3"
+  ledger_flutter_plus:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: c2e341d8038f1108690ad6f80f7b4b7156aacc76
+      url: "https://github.com/cake-tech/ledger-flutter-plus.git"
+    source: git
+    version: "1.4.1"
+  ledger_usb_plus:
+    dependency: transitive
+    description:
+      name: ledger_usb_plus
+      sha256: "911df2d1d55cdae612ff2c9db140cf71a9b28a67ba16adfdc4983cd9f02c531e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.8"
   lints:
     dependency: transitive
     description:
@@ -2025,6 +2075,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  rxdart:
+    dependency: transitive
+    description:
+      name: rxdart
+      sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.28.0"
   saf_stream:
     dependency: "direct main"
     description:
@@ -2370,6 +2428,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  universal_ble:
+    dependency: transitive
+    description:
+      name: universal_ble
+      sha256: "0dfbd6b64bff3ad61ed7a895c232530d9614e9b01ab261a74433a43267edb7f3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.12.0"
   universal_io:
     dependency: transitive
     description:
@@ -2378,6 +2444,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
+  universal_platform:
+    dependency: transitive
+    description:
+      name: universal_platform
+      sha256: "64e16458a0ea9b99260ceb5467a214c1f298d647c659af1bff6d3bf82536b1ec"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   unorm_dart:
     dependency: "direct main"
     description:

@@ -57,6 +57,7 @@ import '../../coin_control/desktop_coin_control_use_dialog.dart';
 import 'sub_widgets/desktop_wallet_features.dart';
 import 'sub_widgets/desktop_wallet_summary.dart';
 import 'sub_widgets/firo_desktop_wallet_summary.dart';
+import 'sub_widgets/hardware_device_status_button.dart';
 import 'sub_widgets/mweb_desktop_wallet_summary.dart';
 import 'sub_widgets/my_wallet.dart';
 import 'sub_widgets/network_info_button.dart';
@@ -295,6 +296,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               const Spacer(),
               Row(
                 children: [
+                  if (wallet.info.isHardwareWallet)
+                    HardwareDeviceStatusButton(walletId: widget.walletId),
+                  if (wallet.info.isHardwareWallet) const SizedBox(width: 2),
                   NetworkInfoButton(
                     walletId: widget.walletId,
                     eventBus: eventBus,
