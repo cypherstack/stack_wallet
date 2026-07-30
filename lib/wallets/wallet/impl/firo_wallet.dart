@@ -759,6 +759,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             txid: jsonTX!["txid"] as String,
             index: jsonUTXO["tx_pos"] as int,
           );
+
+          if (blocked) {
+            blockedReason =
+                "Masternode collateral. "
+                "Unlocking and spending will invalidate this masternode!";
+            label = "Masternode collateral";
+          }
         } catch (_) {
           // call failed, lock utxo just in case
           // it should logically already be blocked
@@ -768,10 +775,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       }
 
       if (blocked) {
-        blockedReason =
+        blockedReason ??=
             "Possible masternode collateral. "
             "Unlock and spend at your own risk.";
-        label = "Possible masternode collateral";
+        label ??= "Possible masternode collateral";
       }
     }
 

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/exchange/aggregate_currency.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exolix/exolix_exchange.dart';
 import '../../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
@@ -104,6 +105,11 @@ class _ExchangeProviderOptionsState
       sendCurrency: sendCurrency,
       receiveCurrency: receivingCurrency,
     );
+    final showCypherGoat = exchangeSupported(
+      exchangeName: CypherGoatExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
     final showLetsExchange = exchangeSupported(
       exchangeName: LetsExchangeExchange.exchangeName,
       sendCurrency: sendCurrency,
@@ -123,6 +129,7 @@ class _ExchangeProviderOptionsState
           if (showTrocador) TrocadorExchange.instance,
           if (showNanswap) NanswapExchange.instance,
           if (showWizardSwap) WizardSwapExchange.instance,
+          if (showCypherGoat) CypherGoatExchange.instance,
         ],
         fixedRate: widget.fixedRate,
         reversed: widget.reversed,

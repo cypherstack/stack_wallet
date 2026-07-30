@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/exchange/change_now/change_now_exchange.dart';
+import '../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../services/exchange/exolix/exolix_exchange.dart';
 import '../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../services/exchange/nanswap/nanswap_exchange.dart';
@@ -53,6 +54,7 @@ class _EXCHANGE {
   String get wizard => "${_path}wizard.svg";
 
   String get exolix => "${_path}exolix.png";
+  String get cypherGoat => "${_path}cyphergoat.svg";
 
   String get letsexchange => "${_path}letsexchange.svg";
 
@@ -72,6 +74,8 @@ class _EXCHANGE {
         return wizard;
       case ExolixExchange.exchangeName:
         return exolix;
+      case CypherGoatExchange.exchangeName:
+        return cypherGoat;
       case LetsExchangeExchange.exchangeName:
         return letsexchange;
       default:

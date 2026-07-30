@@ -95,6 +95,7 @@ import '../coin_control/coin_control_view.dart';
 import '../epic_finalize_view/epic_finalize_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
 import '../finalize_view/finalize_view.dart';
+import '../masternodes/masternodes_home_view.dart';
 import '../monkey/monkey_view.dart';
 import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
@@ -1204,27 +1205,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                    // if (!viewOnly && wallet is FiroWallet)
-                    //   WalletNavigationBarItemData(
-                    //     label: "Masternodes",
-                    //     icon: SvgPicture.asset(
-                    //       Assets.svg.recycle,
-                    //       height: 20,
-                    //       width: 20,
-                    //       colorFilter: ColorFilter.mode(
-                    //         Theme.of(
-                    //           context,
-                    //         ).extension<StackColors>()!.bottomNavIconIcon,
-                    //         BlendMode.srcIn,
-                    //       ),
-                    //     ),
-                    //     onTap: () {
-                    //       Navigator.of(context).pushNamed(
-                    //         MasternodesHomeView.routeName,
-                    //         arguments: widget.walletId,
-                    //       );
-                    //     },
-                    //   ),
+                    if (!viewOnly && wallet is FiroWallet)
+                      WalletNavigationBarItemData(
+                        label: "Masternodes",
+                        icon: SvgPicture.asset(
+                          Assets.svg.recycle,
+                          height: 20,
+                          width: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.bottomNavIconIcon,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MasternodesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
                     if (wallet is NamecoinWallet)
                       WalletNavigationBarItemData(
                         label: "Domains",

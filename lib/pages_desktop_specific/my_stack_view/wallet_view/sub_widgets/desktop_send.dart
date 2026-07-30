@@ -1246,12 +1246,27 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data.amount != null) {
-        cryptoAmountController.text = _data.amount!.toString();
+      final hasAmount = _data.amount != null;
+      if (hasAmount) {
+        _cryptoAmountChangeLock = true;
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .format(
+              _data.amount!.toAmount(fractionDigits: coin.fractionDigits),
+              withUnitName: false,
+            );
+        _cryptoAmountChangeLock = false;
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address;
       _addressToggleFlag = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (hasAmount) {
+          _cryptoAmountChanged();
+        }
+        _setValidAddressProviders(_address);
+      });
     }
 
     if (isPaynymSend) {

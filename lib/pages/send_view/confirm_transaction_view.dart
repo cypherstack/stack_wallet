@@ -218,7 +218,7 @@ class _ConfirmTransactionViewState
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Slatepack Creation Failed'),
-            content: Text('Failed to create slatepack: $e'),
+            content: Text(errorMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -297,7 +297,7 @@ class _ConfirmTransactionViewState
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Slate Creation Failed'),
-            content: Text('Failed to create slate: $e'),
+            content: Text(errorMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -479,118 +479,7 @@ class _ConfirmTransactionViewState
 
       widget.onSuccess.call();
 
-      // Check for 1000 FIRO transparent self-send → prompt MN registration
-      bool navigatedToMN = false;
-      if (wallet is FiroWallet &&
-          confirmedTx.recipients != null &&
-          confirmedTx.sparkMints == null &&
-          txids.isNotEmpty &&
-          context.mounted) {
-        try {
-          final masternodeAmount = Amount.fromDecimal(
-            kMasterNodeValue,
-            fractionDigits: wallet.cryptoCurrency.fractionDigits,
-          );
-          final txFeeRaw = confirmedTx.fee?.raw ?? BigInt.zero;
-
-          final mnRecipient = confirmedTx.recipients!
-              // Exact 1000 FIRO: multiple such outputs uses the first match only.
-              .where((r) => !r.isChange && r.amount == masternodeAmount)
-              .firstOrNull;
-
-          if (mnRecipient != null && confirmedTx.txid != null) {
-            final ownAddress = await ref
-                .read(mainDBProvider)
-                .getAddresses(walletId)
-                .filter()
-                .valueEqualTo(mnRecipient.address)
-                .findFirst();
-
-            if (ownAddress != null && context.mounted) {
-              await showDialog<void>(
-                context: context,
-                builder: (_) => StackOkDialog(
-                  title: "Collateral transaction sent",
-                  message:
-                      "Your 1000 FIRO collateral transaction was sent "
-                      "successfully. Once it confirms, open Masternodes and "
-                      "click Create Masternode to continue.",
-                  desktopPopRootNavigator: Util.isDesktop,
-                  maxWidth: Util.isDesktop ? 420 : null,
-                ),
-              );
-
-              if (context.mounted) {
-                // Pop confirm + send; returns to the screen that opened send
-                // (e.g. Masternodes or desktop wallet) without relying on
-                // popUntil matching a route name in the nested navigator.
-                final navigator = Navigator.of(context);
-                for (var i = 0; i < 2 && navigator.canPop(); i++) {
-                  navigator.pop();
-                }
-                navigatedToMN = true;
-              }
-            }
-          } else if (mnRecipient != null &&
-              confirmedTx.txid == null &&
-              context.mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.warning,
-                message:
-                    "Could not determine transaction id for collateral "
-                    "auto-detection. Register from the Masternodes screen "
-                    "once the transaction appears.",
-                context: context,
-              ),
-            );
-          } else {
-            // If fee was subtracted from the recipient, users can enter 1000 but
-            // end up with ~999.99... output which is not valid MN collateral.
-            final nearMnRecipient =
-                confirmedTx.recipients!
-                    .where(
-                      (r) => !r.isChange && r.amount.raw < masternodeAmount.raw,
-                    )
-                    .where(
-                      (r) => (masternodeAmount.raw - r.amount.raw) <= txFeeRaw,
-                    )
-                    .toList()
-                  ..sort((a, b) => b.amount.raw.compareTo(a.amount.raw));
-
-            if (nearMnRecipient.isNotEmpty) {
-              final maybeOwnAddress = await ref
-                  .read(mainDBProvider)
-                  .getAddresses(walletId)
-                  .filter()
-                  .valueEqualTo(nearMnRecipient.first.address)
-                  .findFirst();
-
-              if (maybeOwnAddress != null && context.mounted) {
-                unawaited(
-                  showFloatingFlushBar(
-                    type: FlushBarType.warning,
-                    message:
-                        "Masternode collateral requires one exact 1000 FIRO "
-                        "transparent output. Fee appears to have been "
-                        "subtracted from the recipient amount. Send 1000 "
-                        "to yourself again with fee paid on top.",
-                    context: context,
-                  ),
-                );
-              }
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.w(
-            "Skipping masternode collateral auto-detection: $e",
-            error: e,
-            stackTrace: s,
-          );
-        }
-      }
-
-      if (!navigatedToMN && context.mounted) {
+      if (context.mounted) {
         if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
           Navigator.of(
             context,
@@ -1675,9 +1564,9 @@ class _ConfirmTransactionViewState
                       }
                     }
                   } else {
-                    final unlocked = await Navigator.push(
+                    final unlocked = await Navigator.push<bool>(
                       context,
-                      RouteGenerator.getRoute(
+                      RouteGenerator.getRoute<bool>(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
                         builder: (_) => const LockscreenView(

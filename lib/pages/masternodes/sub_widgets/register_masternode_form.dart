@@ -126,6 +126,7 @@ class _RegisterMasternodeFormState
       final txId = await showLoading(
         whileFutureAlt: _registerMasternode,
         context: context,
+        rootNavigator: Util.isDesktop,
         message: "Creating and submitting masternode registration...",
         delay: const Duration(seconds: 1),
         onException: (e) => ex = e,

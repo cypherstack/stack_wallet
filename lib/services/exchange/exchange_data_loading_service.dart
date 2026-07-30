@@ -25,6 +25,7 @@ import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
 import 'change_now/change_now_exchange.dart';
+import 'cyphergoat/cyphergoat_exchange.dart';
 import 'exolix/exolix_exchange.dart';
 import 'lets_exchange/lets_exchange_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
@@ -213,6 +214,7 @@ class ExchangeDataLoadingService {
           loadWizardSwapCurrencies(),
           loadExolixCurrencies(),
           loadLetsExchangeCurrencies(),
+          loadCypherGoatCurrencies(),
         ];
 
         // If using Tor, don't load data for exchanges which don't support Tor.
@@ -373,6 +375,30 @@ class ExchangeDataLoadingService {
   //     );
   //   }
   // }
+
+  Future<void> loadCypherGoatCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
+    final responseCurrencies = await CypherGoatExchange.instance
+        .getAllCurrencies(false);
+
+    if (responseCurrencies.value != null) {
+      await (await isar).writeTxn(() async {
+        final idsToDelete = await (await isar).currencies
+            .where()
+            .exchangeNameEqualTo(CypherGoatExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
+      });
+    } else {
+      Logging.instance.w(
+        "loadCypherGoatCurrencies: $responseCurrencies",
+      );
+    }
+  }
 
   // Future<void> loadMajesticBankCurrencies() async {
   //   if (_isar == null) {
