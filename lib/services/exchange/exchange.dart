@@ -18,6 +18,7 @@ import 'change_now/change_now_exchange.dart';
 import 'cyphergoat/cyphergoat_exchange.dart';
 import 'exchange_response.dart';
 import 'exolix/exolix_exchange.dart';
+import 'lets_exchange/lets_exchange_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
 import 'simpleswap/simpleswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
@@ -42,6 +43,8 @@ abstract class Exchange {
         return WizardSwapExchange.instance;
       case ExolixExchange.exchangeName:
         return ExolixExchange.instance;
+      case LetsExchangeExchange.exchangeName:
+        return LetsExchangeExchange.instance;
       case CypherGoatExchange.exchangeName:
         return CypherGoatExchange.instance;
       default:

@@ -10,6 +10,7 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -25,6 +26,7 @@ class _CustomTextButton extends StatefulWidget {
     this.onTap,
     this.enabled = true,
     this.textSize,
+    required this.overflow,
   });
 
   final String text;
@@ -33,6 +35,7 @@ class _CustomTextButton extends StatefulWidget {
   final double? textSize;
   final Color enabledColor;
   final Color disabledColor;
+  final TextOverflow overflow;
 
   @override
   State<_CustomTextButton> createState() => _CustomTextButtonState();
@@ -103,22 +106,22 @@ class _CustomTextButtonState extends State<_CustomTextButton>
       },
       child: RichText(
         textAlign: TextAlign.center,
+        overflow: widget.overflow,
         text: TextSpan(
           text: widget.text,
           style: widget.textSize == null
-              ? STextStyles.link2(context).copyWith(
-                  color: color,
-                )
-              : STextStyles.link2(context).copyWith(
-                  color: color,
-                  fontSize: widget.textSize,
-                ),
+              ? STextStyles.link2(context).copyWith(color: color)
+              : STextStyles.link2(
+                  context,
+                ).copyWith(color: color, fontSize: widget.textSize),
           recognizer: widget.enabled
               ? (TapGestureRecognizer()
-                ..onTap = () {
-                  widget.onTap?.call();
-                  controller?.forward().then((value) => controller?.reverse());
-                })
+                  ..onTap = () {
+                    widget.onTap?.call();
+                    controller?.forward().then(
+                      (value) => controller?.reverse(),
+                    );
+                  })
               : null,
         ),
       ),
@@ -133,26 +136,29 @@ class CustomTextButton extends StatelessWidget {
     this.onTap,
     this.enabled = true,
     this.textSize,
+    this.overflow = .clip,
   });
 
   final String text;
   final VoidCallback? onTap;
   final bool enabled;
   final double? textSize;
+  final TextOverflow overflow;
 
   @override
   Widget build(BuildContext context) {
     return _CustomTextButton(
       key: UniqueKey(),
       text: text,
-      enabledColor: Theme.of(context)
-          .extension<StackColors>()!
-          .customTextButtonEnabledText,
-      disabledColor: Theme.of(context)
-          .extension<StackColors>()!
-          .customTextButtonDisabledText,
+      enabledColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.customTextButtonEnabledText,
+      disabledColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.customTextButtonDisabledText,
       enabled: enabled,
       textSize: textSize,
+      overflow: overflow,
       onTap: onTap,
     );
   }

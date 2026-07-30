@@ -113,7 +113,7 @@ dependencies:
       ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
 
   # Utility plugins
-  http: ^1.5.0
+  http: ^1.6.0
   local_auth: ^2.3.0
   permission_handler: ^12.0.0+1
   flutter_local_notifications: ^17.2.2
@@ -169,6 +169,7 @@ dependencies:
   image: ^4.3.0
   wakelock_plus: ^1.2.8
   intl: ^0.19.0
+  html: ^0.15.6
   devicelocale:
     git:
       url: https://github.com/cypherstack/flutter-devicelocale
@@ -220,7 +221,7 @@ dependencies:
     git:
       url: https://github.com/cypherstack/coinlib
       path: coinlib_flutter
-      ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
+      ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -318,7 +319,7 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/coinlib
       path: coinlib
-      ref: a3c972ce0b71b45afe17576d39831fe370ce7ce7
+      ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
 
   bip47:
     git:

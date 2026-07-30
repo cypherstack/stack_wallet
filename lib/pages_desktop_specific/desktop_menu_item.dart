@@ -15,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../providers/desktop/current_desktop_menu_item.dart';
-import '../providers/global/notifications_provider.dart';
+import '../providers/global/shopin_bit_service_provider.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
@@ -117,9 +117,8 @@ class DesktopNotificationsIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(
-          notificationsProvider.select((value) => value.hasUnreadNotifications),
-        )
+    final hasUnread = ref.watch(pAnyGlobalUnreadNotifications);
+    return hasUnread
         ? SvgPicture.file(
             File(
               ref.watch(themeProvider.select((value) => value.assets.bellNew)),
@@ -132,14 +131,8 @@ class DesktopNotificationsIcon extends ConsumerWidget {
             width: 20,
             height: 20,
             color:
-                ref.watch(
-                  notificationsProvider.select(
-                    (value) => value.hasUnreadNotifications,
-                  ),
-                )
-                ? null
-                : DesktopMenuItemId.notifications ==
-                      ref.watch(currentDesktopMenuItemProvider.state).state
+                DesktopMenuItemId.notifications ==
+                    ref.watch(currentDesktopMenuItemProvider.state).state
                 ? Theme.of(context).extension<StackColors>()!.accentColorDark
                 : Theme.of(
                     context,

@@ -13,9 +13,7 @@ class CgResponseFormatException implements Exception {
 String requireCgString(Map<String, dynamic> map, String key) {
   final v = map[key];
   if (v is! String || v.isEmpty) {
-    throw CgResponseFormatException(
-      "Missing or empty required field '$key'",
-    );
+    throw CgResponseFormatException("Missing or empty required field '$key'");
   }
   return v;
 }
@@ -29,9 +27,7 @@ String? optionalCgString(Map<String, dynamic> map, String key) {
 Decimal requireCgDecimal(Map<String, dynamic> map, String key) {
   final v = map[key];
   if (v is! num && v is! String) {
-    throw CgResponseFormatException(
-      "Missing required numeric field '$key'",
-    );
+    throw CgResponseFormatException("Missing required numeric field '$key'");
   }
   return Decimal.parse(v.toString());
 }
@@ -39,9 +35,7 @@ Decimal requireCgDecimal(Map<String, dynamic> map, String key) {
 int requireCgInt(Map<String, dynamic> map, String key) {
   final v = map[key];
   if (v is! num) {
-    throw CgResponseFormatException(
-      "Missing required numeric field '$key'",
-    );
+    throw CgResponseFormatException("Missing required numeric field '$key'");
   }
   return v.toInt();
 }
@@ -49,9 +43,7 @@ int requireCgInt(Map<String, dynamic> map, String key) {
 bool requireCgBool(Map<String, dynamic> map, String key) {
   final v = map[key];
   if (v is! bool) {
-    throw CgResponseFormatException(
-      "Missing required boolean field '$key'",
-    );
+    throw CgResponseFormatException("Missing required boolean field '$key'");
   }
   return v;
 }
