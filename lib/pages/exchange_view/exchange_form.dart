@@ -27,6 +27,7 @@ import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import '../../providers/providers.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
+import '../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../services/exchange/exchange_response.dart';
@@ -86,6 +87,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         TrocadorExchange.instance,
         NanswapExchange.instance,
         WizardSwapExchange.instance,
+        CypherGoatExchange.instance,
       ];
     }
   }
