@@ -16,11 +16,7 @@ import "shopinbit_step4_submit.dart";
 import "shopinbit_step4_submit_button.dart";
 import "shopinbit_traveler_counter.dart";
 
-const List<String> _arrangements = [
-  "Flights Only",
-  "Hotels Only",
-  "Full Service",
-];
+const List<String> _arrangements = ["Flights Only", "Hotels Only"];
 
 const int _minTravelBudget = 1000;
 const int _minArrangementDetailsLength = 10;
