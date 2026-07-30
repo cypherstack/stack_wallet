@@ -394,9 +394,7 @@ class ExchangeDataLoadingService {
         await (await isar).currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.w(
-        "loadCypherGoatCurrencies: $responseCurrencies",
-      );
+      Logging.instance.w("loadCypherGoatCurrencies: $responseCurrencies");
     }
   }
 

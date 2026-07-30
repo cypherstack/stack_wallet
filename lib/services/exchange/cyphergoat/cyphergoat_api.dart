@@ -20,10 +20,7 @@ abstract class CypherGoatAPI {
 
   static const HTTP _client = HTTP();
 
-  static Uri _buildUri({
-    required String path,
-    Map<String, String>? params,
-  }) {
+  static Uri _buildUri({required String path, Map<String, String>? params}) {
     return Uri.https(authority, path, params);
   }
 
@@ -53,7 +50,7 @@ abstract class CypherGoatAPI {
       final json = jsonDecode(response.body);
 
       if (code != 200) {
-        final errMsg = (json is Map ? json["error"] : null) as String?;
+        final errMsg = (json is Map ? json["error"].toString() : null);
         throw Exception(errMsg ?? "HTTP $code: ${response.body}");
       }
 

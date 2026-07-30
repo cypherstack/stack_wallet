@@ -28,6 +28,7 @@ import '../../providers/global/trades_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
+import '../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exolix/exolix_exchange.dart';
 import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
@@ -1185,6 +1186,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             )) {
                               url =
                                   "https://trocador.app/en/checkout/${trade.tradeId}";
+                            } else if (trade.exchangeName.startsWith(
+                              CypherGoatExchange.exchangeName,
+                            )) {
+                              url = trade.other ?? "error";
                             }
                         }
                         return ConditionalParent(

@@ -6,8 +6,8 @@ class CgEstimateResult {
   final String exchange;
   final Decimal amount;
   final int kycScore;
-  final bool safeRouteOk;
-  final Decimal safeRouteScore;
+  final bool? safeRouteOk;
+  final Decimal? safeRouteScore;
 
   CgEstimateResult({
     required this.exchange,
@@ -22,8 +22,8 @@ class CgEstimateResult {
       exchange: requireCgString(map, "Exchange"),
       amount: requireCgDecimal(map, "Amount"),
       kycScore: requireCgInt(map, "KYCScore"),
-      safeRouteOk: requireCgBool(map, "SafeRouteOK"),
-      safeRouteScore: requireCgDecimal(map, "SafeRouteScore"),
+      safeRouteOk: map["SafeRouteOK"] as bool?,
+      safeRouteScore: Decimal.tryParse(map["SafeRouteScore"].toString()),
     );
   }
 }

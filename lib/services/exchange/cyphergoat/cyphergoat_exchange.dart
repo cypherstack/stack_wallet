@@ -29,7 +29,12 @@ class _CgCoin {
 // Static coin list derived from CypherGoat's coins.json.
 const List<_CgCoin> _kCgCoins = [
   _CgCoin(ticker: 'btc', name: 'Bitcoin', network: 'btc', min: 4.449e-05),
-  _CgCoin(ticker: 'btc', name: 'Bitcoin (Lightning)', network: 'lightning', min: 4.449e-05),
+  _CgCoin(
+    ticker: 'btc',
+    name: 'Bitcoin (Lightning)',
+    network: 'lightning',
+    min: 4.449e-05,
+  ),
   _CgCoin(ticker: 'eth', name: 'Ethereum', network: 'eth', min: 0.001114),
   _CgCoin(ticker: 'xmr', name: 'Monero', network: 'xmr', min: 0.01886),
   _CgCoin(ticker: 'ltc', name: 'Litecoin', network: 'ltc', min: 0.04444),
@@ -74,18 +79,33 @@ const List<_CgCoin> _kCgCoins = [
   _CgCoin(ticker: 'wow', name: 'Wownero', network: 'wow', min: 163.8),
   _CgCoin(ticker: 'ban', name: 'Banano', network: 'banano', min: 2614.0),
   _CgCoin(ticker: 'arrr', name: 'Pirate Chain', network: 'arrr', min: 4.8),
-  _CgCoin(ticker: 'arrrbsc', name: 'Pirate Chain (BSC)', network: 'arrrbsc', min: 4.8),
+  _CgCoin(
+    ticker: 'arrrbsc',
+    name: 'Pirate Chain (BSC)',
+    network: 'arrrbsc',
+    min: 4.8,
+  ),
   _CgCoin(ticker: 'dcr', name: 'Decred', network: 'dcr', min: 0.3045),
   _CgCoin(ticker: 'aave', name: 'Aave', network: 'aave', min: 0.01574),
   _CgCoin(ticker: 'avax', name: 'Avalanche', network: 'avax', min: 0.4263),
-  _CgCoin(ticker: 'bat', name: 'Basic Attention Token', network: 'bat', min: 32.09),
+  _CgCoin(
+    ticker: 'bat',
+    name: 'Basic Attention Token',
+    network: 'bat',
+    min: 32.09,
+  ),
   _CgCoin(ticker: 'link', name: 'Chainlink (BSC)', network: 'bsc', min: 0.2014),
   _CgCoin(ticker: 'gusd', name: 'Gemini Dollar', network: 'gusd'),
   _CgCoin(ticker: 'paxg', name: 'Paxos Gold', network: 'paxg', min: 0.002),
   _CgCoin(ticker: 'hbar', name: 'Hedera', network: 'hbar', min: 12),
   _CgCoin(ticker: 'ark', name: 'Ark', network: 'ark', min: 10.96),
   _CgCoin(ticker: 'firo', name: 'Firo', network: 'firo', min: 14.24),
-  _CgCoin(ticker: 'wbtc', name: 'Wrapped Bitcoin', network: 'wbtc', min: 4.444e-05),
+  _CgCoin(
+    ticker: 'wbtc',
+    name: 'Wrapped Bitcoin',
+    network: 'wbtc',
+    min: 4.444e-05,
+  ),
   _CgCoin(ticker: '1inch', name: '1inch', network: '1inch', min: 19.87),
   _CgCoin(ticker: 'dash', name: 'Dash', network: 'dash', min: 0.2152),
   _CgCoin(ticker: 'zano', name: 'Zano', network: 'zano', min: 0.3358),
@@ -99,13 +119,28 @@ const List<_CgCoin> _kCgCoins = [
   _CgCoin(ticker: 'tslax', name: 'TSLA xStock', network: 'tslax', min: 0.4),
   _CgCoin(ticker: 'qqqx', name: 'Nasdaq xStock', network: 'qqqx', min: 0.3),
   _CgCoin(ticker: 'crclx', name: 'Circle xStock', network: 'crclx', min: 1.3),
-  _CgCoin(ticker: 'mstrx', name: 'MicroStrategy xStock', network: 'mstrx', min: 0.4),
+  _CgCoin(
+    ticker: 'mstrx',
+    name: 'MicroStrategy xStock',
+    network: 'mstrx',
+    min: 0.4,
+  ),
   _CgCoin(ticker: 'aaplx', name: 'Apple xStock', network: 'aaplx', min: 0.6),
   _CgCoin(ticker: 'coinx', name: 'Coinbase xStock', network: 'coinx', min: 0.5),
-  _CgCoin(ticker: 'googlx', name: 'Alphabet xStock', network: 'googlx', min: 0.7),
+  _CgCoin(
+    ticker: 'googlx',
+    name: 'Alphabet xStock',
+    network: 'googlx',
+    min: 0.7,
+  ),
   _CgCoin(ticker: 'amznx', name: 'Amazon xStock', network: 'amznx', min: 0.6),
   _CgCoin(ticker: 'metax', name: 'Meta xStock', network: 'metax', min: 0.2),
-  _CgCoin(ticker: 'hoodx', name: 'Robinhood xStock', network: 'hoodx', min: 1.3),
+  _CgCoin(
+    ticker: 'hoodx',
+    name: 'Robinhood xStock',
+    network: 'hoodx',
+    min: 1.3,
+  ),
   _CgCoin(ticker: 'gmex', name: 'Gamestop xStock', network: 'gmex', min: 5),
 ];
 
@@ -267,22 +302,27 @@ class CypherGoatExchange extends Exchange {
       final data = response.value!;
       final estimateIdStr = data.rates.estimateId.toString();
 
-      final estimates = data.rates.results
-          .where((r) => r.amount > Decimal.zero)
-          .map(
-            (r) => Estimate(
-              estimatedAmount: r.amount,
+      final List<Estimate> estimates = [];
+      for (final quote in response.value!.rates.results) {
+        final provider = quote.exchange.toLowerCase();
+        if (provider != "changenow" &&
+            provider != "letsexchange" &&
+            provider != "exolix") {
+          estimates.add(
+            Estimate(
+              estimatedAmount: quote.amount,
               fixedRate: false,
               reversed: false,
-              exchangeProvider: r.exchange,
+              exchangeProvider: quote.exchange,
               rateId: estimateIdStr,
+              // exchangeProviderLogo: quote.providerLogo,
+              // kycRating: quote.kycRating,
             ),
-          )
-          .toList();
+          );
+        }
+      }
 
-      estimates.sort(
-        (a, b) => b.estimatedAmount.compareTo(a.estimatedAmount),
-      );
+      estimates.sort((a, b) => b.estimatedAmount.compareTo(a.estimatedAmount));
 
       if (estimates.isEmpty) {
         return ExchangeResponse(
@@ -382,6 +422,7 @@ class CypherGoatExchange extends Exchange {
           refundExtraId: "",
           status: tx.status,
           exchangeName: exchangeName,
+          other: tx.track,
         ),
       );
     } on ExchangeException catch (e) {
@@ -431,6 +472,7 @@ class CypherGoatExchange extends Exchange {
           refundExtraId: "",
           status: tx.status,
           exchangeName: exchangeName,
+          other: tx.track,
         ),
       );
     } on ExchangeException catch (e) {
@@ -487,6 +529,7 @@ class CypherGoatExchange extends Exchange {
           refundExtraId: trade.refundExtraId,
           status: tx.status,
           exchangeName: exchangeName,
+          other: tx.track,
         ),
       );
     } on ExchangeException catch (e) {

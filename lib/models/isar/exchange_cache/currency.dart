@@ -12,6 +12,7 @@ import 'package:isar_community/isar.dart';
 
 import '../../../app_config.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exolix/exolix_exchange.dart';
 import '../../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
@@ -103,6 +104,9 @@ class Currency {
       const (WizardSwapExchange) => ticker.toLowerCase(),
 
       const (LetsExchangeExchange) => network.toLowerCase(),
+
+      const (CypherGoatExchange) =>
+        network.isNotEmpty ? network.toLowerCase() : ticker.toLowerCase(),
 
       _ => throw Exception("Unknown exchange: $exchangeName"),
     };

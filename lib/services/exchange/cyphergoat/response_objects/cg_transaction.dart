@@ -62,6 +62,7 @@ class CgTransaction {
   }
 
   factory CgTransaction.fromMap(Map<String, dynamic> map) {
+    print(map);
     return CgTransaction(
       coin1: requireCgString(map, "Coin1"),
       coin2: requireCgString(map, "Coin2"),
@@ -73,7 +74,7 @@ class CgTransaction {
       id: requireCgString(map, "Id"),
       sendAmount: requireCgDecimal(map, "SendAmount"),
       track: optionalCgString(map, "Track"),
-      status: requireCgString(map, "Status"),
+      status: optionalCgString(map, "Status") ?? "waiting",
       kyc: optionalCgString(map, "KYC"),
       token: optionalCgString(map, "Token"),
       done: requireCgBool(map, "Done"),
