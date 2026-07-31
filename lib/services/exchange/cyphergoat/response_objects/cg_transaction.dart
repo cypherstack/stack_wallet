@@ -62,7 +62,6 @@ class CgTransaction {
   }
 
   factory CgTransaction.fromMap(Map<String, dynamic> map) {
-    print(map);
     return CgTransaction(
       coin1: requireCgString(map, "Coin1"),
       coin2: requireCgString(map, "Coin2"),

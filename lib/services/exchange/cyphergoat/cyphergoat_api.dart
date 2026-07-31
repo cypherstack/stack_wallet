@@ -84,10 +84,6 @@ abstract class CypherGoatAPI {
       "best": "false",
     };
 
-    if (kCypherGoatApiKey.isNotEmpty) {
-      params["api_key"] = kCypherGoatApiKey;
-    }
-
     final uri = _buildUri(path: "/estimate", params: params);
 
     try {
