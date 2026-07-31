@@ -41,12 +41,16 @@ final class SharedDatabase extends _$SharedDatabase {
     : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onUpgrade: (m, from, to) async {
-      if (from < 2) {
+      if (from < 3) {
+        // deletion is fine here because sib was not used before this
+        await m.deleteTable(shopInBitSettings.actualTableName);
+        await m.deleteTable(shopInBitTickets.actualTableName);
+
         await m.createTable(shopInBitSettings);
         await m.createTable(shopInBitTickets);
         await m.createTable(appNotifications);
