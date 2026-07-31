@@ -147,9 +147,6 @@ abstract class CypherGoatAPI {
     if (estimateId != null && estimateId.isNotEmpty) {
       params["estimateid"] = estimateId;
     }
-    if (kCypherGoatApiKey.isNotEmpty) {
-      params["api_key"] = kCypherGoatApiKey;
-    }
 
     final uri = _buildUri(path: "/swap", params: params);
 
@@ -186,9 +183,6 @@ abstract class CypherGoatAPI {
     required String cgid,
   }) async {
     final params = <String, String>{"id": cgid};
-    if (kCypherGoatApiKey.isNotEmpty) {
-      params["api_key"] = kCypherGoatApiKey;
-    }
 
     final uri = _buildUri(path: "/transaction", params: params);
 
