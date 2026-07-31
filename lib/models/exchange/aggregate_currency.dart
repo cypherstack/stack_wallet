@@ -46,7 +46,9 @@ class AggregateCurrency {
     return _map.values.first.name.split(" (Mainnet").first;
   }
 
-  String get image => _map.values.first.image;
+  String get image => _map.values
+      .map((e) => e.image)
+      .firstWhere((e) => e.isNotEmpty, orElse: () => "");
 
   SupportedRateType get rateType => _map.values.first.rateType;
 
