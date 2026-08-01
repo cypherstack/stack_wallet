@@ -569,23 +569,62 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       feeForOneOutput = overrideFeeAmount;
     }
 
-    final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
+    late TxData data;
+    if (txData.type == TxType.mwebPegIn) {
+      while (true) {
+        final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
+        if (satoshiAmountToSend.isNegative) {
+          throw Exception(
+            "Estimated fee ($feeForOneOutput sats) is greater than balance!",
+          );
+        }
 
-    if (satoshiAmountToSend.isNegative) {
-      throw Exception(
-        "Estimated fee ($feeForOneOutput sats) is greater than balance!",
+        data = await buildTransaction(
+          txData: txData.copyWith(
+            recipients: await helperRecipientsConvert(
+              [recipientAddress],
+              [satoshiAmountToSend],
+            ),
+          ),
+          inputsWithKeys: inputsWithKeys,
+        );
+
+        if (overrideFeeAmount != null) {
+          break;
+        }
+
+        // Signing can change vSize, so calculate the fee from the final tx.
+        final vSize = BigInt.from(data.vSize!);
+        final feeForFinalVSize = BigInt.from(
+          satsPerVByte != null
+              ? satsPerVByte * data.vSize!
+              : estimateTxFee(vSize: data.vSize!, feeRatePerKB: feeRatePerKB),
+        );
+        final requiredFee = feeForFinalVSize > vSize ? feeForFinalVSize : vSize;
+        if (feeForOneOutput >= requiredFee) {
+          break;
+        }
+        feeForOneOutput = requiredFee;
+      }
+    } else {
+      final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
+
+      if (satoshiAmountToSend.isNegative) {
+        throw Exception(
+          "Estimated fee ($feeForOneOutput sats) is greater than balance!",
+        );
+      }
+
+      data = await buildTransaction(
+        txData: txData.copyWith(
+          recipients: await helperRecipientsConvert(
+            [recipientAddress],
+            [satoshiAmountToSend],
+          ),
+        ),
+        inputsWithKeys: inputsWithKeys,
       );
     }
-
-    final data = await buildTransaction(
-      txData: txData.copyWith(
-        recipients: await helperRecipientsConvert(
-          [recipientAddress],
-          [satoshiAmountToSend],
-        ),
-      ),
-      inputsWithKeys: inputsWithKeys,
-    );
 
     return data.copyWith(
       fee: Amount(
