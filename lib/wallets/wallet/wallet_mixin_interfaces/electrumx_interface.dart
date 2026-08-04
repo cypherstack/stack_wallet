@@ -40,6 +40,57 @@ import 'rbf_interface.dart';
 import 'sign_verify_interface.dart';
 import 'view_only_option_interface.dart';
 
+@visibleForTesting
+coinlib.Output buildFiroOpReturnOutput(String opReturnData) {
+  try {
+    final opReturnBytes = opReturnData.toUint8ListFromHex;
+
+    if (opReturnBytes.length > 80) {
+      throw Exception(
+        "OP_RETURN data exceeds 80 byte limit: ${opReturnBytes.length} bytes",
+      );
+    }
+
+    final pushData = opReturnBytes.length <= 75
+        ? Uint8List.fromList([opReturnBytes.length, ...opReturnBytes])
+        : Uint8List.fromList([0x4c, opReturnBytes.length, ...opReturnBytes]);
+
+    return coinlib.Output.fromScriptBytes(
+      BigInt.zero,
+      Uint8List.fromList([0x6a, ...pushData]),
+    );
+  } catch (e, s) {
+    Logging.instance.e(
+      "Failed to add OP_RETURN output",
+      error: e,
+      stackTrace: s,
+    );
+    throw Exception("Invalid OP_RETURN data: $e");
+  }
+}
+
+@visibleForTesting
+coinlib.CoinSelection selectOptimalElectrumxCoins({
+  required List<coinlib.InputCandidate> candidates,
+  required coinlib.Output recipientOutput,
+  required coinlib.Program changeProgram,
+  required BigInt feePerKb,
+  required BigInt minFee,
+  required BigInt minChange,
+  String? firoOpReturnData,
+}) => coinlib.CoinSelection.optimal(
+  candidates: candidates,
+  recipients: [
+    recipientOutput,
+    if (firoOpReturnData != null && firoOpReturnData.isNotEmpty)
+      buildFiroOpReturnOutput(firoOpReturnData),
+  ],
+  changeProgram: changeProgram,
+  feePerKb: feePerKb,
+  minFee: minFee,
+  minChange: minChange,
+);
+
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>
     implements ViewOnlyOptionInterface<T>, SignVerifyInterface {
@@ -744,13 +795,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final coinlib.Program changeProgram = clChangeAddress.program;
 
-    final coinlib.CoinSelection selection = coinlib.CoinSelection.optimal(
+    final coinlib.CoinSelection selection = selectOptimalElectrumxCoins(
       candidates: candidates,
-      recipients: [recipientOutput],
+      recipientOutput: recipientOutput,
       changeProgram: changeProgram,
       feePerKb: feePerKb,
       minFee: minFee,
       minChange: cryptoCurrency.dustLimit.raw,
+      firoOpReturnData: cryptoCurrency is Firo ? txData.opReturnData : null,
     );
 
     if (selection.tooLarge) {
@@ -1066,57 +1118,22 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     if (cryptoCurrency is Firo &&
         txData.opReturnData != null &&
         txData.opReturnData!.isNotEmpty) {
-      try {
-        final opReturnBytes = txData.opReturnData!.toUint8ListFromHex;
+      final opReturnOutput = buildFiroOpReturnOutput(txData.opReturnData!);
+      clTx = clTx.addOutput(opReturnOutput);
 
-        // Validate OP_RETURN size (Bitcoin/Firo limit is 80 bytes)
-        if (opReturnBytes.length > 80) {
-          throw Exception(
-            "OP_RETURN data exceeds 80 byte limit: ${opReturnBytes.length} bytes",
-          );
-        }
+      Logging.instance.i(
+        "Added OP_RETURN output with "
+        "${txData.opReturnData!.length ~/ 2} bytes of data",
+      );
 
-        // Encode push data: OP_PUSHDATA1 (0x4c) for 76-80 bytes, direct length otherwise
-        final pushData = opReturnBytes.length <= 75
-            ? Uint8List.fromList([opReturnBytes.length, ...opReturnBytes])
-            : Uint8List.fromList([
-                0x4c,
-                opReturnBytes.length,
-                ...opReturnBytes,
-              ]);
-
-        final opReturnScript = Uint8List.fromList([
-          0x6a, // OP_RETURN opcode
-          ...pushData,
-        ]);
-
-        final opReturnOutput = coinlib.Output.fromScriptBytes(
-          BigInt.zero, // OP_RETURN outputs have 0 value
-          opReturnScript,
-        );
-
-        clTx = clTx.addOutput(opReturnOutput);
-
-        Logging.instance.i(
-          "Added OP_RETURN output with ${opReturnBytes.length} bytes of data",
-        );
-
-        tempOutputs.add(
-          OutputV2.isarCantDoRequiredInDefaultConstructor(
-            scriptPubKeyHex: opReturnScript.toHex,
-            valueStringSats: "0",
-            addresses: [],
-            walletOwns: false,
-          ),
-        );
-      } catch (e, s) {
-        Logging.instance.e(
-          "Failed to add OP_RETURN output",
-          error: e,
-          stackTrace: s,
-        );
-        throw Exception("Invalid OP_RETURN data: $e");
-      }
+      tempOutputs.add(
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: opReturnOutput.scriptPubKey.toHex,
+          valueStringSats: "0",
+          addresses: [],
+          walletOwns: false,
+        ),
+      );
     }
     if (isMweb) {
       if (hasNonWitnessInput) {
