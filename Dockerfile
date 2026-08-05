@@ -32,9 +32,9 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.91.0 --profile minimal --no-modify-path \
  && rustup install 1.85.1 1.71.0 stable --profile minimal \
- && rustup target add x86_64-unknown-linux-gnu --toolchain 1.89.0 \
+ && rustup target add x86_64-unknown-linux-gnu --toolchain 1.91.0 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -116,10 +116,10 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.91.0 --profile minimal --no-modify-path \
  && rustup target add \
       aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
-      --toolchain 1.89.0 \
+      --toolchain 1.91.0 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 

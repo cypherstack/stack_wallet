@@ -48,6 +48,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
+          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          flutter --version
+
       - name: Set version
         id: ver
         run: |
@@ -124,6 +130,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
+          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          flutter --version
 
       - name: Set version
         id: ver
@@ -521,6 +533,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
+          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          flutter --version
+
       - name: Set version
         id: ver
         run: |
@@ -584,6 +602,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
+          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          flutter --version
 
       - name: Set version
         id: ver
@@ -766,6 +790,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
+          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          flutter --version
+
       - name: Set version
         id: ver
         run: |
@@ -895,8 +925,8 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
+          rustup toolchain install 1.91.0
+          rustup default 1.91.0
 
       - name: Configure app
         run: |
@@ -981,8 +1011,8 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
+          rustup toolchain install 1.91.0
+          rustup default 1.91.0
 
       - name: Configure app
         run: |
@@ -1056,10 +1086,10 @@ jobs:
       - name: Install additional Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
-          rustup target add aarch64-apple-ios --toolchain 1.89.0
-          rustup target add x86_64-apple-ios --toolchain 1.89.0
+          rustup toolchain install 1.91.0
+          rustup default 1.91.0
+          rustup target add aarch64-apple-ios --toolchain 1.91.0
+          rustup target add x86_64-apple-ios --toolchain 1.91.0
 
       - name: Configure app
         run: |
@@ -1224,6 +1254,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
+          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          flutter --version
+
       - name: Set version
         id: ver
         run: |
@@ -1353,8 +1389,8 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
+          rustup toolchain install 1.91.0
+          rustup default 1.91.0
 
       - name: Configure app
         run: |
@@ -1439,9 +1475,9 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
-          rustup target add aarch64-apple-darwin --toolchain 1.89.0
+          rustup toolchain install 1.91.0
+          rustup default 1.91.0
+          rustup target add aarch64-apple-darwin --toolchain 1.91.0
           cargo install cargo-lipo
 
       - name: Configure app
@@ -1516,10 +1552,10 @@ jobs:
       - name: Install additional Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
-          rustup target add aarch64-apple-ios --toolchain 1.89.0
-          rustup target add x86_64-apple-ios --toolchain 1.89.0
+          rustup toolchain install 1.91.0
+          rustup default 1.91.0
+          rustup target add aarch64-apple-ios --toolchain 1.91.0
+          rustup target add x86_64-apple-ios --toolchain 1.91.0
 
       - name: Configure app
         run: |
@@ -1667,4 +1703,3 @@ jobs:
         with:
           name: stack_duo-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
           path: stack_duo-appimage-x86_64-${{ steps.ver.outputs.version }}.AppImage
-

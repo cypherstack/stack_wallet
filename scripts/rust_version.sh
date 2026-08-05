@@ -2,19 +2,19 @@
 
 
 set_rust_to_everything_else() {
-  if rustup toolchain list | grep -q "1.85.1"; then
-    rustup default 1.89.0
+  if rustup toolchain list | grep -q "1.91.0"; then
+    rustup default 1.91.0
   else
-    echo "Rust version 1.89.0 is not installed. Please install it using 'rustup install 1.89.0'." >&2
+    echo "Rust version 1.91.0 is not installed. Please install it using 'rustup install 1.91.0'." >&2
     exit 1
   fi
 }
 
 set_rust_version_for_libepiccash() {
-  if rustup toolchain list | grep -q "1.89.0"; then
-    rustup default 1.89.0
+  if rustup toolchain list | grep -q "1.91.0"; then
+    rustup default 1.91.0
   else
-    echo "Rust version 1.89.0 is not installed. Please install it using 'rustup install 1.89.0'." >&2
+    echo "Rust version 1.91.0 is not installed. Please install it using 'rustup install 1.91.0'." >&2
     exit 1
   fi
 }
