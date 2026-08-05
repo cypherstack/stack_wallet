@@ -48,7 +48,7 @@ const TransactionBlockExplorerSchema = CollectionSchema(
   getId: _transactionBlockExplorerGetId,
   getLinks: _transactionBlockExplorerGetLinks,
   attach: _transactionBlockExplorerAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _transactionBlockExplorerEstimateSize(

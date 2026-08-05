@@ -171,6 +171,8 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
               ),
             );
           case xelis_sdk.WalletEvent.newPendingTransaction:
+            // Stack Wallet's transaction model requires a finalized
+            // topoheight, so refresh this entry after it is finalized.
             continue;
           case xelis_sdk.WalletEvent.balanceChanged:
             final data = xelis_sdk.BalanceChangedEvent.fromJson(

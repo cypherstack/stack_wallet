@@ -112,7 +112,7 @@ const WalletInfoSchema = CollectionSchema(
   getId: _walletInfoGetId,
   getLinks: _walletInfoGetLinks,
   attach: _walletInfoAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _walletInfoEstimateSize(

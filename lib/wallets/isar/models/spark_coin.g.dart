@@ -110,7 +110,7 @@ const SparkCoinSchema = CollectionSchema(
   getId: _sparkCoinGetId,
   getLinks: _sparkCoinGetLinks,
   attach: _sparkCoinAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _sparkCoinEstimateSize(
