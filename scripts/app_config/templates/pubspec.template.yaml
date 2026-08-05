@@ -30,14 +30,14 @@ dependencies:
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
-#  xelis_dart_sdk: 0.30.9
+#  xelis_dart_sdk: 0.31.0
 ##   git:
 ##     url: https://github.com/xelis-project/xelis-dart-sdk.git
-##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
+##     ref: bf125be662a2c9d286808bdb7fd517f7ebd7710a
 #  xelis_flutter:
 #    git:
 #      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-#      ref: v0.2.1
+#      ref: f67a02c6fff7c3c269f4497e077c7cf419076a60
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
