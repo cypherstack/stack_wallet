@@ -11,6 +11,8 @@
 import 'dart:typed_data';
 
 extension BigIntExtensions on BigInt {
+  BigInt atLeast(BigInt minimum) => this < minimum ? minimum : this;
+
   String get toHex {
     if (this < BigInt.zero) {
       throw Exception("BigInt value is negative");
