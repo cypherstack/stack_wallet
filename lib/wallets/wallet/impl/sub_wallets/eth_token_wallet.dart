@@ -256,6 +256,10 @@ class EthTokenWallet extends Wallet {
       ),
     );
 
+    // Token sends share ethWallet.internalSharedPrepareSend, so the zero-tip
+    // bug hit ETH and every ERC-20 (USDC included) identically, and the one
+    // fix covers both. As in ethereum_wallet, quote base + tip rather than
+    // maxFeePerGas, which carries headroom the user is never charged for.
     final feeEstimate = await estimateFeeFor(
       Amount.zero,
       prep.baseFee + prep.priorityFee,
