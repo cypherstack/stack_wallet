@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +12,6 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 
 import '../../sample_data/theme_json.dart';
@@ -132,7 +133,7 @@ void main() {
 
     expect(await platformOverrides.secureStorage.read(key: kPinKey), '1234');
     expect(platformOverrides.secureStorage.writes, 1);
-    expect(biometrics.calls, 0);
+    expect(biometrics.calls, Platform.isLinux ? 0 : 1);
 
     verify(prefs.useBiometrics = false).called(1);
     verify(prefs.hasPin = true).called(1);
