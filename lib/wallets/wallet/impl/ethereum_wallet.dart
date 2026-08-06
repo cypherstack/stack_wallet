@@ -440,7 +440,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       int nonce,
       BigInt chainId,
       BigInt baseFee,
-      BigInt maxBaseFee,
+      BigInt maxFeePerGas,
       BigInt priorityFee,
     })
   >
@@ -467,7 +467,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     final feeObject = await fees;
     final baseFee = feeObject.suggestBaseFee;
-    BigInt maxBaseFee = baseFee;
+    BigInt maxBaseFee = baseFee * BigInt.two;
     BigInt priorityFee;
 
     switch (txData.feeRateType!) {
@@ -495,15 +495,12 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     if (baseFee > maxBaseFee) {
       throw Exception("Base cannot be greater than max base fee");
     }
-    if (priorityFee > maxBaseFee) {
-      throw Exception("Priority fee cannot be greater than max base fee");
-    }
 
     return (
       nonce: nonce,
       chainId: chainId,
       baseFee: baseFee,
-      maxBaseFee: maxBaseFee,
+      maxFeePerGas: maxBaseFee + priorityFee,
       priorityFee: priorityFee,
     );
   }
@@ -533,7 +530,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
@@ -543,7 +540,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     final feeEstimate = await estimateFeeFor(
       Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+      prep.baseFee + prep.priorityFee,
     );
 
     return txData.copyWith(

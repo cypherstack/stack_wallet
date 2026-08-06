@@ -248,7 +248,7 @@ class EthTokenWallet extends Wallet {
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
@@ -258,7 +258,7 @@ class EthTokenWallet extends Wallet {
 
     final feeEstimate = await estimateFeeFor(
       Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+      prep.baseFee + prep.priorityFee,
     );
     return txData.copyWith(
       fee: feeEstimate,
