@@ -440,7 +440,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       int nonce,
       BigInt chainId,
       BigInt baseFee,
-      BigInt maxBaseFee,
+      BigInt maxFeePerGas,
       BigInt priorityFee,
     })
   >
@@ -465,9 +465,21 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           atBlock: const web3.BlockNum.pending(),
         );
 
+    // A miner charges: baseFee + min(priorityFee, maxFeePerGas - baseFee).
+    // So maxFeePerGas has to cover the base fee AND leave room for the tip on
+    // top. If maxFeePerGas only equals the base fee, that min() is 0 and the
+    // miner is tipped nothing no matter what priorityFee says.
     final feeObject = await fees;
+
+    // The oracle's slow/medium/fast are *total* prices (base + tip), so the tip
+    // for a tier is that tier minus the base fee.
     final baseFee = feeObject.suggestBaseFee;
-    BigInt maxBaseFee = baseFee;
+
+    // Doubled to leave headroom: the base fee can climb 12.5% per block, and by
+    // the time this tx is mined it will not be the base fee we just read. Any
+    // headroom we don't use is not charged, so this is free insurance against
+    // the tx becoming unmineable a few blocks from now.
+    BigInt maxBaseFee = baseFee * BigInt.two;
     BigInt priorityFee;
 
     switch (txData.feeRateType!) {
@@ -487,23 +499,32 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         break;
 
       case FeeRateType.custom:
+        // Not doubled: the user set this cap on purpose, so honour it exactly.
         priorityFee = txData.ethEIP1559Fee!.priorityFeeWei;
         maxBaseFee = txData.ethEIP1559Fee!.maxBaseFeeWei;
         break;
     }
 
+    // Only reachable via custom fees now, since the tiers above always give
+    // maxBaseFee twice the base fee. It catches a user capping the base fee
+    // below what the network currently charges, which can never be mined.
     if (baseFee > maxBaseFee) {
       throw Exception("Base cannot be greater than max base fee");
     }
-    if (priorityFee > maxBaseFee) {
-      throw Exception("Priority fee cannot be greater than max base fee");
-    }
+
+    // There used to be a second check here rejecting priorityFee > maxBaseFee.
+    // It compared a tip against a base fee ceiling, which are unrelated
+    // quantities, and it fired on the fast tier every time the network's tip
+    // was larger than its base fee (routine now that base fees are sub-gwei).
+    // The real EIP-1559 rule is maxFeePerGas >= priorityFee, which the sum
+    // below satisfies by construction, so no check is needed.
 
     return (
       nonce: nonce,
       chainId: chainId,
       baseFee: baseFee,
-      maxBaseFee: maxBaseFee,
+      // Base fee ceiling plus the tip, so the tip has somewhere to fit.
+      maxFeePerGas: maxBaseFee + priorityFee,
       priorityFee: priorityFee,
     );
   }
@@ -533,7 +554,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
@@ -541,9 +562,12 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       ),
     );
 
+    // Quote the fee we expect to pay (base + tip), not maxFeePerGas. The latter
+    // includes the unused headroom, which would roughly double the number shown
+    // to the user for gas they will never be charged for.
     final feeEstimate = await estimateFeeFor(
       Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+      prep.baseFee + prep.priorityFee,
     );
 
     return txData.copyWith(
