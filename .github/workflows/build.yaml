@@ -50,8 +50,8 @@ jobs:
 
       - name: Use Flutter 3.44.8
         run: |
-          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
-          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
           flutter --version
 
       - name: Set version
@@ -133,8 +133,8 @@ jobs:
 
       - name: Use Flutter 3.44.8
         run: |
-          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
-          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
           flutter --version
 
       - name: Set version
@@ -264,7 +264,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -383,7 +383,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -465,7 +465,7 @@ jobs:
           toolchain: stable
           targets: aarch64-apple-ios
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -535,8 +535,8 @@ jobs:
 
       - name: Use Flutter 3.44.8
         run: |
-          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
-          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
           flutter --version
 
       - name: Set version
@@ -605,8 +605,8 @@ jobs:
 
       - name: Use Flutter 3.44.8
         run: |
-          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
-          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
           flutter --version
 
       - name: Set version
@@ -792,8 +792,8 @@ jobs:
 
       - name: Use Flutter 3.44.8
         run: |
-          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
-          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
           flutter --version
 
       - name: Set version
@@ -910,7 +910,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -999,7 +999,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -1074,7 +1074,7 @@ jobs:
           toolchain: stable
           targets: aarch64-apple-ios
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -1256,8 +1256,8 @@ jobs:
 
       - name: Use Flutter 3.44.8
         run: |
-          git -C "$FLUTTER_HOME" fetch --depth 1 origin refs/tags/3.44.8
-          git -C "$FLUTTER_HOME" checkout --detach FETCH_HEAD
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
           flutter --version
 
       - name: Set version
@@ -1374,7 +1374,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -1463,7 +1463,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
@@ -1540,7 +1540,7 @@ jobs:
           toolchain: stable
           targets: aarch64-apple-ios
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.44.8'
           channel: 'stable'
