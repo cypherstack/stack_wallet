@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.10.0 <4.0.0"
-  flutter: ^3.38.1
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ^3.44.0
 
 dependencies:
   flutter:
@@ -30,14 +30,14 @@ dependencies:
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
-#  xelis_dart_sdk: 0.30.9
+#  xelis_dart_sdk: 0.35.1
 ##   git:
 ##     url: https://github.com/xelis-project/xelis-dart-sdk.git
 ##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
 #  xelis_flutter:
 #    git:
 #      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-#      ref: v0.2.1
+#      ref: f67a02c6fff7c3c269f4497e077c7cf419076a60
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
@@ -212,7 +212,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: 210fe8bbb93a9e0bcbc8e99894c261f53097d5e2
+      ref: 84c563104f1a19c26e49bafccb7da404b210b666
   socks5_proxy: 1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
