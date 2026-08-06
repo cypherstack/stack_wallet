@@ -229,7 +229,7 @@ extension XelisTableManagement on LibXelisWallet {
         final tablePath = await getPrecomputedTablesPath();
         await libXelis.updateTables(
           precomputedTablesPath: tablePath,
-          stack_l1Low: state.desiredSize.isLow,
+          stackL1Low: state.desiredSize.isLow,
         );
 
         await setTableState(
