@@ -1421,14 +1421,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
-  json_serializable:
-    dependency: transitive
-    description:
-      name: json_serializable
-      sha256: e45aefa0324f08c683caafbb94b72837aa6193c61822799c916e45f4a263113d
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.14.1"
   jsontool:
     dependency: transitive
     description:
@@ -2600,11 +2592,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.3.0"
-      resolved-ref: f67a02c6fff7c3c269f4497e077c7cf419076a60
-      url: "https://github.com/xelis-project/xelis-flutter-ffi.git"
+      ref: "3b122aaea48daee2e1844f17650e2f1ad31d8bcb"
+      resolved-ref: "3b122aaea48daee2e1844f17650e2f1ad31d8bcb"
+      url: "https://github.com/ManyMath/xelis-flutter-ffi.git"
     source: git
-    version: "0.2.0"
+    version: "0.3.1"
   xml:
     dependency: transitive
     description:

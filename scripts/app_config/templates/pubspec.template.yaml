@@ -36,8 +36,8 @@ dependencies:
 ##     ref: a07489e6ed10355ad34f08445dcd9441202393c1
 #  xelis_flutter:
 #    git:
-#      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-#      ref: v0.3.0
+#      url: https://github.com/ManyMath/xelis-flutter-ffi.git
+#      ref: 3b122aaea48daee2e1844f17650e2f1ad31d8bcb
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
