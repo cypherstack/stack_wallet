@@ -32,9 +32,9 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.91.0 --profile minimal --no-modify-path \
  && rustup install 1.85.1 1.71.0 stable --profile minimal \
- && rustup target add x86_64-unknown-linux-gnu --toolchain 1.89.0 \
+ && rustup target add x86_64-unknown-linux-gnu --toolchain 1.91.0 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -83,7 +83,11 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git init "$FLUTTER_HOME" \
+ && git -C "$FLUTTER_HOME" remote add origin https://github.com/flutter/flutter.git \
+ && git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
+ && git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
+ && git -C "$FLUTTER_HOME" tag 3.44.8 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux --android \
@@ -116,10 +120,10 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.91.0 --profile minimal --no-modify-path \
  && rustup target add \
       aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
-      --toolchain 1.89.0 \
+      --toolchain 1.91.0 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -168,7 +172,11 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git init "$FLUTTER_HOME" \
+ && git -C "$FLUTTER_HOME" remote add origin https://github.com/flutter/flutter.git \
+ && git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
+ && git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
+ && git -C "$FLUTTER_HOME" tag 3.44.8 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --android \
@@ -200,7 +208,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git init "$FLUTTER_HOME" \
+ && git -C "$FLUTTER_HOME" remote add origin https://github.com/flutter/flutter.git \
+ && git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
+ && git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
+ && git -C "$FLUTTER_HOME" tag 3.44.8 058e0af2c2b57e369d905a03ac9748b0ebf543c6 \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux \

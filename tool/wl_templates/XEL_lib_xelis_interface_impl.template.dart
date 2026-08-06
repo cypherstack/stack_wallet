@@ -164,13 +164,15 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
             yield NewTransaction(
               TransactionEntryWrapper(
                 tx,
-                entryType: _entryTypeConversion(tx.txEntryType),
+                entryType: xelisEntryTypeToWrapper(tx.txEntryType),
                 hash: tx.hash,
                 timestamp: tx.timestamp,
                 topoheight: tx.topoheight,
               ),
             );
           case xelis_sdk.WalletEvent.newPendingTransaction:
+            // Stack Wallet's transaction model requires a finalized
+            // topoheight, so refresh this entry after it is finalized.
             continue;
           case xelis_sdk.WalletEvent.balanceChanged:
             final data = xelis_sdk.BalanceChangedEvent.fromJson(
@@ -219,12 +221,12 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   @override
   Future<void> updateTables({
     required String precomputedTablesPath,
-    required bool stack_l1Low,
+    required bool stackL1Low,
   }) async {
     // TODO: add more granular table size management interface
     // for now, just patching the old system into the new FFI API
 
-    x_tables.PrecomputedTableType tableType = stack_l1Low
+    x_tables.PrecomputedTableType tableType = stackL1Low
         ? x_tables.PrecomputedTableType.l1Low()
         : x_tables.PrecomputedTableType.l1Full();
 
@@ -247,12 +249,12 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     String? seed,
     String? privateKey,
     String? precomputedTablesPath,
-    bool? stack_l1Low,
+    bool? stackL1Low,
   }) async {
     // TODO: add more granular table size management interface
     // for now, just patching the old system into the new FFI API
 
-    x_tables.PrecomputedTableType tableType = stack_l1Low ?? false
+    x_tables.PrecomputedTableType tableType = stackL1Low ?? false
         ? x_tables.PrecomputedTableType.l1Low()
         : x_tables.PrecomputedTableType.l1Full();
 
@@ -278,12 +280,12 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     required String password,
     required CryptoCurrencyNetwork network,
     String? precomputedTablesPath,
-    bool? stack_l1Low,
+    bool? stackL1Low,
   }) async {
     // TODO: add more granular table size management interface
     // for now, just patching the old system into the new FFI API
 
-    x_tables.PrecomputedTableType tableType = (stack_l1Low ?? false)
+    x_tables.PrecomputedTableType tableType = (stackL1Low ?? false)
         ? x_tables.PrecomputedTableType.l1Low()
         : x_tables.PrecomputedTableType.l1Full();
 
@@ -320,7 +322,7 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     final tx = _checkDecodeJsonStringTxEntry(e);
     return TransactionEntryWrapper(
       tx,
-      entryType: _entryTypeConversion(tx.txEntryType),
+      entryType: xelisEntryTypeToWrapper(tx.txEntryType),
       hash: tx.hash,
       timestamp: tx.timestamp,
       topoheight: tx.topoheight,
@@ -444,7 +446,7 @@ extension _CryptoCurrencyNetworkConversion on x_network.Network {
   }
 }
 
-EntryWrapper _entryTypeConversion(xelis_sdk.TransactionEntryType entryType) {
+EntryWrapper xelisEntryTypeToWrapper(xelis_sdk.TransactionEntryType entryType) {
   if (entryType is xelis_sdk.CoinbaseEntry) {
     return CoinbaseEntryWrapper(reward: entryType.reward);
   } else if (entryType is xelis_sdk.BurnEntry) {
@@ -452,6 +454,7 @@ EntryWrapper _entryTypeConversion(xelis_sdk.TransactionEntryType entryType) {
       amount: entryType.amount,
       fee: entryType.fee,
       asset: entryType.asset,
+      nonce: entryType.nonce,
     );
   } else if (entryType is xelis_sdk.IncomingEntry) {
     return IncomingEntryWrapper(
@@ -481,8 +484,55 @@ EntryWrapper _entryTypeConversion(xelis_sdk.TransactionEntryType entryType) {
           )
           .toList(),
     );
+  } else if (entryType is xelis_sdk.MultisigEntry) {
+    return MultisigEntryWrapper(
+      participants: entryType.participants,
+      threshold: entryType.threshold,
+      fee: entryType.fee,
+      nonce: entryType.nonce,
+    );
+  } else if (entryType is xelis_sdk.InvokeContractEntry) {
+    return InvokeContractEntryWrapper(
+      contract: entryType.contract,
+      deposits: entryType.deposits,
+      received: entryType.received,
+      chunkId: entryType.chunkId,
+      fee: entryType.fee,
+      maxGas: entryType.maxGas,
+      nonce: entryType.nonce,
+    );
+  } else if (entryType is xelis_sdk.DeployContractEntry) {
+    final invoke = entryType.invoke;
+    return DeployContractEntryWrapper(
+      fee: entryType.fee,
+      nonce: entryType.nonce,
+      invoke: invoke == null
+          ? null
+          : DeployInvokeWrapper(
+              maxGas: invoke.maxGas,
+              deposits: invoke.deposits,
+            ),
+    );
+  } else if (entryType is xelis_sdk.IncomingContractEntry) {
+    return IncomingContractEntryWrapper(transfers: entryType.transfers);
+  } else if (entryType is xelis_sdk.OutgoingBlobEntry) {
+    return OutgoingBlobEntryWrapper(
+      destinations: entryType.destinations,
+      fee: entryType.fee,
+      nonce: entryType.nonce,
+      data: entryType.data.toJson(),
+    );
+  } else if (entryType is xelis_sdk.IncomingBlobEntry) {
+    return IncomingBlobEntryWrapper(
+      from: entryType.from,
+      destinations: entryType.destinations,
+      data: entryType.data.toJson(),
+    );
   } else {
-    return UnknownEntryWrapper();
+    return UnknownEntryWrapper(
+      entryType: entryType.runtimeType.toString(),
+      data: entryType.toJson(),
+    );
   }
 }
 

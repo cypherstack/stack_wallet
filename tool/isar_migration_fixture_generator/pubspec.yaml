@@ -1,0 +1,12 @@
+name: stack_wallet_isar_fixture_generator
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  isar_community: 3.3.0-dev.2
+
+dev_dependencies:
+  build_runner: 2.7.1
+  isar_community_generator: 3.3.0-dev.2

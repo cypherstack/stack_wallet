@@ -36,7 +36,7 @@ abstract class LibXelisInterface {
 
   Future<void> updateTables({
     required String precomputedTablesPath,
-    required bool stack_l1Low,
+    required bool stackL1Low,
   });
 
   Future<String> getSeed(OpaqueXelisWallet wallet);
@@ -50,7 +50,7 @@ abstract class LibXelisInterface {
     String? seed,
     String? privateKey,
     String? precomputedTablesPath,
-    bool? stack_l1Low,
+    bool? stackL1Low,
   });
 
   Future<OpaqueXelisWallet> openXelisWallet(
@@ -60,7 +60,7 @@ abstract class LibXelisInterface {
     required String password,
     required CryptoCurrencyNetwork network,
     String? precomputedTablesPath,
-    bool? stack_l1Low,
+    bool? stackL1Low,
   });
 
   String getAddress(OpaqueXelisWallet wallet);
@@ -183,11 +183,13 @@ class BurnEntryWrapper extends EntryWrapper {
   final int amount;
   final int fee;
   final String asset;
+  final int nonce;
 
   const BurnEntryWrapper({
     required this.amount,
     required this.fee,
     required this.asset,
+    required this.nonce,
   });
 }
 
@@ -219,7 +221,97 @@ class OutgoingEntryWrapper extends EntryWrapper {
   });
 }
 
-class UnknownEntryWrapper extends EntryWrapper {}
+class MultisigEntryWrapper extends EntryWrapper {
+  final List<String> participants;
+  final int threshold;
+  final int fee;
+  final int nonce;
+
+  const MultisigEntryWrapper({
+    required this.participants,
+    required this.threshold,
+    required this.fee,
+    required this.nonce,
+  });
+}
+
+class InvokeContractEntryWrapper extends EntryWrapper {
+  final String contract;
+  final Map<String, int> deposits;
+  final Map<String, Map<String, int>> received;
+  final int chunkId;
+  final int fee;
+  final int maxGas;
+  final int nonce;
+
+  const InvokeContractEntryWrapper({
+    required this.contract,
+    required this.deposits,
+    required this.received,
+    required this.chunkId,
+    required this.fee,
+    required this.maxGas,
+    required this.nonce,
+  });
+}
+
+class DeployInvokeWrapper {
+  final int maxGas;
+  final Map<String, int> deposits;
+
+  const DeployInvokeWrapper({required this.maxGas, required this.deposits});
+}
+
+class DeployContractEntryWrapper extends EntryWrapper {
+  final int fee;
+  final int nonce;
+  final DeployInvokeWrapper? invoke;
+
+  const DeployContractEntryWrapper({
+    required this.fee,
+    required this.nonce,
+    required this.invoke,
+  });
+}
+
+class IncomingContractEntryWrapper extends EntryWrapper {
+  final Map<String, Map<String, int>> transfers;
+
+  const IncomingContractEntryWrapper({required this.transfers});
+}
+
+class OutgoingBlobEntryWrapper extends EntryWrapper {
+  final List<String> destinations;
+  final int fee;
+  final int nonce;
+  final Map<String, dynamic> data;
+
+  const OutgoingBlobEntryWrapper({
+    required this.destinations,
+    required this.fee,
+    required this.nonce,
+    required this.data,
+  });
+}
+
+class IncomingBlobEntryWrapper extends EntryWrapper {
+  final String from;
+  final List<String> destinations;
+  final Map<String, dynamic> data;
+
+  const IncomingBlobEntryWrapper({
+    required this.from,
+    required this.destinations,
+    required this.data,
+  });
+}
+
+class UnknownEntryWrapper extends EntryWrapper {
+  final String entryType;
+  final Map<String, dynamic>? data;
+
+  const UnknownEntryWrapper({required this.entryType, this.data});
+}
 
 // =============================================================================
 
@@ -257,6 +349,7 @@ class XelisTableState {
     this.isGenerating = false,
     this.currentSize = XelisTableSize.low,
     XelisTableSize desiredSize = XelisTableSize.full,
+    // ignore: prefer_initializing_formals
   }) : _desiredSize = desiredSize;
 
   XelisTableState copyWith({

@@ -18,6 +18,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Use Flutter 3.44.8
+        run: |
+          git -C "$FLUTTER_HOME" fetch --depth 1 origin 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          git -C "$FLUTTER_HOME" checkout --detach 058e0af2c2b57e369d905a03ac9748b0ebf543c6
+          flutter --version
+
       - name: Configure app
         run: |
           cd scripts
@@ -56,6 +62,10 @@ jobs:
           const kShopInBitPartnerSecret = "";
           const kCakePayApiToken = "";
           const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
           EOF
           fi
 

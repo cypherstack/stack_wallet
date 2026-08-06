@@ -70,7 +70,7 @@ const TokenWalletInfoSchema = CollectionSchema(
   getId: _tokenWalletInfoGetId,
   getLinks: _tokenWalletInfoGetLinks,
   attach: _tokenWalletInfoAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _tokenWalletInfoEstimateSize(

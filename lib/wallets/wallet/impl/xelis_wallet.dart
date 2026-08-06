@@ -8,9 +8,6 @@ import 'package:stack_wallet_backup/generate_password.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
-import '../../../models/isar/models/blockchain_data/transaction.dart';
-import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
-import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -23,6 +20,10 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_xelis_wallet.dart';
 import '../wallet.dart';
+import 'xelis_transaction_mapper.dart';
+
+const _defaultFeeEstimateAddress =
+    'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m';
 
 class XelisWallet extends LibXelisWallet {
   Completer<void>? _initCompleter;
@@ -57,7 +58,7 @@ class XelisWallet extends LibXelisWallet {
       seed: mnemonic,
       network: cryptoCurrency.network,
       precomputedTablesPath: tablePath,
-      stack_l1Low: tableState.currentSize.isLow,
+      stackL1Low: tableState.currentSize.isLow,
     );
 
     await secureStorageInterface.write(
@@ -91,7 +92,7 @@ class XelisWallet extends LibXelisWallet {
       password: password,
       network: cryptoCurrency.network,
       precomputedTablesPath: tablePath,
-      stack_l1Low: tableState.currentSize.isLow,
+      stackL1Low: tableState.currentSize.isLow,
     );
 
     final mnemonic = await libXelis.getSeed(wallet);
@@ -123,7 +124,7 @@ class XelisWallet extends LibXelisWallet {
       password: password!,
       network: cryptoCurrency.network,
       precomputedTablesPath: tablePath,
-      stack_l1Low: tableState.currentSize.isLow,
+      stackL1Low: tableState.currentSize.isLow,
     );
 
     await _finishInit();
@@ -381,191 +382,11 @@ class XelisWallet extends LibXelisWallet {
           continue; // Skip already processed transactions
         }
 
-        final List<OutputV2> outputs = [];
-        final List<InputV2> inputs = [];
-        TransactionType? txType;
-        const TransactionSubType txSubType = TransactionSubType.none;
-        int? nonce;
-        Amount fee = Amount(
-          rawValue: BigInt.zero,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        );
-        final Map<String, dynamic> otherData = {};
-
-        final entryType = transactionEntry.entryType;
-
-        if (entryType is CoinbaseEntryWrapper) {
-          final coinbase = entryType;
-          txType = TransactionType.incoming;
-
-          final int decimals = await libXelis.getAssetDecimals(
-            wallet!,
-            asset: libXelis.xelisAsset,
-          );
-
-          fee = Amount(
-            rawValue: BigInt.zero,
-            fractionDigits: cryptoCurrency.fractionDigits,
-          );
-
-          outputs.add(
-            OutputV2.isarCantDoRequiredInDefaultConstructor(
-              scriptPubKeyHex: "",
-              valueStringSats: coinbase.reward.toString(),
-              addresses: [thisAddress],
-              walletOwns: true,
-            ),
-          );
-          otherData['overrideFee'] = fee.toJsonString();
-        } else if (entryType is BurnEntryWrapper) {
-          final burn = entryType;
-          txType = TransactionType.outgoing;
-
-          final int decimals = await libXelis.getAssetDecimals(
-            wallet!,
-            asset: burn.asset,
-          );
-
-          fee = Amount(
-            rawValue: BigInt.from(burn.fee),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          );
-
-          inputs.add(
-            InputV2.isarCantDoRequiredInDefaultConstructor(
-              scriptSigAsm: null,
-              scriptSigHex: null,
-              sequence: null,
-              outpoint: null,
-              valueStringSats: burn.amount.toString(),
-              addresses: [thisAddress],
-              witness: null,
-              innerRedeemScriptAsm: null,
-              coinbase: null,
-              walletOwns: true,
-            ),
-          );
-
-          outputs.add(
-            OutputV2.isarCantDoRequiredInDefaultConstructor(
-              scriptPubKeyHex: "",
-              valueStringSats: burn.amount.toString(),
-              addresses: ['burn'],
-              walletOwns: false,
-            ),
-          );
-
-          otherData['burnAsset'] = burn.asset;
-        } else if (entryType is IncomingEntryWrapper) {
-          final incoming = entryType;
-          txType = incoming.from == thisAddress
-              ? TransactionType.sentToSelf
-              : TransactionType.incoming;
-
-          for (final transfer in incoming.transfers) {
-            final int decimals = await libXelis.getAssetDecimals(
-              wallet!,
-              asset: transfer.asset,
-            );
-
-            fee = Amount(
-              rawValue: BigInt.zero,
-              fractionDigits: cryptoCurrency.fractionDigits,
-            );
-
-            outputs.add(
-              OutputV2.isarCantDoRequiredInDefaultConstructor(
-                scriptPubKeyHex: "",
-                valueStringSats: transfer.amount.toString(),
-                addresses: [thisAddress],
-                walletOwns: true,
-              ),
-            );
-
-            otherData['asset_${transfer.asset}'] = transfer.amount.toString();
-            if (transfer.extraData != null) {
-              otherData['extraData_${transfer.asset}'] = transfer.extraData!;
-            }
-            otherData['overrideFee'] = fee.toJsonString();
-          }
-        } else if (entryType is OutgoingEntryWrapper) {
-          final outgoing = entryType;
-          txType = TransactionType.outgoing;
-          nonce = outgoing.nonce;
-
-          fee = Amount(
-            rawValue: BigInt.from(outgoing.fee),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          );
-
-          inputs.add(
-            InputV2.isarCantDoRequiredInDefaultConstructor(
-              scriptSigHex: null,
-              scriptSigAsm: null,
-              sequence: null,
-              outpoint: null,
-              addresses: [thisAddress],
-              valueStringSats: (outgoing.fee).toString(),
-              witness: null,
-              innerRedeemScriptAsm: null,
-              coinbase: null,
-              walletOwns: true,
-            ),
-          );
-
-          for (final transfer in outgoing.transfers) {
-            inputs.add(
-              InputV2.isarCantDoRequiredInDefaultConstructor(
-                scriptSigHex: null,
-                scriptSigAsm: null,
-                sequence: null,
-                outpoint: null,
-                addresses: [thisAddress],
-                valueStringSats: (transfer.amount).toString(),
-                witness: null,
-                innerRedeemScriptAsm: null,
-                coinbase: null,
-                walletOwns: true,
-              ),
-            );
-
-            outputs.add(
-              OutputV2.isarCantDoRequiredInDefaultConstructor(
-                scriptPubKeyHex: "",
-                valueStringSats: transfer.amount.toString(),
-                addresses: [transfer.destination],
-                walletOwns: false,
-              ),
-            );
-
-            otherData['asset_${transfer.asset}_amount'] = transfer.amount
-                .toString();
-            if (transfer.extraData != null) {
-              otherData['extraData_${transfer.asset}'] = transfer.extraData!;
-            }
-          }
-        } else {
-          // Skip unknown entry types
-          continue;
-        }
-
-        final txn = TransactionV2(
+        final txn = mapXelisTransactionEntry(
+          transactionEntry: transactionEntry,
           walletId: walletId,
-          blockHash: "", // Not provided in Xelis data
-          hash: transactionEntry.hash,
-          txid: transactionEntry.hash,
-          timestamp:
-              (transactionEntry.timestamp?.millisecondsSinceEpoch ?? 0) ~/ 1000,
-          height: transactionEntry.topoheight,
-          inputs: List.unmodifiable(inputs),
-          outputs: List.unmodifiable(outputs),
-          version: -1, // Version not provided
-          type: txType,
-          subType: txSubType,
-          otherData: jsonEncode({
-            ...otherData,
-            if (nonce != null) 'nonce': nonce,
-          }),
+          walletAddress: thisAddress,
+          fractionDigits: cryptoCurrency.fractionDigits,
         );
 
         // Logging.instance.log(
@@ -728,13 +549,13 @@ class XelisWallet extends LibXelisWallet {
       final defaultDecimals = cryptoCurrency.fractionDigits;
       final defaultFee = BigInt.from(0);
 
-      // Use default address if recipients list is empty to ensure basic fee estimates are readily available
+      // Use a default address when no recipient is available so basic fee
+      // estimates can still be calculated.
       final effectiveRecipients = recipients.isNotEmpty
           ? recipients
           : [
               TxRecipient(
-                address:
-                    'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m',
+                address: _defaultFeeEstimateAddress,
                 amount: amount,
                 isChange: false,
                 addressType: AddressType.xelis,
@@ -905,10 +726,7 @@ class XelisWallet extends LibXelisWallet {
   Future<void> handleNewTransaction(TransactionEntryWrapper tx) async {
     try {
       final txList = [tx];
-      final newTxIds = await updateTransactions(
-        isRescan: false,
-        objTransactions: txList,
-      );
+      await updateTransactions(isRescan: false, objTransactions: txList);
 
       await updateBalance();
 
