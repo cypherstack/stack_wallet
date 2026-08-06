@@ -627,6 +627,26 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
+  /// Parses [address], falling back to Firo EX (exchange) address parsing
+  /// which plain [coinlib.Address.fromString] does not support.
+  coinlib.Address _addressFromString(String address) {
+    final normalized = normalizeAddress(address);
+    try {
+      return coinlib.Address.fromString(
+        normalized,
+        cryptoCurrency.networkParams,
+      );
+    } catch (_) {
+      if (this is FiroWallet) {
+        return EXP2PKHAddress.fromString(
+          normalized,
+          (cryptoCurrency as Firo).exAddressVersion,
+        );
+      }
+      rethrow;
+    }
+  }
+
   coinlib.Input standardInputToCoinlibInput(
     StandardInput input, {
     int sequence = 0xffffffff,
@@ -720,13 +740,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       candidateBaseInputs[i] = baseInput;
     }
 
-    final coinlib.Address clRecipientAddress = coinlib.Address.fromString(
-      normalizeAddress(recipientAddress),
-      cryptoCurrency.networkParams,
-    );
     final coinlib.Output recipientOutput = coinlib.Output.fromAddress(
       satoshiAmountToSend,
-      clRecipientAddress,
+      _addressFromString(recipientAddress),
     );
 
     final coinlib.Address clChangeAddress = coinlib.Address.fromString(
@@ -1002,23 +1018,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     // Add transaction output
     for (var i = 0; i < txData.recipients!.length; i++) {
-      late final coinlib.Address address;
-
-      try {
-        address = coinlib.Address.fromString(
-          normalizeAddress(txData.recipients![i].address),
-          cryptoCurrency.networkParams,
-        );
-      } catch (_) {
-        if (this is FiroWallet) {
-          address = EXP2PKHAddress.fromString(
-            normalizeAddress(txData.recipients![i].address),
-            (cryptoCurrency as Firo).exAddressVersion,
-          );
-        } else {
-          rethrow;
-        }
-      }
+      final address = _addressFromString(txData.recipients![i].address);
       final coinlib.Output output;
       if (address is coinlib.MwebAddress) {
         isMweb = true;
