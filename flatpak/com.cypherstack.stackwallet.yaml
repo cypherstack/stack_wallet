@@ -9,12 +9,42 @@ finish-args:
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
-  - --device=dri
+  - --device=all
   - --filesystem=~/.stackwallet
   - --talk-name=org.freedesktop.secrets
   - --talk-name=org.freedesktop.Notifications
 
 modules:
+  # Minimal OpenCV build — only the modules needed by camera_linux (VideoCapture + imencode).
+  # Keeps the Flatpak from pulling in the full 47-module system OpenCV dependency chain.
+  - name: opencv
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_LIST=core,imgcodecs,imgproc,videoio
+      - -DBUILD_EXAMPLES=OFF
+      - -DBUILD_TESTS=OFF
+      - -DBUILD_PERF_TESTS=OFF
+      - -DBUILD_DOCS=OFF
+      - -DBUILD_opencv_python3=OFF
+      - -DBUILD_opencv_python_bindings_generator=OFF
+      - -DWITH_GTK=OFF
+      - -DWITH_QT=OFF
+      - -DWITH_OPENGL=OFF
+      - -DWITH_OPENCL=OFF
+      - -DWITH_CUDA=OFF
+      - -DWITH_FFMPEG=OFF
+      - -DWITH_GSTREAMER=OFF
+      - -DWITH_V4L=ON
+      - -DWITH_LIBV4L=ON
+    sources:
+      - type: git
+        url: https://github.com/opencv/opencv
+        tag: '4.10.0'
+        commit: 71d3237a093b60a27601c20e9ee6c3e52154e8b1
+
+  # Install the pre-built Flutter bundle.
   - name: stack_wallet
     buildsystem: simple
     build-commands:
@@ -34,3 +64,25 @@ modules:
     sources:
       - type: dir
         path: .
+
+  # Rebuild camera_linux and its OpenCV wrapper against the Flatpak-built OpenCV above,
+  # then overwrite the pre-built CI libs dropped by the stack_wallet module.
+  # RPATH includes both the app lib dir (for libopencv_wrapper.so) and /app/lib
+  # (for the OpenCV modules installed by the opencv module above).
+  - name: camera-linux
+    buildsystem: simple
+    build-commands:
+      - cmake -S src -B _build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH=/app
+          -DCMAKE_INSTALL_RPATH=/app/lib/stack_wallet/lib:/app/lib
+          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+      - cmake --build _build --parallel
+      - install -Dm755 _build/libopencv_wrapper.so
+          /app/lib/stack_wallet/lib/libopencv_wrapper.so
+      - install -Dm755 _build/libcamera_linux.so
+          /app/lib/stack_wallet/lib/libcamera_linux.so
+    sources:
+      - type: git
+        url: https://github.com/cypherstack/camera-linux
+        commit: ecb412474c5d240347b04ac1eb9f019802ff7034
