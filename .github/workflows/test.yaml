@@ -24,6 +24,14 @@ jobs:
           echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" -d -s
 
       - name: Get dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-cache-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-cache-
+
+      - name: Get dependencies
         run: flutter pub get
 
       - name: Create git_versions.dart stubs
