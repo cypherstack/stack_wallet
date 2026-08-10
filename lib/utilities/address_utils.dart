@@ -41,59 +41,51 @@ class AddressUtils {
   }
 
   /// Parses a URI string and returns a map with parsed components.
-static Map<String, String> _parseUri(String uri) {
-  final Map<String, String> result = {};
+  static Map<String, String> _parseUri(String uri) {
+    final Map<String, String> result = {};
+    try {
+      final Uri parsedUri = Uri.parse(uri);
 
-  try {
-    final Uri parsedUri = Uri.parse(uri);
+      if (parsedUri.hasScheme) {
+        final String scheme = parsedUri.scheme.toLowerCase();
+        result["scheme"] = scheme;
 
-    if (parsedUri.hasScheme) {
-      final String scheme = parsedUri.scheme.toLowerCase();
-      result["scheme"] = scheme;
-
-      if (scheme == "bitcoin" || scheme == "bitcoincash") {
-        result["address"] = parsedUri.path;
-      } else if (scheme == "monero") {
-        // Monero addresses can contain '?' which Uri.parse interprets
-        // as the start of the query.
-        final int addressEnd = uri.indexOf(
-          "?",
-          7, // Length of "monero:".
-        );
-
-        result["address"] = addressEnd != -1
-            ? uri.substring(7, addressEnd)
-            : uri.substring(7);
+        // Handle different URI formats.
+        if (result["scheme"] == "bitcoin" ||
+            result["scheme"] == "bitcoincash") {
+          result["address"] = parsedUri.path;
+        } else if (result["scheme"] == "monero") {
+          // Monero addresses can contain '?' which Uri.parse interprets as query start.
+          final int addressEnd = uri.indexOf(
+            "?",
+            7, // 7 is the length of "monero:".
+          );
+        } else {
+          // Default case, treat path as address.
+          result["address"] = parsedUri.path;
+        }
       } else {
+        // Plain address, including an Epicbox/Grinbox address containing '@'.
         result["address"] = parsedUri.path;
       }
-    } else {
-      // Plain address, including an Epicbox address containing '@'.
-      result["address"] = parsedUri.path;
-    }
 
-    result.addAll(
-      _parseQueryParameters(parsedUri.queryParameters),
-    );
+      // Parse query parameters.
+      result.addAll(_parseQueryParameters(parsedUri.queryParameters));
 
-    if (
-      parsedUri.fragment.isNotEmpty &&
-      result["scheme"] == "monero"
-    ) {
-      result["tx_description"] = Uri.decodeComponent(
-        parsedUri.fragment,
+      // Handle Monero-specific fragment (tx_description).
+      if (parsedUri.fragment.isNotEmpty && result["scheme"] == "monero") {
+        result["tx_description"] = Uri.decodeComponent(parsedUri.fragment);
+      }
+    } catch (e, s) {
+      Logging.instance.d(
+        "Exception caught in _parseUri($uri): $e",
+        error: e,
+        stackTrace: s,
       );
     }
-  } catch (e, s) {
-    Logging.instance.d(
-      "Exception caught in _parseUri($uri): $e",
-      error: e,
-      stackTrace: s,
-    );
-  }
 
-  return result;
-}
+    return result;
+  }
 
   /// Helper method to parse and normalize query parameters.
   static Map<String, String> _parseQueryParameters(Map<String, String> params) {
@@ -143,65 +135,52 @@ static Map<String, String> _parseUri(String uri) {
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
   ///
   /// Returns null on failure to parse
-static PaymentUriData? parsePaymentUri(
-  String uri, {
-  Logging? logging,
-}) {
-  // Hacky check that it is not just a bcash, ecash, or xel address.
-  final parts = uri.split(":");
+  static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
+    // hacky check its not just a bcash, ecash, or xel address
+    final parts = uri.split(":");
 
-  if (parts.length == 2) {
-    if ([
-      "xel",
-      "bitcoincash",
-      "bchtest",
-      "ecash",
-      "ectest",
-    ].contains(parts.first.toLowerCase())) {
+    if (parts.length == 2) {
+      if ([
+        "xel",
+        "bitcoincash",
+        "bchtest",
+        "ecash",
+        "ectest",
+      ].contains(parts.first.toLowerCase())) {
+        return null;
+      }
+    }
+
+    try {
+      final Map<String, String> parsedData = _parseUri(uri);
+
+      // Normalize the URI scheme.
+      final String scheme = parsedData["scheme"] ?? "";
+      parsedData.remove("scheme");
+
+      // Filter out unrecognized parameters.
+      final String? address = parsedData["address"];
+
+      if (address == null || address.trim().isEmpty) {
+        return null;
+      }
+
+      final Map<String, String> filteredParams = _filterParams(parsedData);
+
+      return PaymentUriData(
+        scheme: scheme,
+        address: address.trim(),
+        amount: filteredParams["amount"] ?? filteredParams["tx_amount"],
+        label: filteredParams["label"] ?? filteredParams["recipient_name"],
+        message: filteredParams["message"] ?? filteredParams["tx_description"],
+        paymentId: filteredParams["tx_payment_id"],
+        additionalParams: filteredParams,
+      );
+    } catch (e, s) {
+      logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
       return null;
     }
   }
-
-  try {
-final Map<String, String> parsedData = _parseUri(uri);
-
-final String scheme = parsedData["scheme"] ?? "";
-parsedData.remove("scheme");
-
-final String? address = parsedData["address"];
-
-if (address == null || address.trim().isEmpty) {
-  return null;
-}
-
-final Map<String, String> filteredParams =
-    _filterParams(parsedData);
-
-return PaymentUriData(
-  scheme: scheme,
-  address: address.trim(),
-  amount:
-      filteredParams["amount"] ??
-      filteredParams["tx_amount"],
-  label:
-      filteredParams["label"] ??
-      filteredParams["recipient_name"],
-  message:
-      filteredParams["message"] ??
-      filteredParams["tx_description"],
-  paymentId: filteredParams["tx_payment_id"],
-  additionalParams: filteredParams,
-);
-  } catch (e, s) {
-    logging?.i(
-      "Invalid payment URI: $uri",
-      error: e,
-      stackTrace: s,
-    );
-
-    return null;
-  }
-}
 
   /// Builds a uri string with the given address and query parameters (if any)
   static String buildUriString(
