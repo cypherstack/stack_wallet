@@ -168,6 +168,8 @@ abstract class CsSalviumInterface {
 
   bool validateAddress(String address, int network);
 
+  String paymentIdFromAddress(String address, int network);
+
   String getSeed(WrappedWallet wallet);
 
   Future<void> close(WrappedWallet wallet, {bool save = false});

@@ -1,9 +1,15 @@
 //ON
+import 'dart:ffi';
+
 import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
     as cs_salvium_deprecated;
+// ignore: implementation_imports
+import 'package:cs_salvium/src/ffi_bindings/salvium_bindings_base.dart'
+    as sal_bindings;
 import 'package:cs_salvium/src/ffi_bindings/salvium_wallet_bindings.dart'
     as sal_wallet_ffi;
+import 'package:ffi/ffi.dart';
 
 //END_ON
 import '../../models/input.dart';
@@ -552,6 +558,19 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
   @override
   bool validateAddress(String address, int network) =>
       sal_wallet_ffi.validateAddress(address, network);
+
+  @override
+  String paymentIdFromAddress(String address, int network) {
+    final addressPointer = address.toNativeUtf8().cast<Char>();
+    try {
+      final paymentIdPointer = sal_bindings.bindings
+          .SALVIUM_Wallet_paymentIdFromAddress(addressPointer, network)
+          .cast<Utf8>();
+      return sal_bindings.convertAndFree(paymentIdPointer);
+    } finally {
+      calloc.free(addressPointer);
+    }
+  }
 
   @override
   String getSeed(WrappedWallet wallet) => wallet.actual.getSeed();

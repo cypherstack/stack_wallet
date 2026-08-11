@@ -6,7 +6,8 @@ import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
 class Salvium extends CryptonoteCurrency {
-  Salvium(super.network) {
+  Salvium(super.network, {CsSalviumInterface? salviumInterface})
+    : _salviumInterface = salviumInterface ?? csSalvium {
     _idMain = "salvium";
     _uriScheme = "salvium";
     switch (network) {
@@ -22,6 +23,8 @@ class Salvium extends CryptonoteCurrency {
         throw Exception("Unsupported network: $network");
     }
   }
+
+  final CsSalviumInterface _salviumInterface;
 
   late final String _id;
   @override
@@ -54,14 +57,24 @@ class Salvium extends CryptonoteCurrency {
     if (address.contains("111")) {
       return false;
     }
-    switch (network) {
-      case CryptoCurrencyNetwork.main:
-        return csSalvium.validateAddress(address, 0);
-      case CryptoCurrencyNetwork.test:
-        return csSalvium.validateAddress(address, 1);
-      default:
-        throw Exception("Unsupported network: $network");
-    }
+
+    final networkType = _nativeNetworkType();
+    return _salviumInterface.validateAddress(address, networkType) &&
+        !isIntegratedAddress(address);
+  }
+
+  bool isIntegratedAddress(String address) {
+    return _salviumInterface
+        .paymentIdFromAddress(address, _nativeNetworkType())
+        .isNotEmpty;
+  }
+
+  int _nativeNetworkType() {
+    return switch (network) {
+      CryptoCurrencyNetwork.main => 0,
+      CryptoCurrencyNetwork.test => 1,
+      _ => throw Exception("Unsupported network: $network"),
+    };
   }
 
   @override

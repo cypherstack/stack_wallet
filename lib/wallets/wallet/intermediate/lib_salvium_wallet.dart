@@ -35,6 +35,7 @@ import '../../../utilities/stack_file_system.dart';
 import '../../../wl_gen/interfaces/cs_monero_interface.dart'
     show CsWalletListener, CsOutput, CsRecipient, CsPendingTransaction;
 import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
+import '../../crypto_currency/coins/salvium.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
@@ -1301,6 +1302,18 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
             final mainAddress = csSalvium.getAddress(wallet!);
             if (txData.recipients!.first.address != mainAddress) {
               throw Exception("Stake transactions should use your own address");
+            }
+          }
+
+          final currency = cryptoCurrency;
+          if (currency is Salvium) {
+            for (final recipient in txData.recipients!) {
+              if (currency.isIntegratedAddress(recipient.address)) {
+                throw UnsupportedError(
+                  "Salvium integrated addresses are temporarily unsupported "
+                  "because their payment IDs are not preserved",
+                );
+              }
             }
           }
 
