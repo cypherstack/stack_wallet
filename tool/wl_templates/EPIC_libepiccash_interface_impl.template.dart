@@ -151,6 +151,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
             amountCredited: e.amountCredited,
             amountDebited: e.amountDebited,
             txSlateId: e.txSlateId,
+            txEpicboxId: e.txEpicboxId,
             fee: e.fee,
             ttlCutoffHeight: e.ttlCutoffHeight,
             messages: e.messages?.messages
