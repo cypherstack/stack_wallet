@@ -410,6 +410,7 @@ abstract final class TxV2OdKeys {
   static const isMimblewimblecoinTransaction = "isMimblewimblecoinTransaction";
   static const numberOfMessages = "numberOfMessages";
   static const slateId = "slateId";
+  static const epicboxId = "epicboxId";
   static const onChainNote = "onChainNote";
   static const isCancelled = "isCancelled";
   static const contractAddress = "contractAddress";
