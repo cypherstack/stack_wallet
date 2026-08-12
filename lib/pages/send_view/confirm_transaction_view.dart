@@ -18,8 +18,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
-import '../../models/isar/models/isar_models.dart';
 import '../../models/input.dart';
+import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -449,6 +449,8 @@ class _ConfirmTransactionViewState
 
       if (wallet is FiroWallet && confirmedTx.sparkMints != null) {
         txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
+      } else if (wallet is FiroWallet && confirmedTx.sparkSpends != null) {
+        txids.addAll(confirmedTx.sparkSpends!.map((e) => e.txid!));
       } else {
         txids.add(confirmedTx.txid!);
       }
