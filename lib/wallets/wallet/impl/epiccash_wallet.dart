@@ -1404,6 +1404,7 @@ class EpiccashWallet extends Bip39Wallet {
             libEpic.txTypeIsReceived(tx.txType) ||
             libEpic.txTypeIsReceiveCancelled(tx.txType);
         final slateId = tx.txSlateId;
+        final epicboxId = tx.txEpicboxId;
         final commitId = slatesToCommits[slateId]?['commitId'] as String?;
         final numberOfMessages = tx.messages?.length;
         final onChainNote = tx.messages?.first.message;
@@ -1465,6 +1466,7 @@ class EpiccashWallet extends Bip39Wallet {
           "isEpiccashTransaction": true,
           "numberOfMessages": numberOfMessages,
           "slateId": slateId,
+          "epicboxId": epicboxId,
           "onChainNote": onChainNote,
           "isCancelled":
               libEpic.txTypeIsSentCancelled(tx.txType) ||

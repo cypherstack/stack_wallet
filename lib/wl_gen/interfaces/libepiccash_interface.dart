@@ -69,7 +69,7 @@ abstract class LibEpicCashInterface {
     String? epicboxConfig,
     int? txId,
     String? txSlateId,
-    String? epicboxMsgId,
+    String? txEpicboxId,
   });
 
   Future<List<EpicTransaction>> getTransactions({

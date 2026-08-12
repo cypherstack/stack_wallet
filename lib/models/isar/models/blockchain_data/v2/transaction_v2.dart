@@ -106,6 +106,7 @@ class TransactionV2 {
   int? get numberOfMessages =>
       _getFromOtherData(key: TxV2OdKeys.numberOfMessages) as int?;
   String? get slateId => _getFromOtherData(key: TxV2OdKeys.slateId) as String?;
+  String? get epicboxId => _getFromOtherData(key: TxV2OdKeys.epicboxId) as String?;
   String? get onChainNote =>
       _getFromOtherData(key: TxV2OdKeys.onChainNote) as String?;
   bool get isCancelled =>

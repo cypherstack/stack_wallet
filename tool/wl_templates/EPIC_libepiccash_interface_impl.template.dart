@@ -137,6 +137,17 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
       refreshFromNode: refreshFromNode,
     );
 
+    // Log the flutter_libepiccash Transaction BEFORE converting it.
+    for (final e in transactions) {
+      Logging.instance.w(
+        "EPIC INTERFACE TX "
+        "id=${e.id} "
+        "txSlateId=${e.txSlateId} "
+        "txEpicboxId=${e.txEpicboxId} "
+        "type=${e.txType}",
+      );
+    }
+
     return transactions
         .map(
           (e) => EpicTransaction(
