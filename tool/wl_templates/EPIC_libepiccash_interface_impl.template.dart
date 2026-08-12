@@ -27,7 +27,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
     String? epicboxConfig,
     int? txId,
     String? txSlateId,
-    String? epicboxMsgId,
+    String? txEpicboxId,
   }) async {
     final epicWallet = wallet.get<EpicWallet>();
 
@@ -39,7 +39,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
       methodIsEpicbox: methodIsEpicbox,
       txId: txId,
       txSlateId: txSlateId,
-      epicboxMsgId: epicboxMsgId,
+      txEpicboxId: txEpicboxId,
     );
   }
 

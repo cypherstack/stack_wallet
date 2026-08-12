@@ -1389,6 +1389,17 @@ class EpiccashWallet extends Bip39Wallet {
       final slatesToCommits = info.epicData?.slatesToCommits ?? {};
 
       for (final tx in transactions) {
+
+        Logging.instance.w(
+          "EPIC TX "
+          "id=${tx.id} "
+          "slate=${tx.txSlateId} "
+          "epicbox_tx_id=${tx.txEpicboxId} "
+          "type=${tx.txType} "
+          "sentCancelled=${libEpic.txTypeIsSentCancelled(tx.txType)} "
+          "receiveCancelled=${libEpic.txTypeIsReceiveCancelled(tx.txType)}",
+        );
+
         final isIncoming =
             libEpic.txTypeIsReceived(tx.txType) ||
             libEpic.txTypeIsReceiveCancelled(tx.txType);
