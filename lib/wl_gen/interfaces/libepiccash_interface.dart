@@ -139,6 +139,7 @@ class EpicTransaction {
   final String parentKeyId;
   final int id;
   final String? txSlateId;
+  final String? txEpicboxId;
   final Enum txType;
   final String creationTs;
   final String confirmationTs;
@@ -159,6 +160,7 @@ class EpicTransaction {
     required this.parentKeyId,
     required this.id,
     this.txSlateId,
+    this.txEpicboxId,
     required this.txType,
     required this.creationTs,
     required this.confirmationTs,
@@ -181,6 +183,7 @@ class EpicTransaction {
     return 'EpicTransaction('
         'id: $id, '
         'txSlateId: $txSlateId, '
+        'txEpicboxId: $txEpicboxId, '
         'type: $txType, '
         'confirmed: $confirmed, '
         'inputs: $numInputs, '

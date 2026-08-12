@@ -139,7 +139,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
 
     // Log the flutter_libepiccash Transaction BEFORE converting it.
     for (final e in transactions) {
-      Logging.instance.w(
+      print(
         "EPIC INTERFACE TX "
         "id=${e.id} "
         "txSlateId=${e.txSlateId} "
