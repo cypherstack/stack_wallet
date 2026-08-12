@@ -42,6 +42,7 @@ void main() {
     when(salviumInterface.validateAddress(address, 0)).thenReturn(false);
 
     expect(currency.validateAddress(address), isFalse);
+    expect(currency.isIntegratedAddress(address), isFalse);
     verifyNever(salviumInterface.paymentIdFromAddress(address, 0));
   });
 }

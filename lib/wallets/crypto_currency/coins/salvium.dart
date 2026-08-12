@@ -60,13 +60,13 @@ class Salvium extends CryptonoteCurrency {
 
     final networkType = _nativeNetworkType();
     return _salviumInterface.validateAddress(address, networkType) &&
-        !isIntegratedAddress(address);
+        _salviumInterface.paymentIdFromAddress(address, networkType).isEmpty;
   }
 
   bool isIntegratedAddress(String address) {
-    return _salviumInterface
-        .paymentIdFromAddress(address, _nativeNetworkType())
-        .isNotEmpty;
+    final networkType = _nativeNetworkType();
+    return _salviumInterface.validateAddress(address, networkType) &&
+        _salviumInterface.paymentIdFromAddress(address, networkType).isNotEmpty;
   }
 
   int _nativeNetworkType() {
