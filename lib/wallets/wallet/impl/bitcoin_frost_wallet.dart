@@ -125,6 +125,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           .getUTXOs(walletId)
           .filter()
           .isBlockedEqualTo(false)
+          .group((q) => q.usedEqualTo(false).or().usedIsNull())
           .findAll();
 
       if (utxos.isEmpty) {
