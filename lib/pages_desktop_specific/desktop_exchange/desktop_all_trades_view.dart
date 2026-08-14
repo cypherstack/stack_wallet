@@ -44,6 +44,11 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 
+Future<void> loadAndPresentDesktopTradeDetails<T>({
+  required Future<T> Function() load,
+  required void Function(T) present,
+}) async => present(await load());
+
 class DesktopAllTradesView extends ConsumerStatefulWidget {
   const DesktopAllTradesView({super.key});
 
@@ -107,19 +112,17 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
             const SizedBox(width: 32),
             AppBarIconButton(
               size: 32,
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.topNavIconPrimary,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),
@@ -150,54 +153,52 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                           _searchString = value;
                         });
                       },
-                      style: STextStyles.desktopTextExtraSmall(
-                        context,
-                      ).copyWith(
-                        color:
-                            Theme.of(
+                      style: STextStyles.desktopTextExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(
                               context,
                             ).extension<StackColors>()!.textFieldActiveText,
-                        height: 1.8,
-                      ),
-                      decoration: standardInputDecoration(
-                        "Search...",
-                        searchFieldFocusNode,
-                        context,
-                        desktopMed: true,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 18,
+                            height: 1.8,
                           ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 20,
-                            height: 20,
-                          ),
-                        ),
-                        suffixIcon:
-                            _searchController.text.isNotEmpty
+                      decoration:
+                          standardInputDecoration(
+                            "Search...",
+                            searchFieldFocusNode,
+                            context,
+                            desktopMed: true,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 18,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
                                 ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              _searchString = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchController.text = "";
+                                                _searchString = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
+                                  )
                                 : null,
-                      ),
+                          ),
                     ),
                   ),
                 ),
@@ -240,25 +241,22 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                               child: ListView.separated(
                                 shrinkWrap: true,
                                 primary: false,
-                                separatorBuilder:
-                                    (context, _) => Container(
-                                      height: 1,
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .background,
-                                    ),
+                                separatorBuilder: (context, _) => Container(
+                                  height: 1,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.background,
+                                ),
                                 itemCount: month.item2.length,
-                                itemBuilder:
-                                    (context, index) => Padding(
-                                      padding: const EdgeInsets.all(4),
-                                      child: DesktopTradeRowCard(
-                                        key: Key(
-                                          "transactionCard_key_${month.item2[index].tradeId}",
-                                        ),
-                                        tradeId: month.item2[index].tradeId,
-                                      ),
+                                itemBuilder: (context, index) => Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: DesktopTradeRowCard(
+                                    key: Key(
+                                      "transactionCard_key_${month.item2[index].tradeId}",
                                     ),
+                                    tradeId: month.item2[index].tradeId,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -341,8 +339,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
         .read(tradeSentFromStackLookupProvider)
         .getWalletIdsForTradeId(tradeId);
 
-    final trade =
-        ref.watch(tradesServiceProvider.select((value) => value.get(tradeId)))!;
+    final trade = ref.watch(
+      tradesServiceProvider.select((value) => value.get(tradeId)),
+    )!;
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -363,36 +362,18 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
             //todo: check if print needed
             // debugPrint("name: ${manager.walletName}");
 
-            final tx =
-                await MainDB.instance
-                    .getTransactions(walletIds.first)
-                    .filter()
-                    .txidEqualTo(txid)
-                    .findFirst();
-
-            if (mounted) {
-              await showDialog<void>(
-                context: context,
-                builder:
-                    (context) => DesktopDialog(
-                      maxHeight: MediaQuery.of(context).size.height - 64,
-                      maxWidth: 580,
-                      child: TradeDetailsView(
-                        tradeId: tradeId,
-                        transactionIfSentFromStack: tx,
-                        walletName: ref.read(pWalletName(walletIds.first)),
-                        walletId: walletIds.first,
-                      ),
-                    ),
-              );
-            }
-
-            if (mounted) {
-              unawaited(
-                showDialog<void>(
-                  context: context,
-                  builder:
-                      (context) => Navigator(
+            await loadAndPresentDesktopTradeDetails(
+              load: () => MainDB.instance
+                  .getTransactions(walletIds.first)
+                  .filter()
+                  .txidEqualTo(txid)
+                  .findFirst(),
+              present: (tx) {
+                if (mounted) {
+                  unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) => Navigator(
                         initialRoute: TradeDetailsView.routeName,
                         onGenerateRoute: RouteGenerator.generateRoute,
                         onGenerateInitialRoutes: (_, __) {
@@ -420,11 +401,10 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                                             ),
                                           ),
                                           DesktopDialogCloseButton(
-                                            onPressedOverride:
-                                                Navigator.of(
-                                                  context,
-                                                  rootNavigator: true,
-                                                ).pop,
+                                            onPressedOverride: Navigator.of(
+                                              context,
+                                              rootNavigator: true,
+                                            ).pop,
                                           ),
                                         ],
                                       ),
@@ -452,70 +432,68 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                           ];
                         },
                       ),
-                ),
-              );
-            }
+                    ),
+                  );
+                }
+              },
+            );
           } else {
             unawaited(
               showDialog<void>(
                 context: context,
-                builder:
-                    (context) => Navigator(
-                      initialRoute: TradeDetailsView.routeName,
-                      onGenerateRoute: RouteGenerator.generateRoute,
-                      onGenerateInitialRoutes: (_, __) {
-                        return [
-                          FadePageRoute(
-                            DesktopDialog(
-                              maxHeight: null,
-                              maxWidth: 580,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 32,
-                                      bottom: 16,
+                builder: (context) => Navigator(
+                  initialRoute: TradeDetailsView.routeName,
+                  onGenerateRoute: RouteGenerator.generateRoute,
+                  onGenerateInitialRoutes: (_, __) {
+                    return [
+                      FadePageRoute(
+                        DesktopDialog(
+                          maxHeight: null,
+                          maxWidth: 580,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 32,
+                                  bottom: 16,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Trade details",
+                                      style: STextStyles.desktopH3(context),
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Trade details",
-                                          style: STextStyles.desktopH3(context),
-                                        ),
-                                        DesktopDialogCloseButton(
-                                          onPressedOverride:
-                                              Navigator.of(
-                                                context,
-                                                rootNavigator: true,
-                                              ).pop,
-                                        ),
-                                      ],
+                                    DesktopDialogCloseButton(
+                                      onPressedOverride: Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop,
                                     ),
-                                  ),
-                                  Flexible(
-                                    child: SingleChildScrollView(
-                                      primary: false,
-                                      child: TradeDetailsView(
-                                        tradeId: tradeId,
-                                        transactionIfSentFromStack: null,
-                                        walletName: null,
-                                        walletId: walletIds?.first,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            const RouteSettings(
-                              name: TradeDetailsView.routeName,
-                            ),
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  primary: false,
+                                  child: TradeDetailsView(
+                                    tradeId: tradeId,
+                                    transactionIfSentFromStack: null,
+                                    walletName: null,
+                                    walletId: walletIds?.first,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ];
-                      },
-                    ),
+                        ),
+                        const RouteSettings(name: TradeDetailsView.routeName),
+                      ),
+                    ];
+                  },
+                ),
               ),
             );
           }
@@ -547,12 +525,14 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
               Expanded(
                 flex: 3,
                 child: Text(
-                  "${trade.payInCurrency.toUpperCase()} → ${trade.payOutCurrency.toUpperCase()}",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
+                  "${trade.payInCurrency.toUpperCase()} "
+                  "→ ${trade.payOutCurrency.toUpperCase()}",
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark,
+                      ),
                 ),
               ),
               Expanded(
@@ -568,11 +548,12 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                 flex: 6,
                 child: Text(
                   "-${Decimal.tryParse(trade.payInAmount)?.toStringAsFixed(8) ?? "..."} ${trade.payInCurrency.toUpperCase()}",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark,
+                      ),
                 ),
               ),
               Expanded(
@@ -586,8 +567,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                 Assets.svg.circleInfo,
                 width: 20,
                 height: 20,
-                color:
-                    Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle2,
               ),
             ],
           ),
