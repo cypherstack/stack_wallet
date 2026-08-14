@@ -1080,7 +1080,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+            feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee.value ? customFeeRate : null,
 
             // these will need to be mweb utxos
