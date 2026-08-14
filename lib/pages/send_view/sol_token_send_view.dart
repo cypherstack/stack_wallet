@@ -27,6 +27,7 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -55,6 +56,26 @@ import '../token_view/sol_token_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
+
+Amount? parseMobileSolTokenAmount(
+  String value, {
+  required String locale,
+  required CryptoCurrency coin,
+  required SolContract tokenContract,
+}) {
+  if (value.contains(RegExp(r'[+\- ]'))) return null;
+  return AmountUnit.normal.tryParse(
+    value,
+    locale: locale,
+    coin: coin,
+    tokenContract: tokenContract,
+  );
+}
+
+Amount? parseMobileSolTokenFiatAmount(String value, {required String locale}) {
+  if (value.contains(RegExp(r'[+\- ]'))) return null;
+  return Amount.tryParseFiatString(value, locale: locale);
+}
 
 class SolTokenSendView extends ConsumerStatefulWidget {
   const SolTokenSendView({
@@ -167,13 +188,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
             final Amount amount = Decimal.parse(
               paymentData.amount!,
             ).toAmount(fractionDigits: tokenWallet.tokenDecimals);
-            cryptoAmountController.text = ref
-                .read(pAmountFormatter(Solana(CryptoCurrencyNetwork.main)))
-                .format(
-                  amount,
-                  withUnitName: false,
-                  indicatePrecisionLoss: false,
-                );
+            cryptoAmountController.text = _formatTokenAmount(amount);
             _amountToSend = amount;
           }
         }
@@ -217,8 +232,20 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     }
   }
 
+  String _formatTokenAmount(Amount amount) {
+    final tokenWallet = ref.read(pCurrentSolanaTokenWallet)!;
+    return AmountUnit.normal.displayAmount(
+      amount: amount,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      coin: tokenWallet.cryptoCurrency,
+      maxDecimalPlaces: tokenWallet.tokenDecimals,
+      withUnitName: false,
+      tokenContract: tokenWallet.solContract,
+    );
+  }
+
   void _onFiatAmountFieldChanged(String baseAmountString) {
-    final baseAmount = Amount.tryParseFiatString(
+    final baseAmount = parseMobileSolTokenFiatAmount(
       baseAmountString,
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
     );
@@ -249,9 +276,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       _cachedAmountToSend = _amountToSend;
 
       _cryptoAmountChangeLock = true;
-      cryptoAmountController.text = ref
-          .read(pAmountFormatter(Solana(CryptoCurrencyNetwork.main)))
-          .format(_amountToSend!, withUnitName: false);
+      cryptoAmountController.text = _formatTokenAmount(_amountToSend!);
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Amount.zero;
@@ -267,9 +292,12 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
       if (tokenWallet == null) return;
 
-      final cryptoAmount = Decimal.tryParse(
+      final cryptoAmount = parseMobileSolTokenAmount(
         cryptoAmountController.text,
-      )?.toAmount(fractionDigits: tokenWallet.tokenDecimals);
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        coin: tokenWallet.cryptoCurrency,
+        tokenContract: tokenWallet.solContract,
+      );
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -581,7 +609,13 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
     if (_data != null) {
       if (_data.amount != null) {
-        cryptoAmountController.text = _data.amount!.toString();
+        final tokenWallet = ref.read(pCurrentSolanaTokenWallet)!;
+        cryptoAmountController.text = _formatTokenAmount(
+          Amount.fromDecimal(
+            _data.amount!,
+            fractionDigits: tokenWallet.tokenDecimals,
+          ),
+        );
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address.trim();
@@ -731,15 +765,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                     const Spacer(),
                                     GestureDetector(
                                       onTap: () {
-                                        cryptoAmountController.text = ref
-                                            .watch(
-                                              pAmountFormatter(
-                                                Solana(
-                                                  CryptoCurrencyNetwork.main,
-                                                ),
-                                              ),
-                                            )
-                                            .format(
+                                        cryptoAmountController.text =
+                                            _formatTokenAmount(
                                               ref
                                                   .read(
                                                     pSolanaTokenBalance((
@@ -748,8 +775,6 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                                     )),
                                                   )
                                                   .spendable,
-                                              withUnitName: false,
-                                              indicatePrecisionLoss: true,
                                             );
                                       },
                                       child: Container(
@@ -1064,13 +1089,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                               inputFormatters: [
                                 AmountInputFormatter(
                                   decimals: tokenWallet.tokenDecimals,
-                                  // TODO: Implement token-specific unit lookup
-                                  // similar to Ethereum's pAmountUnit(coin).unitForContract(tokenContract)
-                                  unit: ref.watch(
-                                    pAmountUnit(
-                                      Solana(CryptoCurrencyNetwork.main),
-                                    ),
-                                  ),
+                                  unit: AmountUnit.normal,
                                   locale: locale,
                                 ),
                               ],
