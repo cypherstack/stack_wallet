@@ -37,6 +37,19 @@ Map<String, String> _buildHeaders(String url) {
   return result;
 }
 
+({String frontier, String representative, BigInt balanceAfterSend})
+parseNanoSendState(Map<String, dynamic> accountInfo, BigInt sendAmount) {
+  final liveBalance = BigInt.parse(accountInfo["balance"].toString());
+  if (sendAmount > liveBalance) {
+    throw Exception("Insufficient balance");
+  }
+  return (
+    frontier: accountInfo["frontier"].toString(),
+    representative: accountInfo["representative"].toString(),
+    balanceAfterSend: liveBalance - sendAmount,
+  );
+}
+
 mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   // since nano based coins only have a single address/account we can cache
   // the address instead of fetching from db every time we need it in certain
@@ -412,12 +425,6 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       final String publicAddress =
           (_cachedAddress ?? await getCurrentReceivingAddress())!.value;
 
-      // first update to get latest account balance:
-
-      final currentBalance = info.cachedBalance.spendable;
-      final txAmount = txData.amount!;
-      final BigInt balanceAfterTx = (currentBalance - txAmount).raw;
-
       // get the account info (we need the frontier and representative):
       final infoBody = jsonEncode({
         "action": "account_info",
@@ -435,12 +442,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
             : null,
       );
 
-      final String frontier = jsonDecode(
-        infoResponse.body,
-      )["frontier"].toString();
-      final String representative = jsonDecode(
-        infoResponse.body,
-      )["representative"].toString();
+      final accountInfo = Map<String, dynamic>.from(
+        jsonDecode(infoResponse.body) as Map,
+      );
+      final sendState = parseNanoSendState(accountInfo, txData.amount!.raw);
       // link = destination address:
       final String linkAsAccount = txData.recipients!.first.address;
       final String link = NanoAccounts.extractPublicKey(linkAsAccount);
@@ -449,9 +454,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       final Map<String, String> sendBlock = {
         "type": "state",
         "account": publicAddress,
-        "previous": frontier,
-        "representative": representative,
-        "balance": balanceAfterTx.toString(),
+        "previous": sendState.frontier,
+        "representative": sendState.representative,
+        "balance": sendState.balanceAfterSend.toString(),
         "link": link,
       };
 
@@ -468,7 +473,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       final String signature = NanoSignatures.signBlock(hash, privateKey);
 
       // get PoW for the send block:
-      final String? work = await _requestWork(frontier);
+      final String? work = await _requestWork(sendState.frontier);
       if (work == null) {
         throw Exception("Failed to get PoW for send block");
       }
