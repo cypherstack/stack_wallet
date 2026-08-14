@@ -395,7 +395,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
+                                  "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
                                   style: STextStyles.desktopH3(context),
                                 ),
                                 const SizedBox(height: 48),

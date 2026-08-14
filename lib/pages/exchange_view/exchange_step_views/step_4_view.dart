@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -250,9 +251,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
-    final Amount amount = model.sendAmount.toAmount(
-      fractionDigits: wallet.info.coin.fractionDigits,
-    );
+    final Amount amount = Decimal.parse(
+      model.payInAmount,
+    ).toAmount(fractionDigits: wallet.info.coin.fractionDigits);
     final address = model.trade!.payInAddress;
 
     bool wasCancelled = false;
@@ -456,10 +457,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               DetailItem(
                                 title: "Amount",
                                 detail:
-                                    "${model.sendAmount.toString()} "
+                                    "${model.payInAmount} "
                                     "${model.sendTicker.toUpperCase()}",
                                 button: SimpleCopyButton(
-                                  data: model.sendAmount.toString(),
+                                  data: model.payInAmount,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -554,7 +555,7 @@ class _WarningInfo extends StatelessWidget {
         text: TextSpan(
           text:
               "You must send at least "
-              "${model.sendAmount.toString()} ${model.sendTicker}. ",
+              "${model.payInAmount} ${model.sendTicker}. ",
           style: STextStyles.label700(context).copyWith(
             color: Theme.of(
               context,
@@ -564,7 +565,7 @@ class _WarningInfo extends StatelessWidget {
             TextSpan(
               text:
                   "If you send less than "
-                  "${model.sendAmount.toString()} ${model.sendTicker},"
+                  "${model.payInAmount} ${model.sendTicker},"
                   " your transaction may not be converted and it may not be"
                   " refunded.",
               style: STextStyles.label(context).copyWith(
@@ -621,9 +622,9 @@ class _SendFromButton extends ConsumerWidget {
 
                 return SendFromView(
                   coin: coin,
-                  amount: model.sendAmount.toAmount(
-                    fractionDigits: coin.fractionDigits,
-                  ),
+                  amount: Decimal.parse(
+                    model.payInAmount,
+                  ).toAmount(fractionDigits: coin.fractionDigits),
                   address: model.trade!.payInAddress,
                   trade: model.trade!,
                 );

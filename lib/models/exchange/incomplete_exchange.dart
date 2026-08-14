@@ -28,6 +28,8 @@ class IncompleteExchangeModel extends ChangeNotifier {
   final Decimal sendAmount;
   final Decimal receiveAmount;
 
+  String get payInAmount => trade?.payInAmount ?? sendAmount.toString();
+
   final ExchangeRateType rateType;
 
   final bool reversed;

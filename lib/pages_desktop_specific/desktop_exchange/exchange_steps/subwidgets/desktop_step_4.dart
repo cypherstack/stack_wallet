@@ -109,23 +109,21 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
           child: RichText(
             text: TextSpan(
               text:
-                  "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
+                  "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
               style: STextStyles.label700(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.warningForeground,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.warningForeground,
                 fontSize: 14,
               ),
               children: [
                 TextSpan(
                   text:
-                      "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
+                      "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
                   style: STextStyles.label(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningForeground,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningForeground,
                     fontSize: 14,
                   ),
                 ),
@@ -186,7 +184,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               DesktopStepItem(
                 label: "Amount",
                 value:
-                    "${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))}",
+                    "${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))}",
               ),
               Container(
                 height: 1,
@@ -217,13 +215,12 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                     ),
                     Text(
                       _statusString,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .colorForStatus(_statusString),
-                      ),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .colorForStatus(_statusString),
+                          ),
                     ),
                   ],
                 ),
