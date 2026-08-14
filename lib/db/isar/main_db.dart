@@ -463,52 +463,14 @@ class MainDB {
   //
   Future<void> deleteWalletBlockchainData(String walletId) async {
     await isar.writeTxn(() async {
-      final transactionCount = await getTransactions(walletId).count();
-      final transactionCountV2 = await isar.transactionV2s
-          .where()
-          .walletIdEqualTo(walletId)
-          .count();
-      final addressCount = await getAddresses(walletId).count();
-      final utxoCount = await getUTXOs(walletId).count();
-
-      const paginateLimit = 100;
-
       // transactions
-      for (int i = 0; i < transactionCount; i += paginateLimit) {
-        final txnIds = await getTransactions(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
-        await isar.transactions.deleteAll(txnIds);
-      }
-
+      await getTransactions(walletId).deleteAll();
       // transactions V2
-      for (int i = 0; i < transactionCountV2; i += paginateLimit) {
-        final txnIds = await isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
-        await isar.transactionV2s.deleteAll(txnIds);
-      }
-
+      await isar.transactionV2s.where().walletIdEqualTo(walletId).deleteAll();
       // addresses
-      for (int i = 0; i < addressCount; i += paginateLimit) {
-        final addressIds = await getAddresses(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
-        await isar.addresses.deleteAll(addressIds);
-      }
-
+      await getAddresses(walletId).deleteAll();
       // utxos
-      for (int i = 0; i < utxoCount; i += paginateLimit) {
-        final utxoIds = await getUTXOs(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
-        await isar.utxos.deleteAll(utxoIds);
-      }
-
+      await getUTXOs(walletId).deleteAll();
       // spark coins
       await isar.sparkCoins
           .where()
@@ -518,28 +480,14 @@ class MainDB {
   }
 
   Future<void> deleteAddressLabels(String walletId) async {
-    final addressLabelCount = await getAddressLabels(walletId).count();
     await isar.writeTxn(() async {
-      const paginateLimit = 50;
-      for (int i = 0; i < addressLabelCount; i += paginateLimit) {
-        final labelIds = await getAddressLabels(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
-        await isar.addressLabels.deleteAll(labelIds);
-      }
+      await getAddressLabels(walletId).deleteAll();
     });
   }
 
   Future<void> deleteTransactionNotes(String walletId) async {
-    final noteCount = await getTransactionNotes(walletId).count();
     await isar.writeTxn(() async {
-      const paginateLimit = 50;
-      for (int i = 0; i < noteCount; i += paginateLimit) {
-        final labelIds = await getTransactionNotes(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
-        await isar.transactionNotes.deleteAll(labelIds);
-      }
+      await getTransactionNotes(walletId).deleteAll();
     });
   }
 
