@@ -150,7 +150,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
           enableNext =
               _toController.text.isNotEmpty &&
               (_refundController.text.isNotEmpty ||
-                  !!ref.read(efExchangeProvider).supportsRefundAddress);
+                  !ref.read(efExchangeProvider).supportsRefundAddress);
         });
       }
     } on PlatformException catch (e, s) {
