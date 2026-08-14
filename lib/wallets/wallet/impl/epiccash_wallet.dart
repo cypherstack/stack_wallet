@@ -41,6 +41,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/epiccash_wallet_info_extension.dart';
+import '../supporting/restore_progress.dart';
 
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
@@ -58,7 +59,10 @@ class EpiccashWallet extends Bip39Wallet {
   Future<double> get getSyncPercent async {
     final int lastScannedBlock = info.epicData?.lastScannedBlock ?? 0;
     final _chainHeight = await chainHeight;
-    final double restorePercent = lastScannedBlock / _chainHeight;
+    final restorePercent = calculateRestoreProgress(
+      scannedHeight: lastScannedBlock,
+      chainHeight: _chainHeight,
+    );
     GlobalEventBus.instance.fire(
       RefreshPercentChangedEvent(highestPercent, walletId),
     );
