@@ -9,6 +9,7 @@ import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar_community/isar.dart';
+import 'package:meta/meta.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:tuple/tuple.dart';
 
@@ -24,7 +25,6 @@ import '../../../utilities/bip32_utils.dart';
 import '../../../utilities/bip47_utils.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
-import '../../../utilities/format.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
@@ -45,6 +45,20 @@ String _receivingPaynymAddressDerivationPath(
 }) => "${_basePaynymDerivePath(testnet: testnet)}/$index/0";
 String _sendPaynymAddressDerivationPath(int index, {required bool testnet}) =>
     "${_basePaynymDerivePath(testnet: testnet)}/0/$index";
+
+@visibleForTesting
+int comparePaynymNotificationUtxos(UTXO a, UTXO b) {
+  final aIsTaproot =
+      a.address?.startsWith('bc1p') == true ||
+      a.address?.startsWith('tb1p') == true;
+  final bIsTaproot =
+      b.address?.startsWith('bc1p') == true ||
+      b.address?.startsWith('tb1p') == true;
+  if (aIsTaproot != bIsTaproot) {
+    return aIsTaproot ? 1 : -1;
+  }
+  return a.blockTime!.compareTo(b.blockTime!);
+}
 
 mixin PaynymInterface<T extends PaynymCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
@@ -570,18 +584,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       // Sort spendable by age (oldest first), but push taproot UTXOs to the
       // end since taproot inputs don't expose the raw public key needed by the
       // receiver to compute ECDH for BIP47 notification parsing.
-      spendableOutputs.sort((a, b) {
-        final aIsTaproot =
-            a.address?.startsWith('bc1p') == true ||
-            a.address?.startsWith('tb1p') == true;
-        final bIsTaproot =
-            b.address?.startsWith('bc1p') == true ||
-            b.address?.startsWith('tb1p') == true;
-        if (aIsTaproot != bIsTaproot) {
-          return aIsTaproot ? 1 : -1;
-        }
-        return b.blockTime!.compareTo(a.blockTime!);
-      });
+      spendableOutputs.sort(comparePaynymNotificationUtxos);
 
       BigInt satoshisBeingUsed = BigInt.zero;
       int outputsBeingUsed = 0;

@@ -2,12 +2,30 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip47/bip47.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:test/test.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+
+UTXO _utxo(String txid, int blockTime, String address) => UTXO(
+  walletId: 'wallet',
+  txid: txid,
+  vout: 0,
+  value: 1,
+  name: '',
+  isBlocked: false,
+  blockedReason: null,
+  isCoinbase: false,
+  blockHash: 'hash',
+  blockHeight: 1,
+  blockTime: blockTime,
+  address: address,
+);
 
 void main() {
   const mnemonic =
-      'response seminar brave million suit skate inhale proud weapon daring champion';
+      'response seminar brave million suit skate inhale proud weapon '
+      'daring champion';
 
   final networkType = bip32.NetworkType(
     wif: bitcoindart.bitcoin.wif,
@@ -41,6 +59,22 @@ void main() {
       shouldSetTaprootBit: true,
     );
     taprootPaymentCodeString = taprootCode.toString();
+  });
+
+  test('notification UTXOs prefer non-Taproot then oldest', () {
+    final utxos = [
+      _utxo('taproot-newer', 50, 'bc1ptaproot'),
+      _utxo('legacy-newer', 200, 'bc1qlegacy'),
+      _utxo('taproot-older', 25, 'tb1ptaproot'),
+      _utxo('legacy-older', 100, '1legacy'),
+    ]..sort(comparePaynymNotificationUtxos);
+
+    expect(utxos.map((utxo) => utxo.txid).toList(), [
+      'legacy-older',
+      'legacy-newer',
+      'taproot-older',
+      'taproot-newer',
+    ]);
   });
 
   group('PaynymAccountLite taproot inference', () {
