@@ -32,6 +32,27 @@ class Amount {
         fractionDigits: fractionDigits,
       );
 
+  static String normalizeLocalizedNumber(
+    String value, {
+    required String locale,
+  }) {
+    final symbols = Util.getSymbolsFor(locale: locale);
+    final groupSeparator = symbols?.GROUP_SEP ?? ",";
+    final decimalSeparator = symbols?.DECIMAL_SEP ?? ".";
+
+    if (groupSeparator == "." &&
+        decimalSeparator != "." &&
+        !value.contains(decimalSeparator)) {
+      return RegExp(r'^[1-9]\d{0,2}(\.\d{3})+$').hasMatch(value)
+          ? value.replaceAll(groupSeparator, "")
+          : value;
+    }
+
+    return value
+        .replaceAll(groupSeparator, "")
+        .replaceFirst(decimalSeparator, ".");
+  }
+
   static Amount? tryParseFiatString(String value, {required String locale}) {
     final parts = value.split(" ");
 
@@ -49,16 +70,9 @@ class Amount {
     }
 
     // get number symbols for decimal place and group separator
-    final numberSymbols = Util.getSymbolsFor(locale: locale);
-
-    final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
-    final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
-
-    str = str.replaceAll(groupSeparator, "");
-
-    final decimalString = str.replaceFirst(decimalSeparator, ".");
-
-    return Decimal.tryParse(decimalString)?.toAmount(fractionDigits: 2);
+    return Decimal.tryParse(
+      normalizeLocalizedNumber(str, locale: locale),
+    )?.toAmount(fractionDigits: 2);
   }
 
   // ===========================================================================

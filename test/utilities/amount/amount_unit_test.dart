@@ -1,6 +1,8 @@
 import 'package:decimal/decimal.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
@@ -224,5 +226,55 @@ void main() {
       ),
       amount,
     );
+  });
+
+  test("parse ASCII decimals in dot-group locales", () {
+    final coin = Bitcoin(CryptoCurrencyNetwork.main);
+    final formatter = AmountInputFormatter(decimals: 8, locale: "de_DE");
+    expect(
+      AmountUnit.normal.tryParse("1.5", locale: "de_DE", coin: coin)?.decimal,
+      Decimal.parse("1.5"),
+    );
+    expect(
+      AmountUnit.normal.tryParse("1.234", locale: "de_DE", coin: coin)?.decimal,
+      Decimal.fromInt(1234),
+    );
+    expect(
+      Amount.tryParseFiatString("1.50", locale: "de_DE")?.decimal,
+      Decimal.parse("1.5"),
+    );
+    final formatted = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(
+        text: "1.5",
+        selection: TextSelection.collapsed(offset: 3),
+      ),
+    );
+    expect(formatted.text, "1,5");
+
+    final appended = formatter.formatEditUpdate(
+      const TextEditingValue(
+        text: "1.234",
+        selection: TextSelection.collapsed(offset: 5),
+      ),
+      const TextEditingValue(
+        text: "1.2345",
+        selection: TextSelection.collapsed(offset: 6),
+      ),
+    );
+    expect(appended.text, "12.345");
+
+    final insertedDecimal = formatter.formatEditUpdate(
+      const TextEditingValue(
+        text: "1.234",
+        selection: TextSelection.collapsed(offset: 1),
+      ),
+      const TextEditingValue(
+        text: "1..234",
+        selection: TextSelection.collapsed(offset: 2),
+      ),
+    );
+    expect(insertedDecimal.text, "1,234");
+    expect(insertedDecimal.selection.baseOffset, 2);
   });
 }

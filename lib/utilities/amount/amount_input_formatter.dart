@@ -26,11 +26,40 @@ class AmountInputFormatter extends TextInputFormatter {
 
     final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
     final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
+    final oldSelection = oldValue.selection.isValid
+        ? oldValue.selection
+        : TextSelection.collapsed(offset: oldValue.text.length);
 
-    String newText = newValue.text.replaceAll(groupSeparator, "");
-
-    final selectionIndexFromTheRight =
-        newValue.text.length - newValue.selection.end;
+    String text = newValue.text;
+    if (groupSeparator == "." && decimalSeparator != ".") {
+      final insertedLength =
+          newValue.text.length -
+          oldValue.text.length +
+          oldSelection.end -
+          oldSelection.start;
+      final insertedStart = oldSelection.start;
+      final insertedEnd = insertedStart + insertedLength;
+      if (insertedLength > 0 &&
+          insertedStart >= 0 &&
+          insertedEnd <= text.length) {
+        final inserted = text.substring(insertedStart, insertedEnd);
+        final isGrouped = RegExp(
+          r'^[1-9]\d{0,2}(\.\d{3})+$',
+        ).hasMatch(inserted);
+        text =
+            text.substring(0, insertedStart) +
+            (inserted.contains(decimalSeparator) || isGrouped
+                ? inserted
+                : inserted.replaceAll(groupSeparator, decimalSeparator)) +
+            text.substring(insertedEnd);
+      }
+    }
+    final selectionEnd = min(newValue.selection.end, text.length);
+    final textBeforeSelection = text
+        .substring(0, selectionEnd)
+        .replaceAll(groupSeparator, "");
+    String newText = text.replaceAll(groupSeparator, "");
+    final selectionOffset = textBeforeSelection.length;
 
     String? fraction;
     if (newText.contains(decimalSeparator)) {
@@ -40,8 +69,9 @@ class AmountInputFormatter extends TextInputFormatter {
         return oldValue;
       }
 
-      final fractionDigits =
-          unit == null ? decimals : max(decimals - unit!.shift, 0);
+      final fractionDigits = unit == null
+          ? decimals
+          : max(decimals - unit!.shift, 0);
 
       if (newText.startsWith(decimalSeparator)) {
         if (newText.length - 1 > fractionDigits) {
@@ -51,7 +81,7 @@ class AmountInputFormatter extends TextInputFormatter {
         return TextEditingValue(
           text: newText,
           selection: TextSelection.collapsed(
-            offset: newText.length - selectionIndexFromTheRight,
+            offset: min(selectionOffset, newText.length),
           ),
         );
       }
@@ -88,11 +118,19 @@ class AmountInputFormatter extends TextInputFormatter {
       }
     }
 
+    int formattedSelectionOffset = 0;
+    int normalizedOffset = 0;
+    while (formattedSelectionOffset < newString.length &&
+        normalizedOffset < selectionOffset) {
+      if (newString[formattedSelectionOffset] != groupSeparator) {
+        normalizedOffset++;
+      }
+      formattedSelectionOffset++;
+    }
+
     return TextEditingValue(
       text: newString,
-      selection: TextSelection.collapsed(
-        offset: newString.length - selectionIndexFromTheRight,
-      ),
+      selection: TextSelection.collapsed(offset: formattedSelectionOffset),
     );
   }
 }

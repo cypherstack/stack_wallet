@@ -200,7 +200,7 @@ extension AmountUnitExt on AmountUnit {
     String value, {
     required String locale,
     required CryptoCurrency coin,
-     Contract? tokenContract,
+    Contract? tokenContract,
     bool overrideWithDecimalPlacesFromString = false,
   }) {
     final precisionLost = value.startsWith("~");
@@ -221,15 +221,9 @@ extension AmountUnitExt on AmountUnit {
     }
 
     // get number symbols for decimal place and group separator
-    final numberSymbols = Util.getSymbolsFor(locale: locale);
-
-    final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
-    final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
-
-    str = str.replaceAll(groupSeparator, "");
-
-    final decimalString = str.replaceFirst(decimalSeparator, ".");
-    final Decimal? decimal = Decimal.tryParse(decimalString);
+    final Decimal? decimal = Decimal.tryParse(
+      Amount.normalizeLocalizedNumber(str, locale: locale),
+    );
 
     if (decimal == null) {
       return null;
