@@ -55,6 +55,11 @@ import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
 import 'desktop_send_fee_form.dart';
 
+Amount? parseDesktopTokenFiatAmount(String value, {required String locale}) {
+  if (value.contains(RegExp(r'[+\- ]'))) return null;
+  return Amount.tryParseFiatString(value, locale: locale);
+}
+
 class DesktopTokenSend extends ConsumerStatefulWidget {
   const DesktopTokenSend({
     super.key,
@@ -523,15 +528,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         .tokenContract
         .decimals;
 
-    if (baseAmountString.isNotEmpty &&
-        baseAmountString != "." &&
-        baseAmountString != ",") {
-      final baseAmount = baseAmountString.contains(",")
-          ? Decimal.parse(
-              baseAmountString.replaceFirst(",", "."),
-            ).toAmount(fractionDigits: 2)
-          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
+    final baseAmount = parseDesktopTokenFiatAmount(
+      baseAmountString,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
 
+    if (baseAmount != null) {
       final Decimal? _price = ref
           .read(priceAnd24hChangeNotifierProvider)
           .getTokenPrice(ref.read(pCurrentTokenWallet)!.tokenContract.address)
