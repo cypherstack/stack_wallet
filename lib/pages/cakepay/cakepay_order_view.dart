@@ -816,7 +816,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               : STextStyles.itemSubtitle12(context),
                         ),
                         const Spacer(),
-                        IconCopyButton(data: order.orderId),
+                        IconCopyButton(data: selected.address),
                         const SizedBox(width: 4),
                         Text("Copy", style: STextStyles.link2(context)),
                       ],
