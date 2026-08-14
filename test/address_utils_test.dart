@@ -40,6 +40,13 @@ void main() {
     expect(result.message, "eggs are good!");
   });
 
+  test("parse query parameters exactly once", () {
+    const uri = "bitcoin:$firoAddress?label=Save%25&amount=1.5";
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result!.label, "Save%");
+    expect(result.amount, "1.5");
+  });
+
   test("parse an invalid uri string", () {
     const uri = "firo$firoAddress?amount=50&label=eggs";
     final result = AddressUtils.parsePaymentUri(uri);

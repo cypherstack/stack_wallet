@@ -99,21 +99,21 @@ class AddressUtils {
             break;
           case 'label':
           case 'recipient_name':
-            result['label'] = Uri.decodeComponent(value);
+            result['label'] = value;
             break;
           case 'message':
           case 'tx_description':
-            result['message'] = Uri.decodeComponent(value);
+            result['message'] = value;
             break;
           case 'tx_payment_id':
-            result['tx_payment_id'] = Uri.decodeComponent(value);
+            result['tx_payment_id'] = value;
             break;
           default:
-            result[lowerKey] = Uri.decodeComponent(value);
+            result[lowerKey] = value;
         }
       } else {
         // Include unrecognized parameters as-is.
-        result[key] = Uri.decodeComponent(value);
+        result[key] = value;
       }
     });
     return result;
