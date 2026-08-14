@@ -3,8 +3,11 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip47/bip47.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
+import 'package:stackwallet/models/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 
 UTXO _utxo(String txid, int blockTime, String address) => UTXO(
@@ -75,6 +78,32 @@ void main() {
       'taproot-older',
       'taproot-newer',
     ]);
+  });
+
+  test('notification requires a non-Taproot designated input', () {
+    final segwit = StandardInput(
+      _utxo('segwit', 1, 'bc1qsegwit'),
+      derivePathType: DerivePathType.bip84,
+    );
+    final taproot = StandardInput(
+      _utxo('taproot', 1, 'bc1ptaproot'),
+      derivePathType: DerivePathType.bip86,
+    );
+
+    expect(
+      () => validatePaynymNotificationInputs([taproot]),
+      throwsA(
+        isA<PaynymSendException>().having(
+          (error) => error.message,
+          'message',
+          contains('non-Taproot UTXO'),
+        ),
+      ),
+    );
+    expect(
+      () => validatePaynymNotificationInputs([segwit, taproot]),
+      returnsNormally,
+    );
   });
 
   group('PaynymAccountLite taproot inference', () {

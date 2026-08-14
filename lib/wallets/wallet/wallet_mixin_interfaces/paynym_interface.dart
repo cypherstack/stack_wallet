@@ -60,6 +60,15 @@ int comparePaynymNotificationUtxos(UTXO a, UTXO b) {
   return a.blockTime!.compareTo(b.blockTime!);
 }
 
+@visibleForTesting
+void validatePaynymNotificationInputs(List<StandardInput> inputs) {
+  if (inputs.first.derivePathType == DerivePathType.bip86) {
+    throw PaynymSendException(
+      "A non-Taproot UTXO is required for a PayNym notification transaction.",
+    );
+  }
+}
+
 mixin PaynymInterface<T extends PaynymCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
   btc_dart.NetworkType get networkType => btc_dart.NetworkType(
@@ -617,6 +626,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final inputsWithKeys = (await addSigningKeys(
         utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
       )).whereType<StandardInput>().toList();
+
+      validatePaynymNotificationInputs(inputsWithKeys);
 
       final vSizeForNoChange = BigInt.from(
         (await _createNotificationTx(
