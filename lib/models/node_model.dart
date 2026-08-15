@@ -69,6 +69,54 @@ class NodeModel {
     this.nodeApiSecret,
   });
 
+  factory NodeModel.fromStackBackup(
+    Map<String, dynamic> map, {
+    Set<String>? legacyPrimaryNodeIds,
+  }) {
+    final id = map['id'] as String;
+    return NodeModel(
+      host: map['host'] as String,
+      port: map['port'] as int,
+      name: map['name'] as String,
+      id: id,
+      useSSL: _backupBool(map['useSSL'], fallback: true),
+      loginName: map['loginName'] as String?,
+      enabled: _backupBool(map['enabled'], fallback: true),
+      coinName: map['coinName'] as String,
+      isFailover: _backupBool(map['isFailover'], fallback: false),
+      isDown: _backupBool(map['isDown'], fallback: false),
+      trusted: _nullableBackupBool(map['trusted']),
+      torEnabled: _backupBool(map['torEnabled'], fallback: true),
+      clearnetEnabled: _backupBool(
+        map['clearEnabled'] ?? map['plainEnabled'],
+        fallback: true,
+      ),
+      forceNoTor: _backupBool(map['forceNoTor'], fallback: false),
+      isPrimary: _backupBool(
+        map['isPrimary'],
+        fallback: legacyPrimaryNodeIds?.contains(id) ?? false,
+      ),
+      nodeApiSecret: map['nodeApiSecret'] as String?,
+    );
+  }
+
+  static bool _backupBool(Object? value, {required bool fallback}) =>
+      _nullableBackupBool(value) ?? fallback;
+
+  static bool? _nullableBackupBool(Object? value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is String) {
+      return switch (value.trim().toLowerCase()) {
+        'true' => true,
+        'false' => false,
+        _ => null,
+      };
+    }
+    return null;
+  }
+
   NodeModel copyWith({
     String? host,
     int? port,
