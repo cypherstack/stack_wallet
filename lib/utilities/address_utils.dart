@@ -136,17 +136,13 @@ class AddressUtils {
   /// Returns null on failure to parse
   static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
     // hacky check its not just a bcash, ecash, or xel address
-    final parts = uri.split(":");
-    if (parts.length == 2) {
-      if ([
-        "xel",
-        "bitcoincash",
-        "bchtest",
-        "ecash",
-        "ectest",
-      ].contains(parts.first.toLowerCase())) {
-        return null;
-      }
+    const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
+    final parsedUri = Uri.tryParse(uri);
+    final scheme = parsedUri?.scheme.toLowerCase();
+    if (parsedUri != null &&
+        (scheme == "xel" ||
+            (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme)))) {
+      return null;
     }
 
     try {
@@ -155,13 +151,16 @@ class AddressUtils {
       // Normalize the URI scheme.
       final String scheme = parsedData['scheme'] ?? '';
       parsedData.remove('scheme');
+      final address = parsedData['address']!.trim();
 
       // Filter out unrecognized parameters.
       final filteredParams = _filterParams(parsedData);
 
       return PaymentUriData(
         scheme: scheme,
-        address: parsedData['address']!.trim(),
+        address: cashAddrSchemes.contains(scheme)
+            ? "$scheme:$address".toLowerCase()
+            : address,
         amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
         label: filteredParams['label'] ?? filteredParams['recipient_name'],
         message: filteredParams['message'] ?? filteredParams['tx_description'],

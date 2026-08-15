@@ -75,6 +75,33 @@ void main() {
     expect(result.message, "eggs are good!");
   });
 
+  test("distinguish CashAddr payment URIs from prefixed addresses", () {
+    const address = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
+
+    for (final scheme in ["bitcoincash", "bchtest", "ecash", "ectest"]) {
+      expect(AddressUtils.parsePaymentUri("$scheme:$address"), isNull);
+
+      final result = AddressUtils.parsePaymentUri(
+        "$scheme:$address?amount=1.25",
+      );
+      expect(result?.scheme, scheme);
+      expect(result?.address, "$scheme:$address");
+      expect(result?.amount, "1.25");
+    }
+
+    final uppercase = AddressUtils.parsePaymentUri(
+      "BITCOINCASH:${address.toUpperCase()}?amount=1.25",
+    );
+    expect(uppercase?.address, "bitcoincash:$address");
+
+    expect(AddressUtils.parsePaymentUri("xel:$address?amount=1.25"), isNull);
+
+    final xelis = AddressUtils.parsePaymentUri(
+      "xelis:xel:$address?amount=1.25",
+    );
+    expect((xelis?.address, xelis?.amount), ("xel:$address", "1.25"));
+  });
+
   test("encode a list of (mnemonic) words/strings as a json object", () {
     final List<String> list = [
       "hello",
