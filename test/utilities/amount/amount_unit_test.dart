@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -225,6 +226,39 @@ void main() {
         coin: Bitcoin(CryptoCurrencyNetwork.main),
       ),
       amount,
+    );
+  });
+
+  test("amount field parsing rejects signs and ASCII whitespace", () {
+    final coin = Bitcoin(CryptoCurrencyNetwork.main);
+    final formatter = AmountFormatter(
+      unit: AmountUnit.normal,
+      locale: "en_US",
+      coin: coin,
+      maxDecimals: 8,
+    );
+
+    expect(formatter.tryParse("5")?.decimal, Decimal.fromInt(5));
+
+    for (final value in [
+      "+5",
+      "-5",
+      for (final codePoint in [0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20])
+        "1${String.fromCharCode(codePoint)}234",
+    ]) {
+      expect(formatter.tryParse(value), isNull, reason: value);
+      expect(
+        Amount.tryParseFiatString(value, locale: "en_US"),
+        isNull,
+        reason: value,
+      );
+    }
+
+    expect(
+      AmountUnit.normal
+          .tryParse("5 legacy", locale: "en_US", coin: coin)
+          ?.decimal,
+      Decimal.fromInt(5),
     );
   });
 

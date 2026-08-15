@@ -54,24 +54,13 @@ class Amount {
   }
 
   static Amount? tryParseFiatString(String value, {required String locale}) {
-    final parts = value.split(" ");
-
-    if (parts.first.isEmpty) {
-      return null;
-    }
-
-    String str = parts.first;
-    if (str.startsWith(RegExp(r'[+-]'))) {
-      str = str.substring(1);
-    }
-
-    if (str.isEmpty) {
+    if (value.isEmpty || value.contains(RegExp(r'[+\-\x09-\x0D ]'))) {
       return null;
     }
 
     // get number symbols for decimal place and group separator
     return Decimal.tryParse(
-      normalizeLocalizedNumber(str, locale: locale),
+      normalizeLocalizedNumber(value, locale: locale),
     )?.toAmount(fractionDigits: 2);
   }
 

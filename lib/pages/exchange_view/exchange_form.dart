@@ -178,6 +178,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           coin: Bitcoin(
             CryptoCurrencyNetwork.main,
           ), // dummy value (not used due to override)
+          strict: true,
           overrideWithDecimalPlacesFromString: true,
         )
         ?.decimal;

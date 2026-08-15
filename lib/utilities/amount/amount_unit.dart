@@ -201,8 +201,14 @@ extension AmountUnitExt on AmountUnit {
     required String locale,
     required CryptoCurrency coin,
     Contract? tokenContract,
+    bool strict = false,
     bool overrideWithDecimalPlacesFromString = false,
   }) {
+    if (value.contains(RegExp(r'[+\-\x09-\x0D]')) ||
+        (strict && value.contains(" "))) {
+      return null;
+    }
+
     final precisionLost = value.startsWith("~");
 
     final parts = (precisionLost ? value.substring(1) : value).split(" ");
@@ -211,14 +217,7 @@ extension AmountUnitExt on AmountUnit {
       return null;
     }
 
-    String str = parts.first;
-    if (str.startsWith(RegExp(r'[+-]'))) {
-      str = str.substring(1);
-    }
-
-    if (str.isEmpty) {
-      return null;
-    }
+    final str = parts.first;
 
     // get number symbols for decimal place and group separator
     final Decimal? decimal = Decimal.tryParse(

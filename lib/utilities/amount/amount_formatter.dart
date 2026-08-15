@@ -72,6 +72,7 @@ class AmountFormatter {
       locale: locale,
       coin: coin,
       tokenContract: tokenContract,
+      strict: true,
     );
   }
 }
