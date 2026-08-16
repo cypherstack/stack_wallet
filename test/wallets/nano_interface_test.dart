@@ -17,4 +17,17 @@ void main() {
       throwsException,
     );
   });
+
+  test('Nano send state surfaces error and malformed responses clearly', () {
+    expect(
+      () => parseNanoSendState({'error': 'Account not found'}, BigInt.one),
+      throwsA(predicate((e) => e.toString().contains('Account not found'))),
+    );
+    expect(
+      () => parseNanoSendState({}, BigInt.one),
+      throwsA(
+        predicate((e) => e.toString().contains('Invalid account_info balance')),
+      ),
+    );
+  });
 }

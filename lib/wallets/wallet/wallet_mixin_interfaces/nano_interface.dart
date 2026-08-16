@@ -39,7 +39,13 @@ Map<String, String> _buildHeaders(String url) {
 
 ({String frontier, String representative, BigInt balanceAfterSend})
 parseNanoSendState(Map<String, dynamic> accountInfo, BigInt sendAmount) {
-  final liveBalance = BigInt.parse(accountInfo["balance"].toString());
+  if (accountInfo["error"] != null) {
+    throw Exception("account_info error: ${accountInfo["error"]}");
+  }
+  final liveBalance = BigInt.tryParse(accountInfo["balance"].toString());
+  if (liveBalance == null) {
+    throw Exception("Invalid account_info balance");
+  }
   if (sendAmount > liveBalance) {
     throw Exception("Insufficient balance");
   }
