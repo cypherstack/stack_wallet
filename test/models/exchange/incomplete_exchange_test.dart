@@ -41,5 +41,11 @@ void main() {
     expect(model.payInAmount, "1.2");
     model.trade = trade;
     expect(model.payInAmount, "1.23456789");
+    expect(model.payInDecimal, Decimal.parse("1.23456789"));
+
+    model.trade = _Trade("");
+    expect(model.payInDecimal, isNull);
+    model.trade = _Trade("not a number");
+    expect(model.payInDecimal, isNull);
   });
 }

@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -210,14 +209,27 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   }
 
   void sendFromStack() {
-    final trade = ref.read(desktopExchangeModelProvider)!.trade!;
+    final model = ref.read(desktopExchangeModelProvider)!;
+    final trade = model.trade!;
     final address = trade.payInAddress;
     final coin =
         AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
         AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
-    final amount = Decimal.parse(
-      trade.payInAmount,
-    ).toAmount(fractionDigits: coin.fractionDigits);
+    final payInDecimal = model.payInDecimal;
+    if (payInDecimal == null) {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => SimpleDesktopDialog(
+          title: "Invalid trade amount",
+          message:
+              "The exchange returned an invalid pay-in amount:"
+              " \"${trade.payInAmount}\"",
+        ),
+      );
+      return;
+    }
+    final amount = payInDecimal.toAmount(fractionDigits: coin.fractionDigits);
 
     showDialog<void>(
       context: context,

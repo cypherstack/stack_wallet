@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -251,9 +250,25 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
-    final Amount amount = Decimal.parse(
-      model.payInAmount,
-    ).toAmount(fractionDigits: wallet.info.coin.fractionDigits);
+    final payInDecimal = model.payInDecimal;
+    if (payInDecimal == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => StackOkDialog(
+            title: "Invalid trade amount",
+            message:
+                "The exchange returned an invalid pay-in amount:"
+                " \"${model.payInAmount}\"",
+          ),
+        );
+      }
+      return;
+    }
+    final Amount amount = payInDecimal.toAmount(
+      fractionDigits: wallet.info.coin.fractionDigits,
+    );
     final address = model.trade!.payInAddress;
 
     bool wasCancelled = false;
@@ -610,6 +625,20 @@ class _SendFromButton extends ConsumerWidget {
                 tuple.item2.ticker.toLowerCase()) {
           await confirmSend(tuple);
         } else {
+          final payInDecimal = model.payInDecimal;
+          if (payInDecimal == null) {
+            await showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) => StackOkDialog(
+                title: "Invalid trade amount",
+                message:
+                    "The exchange returned an invalid pay-in amount:"
+                    " \"${model.payInAmount}\"",
+              ),
+            );
+            return;
+          }
           await Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
@@ -622,9 +651,9 @@ class _SendFromButton extends ConsumerWidget {
 
                 return SendFromView(
                   coin: coin,
-                  amount: Decimal.parse(
-                    model.payInAmount,
-                  ).toAmount(fractionDigits: coin.fractionDigits),
+                  amount: payInDecimal.toAmount(
+                    fractionDigits: coin.fractionDigits,
+                  ),
                   address: model.trade!.payInAddress,
                   trade: model.trade!,
                 );
