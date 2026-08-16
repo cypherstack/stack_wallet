@@ -22,6 +22,7 @@ import '../../../services/event_bus/events/global/wallet_sync_status_changed_eve
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
 import '../../../wl_gen/interfaces/frost_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -1111,6 +1112,22 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   // =================== Secure storage ========================================
+
+  static Future<void> deleteSecureStorage({
+    required String walletId,
+    required SecureStorageInterface secureStorage,
+  }) async {
+    for (final suffix in const [
+      'serializedFROSTKeys',
+      'serializedFROSTKeysPrevGen',
+      'multisigConfig',
+      'multisigConfigPrevGen',
+      'multisigIdFROST',
+      'recoveryStringFROST',
+    ]) {
+      await secureStorage.delete(key: '{$walletId}_$suffix');
+    }
+  }
 
   Future<String?> getSerializedKeys() async =>
       await secureStorageInterface.read(key: "{$walletId}_serializedFROSTKeys");
