@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../app_config.dart';
@@ -11,13 +12,24 @@ import '../../../models/isar/exchange_cache/pair.dart';
 import '../exchange.dart';
 import '../exchange_response.dart';
 import 'api_response_models/n_estimate.dart';
+import 'api_response_models/n_trade.dart';
 import 'nanswap_api.dart';
 
+typedef NanswapOrderLookup =
+    Future<ExchangeResponse<NTrade>> Function({required String id});
+
 class NanswapExchange extends Exchange {
-  NanswapExchange._();
+  NanswapExchange._({NanswapOrderLookup? getOrder})
+    : _getOrder = getOrder ?? NanswapAPI.instance.getOrder;
+
+  @visibleForTesting
+  NanswapExchange.forTesting({required NanswapOrderLookup getOrder})
+    : this._(getOrder: getOrder);
 
   static NanswapExchange? _instance;
   static NanswapExchange get instance => _instance ??= NanswapExchange._();
+
+  final NanswapOrderLookup _getOrder;
 
   static const exchangeName = "Nanswap";
 
@@ -92,13 +104,13 @@ class NanswapExchange extends Exchange {
           payInCurrency: from,
           payInAmount: t.expectedAmountFrom.toString(),
           payInAddress: t.payinAddress,
-          payInNetwork: t.toNetwork ?? t.to,
+          payInNetwork: t.payInNetwork,
           payInExtraId: t.payinExtraId ?? "",
           payInTxid: t.payinHash ?? "",
           payOutCurrency: to,
           payOutAmount: t.expectedAmountTo.toString(),
           payOutAddress: t.payoutAddress,
-          payOutNetwork: t.fromNetwork ?? t.from,
+          payOutNetwork: t.payOutNetwork,
           payOutExtraId: "",
           payOutTxid: t.payoutHash ?? "",
           refundAddress: "",
@@ -319,7 +331,7 @@ class NanswapExchange extends Exchange {
   @override
   Future<ExchangeResponse<Trade>> getTrade(String tradeId) async {
     try {
-      final response = await NanswapAPI.instance.getOrder(id: tradeId);
+      final response = await _getOrder(id: tradeId);
 
       if (response.exception != null) {
         return ExchangeResponse(exception: response.exception);
@@ -338,13 +350,13 @@ class NanswapExchange extends Exchange {
           payInCurrency: t.from,
           payInAmount: t.expectedAmountFrom.toString(),
           payInAddress: t.payinAddress,
-          payInNetwork: t.toNetwork ?? t.to,
+          payInNetwork: t.payInNetwork,
           payInExtraId: t.payinExtraId ?? "",
           payInTxid: t.payinHash ?? "",
           payOutCurrency: t.to,
           payOutAmount: t.expectedAmountTo.toString(),
           payOutAddress: t.payoutAddress,
-          payOutNetwork: t.fromNetwork ?? t.from,
+          payOutNetwork: t.payOutNetwork,
           payOutExtraId: "",
           payOutTxid: t.payoutHash ?? "",
           refundAddress: "",
@@ -377,7 +389,7 @@ class NanswapExchange extends Exchange {
   @override
   Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
     try {
-      final response = await NanswapAPI.instance.getOrder(id: trade.tradeId);
+      final response = await _getOrder(id: trade.tradeId);
 
       if (response.exception != null) {
         return ExchangeResponse(exception: response.exception);
@@ -396,13 +408,13 @@ class NanswapExchange extends Exchange {
           payInCurrency: t.from,
           payInAmount: t.expectedAmountFrom.toString(),
           payInAddress: t.payinAddress,
-          payInNetwork: t.toNetwork ?? trade.payInNetwork,
+          payInNetwork: t.payInNetwork,
           payInExtraId: t.payinExtraId ?? trade.payInExtraId,
           payInTxid: t.payinHash ?? trade.payInTxid,
           payOutCurrency: t.to,
           payOutAmount: t.expectedAmountTo.toString(),
           payOutAddress: t.payoutAddress,
-          payOutNetwork: t.fromNetwork ?? trade.payOutNetwork,
+          payOutNetwork: t.payOutNetwork,
           payOutExtraId: trade.payOutExtraId,
           payOutTxid: t.payoutHash ?? trade.payOutTxid,
           refundAddress: trade.refundAddress,

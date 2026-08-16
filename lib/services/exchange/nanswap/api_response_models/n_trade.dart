@@ -17,6 +17,9 @@ class NTrade {
   final String? fromNetwork;
   final String? toNetwork;
 
+  String get payInNetwork => fromNetwork ?? from;
+  String get payOutNetwork => toNetwork ?? to;
+
   NTrade({
     required this.id,
     required this.from,
