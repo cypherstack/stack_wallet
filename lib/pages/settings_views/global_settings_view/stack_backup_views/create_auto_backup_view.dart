@@ -141,7 +141,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
         Navigator.of(context).pop();
 
         if (savedPath != null) {
-          ref.read(prefsChangeNotifierProvider).autoBackupLocation = savedPath;
+          ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
           ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;
 
           ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = true;
