@@ -54,7 +54,9 @@ class AmountInputFormatter extends TextInputFormatter {
             text.substring(insertedEnd);
       }
     }
-    final selectionEnd = min(newValue.selection.end, text.length);
+    final selectionEnd = newValue.selection.isValid
+        ? min(newValue.selection.end, text.length)
+        : text.length;
     final textBeforeSelection = text
         .substring(0, selectionEnd)
         .replaceAll(groupSeparator, "");

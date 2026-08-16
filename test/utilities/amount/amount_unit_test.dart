@@ -311,4 +311,13 @@ void main() {
     expect(insertedDecimal.text, "1,234");
     expect(insertedDecimal.selection.baseOffset, 2);
   });
+
+  test("formatter tolerates an invalid selection", () {
+    final formatter = AmountInputFormatter(decimals: 8, locale: "en_US");
+    final result = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(text: "1234"),
+    );
+    expect(result.text, "1,234");
+  });
 }
