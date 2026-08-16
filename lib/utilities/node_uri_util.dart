@@ -1,3 +1,5 @@
+bool isValidNodePort(int? port) => port != null && port > 0 && port <= 65535;
+
 abstract interface class NodeQrData {
   final String host;
   final int port;
@@ -109,6 +111,7 @@ abstract final class NodeQrUtil {
 
     switch (uri.scheme) {
       case "xmrrpc":
+        if (!uri.hasPort) throw Exception("Uri has no port.");
         return MoneroNodeQrData(
           host: uri.host,
           port: uri.port,
@@ -117,6 +120,7 @@ abstract final class NodeQrUtil {
           label: query["label"],
         );
       case "wowrpc":
+        if (!uri.hasPort) throw Exception("Uri has no port.");
         return WowneroNodeQrData(
           host: uri.host,
           port: uri.port,
